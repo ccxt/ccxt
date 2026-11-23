@@ -49,9 +49,9 @@ impl Gate {
 }
 
 impl crate::exchange::DerivedExchange for Gate {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Gate.
-        crate::Value::from(Gate::nonce(self, ))
+        Some(Gate::nonce(self))
     }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
@@ -1377,7 +1377,7 @@ impl crate::exchange::DerivedExchange for Gate {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // fetchDeposits
@@ -1591,7 +1591,7 @@ impl crate::exchange::DerivedExchange for Gate {
 
     None
 }
-    fn parse_market_leverage_tiers(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_market_leverage_tiers(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::List> {
         let info: Value = info.into();
         //
         //     [
@@ -1605,7 +1605,7 @@ impl crate::exchange::DerivedExchange for Gate {
         //     ]
         //
         if !(matches!(&info, Value::Arr(_))) {
-            return self.parse_emulated_leverage_tiers(info.clone(), market);
+            return Some(self.parse_emulated_leverage_tiers(info.clone(), market));
         }
         let mut minNotional: Value = Value::Int(0);
         let mut tiers: Vec<Value> = Vec::new();
@@ -1630,11 +1630,11 @@ impl crate::exchange::DerivedExchange for Gate {
             minNotional = Value::from(maxNotional);
         }
         }
-        return Value::from(tiers);
+        return Some(std::sync::Arc::new(tiers));
 
-    Value::Null
+    None
 }
-    fn parse_deposit_withdraw_fee(&self, fee: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_deposit_withdraw_fee(&self, fee: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let fee: Value = fee.into();
         //
         //    {
@@ -1711,9 +1711,9 @@ impl crate::exchange::DerivedExchange for Gate {
             }
         }
         result.insert("networks".into(), Value::Map(networkFees));
-        return Value::Map(result);
+        return Some(std::sync::Arc::new(result));
 
-    Value::Null
+    None
 }
     fn create_expired_option_market(&self, mut symbol: Value) -> Value {
         // support expired option contracts
@@ -2041,8 +2041,8 @@ impl crate::exchange_generated::ExchangeBase for Gate {
                 "parse_contract_market" => self.parse_contract_market(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref()),
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_deposit_address" => Value::Dict(self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_emulated_leverage_tiers" => self.parse_emulated_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_deposit_withdraw_fee" => Value::Dict(self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_emulated_leverage_tiers" => Value::Arr(self.parse_emulated_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_funding_histories" => self.parse_funding_histories(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64)),
                 "parse_funding_history" => Value::Dict(self.parse_funding_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -2052,7 +2052,7 @@ impl crate::exchange_generated::ExchangeBase for Gate {
                 "parse_liquidation" => self.parse_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_margin_loan" => Value::Dict(self.parse_margin_loan(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_margin_modification" => Value::Dict(self.parse_margin_modification(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_market_leverage_tiers" => self.parse_market_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_market_leverage_tiers" => Value::Arr(self.parse_market_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_open_interest" => Value::Dict(self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_option" => self.parse_option(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
@@ -2099,8 +2099,8 @@ impl std::ops::DerefMut for Gate {
 }
 
 impl Gate {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("gate".into()));
         m.insert("name".to_string(), Value::Str("Gate".into()));
@@ -5114,8 +5114,6 @@ impl Gate {
         m.insert("rollingWindowSize".to_string(), Value::Int(5000));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn set_sandbox_mode(&mut self, enable: bool) -> crate::Result<()> {
@@ -6876,7 +6874,7 @@ if _try_result.is_err() {
         if (ticker.is_none()) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id, " fetchTicker() returned empty response")));
         }
-        let __ws_arg_17 = self.extend(Value::Map({
+        let __ws_arg_17 = self.extend_t(Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }), &[&ticker]);
@@ -7930,7 +7928,7 @@ if _try_result.is_err() {
         }
         let __ws_arg_45 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
         let response: crate::value::Dict = self.private_withdrawals_post_withdrawals(&[&__ws_arg_45]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -9953,12 +9951,12 @@ if _try_result.is_err() {
             let __ws_arg_85 = self.extend(request, &[&requestParams]);
             response = self.public_delivery_get_settle_risk_limit_tiers(&[&__ws_arg_85]).await;
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_market_leverage_tiers(self, &response, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_market_leverage_tiers(self, &response, Some(&market)).map_or(Value::Null, Value::Arr);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_emulated_leverage_tiers(&self, mut info: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_emulated_leverage_tiers(&self, mut info: Value, market: Option<&crate::types::Market>) -> crate::value::List {
         let marketId: Option<String> = self.safe_string_k_opt(&info, "name", &[]);
         let maintenanceMarginUnit: Option<String> = self.safe_string_k_opt(&info, "maintenance_rate", &[]); // '0.005',
         let leverageMax: Option<String> = self.safe_string_k_opt(&info, "leverage_max", &[]); // '100',
@@ -9987,9 +9985,9 @@ if _try_result.is_err() {
             initialMarginRatio = crate::precise::Precise::stringAdd(&initialMarginRatio, &initialMarginUnit).as_str().map(str::to_owned);
             floor = cap.map(Value::from).unwrap_or(Value::Null);
         }
-        return Value::from(tiers);
+        return std::sync::Arc::new(tiers);
 
-    Value::Null
+    Default::default()
 }
 
 

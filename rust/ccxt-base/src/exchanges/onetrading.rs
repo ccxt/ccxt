@@ -510,8 +510,8 @@ impl crate::exchange::DerivedExchange for Onetrading {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         let balances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "balances"));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -710,8 +710,8 @@ impl std::ops::DerefMut for Onetrading {
 }
 
 impl Onetrading {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("onetrading".into()));
         m.insert("name".to_string(), Value::Str("One Trading".into()));
@@ -1271,8 +1271,6 @@ impl Onetrading {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -1343,7 +1341,7 @@ impl Onetrading {
     m
 }));
         let response: crate::value::List = self.public_get_instruments(&[&params]).await.unwrap_or_default();
-        return self.parse_markets(&response);
+        return Value::Arr(self.parse_markets(&response));
         Value::Null
         }).await?))
     }
@@ -1882,7 +1880,7 @@ impl Onetrading {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let response: crate::value::Dict = self.private_get_account_balances(&[&params]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, Some(&response)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

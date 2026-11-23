@@ -49,9 +49,9 @@ impl Hibachi {
 }
 
 impl crate::exchange::DerivedExchange for Hibachi {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Hibachi.
-        crate::Value::from(Hibachi::nonce(self, ))
+        Some(Hibachi::nonce(self))
     }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
@@ -330,8 +330,8 @@ impl crate::exchange::DerivedExchange for Hibachi {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -466,7 +466,7 @@ impl crate::exchange::DerivedExchange for Hibachi {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         let timestamp: Option<i64> = self.safe_integer_product_k(&transaction, "timestampSec", Value::Int(1000), &[]).as_i64();
         let address: Option<String> = self.safe_string_k_opt(&transaction, "withdrawalAddress", &[]);
@@ -660,8 +660,8 @@ impl std::ops::DerefMut for Hibachi {
 }
 
 impl Hibachi {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("hibachi".into()));
         m.insert("name".to_string(), Value::Str("Hibachi".into()));
@@ -1101,8 +1101,6 @@ impl Hibachi {
         m.insert("precisionMode".to_string(), Value::Int(crate::runtime::TICK_SIZE));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn get_account_id(&self) -> Value {
@@ -1159,7 +1157,7 @@ impl Hibachi {
         //     "underlyingSymbol": "ETH"
         // },
         let rows: crate::value::List = self.safe_list_k_t(&response, "futureContracts");
-        return self.parse_markets(&rows);
+        return Value::Arr(self.parse_markets(&rows));
         Value::Null
         }).await?))
     }
@@ -1273,7 +1271,7 @@ impl Hibachi {
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.private_get_trade_account_info(&[&__ws_arg_0]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, Some(&response)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

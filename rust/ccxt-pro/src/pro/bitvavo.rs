@@ -207,8 +207,8 @@ impl std::ops::DerefMut for Bitvavo {
 }
 
 impl Bitvavo {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -277,8 +277,6 @@ impl Bitvavo {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub async fn watch_public(&mut self, name: &str, symbol: &str, optional_args: &[Value]) -> Value {
@@ -2511,7 +2509,7 @@ impl Bitvavo {
         //    }
         //
         let response: crate::value::List = message.key_list("response");
-        let markets: crate::value::List = self.parse_markets(&response).into_list();
+        let markets: crate::value::List = self.parse_markets(&response);
         let messageHash: Option<String> = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         client.resolve(Value::Arr(markets), messageHash.as_deref());
 }

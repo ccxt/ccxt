@@ -66,13 +66,13 @@ impl crate::exchange_generated::ExchangeBase for Bingx {
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_subscription_status" => self.handle_subscription_status(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "keep_alive_listen_key" => self.keep_alive_listen_key(&args[..]).await,
-                "load_balance_snapshot" => self.load_balance_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)).await,
-                "load_positions_snapshot" => self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
+                "keep_alive_listen_key" => { self.keep_alive_listen_key(&args[..]).await; crate::Value::Null },
+                "load_balance_snapshot" => { self.load_balance_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
+                "load_positions_snapshot" => { self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "parse_ws_ohlcv" => Value::Arr(self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_position" => Value::Dict(self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
-                "pong" => self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
+                "pong" => { self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "un_watch" => self.un_watch(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null),
                     args.get(4).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(5).cloned().unwrap_or_default()).as_ref(), args.get(6).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[7.min(args.len())..]).await,
                 "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
@@ -154,8 +154,8 @@ impl std::ops::DerefMut for Bingx {
 }
 
 impl Bingx {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -277,8 +277,6 @@ impl Bingx {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub async fn un_watch(&mut self, messageHash: &str, subMessageHash: &str, subscribeHash: &str, mut dataType: Value, topic: &str, market: Option<&crate::types::Market>, methodName: &str, optional_args: &[Value]) -> Value {
@@ -1665,7 +1663,7 @@ impl Bingx {
         }
 }
 
-    pub async fn load_balance_snapshot(&mut self, client: &Value, mut messageHash: Value, mut type_var: Value, mut subType: Value) -> Value {
+    pub async fn load_balance_snapshot(&mut self, client: &Value, mut messageHash: Value, mut type_var: Value, mut subType: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let response: crate::types::Balances = (match self.fetch_balance(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1684,8 +1682,6 @@ impl Bingx {
             future.resolve(Value::Null, None);
             client.resolve((if let Some(__k) = type_var.as_str() { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", type_var, ":balance").into())));
         }
-
-    Value::Null
 }
 
 /*
@@ -1788,7 +1784,7 @@ impl Bingx {
         }
 }
 
-    pub async fn load_positions_snapshot(&mut self, client: &Value, mut messageHash: Value, mut type_var: Value) -> Value {
+    pub async fn load_positions_snapshot(&mut self, client: &Value, mut messageHash: Value, mut type_var: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let mut positions: Vec<crate::types::Position> = (match self.fetch_positions(None, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1814,8 +1810,6 @@ impl Bingx {
             future.resolve(Value::from(&self.positions), None);
             client.resolve(Value::from(&self.positions), "swap:positions");
         }
-
-    Value::Null
 }
 
     pub fn parse_ws_position(&self, mut position: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
@@ -1973,14 +1967,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub async fn keep_alive_listen_key(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn keep_alive_listen_key(&mut self, optional_args: &[Value]) {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
         let mut listenKey: Option<String> = self.safe_string_k_opt(&self.options, "listenKey", &[]);
         if (listenKey.is_none()) {
-            return Value::Null;
+            return;
         }
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             self.parent.user_auth_private_put_user_data_stream(&[&Value::Map({
@@ -2015,13 +2009,11 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             }
             { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("listenKey".into(), Value::Null); }
             { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("lastAuthenticatedTime".into(), Value::Int(0)); }
-            return Value::Null;
+            return;
         }
         // whether or not to schedule another listenKey keepAlive request
         let listenKeyRefreshRate: i64 = self.safe_integer_k(&self.options, "listenKeyRefreshRate", &[Value::Int(3600000)]).as_i64().unwrap_or(3600000);
         self.delay(Value::from(listenKeyRefreshRate), &[Value::Str("keep_alive_listen_key".into()), params]).await;
-
-    Value::Null
 }
 
     pub async fn authenticate(&mut self, optional_args: &[&Value]) -> Value {
@@ -2077,7 +2069,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub async fn pong(&mut self, mut client: Value, mut message: Value) -> Value {
+    pub async fn pong(&mut self, mut client: Value, mut message: Value) {
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             if (message.as_str() == Some("Ping")) {
                 client.send(&[Value::Str("Pong".into())]);
@@ -2096,8 +2088,6 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let error = Value::from(crate::exchange_errors::network_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " pong failed with error ").into()), self.exception_message(e, &[]))));
             client.reset(error);
         }
-
-    Value::Null
 }
 
     pub fn handle_order(&mut self, client: &Value, mut message: Value) {

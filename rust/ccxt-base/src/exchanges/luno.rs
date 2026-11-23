@@ -273,8 +273,8 @@ impl crate::exchange::DerivedExchange for Luno {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         let wallets: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "balance"));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -608,8 +608,8 @@ impl std::ops::DerefMut for Luno {
 }
 
 impl Luno {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("luno".into()));
         m.insert("name".to_string(), Value::Str("Luno".into()));
@@ -1239,8 +1239,6 @@ impl Luno {
         m.insert("rollingWindowSize".to_string(), Value::Int(60000));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -1508,7 +1506,7 @@ impl Luno {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let response: crate::value::Dict = self.call_method_t("private_get_balance", &[&params]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, Some(&response)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

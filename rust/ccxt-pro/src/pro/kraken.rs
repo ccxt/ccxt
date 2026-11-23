@@ -176,8 +176,8 @@ impl std::ops::DerefMut for Kraken {
 }
 
 impl Kraken {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -308,8 +308,6 @@ impl Kraken {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn order_request_ws(&self, mut method: Value, mut symbol: Value, mut type_var: Value, mut request: Value, orderParams: &mut indexmap::IndexMap<String, Value>, mut amount: Value, optional_args: &[&Value]) -> (crate::value::Dict, crate::value::Dict) {

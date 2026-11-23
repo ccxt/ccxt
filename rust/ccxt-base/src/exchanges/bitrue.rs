@@ -49,9 +49,9 @@ impl Bitrue {
 }
 
 impl crate::exchange::DerivedExchange for Bitrue {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Bitrue.
-        crate::Value::from(Bitrue::nonce(self, ))
+        Some(Bitrue::nonce(self))
     }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
@@ -512,8 +512,8 @@ impl crate::exchange::DerivedExchange for Bitrue {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         //
         // spot
         //
@@ -721,7 +721,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // fetchDeposits
@@ -860,7 +860,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
 
     None
 }
-    fn parse_deposit_withdraw_fee(&self, fee: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_deposit_withdraw_fee(&self, fee: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let fee: Value = fee.into();
         //
         //   {
@@ -932,9 +932,9 @@ impl crate::exchange::DerivedExchange for Bitrue {
             }
         }
         result.insert("networks".into(), Value::Map(networks));
-        return Value::Map(result);
+        return Some(std::sync::Arc::new(result));
 
-    Value::Null
+    None
 }
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
@@ -1149,7 +1149,7 @@ impl crate::exchange_generated::ExchangeBase for Bitrue {
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_deposit_withdraw_fee" => Value::Dict(self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_margin_modification" => Value::Dict(self.parse_margin_modification(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1181,8 +1181,8 @@ impl std::ops::DerefMut for Bitrue {
 }
 
 impl Bitrue {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("bitrue".into()));
         m.insert("name".to_string(), Value::Str("Bitrue".into()));
@@ -2195,8 +2195,6 @@ impl Bitrue {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn nonce(&self) -> i64 {
@@ -2461,7 +2459,7 @@ impl Bitrue {
         if matches!(self.safe_bool_k(&self.options, "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
-        return self.parse_markets(markets);
+        return Value::Arr(self.parse_markets(markets));
         Value::Null
         }).await?))
     }
@@ -2519,7 +2517,7 @@ impl Bitrue {
             response = self.spot_v1_private_get_account(&[&Value::Dict(paramsSubType)]).await;
             result = response;
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &result).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, result.as_ref()).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3859,7 +3857,7 @@ impl Bitrue {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &data, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&data), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

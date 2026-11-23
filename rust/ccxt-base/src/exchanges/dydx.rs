@@ -49,9 +49,9 @@ impl Dydx {
 }
 
 impl crate::exchange::DerivedExchange for Dydx {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Dydx.
-        crate::Value::from(Dydx::nonce(self, ))
+        Some(Dydx::nonce(self))
     }
     fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let trade: Value = trade.into();
@@ -289,8 +289,8 @@ impl crate::exchange::DerivedExchange for Dydx {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         let mut account: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.account());
         account.insert("free".into(), self.safe_string_k(&response, "freeCollateral", &[]));
         let result: indexmap::IndexMap<String, Value> = ({
@@ -468,7 +468,7 @@ impl crate::exchange::DerivedExchange for Dydx {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // {
@@ -678,8 +678,8 @@ impl std::ops::DerefMut for Dydx {
 }
 
 impl Dydx {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("dydx".into()));
         m.insert("name".to_string(), Value::Str("dYdX".into()));
@@ -1437,8 +1437,6 @@ impl Dydx {
         m.insert("precisionMode".to_string(), Value::Int(crate::runtime::TICK_SIZE));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -1525,7 +1523,7 @@ impl Dydx {
             m
         })]).as_map().cloned().unwrap_or_default();
         let markets: crate::value::List = crate::value::List::new(data.values().cloned().collect());
-        return self.parse_markets(&markets);
+        return Value::Arr(self.parse_markets(&markets));
         Value::Null
         }).await?))
     }
@@ -3164,7 +3162,7 @@ impl Dydx {
         // }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &data, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&data), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3521,7 +3519,7 @@ impl Dydx {
         // }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "subaccount");
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &data).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, Some(&data)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

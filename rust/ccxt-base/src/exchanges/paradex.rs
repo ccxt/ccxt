@@ -769,7 +769,7 @@ impl crate::exchange::DerivedExchange for Paradex {
 
     Value::Null
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // fetchDeposits & fetchWithdrawals
@@ -826,7 +826,7 @@ impl crate::exchange::DerivedExchange for Paradex {
 
     None
 }
-    fn parse_income(&self, income: &crate::value::Dict, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_income(&self, income: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let income: Value = income.into();
         //
         //     {
@@ -921,7 +921,7 @@ impl crate::exchange::DerivedExchange for Paradex {
 
     Value::Null
 }
-    fn parse_margin_mode(&self, rawMarginMode: &crate::value::Dict, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_margin_mode(&self, rawMarginMode: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let rawMarginMode: Value = rawMarginMode.into();
         let marketId: Option<String> = self.safe_string_k_opt(&rawMarginMode, "market", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
@@ -1334,8 +1334,8 @@ impl std::ops::DerefMut for Paradex {
 }
 
 impl Paradex {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("paradex".into()));
         m.insert("name".to_string(), Value::Str("Paradex".into()));
@@ -2406,8 +2406,6 @@ impl Paradex {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -2571,7 +2569,7 @@ impl Paradex {
             }
         }
         }
-        return self.parse_markets(Value::from(wanted));
+        return Value::Arr(self.parse_markets(Value::from(wanted)));
         Value::Null
         }).await?))
     }
@@ -5172,7 +5170,7 @@ impl Paradex {
         // }
         //
         let configs: crate::value::List = self.safe_list_k_t(&response, "configs");
-        return <Self as crate::exchange::DerivedExchange>::parse_margin_mode(self, &<crate::value::Dict as crate::value::EndpointBody>::from_body(self.safe_dict(&configs, Value::Int(0), &[])).unwrap_or_default(), Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_margin_mode(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(self.safe_dict(&configs, Value::Int(0), &[])).as_ref(), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

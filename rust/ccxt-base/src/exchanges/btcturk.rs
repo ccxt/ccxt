@@ -49,9 +49,9 @@ impl Btcturk {
 }
 
 impl crate::exchange::DerivedExchange for Btcturk {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Btcturk.
-        crate::Value::from(Btcturk::nonce(self, ))
+        Some(Btcturk::nonce(self))
     }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
@@ -361,8 +361,8 @@ impl crate::exchange::DerivedExchange for Btcturk {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -512,8 +512,8 @@ impl std::ops::DerefMut for Btcturk {
 }
 
 impl Btcturk {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("btcturk".into()));
         m.insert("name".to_string(), Value::Str("BTCTurk".into()));
@@ -894,8 +894,6 @@ impl Btcturk {
         m.insert("precisionMode".to_string(), Value::Int(crate::runtime::TICK_SIZE));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -962,7 +960,7 @@ impl Btcturk {
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let markets: crate::value::List = self.safe_list_k_t(&data, "symbols");
-        return self.parse_markets(&markets);
+        return Value::Arr(self.parse_markets(&markets));
         Value::Null
         }).await?))
     }
@@ -991,7 +989,7 @@ impl Btcturk {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let response: crate::value::Dict = self.private_get_users_balances(&[&params]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, Some(&response)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

@@ -67,7 +67,7 @@ impl crate::exchange_generated::ExchangeBase for Bittrade {
                 "handle_system_status" => self.handle_system_status(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_ticker" => self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_trades" => self.handle_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "pong" => self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
+                "pong" => { self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "request_id" => crate::Value::from(self.request_id()),
                 "watch_ohlcv" => crate::types::IntoRaw::into_raw(self.watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
@@ -123,8 +123,8 @@ impl std::ops::DerefMut for Bittrade {
 }
 
 impl Bittrade {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -170,8 +170,6 @@ impl Bittrade {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn request_id(&mut self) -> i64 {
@@ -897,7 +895,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 }
 
-    pub async fn pong(&mut self, mut client: Value, mut message: Value) -> Value {
+    pub async fn pong(&mut self, mut client: Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -908,8 +906,6 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("pong".to_string(), (match message.get("ping") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }));
             m
         })]);
-
-    Value::Null
 }
 
     pub fn handle_ping(&mut self, mut client: Value, mut message: Value) {

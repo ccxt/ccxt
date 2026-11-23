@@ -78,13 +78,13 @@ impl std::ops::DerefMut for Bequant {
 }
 
 impl Bequant {
-    pub fn describe(&self) -> Value {
+    pub fn describe(&self) -> crate::value::Dict {
         // eslint-disable-next-line new-cap
         let mut restInstance = crate::exchanges::bequant::Bequant::new(None);
-        let restDescribe: Value = restInstance.describe();
+        let restDescribe: Value = Value::Dict(restInstance.describe());
         let parentWsDescribe: Value = self.parent.describe_data();
         let extended: crate::value::Dict = self.deep_extend_t(restDescribe, &[parentWsDescribe]);
-        return self.deep_extend(extended, &[Value::Map({
+        return self.deep_extend_t(extended, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("bequant".into()));
         m.insert("name".to_string(), Value::Str("Bequant".into()));
@@ -113,7 +113,5 @@ impl Bequant {
 }));
     m
 })]);
-
-    Value::Null
 }
 }

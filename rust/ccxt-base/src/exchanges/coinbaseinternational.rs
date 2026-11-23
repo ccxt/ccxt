@@ -824,7 +824,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
 
     Value::Null
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         //     {
@@ -1124,8 +1124,8 @@ impl std::ops::DerefMut for Coinbaseinternational {
 }
 
 impl Coinbaseinternational {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("coinbaseinternational".into()));
         m.insert("name".to_string(), Value::Str("Coinbase International".into()));
@@ -2108,8 +2108,6 @@ impl Coinbaseinternational {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -2267,7 +2265,7 @@ impl Coinbaseinternational {
         //     }
         //
         let instruments: crate::value::List = self.safe_list_k_t(&response, "result");
-        return self.parse_markets(&instruments);
+        return Value::Arr(self.parse_markets(&instruments));
         Value::Null
         }).await?))
     }

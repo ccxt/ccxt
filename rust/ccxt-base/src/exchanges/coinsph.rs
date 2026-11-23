@@ -340,8 +340,8 @@ impl crate::exchange::DerivedExchange for Coinsph {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         let balances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "balances"));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -464,7 +464,7 @@ impl crate::exchange::DerivedExchange for Coinsph {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // fetchDeposits
@@ -708,8 +708,8 @@ impl std::ops::DerefMut for Coinsph {
 }
 
 impl Coinsph {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("coinsph".into()));
         m.insert("name".to_string(), Value::Str("Coins.ph".into()));
@@ -1620,8 +1620,6 @@ impl Coinsph {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -2341,7 +2339,7 @@ impl Coinsph {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let response: crate::value::Dict = self.private_get_openapi_v1_account(&[&params]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, Some(&response)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2944,7 +2942,7 @@ impl Coinsph {
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsWithdrawTag, Value::Str("network".into()), &[]);
         let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let response: crate::value::Dict = self.private_post_openapi_wallet_v1_withdraw_apply(&[&__ws_arg_19]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

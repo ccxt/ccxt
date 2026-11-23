@@ -67,7 +67,7 @@ impl crate::exchange_generated::ExchangeBase for Mexc {
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_protobuf_message" => self.handle_protobuf_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "keep_alive_listen_key" => self.keep_alive_listen_key(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "keep_alive_listen_key" => { self.keep_alive_listen_key(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await; crate::Value::Null },
                 "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_ohlcv" => Value::Arr(self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -173,8 +173,8 @@ impl std::ops::DerefMut for Mexc {
 }
 
 impl Mexc {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -261,8 +261,6 @@ impl Mexc {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -2659,13 +2657,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub async fn keep_alive_listen_key(&mut self, mut listenKey: Value, optional_args: &[Value]) -> Value {
+    pub async fn keep_alive_listen_key(&mut self, mut listenKey: Value, optional_args: &[Value]) {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
         if (listenKey == Value::Null) {
-            return Value::Null;
+            return;
         }
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2689,8 +2687,6 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             client.reject(error, None);
             if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.clients, &(client).url.clone()) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
         }
-
-    Value::Null
 }
 
     pub fn handle_pong(&self, mut client: Value, mut message: Value) -> Value {

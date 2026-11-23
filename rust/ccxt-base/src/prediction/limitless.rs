@@ -52,9 +52,9 @@ impl Limitless {
 }
 
 impl crate::exchange::DerivedExchange for Limitless {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Limitless.
-        crate::Value::from(Limitless::nonce(self, ))
+        Some(Limitless::nonce(self))
     }
     fn parse_market(&self, raw: impl Into<crate::Value>) -> Value {
         let raw: Value = raw.into();
@@ -305,7 +305,7 @@ impl crate::exchange::DerivedExchange for Limitless {
 
     Value::Null
 }
-    fn parse_account(&self, account: &crate::value::Dict) -> Option<crate::value::Dict> {
+    fn parse_account(&self, account: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
         let account: Value = account.into();
         let accountId: Option<String> = self.safe_string_k_opt(&account, "id", &[]);
         return Some(std::sync::Arc::new({
@@ -862,8 +862,8 @@ impl std::ops::DerefMut for Limitless {
 }
 
 impl Limitless {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("limitless".into()));
         m.insert("name".to_string(), Value::Str("Limitless".into()));
@@ -1301,8 +1301,6 @@ impl Limitless {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*

@@ -23,8 +23,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
     fn pred_mut(&mut self) -> &mut crate::prediction_exchange::PredictionExchange;
 
 
-    fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -84,8 +84,6 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     fn is_prediction(&self) -> Value {

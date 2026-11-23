@@ -517,8 +517,8 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         //
         //     {
         //         "ledger": { "USD": { "cashbalance": 1000.0, ... }, "BASE": { "timestamp": 1702582321, ... } },
@@ -766,7 +766,7 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
 
     None
 }
-    fn parse_account(&self, account: &crate::value::Dict) -> Option<crate::value::Dict> {
+    fn parse_account(&self, account: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
         let account: Value = account.into();
         //
         //     {
@@ -1004,7 +1004,7 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
                 "ibkr_oauth_base" => crate::Value::Dict(self.ibkr_oauth_base(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "ibkr_path_params" => self.ibkr_path_params(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "ibkr_snapshot_ready" => self.ibkr_snapshot_ready(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()),
-                "load_account_id" => self.load_account_id(&args[..]).await,
+                "load_account_id" => { let __t = self.load_account_id(&args[..]).await; Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "load_markets" => crate::types::IntoRaw::into_raw(self.load_markets(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).cloned().unwrap_or_default()).await),
                 "markets_endpoint_call" => self.markets_endpoint_call(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]).await,
                 "parse_account" => Value::Dict(self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null))),
@@ -1039,8 +1039,8 @@ impl std::ops::DerefMut for Interactivebrokers {
 }
 
 impl Interactivebrokers {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("interactivebrokers".into()));
         m.insert("name".to_string(), Value::Str("Interactive Brokers".into()));
@@ -2481,8 +2481,6 @@ impl Interactivebrokers {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -2946,25 +2944,23 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {string} [params.accountId] the account id to use
  * @returns {Array} the account id and the params without accountId
  */
-    pub async fn load_account_id(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn load_account_id(&mut self, optional_args: &[Value]) -> (Value, crate::value::Dict) {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
-        let accountIdFromParamsqueryVariable = self.handle_option_and_params(params, Value::Str("loadAccountId".into()), Value::Str("accountId".into()), &[]);
-        let accountIdFromParams: Value = accountIdFromParamsqueryVariable.0;
+        let accountIdFromParamsqueryVariable = self.handle_option_string_and_params(params, Value::Str("loadAccountId".into()), Value::Str("accountId".into()), &[]);
+        let accountIdFromParams: Option<String> = accountIdFromParamsqueryVariable.0.as_str().map(str::to_owned);
         let query: crate::value::Dict = accountIdFromParamsqueryVariable.1;
-        let mut accountId: Value = accountIdFromParams;
-        if (accountId == Value::Null) {
+        let mut accountId: Option<String> = accountIdFromParams;
+        if (accountId.is_none()) {
             if let Err(__e) = self.fetch_accounts(Value::Null).await { panic!("{}", __e) }
-            accountId = self.safe_string_k(&self.options, "accountId", &[]);
+            accountId = self.safe_string_k_opt(&self.options, "accountId", &[]);
         }
-        if (accountId == Value::Null) {
+        if (accountId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires an accountId in params[\"accountId\"] or options[\"accountId\"], fetchAccounts() returned no accounts")));
         }
-        return Value::from(vec![accountId, Value::Dict(query)]);
-
-    Value::Null
+        return (accountId.map(Value::from).unwrap_or(Value::Null), query);
 }
 
 /*
@@ -2991,13 +2987,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 }));
         self.authenticate(&[]).await;
-        let accountIdaccountQueryVariable: Vec<Value> = self.load_account_id(&[params]).await.as_array().cloned().unwrap_or_default();
-        let accountId: Option<String> = accountIdaccountQueryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let accountQuery: Value = accountIdaccountQueryVariable.get(1).cloned().unwrap_or(Value::Null);
+        let accountIdaccountQueryVariable = self.load_account_id(&[params]).await;
+        let accountId: Option<String> = accountIdaccountQueryVariable.0.as_str().map(str::to_owned);
+        let accountQuery: crate::value::Dict = accountIdaccountQueryVariable.1;
         let accountParams: crate::value::Dict = self.extend_t(Value::Map({
             let m = indexmap::IndexMap::new();
             m
-        }), &[accountQuery]);
+        }), &[&accountQuery]);
         let withPositionspositionsQueryVariable = self.handle_option_bool_and_params(&accountParams, Value::Str("fetchBalance".into()), Value::Str("positions".into()), &[Value::Bool(true)]);
         let withPositions: bool = withPositionspositionsQueryVariable.0 == Some(true);
         let positionsQuery: crate::value::Dict = withPositionspositionsQueryVariable.1;
@@ -3065,7 +3061,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             // the 'orders' key is present only when the open orders were fetched, then the currencies without open orders get used = 0
             balanceResponse.insert("orders".into(), self.safe_list(&results, Value::from(index), &[]));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, Value::Map(balanceResponse)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(Value::Map(balanceResponse)).as_ref()).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3357,7 +3353,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         }
         let detailMarkets: Value = self.fetch_sec_with_details(Value::Map(entries)).await;
-        return self.parse_markets(detailMarkets);
+        return Value::Arr(self.parse_markets(detailMarkets));
 
     Value::Null
 }
@@ -3420,7 +3416,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         }
         let detailMarkets: Value = self.fetch_sec_with_details(Value::Map(entries)).await;
-        return self.parse_markets(detailMarkets);
+        return Value::Arr(self.parse_markets(detailMarkets));
 
     Value::Null
 }
@@ -3588,7 +3584,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
         }
         }
-        let markets: Vec<Value> = self.parse_markets(Value::from(detailMarkets)).as_array().cloned().unwrap_or_default();
+        let markets: Vec<Value> = self.parse_markets(Value::from(detailMarkets)).to_vec();
         let withSwaps: bool = self.in_array(Value::Str("swap".into()), Value::from(&types));
         let withFutures: bool = self.in_array(Value::Str("future".into()), Value::Arr(types));
         let mut result: Vec<Value> = Vec::new();
@@ -3683,7 +3679,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
         }
         }
-        return self.parse_markets(Value::from(result));
+        return Value::Arr(self.parse_markets(Value::from(result)));
 
     Value::Null
 }
@@ -3791,7 +3787,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         }
         let detailMarkets: Value = self.fetch_sec_with_details(Value::Map(entries)).await;
-        let markets: Vec<Value> = self.parse_markets(detailMarkets).as_array().cloned().unwrap_or_default();
+        let markets: Vec<Value> = self.parse_markets(detailMarkets).to_vec();
         // bonds sharing the issuer, coupon and maturity (e.g. a bill and a strip) are told apart by the conid, e.g. US-T-270215-265342934.SMART/USD
         let mut seen: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -3870,7 +3866,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         }
         let markets: Value = self.fetch_sec_with_details(Value::Map(entries)).await;
-        return self.parse_markets(markets);
+        return Value::Arr(self.parse_markets(markets));
 
     Value::Null
 }
@@ -4438,7 +4434,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_44: bool = true;
             while { if !__for_first_44 { i += 1; } __for_first_44 = false; i < (portfolioAccounts.len() as i64) } {
-            accounts.push(<Self as crate::exchange::DerivedExchange>::parse_account(self, &<crate::value::Dict as crate::value::EndpointBody>::from_body(crate::value::KeyRead::read(&&portfolioAccounts, &Value::Int(i))).unwrap_or_default()).map_or(Value::Null, Value::Dict));
+            accounts.push(<Self as crate::exchange::DerivedExchange>::parse_account(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(crate::value::KeyRead::read(&&portfolioAccounts, &Value::Int(i))).as_ref()).map_or(Value::Null, Value::Dict));
         }
         }
         return Value::from(accounts);
@@ -4578,10 +4574,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let accountIdparamsWithoutAccoundIdVariable: Vec<Value> = self.load_account_id(&[params]).await.as_array().cloned().unwrap_or_default();
-        let accountId: Option<String> = accountIdparamsWithoutAccoundIdVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let paramsWithoutAccoundId: Value = accountIdparamsWithoutAccoundIdVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut orderRequest: crate::value::Dict = self.create_order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, price, &[&paramsWithoutAccoundId]);
+        let accountIdparamsWithoutAccoundIdVariable = self.load_account_id(&[params]).await;
+        let accountId: Option<String> = accountIdparamsWithoutAccoundIdVariable.0.as_str().map(str::to_owned);
+        let paramsWithoutAccoundId: crate::value::Dict = accountIdparamsWithoutAccoundIdVariable.1;
+        let mut orderRequest: crate::value::Dict = self.create_order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, price, &[&Value::Dict(paramsWithoutAccoundId)]);
         std::sync::Arc::make_mut(&mut orderRequest).insert("acctId".into(), Value::from(accountId.as_deref()));
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4606,10 +4602,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let accountIdparamsWithoutAccoundIdVariable: Vec<Value> = self.load_account_id(&[params]).await.as_array().cloned().unwrap_or_default();
-        let accountId: Option<String> = accountIdparamsWithoutAccoundIdVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let paramsWithoutAccoundId: Value = accountIdparamsWithoutAccoundIdVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut orderRequest: crate::value::Dict = self.create_order_request(symbol, type_var, side, amount.as_f64().unwrap_or_default(), price.as_f64(), &[&paramsWithoutAccoundId]);
+        let accountIdparamsWithoutAccoundIdVariable = self.load_account_id(&[params]).await;
+        let accountId: Option<String> = accountIdparamsWithoutAccoundIdVariable.0.as_str().map(str::to_owned);
+        let paramsWithoutAccoundId: crate::value::Dict = accountIdparamsWithoutAccoundIdVariable.1;
+        let mut orderRequest: crate::value::Dict = self.create_order_request(symbol, type_var, side, amount.as_f64().unwrap_or_default(), price.as_f64(), &[&Value::Dict(paramsWithoutAccoundId)]);
         std::sync::Arc::make_mut(&mut orderRequest).insert("acctId".into(), Value::from(accountId.as_deref()));
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4817,10 +4813,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let accountIdqueryVariable: Vec<Value> = self.load_account_id(&[params]).await.as_array().cloned().unwrap_or_default();
-        let accountId: Option<String> = accountIdqueryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let query: Value = accountIdqueryVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut orderRequest: indexmap::IndexMap<String, Value> = Value::Dict(self.create_order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.unwrap_or_default(), price, &[&query])).as_map().cloned().unwrap_or_default();
+        let accountIdqueryVariable = self.load_account_id(&[params]).await;
+        let accountId: Option<String> = accountIdqueryVariable.0.as_str().map(str::to_owned);
+        let query: crate::value::Dict = accountIdqueryVariable.1;
+        let mut orderRequest: indexmap::IndexMap<String, Value> = Value::Dict(self.create_order_request(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.unwrap_or_default(), price, &[&Value::Dict(query)])).as_map().cloned().unwrap_or_default();
         orderRequest.insert("acctId".into(), Value::from(accountId.as_deref()));
         orderRequest.insert("accountId".into(), accountId.map(Value::from).unwrap_or(Value::Null));
         orderRequest.insert("orderId".into(), id);
@@ -4867,16 +4863,16 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let accountIdqueryVariable: Vec<Value> = self.load_account_id(&[params]).await.as_array().cloned().unwrap_or_default();
-        let accountId: Option<String> = accountIdqueryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let query: Value = accountIdqueryVariable.get(1).cloned().unwrap_or(Value::Null);
+        let accountIdqueryVariable = self.load_account_id(&[params]).await;
+        let accountId: Option<String> = accountIdqueryVariable.0.as_str().map(str::to_owned);
+        let query: crate::value::Dict = accountIdqueryVariable.1;
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("orderId".to_string(), id);
             m
         });
-        let __ws_arg_12 = self.extend(Value::Map(request), &[query]);
+        let __ws_arg_12 = self.extend(Value::Map(request), &[&query]);
         let response: crate::value::Dict = self.webapi_delete_v1_api_iserver_account_account_id_order_order_id(&[&__ws_arg_12]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, market.as_ref());
         None
@@ -5353,10 +5349,10 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchMyTrades() requires a symbol argument when fetching trades from pa/transactions")));
         }
         let options: crate::value::Dict = self.safe_dict_k_t(&self.options, "fetchMyTrades");
-        let accountIdaccountQueryVariable: Vec<Value> = self.load_account_id(&[params]).await.as_array().cloned().unwrap_or_default();
-        let accountId: Option<String> = accountIdaccountQueryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let accountQuery: Value = accountIdaccountQueryVariable.get(1).cloned().unwrap_or(Value::Null);
-        let currencyqueryVariable = self.handle_option_and_params(accountQuery, Value::Str("fetchMyTrades".into()), Value::Str("currency".into()), &[self.safe_string_k(&options, "transactionsCurrency", &[Value::Str("USD".into())])]);
+        let accountIdaccountQueryVariable = self.load_account_id(&[params]).await;
+        let accountId: Option<String> = accountIdaccountQueryVariable.0.as_str().map(str::to_owned);
+        let accountQuery: crate::value::Dict = accountIdaccountQueryVariable.1;
+        let currencyqueryVariable = self.handle_option_and_params(&accountQuery, Value::Str("fetchMyTrades".into()), Value::Str("currency".into()), &[self.safe_string_k(&options, "transactionsCurrency", &[Value::Str("USD".into())])]);
         let currency: Option<String> = currencyqueryVariable.0.as_str().map(str::to_owned);
         let query: crate::value::Dict = currencyqueryVariable.1;
         let mut days: Option<i64> = self.safe_integer_k(&options, "transactionsDays", &[Value::Int(90)]).as_i64();
@@ -5478,15 +5474,15 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let accountIdqueryVariable: Vec<Value> = self.load_account_id(&[params]).await.as_array().cloned().unwrap_or_default();
-        let accountId: Option<String> = accountIdqueryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let query: Value = accountIdqueryVariable.get(1).cloned().unwrap_or(Value::Null);
+        let accountIdqueryVariable = self.load_account_id(&[params]).await;
+        let accountId: Option<String> = accountIdqueryVariable.0.as_str().map(str::to_owned);
+        let query: crate::value::Dict = accountIdqueryVariable.1;
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_16 = self.extend(Value::Map(request), &[query]);
+        let __ws_arg_16 = self.extend(Value::Map(request), &[&query]);
         let response: crate::value::List = self.webapi_get_v1_api_portfolio2_account_id_positions(&[&__ws_arg_16]).await.unwrap_or_default();
         return Value::Arr(self.parse_positions(&response, &[Value::from(symbols)]));
         Value::Null
@@ -5519,16 +5515,16 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let accountIdqueryVariable: Vec<Value> = self.load_account_id(&[params]).await.as_array().cloned().unwrap_or_default();
-        let accountId: Option<String> = accountIdqueryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let query: Value = accountIdqueryVariable.get(1).cloned().unwrap_or(Value::Null);
+        let accountIdqueryVariable = self.load_account_id(&[params]).await;
+        let accountId: Option<String> = accountIdqueryVariable.0.as_str().map(str::to_owned);
+        let query: crate::value::Dict = accountIdqueryVariable.1;
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("conid".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_17 = self.extend(Value::Map(request), &[query]);
+        let __ws_arg_17 = self.extend(Value::Map(request), &[&query]);
         let mut response: Option<crate::value::List> = self.webapi_get_v1_api_portfolio_account_id_position_conid(&[&__ws_arg_17]).await;
         //
         //     [

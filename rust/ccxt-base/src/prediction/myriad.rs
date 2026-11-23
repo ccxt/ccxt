@@ -372,10 +372,10 @@ impl crate::exchange_generated::ExchangeBase for Myriad {
                 "parse_trade_quote" => crate::Value::Dict(self.parse_trade_quote(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "parse_trade_tx" => self.parse_trade_tx(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "parse_wei_order_book" => self.parse_wei_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref()),
-                "pong" => self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "pong" => { self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await; crate::Value::Null },
                 "request_id" => crate::Value::from(self.request_id(args.get(0).and_then(crate::Value::as_text).as_deref())),
-                "seed_order_book" => self.seed_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64)).await,
-                "seed_position_balances" => self.seed_position_balances(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()).await,
+                "seed_order_book" => { self.seed_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64)).await; crate::Value::Null },
+                "seed_position_balances" => { self.seed_position_balances(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()).await; crate::Value::Null },
                 "sign" => Value::Dict(self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..])),
                 "sign_evm_transaction" => self.sign_evm_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "subscribe_myriad_channel" => self.subscribe_myriad_channel(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
@@ -409,8 +409,8 @@ impl std::ops::DerefMut for Myriad {
 }
 
 impl Myriad {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("myriad".into()));
         m.insert("name".to_string(), Value::Str("Myriad".into()));
@@ -777,8 +777,6 @@ impl Myriad {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -4404,12 +4402,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub async fn pong(&mut self, mut client: Value, optional_args: &[Value]) -> Value {
+    pub async fn pong(&mut self, mut client: Value, optional_args: &[Value]) {
         let message = get_arg(optional_args, 0, Value::Null);
         // Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
         client.send(&[Value::Str("{}".into())]);
-
-    Value::Null
 }
 
     pub async fn subscribe_myriad_channel(&mut self, messageHash: &str, channel: &str, optional_args: &[&Value]) -> Value {
@@ -4561,7 +4557,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     }
 
-    pub async fn seed_order_book(&mut self, outcome: &str, sym: Option<&str>, limit: Option<i64>) -> Value {
+    pub async fn seed_order_book(&mut self, outcome: &str, sym: Option<&str>, limit: Option<i64>) {
         // the order book channel streams deltas only, so seed the live book from the REST snapshot
         let snapshot: crate::types::OrderBook = (match self.fetch_order_book(outcome, limit, Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut orderbook: crate::pro::order_book::Book = self.order_book(&[Value::Map({
@@ -4570,8 +4566,6 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 })]);
         orderbook.reset(crate::types::IntoRaw::into_raw(snapshot));
         CacheStore::put(&mut self.orderbooks, &Value::from(sym), orderbook);
-
-    Value::Null
 }
 
     pub fn handle_order_book(&self, mut client: Value, mut data: Value) {
@@ -5187,7 +5181,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     }
 
-    pub async fn seed_position_balances(&mut self, trader: &str) -> Value {
+    pub async fn seed_position_balances(&mut self, trader: &str) {
         let positions: Vec<crate::types::Position> = (match self.fetch_positions(None, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("address".to_string(), Value::from(trader));
@@ -5210,8 +5204,6 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         }
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("positionBalances".into(), Value::Map(balances)); }
-
-    Value::Null
 }
 
     pub fn handle_position(&mut self, mut client: Value, mut data: Value) {

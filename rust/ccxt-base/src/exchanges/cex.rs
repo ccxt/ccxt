@@ -287,8 +287,8 @@ impl crate::exchange::DerivedExchange for Cex {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -507,7 +507,7 @@ impl crate::exchange::DerivedExchange for Cex {
 
     None
 }
-    fn parse_account(&self, account: &crate::value::Dict) -> Option<crate::value::Dict> {
+    fn parse_account(&self, account: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
         let account: Value = account.into();
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
@@ -520,7 +520,7 @@ impl crate::exchange::DerivedExchange for Cex {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         let currencyId: Option<String> = self.safe_string_k_opt(&transaction, "currency", &[]);
         let direction: Option<String> = self.safe_string_k_opt(&transaction, "direction", &[]);
@@ -741,8 +741,8 @@ impl std::ops::DerefMut for Cex {
 }
 
 impl Cex {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("cex".into()));
         m.insert("name".to_string(), Value::Str("CEX.IO".into()));
@@ -1199,8 +1199,6 @@ impl Cex {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -1311,7 +1309,7 @@ impl Cex {
         //            ...
         //
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_markets(&data);
+        return Value::Arr(self.parse_markets(&data));
         Value::Null
         }).await?))
     }
@@ -1871,7 +1869,7 @@ impl Cex {
     m
 }));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &accountBalance).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, accountBalance.as_ref()).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

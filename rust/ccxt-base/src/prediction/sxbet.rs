@@ -296,7 +296,7 @@ impl crate::exchange_generated::ExchangeBase for Sxbet {
                 "parse_sxbet_v3_fill" => self.parse_sxbet_v3_fill(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_sxbet_v3_position" => self.parse_sxbet_v3_position(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_sxbet_v3_public_trade" => self.parse_sxbet_v3_public_trade(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "pong" => self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "pong" => { self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await; crate::Value::Null },
                 "request_id" => crate::Value::from(self.request_id(args.get(0).and_then(crate::Value::as_text).as_deref())),
                 "sign" => Value::Dict(self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..])),
                 "subscribe_sxbet_channel" => self.subscribe_sxbet_channel(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()).await,
@@ -327,8 +327,8 @@ impl std::ops::DerefMut for Sxbet {
 }
 
 impl Sxbet {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("sxbet".into()));
         m.insert("name".to_string(), Value::Str("SX Bet".into()));
@@ -624,8 +624,6 @@ impl Sxbet {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -3267,12 +3265,10 @@ impl Sxbet {
     Value::Null
 }
 
-    pub async fn pong(&mut self, mut client: Value, optional_args: &[Value]) -> Value {
+    pub async fn pong(&mut self, mut client: Value, optional_args: &[Value]) {
         let message = get_arg(optional_args, 0, Value::Null);
         // Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
         client.send(&[Value::Str("{}".into())]);
-
-    Value::Null
 }
 
     pub async fn subscribe_sxbet_channel(&mut self, messageHash: &str, channel: &str) -> Value {

@@ -694,8 +694,8 @@ impl crate::exchange::DerivedExchange for Hashkey {
 
     None
 }
-    fn parse_balance(&self, balance: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let balance: Value = balance.into();
+    fn parse_balance(&self, balance: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut balance: Value = balance.map_or(Value::Null, Value::from);
         //
         //     {
         //         "balances": [
@@ -1057,7 +1057,7 @@ impl crate::exchange::DerivedExchange for Hashkey {
 
     None
 }
-    fn parse_account(&self, account: &crate::value::Dict) -> Option<crate::value::Dict> {
+    fn parse_account(&self, account: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
         let account: Value = account.into();
         let accountLabel: Option<String> = self.safe_string_k_opt(&account, "accountLabel", &[]);
         let mut label: String = "".to_string();
@@ -1079,7 +1079,7 @@ impl crate::exchange::DerivedExchange for Hashkey {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         //  fetchDeposits
@@ -1193,7 +1193,7 @@ impl crate::exchange::DerivedExchange for Hashkey {
 
     None
 }
-    fn parse_market_leverage_tiers(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_market_leverage_tiers(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::List> {
         let info: Value = info.into();
         //
         //     {
@@ -1296,9 +1296,9 @@ impl crate::exchange::DerivedExchange for Hashkey {
             }));
         }
         }
-        return Value::from(tiers);
+        return Some(std::sync::Arc::new(tiers));
 
-    Value::Null
+    None
 }
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
@@ -1490,7 +1490,7 @@ impl crate::exchange_generated::ExchangeBase for Hashkey {
                 "parse_leverage" => Value::Dict(self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_margin_modification" => Value::Dict(self.parse_margin_modification(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_market_leverage_tiers" => self.parse_market_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_market_leverage_tiers" => Value::Arr(self.parse_market_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_order_post_only_value" => self.parse_order_post_only_value(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref()),
@@ -1526,8 +1526,8 @@ impl std::ops::DerefMut for Hashkey {
 }
 
 impl Hashkey {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("hashkey".into()));
         m.insert("name".to_string(), Value::Str("HashKey Global".into()));
@@ -2492,8 +2492,6 @@ impl Hashkey {
         m.insert("precisionMode".to_string(), Value::Int(crate::runtime::TICK_SIZE));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -2758,7 +2756,7 @@ impl Hashkey {
         if self.is_empty(&markets).as_bool() == Some(true) {
             markets = Value::from(vec![Value::Dict(response)]); // if user provides params.symbol the exchange returns a single object instead of list of objects
         }
-        return self.parse_markets(markets);
+        return Value::Arr(self.parse_markets(markets));
         Value::Null
         }).await?))
     }
@@ -3239,7 +3237,7 @@ impl Hashkey {
         }  else if (marketTypeOption.as_deref() == Some("spot")) {
             let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsMarketType]);
             let response: crate::value::Dict = self.call_method_t("private_get_api_v1_account", &[&__ws_arg_9]).await;
-            return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response).map_or(Value::Null, Value::Dict);
+            return <Self as crate::exchange::DerivedExchange>::parse_balance(self, Some(&response)).map_or(Value::Null, Value::Dict);
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), methodName).into()), "() is not supported for ").into()), marketTypeOption.map(Value::from).unwrap_or(Value::Null)).into()), " type of markets")));
         }
@@ -3520,7 +3518,7 @@ impl Hashkey {
         }
         let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
         let response: crate::value::Dict = self.private_post_api_v1_account_withdraw(&[&__ws_arg_13]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

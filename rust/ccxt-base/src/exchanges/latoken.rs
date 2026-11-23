@@ -49,9 +49,9 @@ impl Latoken {
 }
 
 impl crate::exchange::DerivedExchange for Latoken {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Latoken.
-        crate::Value::from(Latoken::nonce(self, ))
+        Some(Latoken::nonce(self))
     }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
@@ -474,7 +474,7 @@ impl crate::exchange::DerivedExchange for Latoken {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         //     {
@@ -681,8 +681,8 @@ impl std::ops::DerefMut for Latoken {
 }
 
 impl Latoken {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("latoken".into()));
         m.insert("name".to_string(), Value::Str("Latoken".into()));
@@ -1344,8 +1344,6 @@ impl Latoken {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn nonce(&self) -> i64 {

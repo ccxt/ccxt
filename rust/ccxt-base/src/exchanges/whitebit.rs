@@ -49,9 +49,9 @@ impl Whitebit {
 }
 
 impl crate::exchange::DerivedExchange for Whitebit {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Whitebit.
-        crate::Value::from(Whitebit::nonce(self, ))
+        Some(Whitebit::nonce(self))
     }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
@@ -492,8 +492,8 @@ impl crate::exchange::DerivedExchange for Whitebit {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         let balanceKeys: Vec<&str> = response.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -820,7 +820,7 @@ impl crate::exchange::DerivedExchange for Whitebit {
 
     Value::Null
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         //     {
@@ -1148,7 +1148,7 @@ impl crate::exchange_generated::ExchangeBase for Whitebit {
         Box::pin(async move {
             match method {
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
-                "cancel_all_orders_after" => self.cancel_all_orders_after(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "cancel_all_orders_after" => crate::types::IntoRaw::into_raw(self.cancel_all_orders_after(args.get(0).and_then(crate::Value::as_i64), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_convert_trade" => crate::types::IntoRaw::into_raw(self.create_convert_trade(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64), args.get(4).cloned().unwrap_or_default()).await),
@@ -1241,8 +1241,8 @@ impl std::ops::DerefMut for Whitebit {
 }
 
 impl Whitebit {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("whitebit".into()));
         m.insert("name".to_string(), Value::Str("WhiteBit".into()));
@@ -2341,8 +2341,6 @@ impl Whitebit {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -2367,7 +2365,7 @@ impl Whitebit {
             self.load_time_difference(&[]).await;
         }
         let markets: crate::value::List = self.v4_public_get_markets(&[]).await.unwrap_or_default();
-        return self.parse_markets(&markets);
+        return Value::Arr(self.parse_markets(&markets));
         Value::Null
         }).await?))
     }
@@ -4236,11 +4234,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
  * @param {string} [params.symbol] symbol unified symbol of the market the order was made in
  * @returns {object} the api result
  */
-    pub async fn cancel_all_orders_after(&mut self, mut timeout: Value, optional_args: &[Value]) -> Value {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+    pub async fn cancel_all_orders_after(&mut self, timeout: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Option<crate::value::Dict>> {
+        let __args: Vec<Value> = vec![Value::from(timeout), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let timeout = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4267,9 +4268,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let response: crate::value::Dict = self.v4_private_post_order_kill_switch(&[&__ws_arg_19]).await.unwrap_or_default();
         return Value::Dict(response);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 
 /*
@@ -4310,7 +4311,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 response = self.v4_private_post_trade_account_balance(&[&Value::Dict(paramsOmitted)]).await;
             }
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, response.as_ref()).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -5060,7 +5061,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let __ws_arg_31 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
         let response: crate::value::Dict = self.v4_private_post_main_account_withdraw(&[&__ws_arg_31]).await.unwrap_or_default();
-        let __ws_arg_32 = <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        let __ws_arg_32 = <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         return self.extend(__ws_arg_32, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), uniqueId);
@@ -5167,7 +5168,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //
         let records: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "records"));
         let first: crate::value::Dict = records.get(0).cloned().unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &first, currency.as_ref()).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&first), currency.as_ref()).map_or(Value::Null, Value::Dict);
 
     Value::Null
 }

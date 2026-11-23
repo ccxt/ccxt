@@ -701,7 +701,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         //     {
@@ -748,7 +748,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
 
     None
 }
-    fn parse_income(&self, income: &crate::value::Dict, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_income(&self, income: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let income: Value = income.into();
         //
         //     {
@@ -939,7 +939,7 @@ impl crate::exchange_generated::ExchangeBase for Pacifica {
                     args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
                 "handle_origin_and_single_address" => { let __t = self.handle_origin_and_single_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "initialize_client" => self.initialize_client().await,
-                "load_account_settings" => self.load_account_settings(&args[..].iter().collect::<Vec<_>>()).await,
+                "load_account_settings" => { self.load_account_settings(&args[..].iter().collect::<Vec<_>>()).await; crate::Value::Null },
                 "parse_account_settings" => crate::Value::Dict(self.parse_account_settings(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_income" => Value::Dict(self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -985,8 +985,8 @@ impl std::ops::DerefMut for Pacifica {
 }
 
 impl Pacifica {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("pacifica".into()));
         m.insert("name".to_string(), Value::Str("Pacifica".into()));
@@ -1946,8 +1946,6 @@ impl Pacifica {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub async fn initialize_client(&mut self) -> Value {
@@ -2047,7 +2045,7 @@ if _try_result.is_err() {
         //   "code": null
         // }
         let markets: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_markets(&markets);
+        return Value::Arr(self.parse_markets(&markets));
         Value::Null
         }).await?))
     }
@@ -2296,7 +2294,7 @@ if _try_result.is_err() {
         return self.parse_account_settings(self.safe_list_k(&response, "data", &[Value::from(vec![])]));
 }
 
-    pub async fn load_account_settings(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn load_account_settings(&mut self, optional_args: &[&Value]) {
         let refresh: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -2308,8 +2306,6 @@ if _try_result.is_err() {
             settings = Value::Dict(self.fetch_account_settings(&[&params]).await);
             { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("settings".into(), settings); }
         }
-
-    Value::Null
 }
 
     pub fn parse_account_settings(&self, settings: impl Into<crate::Value>) -> crate::value::Dict {
@@ -4285,10 +4281,11 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_9: bool = true;
             while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (data.len() as i64) } {
-            result.push(<Self as crate::exchange::DerivedExchange>::parse_position(self, self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let parsedPosition: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_position(self, self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})]), None).map_or(Value::Null, Value::Dict));
+})]), None).unwrap_or_default();
+            result.push(Value::Dict(parsedPosition));
         }
         }
         return self.filter_by_array_positions(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);

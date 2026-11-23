@@ -562,7 +562,7 @@ impl crate::exchange::DerivedExchange for Lighter {
 
     None
 }
-    fn parse_account(&self, account: &crate::value::Dict) -> Option<crate::value::Dict> {
+    fn parse_account(&self, account: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
         let account: Value = account.into();
         //
         //     {
@@ -601,7 +601,7 @@ impl crate::exchange::DerivedExchange for Lighter {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // fetchDeposits
@@ -767,7 +767,7 @@ impl crate::exchange_generated::ExchangeBase for Lighter {
                 "add_margin" => crate::types::IntoRaw::into_raw(self.add_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "approve_builder_fee" => self.approve_builder_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]).await,
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
-                "cancel_all_orders_after" => self.cancel_all_orders_after(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "cancel_all_orders_after" => crate::types::IntoRaw::into_raw(self.cancel_all_orders_after(args.get(0).and_then(crate::Value::as_i64), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "change_api_key" => self.change_api_key(&args[..].iter().collect::<Vec<_>>()).await,
                 "check_if_standard_tier" => self.check_if_standard_tier(args.get(0).cloned().unwrap_or(crate::Value::Null)).await,
@@ -853,8 +853,8 @@ impl std::ops::DerefMut for Lighter {
 }
 
 impl Lighter {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("lighter".into()));
         m.insert("name".to_string(), Value::Str("Lighter".into()));
@@ -1509,8 +1509,6 @@ impl Lighter {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub async fn load_account(&mut self, mut chainId: Value, privateKey: Option<&str>, apiKeyIndex: &str, accountIndex: &str, optional_args: &[&Value]) -> Value {
@@ -4277,7 +4275,7 @@ if _try_result.is_err() {
             m
         });
         let response: crate::value::Dict = self.call_method_t("public_post_send_tx", &[&Value::Map(request)]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, None).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), None).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4764,7 +4762,13 @@ if _try_result.is_err() {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
  */
-    pub async fn cancel_all_orders_after(&mut self, mut timeout: Value, optional_args: &[Value]) -> Value {
+    pub async fn cancel_all_orders_after(&mut self, timeout: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Option<crate::value::Dict>> {
+        let __args: Vec<Value> = vec![Value::from(timeout), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let timeout = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4816,9 +4820,9 @@ if _try_result.is_err() {
         });
         let response: crate::value::Dict = self.call_method_t("public_post_send_tx", &[&Value::Map(request)]).await;
         return Value::Dict(response);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method

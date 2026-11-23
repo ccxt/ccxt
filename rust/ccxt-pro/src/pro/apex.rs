@@ -68,11 +68,11 @@ impl crate::exchange_generated::ExchangeBase for Apex {
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_subscription_status" => self.handle_subscription_status(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "load_positions_snapshot" => self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
+                "load_positions_snapshot" => { self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "parse_ws_ohlcv" => Value::Arr(self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "pong" => self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
+                "pong" => { self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_ohlcv" => crate::types::IntoRaw::into_raw(self.watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "watch_ohlcv_for_symbols" => crate::types::IntoRaw::into_raw(self.watch_ohlcv_for_symbols(args.get(0).cloned().unwrap_or_default().to_str_vec_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -150,8 +150,8 @@ impl std::ops::DerefMut for Apex {
 }
 
 impl Apex {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -211,8 +211,6 @@ impl Apex {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -1204,7 +1202,7 @@ impl Apex {
         }
 }
 
-    pub async fn load_positions_snapshot(&mut self, client: &Value, mut messageHash: Value) -> Value {
+    pub async fn load_positions_snapshot(&mut self, client: &Value, mut messageHash: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         // as only one ws channel gives positions for all types, for snapshot must load all positions
         let fetchFunctions: crate::value::List = std::sync::Arc::new(vec![crate::types::IntoRaw::into_raw(self.fetch_positions(None, Value::Null).await)]);
@@ -1230,8 +1228,6 @@ impl Apex {
             future.resolve(Value::from(&self.positions), None);
             client.resolve(Value::from(&self.positions), "positions");
         }
-
-    Value::Null
 }
 
     pub fn handle_positions(&mut self, client: &Value, lists: impl Into<crate::Value>) {
@@ -1509,7 +1505,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn pong(&mut self, mut client: Value, mut message: Value) -> Value {
+    pub async fn pong(&mut self, mut client: Value, mut message: Value) {
         //
         //     {"op": "ping", "args": ["1761069137485"]}
         //
@@ -1526,8 +1522,6 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let error = Value::from(crate::exchange_errors::network_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " handlePing failed with error ").into()), self.exception_message(e, &[]))));
             client.reset(error);
         }
-
-    Value::Null
 }
 
     pub fn handle_pong(&self, mut client: Value, mut message: Value) -> Value {

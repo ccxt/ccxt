@@ -49,9 +49,9 @@ impl Binance {
 }
 
 impl crate::exchange::DerivedExchange for Binance {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Binance.
-        crate::Value::from(Binance::nonce(self, ))
+        Some(Binance::nonce(self))
     }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
@@ -2298,7 +2298,7 @@ impl crate::exchange::DerivedExchange for Binance {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // fetchDeposits
@@ -2517,7 +2517,7 @@ impl crate::exchange::DerivedExchange for Binance {
 
     Value::Null
 }
-    fn parse_income(&self, income: &crate::value::Dict, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_income(&self, income: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let income: Value = income.into();
         //
         //     {
@@ -2593,7 +2593,7 @@ impl crate::exchange::DerivedExchange for Binance {
 
     Value::Null
 }
-    fn parse_margin_mode(&self, marginMode: &crate::value::Dict, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_margin_mode(&self, marginMode: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let marginMode: Value = marginMode.into();
         let marketId: Option<String> = self.safe_string_k_opt(&marginMode, "symbol", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
@@ -2770,7 +2770,7 @@ impl crate::exchange::DerivedExchange for Binance {
 
     None
 }
-    fn parse_market_leverage_tiers(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_market_leverage_tiers(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::List> {
         let info: Value = info.into();
         /*
          * @ignore
@@ -2817,11 +2817,11 @@ impl crate::exchange::DerivedExchange for Binance {
             }));
         }
         }
-        return Value::from(tiers);
+        return Some(std::sync::Arc::new(tiers));
 
-    Value::Null
+    None
 }
-    fn parse_deposit_withdraw_fee(&self, fee: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_deposit_withdraw_fee(&self, fee: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let fee: Value = fee.into();
         //
         //    {
@@ -2908,9 +2908,9 @@ impl crate::exchange::DerivedExchange for Binance {
         }
         }
         result.insert("networks".into(), Value::Map(networks));
-        return Value::Map(result);
+        return Some(std::sync::Arc::new(result));
 
-    Value::Null
+    None
 }
     fn create_expired_option_market(&self, mut symbol: Value) -> Value {
         // support expired option contracts
@@ -3467,7 +3467,7 @@ impl crate::exchange_generated::ExchangeBase for Binance {
                 "parse_currencies_custom" => self.parse_currencies_custom(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_deposit_address" => Value::Dict(self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_deposit_withdraw_fee" => Value::Dict(self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_dust_trade" => Value::Dict(self.parse_dust_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_funding_rate_history" => self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -3483,7 +3483,7 @@ impl crate::exchange_generated::ExchangeBase for Binance {
                 "parse_margin_mode" => Value::Dict(self.parse_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_margin_modification" => Value::Dict(self.parse_margin_modification(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_market_leverage_tiers" => self.parse_market_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_market_leverage_tiers" => Value::Arr(self.parse_market_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_open_interest" => Value::Dict(self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_option" => self.parse_option(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
@@ -3533,8 +3533,8 @@ impl std::ops::DerefMut for Binance {
 }
 
 impl Binance {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("binance".into()));
         m.insert("name".to_string(), Value::Str("Binance".into()));
@@ -9764,8 +9764,6 @@ impl Binance {
         m.insert("rollingWindowSize".to_string(), Value::Int(60000));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn is_inverse(&self, type_var: &str, subType: Option<&str>) -> Value {
@@ -11009,7 +11007,7 @@ impl Binance {
         if (response == Value::Null) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id, " fetchTicker() returned empty response")));
         }
-        let __ws_arg_22 = self.extend(Value::Map({
+        let __ws_arg_22 = self.extend_t(Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }), &[response]);
@@ -11315,7 +11313,7 @@ impl Binance {
         if (response == Value::Null) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id, " fetchMarkPrice() returned empty response")));
         }
-        let __ws_arg_31 = self.extend(Value::Map({
+        let __ws_arg_31 = self.extend_t(Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }), &[response]);
@@ -15710,7 +15708,7 @@ impl Binance {
         request.insert("amount".into(), Value::from(self.currency_to_precision((crate::value::KeyRead::key_read(&&currency, "code")).as_str(), Value::from(amount), &[networkCode.map(Value::from).unwrap_or(Value::Null)])));
         let __ws_arg_150 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
         let response: crate::value::Dict = self.sapi_post_capital_withdraw_apply(&[&__ws_arg_150]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -19843,7 +19841,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (response.is_none()) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id, " fetchMarginMode() returned empty response")));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_margin_mode(self, &<crate::value::Dict as crate::value::EndpointBody>::from_body(self.safe_value(&response, Value::Int(0), &[])).unwrap_or_default(), Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_margin_mode(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(self.safe_value(&response, Value::Int(0), &[])).as_ref(), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

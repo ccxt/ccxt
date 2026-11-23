@@ -49,9 +49,9 @@ impl Bit2me {
 }
 
 impl crate::exchange::DerivedExchange for Bit2me {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Bit2me.
-        crate::Value::from(Bit2me::nonce(self, ))
+        Some(Bit2me::nonce(self))
     }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
@@ -668,8 +668,8 @@ impl std::ops::DerefMut for Bit2me {
 }
 
 impl Bit2me {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("bit2me".into()));
         m.insert("name".to_string(), Value::Str("Bit2Me".into()));
@@ -1188,8 +1188,6 @@ impl Bit2me {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -1212,7 +1210,7 @@ impl Bit2me {
     m
 }));
         let response: crate::value::List = self.public_get_v2_trading_market_config(&[&params]).await.unwrap_or_default();
-        return self.parse_markets(&response);
+        return Value::Arr(self.parse_markets(&response));
         Value::Null
         }).await?))
     }

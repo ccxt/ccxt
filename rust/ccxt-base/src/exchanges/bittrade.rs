@@ -332,8 +332,8 @@ impl crate::exchange::DerivedExchange for Bittrade {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let balances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "list"));
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -449,7 +449,7 @@ impl crate::exchange::DerivedExchange for Bittrade {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // fetchDeposits
@@ -716,8 +716,8 @@ impl std::ops::DerefMut for Bittrade {
 }
 
 impl Bittrade {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("bittrade".into()));
         m.insert("name".to_string(), Value::Str("BitTrade".into()));
@@ -1650,8 +1650,6 @@ impl Bittrade {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -2475,7 +2473,7 @@ impl Bittrade {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchBalance() does not support the ").into()), method).into()), " method")));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, response.as_ref()).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3270,7 +3268,7 @@ impl Bittrade {
         let paramsNetwork: crate::value::Dict = (if (network.is_some()) { self.omit_t(&paramsWithdrawTag, Value::Str("network".into()), &[]) } else { paramsWithdrawTag });
         let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsNetwork]);
         let response: crate::value::Dict = self.private_post_dw_withdraw_api_create(&[&__ws_arg_19]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

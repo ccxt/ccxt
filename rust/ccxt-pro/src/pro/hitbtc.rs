@@ -166,10 +166,8 @@ impl std::ops::DerefMut for Hitbtc {
 }
 
 impl Hitbtc {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[self.describe_data()]);
-
-    Value::Null
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[self.describe_data()]);
 }
 
     pub fn describe_data(&self) -> Value {

@@ -909,7 +909,7 @@ impl crate::exchange::DerivedExchange for Bullish {
 
     None
 }
-    fn parse_account(&self, account: &crate::value::Dict) -> Option<crate::value::Dict> {
+    fn parse_account(&self, account: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
         let account: Value = account.into();
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
@@ -922,7 +922,7 @@ impl crate::exchange::DerivedExchange for Bullish {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         //     {
@@ -1232,8 +1232,8 @@ impl std::ops::DerefMut for Bullish {
 }
 
 impl Bullish {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("bullish".into()));
         m.insert("name".to_string(), Value::Str("Bullish".into()));
@@ -2030,8 +2030,6 @@ impl Bullish {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -2105,7 +2103,7 @@ impl Bullish {
             self.load_time_difference(&[]).await;
         }
         let response: crate::value::List = self.public_get_v1_markets(&[&params]).await.unwrap_or_default();
-        return self.parse_markets(&response);
+        return Value::Arr(self.parse_markets(&response));
         Value::Null
         }).await?))
     }
@@ -3405,7 +3403,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
         let response: crate::value::Dict = self.private_post_v1_wallets_withdrawal(&[&__ws_arg_20]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

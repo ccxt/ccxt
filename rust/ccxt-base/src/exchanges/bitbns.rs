@@ -49,9 +49,9 @@ impl Bitbns {
 }
 
 impl crate::exchange::DerivedExchange for Bitbns {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Bitbns.
-        crate::Value::from(Bitbns::nonce(self, ))
+        Some(Bitbns::nonce(self))
     }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
@@ -287,8 +287,8 @@ impl crate::exchange::DerivedExchange for Bitbns {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         let timestamp: Option<i64> = None;
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -327,7 +327,7 @@ impl crate::exchange::DerivedExchange for Bitbns {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // fetchDeposits
@@ -537,8 +537,8 @@ impl std::ops::DerefMut for Bitbns {
 }
 
 impl Bitbns {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("bitbns".into()));
         m.insert("name".to_string(), Value::Str("Bitbns".into()));
@@ -961,8 +961,6 @@ impl Bitbns {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -1260,7 +1258,7 @@ impl Bitbns {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let response: crate::value::Dict = self.v1_post_current_coin_balance_everything(&[&params]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, Some(&response)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

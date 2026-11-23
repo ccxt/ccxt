@@ -49,9 +49,9 @@ impl Coinspot {
 }
 
 impl crate::exchange::DerivedExchange for Coinspot {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Coinspot.
-        crate::Value::from(Coinspot::nonce(self, ))
+        Some(Coinspot::nonce(self))
     }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
@@ -169,8 +169,8 @@ impl crate::exchange::DerivedExchange for Coinspot {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -334,8 +334,8 @@ impl std::ops::DerefMut for Coinspot {
 }
 
 impl Coinspot {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("coinspot".into()));
         m.insert("name".to_string(), Value::Str("CoinSpot".into()));
@@ -1135,8 +1135,6 @@ impl Coinspot {
         m.insert("precisionMode".to_string(), Value::Int(crate::runtime::TICK_SIZE));
     m
 })]);
-
-    Value::Null
 }
 
 
@@ -1168,7 +1166,7 @@ impl Coinspot {
         }  else {
             response = self.private_post_my_balances(&[&params]).await;
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, response.as_ref()).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

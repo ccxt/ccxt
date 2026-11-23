@@ -469,7 +469,7 @@ impl crate::exchange::DerivedExchange for Foxbit {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         let cryptoDetails: crate::value::Dict = self.safe_dict_k_t(&transaction, "details_crypto");
         let address: Option<String> = self.safe_string2_opt(&cryptoDetails, Value::Str("receiving_address".into()), Value::Str("destination_address".into()), &[]);
@@ -708,8 +708,8 @@ impl std::ops::DerefMut for Foxbit {
 }
 
 impl Foxbit {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("foxbit".into()));
         m.insert("name".to_string(), Value::Str("Foxbit".into()));
@@ -1201,8 +1201,6 @@ impl Foxbit {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub async fn fetch_currencies(&mut self, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Currencies> {
@@ -1374,7 +1372,7 @@ impl Foxbit {
         //     ]
         //   }
         let markets: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_markets(&markets);
+        return Value::Arr(self.parse_markets(&markets));
         Value::Null
         }).await?))
     }
@@ -2785,7 +2783,7 @@ impl Foxbit {
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
         let response: crate::value::Dict = self.v3_private_post_withdrawals(&[&__ws_arg_16]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, None).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), None).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

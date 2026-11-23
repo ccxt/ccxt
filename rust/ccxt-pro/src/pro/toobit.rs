@@ -93,9 +93,9 @@ impl crate::exchange_generated::ExchangeBase for Toobit {
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
                 "handle_list_message" => { self.handle_list_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "keep_alive_listen_key" => self.keep_alive_listen_key(&args[..]).await,
-                "load_balance_snapshot" => self.load_balance_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
-                "load_positions_snapshot" => self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
+                "keep_alive_listen_key" => { self.keep_alive_listen_key(&args[..]).await; crate::Value::Null },
+                "load_balance_snapshot" => { self.load_balance_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
+                "load_positions_snapshot" => { self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "parse_my_trade" => self.parse_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_ohlcv" => Value::Arr(self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -184,8 +184,8 @@ impl std::ops::DerefMut for Toobit {
 }
 
 impl Toobit {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -271,8 +271,6 @@ impl Toobit {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn ping(&self, mut client: Value) -> Value {
@@ -1250,7 +1248,7 @@ impl Toobit {
         client.resolve((if let Some(__k) = Some(type_var.as_str()) { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", type_var, ":balance").into())));
 }
 
-    pub async fn load_balance_snapshot(&mut self, client: &Value, mut messageHash: Value, mut marketType: Value) -> Value {
+    pub async fn load_balance_snapshot(&mut self, client: &Value, mut messageHash: Value, mut marketType: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let response: crate::types::Balances = (match self.fetch_balance(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1273,8 +1271,6 @@ impl Toobit {
             client.resolve((if let Some(__k) = Some(type_var.as_str()) { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", type_var, ":fetchBalanceSnapshot").into())));
             client.resolve((if let Some(__k) = Some(type_var.as_str()) { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", type_var, ":balance").into()))); // we should also resolve right away after snapshot, so user doesn't double-fetch balance
         }
-
-    Value::Null
 }
 
 /*
@@ -1573,7 +1569,7 @@ impl Toobit {
         }
 }
 
-    pub async fn load_positions_snapshot(&mut self, client: &Value, mut messageHash: Value, mut type_var: Value) -> Value {
+    pub async fn load_positions_snapshot(&mut self, client: &Value, mut messageHash: Value, mut type_var: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let params: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1597,8 +1593,6 @@ impl Toobit {
             future.resolve(Value::from(&cache), None);
             client.resolve(Value::from(&cache), &(Value::Str(format!("{}{}", type_var, ":positions").into())));
         }
-
-    Value::Null
 }
 
     pub fn handle_positions(&mut self, client: &Value, mut message: Value) {
@@ -1758,7 +1752,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         { let __be_tmp = self.extend(__ws_arg_8, &[entry]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("ws".into(), __be_tmp); } }
 }
 
-    pub async fn keep_alive_listen_key(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn keep_alive_listen_key(&mut self, optional_args: &[Value]) {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1766,7 +1760,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let options: crate::value::Dict = self.safe_dict_k_t(&self.options, "ws");
         let listenKey: Option<String> = self.safe_string_k_opt(&options, "listenKey", &[]);
         if (listenKey.is_none()) {
-            return Value::Null;
+            return;
         }
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let response: crate::value::Dict = self.parent.private_post_api_v1_user_data_stream(&[&params]).await.unwrap_or_default();
@@ -1795,13 +1789,11 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                     m.insert("lastAuthenticatedTime".to_string(), Value::Int(0));
                 m
             }));
-            return Value::Null;
+            return;
         }
         // whether or not to schedule another listenKey keepAlive request
         let listenKeyRefreshRate: i64 = self.safe_integer(self.options.get("ws").cloned().unwrap_or(Value::Null), Value::Str("listenKeyRefreshRate".into()), &[Value::Int(1200000)]).as_i64().unwrap_or(1200000);
         self.delay(Value::from(listenKeyRefreshRate), &[Value::Str("keep_alive_listen_key".into()), params]).await;
-
-    Value::Null
 }
 
     pub fn get_user_stream_url(&self) -> Option<String> {

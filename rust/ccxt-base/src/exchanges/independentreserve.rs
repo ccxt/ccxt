@@ -49,9 +49,9 @@ impl Independentreserve {
 }
 
 impl crate::exchange::DerivedExchange for Independentreserve {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Independentreserve.
-        crate::Value::from(Independentreserve::nonce(self, ))
+        Some(Independentreserve::nonce(self))
     }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
@@ -296,7 +296,7 @@ impl crate::exchange::DerivedExchange for Independentreserve {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         //    {
@@ -489,8 +489,8 @@ impl std::ops::DerefMut for Independentreserve {
 }
 
 impl Independentreserve {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("independentreserve".into()));
         m.insert("name".to_string(), Value::Str("Independent Reserve".into()));
@@ -1027,8 +1027,6 @@ impl Independentreserve {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -1813,7 +1811,7 @@ impl Independentreserve {
         }
         let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
         let response: crate::value::Dict = self.private_post_withdraw_digital_currency(&[&__ws_arg_11]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

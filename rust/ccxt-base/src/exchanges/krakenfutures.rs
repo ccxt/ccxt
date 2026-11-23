@@ -821,8 +821,8 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         //
         // cashAccount
         //
@@ -1226,7 +1226,7 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
 
     None
 }
-    fn parse_income(&self, income: &crate::value::Dict, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_income(&self, income: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let income: Value = income.into();
         //
         //    {
@@ -1279,7 +1279,7 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
 
     None
 }
-    fn parse_market_leverage_tiers(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_market_leverage_tiers(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::List> {
         let info: Value = info.into();
         /*
          * @method
@@ -1325,7 +1325,7 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let mut tiers: Vec<Value> = Vec::new();
         if (marginLevels.is_none()) {
-            return Value::from(tiers);
+            return Some(std::sync::Arc::new(tiers));
         }
         {
                         let mut i: i64 = 0;
@@ -1348,9 +1348,9 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
             }));
         }
         }
-        return Value::from(tiers);
+        return Some(std::sync::Arc::new(tiers));
 
-    Value::Null
+    None
 }
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
@@ -1452,7 +1452,7 @@ impl crate::exchange_generated::ExchangeBase for Krakenfutures {
         Box::pin(async move {
             match method {
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
-                "cancel_all_orders_after" => self.cancel_all_orders_after(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "cancel_all_orders_after" => crate::types::IntoRaw::into_raw(self.cancel_all_orders_after(args.get(0).and_then(crate::Value::as_i64), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
@@ -1492,7 +1492,7 @@ impl crate::exchange_generated::ExchangeBase for Krakenfutures {
                 "parse_kraken_account_name" => self.parse_kraken_account_name(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "parse_ledger_entry" => Value::Dict(self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_leverage" => Value::Dict(self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_market_leverage_tiers" => self.parse_market_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_market_leverage_tiers" => Value::Arr(self.parse_market_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1522,8 +1522,8 @@ impl std::ops::DerefMut for Krakenfutures {
 }
 
 impl Krakenfutures {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("krakenfutures".into()));
         m.insert("name".to_string(), Value::Str("Kraken Futures".into()));
@@ -2205,8 +2205,6 @@ impl Krakenfutures {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -3580,7 +3578,13 @@ impl Krakenfutures {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
  */
-    pub async fn cancel_all_orders_after(&mut self, mut timeout: Value, optional_args: &[Value]) -> Value {
+    pub async fn cancel_all_orders_after(&mut self, timeout: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Option<crate::value::Dict>> {
+        let __args: Vec<Value> = vec![Value::from(timeout), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let timeout = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -3596,9 +3600,9 @@ impl Krakenfutures {
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.private_post_cancelallordersafter(&[&__ws_arg_10]).await.unwrap_or_default();
         return Value::Dict(response);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -4392,7 +4396,7 @@ impl Krakenfutures {
             }
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchBalance has no account for ").into()), type_var.as_deref().unwrap_or("null"))));
         }
-        let mut balance: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_balance(self, &account).unwrap_or_default();
+        let mut balance: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_balance(self, account.as_ref()).unwrap_or_default();
         std::sync::Arc::make_mut(&mut balance).insert("info".into(), Value::Dict(response));
         std::sync::Arc::make_mut(&mut balance).insert("timestamp".into(), Value::from(self.parse8601(Value::from(datetime.as_deref()))));
         std::sync::Arc::make_mut(&mut balance).insert("datetime".into(), datetime.map(Value::from).unwrap_or(Value::Null));

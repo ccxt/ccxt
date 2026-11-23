@@ -278,8 +278,8 @@ impl crate::exchange::DerivedExchange for Zaif {
 
     Value::Null
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         let balances: crate::value::Dict = self.safe_dict_k_t(&response, "return");
         let mut deposit: Option<crate::value::Dict> = self.safe_dict_k_o(&balances, "deposit");
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -315,7 +315,7 @@ impl crate::exchange::DerivedExchange for Zaif {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         //     {
@@ -499,8 +499,8 @@ impl std::ops::DerefMut for Zaif {
 }
 
 impl Zaif {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("zaif".into()));
         m.insert("name".to_string(), Value::Str("Zaif".into()));
@@ -914,8 +914,6 @@ impl Zaif {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -937,7 +935,7 @@ impl Zaif {
     m
 }));
         let markets: crate::value::List = self.public_get_currency_pairs_all(&[&params]).await.unwrap_or_default();
-        return self.parse_markets(&markets);
+        return Value::Arr(self.parse_markets(&markets));
         Value::Null
         }).await?))
     }
@@ -966,7 +964,7 @@ impl Zaif {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let response: crate::value::Dict = self.private_post_get_info(&[&params]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, Some(&response)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -1377,7 +1375,7 @@ impl Zaif {
         //     }
         //
         let returnData: crate::value::Dict = self.safe_dict_k_t(&result, "return");
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &returnData, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&returnData), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

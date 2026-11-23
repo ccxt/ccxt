@@ -49,9 +49,9 @@ impl Deribit {
 }
 
 impl crate::exchange::DerivedExchange for Deribit {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Deribit.
-        crate::Value::from(Deribit::nonce(self, ))
+        Some(Deribit::nonce(self))
     }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
@@ -334,8 +334,8 @@ impl crate::exchange::DerivedExchange for Deribit {
 
     None
 }
-    fn parse_balance(&self, balance: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let balance: Value = balance.into();
+    fn parse_balance(&self, balance: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut balance: Value = balance.map_or(Value::Null, Value::from);
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), balance.clone());
@@ -645,7 +645,7 @@ impl crate::exchange::DerivedExchange for Deribit {
 
     Value::Null
 }
-    fn parse_account(&self, account: &crate::value::Dict) -> Option<crate::value::Dict> {
+    fn parse_account(&self, account: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
         let account: Value = account.into();
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
@@ -658,7 +658,7 @@ impl crate::exchange::DerivedExchange for Deribit {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // fetchWithdrawals
@@ -805,9 +805,9 @@ impl crate::exchange::DerivedExchange for Deribit {
 
     Value::Null
 }
-    fn parse_deposit_withdraw_fee(&self, fee: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_deposit_withdraw_fee(&self, fee: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let fee: Value = fee.into();
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fee.clone());
         m.insert("withdraw".to_string(), Value::Map({
@@ -827,9 +827,9 @@ impl crate::exchange::DerivedExchange for Deribit {
     m
 }));
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn create_expired_option_market(&self, mut symbol: Value) -> Value {
         // support expired option contracts
@@ -1077,7 +1077,7 @@ impl crate::exchange_generated::ExchangeBase for Deribit {
                 "parse_account" => Value::Dict(self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_deposit_withdraw_fee" => Value::Dict(self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_greeks" => self.parse_greeks(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_liquidation" => self.parse_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -1112,8 +1112,8 @@ impl std::ops::DerefMut for Deribit {
 }
 
 impl Deribit {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("deribit".into()));
         m.insert("name".to_string(), Value::Str("Deribit".into()));
@@ -2250,8 +2250,6 @@ impl Deribit {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 
@@ -2838,7 +2836,7 @@ impl Deribit {
         //     }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &result).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, Some(&result)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4875,7 +4873,7 @@ impl Deribit {
         }
         let __ws_arg_39 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
         let response: crate::value::Dict = self.private_get_withdraw(&[&__ws_arg_39]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

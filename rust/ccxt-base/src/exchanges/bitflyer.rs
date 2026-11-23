@@ -234,7 +234,7 @@ impl crate::exchange::DerivedExchange for Bitflyer {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // fetchDeposits
@@ -456,8 +456,8 @@ impl std::ops::DerefMut for Bitflyer {
 }
 
 impl Bitflyer {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("bitflyer".into()));
         m.insert("name".to_string(), Value::Str("bitFlyer".into()));
@@ -859,8 +859,6 @@ impl Bitflyer {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn parse_expiry_date(&self, expiry: &str) -> Value {
@@ -1705,7 +1703,7 @@ impl Bitflyer {
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.private_post_withdraw(&[&__ws_arg_11]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

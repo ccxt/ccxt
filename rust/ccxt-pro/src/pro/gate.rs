@@ -78,7 +78,7 @@ impl crate::exchange_generated::ExchangeBase for Gate {
                 "get_url_by_market_type" => self.get_url_by_market_type(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "load_positions_snapshot" => self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
+                "load_positions_snapshot" => { self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "parse_ws_liquidation" => Value::Dict(self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "request_id" => crate::Value::from(self.request_id()),
                 "request_private" => self.request_private(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_text).as_deref()).await,
@@ -133,7 +133,7 @@ impl Gate {
             "get_type_by_market" => { self.get_type_by_market(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).copied().cloned().unwrap_or_default()).as_ref()); },
             "get_url_by_market_type" => { self.get_url_by_market_type(args.get(0).copied().and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..]); },
             "handle_authentication_message" => { self.handle_authentication_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_balance_subscription" => { self.handle_balance_subscription(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]); },
             "handle_bid_ask" => { self.handle_bid_ask(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_bid_asks" => { self.handle_bid_asks(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -195,11 +195,9 @@ impl std::ops::DerefMut for Gate {
 }
 
 impl Gate {
-    pub fn describe(&self) -> Value {
-        let superDescribe: Value = self.parent.describe();
-        return self.deep_extend(superDescribe, &[self.describe_data()]);
-
-    Value::Null
+    pub fn describe(&self) -> crate::value::Dict {
+        let superDescribe: Value = Value::Dict(self.parent.describe());
+        return self.deep_extend_t(superDescribe, &[self.describe_data()]);
 }
 
     pub fn describe_data(&self) -> Value {
@@ -2080,9 +2078,7 @@ impl Gate {
         }).await?))
     }
 
-    pub fn handle_balance(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_balance(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         // spot order fill
         //     {
@@ -2280,7 +2276,7 @@ impl Gate {
         }
 }
 
-    pub async fn load_positions_snapshot(&mut self, client: &Value, mut messageHash: Value, mut type_var: Value) -> Value {
+    pub async fn load_positions_snapshot(&mut self, client: &Value, mut messageHash: Value, mut type_var: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let positions: Vec<crate::types::Position> = (match self.fetch_positions(None, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2306,8 +2302,6 @@ impl Gate {
             future.resolve(Value::from(&cache), None);
             client.resolve(Value::from(&cache), &(Value::Str(format!("{}{}", type_var, ":position").into())));
         }
-
-    Value::Null
 }
 
     pub fn handle_positions(&self, client: &Value, mut message: Value) {

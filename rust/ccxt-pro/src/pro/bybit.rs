@@ -76,7 +76,7 @@ impl crate::exchange_generated::ExchangeBase for Bybit {
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_subscription_status" => self.handle_subscription_status(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_un_subscribe" => self.handle_un_subscribe(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "load_positions_snapshot" => self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
+                "load_positions_snapshot" => { self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_liquidation" => Value::Dict(self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_ohlcv" => Value::Arr(self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -202,11 +202,9 @@ impl std::ops::DerefMut for Bybit {
 }
 
 impl Bybit {
-    pub fn describe(&self) -> Value {
-        let superDescribe: Value = self.parent.describe();
-        return self.deep_extend(superDescribe, &[self.describe_data()]);
-
-    Value::Null
+    pub fn describe(&self) -> crate::value::Dict {
+        let superDescribe: Value = Value::Dict(self.parent.describe());
+        return self.deep_extend_t(superDescribe, &[self.describe_data()]);
 }
 
     pub fn describe_data(&self) -> Value {
@@ -2329,7 +2327,7 @@ impl Bybit {
         }
 }
 
-    pub async fn load_positions_snapshot(&mut self, client: &Value, mut messageHash: Value) -> Value {
+    pub async fn load_positions_snapshot(&mut self, client: &Value, mut messageHash: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         // as only one ws channel gives positions for all types, for snapshot must load all positions
         let fetchFunctions: crate::value::List = std::sync::Arc::new(vec![crate::types::IntoRaw::into_raw(self.fetch_positions(None, Value::Map({
@@ -2366,8 +2364,6 @@ impl Bybit {
             future.resolve(Value::from(&self.positions), None);
             client.resolve(Value::from(&self.positions), "position");
         }
-
-    Value::Null
 }
 
     pub fn handle_positions(&mut self, client: &Value, mut message: Value) {

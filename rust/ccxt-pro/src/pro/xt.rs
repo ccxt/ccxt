@@ -72,7 +72,7 @@ impl crate::exchange_generated::ExchangeBase for Xt {
                 "handle_ticker" => self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_tickers" => self.handle_tickers(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_trade" => self.handle_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "load_positions_snapshot" => self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
+                "load_positions_snapshot" => { self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_order_trade" => Value::Dict(self.parse_ws_order_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -111,7 +111,7 @@ impl Xt {
         match __n {
             "get_cache_index" => { self.get_cache_index(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), crate::value::dict_rows(std::sync::Arc::new(args.get(1).copied().and_then(crate::Value::as_array).cloned().unwrap_or_default()))); },
             "get_listen_key" => crate::exchange_stubs::enqueue_spawn("get_listen_key", args.iter().copied().cloned().collect::<Vec<_>>()),
-            "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_book_delta" => { self.handle_book_delta(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error_message" => crate::exchange_stubs::enqueue_spawn("handle_error_message", args.iter().copied().cloned().collect::<Vec<_>>()),
             "handle_funding_rate" => { self.handle_funding_rate(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -165,8 +165,8 @@ impl std::ops::DerefMut for Xt {
 }
 
 impl Xt {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -237,8 +237,6 @@ impl Xt {
         m.insert("token".to_string(), Value::Null);
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -1213,7 +1211,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
 }
 
-    pub async fn load_positions_snapshot(&mut self, client: &Value, mut messageHash: Value) -> Value {
+    pub async fn load_positions_snapshot(&mut self, client: &Value, mut messageHash: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let mut positions: Vec<crate::types::Position> = (match self.fetch_positions(None, Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
@@ -1234,8 +1232,6 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             future.resolve(Value::from(&self.positions), None);
             client.resolve(Value::from(&self.positions), "position::contract");
         }
-
-    Value::Null
 }
 
     pub fn handle_position(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
@@ -1982,9 +1978,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub fn handle_balance(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_balance(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         // spot
         //

@@ -49,9 +49,9 @@ impl Xt {
 }
 
 impl crate::exchange::DerivedExchange for Xt {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Xt.
-        crate::Value::from(Xt::nonce(self, ))
+        Some(Xt::nonce(self))
     }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
@@ -1139,7 +1139,7 @@ impl crate::exchange::DerivedExchange for Xt {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // fetchDeposits
@@ -1221,7 +1221,7 @@ impl crate::exchange::DerivedExchange for Xt {
 
     None
 }
-    fn parse_market_leverage_tiers(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_market_leverage_tiers(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::List> {
         let info: Value = info.into();
         //
         //     {
@@ -1264,9 +1264,9 @@ impl crate::exchange::DerivedExchange for Xt {
             }));
         }
         }
-        return Value::from(tiers);
+        return Some(std::sync::Arc::new(tiers));
 
-    Value::Null
+    None
 }
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let mut api = get_arg(optional_args, 0, Value::from(vec![]));
@@ -1486,7 +1486,7 @@ impl crate::exchange_generated::ExchangeBase for Xt {
                 "fetch_position" => crate::types::IntoRaw::into_raw(self.fetch_position(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_positions_history" => crate::types::IntoRaw::into_raw(self.fetch_positions_history(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_spot_markets" => self.fetch_spot_markets(&args[..]).await,
+                "fetch_spot_markets" => Value::Arr(self.fetch_spot_markets(&args[..]).await),
                 "fetch_swap_and_future_markets" => self.fetch_swap_and_future_markets(&args[..].iter().collect::<Vec<_>>()).await,
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -1509,8 +1509,8 @@ impl crate::exchange_generated::ExchangeBase for Xt {
                 "parse_leverage_tiers" => self.parse_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_margin_modification" => Value::Dict(self.parse_margin_modification(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_market_leverage_tiers" => self.parse_market_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_markets" => self.parse_markets(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_market_leverage_tiers" => Value::Arr(self.parse_market_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_markets" => Value::Arr(self.parse_markets(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_open_interest" => Value::Dict(self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1544,8 +1544,8 @@ impl std::ops::DerefMut for Xt {
 }
 
 impl Xt {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("xt".into()));
         m.insert("name".to_string(), Value::Str("XT".into()));
@@ -3306,8 +3306,6 @@ impl Xt {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn nonce(&self) -> i64 {
@@ -3564,7 +3562,7 @@ impl Xt {
         if matches!(self.safe_bool_k(&self.options, "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
-        let promisesUnresolved: crate::value::List = std::sync::Arc::new(vec![self.fetch_spot_markets(&[params.clone()]).await, self.fetch_swap_and_future_markets(&[&params]).await]);
+        let promisesUnresolved: crate::value::List = std::sync::Arc::new(vec![Value::Arr(self.fetch_spot_markets(&[params.clone()]).await), self.fetch_swap_and_future_markets(&[&params]).await]);
         let promises: Vec<Value> = promise_all(&Value::Arr(promisesUnresolved)).await.to_vec();
         let spotMarkets: crate::value::List = promises.get(0).cloned().unwrap_or(Value::Null).into_list();
         let swapAndFutureMarkets: crate::value::List = promises.get(1).cloned().unwrap_or(Value::Null).into_list();
@@ -3573,7 +3571,7 @@ impl Xt {
         }).await?))
     }
 
-    pub async fn fetch_spot_markets(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_spot_markets(&mut self, optional_args: &[Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -3634,8 +3632,6 @@ impl Xt {
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let symbols: crate::value::List = self.safe_list_k_t(&data, "symbols");
         return self.parse_markets(&symbols);
-
-    Value::Null
 }
 
     pub async fn fetch_swap_and_future_markets(&mut self, optional_args: &[&Value]) -> Value {
@@ -3707,12 +3703,12 @@ impl Xt {
         //     }
         //
         let swapAndFutureMarkets: crate::value::List = self.array_concat_t(self.safe_list_k(markets.get(0).cloned().unwrap_or(Value::Null), "result", &[Value::from(vec![])]), self.safe_list_k(markets.get(1).cloned().unwrap_or(Value::Null), "result", &[Value::from(vec![])]));
-        return self.parse_markets(&swapAndFutureMarkets);
+        return Value::Arr(self.parse_markets(&swapAndFutureMarkets));
 
     Value::Null
 }
 
-    pub fn parse_markets(&self, markets: impl Into<crate::Value>) -> Value {
+    pub fn parse_markets(&self, markets: impl Into<crate::Value>) -> crate::value::List {
         let markets: Value = markets.into();
         let mut result: Vec<Value> = Vec::new();
         {
@@ -3725,9 +3721,7 @@ impl Xt {
             }
         }
         }
-        return Value::from(result);
-
-    Value::Null
+        return std::sync::Arc::new(result);
 }
 
 
@@ -6609,7 +6603,7 @@ impl Xt {
         //     }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &result, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&result), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -6885,10 +6879,10 @@ impl Xt {
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), Some(&market), &[]).as_str().map(str::to_owned);
             if (symbols != Value::Null) {
                 if self.in_array(&symbol, &symbols) {
-                    result.insert(symbol.as_deref().unwrap_or("null").to_string(), <Self as crate::exchange::DerivedExchange>::parse_market_leverage_tiers(self, &entry, Some(&market)));
+                    result.insert(symbol.as_deref().unwrap_or("null").to_string(), <Self as crate::exchange::DerivedExchange>::parse_market_leverage_tiers(self, &entry, Some(&market)).map_or(Value::Null, Value::Arr));
                 }
             }  else {
-                result.insert(symbol.as_deref().unwrap_or("null").to_string(), <Self as crate::exchange::DerivedExchange>::parse_market_leverage_tiers(self, &entry, Some(&market)));
+                result.insert(symbol.as_deref().unwrap_or("null").to_string(), <Self as crate::exchange::DerivedExchange>::parse_market_leverage_tiers(self, &entry, Some(&market)).map_or(Value::Null, Value::Arr));
             }
         }
         }
@@ -6960,7 +6954,7 @@ impl Xt {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_market_leverage_tiers(self, &data, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_market_leverage_tiers(self, &data, Some(&market)).map_or(Value::Null, Value::Arr);
         Value::Null
         }).await?))
     }

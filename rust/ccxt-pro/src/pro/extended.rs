@@ -126,8 +126,8 @@ impl std::ops::DerefMut for Extended {
 }
 
 impl Extended {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -177,8 +177,6 @@ impl Extended {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -721,12 +719,14 @@ impl Extended {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (rawPositions.len() as i64) } {
-            let rawPosition: crate::value::Dict = self.safe_dict_t(&rawPositions, Value::Int(i));
-            let marketId: Option<String> = self.safe_string_k_opt(&rawPosition, "market", &[]);
+            let marketId: Option<String> = self.safe_string_k_opt(rawPositions.get(i as usize).cloned().unwrap_or(Value::Null), "market", &[]);
             if (marketId.is_none()) {
                 continue;
             }
-            let position: crate::value::Dict = self.parse_position(Value::Dict(rawPosition), None);
+            let position: crate::value::Dict = self.parse_position(self.safe_dict(&rawPositions, Value::Int(i), &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })]), None);
             std::sync::Arc::make_mut(&mut newPositions).push(Value::from(&position));
             self.positions.append(Value::Dict(position));
         }

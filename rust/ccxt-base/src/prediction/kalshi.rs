@@ -350,8 +350,8 @@ impl crate::exchange::DerivedExchange for Kalshi {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         // Kalshi balance in cents → divide by 100
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -799,8 +799,8 @@ impl std::ops::DerefMut for Kalshi {
 }
 
 impl Kalshi {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("kalshi".into()));
         m.insert("name".to_string(), Value::Str("Kalshi".into()));
@@ -1333,8 +1333,6 @@ impl Kalshi {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -2557,7 +2555,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 }));
         let response: crate::value::Dict = self.kalshi_private_get_portfolio_balance(&[&params]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, Some(&response)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

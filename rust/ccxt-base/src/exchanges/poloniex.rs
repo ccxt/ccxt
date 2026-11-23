@@ -49,9 +49,9 @@ impl Poloniex {
 }
 
 impl crate::exchange::DerivedExchange for Poloniex {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Poloniex.
-        crate::Value::from(Poloniex::nonce(self, ))
+        Some(Poloniex::nonce(self))
     }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
@@ -735,7 +735,7 @@ impl crate::exchange::DerivedExchange for Poloniex {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // deposits
@@ -871,7 +871,7 @@ impl crate::exchange::DerivedExchange for Poloniex {
 
     None
 }
-    fn parse_deposit_withdraw_fee(&self, fee: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_deposit_withdraw_fee(&self, fee: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let fee: Value = fee.into();
         let currencyCode: Option<String> = self.safe_string_k_opt(&currency, "code", &[]);
         let mut info: indexmap::IndexMap<String, Value> = ({
@@ -910,9 +910,9 @@ impl crate::exchange::DerivedExchange for Poloniex {
 }));
             depositWithdrawFee.insert("networks".into(), Value::Map(networks));
         }
-        return Value::Map(depositWithdrawFee);
+        return Some(std::sync::Arc::new(depositWithdrawFee));
 
-    Value::Null
+    None
 }
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
@@ -1047,8 +1047,8 @@ impl crate::exchange_generated::ExchangeBase for Poloniex {
                 "fetch_order_trades" => crate::types::IntoRaw::into_raw(self.fetch_order_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "fetch_position_mode" => crate::types::IntoRaw::into_raw(self.fetch_position_mode(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_spot_markets" => self.fetch_spot_markets(&args[..]).await,
-                "fetch_swap_markets" => self.fetch_swap_markets(&args[..]).await,
+                "fetch_spot_markets" => Value::Arr(self.fetch_spot_markets(&args[..]).await),
+                "fetch_swap_markets" => Value::Arr(self.fetch_swap_markets(&args[..]).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_time" => crate::types::IntoRaw::into_raw(self.fetch_time(args.get(0).cloned().unwrap_or_default()).await),
@@ -1069,7 +1069,7 @@ impl crate::exchange_generated::ExchangeBase for Poloniex {
                 "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_deposit_address_special" => self.parse_deposit_address_special(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
-                "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_deposit_withdraw_fee" => Value::Dict(self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_deposit_withdraw_fees" => self.parse_deposit_withdraw_fees(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_leverage" => Value::Dict(self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_margin_modification" => Value::Dict(self.parse_margin_modification(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1109,8 +1109,8 @@ impl std::ops::DerefMut for Poloniex {
 }
 
 impl Poloniex {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("poloniex".into()));
         m.insert("name".to_string(), Value::Str("Poloniex".into()));
@@ -2223,8 +2223,6 @@ impl Poloniex {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 
@@ -2367,25 +2365,23 @@ impl Poloniex {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let promises: crate::value::List = std::sync::Arc::new(vec![self.fetch_spot_markets(&[params.clone()]).await, self.fetch_swap_markets(&[params]).await]);
+        let promises: crate::value::List = std::sync::Arc::new(vec![Value::Arr(self.fetch_spot_markets(&[params.clone()]).await), Value::Arr(self.fetch_swap_markets(&[params]).await)]);
         let results: Vec<Value> = promise_all(&Value::Arr(promises)).await.to_vec();
         return self.array_concat(results.get(0).cloned().unwrap_or(Value::Null), results.get(1).cloned().unwrap_or(Value::Null));
         Value::Null
         }).await?))
     }
 
-    pub async fn fetch_spot_markets(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_spot_markets(&mut self, optional_args: &[Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
         let markets: crate::value::List = self.public_get_markets(&[&params]).await.unwrap_or_default();
         return self.parse_markets(&markets);
-
-    Value::Null
 }
 
-    pub async fn fetch_swap_markets(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_swap_markets(&mut self, optional_args: &[Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2432,8 +2428,6 @@ impl Poloniex {
         //
         let markets: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_markets(&markets);
-
-    Value::Null
 }
 
 
@@ -4645,7 +4639,7 @@ impl Poloniex {
         }
         let __ws_arg_38 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
         let response: crate::value::Dict = self.private_post_v2_wallets_withdraw(&[&__ws_arg_38]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4873,7 +4867,7 @@ impl Poloniex {
             let feeInfo: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = feesById.get(currencyId.as_deref().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
             if (code.is_some()) && ((codesValue.is_none()) || (self.in_array(&code, &codesValue))) {
                 let mut currency: crate::types::Currency = self.currency(code.as_deref());
-                depositWithdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), <Self as crate::exchange::DerivedExchange>::parse_deposit_withdraw_fee(self, &feeInfo, Some(&currency)));
+                depositWithdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), <Self as crate::exchange::DerivedExchange>::parse_deposit_withdraw_fee(self, &feeInfo, Some(&currency)).map_or(Value::Null, Value::Dict));
                 let mut parsedFee: indexmap::IndexMap<String, Value> = self.safe_dict(&depositWithdrawFees, Value::from(code.as_deref()), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m

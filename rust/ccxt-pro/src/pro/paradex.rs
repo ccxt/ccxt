@@ -61,7 +61,7 @@ impl crate::exchange_generated::ExchangeBase for Paradex {
         Box::pin(async move {
             match method {
                 "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
-                "expire_pending_unsubscribe" => self.expire_pending_unsubscribe(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
+                "expire_pending_unsubscribe" => { self.expire_pending_unsubscribe(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "get_ws_url" => self.get_ws_url(),
                 "handle_binary_message" => { self.handle_binary_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
@@ -230,8 +230,8 @@ impl std::ops::DerefMut for Paradex {
 }
 
 impl Paradex {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -306,8 +306,6 @@ impl Paradex {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn get_ws_url(&self) -> Value {
@@ -688,7 +686,7 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub async fn expire_pending_unsubscribe(&mut self, client: &Value, mut unsubHash: Value, mut requestId: Value) -> Value {
+    pub async fn expire_pending_unsubscribe(&mut self, client: &Value, mut unsubHash: Value, mut requestId: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let unsubscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, &unsubHash);
         if (self.safe_string_k(&unsubscription, "id", &[]).as_str() == requestId.as_str()) {
@@ -697,8 +695,6 @@ if _try_result.is_err() {
             // the subscriptions are forgotten, so that the next watch subscribes them again
             self.clean_unsubscribed(client, unsubHash.as_str().unwrap_or_default(), &unsubscription);
         }
-
-    Value::Null
 }
 
     pub async fn authenticate(&mut self, optional_args: &[&Value]) -> Value {

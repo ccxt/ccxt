@@ -52,9 +52,9 @@ impl Predictfun {
 }
 
 impl crate::exchange::DerivedExchange for Predictfun {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Predictfun.
-        crate::Value::from(Predictfun::nonce(self, ))
+        Some(Predictfun::nonce(self))
     }
     fn parse_prediction_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let trade: Value = trade.into();
@@ -449,7 +449,7 @@ impl crate::exchange_generated::ExchangeBase for Predictfun {
                 "parse_topic_market" => Value::Dict(self.parse_topic_market(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "parse_wallet_event_order" => self.parse_wallet_event_order(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_wallet_event_trade" => self.parse_wallet_event_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "pong" => self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
+                "pong" => { self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "request_id" => crate::Value::from(self.request_id()),
                 "set_sandbox_mode" => crate::types::IntoRaw::into_raw(self.set_sandbox_mode(args.get(0).is_some_and(crate::Value::is_truthy))),
                 "sign" => Value::Dict(self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..])),
@@ -488,8 +488,8 @@ impl std::ops::DerefMut for Predictfun {
 }
 
 impl Predictfun {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("predictfun".into()));
         m.insert("name".to_string(), Value::Str("predict.fun".into()));
@@ -865,8 +865,6 @@ impl Predictfun {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -4926,7 +4924,7 @@ impl Predictfun {
  * @param {Client} client the websocket client
  * @param {object} message the raw probe
  */
-    pub async fn pong(&mut self, mut client: Value, mut message: Value) -> Value {
+    pub async fn pong(&mut self, mut client: Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         // the server probes every fifteen seconds and drops the connection on the next probe unless
@@ -4944,8 +4942,6 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let error = Value::from(crate::exchange_errors::network_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " pong failed - ").into()), self.exception_message(e, &[]))));
             client.reset(error);
         }
-
-    Value::Null
 }
 
 /*

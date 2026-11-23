@@ -52,9 +52,9 @@ impl Binance {
 }
 
 impl crate::exchange::DerivedExchange for Binance {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Binance.
-        crate::Value::from(Binance::nonce(self, ))
+        Some(Binance::nonce(self))
     }
     fn parse_prediction_trade(&self, trade: impl Into<crate::Value>, outcomeObj: Option<&crate::types::Market>) -> Value {
         let trade: Value = trade.into();
@@ -389,8 +389,8 @@ impl std::ops::DerefMut for Binance {
 }
 
 impl Binance {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("binance".into()));
         m.insert("name".to_string(), Value::Str("Binance".into()));
@@ -613,8 +613,6 @@ impl Binance {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn nonce(&self) -> i64 {

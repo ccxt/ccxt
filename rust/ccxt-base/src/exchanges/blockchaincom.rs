@@ -208,7 +208,7 @@ impl crate::exchange::DerivedExchange for Blockchaincom {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // deposit
@@ -424,8 +424,8 @@ impl std::ops::DerefMut for Blockchaincom {
 }
 
 impl Blockchaincom {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("blockchaincom".into()));
         m.insert("secret".to_string(), Value::Null);
@@ -841,8 +841,6 @@ impl Blockchaincom {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -1665,7 +1663,7 @@ impl Blockchaincom {
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.private_post_withdrawals(&[&__ws_arg_9]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -1740,7 +1738,7 @@ impl Blockchaincom {
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.private_get_withdrawals_withdrawal_id(&[&__ws_arg_11]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, None).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), None).map_or(Value::Null, Value::Dict);
 
     Value::Null
 }
@@ -1816,7 +1814,7 @@ impl Blockchaincom {
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let deposit: crate::value::Dict = self.private_get_deposits_deposit_id(&[&__ws_arg_13]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &deposit, None).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&deposit), None).map_or(Value::Null, Value::Dict);
 
     Value::Null
 }

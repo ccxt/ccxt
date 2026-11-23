@@ -49,9 +49,9 @@ impl Btcmarkets {
 }
 
 impl crate::exchange::DerivedExchange for Btcmarkets {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Btcmarkets.
-        crate::Value::from(Btcmarkets::nonce(self, ))
+        Some(Btcmarkets::nonce(self))
     }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
@@ -350,7 +350,7 @@ impl crate::exchange::DerivedExchange for Btcmarkets {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         //    {
@@ -601,8 +601,8 @@ impl std::ops::DerefMut for Btcmarkets {
 }
 
 impl Btcmarkets {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("btcmarkets".into()));
         m.insert("name".to_string(), Value::Str("BTC Markets".into()));
@@ -1085,8 +1085,6 @@ impl Btcmarkets {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub async fn fetch_transactions_with_method(&mut self, method: &str, code: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[&Value]) -> crate::value::List {
@@ -1255,7 +1253,7 @@ impl Btcmarkets {
     m
 }));
         let response: crate::value::List = self.public_get_markets(&[&params]).await.unwrap_or_default();
-        return self.parse_markets(&response);
+        return Value::Arr(self.parse_markets(&response));
         Value::Null
         }).await?))
     }
@@ -2049,7 +2047,7 @@ impl Btcmarkets {
         }
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
         let response: crate::value::Dict = self.private_post_withdrawals(&[&__ws_arg_15]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

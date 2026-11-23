@@ -49,9 +49,9 @@ impl Coinmate {
 }
 
 impl crate::exchange::DerivedExchange for Coinmate {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Coinmate.
-        crate::Value::from(Coinmate::nonce(self, ))
+        Some(Coinmate::nonce(self))
     }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
@@ -258,8 +258,8 @@ impl crate::exchange::DerivedExchange for Coinmate {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         let balances: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -285,7 +285,7 @@ impl crate::exchange::DerivedExchange for Coinmate {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // deposits
@@ -492,8 +492,8 @@ impl std::ops::DerefMut for Coinmate {
 }
 
 impl Coinmate {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("coinmate".into()));
         m.insert("name".to_string(), Value::Str("CoinMate".into()));
@@ -1118,8 +1118,6 @@ impl Coinmate {
         m.insert("precisionMode".to_string(), Value::Int(crate::runtime::TICK_SIZE));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -1293,7 +1291,7 @@ impl Coinmate {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let response: crate::value::Dict = self.private_post_balances(&[&params]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, Some(&response)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -1617,7 +1615,7 @@ impl Coinmate {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let mut transaction: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &data, Some(&currency)).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
+        let mut transaction: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&data), Some(&currency)).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
         let fillResponseFromRequest: bool = self.safe_bool_k_opt(&withdrawOptions, "fillResponseFromRequest", &[Value::Bool(true)]).unwrap_or(true);
         if fillResponseFromRequest {
             transaction.insert("amount".into(), Value::from(amount));

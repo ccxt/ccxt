@@ -49,9 +49,9 @@ impl Upbit {
 }
 
 impl crate::exchange::DerivedExchange for Upbit {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Upbit.
-        crate::Value::from(Upbit::nonce(self, ))
+        Some(Upbit::nonce(self))
     }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
@@ -481,7 +481,7 @@ impl crate::exchange::DerivedExchange for Upbit {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // fetchDeposits, fetchDeposit
@@ -725,8 +725,8 @@ impl std::ops::DerefMut for Upbit {
 }
 
 impl Upbit {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("upbit".into()));
         m.insert("name".to_string(), Value::Str("Upbit".into()));
@@ -1302,8 +1302,6 @@ impl Upbit {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub async fn fetch_currency(&mut self, code: &str, optional_args: &[&Value]) -> crate::value::Dict {
@@ -1588,7 +1586,7 @@ impl Upbit {
     m
 }));
         let response: crate::value::List = self.public_get_market_all(&[&params]).await.unwrap_or_default();
-        return self.parse_markets(&response);
+        return Value::Arr(self.parse_markets(&response));
         Value::Null
         }).await?))
     }
@@ -2630,7 +2628,7 @@ impl Upbit {
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.private_get_deposit(&[&__ws_arg_14]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, currency.as_ref()).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), currency.as_ref()).map_or(Value::Null, Value::Dict);
 
     Value::Null
 }
@@ -2714,7 +2712,7 @@ impl Upbit {
         }
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.private_get_withdraw(&[&__ws_arg_16]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, currency.as_ref()).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), currency.as_ref()).map_or(Value::Null, Value::Dict);
 
     Value::Null
 }
@@ -3135,7 +3133,7 @@ impl Upbit {
             let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsTag]);
             response = self.private_post_withdraws_krw(&[&__ws_arg_24]).await;
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, None).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, response.as_ref(), None).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

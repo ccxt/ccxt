@@ -343,8 +343,8 @@ impl crate::exchange::DerivedExchange for Alpaca {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         //
         // crypto holdings live on the positions endpoint, the account endpoint carries only the cash currency
         //
@@ -445,7 +445,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // account activities ledger entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
@@ -699,8 +699,8 @@ impl std::ops::DerefMut for Alpaca {
 }
 
 impl Alpaca {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("alpaca".into()));
         m.insert("name".to_string(), Value::Str("Alpaca".into()));
@@ -1604,8 +1604,6 @@ impl Alpaca {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -1669,7 +1667,7 @@ impl Alpaca {
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
         let assets: crate::value::List = self.trader_private_get_v2_assets(&[&__ws_arg_0]).await.unwrap_or_default();
-        return self.parse_markets(&assets);
+        return Value::Arr(self.parse_markets(&assets));
         Value::Null
         }).await?))
     }
@@ -2878,7 +2876,7 @@ impl Alpaca {
         });
         let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
         let response: crate::value::Dict = self.trader_private_post_v2_wallets_transfers(&[&__ws_arg_20]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3188,7 +3186,7 @@ impl Alpaca {
                 m.insert("positions".to_string(), Value::Arr(positions));
             m
         });
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, Value::Map(response)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(Value::Map(response)).as_ref()).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

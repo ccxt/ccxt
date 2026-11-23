@@ -49,9 +49,9 @@ impl Kraken {
 }
 
 impl crate::exchange::DerivedExchange for Kraken {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Kraken.
-        crate::Value::from(Kraken::nonce(self, ))
+        Some(Kraken::nonce(self))
     }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
@@ -556,8 +556,8 @@ impl crate::exchange::DerivedExchange for Kraken {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         let balances: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -837,7 +837,7 @@ impl crate::exchange::DerivedExchange for Kraken {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // fetchDeposits
@@ -1106,7 +1106,7 @@ impl crate::exchange_generated::ExchangeBase for Kraken {
             match method {
                 "add_pagination_cursor_to_result" => crate::Value::Arr(self.add_pagination_cursor_to_result(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
-                "cancel_all_orders_after" => self.cancel_all_orders_after(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "cancel_all_orders_after" => crate::types::IntoRaw::into_raw(self.cancel_all_orders_after(args.get(0).and_then(crate::Value::as_i64), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_deposit_address" => crate::types::IntoRaw::into_raw(self.create_deposit_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -1189,8 +1189,8 @@ impl std::ops::DerefMut for Kraken {
 }
 
 impl Kraken {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("kraken".into()));
         m.insert("name".to_string(), Value::Str("Kraken".into()));
@@ -2051,8 +2051,6 @@ impl Kraken {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn fee_to_precision(&self, symbol: Option<&str>, mut fee: Value) -> Option<String> {
@@ -3021,7 +3019,7 @@ impl Kraken {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let response: crate::value::Dict = self.private_post_balance_ex(&[&params]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, Some(&response)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4118,7 +4116,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the api result
  */
-    pub async fn cancel_all_orders_after(&mut self, mut timeout: Value, optional_args: &[Value]) -> Value {
+    pub async fn cancel_all_orders_after(&mut self, timeout: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Option<crate::value::Dict>> {
+        let __args: Vec<Value> = vec![Value::from(timeout), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let timeout = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4143,9 +4147,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.private_post_cancel_all_orders_after(&[&__ws_arg_17]).await.unwrap_or_default();
         return Value::Dict(response);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -4408,7 +4412,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m.insert("type".to_string(), Value::from(type_var));
                 m
             }), &[transactions.get(i as usize).cloned().unwrap_or(Value::Null)]);
-            let transaction: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_transaction(self, __ws_arg_20, None).unwrap_or_default();
+            let transaction: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_transaction(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_20).as_ref(), None).unwrap_or_default();
             result.push(Value::Dict(transaction));
         }
         }
@@ -4866,7 +4870,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             //     }
             //
             let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-            return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &result, Some(&currency)).map_or(Value::Null, Value::Dict);
+            return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&result), Some(&currency)).map_or(Value::Null, Value::Dict);
         }
         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)")));
         Value::Null

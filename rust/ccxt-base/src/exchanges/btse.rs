@@ -49,9 +49,9 @@ impl Btse {
 }
 
 impl crate::exchange::DerivedExchange for Btse {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Btse.
-        crate::Value::from(Btse::nonce(self, ))
+        Some(Btse::nonce(self))
     }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
@@ -737,7 +737,7 @@ impl crate::exchange::DerivedExchange for Btse {
 
     Value::Null
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         //     {
@@ -797,7 +797,7 @@ impl crate::exchange::DerivedExchange for Btse {
 
     None
 }
-    fn parse_margin_mode(&self, marginMode: &crate::value::Dict, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_margin_mode(&self, marginMode: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let marginMode: Value = marginMode.into();
         //
         //     {
@@ -986,7 +986,7 @@ impl crate::exchange_generated::ExchangeBase for Btse {
         Box::pin(async move {
             match method {
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
-                "cancel_all_orders_after" => self.cancel_all_orders_after(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "cancel_all_orders_after" => crate::types::IntoRaw::into_raw(self.cancel_all_orders_after(args.get(0).and_then(crate::Value::as_i64), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "close_position" => crate::types::IntoRaw::into_raw(self.close_position(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_contract_order" => self.create_contract_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
@@ -1066,8 +1066,8 @@ impl std::ops::DerefMut for Btse {
 }
 
 impl Btse {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("btse".into()));
         m.insert("name".to_string(), Value::Str("BTSE".into()));
@@ -1939,8 +1939,6 @@ impl Btse {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -1991,7 +1989,7 @@ impl Btse {
         let response: crate::value::Dict = self.public_get_public_api_market_v1_markets(&[&params]).await.unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let markets: crate::value::List = self.safe_list_k_t(&data, "symbols");
-        return self.parse_markets(&markets);
+        return Value::Arr(self.parse_markets(&markets));
         Value::Null
         }).await?))
     }
@@ -3892,7 +3890,13 @@ impl Btse {
  * @param {string} [params.type] 'spot', 'swap' or 'future', default is 'spot'
  * @returns {object} the api result
  */
-    pub async fn cancel_all_orders_after(&mut self, mut timeout: Value, optional_args: &[Value]) -> Value {
+    pub async fn cancel_all_orders_after(&mut self, timeout: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Option<crate::value::Dict>> {
+        let __args: Vec<Value> = vec![Value::from(timeout), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let timeout = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -3918,9 +3922,9 @@ impl Btse {
             response = self.private_post_futures_api_v3_trade_orders_cancel_all_after(&[&__ws_arg_26]).await;
         }
         return response.map_or(Value::Null, Value::Dict);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -4761,7 +4765,7 @@ impl Btse {
         let __ws_arg_36 = self.extend(Value::Map(request), &[params]);
         let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.private_get_futures_api_v3_trade_leverage(&[&__ws_arg_36]).await.unwrap_or_default());
         let data: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_margin_mode(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_margin_mode(self, Some(&data), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

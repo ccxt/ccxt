@@ -459,8 +459,8 @@ impl crate::exchange::DerivedExchange for Grvt {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         //
         //        {
         //            "event_time": "1764863116142428457",
@@ -722,7 +722,7 @@ impl crate::exchange::DerivedExchange for Grvt {
 
     Value::Null
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // fetchDeposits
@@ -838,7 +838,7 @@ impl crate::exchange::DerivedExchange for Grvt {
 
     None
 }
-    fn parse_income(&self, income: &crate::value::Dict, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_income(&self, income: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let income: Value = income.into();
         //
         //            {
@@ -867,7 +867,7 @@ impl crate::exchange::DerivedExchange for Grvt {
 
     None
 }
-    fn parse_margin_mode(&self, marginMode: &crate::value::Dict, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_margin_mode(&self, marginMode: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let marginMode: Value = marginMode.into();
         //
         // fetchMarginModes
@@ -1130,10 +1130,10 @@ impl std::ops::DerefMut for Grvt {
 }
 
 impl Grvt {
-    pub fn describe(&self) -> Value {
+    pub fn describe(&self) -> crate::value::Dict {
         let rlOthers: i64 = 40;
         let rlOrders: i64 = 20;
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("grvt".into()));
         m.insert("name".to_string(), Value::Str("GRVT".into()));
@@ -1881,8 +1881,6 @@ impl Grvt {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn eip_definitions(&self) -> crate::value::Dict {
@@ -2412,7 +2410,7 @@ if _try_result.is_err() {
         let results: Vec<crate::value::Dict> = crate::value::dict_rows(promise_all(&Value::from(promises)).await);
         let response: crate::value::Dict = results.get(0).cloned().unwrap_or_default();
         let result: crate::value::List = self.safe_list_k_t(&response, "result");
-        return self.parse_markets(&result);
+        return Value::Arr(self.parse_markets(&result));
         Value::Null
         }).await?))
     }
@@ -2902,7 +2900,7 @@ if _try_result.is_err() {
         //    }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &result).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, Some(&result)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3449,7 +3447,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         // }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &result, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&result), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

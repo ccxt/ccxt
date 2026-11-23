@@ -49,9 +49,9 @@ impl Tokocrypto {
 }
 
 impl crate::exchange::DerivedExchange for Tokocrypto {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Tokocrypto.
-        crate::Value::from(Tokocrypto::nonce(self, ))
+        Some(Tokocrypto::nonce(self))
     }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
@@ -596,7 +596,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // fetchDeposits
@@ -959,8 +959,8 @@ impl std::ops::DerefMut for Tokocrypto {
 }
 
 impl Tokocrypto {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("tokocrypto".into()));
         m.insert("name".to_string(), Value::Str("Tokocrypto".into()));
@@ -1872,8 +1872,6 @@ impl Tokocrypto {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn nonce(&self) -> i64 {
@@ -1964,7 +1962,7 @@ impl Tokocrypto {
         }
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let list: crate::value::List = self.safe_list_k_t(&data, "list");
-        return self.parse_markets(&list);
+        return Value::Arr(self.parse_markets(&list));
         Value::Null
         }).await?))
     }
@@ -2286,7 +2284,7 @@ impl Tokocrypto {
             let firstTicker: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
             return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &firstTicker, Some(&market)).map_or(Value::Null, Value::Dict);
         }
-        let __ws_arg_6 = self.extend(Value::Map({
+        let __ws_arg_6 = self.extend_t(Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }), &[response__map.map_or(Value::Null, Value::Dict)]);
@@ -3485,7 +3483,7 @@ impl Tokocrypto {
         }
         let __ws_arg_20 = self.extend(Value::Map(request), &[&query]);
         let response: crate::value::Dict = self.private_post_open_v1_withdraws(&[&__ws_arg_20]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

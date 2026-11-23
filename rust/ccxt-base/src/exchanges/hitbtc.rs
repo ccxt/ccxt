@@ -49,9 +49,9 @@ impl Hitbtc {
 }
 
 impl crate::exchange::DerivedExchange for Hitbtc {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Hitbtc.
-        crate::Value::from(Hitbtc::nonce(self, ))
+        Some(Hitbtc::nonce(self))
     }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
@@ -650,7 +650,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // transaction
@@ -741,7 +741,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
 
     None
 }
-    fn parse_margin_mode(&self, marginMode: &crate::value::Dict, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_margin_mode(&self, marginMode: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let marginMode: Value = marginMode.into();
         let marketId: Option<String> = self.safe_string_k_opt(&marginMode, "symbol", &[]);
         return Some(std::sync::Arc::new({
@@ -770,7 +770,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
 
     None
 }
-    fn parse_deposit_withdraw_fee(&self, fee: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_deposit_withdraw_fee(&self, fee: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let fee: Value = fee.into();
         //
         //    {
@@ -841,9 +841,9 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         }
         }
         result.insert("networks".into(), Value::Map(networkFees));
-        return Value::Map(result);
+        return Some(std::sync::Arc::new(result));
 
-    Value::Null
+    None
 }
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
@@ -988,7 +988,7 @@ impl crate::exchange_generated::ExchangeBase for Hitbtc {
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_deposit_withdraw_fee" => Value::Dict(self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_leverage" => Value::Dict(self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_margin_mode" => Value::Dict(self.parse_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1025,8 +1025,8 @@ impl std::ops::DerefMut for Hitbtc {
 }
 
 impl Hitbtc {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("hitbtc".into()));
         m.insert("name".to_string(), Value::Str("HitBTC".into()));
@@ -2178,8 +2178,6 @@ impl Hitbtc {
         m.insert("rollingWindowSize".to_string(), Value::Int(1000));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn nonce(&self) -> i64 {
@@ -4293,7 +4291,7 @@ impl Hitbtc {
         }
         let __ws_arg_58 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let response: crate::value::Dict = self.private_post_wallet_crypto_withdraw(&[&__ws_arg_58]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4532,17 +4530,17 @@ impl Hitbtc {
         let marginMode: Option<String> = marginModeparamsMarginModeVariable.0.as_str().map(str::to_owned);
         let paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.1;
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsMarginMode, &["marginMode", "margin"], &[]);
-        let mut response: Option<crate::value::List> = None;
+        let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (marginMode.is_some()) {
             let __ws_arg_61 = self.extend(&request, &[&paramsOmitted]);
-            response = self.private_get_margin_account(&[&__ws_arg_61]).await;
+            response = self.private_get_margin_account(&[&__ws_arg_61]).await.unwrap_or_default();
         }  else {
             if (marketTypeRaw.as_deref() == Some("swap")) {
                 let __ws_arg_62 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_get_futures_account(&[&__ws_arg_62]).await;
+                response = self.private_get_futures_account(&[&__ws_arg_62]).await.unwrap_or_default();
             }  else if (marketTypeRaw.as_deref() == Some("margin")) {
                 let __ws_arg_63 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.private_get_margin_account(&[&__ws_arg_63]).await;
+                response = self.private_get_margin_account(&[&__ws_arg_63]).await.unwrap_or_default();
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchPositions() not support this market type")));
             }
@@ -4583,11 +4581,12 @@ impl Hitbtc {
         {
                         let mut i: i64 = 0;
             let mut __for_first_11: bool = true;
-            while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            result.push(<Self as crate::exchange::DerivedExchange>::parse_position(self, self.safe_dict(&response, Value::Int(i), &[Value::Map({
+            while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (response.len() as i64) } {
+            let position: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_position(self, self.safe_dict(&response, Value::Int(i), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})]), None).map_or(Value::Null, Value::Dict));
+})]), None).unwrap_or_default();
+            result.push(Value::Dict(position));
         }
         }
         return Value::from(result);

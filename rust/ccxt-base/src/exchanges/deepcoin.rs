@@ -461,8 +461,8 @@ impl crate::exchange::DerivedExchange for Deepcoin {
 
     Value::Null
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         //
         //     {
         //         "code": "0",
@@ -736,7 +736,7 @@ impl crate::exchange::DerivedExchange for Deepcoin {
 
     Value::Null
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // fetchDeposits
@@ -985,8 +985,8 @@ impl std::ops::DerefMut for Deepcoin {
 }
 
 impl Deepcoin {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("deepcoin".into()));
         m.insert("name".to_string(), Value::Str("DeepCoin".into()));
@@ -1709,8 +1709,6 @@ impl Deepcoin {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn handle_market_type_and_params(&self, mut methodName: Value, market: Option<&crate::types::Market>, optional_args: &[&Value]) -> (Value, crate::value::Dict) {
@@ -1827,7 +1825,7 @@ impl Deepcoin {
         //     }
         //
         let dataResponse: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_markets(&dataResponse);
+        return Value::Arr(self.parse_markets(&dataResponse));
 
     Value::Null
 }
@@ -2193,7 +2191,7 @@ impl Deepcoin {
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsMarketType]);
         let response: crate::value::Dict = self.private_get_deepcoin_account_balances(&[&__ws_arg_14]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, Some(&response)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

@@ -52,9 +52,9 @@ impl Hyperliquid {
 }
 
 impl crate::exchange::DerivedExchange for Hyperliquid {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Hyperliquid.
-        crate::Value::from(Hyperliquid::nonce(self, ))
+        Some(Hyperliquid::nonce(self))
     }
     fn parse_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Option<crate::value::List> {
         return Some(std::sync::Arc::new(vec![self.safe_integer_k(&ohlcv, "t", &[]), self.safe_number_k(&ohlcv, "o", &[]), self.safe_number_k(&ohlcv, "h", &[]), self.safe_number_k(&ohlcv, "l", &[]), self.safe_number_k(&ohlcv, "c", &[]), self.safe_number_k(ohlcv, "v", &[])]));
@@ -431,8 +431,8 @@ impl std::ops::DerefMut for Hyperliquid {
 }
 
 impl Hyperliquid {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("hyperliquid".into()));
         m.insert("name".to_string(), Value::Str("Hyperliquid".into()));
@@ -603,8 +603,6 @@ impl Hyperliquid {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn set_sandbox_mode(&mut self, enabled: bool) -> crate::Result<()> {

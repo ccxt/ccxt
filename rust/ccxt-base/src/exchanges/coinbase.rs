@@ -49,9 +49,9 @@ impl Coinbase {
 }
 
 impl crate::exchange::DerivedExchange for Coinbase {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Coinbase.
-        crate::Value::from(Coinbase::nonce(self, ))
+        Some(Coinbase::nonce(self))
     }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
@@ -978,7 +978,7 @@ impl crate::exchange::DerivedExchange for Coinbase {
 
     None
 }
-    fn parse_account(&self, account: &crate::value::Dict) -> Option<crate::value::Dict> {
+    fn parse_account(&self, account: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
         let account: Value = account.into();
         //
         // fetchAccountsV2
@@ -1053,7 +1053,7 @@ impl crate::exchange::DerivedExchange for Coinbase {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // fiat deposit
@@ -1622,8 +1622,8 @@ impl std::ops::DerefMut for Coinbase {
 }
 
 impl Coinbase {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("coinbase".into()));
         m.insert("name".to_string(), Value::Str("Coinbase Advanced".into()));
@@ -2545,8 +2545,6 @@ impl Coinbase {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -6208,7 +6206,7 @@ if _try_result.is_err() {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &data, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&data), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -6386,7 +6384,7 @@ if _try_result.is_err() {
         //
         // https://github.com/ccxt/ccxt/issues/25484
         let data: crate::value::Dict = self.safe_dict2_t(&response, Value::Str("data".into()), Value::Str("transfer".into()));
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &data, None).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&data), None).map_or(Value::Null, Value::Dict);
 
     Value::Null
 }
@@ -6468,7 +6466,7 @@ if _try_result.is_err() {
         //
         // https://github.com/ccxt/ccxt/issues/25484
         let data: crate::value::Dict = self.safe_dict2_t(&response, Value::Str("data".into()), Value::Str("transfer".into()));
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &data, None).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&data), None).map_or(Value::Null, Value::Dict);
 
     Value::Null
 }

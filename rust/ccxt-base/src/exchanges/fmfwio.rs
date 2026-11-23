@@ -77,8 +77,8 @@ impl std::ops::DerefMut for Fmfwio {
 }
 
 impl Fmfwio {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("fmfwio".into()));
         m.insert("name".to_string(), Value::Str("FMFW.io".into()));
@@ -110,7 +110,5 @@ impl Fmfwio {
 }));
     m
 })]);
-
-    Value::Null
 }
 }

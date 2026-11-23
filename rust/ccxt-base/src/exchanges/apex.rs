@@ -349,8 +349,8 @@ impl crate::exchange::DerivedExchange for Apex {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         //
         // {
         //     "totalEquityValue": "100.000000",
@@ -601,7 +601,7 @@ impl crate::exchange::DerivedExchange for Apex {
 
     None
 }
-    fn parse_account(&self, account: &crate::value::Dict) -> Option<crate::value::Dict> {
+    fn parse_account(&self, account: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
         let account: Value = account.into();
         let accountId: String = self.safe_string_k(&account, "id", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         return Some(std::sync::Arc::new({
@@ -615,7 +615,7 @@ impl crate::exchange::DerivedExchange for Apex {
 
     None
 }
-    fn parse_income(&self, income: &crate::value::Dict, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_income(&self, income: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let income: Value = income.into();
         //
         // {
@@ -797,8 +797,8 @@ impl std::ops::DerefMut for Apex {
 }
 
 impl Apex {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("apex".into()));
         m.insert("name".to_string(), Value::Str("Apex".into()));
@@ -1279,8 +1279,6 @@ impl Apex {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -1332,7 +1330,7 @@ impl Apex {
         }
         let response: crate::value::Dict = self.private_get_v3_account_balance(&[&params]).await.unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &data).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, Some(&data)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -1356,7 +1354,7 @@ impl Apex {
         }
         let response: crate::value::Dict = self.private_get_v3_account(&[&params]).await.unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_account(self, &data).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_account(self, Some(&data)).map_or(Value::Null, Value::Dict);
 
     Value::Null
 }
@@ -1505,7 +1503,7 @@ impl Apex {
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let contractConfig: crate::value::Dict = self.safe_dict_k_t(&data, "contractConfig");
         let perpetualContract: crate::value::List = self.safe_list_k_t(&contractConfig, "perpetualContract");
-        return self.parse_markets(&perpetualContract);
+        return Value::Arr(self.parse_markets(&perpetualContract));
         Value::Null
         }).await?))
     }

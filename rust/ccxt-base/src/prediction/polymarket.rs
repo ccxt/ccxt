@@ -52,9 +52,9 @@ impl Polymarket {
 }
 
 impl crate::exchange::DerivedExchange for Polymarket {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Polymarket.
-        crate::Value::from(Polymarket::nonce(self, ))
+        Some(Polymarket::nonce(self))
     }
     fn parse_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Option<crate::value::List> {
         // Unused: fetchOHLCV performs client-side bucket aggregation directly.
@@ -69,8 +69,8 @@ impl crate::exchange::DerivedExchange for Polymarket {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -473,7 +473,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "handle_list_message" => { self.handle_list_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "load_api_credentials" => self.load_api_credentials().await,
+                "load_api_credentials" => { self.load_api_credentials().await; crate::Value::Null },
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_event" => Value::Dict(self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null))),
@@ -520,8 +520,8 @@ impl std::ops::DerefMut for Polymarket {
 }
 
 impl Polymarket {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("polymarket".into()));
         m.insert("name".to_string(), Value::Str("Polymarket".into()));
@@ -1398,8 +1398,6 @@ impl Polymarket {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -3047,7 +3045,7 @@ impl Polymarket {
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[&rest]);
         let response: crate::value::Dict = self.clob_private_get_balance_allowance(&[&__ws_arg_8]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, Some(&response)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4589,7 +4587,7 @@ if _try_result.is_err() {
  * @name polymarket#loadApiCredentials
  * @description ensures L2 api credentials are available for private requests — uses the provided apiKey/secret/password when present, otherwise derives them from the privateKey
  */
-    pub async fn load_api_credentials(&mut self) -> Value {
+    pub async fn load_api_credentials(&mut self) {
         // the order signer / L2 POLY_ADDRESS is always the EOA behind the privateKey, so the L2 api key MUST
         // belong to that same EOA — derive it from the privateKey rather than trusting externally supplied
         // creds that may have been issued to a different wallet
@@ -4598,18 +4596,16 @@ if _try_result.is_err() {
             if (alreadyDerived.is_none()) {
                 self.create_or_derive_api_key(&[]).await;
             }
-            return Value::Null;
+            return;
         }
         let apiKey: Option<String> = (if (self.apiKey != Value::Null) { self.apiKey.as_str().map(str::to_owned) } else { self.safe_string_k_opt(&self.options, "l2ApiKey", &[]) });
         let secret: Option<String> = (if (self.secret != Value::Null) { self.secret.as_str().map(str::to_owned) } else { self.safe_string_k_opt(&self.options, "l2Secret", &[]) });
         let passphrase: Option<String> = (if (self.password != Value::Null) { self.password.as_str().map(str::to_owned) } else { self.safe_string_k_opt(&self.options, "l2Passphrase", &[]) });
         let hasL2: bool = (apiKey.is_some()) && (secret.is_some()) && (passphrase.is_some());
         if hasL2 {
-            return Value::Null;
+            return;
         }
         panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id, " requires L2 api credentials (apiKey, secret, password) or a privateKey to derive them")));
-
-    Value::Null
 }
 
     pub fn ping(&self, mut client: Value) -> Value {

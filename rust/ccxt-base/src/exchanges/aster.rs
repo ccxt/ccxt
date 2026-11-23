@@ -737,7 +737,7 @@ impl crate::exchange::DerivedExchange for Aster {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
@@ -766,7 +766,7 @@ impl crate::exchange::DerivedExchange for Aster {
 
     None
 }
-    fn parse_income(&self, income: &crate::value::Dict, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_income(&self, income: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let income: Value = income.into();
         //
         //     {
@@ -797,7 +797,7 @@ impl crate::exchange::DerivedExchange for Aster {
 
     None
 }
-    fn parse_margin_mode(&self, marginMode: &crate::value::Dict, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_margin_mode(&self, marginMode: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let marginMode: Value = marginMode.into();
         //
         //     {
@@ -1149,8 +1149,8 @@ impl std::ops::DerefMut for Aster {
 }
 
 impl Aster {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("aster".into()));
         m.insert("name".to_string(), Value::Str("Aster".into()));
@@ -2717,8 +2717,6 @@ impl Aster {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn is_inverse(&self, type_var: &str, subType: Option<&str>) -> Value {
@@ -2901,7 +2899,7 @@ impl Aster {
         }
         }
         let rows: crate::value::List = self.array_concat_t(&sapiRows, Value::from(fapiRowsFiltered));
-        return self.parse_markets(&rows);
+        return Value::Arr(self.parse_markets(&rows));
         Value::Null
         }).await?))
     }
@@ -3261,7 +3259,7 @@ impl Aster {
             let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
             response = self.sapi_public_get_v3_ticker24hr(&[&__ws_arg_13]).await;
         }
-        let __ws_arg_14 = self.extend(Value::Map({
+        let __ws_arg_14 = self.extend_t(Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }), &[response]);
@@ -5682,7 +5680,7 @@ impl Aster {
         { let __be_tmp = self.sign_withdraw_payload(Value::Map(request.clone()), network.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null); request.insert("userSignature".into(), __be_tmp); }
         let __ws_arg_47 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let response: crate::value::Dict = self.sapi_private_post_v3_aster_user_withdraw(&[&__ws_arg_47]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

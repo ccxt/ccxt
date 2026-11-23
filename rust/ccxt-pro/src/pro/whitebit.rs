@@ -67,7 +67,7 @@ impl crate::exchange_generated::ExchangeBase for Whitebit {
                 "handle_ohlcv" => self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_ticker" => self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "load_balance_snapshot" => self.load_balance_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)).await,
+                "load_balance_snapshot" => { self.load_balance_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -97,7 +97,7 @@ impl Whitebit {
         match __n {
             "authenticate" => crate::exchange_stubs::enqueue_spawn("authenticate", args.iter().copied().cloned().collect::<Vec<_>>()),
             "handle_authenticate" => { self.handle_authenticate(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -141,8 +141,8 @@ impl std::ops::DerefMut for Whitebit {
 }
 
 impl Whitebit {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -212,8 +212,6 @@ impl Whitebit {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -1107,7 +1105,7 @@ impl Whitebit {
         }
 }
 
-    pub async fn load_balance_snapshot(&mut self, client: &Value, mut messageHash: Value, mut type_var: Value, mut subscriptionHash: Value) -> Value {
+    pub async fn load_balance_snapshot(&mut self, client: &Value, mut messageHash: Value, mut type_var: Value, mut subscriptionHash: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let response: crate::types::Balances = (match self.fetch_balance(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1121,13 +1119,9 @@ impl Whitebit {
             future.resolve(Value::Null, None);
             client.resolve(Value::Dict(self.balance.clone()), &subscriptionHash);
         }
-
-    Value::Null
 }
 
-    pub fn handle_balance(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_balance(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         // spot
         //

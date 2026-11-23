@@ -49,9 +49,9 @@ impl Bithumb {
 }
 
 impl crate::exchange::DerivedExchange for Bithumb {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Bithumb.
-        crate::Value::from(Bithumb::nonce(self, ))
+        Some(Bithumb::nonce(self))
     }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
@@ -622,7 +622,7 @@ impl crate::exchange::DerivedExchange for Bithumb {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // generation 1: withdraw
@@ -909,8 +909,8 @@ impl std::ops::DerefMut for Bithumb {
 }
 
 impl Bithumb {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("bithumb".into()));
         m.insert("name".to_string(), Value::Str("Bithumb".into()));
@@ -1639,8 +1639,6 @@ impl Bithumb {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn safe_market(&self, marketId: Option<&str>, market: Option<&crate::types::Market>, optional_args: &[Value]) -> crate::types::Market {
@@ -2394,7 +2392,7 @@ impl Bithumb {
                     }
                     let symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
                     let market: crate::types::Market = self.safe_market(Some(symbol.as_str()), None, &[]);
-                    let __ws_arg_7 = self.extend(ticker, &[Value::Map({
+                    let __ws_arg_7 = self.extend_t(ticker, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("date".to_string(), Value::from(timestamp));
     m
@@ -2510,7 +2508,7 @@ impl Bithumb {
             //
             data = self.safe_dict_k_t(&response, "data");
         }
-        let __ws_arg_10 = self.extend(Value::Map({
+        let __ws_arg_10 = self.extend_t(Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }), &[&data]);
@@ -2833,10 +2831,10 @@ impl Bithumb {
             if (side.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrders() requires each order to have a side")));
             }
-            let amount: Value = self.safe_value_k(&rawOrder, "amount", &[]);
+            let amount: Option<f64> = self.safe_number_k(&rawOrder, "amount", &[]).as_f64();
             let price: Option<f64> = self.safe_number_k(&rawOrder, "price", &[]).as_f64();
             let orderParams: crate::value::Dict = self.safe_dict_k_t(&rawOrder, "params");
-            let orderRequest: crate::value::Dict = self.create_order_request(symbol.as_deref().unwrap_or_default(), type_var.as_deref().unwrap_or_default(), side.as_deref().unwrap_or_default(), amount, price, &[&Value::Dict(orderParams)]);
+            let orderRequest: crate::value::Dict = self.create_order_request(symbol.as_deref().unwrap_or_default(), type_var.as_deref().unwrap_or_default(), side.as_deref().unwrap_or_default(), Value::from(amount), price, &[&Value::Dict(orderParams)]);
             ordersRequests.push(Value::Dict(orderRequest));
         }
         }
@@ -3929,7 +3927,7 @@ impl Bithumb {
             let __ws_arg_42 = self.extend(Value::Map(request), &[&paramsReceiverType]);
             response = self.private_post_trade_btc_withdrawal(&[&__ws_arg_42]).await;
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, response.as_ref(), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4036,7 +4034,7 @@ impl Bithumb {
         }
         let __ws_arg_43 = self.extend(Value::Map(request), &[&paramsGeneration]);
         let response: crate::value::Dict = self.private_get_v1_withdraw(&[&__ws_arg_43]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
 
     Value::Null
 }
@@ -4147,7 +4145,7 @@ impl Bithumb {
         }
         let __ws_arg_46 = self.extend(Value::Map(request), &[&paramsGeneration]);
         let response: crate::value::Dict = self.private_get_v1_deposit(&[&__ws_arg_46]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
 
     Value::Null
 }

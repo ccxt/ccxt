@@ -68,14 +68,14 @@ impl crate::exchange_generated::ExchangeBase for Binance {
                 "describe_data" => self.describe_data(),
                 "edit_order_ws" => crate::types::IntoRaw::into_raw(self.edit_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
-                "ensure_user_data_stream_ws_subscribe_listen_token" => self.ensure_user_data_stream_ws_subscribe_listen_token(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "ensure_user_data_stream_ws_subscribe_listen_token" => { self.ensure_user_data_stream_ws_subscribe_listen_token(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await; crate::Value::Null },
                 "ensure_user_data_stream_ws_subscribe_signature" => self.ensure_user_data_stream_ws_subscribe_signature(&args[..].iter().collect::<Vec<_>>()).await,
                 "fetch_balance_ws" => crate::types::IntoRaw::into_raw(self.fetch_balance_ws(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_closed_orders_ws" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders_ws(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_my_trades_ws" => crate::types::IntoRaw::into_raw(self.fetch_my_trades_ws(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_ohlcv_ws" => crate::types::IntoRaw::into_raw(self.fetch_ohlcv_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "fetch_open_orders_ws" => crate::types::IntoRaw::into_raw(self.fetch_open_orders_ws(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_order_book_snapshot" => self.fetch_order_book_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
+                "fetch_order_book_snapshot" => { self.fetch_order_book_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "fetch_order_book_ws" => crate::types::IntoRaw::into_raw(self.fetch_order_book_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_ws" => crate::types::IntoRaw::into_raw(self.fetch_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_orders_ws" => crate::types::IntoRaw::into_raw(self.fetch_orders_ws(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -89,16 +89,16 @@ impl crate::exchange_generated::ExchangeBase for Binance {
                 "handle_order_book_message" => self.handle_order_book_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "handle_subscription_status" => self.handle_subscription_status(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "is_spot_url" => self.is_spot_url(args.get(0).unwrap_or(&crate::Value::Null)),
-                "keep_alive_listen_key" => self.keep_alive_listen_key(&args[..]).await,
-                "load_balance_snapshot" => self.load_balance_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)).await,
-                "load_positions_snapshot" => self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)).await,
+                "keep_alive_listen_key" => { self.keep_alive_listen_key(&args[..]).await; crate::Value::Null },
+                "load_balance_snapshot" => { self.load_balance_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
+                "load_positions_snapshot" => { self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "parse_ws_liquidation" => Value::Dict(self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_options_position" => Value::Dict(self.parse_ws_options_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_position" => Value::Dict(self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "renew_listen_token" => self.renew_listen_token(&args[..].iter().collect::<Vec<_>>()).await,
+                "renew_listen_token" => { self.renew_listen_token(&args[..].iter().collect::<Vec<_>>()).await; crate::Value::Null },
                 "request_id" => crate::Value::from(self.request_id(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "resolve_auth_type" => { let __t = self.resolve_auth_type(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![__t.0, __t.1, Value::Dict(__t.2)]) },
                 "sign_params" => self.sign_params(&args[..].iter().collect::<Vec<_>>()),
@@ -274,11 +274,9 @@ impl std::ops::DerefMut for Binance {
 }
 
 impl Binance {
-    pub fn describe(&self) -> Value {
-        let superDescribe: Value = self.parent.describe();
-        return self.deep_extend(superDescribe, &[self.describe_data()]);
-
-    Value::Null
+    pub fn describe(&self) -> crate::value::Dict {
+        let superDescribe: Value = Value::Dict(self.parent.describe());
+        return self.deep_extend_t(superDescribe, &[self.describe_data()]);
 }
 
     pub fn describe_data(&self) -> Value {
@@ -1537,7 +1535,7 @@ impl Binance {
         client.resolve(Value::Dict(orderbook), messageHash.as_deref());
 }
 
-    pub async fn fetch_order_book_snapshot(&mut self, client: &Value, message: &Value, mut subscription: Value) -> Value {
+    pub async fn fetch_order_book_snapshot(&mut self, client: &Value, message: &Value, mut subscription: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let mut symbol: String = self.safe_string_k(&subscription, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", "orderbook::", symbol);
@@ -1551,7 +1549,7 @@ impl Binance {
             // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
             let snapshot: Value = self.fetch_rest_order_book_safe(Value::from(symbol.as_str()), &[Value::from(limit), params.map_or(Value::Null, Value::Dict)]).await;
             if (self.orderbooks.lookup(&symbol).is_none()) {
-                return Value::Null;
+                return;
             }
             let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol);
             orderbook.reset(snapshot);
@@ -1603,8 +1601,6 @@ impl Binance {
             }
             client.resolve(Value::from(&orderbook), messageHash.as_str());
         }
-
-    Value::Null
 }
 
     pub fn handle_delta(&self, bookside: &mut crate::pro::order_book::Side, mut delta: Value) {
@@ -4045,7 +4041,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @see {@link https://developers.binance.com/en/docs/catalog/core-trading-derivatives-trading-usd-s-m-futures/api/ws-api/user-data-streams Binance User Data Stream Documentation}
  * @returns Promise<void>
  */
-    pub async fn ensure_user_data_stream_ws_subscribe_listen_token(&mut self, marketType: &str, optional_args: &[&Value]) -> Value {
+    pub async fn ensure_user_data_stream_ws_subscribe_listen_token(&mut self, marketType: &str, optional_args: &[&Value]) {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4071,7 +4067,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if (client.has_future(messageHash.as_str())) {
                 // another caller is already fetching, wait for it instead of fetching again
                 crate::exchange_stubs::ws_await_flight(&client.future(messageHash.as_str())).await;
-                return Value::Null;
+                return;
             }
             client.future(messageHash.as_str()); // created ahead of the request below, so concurrent callers can find it
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
@@ -4156,11 +4152,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 panic!("{}", e);
             }
         }
-
-    Value::Null
 }
 
-    pub async fn renew_listen_token(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn renew_listen_token(&mut self, optional_args: &[&Value]) {
         let mut params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4186,8 +4180,6 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             renewParams.insert("validity".into(), Value::from(validity));
         }
         self.ensure_user_data_stream_ws_subscribe_listen_token(type_var.as_str(), &[&Value::Map(renewParams)]).await;
-
-    Value::Null
 }
 
     pub async fn authenticate(&mut self, optional_args: &[&Value]) -> Value {
@@ -4317,7 +4309,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub async fn keep_alive_listen_key(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn keep_alive_listen_key(&mut self, optional_args: &[Value]) {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4345,13 +4337,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         // For margin, token renewal is handled by renewListenToken method
         if (type_var.as_deref() == Some("margin")) {
-            return Value::Null;
+            return;
         }
         let isStock: bool = type_var.as_deref() == Some("stock");
         let options: crate::value::Dict = (if let Some(Value::Dict(__m)) = self.options.get(type_var.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
         let listenKey: Option<String> = self.safe_string_k_opt(&options, "listenKey", &[]);
         if (listenKey.is_none()) {
-            return Value::Null;
+            return;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -4417,7 +4409,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         m.insert("lastAuthenticatedTime".to_string(), Value::Int(0));
     m
 })]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert(type_var.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
-            return Value::Null;
+            return;
         }
         { let __be_tmp = self.extend(options, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4464,14 +4456,12 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 let subscribeType: Option<String> = subscriptionKeys.get(j as usize).and_then(Value::as_str).map(str::to_owned);
                 if (subscribeType == type_var) {
                     self.delay(Value::from(listenKeyRefreshRate), &[Value::Str("keep_alive_listen_key".into()), delayParams]).await;
-                    return Value::Null;
+                    return;
                 }
             }
             }
         }
         }
-
-    Value::Null
 }
 
     pub fn set_balance_cache(&mut self, mut client: Value, type_var: &str, optional_args: &[Value]) {
@@ -4496,7 +4486,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         }
 }
 
-    pub async fn load_balance_snapshot(&mut self, client: &Value, mut messageHash: Value, mut type_var: Value, mut isPortfolioMargin: Value) -> Value {
+    pub async fn load_balance_snapshot(&mut self, client: &Value, mut messageHash: Value, mut type_var: Value, mut isPortfolioMargin: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let mut params: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4518,8 +4508,6 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             future.resolve(Value::Null, None);
             client.resolve((if let Some(__k) = type_var.as_str() { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", type_var, ":balance").into())));
         }
-
-    Value::Null
 }
 
 /*
@@ -6779,7 +6767,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         }
 }
 
-    pub async fn load_positions_snapshot(&mut self, client: &Value, mut messageHash: Value, mut type_var: Value, mut isPortfolioMargin: Value) -> Value {
+    pub async fn load_positions_snapshot(&mut self, client: &Value, mut messageHash: Value, mut type_var: Value, mut isPortfolioMargin: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let mut params: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -6795,7 +6783,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         // the fresh one loaded for the new client
         let currentClient: Value = self.safe_value(self.clients.clone(), client.url(), &[]);
         if !is_equal(&currentClient, client) {
-            return Value::Null;
+            return;
         }
         CacheStore::put(&mut self.positionsByType, &type_var, ArrayCacheBySymbolBySide::new(Value::Null));
         let mut cache: Option<crate::pro::cache::Cache> = self.positionsByType.at(&type_var);
@@ -6816,8 +6804,6 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             future.resolve(Value::from(&cache), None);
             client.resolve(Value::from(&cache), &(Value::Str(format!("{}{}", type_var, ":position").into())));
         }
-
-    Value::Null
 }
 
     pub fn handle_positions(&mut self, client: &Value, mut message: Value) {

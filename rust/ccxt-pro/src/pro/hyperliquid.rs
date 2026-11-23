@@ -67,7 +67,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "create_orders_ws" => crate::types::IntoRaw::into_raw(self.create_orders_ws(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "edit_order_ws" => crate::types::IntoRaw::into_raw(self.edit_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
-                "expire_pending_unsubscribe" => self.expire_pending_unsubscribe(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
+                "expire_pending_unsubscribe" => { self.expire_pending_unsubscribe(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "handle_active_asset_ctx" => self.handle_active_asset_ctx(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -185,8 +185,8 @@ impl std::ops::DerefMut for Hyperliquid {
 }
 
 impl Hyperliquid {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -267,8 +267,6 @@ impl Hyperliquid {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -2479,15 +2477,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub async fn expire_pending_unsubscribe(&mut self, client: &Value, mut subHash: Value, mut unsubHash: Value) -> Value {
+    pub async fn expire_pending_unsubscribe(&mut self, client: &Value, mut subHash: Value, mut unsubHash: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         if (__ch.has_subscription(&unsubHash)) {
             let error: crate::ExchangeError = crate::exchange_errors::request_timeout(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " unsubscribe ").into()), subHash).into()), " was not acknowledged"));
             client.reject(error, &unsubHash);
             self.clean_unsubscription(client, subHash, unsubHash, &[]);
         }
-
-    Value::Null
 }
 
     pub fn handle_order_book_unsubscription(&mut self, client: &Value, mut subscription: Value) {

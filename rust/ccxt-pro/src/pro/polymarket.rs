@@ -62,8 +62,8 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
             match method {
                 "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "load_balance_snapshot" => self.load_balance_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
-                "load_positions_snapshot" => self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
+                "load_balance_snapshot" => { self.load_balance_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
+                "load_positions_snapshot" => { self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "request_id" => crate::Value::from(self.request_id()),
@@ -103,7 +103,7 @@ impl Polymarket {
             "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
-            "handle_portfolio" => { self.handle_portfolio(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_portfolio" => { self.handle_portfolio(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_trades" => { self.handle_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "load_balance_snapshot" => crate::exchange_stubs::enqueue_spawn("load_balance_snapshot", args.iter().copied().cloned().collect::<Vec<_>>()),
@@ -142,8 +142,8 @@ impl std::ops::DerefMut for Polymarket {
 }
 
 impl Polymarket {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -212,8 +212,6 @@ impl Polymarket {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn request_id(&mut self) -> i64 {
@@ -1347,7 +1345,7 @@ impl Polymarket {
         }
 }
 
-    pub async fn load_positions_snapshot(&mut self, client: &Value, mut messageHash: Value) -> Value {
+    pub async fn load_positions_snapshot(&mut self, client: &Value, mut messageHash: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let mut positions: Vec<crate::types::Position> = (match self.fetch_positions(None, Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
@@ -1364,8 +1362,6 @@ impl Polymarket {
             future.resolve(Value::from(&self.positions), None);
         }
         client.resolve(Value::from(&self.positions), "positions");
-
-    Value::Null
 }
 
 /*
@@ -1424,7 +1420,7 @@ impl Polymarket {
         }
 }
 
-    pub async fn load_balance_snapshot(&mut self, client: &Value, mut messageHash: Value) -> Value {
+    pub async fn load_balance_snapshot(&mut self, client: &Value, mut messageHash: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let mut balance: crate::types::Balances = (match self.fetch_balance(Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         { let __t = self.extend_t(Value::Dict(self.balance.clone()), &[crate::types::IntoRaw::into_raw(balance.clone())]); self.balance = __t; }
@@ -1434,13 +1430,9 @@ impl Polymarket {
             future.resolve(Value::Dict(self.balance.clone()), None);
         }
         client.resolve(Value::Dict(self.balance.clone()), "balance");
-
-    Value::Null
 }
 
-    pub fn handle_portfolio(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_portfolio(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "ch": "portfolio",

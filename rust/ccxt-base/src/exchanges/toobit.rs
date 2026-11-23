@@ -656,7 +656,7 @@ impl crate::exchange::DerivedExchange for Toobit {
 
     Value::Null
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // fetchDeposits & fetchWithdrawals
@@ -962,8 +962,8 @@ impl std::ops::DerefMut for Toobit {
 }
 
 impl Toobit {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("toobit".into()));
         m.insert("name".to_string(), Value::Str("Toobit".into()));
@@ -1947,8 +1947,6 @@ impl Toobit {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -3958,7 +3956,7 @@ impl Toobit {
     pub fn parse_transaction_with_type(&self, mut transaction: Value, optional_args: &[&Value]) -> Value {
         let currency = get_arg(optional_args, 0, Value::Null);
         let transactType = get_arg(optional_args, 1, Value::Null);
-        let mut result: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_transaction(self, transaction.clone(), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref()).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
+        let mut result: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_transaction(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(transaction.clone()).as_ref(), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(currency).as_ref()).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
         if (transactType != Value::Null) {
             result.insert("type".into(), transactType.clone());
             result.insert("status".into(), self.parse_transaction_status(self.safe_string_k(transaction, "status", &[]).as_str(), transactType.as_str()).map(Value::from).unwrap_or(Value::Null));
@@ -4100,7 +4098,7 @@ impl Toobit {
         }
         let __ws_arg_33 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
         let response: crate::value::Dict = self.private_post_api_v1_account_withdraw(&[&__ws_arg_33]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

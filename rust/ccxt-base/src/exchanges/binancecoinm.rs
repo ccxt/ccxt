@@ -78,8 +78,8 @@ impl std::ops::DerefMut for Binancecoinm {
 }
 
 impl Binancecoinm {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("binancecoinm".into()));
         m.insert("name".to_string(), Value::Str("Binance COIN-M".into()));
@@ -113,8 +113,6 @@ impl Binancecoinm {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub async fn transfer_in(&mut self, code: &str, mut amount: Value, optional_args: &[&Value]) -> Value {

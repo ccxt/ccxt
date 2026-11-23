@@ -75,5 +75,5 @@ pub fn testNumberToBE() {
     let expectedBinary9: ccxt::value::Bytes = exchange.base16_to_binary(Value::Str("01020304".into()), &[]);
     assert!(ccxt::runtime::is_true(&((Value::from(exchange.binary_to_base64(&result9, &[])).as_str() == Value::from(exchange.binary_to_base64(&expectedBinary9, &[])).as_str()))));
     // @SKIP_END_GO
-    exchange.describe(); // avoid unused var
+    Value::Dict(exchange.describe()); // avoid unused var
 }

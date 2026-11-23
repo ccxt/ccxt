@@ -62,7 +62,7 @@ impl crate::exchange_generated::ExchangeBase for Bitget {
             match method {
                 "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
                 "get_inst_type" => { let __t = self.get_inst_type(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
-                "handle_check_sum_error" => self.handle_check_sum_error(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)).await,
+                "handle_check_sum_error" => { self.handle_check_sum_error(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -181,8 +181,8 @@ impl std::ops::DerefMut for Bitget {
 }
 
 impl Bitget {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -297,8 +297,6 @@ impl Bitget {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn get_inst_type(&self, mut methodName: Value, market: Option<&crate::types::Market>, optional_args: &[&Value]) -> (Value, crate::value::Dict) {
@@ -1501,12 +1499,10 @@ impl Bitget {
         client.resolve(Value::from(self.orderbooks.at(&symbol)), messageHash.as_str());
 }
 
-    pub async fn handle_check_sum_error(&mut self, client: &Value, mut symbol: Value, mut messageHash: Value, mut checksumMessage: Value) -> Value {
+    pub async fn handle_check_sum_error(&mut self, client: &Value, mut symbol: Value, mut messageHash: Value, mut checksumMessage: Value) {
         if let Err(__e) = self.un_watch_order_book(symbol.as_str().unwrap_or_default(), Value::Null).await { panic!("{}", __e) }
         let error: crate::ExchangeError = crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), checksumMessage));
         client.reject(error, &messageHash);
-
-    Value::Null
 }
 
     pub fn handle_delta(&self, bookside: &mut crate::pro::order_book::Side, mut delta: Value) {

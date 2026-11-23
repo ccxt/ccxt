@@ -476,8 +476,8 @@ impl crate::exchange::DerivedExchange for Blofin {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         //
         // "data" similar for REST & WS
         //
@@ -903,7 +903,7 @@ impl crate::exchange::DerivedExchange for Blofin {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         //
@@ -1050,7 +1050,7 @@ impl crate::exchange::DerivedExchange for Blofin {
 
     Value::Null
 }
-    fn parse_margin_mode(&self, marginMode: &crate::value::Dict, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_margin_mode(&self, marginMode: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let marginMode: Value = marginMode.into();
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
@@ -1078,7 +1078,7 @@ impl crate::exchange::DerivedExchange for Blofin {
 
     None
 }
-    fn parse_deposit_withdraw_fee(&self, fee: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_deposit_withdraw_fee(&self, fee: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let fee: Value = fee.into();
         //
         // a list of GET /asset/currencies rows for one currency, see fetchCurrencies
@@ -1130,9 +1130,9 @@ impl crate::exchange::DerivedExchange for Blofin {
                 result.insert("withdraw".into(), networkResolved.get("withdraw").cloned().unwrap_or(Value::Null));
             }
         }
-        return Value::Map(result);
+        return Some(std::sync::Arc::new(result));
 
-    Value::Null
+    None
 }
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
@@ -1299,7 +1299,7 @@ impl crate::exchange_generated::ExchangeBase for Blofin {
                 "parse_balance_by_type" => self.parse_balance_by_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_deposit_address" => Value::Dict(self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_deposit_withdraw_fee" => Value::Dict(self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_funding_balance" => self.parse_funding_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ids" => self.parse_ids(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -1339,8 +1339,8 @@ impl std::ops::DerefMut for Blofin {
 }
 
 impl Blofin {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("blofin".into()));
         m.insert("name".to_string(), Value::Str("BloFin".into()));
@@ -2441,8 +2441,6 @@ impl Blofin {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -2465,7 +2463,7 @@ impl Blofin {
 }));
         let response: crate::value::Dict = self.public_get_market_instruments(&[&params]).await.unwrap_or_default();
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_markets(&data);
+        return Value::Arr(self.parse_markets(&data));
         Value::Null
         }).await?))
     }
@@ -2904,7 +2902,7 @@ impl Blofin {
         if (data.is_some()) {
             return self.parse_funding_balance(response.clone());
         }  else {
-            return <Self as crate::exchange::DerivedExchange>::parse_balance(self, response).map_or(Value::Null, Value::Dict);
+            return <Self as crate::exchange::DerivedExchange>::parse_balance(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(response).as_ref()).map_or(Value::Null, Value::Dict);
         }
 
     Value::Null
@@ -4004,7 +4002,7 @@ impl Blofin {
             while { if !__for_first_6 { i += 1; } __for_first_6 = false; (i as f64) < dataLength } {
             let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             if (self.safe_string_k(&entry, "depositId", &[]).as_str() == Some(id)) {
-                return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &entry, currency.as_ref()).map_or(Value::Null, Value::Dict);
+                return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&entry), currency.as_ref()).map_or(Value::Null, Value::Dict);
             }
         }
         }
@@ -4066,7 +4064,7 @@ impl Blofin {
                 matches = (clientId.as_deref() == self.safe_string_k(&entry, "clientId", &[]).as_str());
             }
             if matches {
-                return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &entry, currency.as_ref()).map_or(Value::Null, Value::Dict);
+                return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&entry), currency.as_ref()).map_or(Value::Null, Value::Dict);
             }
         }
         }
@@ -4169,7 +4167,7 @@ impl Blofin {
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let __ws_arg_24 = self.extend(Value::Map(request), &[&data]);
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, __ws_arg_24, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_24).as_ref(), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4950,7 +4948,7 @@ impl Blofin {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_margin_mode(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_margin_mode(self, Some(&data), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -5003,7 +5001,7 @@ impl Blofin {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_margin_mode(self, &data, market.as_ref()).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_margin_mode(self, Some(&data), market.as_ref()).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

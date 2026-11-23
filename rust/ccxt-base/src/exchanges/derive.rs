@@ -49,9 +49,9 @@ impl Derive {
 }
 
 impl crate::exchange::DerivedExchange for Derive {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Derive.
-        crate::Value::from(Derive::nonce(self, ))
+        Some(Derive::nonce(self))
     }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
@@ -641,7 +641,7 @@ impl crate::exchange::DerivedExchange for Derive {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         //     {
@@ -730,7 +730,7 @@ impl crate::exchange::DerivedExchange for Derive {
 
     Value::Null
 }
-    fn parse_income(&self, income: &crate::value::Dict, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_income(&self, income: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let income: Value = income.into();
         //
         // {
@@ -911,8 +911,8 @@ impl crate::exchange_generated::ExchangeBase for Derive {
                 "fetch_order_trades" => crate::types::IntoRaw::into_raw(self.fetch_order_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_settlement_history" => self.fetch_settlement_history(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..]).await,
-                "fetch_spot_markets" => self.fetch_spot_markets(&args[..]).await,
-                "fetch_swap_markets" => self.fetch_swap_markets(&args[..]).await,
+                "fetch_spot_markets" => Value::Arr(self.fetch_spot_markets(&args[..]).await),
+                "fetch_swap_markets" => Value::Arr(self.fetch_swap_markets(&args[..]).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_time" => crate::types::IntoRaw::into_raw(self.fetch_time(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -966,8 +966,8 @@ impl std::ops::DerefMut for Derive {
 }
 
 impl Derive {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("derive".into()));
         m.insert("name".to_string(), Value::Str("Derive".into()));
@@ -2008,8 +2008,6 @@ impl Derive {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn set_sandbox_mode(&mut self, enable: bool) -> crate::Result<()> {
@@ -2215,8 +2213,8 @@ impl Derive {
         if matches!(self.safe_bool_k(&self.options, "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
-        let spotMarketsPromise: Value = self.fetch_spot_markets(&[params.clone()]).await;
-        let swapMarketsPromise: Value = self.fetch_swap_markets(&[params.clone()]).await;
+        let spotMarketsPromise: Value = Value::Arr(self.fetch_spot_markets(&[params.clone()]).await);
+        let swapMarketsPromise: Value = Value::Arr(self.fetch_swap_markets(&[params.clone()]).await);
         let optionMarketsPromise: Value = self.fetch_option_markets(&[params]).await;
         let spotMarketsswapMarketsoptionMarketsVariable: Vec<Value> = promise_all(&Value::from(vec![spotMarketsPromise, swapMarketsPromise, optionMarketsPromise])).await.to_vec();
         let spotMarkets: crate::value::List = spotMarketsswapMarketsoptionMarketsVariable.get(0).cloned().unwrap_or(Value::Null).into_list();
@@ -2278,7 +2276,7 @@ impl Derive {
         }).await?))
     }
 
-    pub async fn fetch_spot_markets(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_spot_markets(&mut self, optional_args: &[Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2291,11 +2289,9 @@ impl Derive {
         });
         let instruments: Option<crate::value::List> = Some(self.get_markets_paginated(Value::Map(request), &[&params]).await);
         return self.parse_markets(&instruments);
-
-    Value::Null
 }
 
-    pub async fn fetch_swap_markets(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_swap_markets(&mut self, optional_args: &[Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2308,8 +2304,6 @@ impl Derive {
         });
         let instruments: Option<crate::value::List> = Some(self.get_markets_paginated(Value::Map(request), &[&params]).await);
         return self.parse_markets(&instruments);
-
-    Value::Null
 }
 
     pub async fn fetch_option_markets(&mut self, optional_args: &[Value]) -> Value {
@@ -2324,7 +2318,7 @@ impl Derive {
             m
         });
         let instruments: Option<crate::value::List> = Some(self.get_markets_paginated(Value::Map(request), &[&params]).await);
-        return self.parse_markets(&instruments);
+        return Value::Arr(self.parse_markets(&instruments));
 
     Value::Null
 }
@@ -5546,7 +5540,7 @@ impl Derive {
         let __ws_arg_36 = self.extend(Value::Map(request), &[&paramsDeriveWalletAddress]);
         let response: crate::value::Dict = self.private_post_withdraw(&[&__ws_arg_36]).await.unwrap_or_default();
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        let mut transaction: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &result, Some(&currency)).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
+        let mut transaction: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&result), Some(&currency)).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
         transaction.insert("type".into(), Value::Str("withdrawal".into()));
         let withdrawOptions: crate::value::Dict = self.safe_dict_k_t(&self.options, "withdraw");
         let fillResponseFromRequest: bool = self.safe_bool_k_opt(&withdrawOptions, "fillResponseFromRequest", &[Value::Bool(true)]).unwrap_or(true);

@@ -74,7 +74,7 @@ impl crate::exchange_generated::ExchangeBase for Lighter {
                 "parse_ws_liquidation" => self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_order_trade" => Value::Dict(self.parse_ws_order_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "pong" => self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
+                "pong" => { self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "request_id" => crate::Value::from(self.request_id(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "subscribe_private" => self.subscribe_private(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
                 "subscribe_public" => self.subscribe_public(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
@@ -178,8 +178,8 @@ impl std::ops::DerefMut for Lighter {
 }
 
 impl Lighter {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -239,8 +239,6 @@ impl Lighter {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn get_message_hash(&self, unifiedChannel: &str, optional_args: &[&Value]) -> Option<String> {
@@ -2344,14 +2342,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         self.spawn(&[Value::Str("pong".into()), client, message]);
 }
 
-    pub async fn pong(&mut self, mut client: Value, mut message: Value) -> Value {
+    pub async fn pong(&mut self, mut client: Value, mut message: Value) {
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("pong".into()));
             m
         });
         client.send(&[Value::Map(request)]);
-
-    Value::Null
 }
 }

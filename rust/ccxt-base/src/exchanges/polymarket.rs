@@ -506,7 +506,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // deposit row
@@ -715,7 +715,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "amount_to_precision" => crate::Value::from(self.amount_to_precision(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "calculate_rate_limiter_cost" => self.calculate_rate_limiter_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
-                "cancel_all_orders_after" => self.cancel_all_orders_after(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "cancel_all_orders_after" => crate::types::IntoRaw::into_raw(self.cancel_all_orders_after(args.get(0).and_then(crate::Value::as_i64), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "compact_signable" => Value::Arr(self.compact_signable(args.get(0).cloned().unwrap_or(crate::Value::Null))),
@@ -796,8 +796,8 @@ impl std::ops::DerefMut for Polymarket {
 }
 
 impl Polymarket {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("polymarket".into()));
         m.insert("name".to_string(), Value::Str("Polymarket".into()));
@@ -1358,8 +1358,6 @@ impl Polymarket {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -1568,7 +1566,7 @@ impl Polymarket {
     m
 }));
         let response: crate::value::List = self.public_get_info_instruments(&[&params]).await.unwrap_or_default();
-        return self.parse_markets(&response);
+        return Value::Arr(self.parse_markets(&response));
         Value::Null
         }).await?))
     }
@@ -2669,7 +2667,13 @@ impl Polymarket {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} the raw acknowledgement of the venue
  */
-    pub async fn cancel_all_orders_after(&mut self, mut timeout: Value, optional_args: &[Value]) -> Value {
+    pub async fn cancel_all_orders_after(&mut self, timeout: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Option<crate::value::Dict>> {
+        let __args: Vec<Value> = vec![Value::from(timeout), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let timeout = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2693,9 +2697,9 @@ impl Polymarket {
         let signed: crate::value::Dict = self.sign_perps_op(&signable, Value::Map(bodyOp), &[]).await;
         let response: crate::value::Dict = self.trade_patch_trade_auto_cancel(&[&Value::Dict(signed)]).await.unwrap_or_default();
         return Value::Dict(response);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -3506,7 +3510,7 @@ impl Polymarket {
         // the ack status is the request discriminator, the accepted
         // withdrawal itself starts out pending
         let stripped: Option<crate::value::Dict> = self.omit_o(&response, Value::Str("status".into()), &[]);
-        let mut transaction: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &stripped, Some(&currency)).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
+        let mut transaction: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_transaction(self, stripped.as_ref(), Some(&currency)).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
         transaction.insert("status".into(), Value::Str("pending".into()));
         return Value::Map(transaction);
         Value::Null

@@ -836,7 +836,7 @@ impl crate::exchange::DerivedExchange for Digifinex {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // withdraw
@@ -948,7 +948,7 @@ impl crate::exchange::DerivedExchange for Digifinex {
 
     Value::Null
 }
-    fn parse_income(&self, income: &crate::value::Dict, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_income(&self, income: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let income: Value = income.into();
         //
         //     {
@@ -998,7 +998,7 @@ impl crate::exchange::DerivedExchange for Digifinex {
 
     Value::Null
 }
-    fn parse_market_leverage_tiers(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_market_leverage_tiers(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::List> {
         let info: Value = info.into();
         //
         //     {
@@ -1047,9 +1047,9 @@ impl crate::exchange::DerivedExchange for Digifinex {
             }));
         }
         }
-        return Value::from(tiers);
+        return Some(std::sync::Arc::new(tiers));
 
-    Value::Null
+    None
 }
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let mut api = get_arg(optional_args, 0, Value::from(vec![]));
@@ -1228,7 +1228,7 @@ impl crate::exchange_generated::ExchangeBase for Digifinex {
                 "parse_income" => Value::Dict(self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ledger_entry" => Value::Dict(self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_margin_modification" => Value::Dict(self.parse_margin_modification(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_market_leverage_tiers" => self.parse_market_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_market_leverage_tiers" => Value::Arr(self.parse_market_leverage_tiers(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1261,8 +1261,8 @@ impl std::ops::DerefMut for Digifinex {
 }
 
 impl Digifinex {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return if let Value::Dict(__m) = self.deep_extend(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("digifinex".into()));
         m.insert("name".to_string(), Value::Str("DigiFinex".into()));
@@ -2159,9 +2159,7 @@ impl Digifinex {
     m
 }));
     m
-})]);
-
-    Value::Null
+})]) { __m } else { crate::value::Dict::default() }
 }
 
 /*
@@ -3013,7 +3011,7 @@ impl Digifinex {
         let tickers: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "ticker"));
         let firstTicker: crate::value::Dict = tickers.get(0).cloned().unwrap_or_default();
         if !(market).swap {
-            let __ws_arg_7 = self.extend(Value::Map({
+            let __ws_arg_7 = self.extend_t(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("date".to_string(), Value::from(date));
     m
@@ -5007,7 +5005,7 @@ impl Digifinex {
         }
         let __ws_arg_38 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
         let response: crate::value::Dict = self.private_spot_post_withdraw_new(&[&__ws_arg_38]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -5601,10 +5599,11 @@ impl Digifinex {
                         let mut i: i64 = 0;
             let mut __for_first_16: bool = true;
             while { if !__for_first_16 { i += 1; } __for_first_16 = false; i < (positions.len() as i64) } {
-            result.push(<Self as crate::exchange::DerivedExchange>::parse_position(self, self.safe_dict(&positions, Value::Int(i), &[Value::Map({
+            let parsedPosition: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_position(self, self.safe_dict(&positions, Value::Int(i), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})]), market.as_ref()).map_or(Value::Null, Value::Dict));
+})]), market.as_ref()).unwrap_or_default();
+            result.push(Value::Dict(parsedPosition));
         }
         }
         return self.filter_by_array_positions(Value::from(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
@@ -5997,7 +5996,7 @@ impl Digifinex {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_market_leverage_tiers(self, &data, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_market_leverage_tiers(self, &data, Some(&market)).map_or(Value::Null, Value::Arr);
         Value::Null
         }).await?))
     }

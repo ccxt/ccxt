@@ -49,9 +49,9 @@ impl Bitfinex {
 }
 
 impl crate::exchange::DerivedExchange for Bitfinex {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Bitfinex.
-        crate::Value::from(Bitfinex::nonce(self, ))
+        Some(Bitfinex::nonce(self))
     }
     fn parse_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let mut trade: Value = trade.into();
@@ -864,7 +864,10 @@ impl crate::exchange::DerivedExchange for Bitfinex {
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(errorText.as_str()), Value::from(feedback));
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), errorText).into()), " (#").into()), errorCode).into()), ")")));
         }
-        return response;
+        if (response == Value::Null) {
+            return Value::Null;
+        }
+        return Value::Bool(true);
 
     Value::Null
 }
@@ -961,8 +964,8 @@ impl std::ops::DerefMut for Bitfinex {
 }
 
 impl Bitfinex {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("bitfinex".into()));
         m.insert("name".to_string(), Value::Str("Bitfinex".into()));
@@ -2120,8 +2123,6 @@ impl Bitfinex {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn is_fiat(&self, mut code: Value) -> Value {
@@ -2234,7 +2235,7 @@ impl Bitfinex {
         let marginIds: crate::value::List = self.safe_list_t(&response, Value::Int(3));
         let markets: crate::value::List = self.array_concat_t(&spotMarketsInfo, &futuresMarketsInfo);
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("marginIds".into(), Value::Arr(marginIds)); }
-        return self.parse_markets(&markets);
+        return Value::Arr(self.parse_markets(&markets));
         Value::Null
         }).await?))
     }

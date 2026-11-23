@@ -73,7 +73,7 @@ impl crate::exchange_generated::ExchangeBase for Htx {
                 "parse_order_trade" => Value::Dict(self.parse_order_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "pong" => self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
+                "pong" => { self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "request_id" => crate::Value::from(self.request_id()),
                 "subscribe_private" => self.subscribe_private(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_text).as_deref(), &args[4.min(args.len())..]).await,
                 "subscribe_public" => self.subscribe_public(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
@@ -164,8 +164,8 @@ impl std::ops::DerefMut for Htx {
 }
 
 impl Htx {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -341,8 +341,6 @@ impl Htx {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn request_id(&mut self) -> i64 {
@@ -2935,7 +2933,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 }
 
-    pub async fn pong(&mut self, mut client: Value, mut message: Value) -> Value {
+    pub async fn pong(&mut self, mut client: Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
@@ -2946,7 +2944,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         m.insert("pong".to_string(), Value::from(ping));
                     m
                 })]);
-                return Value::Null;
+                return true;
             }
             let action: Option<String> = (match message.get("action") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
             if (action.as_deref() == Some("ping")) {
@@ -2962,7 +2960,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
                     m
                 })]);
-                return Value::Null;
+                return true;
             }
             let op: Option<String> = (match message.get("op") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
             if (op.as_deref() == Some("ping")) {
@@ -2974,13 +2972,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     m
                 })]);
             }
-         #[allow(unreachable_code)] { Value::Null }})).await;
-match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err); 
+         #[allow(unreachable_code)] { false }})).await;
+match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) => { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err); 
             let error = Value::from(crate::exchange_errors::network_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " pong failed ").into()), self.exception_message(e, &[]))));
             client.reset(error);
          } }
-
-    Value::Null
 }
 
     pub fn handle_ping(&mut self, mut client: Value, mut message: Value) {

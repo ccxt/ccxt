@@ -63,8 +63,8 @@ impl crate::exchange_generated::ExchangeBase for Hashkey {
                 "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
                 "handle_list_message" => { self.handle_list_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "keep_alive_listen_key" => self.keep_alive_listen_key(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "load_balance_snapshot" => self.load_balance_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
+                "keep_alive_listen_key" => { self.keep_alive_listen_key(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await; crate::Value::Null },
+                "load_balance_snapshot" => { self.load_balance_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "parse_ws_ohlcv" => Value::Arr(self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_position" => Value::Dict(self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -136,8 +136,8 @@ impl std::ops::DerefMut for Hashkey {
 }
 
 impl Hashkey {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -196,8 +196,6 @@ impl Hashkey {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub async fn wath_public(&mut self, market: Option<&crate::types::Market>, topic: &str, messageHash: &str, optional_args: &[&Value]) -> Value {
@@ -1074,7 +1072,7 @@ impl Hashkey {
 })); }
 }
 
-    pub async fn load_balance_snapshot(&mut self, client: &Value, mut messageHash: Value, mut type_var: Value) -> Value {
+    pub async fn load_balance_snapshot(&mut self, client: &Value, mut messageHash: Value, mut type_var: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let response: crate::types::Balances = (match self.fetch_balance(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1092,8 +1090,6 @@ impl Hashkey {
             future.resolve(Value::Null, None);
             client.resolve((if let Some(__k) = type_var.as_str() { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &(Value::Str(format!("{}{}", "balance:", type_var).into())));
         }
-
-    Value::Null
 }
 
     pub fn handle_balance(&mut self, client: &Value, mut message: Value) {
@@ -1203,13 +1199,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub async fn keep_alive_listen_key(&mut self, mut listenKey: Value, optional_args: &[Value]) -> Value {
+    pub async fn keep_alive_listen_key(&mut self, mut listenKey: Value, optional_args: &[Value]) {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
         if (listenKey == Value::Null) {
-            return Value::Null;
+            return;
         }
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1229,8 +1225,6 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             client.reject(error, None);
             if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.clients, &(client).url.clone()) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
         }
-
-    Value::Null
 }
 
     pub fn handle_list_message(&mut self, client: &Value, mut message: Value) {

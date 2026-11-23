@@ -112,7 +112,7 @@ impl Cex {
             "fetch_order_ws" => crate::exchange_stubs::enqueue_spawn("fetch_order_ws", args.iter().copied().cloned().collect::<Vec<_>>()),
             "fetch_ticker_ws" => crate::exchange_stubs::enqueue_spawn("fetch_ticker_ws", args.iter().copied().cloned().collect::<Vec<_>>()),
             "handle_authentication_message" => { self.handle_authentication_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_connected" => { self.handle_connected(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -161,8 +161,8 @@ impl std::ops::DerefMut for Cex {
 }
 
 impl Cex {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -219,8 +219,6 @@ impl Cex {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn request_id(&mut self) -> i64 {
@@ -268,9 +266,7 @@ impl Cex {
         }).await?))
     }
 
-    pub fn handle_balance(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_balance(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "e": "get-balance",

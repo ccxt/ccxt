@@ -15,7 +15,7 @@ pub async fn testSetMarketsFromExchange() -> Value {
         m
     }));
     // @SKIP (rust): Exchange-as-value not supported
-    emptyExchange.describe(); // avoid unused var
+    Value::Dict(emptyExchange.describe()); // avoid unused var
 
     Value::Null
 }

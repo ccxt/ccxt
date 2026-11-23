@@ -306,8 +306,8 @@ impl crate::exchange::DerivedExchange for Mudrex {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let currency: String = self.safe_string_k(&response, "currency", &[Value::Str("USDT".into())]).as_str().unwrap_or("USDT").to_string();
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -559,8 +559,8 @@ impl std::ops::DerefMut for Mudrex {
 }
 
 impl Mudrex {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("mudrex".into()));
         m.insert("name".to_string(), Value::Str("Mudrex".into()));
@@ -875,8 +875,6 @@ impl Mudrex {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 
@@ -1247,7 +1245,7 @@ impl Mudrex {
         m.insert("currency".to_string(), currency.map(Value::from).unwrap_or(Value::Null));
     m
 })]);
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, __ws_arg_7).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_7).as_ref()).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

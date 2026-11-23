@@ -150,8 +150,8 @@ impl std::ops::DerefMut for Interactivebrokers {
 }
 
 impl Interactivebrokers {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -248,8 +248,6 @@ impl Interactivebrokers {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -1235,16 +1233,16 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let unifiedSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let accountIdqueryVariable: Vec<Value> = self.parent.load_account_id(&[params]).await.as_array().cloned().unwrap_or_default();
-        let accountId: Value = accountIdqueryVariable.get(0).cloned().unwrap_or(Value::Null);
-        let query: Value = accountIdqueryVariable.get(1).cloned().unwrap_or(Value::Null);
-        let bookExchange: Option<String> = self.safe_string_k_opt(query, "exchange", &[]);
+        let accountIdqueryVariable = self.parent.load_account_id(&[params]).await;
+        let accountId: Option<String> = accountIdqueryVariable.0.as_str().map(str::to_owned);
+        let query: crate::value::Dict = accountIdqueryVariable.1;
+        let bookExchange: Option<String> = self.safe_string_k_opt(&query, "exchange", &[]);
         let url: Option<String> = self.ibkr_connect().await.as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         let messageHash: String = format!("{}{}", "orderbook::", unifiedSymbol);
         // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
         let future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
-        let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "sbd+", accountId).into()), "+").into()), Value::from((market).id.as_deref()));
+        let mut request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "sbd+", accountId.as_deref().unwrap_or("null")).into()), "+").into()), Value::from((market).id.as_deref()));
         if (bookExchange.is_some()) {
             request = format!("{}{}", Value::Str(format!("{}{}", request, "+").into()), bookExchange.as_deref().unwrap_or("null"));
         }
@@ -1252,7 +1250,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
         m.insert("conid".to_string(), Value::from((market).id.as_deref()));
         m.insert("symbol".to_string(), Value::from(unifiedSymbol));
-        m.insert("accountId".to_string(), accountId);
+        m.insert("accountId".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
     m
 })]).await;
         let mut orderbook: Value = crate::exchange_stubs::ws_await_flight(&future).await;
@@ -1285,9 +1283,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let unifiedSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let accountIdqueryVariable: Vec<Value> = self.parent.load_account_id(&[params]).await.as_array().cloned().unwrap_or_default();
-        let accountId: Value = accountIdqueryVariable.get(0).cloned().unwrap_or(Value::Null);
-        let query: Value = accountIdqueryVariable.get(1).cloned().unwrap_or(Value::Null);
+        let accountIdqueryVariable = self.parent.load_account_id(&[params]).await;
+        let accountId: Option<String> = accountIdqueryVariable.0.as_str().map(str::to_owned);
+        let query: crate::value::Dict = accountIdqueryVariable.1;
         let url: Option<String> = self.ibkr_connect().await.as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         let subscription: crate::value::Dict = self.extend_t(Value::Map({
@@ -1295,8 +1293,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("topic".to_string(), Value::Str("orderbook".into()));
                 m.insert("symbols".to_string(), Value::from(vec![Value::from(unifiedSymbol.as_str())]));
             m
-        }), &[query]);
-        return self.ibkr_unsubscribe(&client.as_value(), &[Value::Str(format!("{}{}", "orderbook::", unifiedSymbol).into())], Value::Str(format!("{}{}", "ubd+", accountId).into()), &[Value::Dict(subscription)]).await;
+        }), &[&query]);
+        return self.ibkr_unsubscribe(&client.as_value(), &[Value::Str(format!("{}{}", "orderbook::", unifiedSymbol).into())], Value::Str(format!("{}{}", "ubd+", accountId.as_deref().unwrap_or("null")).into()), &[Value::Dict(subscription)]).await;
         Value::Null
         }).await?))
     }
@@ -1864,20 +1862,20 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let accountIdqueryVariable: Vec<Value> = self.parent.load_account_id(&[params]).await.as_array().cloned().unwrap_or_default();
-        let accountId: Value = accountIdqueryVariable.get(0).cloned().unwrap_or(Value::Null);
-        let query: Value = accountIdqueryVariable.get(1).cloned().unwrap_or(Value::Null);
+        let accountIdqueryVariable = self.parent.load_account_id(&[params]).await;
+        let accountId: Option<String> = accountIdqueryVariable.0.as_str().map(str::to_owned);
+        let query: crate::value::Dict = accountIdqueryVariable.1;
         let url: Option<String> = self.ibkr_connect().await.as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         let messageHash: String = "balance".to_string();
-        let subscribeHash: String = format!("{}{}", "sld::", accountId);
+        let subscribeHash: String = format!("{}{}", "sld::", accountId.as_deref().unwrap_or("null"));
         if !(client.has_subscription(subscribeHash.as_str())) {
             let options: crate::value::Dict = self.safe_dict_k_t(&self.options, "watchBalance");
             let fetchBalanceSnapshot: bool = self.safe_bool_k_opt(&options, "fetchBalanceSnapshot", &[Value::Bool(true)]).unwrap_or(true);
             if fetchBalanceSnapshot {
                 let snapshotRequest: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("accountId".to_string(), accountId.clone());
+                        m.insert("accountId".to_string(), Value::from(accountId.as_deref()));
                     m
                 });
                 let __ws_arg_2 = self.extend(query, &[Value::Map(snapshotRequest)]);
@@ -1893,9 +1891,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
         let future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         let emptyArgs: String = "{}".to_string(); // a separate literal, the php transpiler turns '+{}' into '+array()'
-        self.ibkr_subscribe(&client.as_value(), subscribeHash.as_str(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "sld+", accountId).into()), "+").into()), emptyArgs).into()), &[Value::Map({
+        self.ibkr_subscribe(&client.as_value(), subscribeHash.as_str(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "sld+", accountId.as_deref().unwrap_or("null")).into()), "+").into()), emptyArgs).into()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("accountId".to_string(), accountId);
+        m.insert("accountId".to_string(), Value::from(accountId.as_deref()));
     m
 })]).await;
         let balance: Value = crate::exchange_stubs::ws_await_flight(&future).await;
@@ -1918,9 +1916,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let m = indexmap::IndexMap::new();
     m
 }));
-        let accountIdqueryVariable: Vec<Value> = self.parent.load_account_id(&[params]).await.as_array().cloned().unwrap_or_default();
-        let accountId: Value = accountIdqueryVariable.get(0).cloned().unwrap_or(Value::Null);
-        let query: Value = accountIdqueryVariable.get(1).cloned().unwrap_or(Value::Null);
+        let accountIdqueryVariable = self.parent.load_account_id(&[params]).await;
+        let accountId: Option<String> = accountIdqueryVariable.0.as_str().map(str::to_owned);
+        let query: crate::value::Dict = accountIdqueryVariable.1;
         let url: Option<String> = self.ibkr_connect().await.as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         self.balance = std::sync::Arc::new({
@@ -1928,7 +1926,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let emptyArgs: String = "{}".to_string(); // a separate literal, the php transpiler turns '+{}' into '+array()'
-        return self.ibkr_unsubscribe(&client.as_value(), &[Value::Str("balance".into()), Value::Str(format!("{}{}", "sld::", accountId).into())], Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "uld+", accountId).into()), "+").into()), emptyArgs).into()), &[query]).await;
+        return self.ibkr_unsubscribe(&client.as_value(), &[Value::Str("balance".into()), Value::Str(format!("{}{}", "sld::", accountId.as_deref().unwrap_or("null")).into())], Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "uld+", accountId.as_deref().unwrap_or("null")).into()), "+").into()), emptyArgs).into()), &[Value::Dict(query)]).await;
 
     Value::Null
 }

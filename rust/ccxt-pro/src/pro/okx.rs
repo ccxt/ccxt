@@ -216,8 +216,8 @@ impl std::ops::DerefMut for Okx {
 }
 
 impl Okx {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -334,8 +334,6 @@ impl Okx {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn get_url(&self, mut channel: Value, optional_args: &[&Value]) -> Option<String> {

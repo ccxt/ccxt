@@ -68,7 +68,7 @@ impl crate::exchange_generated::ExchangeBase for Bithumb {
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "pong" => self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
+                "pong" => { self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -126,8 +126,8 @@ impl std::ops::DerefMut for Bithumb {
 }
 
 impl Bithumb {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -174,11 +174,9 @@ impl Bithumb {
 }));
     m
 })]);
-
-    Value::Null
 }
 
-    pub async fn pong(&mut self, mut client: Value, mut message: Value) -> Value {
+    pub async fn pong(&mut self, mut client: Value, mut message: Value) {
         let ping: Option<i64> = self.safe_integer_k(message, "ping", &[]).as_i64();
         if (ping.is_some()) {
             client.send(&[Value::Map({
@@ -189,8 +187,6 @@ impl Bithumb {
         }  else {
             client.send(&[Value::Str("PONG".into())]);
         }
-
-    Value::Null
 }
 
     pub fn handle_ping(&mut self, mut client: Value, mut message: Value) {

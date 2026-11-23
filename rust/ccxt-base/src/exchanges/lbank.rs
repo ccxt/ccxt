@@ -383,8 +383,8 @@ impl crate::exchange::DerivedExchange for Lbank {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         //
         // spotPrivatePostUserInfo
         //
@@ -656,7 +656,7 @@ impl crate::exchange::DerivedExchange for Lbank {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // fetchDeposits (private)
@@ -745,7 +745,7 @@ impl crate::exchange::DerivedExchange for Lbank {
 
     None
 }
-    fn parse_deposit_withdraw_fee(&self, fee: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_deposit_withdraw_fee(&self, fee: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let fee: Value = fee.into();
         //
         // * only used for fetchPrivateDepositWithdrawFees
@@ -823,9 +823,9 @@ impl crate::exchange::DerivedExchange for Lbank {
             }
         }
         }
-        return Value::Map(result);
+        return Some(std::sync::Arc::new(result));
 
-    Value::Null
+    None
 }
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
@@ -1100,7 +1100,7 @@ impl crate::exchange_generated::ExchangeBase for Lbank {
                     args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "parse_deposit_withdraw_fee" => self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_deposit_withdraw_fee" => Value::Dict(self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1128,8 +1128,8 @@ impl std::ops::DerefMut for Lbank {
 }
 
 impl Lbank {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("lbank".into()));
         m.insert("name".to_string(), Value::Str("LBank".into()));
@@ -1802,8 +1802,6 @@ impl Lbank {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -2718,7 +2716,7 @@ impl Lbank {
     let m = indexmap::IndexMap::new();
     m
 }) } else { response.map_or(Value::Null, Value::Dict) });
-        let balanceResult: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_balance(self, balanceResponse).unwrap_or_default();
+        let balanceResult: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_balance(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(balanceResponse).as_ref()).unwrap_or_default();
         if (false) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id, " fetchBalance() returned empty response")));
         }

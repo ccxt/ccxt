@@ -412,8 +412,8 @@ impl crate::exchange::DerivedExchange for Nado {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         //
         //     {
         //         "subaccount": "0x8d7d64d6cf1d4f018dd101482ac71ad49e30c56064656661756c740000000000",
@@ -678,7 +678,7 @@ impl crate::exchange::DerivedExchange for Nado {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         //     {
@@ -901,8 +901,8 @@ impl std::ops::DerefMut for Nado {
 }
 
 impl Nado {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("nado".into()));
         m.insert("name".to_string(), Value::Str("Nado".into()));
@@ -1478,8 +1478,6 @@ impl Nado {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -2759,7 +2757,7 @@ impl Nado {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &data).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, Some(&data)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2931,7 +2929,7 @@ impl Nado {
             }), &[tx]);
             transaction = self.extend(&transaction, &[&event]);
             if let Value::Dict(__rda) = &mut transaction { std::sync::Arc::make_mut(__rda).insert("transaction_type".to_string(), Value::from(transactionType)); }
-            transactions.push(<Self as crate::exchange::DerivedExchange>::parse_transaction(self, transaction, currency.as_ref()).map_or(Value::Null, Value::Dict));
+            transactions.push(<Self as crate::exchange::DerivedExchange>::parse_transaction(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(transaction).as_ref(), currency.as_ref()).map_or(Value::Null, Value::Dict));
         }
         }
         return Value::Arr(self.filter_by_currency_since_limit(Value::from(transactions), code, since, limit, &[]));

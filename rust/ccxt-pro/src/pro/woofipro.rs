@@ -66,14 +66,14 @@ impl crate::exchange_generated::ExchangeBase for Woofipro {
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_subscribe" => self.handle_subscribe(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_ticker" => self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "load_positions_snapshot" => self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
+                "load_positions_snapshot" => { self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_position" => Value::Dict(self.parse_ws_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "pong" => self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
+                "pong" => { self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "request_id" => crate::Value::from(self.request_id(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "watch_bids_asks" => crate::types::IntoRaw::into_raw(self.watch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -157,8 +157,8 @@ impl std::ops::DerefMut for Woofipro {
 }
 
 impl Woofipro {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -244,8 +244,6 @@ impl Woofipro {
 }));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn request_id(&mut self, url: &str) -> i64 {
@@ -542,7 +540,7 @@ impl Woofipro {
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (data.len() as i64) } {
             let marketId: Option<String> = self.safe_string_k_opt(data.get(i as usize).cloned().unwrap_or(Value::Null), "symbol", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-            let __ws_arg_0 = self.extend(data.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
+            let __ws_arg_0 = self.extend_t(data.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("date".to_string(), Value::from(timestamp));
                 m
@@ -1514,7 +1512,7 @@ impl Woofipro {
         }
 }
 
-    pub async fn load_positions_snapshot(&mut self, client: &Value, mut messageHash: Value) -> Value {
+    pub async fn load_positions_snapshot(&mut self, client: &Value, mut messageHash: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let mut positions: Vec<crate::types::Position> = (match self.fetch_positions(None, Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
@@ -1535,8 +1533,6 @@ impl Woofipro {
             future.resolve(Value::from(&self.positions), None);
             client.resolve(Value::from(&self.positions), "positions");
         }
-
-    Value::Null
 }
 
     pub fn handle_positions(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
@@ -1883,14 +1879,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    pub async fn pong(&mut self, mut client: Value, mut message: Value) -> Value {
+    pub async fn pong(&mut self, mut client: Value, mut message: Value) {
         client.send(&[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("pong".into()));
             m
         })]);
-
-    Value::Null
 }
 
     pub fn handle_ping(&mut self, mut client: Value, mut message: Value) {

@@ -69,10 +69,10 @@ impl crate::exchange_generated::ExchangeBase for Cryptocom {
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "load_positions_snapshot" => self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
+                "load_positions_snapshot" => { self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "pong" => self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
+                "pong" => { self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "un_watch_order_book" => crate::types::IntoRaw::into_raw(self.un_watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_order_book_for_symbols" => crate::types::IntoRaw::into_raw(self.un_watch_order_book_for_symbols(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -117,7 +117,7 @@ impl Cryptocom {
             "create_order_ws" => crate::exchange_stubs::enqueue_spawn("create_order_ws", args.iter().copied().cloned().collect::<Vec<_>>()),
             "edit_order_ws" => crate::exchange_stubs::enqueue_spawn("edit_order_ws", args.iter().copied().cloned().collect::<Vec<_>>()),
             "handle_authenticate" => { self.handle_authenticate(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_bid_ask" => { self.handle_bid_ask(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_cancel_all_orders" => { self.handle_cancel_all_orders(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -178,8 +178,8 @@ impl std::ops::DerefMut for Cryptocom {
 }
 
 impl Cryptocom {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.parent.describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.parent.describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -243,11 +243,9 @@ impl Cryptocom {
 }));
     m
 })]);
-
-    Value::Null
 }
 
-    pub async fn pong(&mut self, mut client: Value, mut message: Value) -> Value {
+    pub async fn pong(&mut self, mut client: Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
@@ -262,8 +260,6 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let error = Value::from(crate::exchange_errors::network_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " pong failed with error ").into()), self.exception_message(e, &[]))));
             client.reset(error);
         }
-
-    Value::Null
 }
 
 /*
@@ -1547,7 +1543,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
 }
 
-    pub async fn load_positions_snapshot(&mut self, client: &Value, mut messageHash: Value) -> Value {
+    pub async fn load_positions_snapshot(&mut self, client: &Value, mut messageHash: Value) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let mut positions: Vec<crate::types::Position> = (match self.fetch_positions(None, Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         self.positions = Some(ArrayCacheBySymbolBySide::new(Value::Null));
@@ -1568,8 +1564,6 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             future.resolve(Value::from(&self.positions), None);
             client.resolve(Value::from(&self.positions), "positions");
         }
-
-    Value::Null
 }
 
     pub fn handle_positions(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
@@ -1658,9 +1652,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     }
 
-    pub fn handle_balance(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_balance(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "id": 1,

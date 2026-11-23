@@ -49,9 +49,9 @@ impl Bitso {
 }
 
 impl crate::exchange::DerivedExchange for Bitso {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Bitso.
-        crate::Value::from(Bitso::nonce(self, ))
+        Some(Bitso::nonce(self))
     }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
@@ -260,8 +260,8 @@ impl crate::exchange::DerivedExchange for Bitso {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         let payload: crate::value::Dict = self.safe_dict_k_t(&response, "payload");
         let balances: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&payload, "balances"));
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -446,7 +446,7 @@ impl crate::exchange::DerivedExchange for Bitso {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // deposit
@@ -663,8 +663,8 @@ impl std::ops::DerefMut for Bitso {
 }
 
 impl Bitso {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("bitso".into()));
         m.insert("name".to_string(), Value::Str("Bitso".into()));
@@ -1159,8 +1159,6 @@ impl Bitso {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -1493,7 +1491,7 @@ impl Bitso {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let response: crate::value::Dict = self.call_method_t("private_get_balance", &[&params]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, Some(&response)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2282,7 +2280,7 @@ impl Bitso {
         //
         let transactions: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "payload"));
         let first: crate::value::Dict = transactions.get(0).cloned().unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &first, None).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&first), None).map_or(Value::Null, Value::Dict);
 
     Value::Null
 }
@@ -2832,7 +2830,7 @@ impl Bitso {
         //
         let payload: crate::value::List = self.safe_list_k_t(&response, "payload");
         let first: Option<crate::value::Dict> = self.safe_dict_o(&payload, Value::Int(0));
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &first, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, first.as_ref(), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

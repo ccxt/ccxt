@@ -49,9 +49,9 @@ impl Woofipro {
 }
 
 impl crate::exchange::DerivedExchange for Woofipro {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Woofipro.
-        crate::Value::from(Woofipro::nonce(self, ))
+        Some(Woofipro::nonce(self))
     }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
@@ -407,8 +407,8 @@ impl crate::exchange::DerivedExchange for Woofipro {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -737,7 +737,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         // example in fetchLedger
         let code: Option<String> = self.safe_string_k_opt(&transaction, "token", &[]);
@@ -776,7 +776,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
 
     None
 }
-    fn parse_income(&self, income: &crate::value::Dict, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_income(&self, income: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let income: Value = income.into();
         //
         // {
@@ -813,7 +813,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
 
     None
 }
-    fn parse_margin_mode(&self, marginMode: &crate::value::Dict, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_margin_mode(&self, marginMode: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let marginMode: Value = marginMode.into();
         //
         //     {
@@ -1069,8 +1069,8 @@ impl std::ops::DerefMut for Woofipro {
 }
 
 impl Woofipro {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("woofipro".into()));
         m.insert("name".to_string(), Value::Str("WOOFI PRO".into()));
@@ -2222,8 +2222,6 @@ impl Woofipro {
         m.insert("precisionMode".to_string(), Value::Int(crate::runtime::TICK_SIZE));
     m
 })]);
-
-    Value::Null
 }
 
     pub fn set_sandbox_mode(&mut self, enable: bool) -> crate::Result<()> {
@@ -2371,7 +2369,7 @@ impl Woofipro {
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let rows: crate::value::List = self.safe_list_k_t(&data, "rows");
-        return self.parse_markets(&rows);
+        return Value::Arr(self.parse_markets(&rows));
         Value::Null
         }).await?))
     }
@@ -4456,7 +4454,7 @@ impl Woofipro {
         // }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &data).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, Some(&data)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4855,7 +4853,7 @@ impl Woofipro {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &data, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&data), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

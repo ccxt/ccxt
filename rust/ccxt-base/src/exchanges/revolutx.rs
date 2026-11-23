@@ -584,8 +584,8 @@ impl std::ops::DerefMut for Revolutx {
 }
 
 impl Revolutx {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("revolutx".into()));
         m.insert("name".to_string(), Value::Str("Revolut X".into()));
@@ -894,8 +894,6 @@ impl Revolutx {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 

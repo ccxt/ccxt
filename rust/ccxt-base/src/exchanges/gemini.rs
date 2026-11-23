@@ -49,9 +49,9 @@ impl Gemini {
 }
 
 impl crate::exchange::DerivedExchange for Gemini {
-    fn nonce(&self, ) -> crate::Value {
+    fn nonce(&self) -> Option<i64> {
         // Forward to the inherent method on Gemini.
-        crate::Value::from(Gemini::nonce(self, ))
+        Some(Gemini::nonce(self))
     }
     fn parse_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
@@ -699,7 +699,7 @@ impl crate::exchange::DerivedExchange for Gemini {
 
     None
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
+    fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // withdraw
@@ -923,8 +923,8 @@ impl std::ops::DerefMut for Gemini {
 }
 
 impl Gemini {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("gemini".into()));
         m.insert("name".to_string(), Value::Str("Gemini".into()));
@@ -1867,8 +1867,6 @@ impl Gemini {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -2974,7 +2972,7 @@ impl Gemini {
         if (result.as_deref() == Some("error")) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " withdraw() failed: ").into()), json_stringify(&response))));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

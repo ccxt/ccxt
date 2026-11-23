@@ -62,8 +62,8 @@ impl crate::exchange::DerivedExchange for Opinion {
 
     None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
-        let response: Value = response.into();
+    fn parse_balance(&self, response: Option<&crate::value::Dict>) -> Option<crate::value::Dict> {
+        let mut response: Value = response.map_or(Value::Null, Value::from);
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
@@ -332,7 +332,7 @@ impl crate::exchange_generated::ExchangeBase for Opinion {
                 "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_prediction_trade" => self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "seed_order_book" => self.seed_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64)).await,
+                "seed_order_book" => { self.seed_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64)).await; crate::Value::Null },
                 "set_api_credentials" => crate::Value::Dict(self.set_api_credentials(args.get(0).and_then(crate::Value::as_map).unwrap_or(&Default::default()))),
                 "sign" => Value::Dict(self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..])),
                 "sign_hash" => crate::Value::Dict(self.sign_hash(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null))),
@@ -365,8 +365,8 @@ impl std::ops::DerefMut for Opinion {
 }
 
 impl Opinion {
-    pub fn describe(&self) -> Value {
-        return self.deep_extend(self.super_describe(), &[Value::Map({
+    pub fn describe(&self) -> crate::value::Dict {
+        return self.deep_extend_t(Value::Dict(self.super_describe()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str("opinion".into()));
         m.insert("name".to_string(), Value::Str("Opinion".into()));
@@ -621,8 +621,6 @@ impl Opinion {
 }));
     m
 })]);
-
-    Value::Null
 }
 
 /*
@@ -2292,7 +2290,7 @@ impl Opinion {
             if let Some(__d) = &mut rawBalance { std::sync::Arc::make_mut(__d).insert("symbol".into(), self.safe_string_k(&quoteToken, "symbol", &[Value::Str("USDT".into())])); }
         }
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, &response).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, Some(&response)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2740,7 +2738,7 @@ if _try_result.is_err() {
         }).await?))
     }
 
-    pub async fn seed_order_book(&mut self, outcome: &str, sym: Option<&str>, limit: Option<i64>) -> Value {
+    pub async fn seed_order_book(&mut self, outcome: &str, sym: Option<&str>, limit: Option<i64>) {
         // the depth channel streams single-level deltas only, so seed the live book from the REST snapshot
         let snapshot: crate::types::OrderBook = (match self.fetch_order_book(outcome, limit, Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut orderbook: crate::pro::order_book::Book = self.order_book(&[Value::Map({
@@ -2749,8 +2747,6 @@ if _try_result.is_err() {
 })]);
         orderbook.reset(crate::types::IntoRaw::into_raw(snapshot));
         CacheStore::put(&mut self.orderbooks, &Value::from(sym), orderbook);
-
-    Value::Null
 }
 
     pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
