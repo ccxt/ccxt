@@ -2909,7 +2909,7 @@ class okx(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         request = {
-            'instType': self.convert_to_instrument_type(market['type']),  # SPOT, MARGIN, SWAP, FUTURES, OPTION
+            'instType': self.convert_to_instrument_type(self.safe_string(market, 'type')),  # SPOT, MARGIN, SWAP, FUTURES, OPTION
             # "instId": market["id"], // only applicable to SPOT/MARGIN
             # "uly": market["id"], // only applicable to FUTURES/SWAP/OPTION
             # "category": "1", // 1 = Class A, 2 = Class B, 3 = Class C, 4 = Class D
@@ -7277,7 +7277,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_borrow_rate_history(data, code, since, limit)
 
-    async def modify_margin_helper(self, symbol: str, amount: object, type: object, params: dict = {}) -> MarginModification:
+    async def modify_margin_helper(self, symbol: str, amount: float, type: object, params: dict = {}) -> MarginModification:
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -7426,7 +7426,7 @@ class okx(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        type = 'MARGIN' if (self.safe_bool(market, 'spot', False)) else self.convert_to_instrument_type(market['type'])
+        type = 'MARGIN' if (self.safe_bool(market, 'spot', False)) else self.convert_to_instrument_type(self.safe_string(market, 'type'))
         instFamily = self.safe_string(market['info'], 'instFamily')
         if (instFamily is None) or (instFamily == ''):
             if type != 'MARGIN':
@@ -7702,7 +7702,7 @@ class okx(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not self.safe_bool(market, 'contract', False):
             raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
-        type = self.convert_to_instrument_type(market['type'])
+        type = self.convert_to_instrument_type(self.safe_string(market, 'type'))
         uly = self.safe_string(market['info'], 'uly')
         request = {
             'instType': type,
@@ -8203,7 +8203,7 @@ class okx(Exchange, ImplicitAPI):
             symbolMarket = self.market(symbol)
             market = symbolMarket
             request['instId'] = symbolMarket['id']
-            request['instType'] = self.convert_to_instrument_type(symbolMarket['type'])
+            request['instType'] = self.convert_to_instrument_type(self.safe_string(symbolMarket, 'type'))
         if since is not None:
             request['begin'] = since
         if limit is not None:

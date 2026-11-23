@@ -1868,7 +1868,7 @@ class aster(Exchange, ImplicitAPI):
         #         "time": 1750146970000
         #     }
         #
-        return self.parse_funding_rate(response, market)
+        return self.parse_funding_rate(self.extend({}, response), market)
 
     async def fetch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
@@ -3201,7 +3201,7 @@ class aster(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
 
-    async def modify_margin_helper(self, symbol: str, amount: object, addOrReduce: float, params: dict = {}) -> MarginModification:
+    async def modify_margin_helper(self, symbol: str, amount: float, addOrReduce: float, params: dict = {}) -> MarginModification:
         await self.load_markets_and_sign_in()
         market = self.market(symbol)
         amountValue = self.amount_to_precision(symbol, amount)

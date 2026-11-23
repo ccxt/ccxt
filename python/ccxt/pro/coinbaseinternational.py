@@ -508,7 +508,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         """
         paramsResolved = self.handleRouteAndParams('watchFundingRate', params)
         ticker = await self.watch_ticker(symbol, paramsResolved)
-        return self.parse_funding_rate(ticker['info'], self.market(symbol))
+        return self.parse_funding_rate(self.extend({}, ticker['info']), self.market(symbol))
 
     async def watch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
@@ -534,7 +534,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         for i in range(0, tickerSymbolsLength):
             symbol = tickerSymbols[i]
             ticker = tickers[symbol]
-            result[symbol] = self.parse_funding_rate(ticker['info'], self.market(symbol))
+            result[symbol] = self.parse_funding_rate(self.extend({}, ticker['info']), self.market(symbol))
         return result
 
     async def un_watch_funding_rate(self, symbol: str, params: dict = {}) -> object:

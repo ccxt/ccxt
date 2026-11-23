@@ -9150,7 +9150,7 @@ class bitget(Exchange, ImplicitAPI):
                 #     }
                 #
         data = self.safe_list(response, 'data', [])
-        return self.parse_funding_rate(data[0], market)
+        return self.parse_funding_rate(self.safe_dict(data, 0, {}), market)
 
     def fetch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """

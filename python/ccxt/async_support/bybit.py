@@ -6777,7 +6777,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             await self.load_markets()
         market = self.market(symbol)
         position = await self.fetch_position(symbol, params)
-        return self.parse_leverage(position, market)
+        return self.parse_leverage(self.extend({}, position), market)
 
     def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = self.safe_string(leverage, 'symbol')

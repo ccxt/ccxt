@@ -3491,7 +3491,7 @@ class whitebit(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'records', [])
         return self.parse_funding_histories(data, market, since, limit)
 
-    def parse_funding_history(self, contract: dict, market: Market = None):
+    def parse_funding_history(self, contract: dict, market: Market = None) -> dict:
         #
         #     {
         #         "market": "BTC_PERP",

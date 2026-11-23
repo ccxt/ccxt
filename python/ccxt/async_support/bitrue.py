@@ -2101,7 +2101,7 @@ class bitrue(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -2189,7 +2189,7 @@ class bitrue(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -2391,7 +2391,7 @@ class bitrue(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """

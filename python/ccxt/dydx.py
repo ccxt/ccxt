@@ -1189,7 +1189,7 @@ class dydx(Exchange, ImplicitAPI):
             'v': self.sum(27, signature['v']),
         }
 
-    def sign_message(self, message: object, privateKey: object) -> dict:
+    def sign_message(self, message: object, privateKey: str) -> dict:
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
     def sign_onboarding_action(self) -> object:

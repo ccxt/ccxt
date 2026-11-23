@@ -2000,7 +2000,7 @@ class deepcoin(Exchange, ImplicitAPI):
         paramsOmitted = self.omit(params, 'trigger')
         response = None
         if trigger:
-            request['instType'] = self.convert_to_instrument_type(market['type'])
+            request['instType'] = self.convert_to_instrument_type(self.safe_string(market, 'type'))
             #
             #     {
             #         "code": "0",
@@ -2387,7 +2387,7 @@ class deepcoin(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        instrumentType = self.convert_to_instrument_type(market['type'])
+        instrumentType = self.convert_to_instrument_type(self.safe_string(market, 'type'))
         request = {
             'instType': instrumentType,
             'instId': market['id'],

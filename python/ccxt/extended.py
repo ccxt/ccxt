@@ -1098,7 +1098,7 @@ class extended(Exchange, ImplicitAPI):
             result.append(entry)
         return self.parse_funding_histories(result, market, since, limit)
 
-    def parse_funding_history(self, history: dict, market: Market = None):
+    def parse_funding_history(self, history: dict, market: Market = None) -> dict:
         #
         #     {
         #         "id": 8341,

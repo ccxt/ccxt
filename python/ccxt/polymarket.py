@@ -2392,7 +2392,7 @@ class polymarket(Exchange, ImplicitAPI):
         leverageInt = self.parse_to_int(leverage)
         return self.set_leverage(leverageInt, symbol, self.extend(request, paramsOmitted))
 
-    def modify_margin_helper(self, symbol: str, amount: object, type: str, params: dict = {}) -> MarginModification:
+    def modify_margin_helper(self, symbol: str, amount: float, type: str, params: dict = {}) -> MarginModification:
         """
  @ignore
         adds margin to an isolated position or removes some, the amount is a signed decimal in the collateral asset

@@ -1311,12 +1311,12 @@ class phemex(Exchange, ImplicitAPI):
     def to_ev(self, amount: object, market: dict | None = None):
         if (amount is None) or (market is None):
             return amount
-        return self.to_en(amount, self.safe_integer(market, 'valueScale'))
+        return self.to_en(amount, self.safe_integer(self.safe_dict(market, 'info'), 'valueScale'))
 
     def to_ep(self, price: object, market: Market = None):
         if (price is None) or (market is None):
             return price
-        return self.to_en(price, self.safe_integer(market, 'priceScale'))
+        return self.to_en(price, self.safe_integer(self.safe_dict(market, 'info'), 'priceScale'))
 
     def from_en(self, en: Str, scale: Int) -> Str:
         if en is None or scale is None:
@@ -1329,17 +1329,17 @@ class phemex(Exchange, ImplicitAPI):
     def from_ep(self, ep: Str, market: Market = None) -> Str:
         if (ep is None) or (market is None):
             return ep
-        return self.from_en(ep, self.safe_integer(market, 'priceScale'))
+        return self.from_en(ep, self.safe_integer(self.safe_dict(market, 'info'), 'priceScale'))
 
     def from_ev(self, ev: Str, market: Market = None) -> Str:
         if (ev is None) or (market is None):
             return ev
-        return self.from_en(ev, self.safe_integer(market, 'valueScale'))
+        return self.from_en(ev, self.safe_integer(self.safe_dict(market, 'info'), 'valueScale'))
 
     def from_er(self, er: Str, market: Market = None) -> Str:
         if (er is None) or (market is None):
             return er
-        return self.from_en(er, self.safe_integer(market, 'ratioScale'))
+        return self.from_en(er, self.safe_integer(self.safe_dict(market, 'info'), 'ratioScale'))
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #

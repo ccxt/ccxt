@@ -3309,7 +3309,7 @@ class bingx(Exchange, ImplicitAPI):
         paramsRequest = self.omit(paramsOrder, ['hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'trailingTriggerPrice', 'activationPrice', 'clientOrderId', 'cost', 'quoteOrderQty', 'triggerPriceType', 'workingType'])
         return self.extend(request, paramsRequest)
 
-    def encode_trigger_price_type(self, triggerPriceType: Str):
+    def encode_trigger_price_type(self, triggerPriceType: Str) -> Str:
         types = {
             'last': 'CONTRACT_PRICE',
             'mark': 'MARK_PRICE',

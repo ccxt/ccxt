@@ -1380,7 +1380,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
         results = await asyncio.gather(*promises)
         neededSecTypes = ['CRYPTO']  # CFD, OPT - they should already be fetched in other calls
         for i in range(0, len(results)):
-            result = results[i]
+            result = self.safe_list(results, i, [])
             for j in range(0, len(result)):
                 entry = result[j]
                 sections = self.safe_list(entry, 'sections', [])
@@ -1539,7 +1539,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
             #
         responses = await asyncio.gather(*promises)
         for i in range(0, len(responses)):
-            cfds = responses[i]
+            cfds = self.safe_list(responses, i, [])
             for j in range(0, len(cfds)):
                 cfd = cfds[j]
                 conid = self.safe_string(cfd, 'conid')
@@ -1605,7 +1605,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
         filterPartsLength = len(filterParts)
         contractPromises = []
         for i in range(0, len(searchResults)):
-            searchResult = searchResults[i]
+            searchResult = self.safe_list(searchResults, i, [])
             for j in range(0, len(searchResult)):
                 issuers = self.safe_list(searchResult[j], 'issuers', [])
                 for k in range(0, len(issuers)):
@@ -1640,7 +1640,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
         #     ]
         #
         for i in range(0, len(contractResults)):
-            contracts = contractResults[i]
+            contracts = self.safe_list(contractResults, i, [])
             for j in range(0, len(contracts)):
                 contract = contracts[j]
                 conid = self.safe_string(contract, 'conid')

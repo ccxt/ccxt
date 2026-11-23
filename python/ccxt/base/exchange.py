@@ -5844,7 +5844,7 @@ class BaseExchange(object):
         ranksArray = self.to_array(ranks)
         result = []
         for i in range(0, len(ranksArray)):
-            rank = self.extend(self.parse_adl_rank(ranksArray[i]), params)
+            rank = self.extend(self.parse_adl_rank(self.extend({}, ranksArray[i])), params)
             result.append(rank)
         return self.filter_by_array_positions(result, 'symbol', symbolsNormalized)
 
@@ -5852,7 +5852,7 @@ class BaseExchange(object):
         accountsArray = self.to_array(accounts)
         result = []
         for i in range(0, len(accountsArray)):
-            account = self.extend(self.parse_account(accountsArray[i]), params)
+            account = self.extend(self.parse_account(self.extend({}, accountsArray[i])), params)
             result.append(account)
         return result
 
@@ -7014,7 +7014,7 @@ class BaseExchange(object):
     def parse_last_prices_list(self, pricesData: list[dict], symbols: Strings = None, params: dict = {}):
         results = []
         for i in range(0, len(pricesData)):
-            results.append(self.extend(self.parse_last_price(pricesData[i]), params))
+            results.append(self.extend(self.parse_last_price(self.extend({}, pricesData[i])), params))
         return self.index_by(self.filter_by_array(results, 'symbol', self.market_symbols(symbols), False), 'symbol')
 
     def parse_last_prices_dict(self, pricesData: dict, symbols: Strings = None, params: dict = {}):
@@ -7128,7 +7128,7 @@ class BaseExchange(object):
     def parse_funding_rates(self, response: list[dict], symbols: Strings = None):
         fundingRates = {}
         for i in range(0, len(response)):
-            parsed = self.parse_funding_rate(response[i])
+            parsed = self.parse_funding_rate(self.safe_dict(response, i, {}))
             symbol = self.safe_string(parsed, 'symbol')
             if symbol is not None:
                 fundingRates[symbol] = parsed
@@ -7140,7 +7140,7 @@ class BaseExchange(object):
     def parse_long_short_ratio_history(self, response: list[dict], market: Market = None, since: Int = None, limit: Int = None):
         rates = []
         for i in range(0, len(response)):
-            rates.append(self.parse_long_short_ratio(response[i], market))
+            rates.append(self.parse_long_short_ratio(self.extend({}, response[i]), market))
         sorted = self.sort_by(rates, 'timestamp')
         symbol = None if (market is None) else market['symbol']
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
@@ -7521,7 +7521,7 @@ class BaseExchange(object):
         """
         result = []
         for i in range(0, len(incomes)):
-            result.append(self.parse_income(incomes[i], market))
+            result.append(self.parse_income(self.extend({}, incomes[i]), market))
         sorted = self.sort_by(result, 'timestamp')
         symbol = self.safe_string(market, 'symbol')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
@@ -8010,7 +8010,7 @@ class BaseExchange(object):
             marketId = None if (symbolKey is None) else self.safe_string(info, symbolKey)
             market = self.safe_market(marketId, None, None, marketTypeResolved)
             if (symbols is None) or self.in_array(market['symbol'], symbols):
-                leverageStructures[market['symbol']] = self.parse_leverage(info, market)
+                leverageStructures[market['symbol']] = self.parse_leverage(self.extend({}, info), market)
         return leverageStructures
 
     def parse_leverage(self, leverage: dict, market: Market = None):

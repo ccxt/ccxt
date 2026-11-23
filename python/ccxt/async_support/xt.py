@@ -4334,7 +4334,7 @@ class xt(Exchange, ImplicitAPI):
         """
         return await self.modify_margin_helper(symbol, amount, 'SUB', params)
 
-    async def modify_margin_helper(self, symbol: str, amount: object, addOrReduce: str, params: dict = {}) -> MarginModification:
+    async def modify_margin_helper(self, symbol: str, amount: float, addOrReduce: str, params: dict = {}) -> MarginModification:
         positionSide = self.safe_string(params, 'positionSide')
         methodName = 'reduceMargin'
         if addOrReduce == 'ADD':
@@ -4909,7 +4909,7 @@ class xt(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_since_limit(sorted, since, limit)
 
-    def parse_funding_history(self, contract: dict, market: Market = None):
+    def parse_funding_history(self, contract: dict, market: Market = None) -> dict:
         #
         #     {
         #         "id": "210804044057280512",

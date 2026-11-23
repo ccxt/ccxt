@@ -2319,26 +2319,24 @@ class weex(Exchange, ImplicitAPI):
             if isStopLoss and isTakeProfit:
                 raise BadRequest(self.id + ' createOrder() cannot use both stopLossPrice and takeProfitPrice parameters at the same time')
             request['clientAlgoId'] = clientOrderId
-            orderType = None
             if isStopLoss:
                 stopLossPriceType = self.safe_string_2(params, 'stopLossPriceType', 'triggerPriceType')
                 if stopLossPriceType is not None:
                     params['SlWorkingType'] = self.encode_trigger_price_type(stopLossPriceType)
                 params['triggerPrice'] = self.price_to_precision(symbol, stopLossPrice)
                 if isMarketOrder:
-                    orderType = 'STOP_MARKET'
+                    params['type'] = 'STOP_MARKET'
                 else:
-                    orderType = 'STOP'
+                    params['type'] = 'STOP'
             elif isTakeProfit:
                 takeProfitPriceType = self.safe_string_2(params, 'takeProfitPriceType', 'triggerPriceType')
                 if takeProfitPriceType is not None:
                     params['TpWorkingType'] = self.encode_trigger_price_type(takeProfitPriceType)
                 params['triggerPrice'] = self.price_to_precision(symbol, takeProfitPrice)
                 if isMarketOrder:
-                    orderType = 'TAKE_PROFIT_MARKET'
+                    params['type'] = 'TAKE_PROFIT_MARKET'
                 else:
-                    orderType = 'TAKE_PROFIT'
-            params['type'] = orderType
+                    params['type'] = 'TAKE_PROFIT'
         else:
             if not isMarketOrder and timeInForce is None:
                 request['timeInForce'] = 'GTC'

@@ -52,28 +52,13 @@ class phemex(ccxt.async_support.phemex):
             },
         })
 
-    def from_en(self, en: object, scale: object) -> Str:
+    def from_en(self, en: Str, scale: Int) -> Str:
         if en is None:
             return None
         precise = Precise(en)
         precise.decimals = self.sum(precise.decimals, self.safe_integer([scale], 0, 0))
         precise.reduce()
         return str(precise)
-
-    def from_ep(self, ep: Str, market: Market = None) -> Str:
-        if (ep is None) or (market is None):
-            return ep
-        return self.from_en(ep, self.safe_integer(market, 'priceScale'))
-
-    def from_ev(self, ev: Str, market: Market = None) -> Str:
-        if (ev is None) or (market is None):
-            return ev
-        return self.from_en(ev, self.safe_integer(market, 'valueScale'))
-
-    def from_er(self, er: Str, market: Market = None) -> Str:
-        if (er is None) or (market is None):
-            return er
-        return self.from_en(er, self.safe_integer(market, 'ratioScale'))
 
     def request_id(self) -> int:
         self.lock_id()
@@ -104,14 +89,14 @@ class phemex(ccxt.async_support.phemex):
         marketValue = marketResolved
         symbol = self.safe_string(marketResolved, 'symbol')
         timestamp = self.safe_integer_product(ticker, 'timestamp', 0.000001)
-        lastString = self.from_ep(self.safe_string(ticker, 'close'), marketValue)
+        lastString = self.fromEp(self.safe_string(ticker, 'close'), marketValue)
         last = self.parse_number(lastString)
-        quoteVolume = self.parse_number(self.from_ev(self.safe_string(ticker, 'turnover'), marketValue))
-        baseVolume = self.parse_number(self.from_ev(self.safe_string(ticker, 'volume'), marketValue))
+        quoteVolume = self.parse_number(self.fromEv(self.safe_string(ticker, 'turnover'), marketValue))
+        baseVolume = self.parse_number(self.fromEv(self.safe_string(ticker, 'volume'), marketValue))
         change = None
         percentage = None
         average = None
-        openString = self.omit_zero(self.from_ep(self.safe_string(ticker, 'open'), marketValue))
+        openString = self.omit_zero(self.fromEp(self.safe_string(ticker, 'open'), marketValue))
         open = self.parse_number(openString)
         if (openString is not None) and (lastString is not None):
             change = self.parse_number(Precise.string_sub(lastString, openString))
@@ -121,8 +106,8 @@ class phemex(ccxt.async_support.phemex):
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.parse_number(self.from_ep(self.safe_string(ticker, 'high'), marketValue)),
-            'low': self.parse_number(self.from_ep(self.safe_string(ticker, 'low'), marketValue)),
+            'high': self.parse_number(self.fromEp(self.safe_string(ticker, 'high'), marketValue)),
+            'low': self.parse_number(self.fromEp(self.safe_string(ticker, 'low'), marketValue)),
             'bid': None,
             'bidVolume': None,
             'ask': None,
@@ -137,8 +122,8 @@ class phemex(ccxt.async_support.phemex):
             'average': average,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
-            'markPrice': self.parse_number(self.from_ep(self.safe_string(ticker, 'markPrice'), marketValue)),
-            'indexPrice': self.parse_number(self.from_ep(self.safe_string(ticker, 'indexPrice'), marketValue)),
+            'markPrice': self.parse_number(self.fromEp(self.safe_string(ticker, 'markPrice'), marketValue)),
+            'indexPrice': self.parse_number(self.fromEp(self.safe_string(ticker, 'indexPrice'), marketValue)),
             'info': ticker,
         })
 
@@ -163,14 +148,14 @@ class phemex(ccxt.async_support.phemex):
         marketResolved = self.safe_market(marketId, market)
         marketValue = marketResolved
         symbol = self.safe_string(marketResolved, 'symbol')
-        lastString = self.from_ep(self.safe_string(ticker, 4), marketValue)
+        lastString = self.fromEp(self.safe_string(ticker, 4), marketValue)
         last = self.parse_number(lastString)
-        quoteVolume = self.parse_number(self.from_ev(self.safe_string(ticker, 6), marketValue))
-        baseVolume = self.parse_number(self.from_ev(self.safe_string(ticker, 5), marketValue))
+        quoteVolume = self.parse_number(self.fromEv(self.safe_string(ticker, 6), marketValue))
+        baseVolume = self.parse_number(self.fromEv(self.safe_string(ticker, 5), marketValue))
         change = None
         percentage = None
         average = None
-        openString = self.omit_zero(self.from_ep(self.safe_string(ticker, 1), marketValue))
+        openString = self.omit_zero(self.fromEp(self.safe_string(ticker, 1), marketValue))
         open = self.parse_number(openString)
         if (openString is not None) and (lastString is not None):
             change = self.parse_number(Precise.string_sub(lastString, openString))
@@ -180,8 +165,8 @@ class phemex(ccxt.async_support.phemex):
             'symbol': symbol,
             'timestamp': None,
             'datetime': None,
-            'high': self.parse_number(self.from_ep(self.safe_string(ticker, 2), marketValue)),
-            'low': self.parse_number(self.from_ep(self.safe_string(ticker, 3), marketValue)),
+            'high': self.parse_number(self.fromEp(self.safe_string(ticker, 2), marketValue)),
+            'low': self.parse_number(self.fromEp(self.safe_string(ticker, 3), marketValue)),
             'bid': None,
             'bidVolume': None,
             'ask': None,
@@ -1414,12 +1399,12 @@ class phemex(ccxt.async_support.phemex):
         status = self.parse_order_status(self.safe_string(order, 'ordStatus'))
         side = self.safe_string_lower(order, 'side')
         type = self.parseOrderType(self.safe_string(order, 'ordType'))
-        price = self.safe_string(order, 'priceRp', self.from_ep(self.safe_string(order, 'priceEp'), marketValue))
+        price = self.safe_string(order, 'priceRp', self.fromEp(self.safe_string(order, 'priceEp'), marketValue))
         amount = self.safe_string(order, 'orderQty')
         filled = self.safe_string(order, 'cumQty')
         remaining = self.safe_string(order, 'leavesQty')
         timestamp = self.safe_integer_product(order, 'actionTimeNs', 0.000001)
-        cost = self.safe_string(order, 'cumValueRv', self.from_ev(self.safe_string(order, 'cumValueEv'), marketValue))
+        cost = self.safe_string(order, 'cumValueRv', self.fromEv(self.safe_string(order, 'cumValueEv'), marketValue))
         lastTradeTimestamp = self.safe_integer_product(order, 'transactTimeNs', 0.000001)
         if lastTradeTimestamp == 0:
             lastTradeTimestamp = None

@@ -974,7 +974,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         return self.parse_funding_rate_histories(rawRates, market, since, limit)
 
     def parse_funding_rate_history(self, info: object, market: Market = None) -> FundingRateHistory:
-        fundingRate = self.parse_funding_rate(info, market)
+        fundingRate = self.parse_funding_rate(self.extend({}, info), market)
         return {
             'info': info,
             'symbol': fundingRate['symbol'],

@@ -10521,7 +10521,7 @@ class binance(Exchange, ImplicitAPI):
         #         "time": "1621252344001"
         #     }
         #
-        return self.parse_funding_rate(response, market)
+        return self.parse_funding_rate(self.extend({}, response), market)
 
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """

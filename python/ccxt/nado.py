@@ -2380,7 +2380,7 @@ class nado(Exchange, ImplicitAPI):
             'interval': '24h',
         }
 
-    def parse_funding_history(self, funding: dict, market: Market = None):
+    def parse_funding_history(self, funding: dict, market: Market = None) -> dict:
         #
         #     {
         #         "product_id": 2,

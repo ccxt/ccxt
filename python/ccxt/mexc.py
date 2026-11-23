@@ -3257,7 +3257,6 @@ class mexc(Exchange, ImplicitAPI):
             errorMsg = self.safe_string(data, 'errorMsg', '')
             if errorMsg != 'success':
                 raise InvalidOrder(self.id + ' cancelOrder() the order with id ' + id + ' cannot be cancelled: ' + errorMsg)
-            return self.parse_order(self.safe_dict(data, 0, {}), market)
         return self.parse_order(data, market)
 
     def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:

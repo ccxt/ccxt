@@ -3260,7 +3260,7 @@ class paradex(Exchange, ImplicitAPI):
         # }
         #
         configs = self.safe_list(response, 'configs')
-        return self.parse_leverage(self.safe_dict(configs, 0), market)
+        return self.parse_leverage(self.safe_dict(configs, 0, {}), market)
 
     def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = self.safe_string(leverage, 'market')

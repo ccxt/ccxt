@@ -2785,7 +2785,7 @@ class hitbtc(Exchange, ImplicitAPI):
             marketId = self.safe_string(marketIds, i)
             if marketId is None:
                 continue
-            rawFundingRate = self.safe_dict(response, marketId)
+            rawFundingRate = self.safe_dict(response, marketId, {})
             marketInner = self.market(marketId)
             symbol = self.safe_symbol(marketId, marketInner)
             fundingRate = self.parse_funding_rate(rawFundingRate, marketInner)

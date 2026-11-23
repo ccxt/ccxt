@@ -3208,7 +3208,7 @@ class deribit(Exchange, ImplicitAPI):
         rates = []
         result = self.safe_list(response, 'result', [])
         for i in range(0, len(result)):
-            fr = self.safe_dict(result, i)
+            fr = self.safe_dict(result, i, {})
             rate = self.parse_funding_rate(fr, market)
             rates.append(rate)
         return self.filter_by_symbol_since_limit(rates, symbol, sinceResolved, limit)
