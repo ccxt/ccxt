@@ -219,8 +219,7 @@ export default class bitvavo extends bitvavoRest {
         const tickers: Dict[] = this.safeList (message, 'data', []);
         const result: List = [];
         for (let i = 0; i < tickers.length; i++) {
-            const data = tickers[i];
-            const ticker = this.parseWsBidAsk (data);
+            const ticker = this.parseWsBidAsk (this.safeDict (tickers, i, {}));
             const symbol = this.safeString (ticker, 'symbol', '');
             this.bidsasks[symbol as string] = ticker;
             result.push (ticker);
