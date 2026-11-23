@@ -2699,6 +2699,7 @@ class NewTranspiler {
         return [
             [/new (\w+)Rest\(\)/, 'new ccxt.$1()'],
             [/return await (\w+);/gm, 'return await ($1 as Exchange.Future);'],
+            [/return \(\(string\?\)\(\(object\)\(await (\w+)\)\)\);/gm, 'return ((string?)((object)(await ($1 as Exchange.Future))));'],
             [/new\sgetValue\((\w+),\s(\w+)\)\((\w+)\)/gm, 'this.newException(getValue($1, $2), $3)'],
             [/client\.subscriptions/gm, '((WebSocketClient)client).subscriptions'],
             [/Dictionary<string,object>\)client.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures'],
