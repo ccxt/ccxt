@@ -1175,7 +1175,7 @@ class hollaex extends Exchange {
         if ($response === null) {
             throw new OrderNotFound($this->id . ' fetchOrder() could not find order id ' . $id);
         }
-        return $this->parse_order($response);
+        return $this->parse_order($this->extend(array(), $response));
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {

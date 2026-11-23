@@ -1153,7 +1153,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         $splitMethod = explode('_order', $method);
         $messageHash = $this->safe_string($splitMethod, 0);
         $symbol = $this->safe_symbol($marketId);
-        $parsed = $this->parse_order($order);
+        $parsed = $this->parse_order($this->extend(array(), $order));
         $orders->append($parsed);
         $client->resolve($orders, $messageHash);
         if ($messageHash !== null) {

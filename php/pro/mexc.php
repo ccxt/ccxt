@@ -1497,7 +1497,7 @@ class mexc extends \ccxt\async\mexc {
                 $parsed['lastTradeTimestamp'] = $sendTime;
             }
         } elseif ($data !== null) {
-            $parsed = $this->parse_order($data, $market);
+            $parsed = $this->parse_order($this->extend(array(), $data), $market);
         } else {
             return;
         }

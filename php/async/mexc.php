@@ -2959,7 +2959,7 @@ class mexc extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_dict($response, 'data', array());
         }
         return $this->parse_order($data, $market);
     }
@@ -3411,18 +3411,18 @@ class mexc extends Exchange {
 
     private function do_cancel_order(string $id, ?string $symbol = null, $params = array()) {
         /**
-         * cancels an open $order
+         * cancels an open order
          *
-         * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-$order // spot
+         * @see https://www.mexc.com/api-docs/spot-v3/spot-account-trade/cancel-order // spot
          * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-orders // swap
          * @see https://www.mexc.com/api-docs/futures/account-and-trading-endpoints/cancel-planned-orders // swap trigger
          *
-         * @param {string} $id $order $id
-         * @param {string} $symbol unified $symbol of the $market the $order was made in
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] set to true for canceling $trigger orders
          * @param {string} [$params->marginMode] only 'isolated' is supported for spot-margin trading
-         * @return {array} An ~@link https://docs.ccxt.com/?$id=$order-structure $order structure~
+         * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -3452,7 +3452,8 @@ class mexc extends Exchange {
                 if ($marginMode !== 'isolated') {
                     throw new BadRequest($this->id . ' cancelOrder() does not support marginMode ' . $marginMode . ' for spot-margin trading');
                 }
-                $data = Async\await($this->spotPrivateDeleteMarginOrder($this->extend($requestInner, $query)));
+                $marginRows = Async\await($this->spotPrivateDeleteMarginOrder($this->extend($requestInner, $query)));
+                return $this->parse_order($this->safe_dict($marginRows, 0, array()), $market);
             } else {
                 $data = Async\await($this->spotPrivateDeleteOrder($this->extend($requestInner, $query)));
             }
@@ -3524,12 +3525,13 @@ class mexc extends Exchange {
             if ($method === 'contractPrivatePostPlanorderCancel') {
                 return $this->safe_order(array( 'id' => $id, 'symbol' => $this->safe_string($market, 'symbol'), 'info' => $response ), $market); // planorder/cancel answers without data, failures are raised by handleErrors
             }
-            $data = $this->safe_value($response, 'data');
-            $order = $this->safe_dict($data, 0);
-            $errorMsg = $this->safe_string($order, 'errorMsg', '');
+            $rows = $this->safe_list($response, 'data', array());
+            $data = $this->safe_dict($rows, 0, array());
+            $errorMsg = $this->safe_string($data, 'errorMsg', '');
             if ($errorMsg !== 'success') {
                 throw new InvalidOrder($this->id . ' cancelOrder() the order with id ' . $id . ' cannot be cancelled => ' . $errorMsg);
             }
+            return $this->parse_order($this->safe_dict($data, 0, array()), $market);
         }
         return $this->parse_order($data, $market);
     }

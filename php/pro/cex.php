@@ -1395,7 +1395,7 @@ class cex extends \ccxt\async\cex {
             'data' => $data,
         );
         $response = Async\await($this->watch($url, $messageHash, $request, $messageHash));
-        return $this->parse_order($response, $market);
+        return $this->parse_order($this->extend(array(), $response), $market);
     }
 
     public function fetch_open_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1477,7 +1477,7 @@ class cex extends \ccxt\async\cex {
             'data' => $data,
         );
         $rawOrder = Async\await($this->watch($url, $messageHash, $request, $messageHash));
-        return $this->parse_order($rawOrder, $market);
+        return $this->parse_order($this->extend(array(), $rawOrder), $market);
     }
 
     public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
@@ -1525,7 +1525,7 @@ class cex extends \ccxt\async\cex {
             'data' => $data,
         );
         $response = Async\await($this->watch($url, $messageHash, $request, $messageHash, $messageHash));
-        return $this->parse_order($response, $market);
+        return $this->parse_order($this->extend(array(), $response), $market);
     }
 
     public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
@@ -1562,7 +1562,7 @@ class cex extends \ccxt\async\cex {
             'data' => $data,
         );
         $response = Async\await($this->watch($url, $messageHash, $request, $messageHash, $messageHash));
-        return $this->parse_order($response, $market);
+        return $this->parse_order($this->extend(array(), $response), $market);
     }
 
     public function cancel_orders_ws(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {

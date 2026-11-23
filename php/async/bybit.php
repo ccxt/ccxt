@@ -8976,7 +8976,7 @@ class bybit extends Exchange {
         $timestamp = $this->safe_integer($response, 'time');
         $result = $this->safe_dict($response, 'result', array());
         $data = $this->safe_list($result, 'list', array());
-        $greeks = $this->parse_greeks($data[0], $market);
+        $greeks = $this->parse_greeks($this->safe_dict($data, 0, array()), $market);
         return $this->extend($greeks, array(
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

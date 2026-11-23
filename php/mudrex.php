@@ -1254,7 +1254,7 @@ class mudrex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
          */
-        return $this->add_margin($symbol, $this->parse_number(Precise::string_neg($this->number_to_string($amount))), $params);
+        return $this->add_margin($symbol, -$amount, $params);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {

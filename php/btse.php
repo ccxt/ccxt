@@ -2349,7 +2349,7 @@ class btse extends Exchange {
         if ((gettype($order) === 'array' && array_keys($order) === array_keys(array_keys($order)))) {
             $order = $this->safe_dict($order, 0, array());
         }
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array(), $order), $market);
     }
 
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
@@ -3551,7 +3551,7 @@ class btse extends Exchange {
         $paramsOmitted = ($typeUpper === 'LIMIT') ? $this->omit($paramsOrderType, 'price') : $paramsOrderType;
         $response = $this->privateDeleteFuturesApiV3TradePositions($this->extend($request, $paramsOmitted));
         $order = $this->safe_dict($response, 0, $response);
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array(), $order), $market);
     }
 
     public function fetch_leverage(string $symbol, $params = array()): array {

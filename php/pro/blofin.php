@@ -680,11 +680,11 @@ class blofin extends \ccxt\async\blofin {
          * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure
          */
         $params['callerMethodName'] = 'watchOrders';
-        $symbolsArray = array();
         if ($symbol !== null) {
-            $symbolsArray[] = $symbol;
+            Async\await($this->load_markets());
+            return Async\await($this->watch_orders_for_symbols(array( $this->symbol($symbol) ), $since, $limit, $params));
         }
-        return Async\await($this->watch_orders_for_symbols($symbolsArray, $since, $limit, $params));
+        return Async\await($this->watch_orders_for_symbols(array(), $since, $limit, $params));
     }
 
     public function watch_orders_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -785,7 +785,7 @@ class blofin extends \ccxt\async\blofin {
     }
 
     public function parse_ws_order(array $order, ?array $market = null): array {
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array(), $order), $market);
     }
 
     public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {

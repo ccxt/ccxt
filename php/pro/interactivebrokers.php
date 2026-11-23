@@ -391,7 +391,7 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
         }
         for ($i = 0; $i < count($marketSymbols); $i++) {
             $market = $this->market($marketSymbols[$i]);
-            list($request, $query) = $this->ibkr_market_data_request($market['id'], $params);
+            list($request, $query) = $this->ibkr_market_data_request($this->safe_string($market, 'id'), $params);
             $subscription = $this->extend(array( 'conid' => $market['id'], 'symbol' => $market['symbol'] ), $query);
             Async\await($this->ibkr_subscribe($client, $messageHashes[$i], $request, $subscription));
         }
@@ -550,7 +550,7 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
         // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
         $future = $client->reusableFuture($messageHash);
         // the last price stream, it builds the current candles
-        list($marketDataRequest, $query) = $this->ibkr_market_data_request($market['id'], $params);
+        list($marketDataRequest, $query) = $this->ibkr_market_data_request($this->safe_string($market, 'id'), $params);
         Async\await($this->ibkr_subscribe($client, $messageHash, $marketDataRequest, array( 'conid' => $market['id'], 'symbol' => $unifiedSymbol, 'timeframe' => $timeframe )));
         // the history, it seeds the candles
         $historyHash = 'smh::' . $historyMarketId . '::' . $timeframe;
@@ -1132,7 +1132,7 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
                 $merged = $this->extend($previous, $rawOrder);
                 $rawOrders[$orderId] = $merged;
             }
-            $parsed = $this->parse_order($merged);
+            $parsed = $this->parse_order($this->extend(array(), $merged));
             $orders->append($parsed);
             $orderSymbol = $this->safe_string($parsed, 'symbol');
             if ($orderSymbol !== null) {

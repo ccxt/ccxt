@@ -4164,7 +4164,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         $transfersArray = $this->to_array($transfers);
         $result = array();
         for ($i = 0; $i < count($transfersArray); $i++) {
-            $transfer = $this->extend($this->parse_transfer($transfersArray[$i], $currency), $params);
+            $transfer = $this->extend($this->parse_transfer($this->safe_dict($transfersArray, $i, array()), $currency), $params);
             $result[] = $transfer;
         }
         $result = $this->sort_by($result, 'timestamp');
@@ -5719,7 +5719,7 @@ class BaseExchange extends \ccxt\BaseExchange {
     public function parse_deposit_addresses(array $addresses, ?array $codes = null, $indexed = true, $params = array()) {
         $result = array();
         for ($i = 0; $i < count($addresses); $i++) {
-            $address = $this->extend($this->parse_deposit_address($addresses[$i]), $params);
+            $address = $this->extend($this->parse_deposit_address($this->safe_dict($addresses, $i, array())), $params);
             $result[] = $address;
         }
         if ($codes !== null) {
@@ -6842,7 +6842,7 @@ class BaseExchange extends \ccxt\BaseExchange {
     public function parse_all_greeks_list(array $greeks, ?array $symbols = null, $params = array()) {
         $results = array();
         for ($i = 0; $i < count($greeks); $i++) {
-            $results[] = $this->extend($this->parse_greeks($greeks[$i]), $params);
+            $results[] = $this->extend($this->parse_greeks($this->safe_dict($greeks, $i, array())), $params);
         }
         return $this->index_by($this->filter_by_array($results, 'symbol', $this->market_symbols($symbols), false), 'symbol');
     }
@@ -6853,7 +6853,7 @@ class BaseExchange extends \ccxt\BaseExchange {
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $market = $this->safe_market($marketId);
-            $results[] = $this->extend($this->parse_greeks($greeks[$marketId], $market), $params);
+            $results[] = $this->extend($this->parse_greeks($this->safe_dict($greeks, $marketId, array()), $market), $params);
         }
         return $this->index_by($this->filter_by_array($results, 'symbol', $this->market_symbols($symbols), false), 'symbol');
     }
@@ -6869,7 +6869,7 @@ class BaseExchange extends \ccxt\BaseExchange {
             $currency = $this->safe_currency($currencyId);
             $marketId = ($symbolKey === null) ? null : $this->safe_string($response[$i], $symbolKey);
             $market = $this->safe_market($marketId, null, null, 'option');
-            $optionStructures[$market['symbol']] = $this->parse_option($response[$i], $currency, $market);
+            $optionStructures[$market['symbol']] = $this->parse_option($this->safe_dict($response, $i, array()), $currency, $market);
         }
         return $optionStructures;
     }

@@ -5437,13 +5437,12 @@ class xt extends Exchange {
          * @param {array} $breakBySymbolSide the result of indexPositionBreakList()
          */
         $breakEntry = $this->safe_dict($breakBySymbolSide, $this->safe_string($entry, 'symbol', '') . '_' . $this->safe_string($entry, 'positionSide', ''));
-        if ($breakEntry === null) {
-            return $entry;
+        $extra = array();
+        if ($breakEntry !== null) {
+            $extra['breakPrice'] = $this->safe_string($breakEntry, 'breakPrice');
+            $extra['calMarkPrice'] = $this->safe_string($breakEntry, 'calMarkPrice');
         }
-        return $this->extend($entry, array(
-            'breakPrice' => $this->safe_string($breakEntry, 'breakPrice'),
-            'calMarkPrice' => $this->safe_string($breakEntry, 'calMarkPrice'),
-        ));
+        return $this->extend($entry, $extra);
     }
 
     public function fetch_position(string $symbol, $params = array()): PromiseInterface {

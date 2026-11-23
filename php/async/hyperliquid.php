@@ -1385,9 +1385,8 @@ class hyperliquid extends Exchange {
         // same response as under "fetchMarkets"
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
-            $market = $response[$i];
-            $info = $this->safe_dict($market, 'info', array());
-            $ticker = $this->parse_ticker($info, $market);
+            $info = $this->safe_dict($response[$i], 'info', array());
+            $ticker = $this->parse_ticker($info, $this->extend(array(), $response[$i]));
             $symbol = $this->safe_string($ticker, 'symbol');
             $result[$symbol] = $ticker;
         }

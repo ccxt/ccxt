@@ -409,9 +409,12 @@ class kucoin extends \ccxt\async\kucoin {
         $isFuturesMethod = $market['contract'];
         $url = Async\await($this->negotiate(false, $isFuturesMethod));
         list($spotMethod, $paramsSpotMethod) = $this->handle_option_string_and_params($paramsUta, 'watchTicker', 'spotMethod', '/market/snapshot');
-        $method = ($isFuturesMethod === true) ? '/contractMarket/ticker' : $spotMethod;
         $query = ($isFuturesMethod === true) ? $paramsUta : $paramsSpotMethod;
-        $topic = $method . ':' . $market['id'];
+        $tickerMarketId = $this->safe_string($market, 'id', '');
+        $topic = '/contractMarket/ticker:' . $tickerMarketId;
+        if ($isFuturesMethod !== true) {
+            $topic = $spotMethod . ':' . $tickerMarketId;
+        }
         return Async\await($this->subscribe($url, $messageHash, $topic, $query));
     }
 
@@ -454,9 +457,12 @@ class kucoin extends \ccxt\async\kucoin {
         } else {
             $url = Async\await($this->negotiate(false, $isFuturesMethod));
             list($spotMethod, $paramsSpotMethod) = $this->handle_option_string_and_params($paramsUta, 'watchTicker', 'spotMethod', '/market/snapshot');
-            $method = ($isFuturesMethod === true) ? '/contractMarket/ticker' : $spotMethod;
             $query = ($isFuturesMethod === true) ? $paramsUta : $paramsSpotMethod;
-            $topic = $method . ':' . $market['id'];
+            $tickerMarketId = $this->safe_string($market, 'id', '');
+            $topic = '/contractMarket/ticker:' . $tickerMarketId;
+            if ($isFuturesMethod !== true) {
+                $topic = $spotMethod . ':' . $tickerMarketId;
+            }
             $messageHash = 'unsubscribe:' . $subMessageHash;
             $subscription['messageHashes'] = array( $messageHash, $topic );
             $subscription['subMessageHashes'] = array( $subMessageHash, $topic );
@@ -3717,7 +3723,7 @@ class kucoin extends \ccxt\async\kucoin {
             }
             $this->options['urls'][$type] = null;
         }
-        $this->handle_errors(1, '', $client->url, '', array(), $data, $message, array(), '');
+        $this->handle_errors(1, '', $client->url, '', array(), $data, $message, array(), null);
         return false;
     }
 

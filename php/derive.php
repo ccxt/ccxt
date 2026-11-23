@@ -3743,17 +3743,17 @@ class derive extends Exchange {
 
     public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
-         * fetch the spot transfer history of a subaccount
+         * fetch the spot $transfer history of a subaccount
          *
          * @see https://docs.derive.xyz/api-reference/history/privateget_erc20_transfer_history
          *
          * @param {string} [$code] unified currency $code
-         * @param {int} [$since] timestamp in ms of the earliest transfer to fetch
+         * @param {int} [$since] timestamp in ms of the earliest $transfer to fetch
          * @param {int} [$limit] the maximum number of $transfers to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {int} [$params->until] timestamp in ms of the latest transfer to fetch
+         * @param {int} [$params->until] timestamp in ms of the latest $transfer to fetch
          * @param {string} [$params->subaccount_id] *required* the subaccount id
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$transfer-structure $transfer structures~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -3799,7 +3799,8 @@ class derive extends Exchange {
         $transfers = $this->safe_list($result, 'transfers', array());
         $parsed = array();
         for ($i = 0; $i < count($transfers); $i++) {
-            $parsed[] = $this->parse_transfer($this->safe_dict($transfers, $i, array()));
+            $transfer = $this->extend($this->parse_transfer($this->safe_dict($transfers, $i, array())), array());
+            $parsed[] = $transfer;
         }
         $sorted = $this->sort_by($parsed, 'timestamp');
         return $this->filter_by_currency_since_limit($sorted, $code, $since, $limit);

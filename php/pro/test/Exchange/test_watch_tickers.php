@@ -33,7 +33,7 @@ function test_watch_tickers_helper($exchange, $skipped_properties, $arg_symbols,
             $should_return = false;
             $start_time = $exchange->milliseconds();
             try {
-                $response = \React\Async\await($exchange->watch_tickers($arg_symbols, $arg_params));
+                $response = \React\Async\await($exchange->watch_tickers($arg_symbols));
             } catch(\Throwable $e) {
                 // for some exchanges, specifically watchTickers method not subscribe
                 // to "all tickers" itself, and it requires symbols to be set

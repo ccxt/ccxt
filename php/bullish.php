@@ -2463,7 +2463,7 @@ class bullish extends Exchange {
                 }
             }
         }
-        return $this->parse_deposit_address($data, $currency);
+        return $this->parse_deposit_address($this->extend(array(), $data), $currency);
     }
 
     public function parse_deposit_address(array $depositAddress, ?array $currency = null): array {

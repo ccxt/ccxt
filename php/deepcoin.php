@@ -3081,7 +3081,7 @@ class deepcoin extends Exchange {
             $response = $this->privatePostDeepcoinTradeClosePositionByIds($this->extend($request, $paramsOmitted));
         }
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->safe_dict($data, 0, array()), $market);
     }
 
     public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {

@@ -1870,7 +1870,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             $market = $this->market($symbol);
         }
         $result = Async\await($this->request_ws('private/cancel', $this->extend(array( 'order_id' => $id ), $paramsResolved), true));
-        return $this->parse_order($result, $market);
+        return $this->parse_order($this->extend(array(), $result), $market);
     }
 
     public function cancel_all_orders_ws(?string $symbol = null, $params = array()): PromiseInterface {
@@ -1932,7 +1932,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             $market = $this->market($symbol);
         }
         $result = Async\await($this->request_ws('private/get_order_state', $this->extend(array( 'order_id' => $id ), $paramsResolved), true));
-        return $this->parse_order($result, $market);
+        return $this->parse_order($this->extend(array(), $result), $market);
     }
 
     public function fetch_open_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {

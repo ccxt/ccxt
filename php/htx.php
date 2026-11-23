@@ -5970,7 +5970,7 @@ class htx extends Exchange {
         if ($result === null) {
             throw new NullResponse($this->id . ' parseOrder() returned empty response');
         }
-        return $this->extend($this->parse_order($result, $market), array(
+        return $this->extend($this->parse_order($this->extend(array(), $result), $market), array(
             'id' => $id,
             'status' => 'canceled',
         ));

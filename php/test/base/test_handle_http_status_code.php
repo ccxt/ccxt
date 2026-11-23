@@ -85,7 +85,7 @@ function test_handle_http_status_code() {
     // a derived handleErrors that wants to surface it must throw on its own
     $skip = $exchange->handle_errors(406, 'Not Acceptable', 'url', 'GET', array(), '{"success":false}', array(
         'success' => false,
-    ), array(), '');
+    ), array(), null);
     assert($skip === null, 'the base handleErrors stub should return undefined');
     $exchange->handle_http_status_code(406, 'Not Acceptable', 'url', 'GET', '{"success":false}');
 }

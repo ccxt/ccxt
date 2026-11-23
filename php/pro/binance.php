@@ -6128,7 +6128,7 @@ class binance extends \ccxt\async\binance {
         $msg = $this->safe_string($error, 'msg');
         $codeValue = ($code === null) ? 0 : $code;
         try {
-            $this->handle_errors($codeValue, $msg, $client->url, '', array(), $this->json($error), $error, array(), '');
+            $this->handle_errors($codeValue, $msg, $client->url, '', array(), $this->json($error), $error, array(), null);
         } catch (Exception $e) {
             $rejected = true;
             // private endpoint uses id as messageHash

@@ -2429,7 +2429,7 @@ class modetrade extends Exchange {
         // }
         //
         $orders = $this->safe_dict($response, 'data', $response);
-        return $this->parse_order($orders, $market);
+        return $this->parse_order($this->extend(array(), $orders), $market);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {

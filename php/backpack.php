@@ -1054,8 +1054,7 @@ class backpack extends Exchange {
             throw new InvalidOrder($this->id . ' fetchStockIndicativeQuote() requires a positive base share quantity');
         }
         $request = array( 'symbol' => $market['baseId'], 'side' => $this->encode_order_side($side), 'quantity' => $this->number_to_string($amount) );
-        $requestMethod = 'publicGetApiV1StockIndicativeQuote';
-        return $this->$requestMethod($this->extend($query, $request));
+        return $this->publicGetApiV1StockIndicativeQuote($this->extend($query, $request));
     }
 
     public function rfq_conversion_market(string $fromCode, string $toCode): array {

@@ -2769,10 +2769,13 @@ class hitbtc extends Exchange {
         //         "2db6ebab-fb26-4537-9ef8-1a689472d235"
         //     ]
         //
-        return $this->parse_transfer($response, $currency);
+        return $this->extend($this->parse_transfer(array(), $currency), array(
+            'id' => $this->safe_string($response, 0),
+            'info' => $response,
+        ));
     }
 
-    public function parse_transfer(mixed $transfer, ?array $currency = null): array {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // transfer
         //

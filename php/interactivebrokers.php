@@ -2127,7 +2127,8 @@ class interactivebrokers extends Exchange {
         $symbolsNormalized = $this->market_symbols($symbols);
         list($fields, $query) = $this->handle_option_and_params($params, 'fetchTickers', 'fields');
         $fieldsString = implode(',', $fields);
-        $response = $this->ibkr_fetch_snapshot($symbolsNormalized, $fieldsString, $query);
+        $readyFields = array( '31', '84', '86' );
+        $response = $this->ibkr_fetch_snapshot($symbolsNormalized, $fieldsString, $readyFields, $query);
         //
         //     [
         //         {
@@ -2149,7 +2150,7 @@ class interactivebrokers extends Exchange {
         return $this->parse_tickers($response, $symbolsNormalized);
     }
 
-    public function ibkr_fetch_snapshot(array $symbols, string $fields, $params = array(), ?array $readyFields = null): array {
+    public function ibkr_fetch_snapshot(array $symbols, string $fields, array $readyFields, $params = array()): array {
         /**
          * fetches a $market data snapshot, the first snapshot $request only subscribes to the $market data, so the $request is retried until data arrives
          * @ignore
@@ -2158,8 +2159,8 @@ class interactivebrokers extends Exchange {
          *
          * @param {string[]} $symbols unified $market $symbols
          * @param {string} $fields comma-separated snapshot field ids
+         * @param {string[]} $readyFields the snapshot is ready once every item has at least one of these $fields
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string[]} [$readyFields] the snapshot is ready once every item has at least one of these $fields, default array( '31', '84', '86' )
          * @return {array[]} the raw snapshot items
          */
         $conids = array();
@@ -2187,12 +2188,11 @@ class interactivebrokers extends Exchange {
         return $response;
     }
 
-    public function ibkr_snapshot_ready(array $response, ?array $readyFields = null): bool {
+    public function ibkr_snapshot_ready(array $response, array $fieldIds): bool {
         $numItems = count($response);
         if ($numItems === 0) {
             return false;
         }
-        $fieldIds = ($readyFields === null) ? array( '31', '84', '86' ) : $readyFields;
         $numFields = count($fieldIds);
         for ($i = 0; $i < $numItems; $i++) {
             $found = false;
@@ -2230,7 +2230,7 @@ class interactivebrokers extends Exchange {
         $symbolsNormalized = $this->market_symbols($symbols);
         $fields = $this->safe_string($params, 'fields', '84,85,86,88');
         $query = $this->omit($params, 'fields');
-        $response = $this->ibkr_fetch_snapshot($symbolsNormalized, $fields, $query, array( '84', '86' ));
+        $response = $this->ibkr_fetch_snapshot($symbolsNormalized, $fields, array( '84', '86' ), $query);
         //
         //     [ { "84": "82836.00", "85": "0.00018171", "86": "82843.75", "88": "0.27167244", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
         //
@@ -2255,7 +2255,7 @@ class interactivebrokers extends Exchange {
             $this->load_markets();
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        $response = $this->ibkr_fetch_snapshot($symbolsNormalized, '31', $params, array( '31' ));
+        $response = $this->ibkr_fetch_snapshot($symbolsNormalized, '31', array( '31' ), $params);
         //
         //     [ { "31": "82838.50", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
         //
@@ -2294,7 +2294,7 @@ class interactivebrokers extends Exchange {
             $this->load_markets();
         }
         $symbolsNormalized = $this->market_symbols($symbols);
-        $response = $this->ibkr_fetch_snapshot($symbolsNormalized, '7635', $params, array( '7635' ));
+        $response = $this->ibkr_fetch_snapshot($symbolsNormalized, '7635', array( '7635' ), $params);
         //
         //     [ { "7635": "82840.25", "conidEx": "479624278", "_updated": 1791449398940, "conid": 479624278 } ]
         //
@@ -2326,7 +2326,7 @@ class interactivebrokers extends Exchange {
             }
         }
         // 7697 futures open interest, 7638 option open interest, 31 last price for the open interest value
-        $response = $this->ibkr_fetch_snapshot($symbolsNormalized, '31,7697,7638', $params, array( '7697', '7638' ));
+        $response = $this->ibkr_fetch_snapshot($symbolsNormalized, '31,7697,7638', array( '7697', '7638' ), $params);
         //
         //     [ { "31": "82838.50", "7697": "12345", "conidEx": "770561201", "_updated": 1791449398940, "conid": 770561201 } ]
         //
@@ -4118,7 +4118,7 @@ class interactivebrokers extends Exchange {
         return null;
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
         if (($code === 401) && $this->safe_bool($this->options, 'useGateway', false)) {
             // the gateway answers every request with 401 once its sso login is lost (daily reset, container restart, competing login)
             $this->options['gatewayAuthenticatedTimestamp'] = null;

@@ -2484,11 +2484,11 @@ class blofin extends Exchange {
         throw new ExchangeError($this->id . ' fetchDeposit() could not find deposit ' . $id);
     }
 
-    public function fetch_withdrawal(?string $id, ?string $code = null, $params = array()): PromiseInterface {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_withdrawal(...))($id, $code, $params);
     }
 
-    private function do_fetch_withdrawal(?string $id, ?string $code = null, $params = array()) {
+    private function do_fetch_withdrawal(string $id, ?string $code = null, $params = array()) {
         /**
          * fetch $data on a $currency withdrawal via the withdrawal $id
          *
@@ -2497,16 +2497,18 @@ class blofin extends Exchange {
          * @param {string} $id withdrawal $id
          * @param {string} [$code] unified $currency $code
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->clientId] look up by the client-supplied $id instead, with $id set to null
+         * @param {string} [$params->clientId] look up by the client-supplied $id instead, with $id set to null or ''
          * @return {array} a ~@link https://docs.ccxt.com/#/?$id=transaction-structure transaction structure~
          */
         $clientId = $this->safe_string($params, 'clientId');
-        if (($id === null) && ($clientId === null)) {
+        // an undefined or empty id looks the withdrawal up by params['clientId']
+        $hasId = ($id !== null) && ($id !== '');
+        if (!$hasId && ($clientId === null)) {
             throw new ArgumentsRequired($this->id . ' fetchWithdrawal() requires an id argument or a params["clientId"]');
         }
         Async\await($this->load_markets());
         $request = array();
-        if ($id !== null) {
+        if ($hasId) {
             $request['withdrawId'] = $id;
         }
         $currency = null;
@@ -2522,7 +2524,7 @@ class blofin extends Exchange {
         for ($i = 0; $i < $dataLength; $i++) {
             $entry = $this->safe_dict($data, $i, array());
             $matches = false;
-            if ($id !== null) {
+            if ($hasId) {
                 $matches = ($this->safe_string($entry, 'withdrawId') === $id);
             } else {
                 $matches = ($this->safe_string($entry, 'clientId') === $clientId);
@@ -2531,7 +2533,7 @@ class blofin extends Exchange {
                 return $this->parse_transaction($entry, $currency);
             }
         }
-        $reference = ($id !== null) ? $id : $clientId;
+        $reference = $hasId ? $id : $clientId;
         throw new ExchangeError($this->id . ' fetchWithdrawal() could not find withdrawal ' . $reference);
     }
 

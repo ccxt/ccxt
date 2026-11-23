@@ -1000,7 +1000,7 @@ class grvt extends \ccxt\async\grvt {
         //        "prev_sequence_number": "16"
         //    }
         //
-        $data = $this->safe_dict($message, 'feed');
+        $data = $this->safe_dict($message, 'feed', array());
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById($limit);
@@ -1013,7 +1013,7 @@ class grvt extends \ccxt\async\grvt {
 
     public function parse_ws_order(mixed $order, ?array $market = null): array {
         // same as REST api
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array(), $order), $market);
     }
 
     public function handle_error_message(Client $client, array $response): ?bool {

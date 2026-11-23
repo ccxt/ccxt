@@ -1344,7 +1344,7 @@ class coinbaseinternational extends Exchange {
         }
         Async\await($this->authenticate_v2());
         $code = $this->safe_string($paramsResolved, 'code');
-        $paramsOmitted = $paramsResolved;
+        $paramsOmitted = $this->extend(array(), $paramsResolved);
         if ($this->is_native_deribit_credentials()) {
             $paramsOmitted = $this->omit($paramsResolved, 'code');
         }
@@ -2870,12 +2870,13 @@ class coinbaseinternational extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $paramsResolved = $this->handle_route_and_params('fetchOpenOrders', $params);
+        list($paginate, $paramsFinal) = $this->handle_option_bool_and_params($paramsResolved, 'fetchOpenOrders', 'paginate', false);
+        $nativeDeribit = $this->is_native_deribit_credentials();
+        if ($nativeDeribit && $paginate) {
+            throw new NotSupported($this->id . ' fetchOpenOrders() does not support pagination');
+        }
         $paramsPaginate = $paramsResolved;
-        if ($this->is_native_deribit_credentials()) {
-            list($paginate, $paramsFinal) = $this->handle_option_bool_and_params($paramsResolved, 'fetchOpenOrders', 'paginate', false);
-            if ($paginate) {
-                throw new NotSupported($this->id . ' fetchOpenOrders() does not support pagination');
-            }
+        if ($nativeDeribit) {
             $paramsPaginate = $paramsFinal;
         }
         if ($this->markets === null) {
@@ -2949,12 +2950,13 @@ class coinbaseinternational extends Exchange {
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
         $paramsResolved = $this->handle_route_and_params('fetchMyTrades', $params);
+        list($paginate, $paramsFinal) = $this->handle_option_bool_and_params($paramsResolved, 'fetchMyTrades', 'paginate', false);
+        $nativeDeribit = $this->is_native_deribit_credentials();
+        if ($nativeDeribit && $paginate) {
+            throw new NotSupported($this->id . ' fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters');
+        }
         $paramsPaginate = $paramsResolved;
-        if ($this->is_native_deribit_credentials()) {
-            list($paginate, $paramsFinal) = $this->handle_option_bool_and_params($paramsResolved, 'fetchMyTrades', 'paginate', false);
-            if ($paginate) {
-                throw new NotSupported($this->id . ' fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters');
-            }
+        if ($nativeDeribit) {
             $paramsPaginate = $paramsFinal;
         }
         if ($this->markets === null) {

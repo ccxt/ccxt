@@ -3306,7 +3306,7 @@ class phemex extends Exchange {
             }
             $order = $this->safe_dict($rows, 0, array());
         }
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array(), $order), $market);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {

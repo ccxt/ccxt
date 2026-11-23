@@ -2098,7 +2098,8 @@ class bitget extends Exchange {
     private function do_handle_uta_and_params(array $params, ?string $methodName, bool $defaultValue = false) {
         list($uta, $paramsUta) = $this->handle_option_and_params($params, $methodName, 'uta');
         if ($uta !== null) {
-            return array( $uta, $paramsUta );
+            $utaFlag = $this->safe_bool(array( $uta ), 0);
+            return array( ($utaFlag === true), $paramsUta );
         }
         if ($this->check_required_credentials(false)) {
             // use the api to determine if the account is uta or not
@@ -2952,7 +2953,7 @@ class bitget extends Exchange {
         $response = null;
         $marginMode = null;
         $productType = null;
-        $uta = null;
+        $uta = false;
         $paramsMarginMode = null;
         list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('fetchMarketLeverageTiers', $params, 'isolated');
         list($productType, $paramsMarginMode) = $this->handle_product_type_and_params($market, $paramsMarginMode);
@@ -4509,7 +4510,7 @@ class bitget extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $uta = null;
+        $uta = false;
         list($uta, $paramsPaginate) = Async\await($this->handle_uta_and_params($paramsPaginate, 'fetchTrades', false));
         $isStockOrUta = ($isStockSpot || ($uta === true));
         if ($limit !== null) {
@@ -4656,7 +4657,7 @@ class bitget extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $uta = null;
+        $uta = false;
         $paramsUTA = null;
         list($uta, $paramsUTA) = Async\await($this->handle_uta_and_params($params, 'fetchTradingFee', false));
         if ($uta === true) {
@@ -4733,7 +4734,7 @@ class bitget extends Exchange {
         $paramsMarginMode = null;
         list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('fetchTradingFees', $params);
         list($marketType, $paramsMarginMode) = $this->handle_market_type_and_params('fetchTradingFees', null, $paramsMarginMode);
-        $uta = null;
+        $uta = false;
         list($uta, $paramsMarginMode) = Async\await($this->handle_uta_and_params($paramsMarginMode, 'fetchTradingFees', false));
         if ($uta === true) {
             $utaMargin = $this->safe_bool($paramsMarginMode, 'margin', false);
@@ -5167,7 +5168,7 @@ class bitget extends Exchange {
         $marginMode = null;
         $response = null;
         list($stock, $paramsStock) = $this->handle_option_bool_and_params($params, 'fetchBalance', 'stock', false);
-        $uta = null;
+        $uta = false;
         $paramsUTA = null;
         list($uta, $paramsUTA) = Async\await($this->handle_uta_and_params($paramsStock, 'fetchBalance', false));
         $isStock = ($stock === true);
@@ -6452,7 +6453,7 @@ class bitget extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $uta = null;
+        $uta = false;
         $paramsUTA = null;
         list($uta, $paramsUTA) = Async\await($this->handle_uta_and_params($params, 'createOrders', false));
         if ($uta === true) {
@@ -6623,7 +6624,7 @@ class bitget extends Exchange {
         $paramsOmitted = $this->omit($params, array( 'stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent' ));
         $response = null;
         $productType = null;
-        $uta = null;
+        $uta = false;
         list($productType, $paramsOmitted) = $this->handle_product_type_and_params($market, $paramsOmitted);
         list($uta, $paramsOmitted) = Async\await($this->handle_uta_and_params($paramsOmitted, 'editOrder', false));
         if ($uta === true) {
@@ -6831,7 +6832,7 @@ class bitget extends Exchange {
         if (!(($this->safe_bool($market, 'spot', false)) && ($trigger === true))) {
             $request['symbol'] = $market['id'];
         }
-        $uta = null;
+        $uta = false;
         list($uta, $paramsMarginMode) = Async\await($this->handle_uta_and_params($paramsMarginMode, 'cancelOrder', false));
         $isStockOrUta = ($isStockSpot || ($uta === true));
         $isPlanOrder = ($trigger === true) || $trailing;
@@ -7034,7 +7035,7 @@ class bitget extends Exchange {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $uta = null;
+        $uta = false;
         $paramsUTA = null;
         list($uta, $paramsUTA) = Async\await($this->handle_uta_and_params($params, 'cancelOrders', false));
         if ($uta === true) {
@@ -7141,7 +7142,7 @@ class bitget extends Exchange {
         $trigger = $this->safe_bool_2($paramsMarginMode, 'stop', 'trigger');
         $paramsMarginMode = $this->omit($paramsMarginMode, array( 'stop', 'trigger' ));
         $response = null;
-        $uta = null;
+        $uta = false;
         list($uta, $paramsMarginMode) = Async\await($this->handle_uta_and_params($paramsMarginMode, 'cancelAllOrders', false));
         if ($uta === true) {
             if ($productType === 'SPOT') {
@@ -7452,7 +7453,7 @@ class bitget extends Exchange {
         $marginMode = null;
         $paramsMarginMode = null;
         list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
-        $uta = null;
+        $uta = false;
         list($uta, $paramsMarginMode) = Async\await($this->handle_uta_and_params($paramsMarginMode, 'fetchOpenOrders', false));
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -7931,7 +7932,7 @@ class bitget extends Exchange {
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $uta = null;
+        $uta = false;
         $paramsUTA = null;
         list($uta, $paramsUTA) = Async\await($this->handle_uta_and_params($params, 'fetchCanceledAndClosedOrders', false));
         if ($uta === true) {
@@ -8395,7 +8396,7 @@ class bitget extends Exchange {
         $marketType = null;
         $paramsOmitted = null;
         list($marketType, $paramsOmitted) = $this->handle_market_type_and_params('fetchLedger', $market, $paramsNoSymbol);
-        $uta = null;
+        $uta = false;
         list($uta, $paramsOmitted) = Async\await($this->handle_uta_and_params($paramsOmitted, 'fetchLedger', false));
         $paginate = false;
         list($paginate, $paramsOmitted) = $this->handle_option_bool_and_params($paramsOmitted, 'fetchLedger', 'paginate', false);
@@ -8884,7 +8885,7 @@ class bitget extends Exchange {
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $uta = null;
+        $uta = false;
         $paramsUTA = null;
         list($uta, $paramsUTA) = Async\await($this->handle_uta_and_params($params, 'fetchMyTrades', false));
         if (($uta !== true) && ($symbol === null)) {
@@ -9253,7 +9254,7 @@ class bitget extends Exchange {
         $request = array();
         $response = null;
         $isHistory = false;
-        $uta = null;
+        $uta = false;
         list($uta, $paramsPaginate) = Async\await($this->handle_uta_and_params($paramsPaginate, 'fetchPositions', false));
         if ($uta === true) {
             $request['category'] = $productType;
@@ -9670,7 +9671,7 @@ class bitget extends Exchange {
             'symbol' => $market['id'],
         );
         $productType = null;
-        $uta = null;
+        $uta = false;
         $response = null;
         $result = array();
         $paramsProductType = null;
@@ -9777,7 +9778,7 @@ class bitget extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $uta = null;
+        $uta = false;
         $response = null;
         list($uta, $paramsProductType) = Async\await($this->handle_uta_and_params($paramsProductType, 'fetchFundingRate', false));
         if ($uta === true) {
@@ -10451,7 +10452,7 @@ class bitget extends Exchange {
             'symbol' => $market['id'],
             'leverage' => $this->number_to_string($leverage),
         );
-        $uta = null;
+        $uta = false;
         $response = array();
         list($uta, $paramsProductType) = Async\await($this->handle_uta_and_params($paramsProductType, 'setLeverage', false));
         if ($uta === true) {

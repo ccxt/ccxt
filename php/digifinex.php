@@ -2711,7 +2711,7 @@ class digifinex extends Exchange {
         if ($order === null) {
             throw new OrderNotFound($this->id . ' fetchOrder() order ' . $idValue . ' not found');
         }
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array(), $order), $market);
     }
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {

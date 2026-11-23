@@ -202,7 +202,7 @@ class gate extends \ccxt\async\gate {
         $request = $this->create_order_request($symbolValue, $type, $side, $amount, $price, $params);
         Async\await($this->authenticate($url, $messageType));
         $rawOrder = Async\await($this->request_private($url, $request, $channel));
-        $order = $this->parse_order($rawOrder, $market);
+        $order = $this->parse_order($this->extend(array(), $rawOrder), $market);
         return $order;
     }
 
@@ -315,7 +315,7 @@ class gate extends \ccxt\async\gate {
         Async\await($this->authenticate($url, $messageType));
         $orderRequest = $this->extend($request, array( 'order_id' => (string) $id ));
         $res = Async\await($this->request_private($url, $this->extend($orderRequest, $requestParams), $channel));
-        return $this->parse_order($res, $market);
+        return $this->parse_order($this->extend(array(), $res), $market);
     }
 
     public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
@@ -348,7 +348,7 @@ class gate extends \ccxt\async\gate {
         $url = $this->get_url_by_market($market);
         Async\await($this->authenticate($url, $messageType));
         $rawOrder = Async\await($this->request_private($url, $extendedRequest, $channel));
-        return $this->parse_order($rawOrder, $market);
+        return $this->parse_order($this->extend(array(), $rawOrder), $market);
     }
 
     public function fetch_order_ws(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
@@ -386,7 +386,7 @@ class gate extends \ccxt\async\gate {
         $url = $this->get_url_by_market($market);
         Async\await($this->authenticate($url, $messageType));
         $rawOrder = Async\await($this->request_private($url, $this->extend($request, $requestParams), $channel));
-        return $this->parse_order($rawOrder, $market);
+        return $this->parse_order($this->extend(array(), $rawOrder), $market);
     }
 
     public function fetch_open_orders_ws(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
