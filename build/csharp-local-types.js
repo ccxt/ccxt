@@ -17048,6 +17048,11 @@ export const SIGNATURE_ARG_TYPES = {
     'unsubscribeChannelAt': { 5: 'Int64' },
     // `ticker: Dict` (the TypeScript declaration); no body writes the row or reads it as a list
     'parseTicker': { 0: 'IDictionary<string, object>' },
+    // ws json-object frames: TS declares `message: Dict` on the base and every override; routeMessage
+    // hands only dictionaries here (lists, text and bytes have their own handlers)
+    'handleMessage': { 1: 'IDictionary<string, object>' },
+    // TS declares `Dict` on every declaration; every caller passes its own handler's message
+    'handleErrorMessage': { 1: 'IDictionary<string, object>' },
 };
 
 // parse* cores whose `market: Market` parameter prints `IDictionary<string, object>` on every

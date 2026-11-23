@@ -143,7 +143,7 @@ public partial class BaseExchange
             .Remove(new KeyValuePair<string, WebSocketClient>(client.url, client));
     }
 
-    public virtual void handleMessage(WebSocketClient client, object messageContent)
+    public virtual void handleMessage(WebSocketClient client, IDictionary<string, object> messageContent)
     {
         // Console.WriteLine("handleMessage");
         // Console.WriteLine(messageContent);
@@ -179,7 +179,7 @@ public partial class BaseExchange
         }
         else
         {
-            handleMessage(client, messageContent);
+            handleMessage(client, messageContent as IDictionary<string, object>);
         }
     }
 
