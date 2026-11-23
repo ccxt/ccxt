@@ -19042,6 +19042,28 @@ function javaBaseStringCoreCall (printer, node) {
     }
 }
 
+// `xs.join (sep)` prints `String.join(..)`, and `s + t` with a left declared String prints a
+// Helpers.add overload declared String: both are String in Java whatever the operand values
+function javaStaticStringOperation (printer, node) {
+    try {
+        if (node === undefined) {
+            return false;
+        }
+        if (ts.isCallExpression (node) && ts.isPropertyAccessExpression (node.expression) && node.expression.name.text === 'join'
+            && node.arguments.length === 1 && !ts.isSpreadElement (node.arguments[0])) {
+            return String (printer.printNode (node, 0)).startsWith ('String.join(');
+        }
+        if (ts.isBinaryExpression (node) && node.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+            const left = unwrapParens (node.left);
+            return ts.isIdentifier (left) && isDeclaredStringIdentifier (printer, left)
+                && String (printer.printNode (node, 0)).startsWith (`Helpers.add(${left.text}, `);
+        }
+    } catch (e) {
+        return false;
+    }
+    return false;
+}
+
 // a sync `this.m (..)` whose resolved declaration this generator retypes to a String signature (the
 // string-return tables): every same-name venue method prints that signature, so the call prints String
 function javaRetypedStringCall (printer, node) {
@@ -19171,7 +19193,7 @@ export function installJavaStringReturns (transpiler) {
             // the order-free local proof runs first: the upstream identifier proof marks the read of published locals
             return javaStringLocalReturn (printer, unwrapped) || upstreamPrints (expression, target)
                 || javaBaseStringPrecisionCall (printer, unwrapped) || javaBaseStringCoreCall (printer, unwrapped)
-                || javaRetypedStringCall (printer, unwrapped);
+                || javaRetypedStringCall (printer, unwrapped) || javaStaticStringOperation (printer, unwrapped);
         }
         if (target !== 'Long' && target !== 'Double') {
             return upstreamPrints (expression, target);
