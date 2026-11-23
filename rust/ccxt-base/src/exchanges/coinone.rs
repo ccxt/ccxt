@@ -325,8 +325,8 @@ impl crate::exchange::DerivedExchange for Coinone {
         let mut currencyIds: Vec<Value> = Value::Array(balances.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_573: bool = true;
-            while { if !__for_first_573 { i += 1; } __for_first_573 = false; i < (currencyIds.len() as i64) } {
+            let mut __for_first_574: bool = true;
+            while { if !__for_first_574 { i += 1; } __for_first_574 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Option<&str> = currencyIds.get(i as usize).and_then(Value::as_str);
             let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::from(currencyId.as_deref()), &[]).into_dict();
             let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
@@ -1252,8 +1252,8 @@ impl Coinone {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_572: bool = true;
-            while { if !__for_first_572 { i += 1; } __for_first_572 = false; i < (tickers.len() as i64) } {
+            let mut __for_first_573: bool = true;
+            while { if !__for_first_573 { i += 1; } __for_first_573 = false; i < (tickers.len() as i64) } {
             let mut entry: Option<crate::value::Dict> = self.safe_dict(&tickers, Value::Int(i), &[]).into_opt_dict();
             let mut id: Option<String> = self.safe_string_k_opt(&entry, "id", &[]);
             let mut baseId: Option<String> = self.safe_string_upper_k_opt(&entry, "target_currency", &[]);
@@ -1989,8 +1989,8 @@ impl Coinone {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_574: bool = true;
-            while { if !__for_first_574 { i += 1; } __for_first_574 = false; i < (keys.len() as i64) } {
+            let mut __for_first_575: bool = true;
+            while { if !__for_first_575 { i += 1; } __for_first_575 = false; i < (keys.len() as i64) } {
             let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut value: Option<String> = self.safe_string_opt(&walletAddress, Value::from(key.as_deref()), &[]);
             if (value.is_none()) || (value.is_none()) || (value.as_deref() == Some("")) || (value.as_deref() == Some("-1")) {

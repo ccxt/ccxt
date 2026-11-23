@@ -1306,8 +1306,8 @@ impl Btcmarkets {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_474: bool = true;
-            while { if !__for_first_474 { i += 1; } __for_first_474 = false; i < (response.len() as i64) } {
+            let mut __for_first_475: bool = true;
+            while { if !__for_first_475 { i += 1; } __for_first_475 = false; i < (response.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "assetName", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -1680,8 +1680,8 @@ impl Btcmarkets {
         let mut numericIds: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_475: bool = true;
-            while { if !__for_first_475 { i += 1; } __for_first_475 = false; i < (ids.len() as i64) } {
+            let mut __for_first_476: bool = true;
+            while { if !__for_first_476 { i += 1; } __for_first_476 = false; i < (ids.len() as i64) } {
             // numericIds[i] = parseInt (ids[i]);
             numericIds.push(Value::from(self.parse_to_int(self.safe_string(ids.clone(), Value::Int(i), &[]))));
         }

@@ -276,8 +276,8 @@ impl crate::exchange::DerivedExchange for Btcturk {
         let mut minCost: Option<f64> = None;
         {
                         let mut j: i64 = 0;
-            let mut __for_first_476: bool = true;
-            while { if !__for_first_476 { j += 1; } __for_first_476 = false; j < (filters.len() as i64) } {
+            let mut __for_first_477: bool = true;
+            while { if !__for_first_477 { j += 1; } __for_first_477 = false; j < (filters.len() as i64) } {
             let mut filter: crate::value::Dict = self.safe_dict(&filters, Value::Int(j), &[]).into_dict();
             let mut filterType: Option<String> = self.safe_string_k_opt(&filter, "filterType", &[]);
             if (filterType.as_deref() == Some("PRICE_FILTER")) {
@@ -373,8 +373,8 @@ impl crate::exchange::DerivedExchange for Btcturk {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_477: bool = true;
-            while { if !__for_first_477 { i += 1; } __for_first_477 = false; i < (data.len() as i64) } {
+            let mut __for_first_478: bool = true;
+            while { if !__for_first_478 { i += 1; } __for_first_478 = false; i < (data.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k_opt(&entry, "asset", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -1298,8 +1298,8 @@ impl Btcturk {
         let mut rows: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_478: bool = true;
-            while { if !__for_first_478 { i += 1; } __for_first_478 = false; i < (timestamp.len() as i64) } {
+            let mut __for_first_479: bool = true;
+            while { if !__for_first_479 { i += 1; } __for_first_479 = false; i < (timestamp.len() as i64) } {
             rows.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("timestamp".to_string(), self.safe_integer(&timestamp, Value::Int(i), &[]));
@@ -1327,8 +1327,8 @@ impl Btcturk {
         let mut results: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_479: bool = true;
-            while { if !__for_first_479 { i += 1; } __for_first_479 = false; i < (rows.len() as i64) } {
+            let mut __for_first_480: bool = true;
+            while { if !__for_first_480 { i += 1; } __for_first_480 = false; i < (rows.len() as i64) } {
             results.push(self.parse_ohlcv(self.safe_dict(&rows, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
