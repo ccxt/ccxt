@@ -5269,10 +5269,10 @@ function rustTypedParsePositionFamilies (content: string): string {
     return content.split (Q).join ('');
 }
 
-// The `parseTransaction` / `parseIncome` / `parseAccount` / `parseMarginMode` slots borrow their `Dict` row as
+// The `parseTransaction` / `parseIncome` / `parseAccount` / `parseMarginMode` / `parseLedgerEntry` slots borrow their `Dict` row as
 // `Option<&Dict>` (the TypeScript declaration): a missing or non-map row stays `Value::Null` in the body.
 function rustBorrowedParseRows (content: string): string {
-    const optFns = [ 'parse_transaction', 'parse_income', 'parse_account', 'parse_margin_mode' ];
+    const optFns = [ 'parse_transaction', 'parse_income', 'parse_account', 'parse_margin_mode', 'parse_ledger_entry' ];
     const fns = optFns.join ('|');
     const slot = (fn: string) => optFns.includes (fn) ? 'Option<&crate::value::Dict>' : '&crate::value::Dict';
     content = content.replace (new RegExp ('\\n    fn (' + fns + ')\\(&self, (\\w+): impl Into<crate::Value>([,)])', 'g'), (_m, f: string, x: string, e: string) => '\n    fn ' + f + '(&self, ' + x + ': ' + slot (f) + e);
