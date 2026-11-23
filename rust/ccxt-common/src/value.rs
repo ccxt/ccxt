@@ -831,6 +831,10 @@ impl KeyRead for &List {
     fn key_read(&self, _key: &str) -> Value { Value::Null }
     fn read(&self, key: &Value) -> Value { get_list_value(self, key) }
 }
+impl KeyRead for &[Value] {
+    fn key_read(&self, _key: &str) -> Value { Value::Null }
+    fn read(&self, key: &Value) -> Value { get_list_value(self, key) }
+}
 impl KeyRead for &Option<Dict> {
     fn key_read(&self, key: &str) -> Value { self.as_ref().map_or(Value::Null, |m| get_map_value_k(m, key)) }
     fn read(&self, key: &Value) -> Value { self.as_ref().map_or(Value::Null, |m| get_map_value(m, key)) }
