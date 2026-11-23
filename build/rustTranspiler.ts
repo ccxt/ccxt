@@ -1452,7 +1452,7 @@ function containerOpCrateIndex (files: Map<string, string>): Set<string> {
                         const before = m.slice (lineStart, at);
                         if (/\bfn\s+$/.test (before)) continue;
                         // The by-name dispatch arm: the name is never quoted in ts/src.
-                        if (/=>\s*(?:Value::Arr\()?(?:self\.|<Self as [A-Za-z_:]+>::)$/.test (before)) continue;
+                        if (/=>\s*(?:(?:crate::)?Value::Arr\()?(?:self\.|<Self as [A-Za-z_:]+>::)$/.test (before)) continue;
                         const ufcs = /::$/.test (before);
                         if (!ufcs && !/(?:^|[^A-Za-z0-9_.])self\.(?:parent\.)*$/.test (before)) { ok = false; break; }
                         const open = at + name.length;
@@ -1687,6 +1687,8 @@ function nativeContainerOpsSelfTest (): string[] {
     if (bad.size !== 0) problems.push ('crate index: unproven caller accepted');
     const foreign = containerOpCrateIndex (new Map ([ [ 'a', def + call ('Value::Null') + '    fn g(&self) { other.shared_parse(x); }\n' ] ]));
     if (foreign.size !== 0) problems.push ('crate index: foreign receiver accepted');
+    const arm = containerOpCrateIndex (new Map ([ [ 'a', def + call ('Value::Null') + '                "shared_parse" => crate::Value::Arr(self.shared_parse(args.get(0).cloned().unwrap_or(crate::Value::Null))),\n' ] ]));
+    if (!arm.has ('shared_parse#0')) problems.push ('crate index: typed dispatch arm refused');
     containerOpQuoted = undefined;
     // A dict local filled by list appends: its key loop borrows the keys, no per-key clone.
     const grouped = fn ('        let mut g: Value = Value::Map({\n            let mut m = indexmap::IndexMap::new();\n            m\n        });\n        crate::runtime::append_to_object_array(&mut g, &k, v.clone());\n        let mut ks: Vec<Value> = object_keys(&g).as_array().cloned().unwrap_or_default();\n        while i < (ks.len() as i64) { let mut a: Option<&str> = ks.get(i as usize).and_then(Value::as_str); f(&g, a); }');
