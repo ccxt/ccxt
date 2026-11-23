@@ -1247,7 +1247,7 @@ export default class kalshi extends Exchange {
         // kalshi candles carry only the period-END timestamp; thread the candle duration through so
         // parseOHLCV can stamp each candle at its OPEN (the CCXT convention)
         this.options['ohlcvCandleDurationSeconds'] = tf;
-        return this.parseOHLCVs (usableCandles, outcomeObj as any, timeframe, since, limit);
+        return this.parseOHLCVs (usableCandles, outcomeObj, timeframe, since, limit);
     }
 
     /**

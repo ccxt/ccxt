@@ -17101,6 +17101,8 @@ export const PARSE_MARKET_IDICT_PARAMS = {
     'safeOrder': 1, 'parseOrders': 1, 'parseWsOrder': 1, 'parseWsOrders': 1, 'resolveMarketByAltnameOrId': 1,
     // ws candle rows: every caller passes nothing, a dictionary row or parseWsOHLCVs' typed `market`
     'parseWsOHLCV': 1,
+    // ticker and candle rows: TS declares `market: Market`; parseOHLCVs forwards its own `market`
+    'parseTicker': 1, 'parseOHLCV': 1, 'parseOHLCVs': 1,
 };
 
 // ral-90c1: the same shadowed retype for a `currency: Currency` parameter (row writes are
