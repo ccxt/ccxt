@@ -8,8 +8,8 @@ import { redact } from './redact.js';
 // MCP Apps (io.modelcontextprotocol/ui, spec 2026-01-26): a tool advertises a ui:// resource
 // in its _meta, the host fetches that HTML with resources/read and renders it in a sandboxed
 // iframe, then pushes the tool result into it over postMessage. Hosts without the extension
-// ignore the _meta and show the text content — every UI tool therefore stays fully usable
-// as a plain tool. The wire format is implemented by hand (it is three constants and one
+// ignore the _meta and get the text content only (see uiMode below) — every UI tool
+// therefore stays fully usable as a plain tool. The wire format is implemented by hand (it is three constants and one
 // _meta shape) so the server keeps a single MCP SDK dependency: @modelcontextprotocol/ext-apps
 // 2.x needs the v2 SDK packages, and this server is on @modelcontextprotocol/sdk 1.x.
 export const UI_EXTENSION_ID = 'io.modelcontextprotocol/ui';
@@ -102,9 +102,41 @@ export function uiSupported (server: McpServer): boolean {
     return Array.isArray (mimeTypes) && mimeTypes.includes (UI_MIME_TYPE);
 }
 
+// CCXT_MCP_UI decides when a show_* result carries its view payload (structuredContent):
+//   auto   (default) only for a host that advertised the MCP Apps extension
+//   always           for every host — the escape hatch for one that renders MCP Apps views
+//                    without advertising the capability
+//   off              never; the show_* tools stay listed and answer with the text summary
+// The payload is the full dataset. Only the MCP Apps extension makes structuredContent
+// view-only: under the base protocol it is equivalent to the text content, and a host
+// without the extension may hand it to the model INSTEAD of the compact summary (Claude
+// Code does) — so it must never be sent on the off chance that something renders it.
+export type UiMode = 'auto' | 'always' | 'off';
+
+export function uiMode (): UiMode {
+    // anything else — unset, empty, a typo, an unsubstituted "${user_config.ui}" plugin
+    // template — is the safe default
+    const value = (process.env['CCXT_MCP_UI'] ?? '').trim ().toLowerCase ();
+    return (value === 'always' || value === 'off') ? value : 'auto';
+}
+
+// what a show_* result reports as meta.ui:
+//   displayed    the view payload is attached to this result
+//   unsupported  auto mode and the host did not advertise MCP Apps — text summary only
+//   off          views are disabled by CCXT_MCP_UI=off — text summary only
+export type UiStatus = 'displayed' | 'unsupported' | 'off';
+
+export function uiStatus (server: McpServer): UiStatus {
+    const mode = uiMode ();
+    if (mode === 'off') {
+        return 'off';
+    }
+    return (mode === 'always' || uiSupported (server)) ? 'displayed' : 'unsupported';
+}
+
 export interface UiPayload {
     envelope: Envelope; // what the model reads — a compact summary, never the full dataset
-    view: Record<string, any>; // what the view renders — delivered as structuredContent
+    view: Record<string, any>; // what the view renders — delivered as structuredContent (see uiResult)
 }
 
 export type UiToolResult = { content: { type: 'text', text: string }[], structuredContent?: Record<string, any>, isError?: boolean };
@@ -147,8 +179,19 @@ export function toUiContent (payload: UiPayload): UiToolResult {
     };
 }
 
-export function uiNotice (supported: boolean, fallbackTool: string): string {
-    return supported
-        ? 'an interactive view of this data is displayed to the user — do not repeat the full dataset in text; comment on the summary instead'
-        : 'this host did not advertise MCP Apps UI support, so no interactive view may be visible — describe the summary in text (' + fallbackTool + ' returns the full dataset)';
+// the one place that decides whether a show_* result carries its view payload: anything
+// but "displayed" is returned as the plain envelope, i.e. an ordinary text-only tool result
+export function uiResult (status: UiStatus, envelope: Envelope, view: Record<string, any>): Envelope | UiPayload {
+    return (status === 'displayed') ? { envelope, view } : envelope;
+}
+
+export function uiNotice (status: UiStatus, fallbackTool: string): string {
+    if (status === 'displayed') {
+        return 'an interactive view of this data is displayed to the user — do not repeat the full dataset in text; comment on the summary instead';
+    }
+    const fallback = 'describe the summary in text (' + fallbackTool + ' returns the full dataset)';
+    if (status === 'off') {
+        return 'interactive views are disabled on this server (CCXT_MCP_UI=off), so no view was sent — ' + fallback;
+    }
+    return 'this host did not advertise MCP Apps UI support, so no interactive view was sent — ' + fallback + '; a host that does render MCP Apps views can be forced with CCXT_MCP_UI=always';
 }

@@ -10,6 +10,25 @@ import { requireTier } from '../safety.js';
 
 export const marketTypeParam = z.string ().optional ().describe ('market type routing for exchanges with several (e.g. "spot", "swap", "future", "option") — sets options.defaultType on a dedicated instance');
 
+// Each notice is a sentence fragment without terminal punctuation (and several contain
+// dashes and semicolons of their own), so a bare space ran them into one garbled sentence.
+// The separator keeps every notice readable as a unit; undefined when there is none.
+const NOTICE_SEPARATOR = ' | ';
+
+export function joinNotices (notices: (string | undefined)[]): string | undefined {
+    const present = notices.filter ((notice) => typeof notice === 'string' && notice.length > 0);
+    return present.length ? present.join (NOTICE_SEPARATOR) : undefined;
+}
+
+// fetchTickerList drops a requested symbol the exchange did not answer for — say so, or the
+// caller reads a partial result as the complete one
+export function missingTickersNotice (missing: string[]): string | undefined {
+    if (missing.length === 0) {
+        return undefined;
+    }
+    return 'no ticker was returned for: ' + missing.join (', ') + ' — some exchanges serve one market type per call, so request spot and swap/future symbols in separate calls';
+}
+
 const READ_METHOD_PATTERN = /^(fetch|load)[A-Z]/;
 // pattern, not an allowlist: ccxt grows address-returning methods over time
 // (fetchDepositAddress*, fetchNetworkDepositAddress, fetchWithdrawAddresses*,
@@ -278,15 +297,17 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
         const tickers = await fetchTickerList (exchange, symbols, params ?? {});
         const keepInfo = includeInfo === true && symbols.length === 1;
         const data = keepInfo ? tickers : tickers.map ((ticker) => project (ticker, TICKER_FIELDS));
-        const notices: string[] = [];
-        const typeNotice = marketTypeMismatchNotice (exchange, symbols, marketType);
-        if (typeNotice !== undefined) {
-            notices.push (typeNotice);
+        const returned = new Set (tickers.map ((ticker) => ticker?.symbol));
+        const missing = symbols.filter ((symbol) => !returned.has (symbol));
+        const infoNotice = (includeInfo === true && symbols.length > 1)
+            ? 'includeInfo applies to single-symbol calls only — raw info was omitted; request one symbol at a time to include it'
+            : undefined;
+        const meta: Record<string, any> = { 'exchange': exchange.id, 'count': data.length };
+        if (missing.length > 0) {
+            meta['missing'] = missing;
         }
-        if (includeInfo === true && symbols.length > 1) {
-            notices.push ('includeInfo applies to single-symbol calls only — raw info was omitted; request one symbol at a time to include it');
-        }
-        return ok (data, { 'exchange': exchange.id, 'count': data.length, 'notice': notices.length ? notices.join (' ') : undefined });
+        meta['notice'] = joinNotices ([ missingTickersNotice (missing), marketTypeMismatchNotice (exchange, symbols, marketType), infoNotice ]);
+        return ok (data, meta);
     }));
 
     server.registerTool ('get_orderbook', {
@@ -350,7 +371,7 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
             'columns': [ 'timestamp', 'open', 'high', 'low', 'close', 'volume' ],
             'count': rows.length,
             hasMore,
-            'notice': [ typeNotice, pageNotice ].filter (Boolean).join (' ') || undefined,
+            'notice': joinNotices ([ typeNotice, pageNotice ]),
         });
     }));
 

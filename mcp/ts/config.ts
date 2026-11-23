@@ -202,6 +202,8 @@ const ENV_CREDENTIAL_MAP: Record<string, string> = {
     'PRIVATEKEY': 'privateKey',
 };
 const MAX_ENV_ACCOUNT_SLOTS = 10;
+// a whole value that is one unsubstituted host template, e.g. "${user_config.password}"
+const UNSUBSTITUTED_TEMPLATE = /^\s*\$\{[^}]*\}\s*$/;
 
 function envAccountRaw (suffix: string): any | undefined {
     const exchange = process.env['CCXT_MCP_EXCHANGE' + suffix];
@@ -214,9 +216,11 @@ function envAccountRaw (suffix: string): any | undefined {
     // templates into env, and an UNSET optional field can arrive as the literal template
     // string. Like the exchange slot above, such a value counts as unset everywhere below —
     // it must never become a "credential" or a mode flag.
+    // Only a value that IS a template is discarded, not one that merely contains "${" — an
+    // API passphrase is free text and may legitimately hold those two characters.
     const envValue = (key: string): string | undefined => {
         const value = process.env[key];
-        return (value !== undefined && value !== '' && !value.includes ('${')) ? value : undefined;
+        return (value !== undefined && value !== '' && !UNSUBSTITUTED_TEMPLATE.test (value)) ? value : undefined;
     };
     for (const [ envKey, field ] of Object.entries (ENV_CREDENTIAL_MAP)) {
         const value = envValue ('CCXT_MCP_' + envKey + suffix);

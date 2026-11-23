@@ -36,11 +36,13 @@ A plugin installs the server **and** the `ccxt-mcp` usage skill together. One pl
 /plugin install ccxt-mcp@ccxt
 ```
 
-(shell: `claude plugin marketplace add ccxt/ccxt` + `claude plugin install ccxt-mcp@ccxt`). On install Claude Code can prompt for optional exchange / API key settings (stored by Claude Code, sensitive values in secure storage); the config file below works regardless. Tools appear as `mcp__plugin_ccxt-mcp_ccxt__<tool>`.
+Lighter, from a shell: `claude plugin marketplace add ccxt/ccxt --sparse .claude-plugin mcp/plugin` + `claude plugin install ccxt-mcp@ccxt` — `--sparse` checks out only the marketplace and plugin directories (about 5 MB) instead of the whole CCXT repository (about 600 MB). On install Claude Code can prompt for optional exchange / API key settings (stored by Claude Code, sensitive values in secure storage); the config file below works regardless. The plugin sets `CCXT_MCP_CONFIG` itself from its **Config file** option, so choose a non-default file there (`/plugin configure ccxt-mcp@ccxt`), not with a shell-exported `CCXT_MCP_CONFIG`. Tools appear as `mcp__plugin_ccxt-mcp_ccxt__<tool>`.
 
-**OpenAI Codex / ChatGPT desktop app** — `codex plugin marketplace add ccxt/ccxt` registers the marketplace (`.agents/plugins/marketplace.json`), then install **CCXT** from the Plugins directory in the ChatGPT desktop app. Per OpenAI's docs the CLI manages marketplaces and local plugins are installed in the desktop app; a plugin with a local stdio MCP server is "desktop-only".
+**OpenAI Codex / ChatGPT desktop app** — `codex plugin marketplace add ccxt/ccxt` registers the marketplace (`.agents/plugins/marketplace.json`), then `codex plugin add ccxt-mcp@ccxt` installs the plugin (verified with Codex CLI 0.171.0). In the ChatGPT desktop app, install **CCXT** from the Plugins directory after adding the marketplace (per OpenAI's docs; untested here). OpenAI calls a plugin with a local stdio MCP server ["desktop-only"](https://developers.openai.com/plugins/deploy/desktop-only).
 
-**xAI Grok** — Grok documents that it reads Claude Code marketplaces, plugins, skills and MCPs with zero configuration, so the same marketplace is used: add `ccxt/ccxt` as a source from `/plugins` → Marketplace tab (the docs do not publish a CLI command), or run `grok --plugin-dir <path to mcp/plugin>`.
+**xAI Grok** — Grok documents that it reads Claude Code marketplaces, plugins, skills and MCPs with zero configuration, so the same marketplace is used: with `ccxt/ccxt` already added in Claude Code, install `ccxt-mcp` from `/plugins` → Marketplace tab (Grok's own sources come from `[[marketplace.sources]]` in `~/.grok/config.toml`; adding one is not documented, and this route is untested), or run `grok --plugin-dir <path to mcp/plugin>`.
+
+The plugin runs the server version in `package.json`. The `show_*` view tools ship in the `ccxt-mcp` release after 0.1.3; a plugin that still pins 0.1.3 installs a server without them (`get_ohlcv` / `get_orderbook` / `get_tickers` return the same data as rows).
 
 ### Claude Code
 
@@ -173,11 +175,13 @@ Every list result is capped and paginated to fit host context limits (with in-ba
 
 `show_chart`, `show_orderbook` and `show_tickers` implement [MCP Apps](https://modelcontextprotocol.io/docs/extensions/apps) (extension `io.modelcontextprotocol/ui`, spec 2026-01-26): each tool's `_meta.ui.resourceUri` points at a `ui://ccxt/<view>.html` resource (`mimeType` `text/html;profile=mcp-app`) that hosts with MCP Apps support render in a sandboxed iframe.
 
-- The model gets a compact summary as text (`meta.ui` is `"displayed"` or `"unsupported"`); the view gets the full dataset as `structuredContent`.
-- Hosts without MCP Apps support just see the text summary; `get_ohlcv` / `get_orderbook` / `get_tickers` remain the raw-data tools.
+- The model gets a compact summary as text; the view gets the full dataset as `structuredContent` — attached only for hosts that advertise the MCP Apps extension, because a host without it may hand `structuredContent` to the model in place of the summary. Every other host receives the text summary alone; `get_ohlcv` / `get_orderbook` / `get_tickers` remain the raw-data tools.
+- `meta.ui` is `"displayed"` (view payload attached), `"unsupported"` (host did not advertise MCP Apps) or `"off"`. The `CCXT_MCP_UI` environment variable overrides the detection: `auto` (default), `always` (send views even when the host does not advertise support), `off` (never).
+- On contract markets order-book amounts are in contracts: `show_orderbook` reports `meta.amountUnit` / `meta.contractSize` (also in the view payload) plus base- and quote-currency depth totals. `show_tickers` and `get_tickers` name symbols that returned no ticker in `meta.missing`.
+- The `show_*` tools ship in the `ccxt-mcp` release after 0.1.3; on an older server they are absent from the tool list.
 - Views are self-contained single files: no network access, no external assets, no tracking. They can ask the host to re-run the same tool (refresh, timeframe switch).
 
-The MCP Apps docs list Claude (claude.ai), Claude Desktop, VS Code GitHub Copilot, Goose, Postman, MCPJam and ChatGPT among supporting clients. Terminal hosts (Claude Code CLI, Codex CLI, Grok CLI) have no surface to draw a view and show the text summary. Whether a host renders views for a *local stdio* server varies and is not uniformly documented — the views work "in hosts that support MCP Apps", no more specific promise is made.
+The MCP Apps docs list Claude (claude.ai), Claude Desktop, VS Code GitHub Copilot, Goose, Postman and MCPJam among supporting clients, and OpenAI documents ChatGPT as implementing the MCP Apps standard. Terminal hosts (Claude Code CLI, Codex CLI, Grok CLI) have no surface to draw a view and show the text summary. Whether a host renders views for a *local stdio* server varies and is not uniformly documented — the views work "in hosts that support MCP Apps", no more specific promise is made.
 
 ## Troubleshooting
 

@@ -18,6 +18,9 @@
     var hostContext = {};
     var hostCapabilities = {};
     var initialized = false;
+    var openaiInput = null; // the window.openai.toolInput / toolOutput already handed to the view
+    var openaiOutput = null;
+    var refetched = false; // the view has loaded newer data through callTool
     var lastHeight = 0;
     var embedded = window.parent !== window;
 
@@ -27,10 +30,20 @@
         window.parent.postMessage (message, '*');
     }
 
-    function request (method, params) {
+    // A host that drops a request (or loses its server connection) never answers, and a view
+    // waiting on it stays dimmed and disabled for good, so every request has a deadline. The
+    // values are exposed as window.ccxtApp.timeouts for slow integrations and for tests.
+    var timeouts = { request: 60000, handshake: 10000 };
+
+    function request (method, params, timeoutMs) {
         return new Promise (function (resolve, reject) {
             var id = nextId++;
-            pending[id] = { resolve: resolve, reject: reject };
+            var timer = setTimeout (function () {
+                // a late answer finds no pending entry and is ignored
+                delete pending[id];
+                reject (new Error ('the host did not answer'));
+            }, timeoutMs);
+            pending[id] = { resolve: resolve, reject: reject, timer: timer };
             post ({ jsonrpc: '2.0', id: id, method: method, params: params || {} });
         });
     }
@@ -51,8 +64,13 @@
         }
     }
 
+    function renderKey () {
+        return String (hostContext.locale) + '|' + String (hostContext.timeZone);
+    }
+
     function applyContext (context) {
         var root = document.documentElement;
+        var before = renderKey ();
         var key;
         for (key in context) {
             if (Object.prototype.hasOwnProperty.call (context, key)) {
@@ -85,7 +103,12 @@
                 }
             });
         }
-        call ('onContext', hostContext);
+        // theme, style variables, fonts and insets are pure CSS (applied above); only locale
+        // and timeZone change what a view draws, so nothing else is worth a rebuild that
+        // costs the user their keyboard focus and the point they were inspecting
+        if (renderKey () !== before) {
+            call ('onContext', hostContext);
+        }
     }
 
     function reportSize () {
@@ -109,6 +132,10 @@
         }
         if (result.structuredContent) {
             call ('onResult', result.structuredContent);
+        } else {
+            // the text content is only the model's summary: without the payload there is
+            // nothing to draw, and saying so beats waiting forever
+            call ('onError', 'the host returned no data for the view');
         }
     }
 
@@ -145,6 +172,7 @@
             var entry = pending[message.id];
             if (entry) {
                 delete pending[message.id];
+                clearTimeout (entry.timer);
                 if (message.error) {
                     entry.reject (new Error ((message.error && message.error.message) || 'request failed'));
                 } else {
@@ -187,8 +215,22 @@
         if (api.theme === 'light' || api.theme === 'dark') {
             document.documentElement.setAttribute ('data-theme', api.theme);
         }
-        if (api.toolOutput && typeof api.toolOutput === 'object') {
-            call ('onResult', api.toolOutput);
+        // set_globals fires for every global (theme, displayMode, maxHeight, widgetState ...)
+        // while toolInput / toolOutput stay those of the original call: hand each over once,
+        // never when the standard bridge delivers them, and never over data the view has
+        // fetched itself since
+        if (initialized || refetched) {
+            return;
+        }
+        var input = api.toolInput;
+        if (input && typeof input === 'object' && input !== openaiInput) {
+            openaiInput = input;
+            call ('onInput', input);
+        }
+        var output = api.toolOutput;
+        if (output && typeof output === 'object' && output !== openaiOutput) {
+            openaiOutput = output;
+            call ('onResult', output);
         }
     }
 
@@ -202,11 +244,14 @@
             // opened directly in a browser tab (development) — nothing to handshake with
             return Promise.resolve (hostContext);
         }
+        // a window.openai-only host never answers ui/initialize: read what it has already
+        // injected instead of waiting for the handshake to time out
+        openaiFallback ();
         return request ('ui/initialize', {
             appInfo: { name: handlers.name || 'ccxt-view', version: handlers.version || '1.0.0' },
             appCapabilities: {},
             protocolVersion: PROTOCOL_VERSION
-        }).then (function (result) {
+        }, timeouts.handshake).then (function (result) {
             result = result || {};
             hostCapabilities = result.hostCapabilities || {};
             initialized = true;
@@ -215,7 +260,11 @@
             reportSize ();
             return hostContext;
         }, function (error) {
-            openaiFallback ();
+            if (window.openai) {
+                // no standard bridge, but the view is served through window.openai
+                openaiFallback ();
+                return hostContext;
+            }
             throw error;
         });
     }
@@ -225,9 +274,19 @@
     function callTool (name, args) {
         var promise;
         if (initialized) {
-            promise = request ('tools/call', { name: name, arguments: args || {} });
+            promise = request ('tools/call', { name: name, arguments: args || {} }, timeouts.request);
         } else if (window.openai && typeof window.openai.callTool === 'function') {
-            promise = Promise.resolve (window.openai.callTool (name, args || {}));
+            promise = new Promise (function (resolve, reject) {
+                var timer = setTimeout (function () { reject (new Error ('the host did not answer')); }, timeouts.request);
+                var settle = function (done) {
+                    return function (value) {
+                        clearTimeout (timer);
+                        done (value);
+                    };
+                };
+                // inside the executor, so a synchronous throw rejects as well
+                Promise.resolve (window.openai.callTool (name, args || {})).then (settle (resolve), settle (reject));
+            });
         } else {
             return Promise.reject (new Error ('this host does not let the view request new data — ask the assistant instead'));
         }
@@ -238,6 +297,7 @@
             if (!result.structuredContent) {
                 throw new Error ('the host returned no data for the view');
             }
+            refetched = true;
             return result.structuredContent;
         });
     }
@@ -259,28 +319,59 @@
         return typeof value === 'number' && isFinite (value);
     }
 
+    // a chart formats a few thousand values per render with a handful of option sets:
+    // building an Intl formatter is the expensive part, so keep one per locale and option set
+    var formatters = {};
+
+    function formatter (kind, tag, options) {
+        var key = kind + '|' + tag + '|' + JSON.stringify (options);
+        if (!formatters[key]) {
+            formatters[key] = new Intl[kind] (tag, options);
+        }
+        return formatters[key];
+    }
+
     function format (value, options) {
         try {
-            return value.toLocaleString (locale (), options);
+            return formatter ('NumberFormat', locale (), options).format (value);
         } catch (error) {
             return value.toLocaleString (undefined, options);
         }
     }
 
-    // prices span ~12 orders of magnitude across markets, so precision follows magnitude
-    function price (value) {
+    // number of decimals a value is written with (0.25 -> 2), ignoring float noise
+    function decimals (value) {
+        if (!isNumber (value)) {
+            return 0;
+        }
+        for (var count = 0; count < 12; count++) {
+            var scaled = value * Math.pow (10, count);
+            if (Math.abs (scaled - Math.round (scaled)) < 1e-9 * Math.max (1, Math.abs (scaled))) {
+                return count;
+            }
+        }
+        return 12;
+    }
+
+    // Prices span ~12 orders of magnitude across markets, so precision follows magnitude.
+    // Values shown side by side (one axis, one table column) should pass the same
+    // fractionDigits instead, so they do not each pick their own.
+    function price (value, fractionDigits) {
         if (!isNumber (value)) {
             return '–';
+        }
+        if (isNumber (fractionDigits)) {
+            var digits = Math.max (0, Math.min (20, Math.round (fractionDigits)));
+            return format (value, { minimumFractionDigits: digits, maximumFractionDigits: digits });
         }
         var abs = Math.abs (value);
         if (abs >= 1e9) {
             return format (value, { notation: 'compact', maximumFractionDigits: 3 });
         }
-        if (abs >= 1000) {
-            return format (value, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-        }
         if (abs >= 1) {
-            return format (value, { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+            // ~7 significant digits, never fewer than 2 decimals: 1.08864, 154.327, 64,231.50
+            var places = Math.max (2, 6 - Math.floor (Math.log (abs) / Math.LN10 + 1e-9));
+            return format (value, { minimumFractionDigits: 2, maximumFractionDigits: places });
         }
         if (abs === 0) {
             return '0';
@@ -326,7 +417,7 @@
             return '–';
         }
         try {
-            return new Intl.DateTimeFormat (locale (), settings).format (date);
+            return formatter ('DateTimeFormat', locale (), settings).format (date);
         } catch (error) {
             return date.toISOString ();
         }
@@ -343,8 +434,18 @@
         var step = power * ((fraction >= 7) ? 10 : ((fraction >= 3) ? 5 : ((fraction >= 1.5) ? 2 : 1)));
         var result = [];
         var start = Math.ceil (min / step) * step;
-        for (var value = start; value <= max + step * 1e-9; value += step) {
-            result.push (Number (value.toPrecision (12)));
+        var steps = Math.floor ((max - start) / step + 1e-9);
+        if (!(step > 0) || !isNumber (start) || !isNumber (steps) || steps < 0 || steps > 1000 || start + step === start) {
+            // the range is narrower than float resolution around its values: adding the step
+            // would never advance, and there are no distinct "nice" values to show
+            return [ min ];
+        }
+        for (var index = 0; index <= steps; index++) {
+            var value = Number ((start + index * step).toPrecision (12));
+            // steps below the 12 digits kept here round to the same value: list it once
+            if (!result.length || value !== result[result.length - 1]) {
+                result.push (value);
+            }
         }
         return result;
     }
@@ -375,7 +476,9 @@
         callTool: callTool,
         canCallTools: canCallTools,
         context: function () { return hostContext; },
+        timeouts: timeouts,
         isNumber: isNumber,
+        decimals: decimals,
         price: price,
         compact: compact,
         percent: percent,

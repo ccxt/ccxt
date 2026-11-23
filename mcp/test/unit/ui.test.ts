@@ -3,8 +3,9 @@ import assert from 'node:assert/strict';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { cleanCandles, summarizeCandles, summarizeBook } from '../../ts/tools/ui.js';
-import { UI_VIEWS, UI_MIME_TYPE, UI_EXTENSION_ID, renderView, uiToolMeta, isUiPayload, toUiContent, uiNotice } from '../../ts/ui.js';
+import { cleanCandles, summarizeCandles, summarizeBook, amountUnitOf } from '../../ts/tools/ui.js';
+import { joinNotices, missingTickersNotice } from '../../ts/tools/market.js';
+import { UI_VIEWS, UI_MIME_TYPE, UI_EXTENSION_ID, renderView, uiToolMeta, isUiPayload, toUiContent, uiNotice, uiMode, uiStatus, uiResult } from '../../ts/ui.js';
 import { registerSecret, clearSecrets } from '../../ts/redact.js';
 
 const uiDir = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', '..', 'ts', 'ui');
@@ -62,6 +63,28 @@ test ('cleanCandles defaults a missing or non-numeric volume to 0 and trims extr
         [ T0 + 2 * HOUR, 1, 2, 0.5, 1.5, 0 ],
         [ T0 + 3 * HOUR, 1, 2, 0.5, 1.5, 7 ],
     ]);
+});
+
+// Regression: venues occasionally emit an open or close outside [low, high]; drawn as is, the
+// candle body pokes past its own wick and the summary's high/low miss the real extremes.
+test ('cleanCandles widens high/low to cover open and close', () => {
+    const rows = [
+        [ T0, 10, 9, 8, 7, 1 ], // open above high, close below low
+        [ T0 + HOUR, 5, 6, 5.5, 7, 1 ], // close above high, open below low
+        [ T0 + 2 * HOUR, 5, 4, 6, 5, 1 ], // high and low swapped
+        [ T0 + 3 * HOUR, 1, 2, 0.5, 1.5, 1 ], // already consistent — untouched
+    ];
+    assert.deepEqual (cleanCandles (rows), [
+        [ T0, 10, 10, 7, 7, 1 ],
+        [ T0 + HOUR, 5, 7, 5, 7, 1 ],
+        [ T0 + 2 * HOUR, 5, 6, 4, 5, 1 ],
+        [ T0 + 3 * HOUR, 1, 2, 0.5, 1.5, 1 ],
+    ]);
+    // the input rows are not rewritten in place
+    assert.deepEqual (rows[0], [ T0, 10, 9, 8, 7, 1 ]);
+    const summary = summarizeCandles (clock, cleanCandles (rows));
+    assert.equal (summary.high, 10);
+    assert.equal (summary.low, 0.5);
 });
 
 // ---------------------------------------------------------------------------------------
@@ -154,6 +177,84 @@ test ('summarizeBook: non-numeric amounts count as zero depth; a zero mid has no
     assert.equal (zeroMid.mid, 0);
     assert.equal (zeroMid.spread, 2);
     assert.equal (zeroMid.spreadPercent, undefined);
+});
+
+// Regression: the spread kept the binary subtraction error (62137.5 - 62137.4 came out as
+// 0.0999999999985) and spreadPercent was cut to 4 decimals, i.e. 0 for a one-tick BTC spread.
+test ('summarizeBook: spread has no float noise and spreadPercent keeps significant digits', () => {
+    const cases: [ number, number, number, number ][] = [
+        [ 62137.4, 62137.5, 0.1, 0.000161 ],
+        [ 62137.40, 62137.41, 0.01, 0.0000161 ],
+        [ 0.99984, 0.99985, 0.00001, 0.001 ],
+        [ 1.08412, 1.08414, 0.00002, 0.00184 ],
+        [ 0.0000041231, 0.0000041232, 1e-10, 0.00243 ],
+        [ 100, 101, 1, 0.995 ],
+        [ 50000, 50000, 0, 0 ],
+        [ 3, 2, -1, -40 ], // a crossed book stays visible as a negative spread
+    ];
+    for (const [ bid, ask, spread, spreadPercent ] of cases) {
+        const summary = summarizeBook ([ [ bid, 1 ] ], [ [ ask, 1 ] ]);
+        assert.equal (summary.spread, spread, bid + ' / ' + ask + ' spread');
+        assert.equal (summary.spreadPercent, spreadPercent, bid + ' / ' + ask + ' spreadPercent');
+    }
+});
+
+test ('amountUnitOf: contracts only when a contract market has a contractSize other than 1', () => {
+    assert.deepEqual (amountUnitOf ({ 'base': 'BTC', 'quote': 'USDT', 'contract': false }), { 'contractSize': 1, 'inverse': false, 'inContracts': false, 'amountUnit': 'BTC' });
+    assert.deepEqual (amountUnitOf ({ 'base': 'BTC', 'contract': true, 'contractSize': 0.01, 'inverse': false }), { 'contractSize': 0.01, 'inverse': false, 'inContracts': true, 'amountUnit': 'contracts' });
+    assert.deepEqual (amountUnitOf ({ 'base': 'BTC', 'contract': true, 'contractSize': 100, 'inverse': true }), { 'contractSize': 100, 'inverse': true, 'inContracts': true, 'amountUnit': 'contracts' });
+    assert.deepEqual (amountUnitOf ({ 'base': 'ETH', 'contract': true, 'contractSize': 1 }), { 'contractSize': 1, 'inverse': false, 'inContracts': false, 'amountUnit': 'ETH' });
+    // a contractSize on a spot market, or a missing/unusable one, never counts
+    for (const market of [ { 'base': 'BTC', 'contractSize': 0.01 }, { 'base': 'BTC', 'contract': true }, { 'base': 'BTC', 'contract': true, 'contractSize': 0 }, { 'base': 'BTC', 'contract': true, 'contractSize': '0.01' }, { 'base': 'BTC', 'contract': true, 'contractSize': NaN } ]) {
+        assert.equal (amountUnitOf (market).inContracts, false, JSON.stringify (market));
+        assert.equal (amountUnitOf (market).contractSize, 1, JSON.stringify (market));
+        assert.equal (amountUnitOf (market).amountUnit, 'BTC', JSON.stringify (market));
+    }
+    assert.deepEqual (amountUnitOf (undefined), { 'contractSize': 1, 'inverse': false, 'inContracts': false, 'amountUnit': undefined });
+});
+
+test ('summarizeBook: the depth unit is named, and contract counts come with base/quote totals', () => {
+    const bids = [ [ 50000, 600 ], [ 40000, 100 ] ];
+    const asks = [ [ 50010, 300 ] ];
+    const spot = summarizeBook (bids, asks, amountUnitOf ({ 'base': 'BTC', 'quote': 'USDT' }));
+    assert.equal (spot.depthUnit, 'BTC');
+    assert.equal (spot.bidDepth, 700);
+    assert.ok (!('bidDepthBase' in spot) && !('bidDepthQuote' in spot));
+    // linear: one contract is contractSize of base
+    const linear = summarizeBook (bids, asks, amountUnitOf ({ 'base': 'BTC', 'quote': 'USDT', 'contract': true, 'contractSize': 0.01 }));
+    assert.equal (linear.depthUnit, 'contracts');
+    assert.equal (linear.bidDepth, 700);
+    assert.equal (linear.bidDepthBase, 7);
+    assert.equal (linear.askDepthBase, 3);
+    assert.equal (linear.bidDepthQuote, 340000);
+    assert.equal (linear.askDepthQuote, 150030);
+    // inverse: one contract is contractSize of quote
+    const inverse = summarizeBook (bids, asks, amountUnitOf ({ 'base': 'BTC', 'quote': 'USD', 'contract': true, 'contractSize': 100, 'inverse': true }));
+    assert.equal (inverse.depthUnit, 'contracts');
+    assert.equal (inverse.bidDepthQuote, 70000);
+    assert.equal (inverse.bidDepthBase, 1.45);
+    assert.equal (inverse.askDepthQuote, 30000);
+    // a level without a usable price or amount adds nothing instead of poisoning the totals
+    const holes = summarizeBook ([ [ 0, 5 ], [ 50000, undefined as any ], [ 50000, 100 ] ], [], amountUnitOf ({ 'base': 'BTC', 'contract': true, 'contractSize': 100, 'inverse': true }));
+    assert.equal (holes.bidDepthBase, 0.2);
+    assert.equal (holes.bidDepthQuote, 10500);
+    // without a known market nothing is claimed about the unit
+    assert.ok (!('depthUnit' in summarizeBook (bids, asks, amountUnitOf (undefined))));
+});
+
+// ---------------------------------------------------------------------------------------
+// notices
+
+test ('joinNotices keeps each notice apart and yields undefined for none', () => {
+    assert.equal (joinNotices ([ 'first — with a dash; and a semicolon', undefined, '', 'second' ]), 'first — with a dash; and a semicolon | second');
+    assert.equal (joinNotices ([ 'only' ]), 'only');
+    assert.equal (joinNotices ([ undefined, '' ]), undefined);
+    assert.equal (joinNotices ([]), undefined);
+});
+
+test ('missingTickersNotice names the symbols, and is silent when none is missing', () => {
+    assert.equal (missingTickersNotice ([]), undefined);
+    assert.match (missingTickersNotice ([ 'BTC/USDT:USDT', 'ETH/USDT:USDT' ]) as string, /^no ticker was returned for: BTC\/USDT:USDT, ETH\/USDT:USDT — /);
 });
 
 // ---------------------------------------------------------------------------------------
@@ -268,9 +369,82 @@ test ('toUiContent: text is the envelope, structuredContent is the view, both re
     }
 });
 
-test ('uiNotice names the fallback tool only when the view may be invisible', () => {
-    assert.match (uiNotice (true, 'get_ohlcv'), /displayed to the user/);
-    assert.ok (!uiNotice (true, 'get_ohlcv').includes ('get_ohlcv'));
-    assert.match (uiNotice (false, 'get_ohlcv'), /did not advertise MCP Apps/);
-    assert.ok (uiNotice (false, 'get_ohlcv').includes ('get_ohlcv'));
+test ('uiNotice says what happened to the view and names the fallback tool when none was sent', () => {
+    assert.match (uiNotice ('displayed', 'get_ohlcv'), /displayed to the user/);
+    assert.ok (!uiNotice ('displayed', 'get_ohlcv').includes ('get_ohlcv'));
+    assert.match (uiNotice ('unsupported', 'get_ohlcv'), /did not advertise MCP Apps/);
+    assert.match (uiNotice ('unsupported', 'get_ohlcv'), /no interactive view was sent/);
+    assert.match (uiNotice ('unsupported', 'get_ohlcv'), /CCXT_MCP_UI=always/);
+    assert.ok (uiNotice ('unsupported', 'get_ohlcv').includes ('get_ohlcv'));
+    assert.match (uiNotice ('off', 'get_ohlcv'), /disabled on this server \(CCXT_MCP_UI=off\)/);
+    assert.ok (uiNotice ('off', 'get_ohlcv').includes ('get_ohlcv'));
+    assert.ok (!uiNotice ('off', 'get_ohlcv').includes ('did not advertise'));
+});
+
+function withUiEnv (value: string | undefined, fn: () => void): void {
+    const saved = process.env['CCXT_MCP_UI'];
+    if (value === undefined) {
+        delete process.env['CCXT_MCP_UI'];
+    } else {
+        process.env['CCXT_MCP_UI'] = value;
+    }
+    try {
+        fn ();
+    } finally {
+        if (saved === undefined) {
+            delete process.env['CCXT_MCP_UI'];
+        } else {
+            process.env['CCXT_MCP_UI'] = saved;
+        }
+    }
+}
+
+// uiStatus only asks the server for the client capabilities
+function fakeServer (capabilities: any): any {
+    return { 'server': { 'getClientCapabilities': () => capabilities } };
+}
+
+test ('uiMode reads CCXT_MCP_UI: auto by default and for anything unknown', () => {
+    const cases: [ string | undefined, string ][] = [
+        [ undefined, 'auto' ], [ '', 'auto' ], [ 'auto', 'auto' ], [ 'AUTO', 'auto' ],
+        [ 'always', 'always' ], [ ' Always ', 'always' ], [ 'off', 'off' ], [ 'OFF', 'off' ],
+        [ 'on', 'auto' ], [ 'true', 'auto' ], [ '0', 'auto' ], [ 'never', 'auto' ], [ '${user_config.ui}', 'auto' ],
+    ];
+    for (const [ value, expected ] of cases) {
+        withUiEnv (value, () => assert.equal (uiMode (), expected, JSON.stringify (value)));
+    }
+});
+
+test ('uiStatus: the mode decides, and only auto asks what the host advertised', () => {
+    const apps = fakeServer ({ 'extensions': { [UI_EXTENSION_ID]: { 'mimeTypes': [ UI_MIME_TYPE ] } } });
+    const plain = fakeServer ({});
+    const unknown = fakeServer (undefined); // capabilities are undefined before initialize completes
+    withUiEnv (undefined, () => {
+        assert.equal (uiStatus (apps), 'displayed');
+        assert.equal (uiStatus (plain), 'unsupported');
+        assert.equal (uiStatus (unknown), 'unsupported');
+    });
+    withUiEnv ('always', () => {
+        assert.equal (uiStatus (apps), 'displayed');
+        assert.equal (uiStatus (plain), 'displayed');
+        assert.equal (uiStatus (unknown), 'displayed');
+    });
+    withUiEnv ('off', () => {
+        assert.equal (uiStatus (apps), 'off');
+        assert.equal (uiStatus (plain), 'off');
+    });
+});
+
+test ('uiResult attaches the view only for a displayed status', () => {
+    const envelope = { 'ok': true, 'data': { 'count': 1 } } as any;
+    const view = { 'view': 'chart', 'candles': [ [ T0, 1, 2, 0.5, 1.5, 100 ] ] };
+    const displayed = uiResult ('displayed', envelope, view);
+    assert.equal (isUiPayload (displayed), true);
+    assert.deepEqual (displayed, { envelope, view });
+    for (const status of [ 'unsupported', 'off' ] as const) {
+        const result = uiResult (status, envelope, view);
+        // the plain envelope itself: run () sends it as ordinary text content
+        assert.equal (result, envelope, status);
+        assert.equal (isUiPayload (result), false, status);
+    }
 });

@@ -282,6 +282,40 @@ test ('unsubstituted ${...} credential templates count as unset, not as credenti
     });
 });
 
+// Regression: any value merely CONTAINING "${" was discarded, so a real passphrase holding
+// those two characters was silently dropped and every private call failed authentication.
+test ('a credential that merely contains "${" is a real value, not an unsubstituted template', () => {
+    const passwords = [ 'Pa${word}!9zz', '${not}atemplate', 'prefix${user_config.password}', '${a}${b}', '${unterminated', 'x ${user_config.password}' ];
+    for (const password of passwords) {
+        withConfig ({}, {
+            'CCXT_MCP_EXCHANGE': 'okx',
+            'CCXT_MCP_APIKEY': 'FAKEKEY111111',
+            'CCXT_MCP_SECRET': 'FAKESECRET111111',
+            'CCXT_MCP_PASSWORD': password,
+        }, () => {
+            const config = loadConfig ();
+            const account: any = config.accounts['default'];
+            assert.equal (account.password, password, JSON.stringify (password));
+            assert.deepEqual (config.problems, []);
+        });
+    }
+});
+
+test ('a whole-value ${...} template is unset, with or without surrounding whitespace', () => {
+    for (const password of [ '${user_config.password}', ' ${user_config.password} ', '${}', '${user_config.password}\n' ]) {
+        withConfig ({}, {
+            'CCXT_MCP_EXCHANGE': 'okx',
+            'CCXT_MCP_APIKEY': 'FAKEKEY111111',
+            'CCXT_MCP_SECRET': 'FAKESECRET111111',
+            'CCXT_MCP_PASSWORD': password,
+        }, () => {
+            const account: any = loadConfig ().accounts['default'];
+            assert.equal (account.password, undefined, JSON.stringify (password));
+            assert.equal (account.apiKey, 'FAKEKEY111111');
+        });
+    }
+});
+
 test ('an account whose every credential is an unsubstituted template loads as keyless', () => {
     withConfig ({}, {
         'CCXT_MCP_EXCHANGE': 'binance',

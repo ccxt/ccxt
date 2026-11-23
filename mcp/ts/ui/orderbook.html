@@ -76,6 +76,7 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
     var book = null;
     var args = null;
     var hover = -1;
+    var inspected = null;
     var busy = false;
     var showAll = false;
     var layout = null;
@@ -144,7 +145,7 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
     }
 
     // malformed rows would break the scales: keep finite [price, amount >= 0], best first, with running totals
-    function buildSide (rows, name, descending) {
+    function buildSide (rows, name, descending, worth) {
         var levels = [];
         (Array.isArray (rows) ? rows : []).forEach (function (row) {
             if (Array.isArray (row) && app.isNumber (row[0]) && app.isNumber (row[1]) && row[1] >= 0) {
@@ -155,31 +156,74 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
         var cum = 0;
         var notional = 0;
         return levels.filter (function (level) {
-            if (!app.isNumber (cum + level.amount) || !app.isNumber (notional + level.price * level.amount)) {
+            var value = worth (level);
+            if (!app.isNumber (cum + level.amount) || !app.isNumber (notional + value)) {
                 return false;
             }
             cum += level.amount;
-            notional += level.price * level.amount;
+            notional += value;
             level.cum = cum;
             level.notional = notional;
             return true;
         });
     }
 
+    // Stub quotes far from the market would squash the real book into one pixel column, so
+    // the chart follows each side only as far as 4x the distance of its median level. The
+    // best prices always fit; the ladder and the totals keep every level.
+    function plotWindow (bids, asks, reference) {
+        var reach = function (side) {
+            if (!side.length) {
+                return 0;
+            }
+            var far = Math.abs (side[side.length - 1].price - reference);
+            var typical = Math.abs (side[Math.floor (side.length / 2)].price - reference);
+            return Math.min (far, typical * 4);
+        };
+        var half = Math.max (reach (bids), reach (asks)) * (1 + 1e-9);
+        if (!(half > 0) || !app.isNumber (half)) {
+            return function () { return true; };
+        }
+        return function (level) { return Math.abs (level.price - reference) <= half; };
+    }
+
+    // ccxt reports the amounts of a contract market in contracts. The payload then carries
+    // 'amountUnit': 'contracts' and the contract size: that much base currency per contract,
+    // or that much QUOTE currency on an inverse (coin-margined) market. Without those fields
+    // amounts are base currency, as on spot.
     function buildBook (payload) {
-        var bids = buildSide (payload.bids, 'bid', true);
-        var asks = buildSide (payload.asks, 'ask', false);
-        var result = { bids: bids, asks: asks, digits: 0, crossed: false };
-        result.levels = bids.concat (asks).sort (function (a, b) { return a.price - b.price; });
-        result.levels.forEach (function (level) { result.digits = Math.max (result.digits, decimals (level.price)); });
+        var size = (app.isNumber (payload.contractSize) && payload.contractSize > 0) ? payload.contractSize : 1;
+        var inverse = payload.inverse === true;
+        // what a level is worth in quote currency
+        var worth = function (level) { return inverse ? (level.amount * size) : (level.price * level.amount * size); };
+        var bids = buildSide (payload.bids, 'bid', true, worth);
+        var asks = buildSide (payload.asks, 'ask', false, worth);
+        var result = { bids: bids, asks: asks, digits: 0, crossed: false, contractSize: size, inverse: inverse };
+        bids.concat (asks).forEach (function (level) { result.digits = Math.max (result.digits, decimals (level.price)); });
         result.base = (typeof payload.base === 'string') ? payload.base : '';
         result.quote = (typeof payload.quote === 'string') ? payload.quote : '';
+        // an inverse contract, or a contract size other than 1, is never an amount of base currency
+        var named = (typeof payload.amountUnit === 'string') ? payload.amountUnit : result.base;
+        result.contracts = named === 'contracts' || size !== 1 || inverse;
+        result.unit = result.contracts ? 'contracts' : named;
+        var sizeCode = inverse ? result.quote : result.base;
+        result.contractNote = (result.contracts && sizeCode) ? '1 contract = ' + app.compact (size) + ' ' + sizeCode : '';
         if (bids.length && asks.length) {
             result.mid = (bids[0].price + asks[0].price) / 2;
             result.gap = asks[0].price - bids[0].price;
             result.crossed = result.gap < 0;
         }
-        result.maxCum = Math.max (bids.length ? bids[bids.length - 1].cum : 0, asks.length ? asks[asks.length - 1].cum : 0);
+        // levels: what the chart plots and what the pointer and the arrow keys step through
+        var near = function () { return true; };
+        if (!result.crossed && (bids.length || asks.length)) {
+            near = plotWindow (bids, asks, app.isNumber (result.mid) ? result.mid : (bids[0] || asks[0]).price);
+        }
+        result.plotBids = bids.filter (near);
+        result.plotAsks = asks.filter (near);
+        result.levels = result.plotBids.concat (result.plotAsks).sort (function (a, b) { return a.price - b.price; });
+        result.outside = bids.length + asks.length - result.levels.length;
+        var last = function (side) { return side.length ? side[side.length - 1].cum : 0; };
+        result.maxCum = Math.max (last (result.plotBids), last (result.plotAsks));
         return result;
     }
 
@@ -209,7 +253,7 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
         var away = distance (level);
         var arrow = !app.isNumber (away) ? '' : ((away > 0) ? '▲ ' : ((away < 0) ? '▼ ' : ''));
         node.appendChild (labelled (NAMES[level.side], price (level.price), 'which'));
-        node.appendChild (labelled ('Cumulative', amount (level.cum, book.base)));
+        node.appendChild (labelled ('Cumulative', amount (level.cum, book.unit)));
         node.appendChild (labelled ('Notional', amount (level.notional, book.quote)));
         node.appendChild (labelled ('From mid', arrow + pct (away, true)));
     }
@@ -235,7 +279,7 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
         if (!book.levels.length) {
             return;
         }
-        nodes.legend.appendChild (app.element ('span', '', 'Cumulative depth' + (book.base ? ' in ' + book.base : '')));
+        nodes.legend.appendChild (app.element ('span', '', 'Cumulative depth' + (book.unit ? ' in ' + book.unit : '') + (book.contractNote ? ' (' + book.contractNote + ')' : '')));
         [ [ 'bid', 'Bids', bids ], [ 'ask', 'Asks', asks ] ].forEach (function (entry) {
             var last = entry[2][entry[2].length - 1];
             var item = app.element ('span');
@@ -267,6 +311,10 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
         }
         var width = Math.max (240, Math.floor (host.clientWidth || document.documentElement.clientWidth - 28));
         var top = (book.maxCum > 0) ? book.maxCum * 1.12 : 1;
+        if (!app.isNumber (top)) {
+            // headroom that would overflow is not worth a broken scale
+            top = book.maxCum;
+        }
         // the axis column grows with its longest label (tiny amounts need many digits)
         var yTicks = app.ticks (0, top, 4);
         var axisRight = AXIS_RIGHT;
@@ -279,17 +327,19 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
         var count = levels.length;
         var low = levels[0].price;
         var high = levels[count - 1].price;
-        if (!(high - low > 0) || !app.isNumber (high - low)) {
-            // a single price still needs a non-degenerate scale
+        if (!(high - low > Math.max (Math.abs (high), Math.abs (low)) * 1e-12) || !app.isNumber (high - low)) {
+            // a single price (or prices a few float steps apart, where no tick or pixel can
+            // tell them apart) still needs a non-degenerate scale
             var pad = (high === 0) ? 1 : Math.abs (high) * 0.01;
             high += pad;
             low -= pad;
         }
-        var round = function (value) { return Math.round (value * 10) / 10; };
+        // a coordinate must never reach the SVG as NaN, whatever the numbers
+        var round = function (value) { return app.isNumber (value) ? Math.round (value * 10) / 10 : 0; };
         var x = function (value) { return round (((value - low) / (high - low)) * plotWidth); };
         var y = function (value) { return round (PAD_TOP + (1 - value / top) * PLOT_HEIGHT); };
         var svg = app.svg ('svg', { viewBox: '0 0 ' + width + ' ' + height, height: height, role: 'img', tabindex: '0' });
-        svg.setAttribute ('aria-label', 'Cumulative depth chart of ' + nodes.symbol.textContent + ' on ' + nodes.venue.textContent + ': ' + book.bids.length + ' bid levels left of the mid price, ' + book.asks.length + ' ask levels right of it. Use the left and right arrow keys to inspect levels; the table below lists the values.');
+        svg.setAttribute ('aria-label', 'Cumulative depth chart of ' + nodes.symbol.textContent + ' on ' + nodes.venue.textContent + (book.unit ? ', in ' + book.unit : '') + ': ' + book.plotBids.length + ' bid levels left of the mid price, ' + book.plotAsks.length + ' ask levels right of it' + (book.outside ? '; ' + outsideNote () : '') + '. Use the left and right arrow keys to inspect levels; the table below lists the values.');
         // cumulative-amount grid + right-hand axis (the only y scale)
         yTicks.forEach (function (tick) {
             var ty = Math.round (y (tick)) + 0.5;
@@ -315,7 +365,7 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
             svg.appendChild (label);
         });
         // step areas: each side accumulates away from its best price
-        [ [ book.bids, 0 ], [ book.asks, plotWidth ] ].forEach (function (entry) {
+        [ [ book.plotBids, 0 ], [ book.plotAsks, plotWidth ] ].forEach (function (entry) {
             var side = entry[0];
             if (!side.length) {
                 return;
@@ -332,7 +382,7 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
             svg.appendChild (app.svg ('line', { 'class': 'grid', x1: midX, x2: midX, y1: PAD_TOP, y2: base }));
         }
         if (!book.crossed) {
-            [ [ book.bids, 'Bids', 'end', -7 ], [ book.asks, 'Asks', 'start', 7 ] ].forEach (function (entry) {
+            [ [ book.plotBids, 'Bids', 'end', -7 ], [ book.plotAsks, 'Asks', 'start', 7 ] ].forEach (function (entry) {
                 var at = entry[0].length ? x (entry[0][0].price) + entry[3] : -1;
                 if (at >= 40 && at <= plotWidth - 40) {
                     var name = app.svg ('text', { 'class': 'side', x: at, y: PAD_TOP + 10, 'text-anchor': entry[2] });
@@ -392,6 +442,7 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
 
     function setHover (index) {
         hover = index;
+        inspected = book.levels[index] || null;
         if (!layout || !book.levels.length) {
             return;
         }
@@ -420,12 +471,15 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
         var head = document.createElement ('tr');
         var body = document.createElement ('tbody');
         var shown = side.slice (0, showAll ? side.length : TOP_LEVELS);
-        table.setAttribute ('aria-label', NAMES[name] + 's, best price first');
-        [ NAMES[name] + ' price', 'Amount', 'Total' ].forEach (function (title, column) {
+        var unit = book.unit ? ' in ' + book.unit : '';
+        table.setAttribute ('aria-label', NAMES[name] + 's, best price first' + (unit ? ', amounts' + unit : ''));
+        [ NAMES[name] + ' price', book.contracts ? 'Contracts' : 'Amount', 'Total' ].forEach (function (title, column) {
             var cell = app.element ('th', (column === 2) ? 'cum' : '', title);
             cell.scope = 'col';
-            if (column === 2) {
-                cell.title = 'Cumulative amount from the best price to this level';
+            if (column === 1 && unit) {
+                cell.title = 'Size of this level' + unit + (book.contractNote ? ' (' + book.contractNote + ')' : '');
+            } else if (column === 2) {
+                cell.title = 'Cumulative amount' + unit + ' from the best price to this level';
             }
             head.appendChild (cell);
         });
@@ -453,6 +507,7 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
 
     function renderLadder () {
         var wrap = nodes.ladder;
+        var scrolled = wrap.scrollTop;
         wrap.textContent = '';
         wrap.hidden = !book.levels.length;
         if (wrap.hidden) {
@@ -469,6 +524,35 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
         grid.appendChild (ladderTable (book.bids, 'bid', scale));
         grid.appendChild (ladderTable (book.asks, 'ask', scale));
         wrap.appendChild (grid);
+        // a rebuild must not scroll the list back to the top under the reader
+        wrap.scrollTop = scrolled;
+    }
+
+    function outsideNote () {
+        // the table shows the best TOP_LEVELS per side until "All levels" is pressed
+        var where = (Math.max (book.bids.length, book.asks.length) > TOP_LEVELS) ? '"All levels" lists them in the table' : 'the table lists them';
+        return book.outside + ((book.outside === 1) ? ' level' : ' levels') + ' far from the market ' + ((book.outside === 1) ? 'is' : 'are') + ' outside the chart (' + where + ')';
+    }
+
+    // Rebuilding the plot replaces the focused <svg>. Carry keyboard focus and the inspected
+    // level over, so a resize or a host context update does not throw the user out of the chart.
+    function drawPlot () {
+        var old = nodes.plot.querySelector ('svg');
+        var focused = !!old && document.activeElement === old;
+        var kept = inspected;
+        renderPlot ();
+        var fresh = nodes.plot.querySelector ('svg');
+        if (focused && fresh) {
+            fresh.focus ({ preventScroll: true });
+        }
+        // by side and price, not by position: the book itself may be a newer one
+        var index = -1;
+        book.levels.forEach (function (level, position) {
+            if (kept && level.side === kept.side && level.price === kept.price) {
+                index = position;
+            }
+        });
+        setHover (index);
     }
 
     function render () {
@@ -477,14 +561,20 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
         }
         renderHeader ();
         renderControls ();
-        renderPlot ();
+        drawPlot ();
         renderLadder ();
-        hover = -1;
-        readoutFor (-1);
+    }
+
+    function usable (payload) {
+        return !!payload && payload.view === 'orderbook' && Array.isArray (payload.bids) && Array.isArray (payload.asks);
     }
 
     function accept (payload) {
-        if (!payload || payload.view !== 'orderbook' || !Array.isArray (payload.bids) || !Array.isArray (payload.asks)) {
+        if (!usable (payload)) {
+            if (!data) {
+                // nothing on screen yet: say so instead of waiting forever
+                setStatus ('Could not load: the host sent data this view cannot display.', true);
+            }
             return;
         }
         data = payload;
@@ -492,6 +582,9 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
         var parts = app.isNumber (payload.timestamp) ? [ 'As of ' + app.dateTime (payload.timestamp, { dateStyle: 'medium', timeStyle: 'medium' }) ] : [];
         if (book.levels.length) {
             parts.push (book.bids.length + ' bid and ' + book.asks.length + ' ask levels');
+        }
+        if (book.outside) {
+            parts.push (outsideNote ());
         }
         setStatus (parts.join (' · '));
         render ();
@@ -515,7 +608,7 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
         setStatus ('Loading…');
         app.callTool ('show_orderbook', request).then (function (payload) {
             setBusy (false);
-            if (!payload || payload.view !== 'orderbook') {
+            if (!usable (payload)) {
                 setStatus ('Could not load: the host returned no order book.', true);
                 return;
             }
@@ -542,7 +635,7 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
         }
         lastWidth = width;
         clearTimeout (resizeTimer);
-        resizeTimer = setTimeout (function () { renderPlot (); }, 60);
+        resizeTimer = setTimeout (drawPlot, 60);
     });
 
     app.connect ({

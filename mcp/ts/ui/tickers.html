@@ -24,6 +24,8 @@ tbody th { font-weight: 600; text-align: left; border-bottom: 1px solid var(--bo
 tbody tr:last-child th { border-bottom: 0; }
 .name { display: block; max-width: 11em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .missing, .unit { color: var(--text-3); font-weight: 400; }
+/* a long unit ("contracts") drops under its number before the table would overflow */
+td.c-volume { white-space: normal; }
 /* 24h change: signed text carries the value, the bar (centred on zero) the comparison */
 .chg { display: inline-flex; align-items: center; justify-content: flex-end; gap: 8px; }
 .chg .delta { min-width: 5.4em; text-align: right; }
@@ -97,13 +99,15 @@ thead .short { display: none; }
         { key: 'last', label: 'Last', hint: 'Sort by last price' },
         { key: 'percentage', label: '24h change', hint: 'Sort by 24h change' },
         { key: 'position', label: '24h range', hint: 'Sort by where the last price sits between the 24h low and high', className: 'c-range' },
-        { key: 'turnover', label: '24h volume', hint: 'Sort by 24h volume in quote currency (base volume is valued at the average or last price)', className: 'c-volume' }
+        { key: 'turnover', label: '24h volume', hint: 'Sort by 24h volume in quote currency (base and contract volumes are valued at the average or last price)', className: 'c-volume' }
     ];
     var data = null;
     var rows = [];
     var args = null;
     var sort = { key: null, direction: 1 };
     var active = -1;
+    var activeSymbol = null;
+    var contracts = null;
     var busy = false;
     var parts = null;
     var nodes = {};
@@ -117,8 +121,29 @@ thead .short { display: none; }
     }
 
     // bridge.price / bridge.percent print every digit: fine for prices, too wide for outliers
-    function price (value) {
-        return (app.isNumber (value) && Math.abs (value) >= 1e9) ? app.compact (value) : app.price (value);
+    function price (value, digits) {
+        return (app.isNumber (value) && Math.abs (value) >= 1e9) ? app.compact (value) : app.price (value, digits);
+    }
+
+    // The prices of one market are read side by side (last, bid, ask, low, high): one decimal
+    // count for all of them — the finest the exchange wrote. A value with more decimals than
+    // bridge.price would print for the last price is float noise (or beyond what fits), so
+    // it is rounded with the rest instead of widening the row.
+    function rowDigits (row) {
+        var size = Math.abs (row.last);
+        if (!(size > 0) || size >= 1e9) {
+            return undefined;
+        }
+        var magnitude = Math.floor (Math.log (size) / Math.LN10 + 1e-9);
+        var most = (size >= 1) ? Math.max (2, 6 - magnitude) : (4 - magnitude);
+        var digits = (size >= 1) ? 2 : 0;
+        [ 'last', 'bid', 'ask', 'low', 'high' ].forEach (function (key) {
+            var count = app.decimals (row[key]);
+            if (count <= most) {
+                digits = Math.max (digits, count);
+            }
+        });
+        return digits;
     }
 
     function percent (value) {
@@ -156,9 +181,41 @@ thead .short { display: none; }
                 row.position = (row.high === row.low) ? 0.5 : Math.max (0, Math.min (1, (row.last - row.low) / (row.high - row.low)));
             }
         }
-        // one comparable figure for sorting a column that can mix quote and base volumes
+        row.digits = rowDigits (row);
         var reference = (row.vwap !== undefined) ? row.vwap : row.last;
-        row.turnover = (row.quoteVolume !== undefined) ? row.quoteVolume : ((row.baseVolume !== undefined && reference !== undefined) ? row.baseVolume * reference : undefined);
+        // The payload marks the markets that trade in contracts, with the contract size: that
+        // much base currency per contract, or that much QUOTE currency on an inverse market.
+        // ccxt passes their 24h "base" volume through as the venue reports it — usually a
+        // contract count — so it is only called base currency when the ticker's own quote
+        // volume proves it (quote ≈ base × price, and not what a contract count would give).
+        var entry = (contracts && Object.prototype.hasOwnProperty.call (contracts, row.symbol)) ? contracts[row.symbol] : null;
+        var size = 1;
+        var inverse = false;
+        row.volumeUnit = row.base;
+        if (entry && typeof entry === 'object') {
+            size = (app.isNumber (entry.contractSize) && entry.contractSize > 0) ? entry.contractSize : 1;
+            inverse = entry.inverse === true;
+            row.volumeUnit = 'contracts';
+            if (row.baseVolume > 0 && row.quoteVolume > 0 && reference > 0) {
+                var ratio = Math.log (row.quoteVolume / (row.baseVolume * reference));
+                var counted = Math.log (inverse ? (size / reference) : size);
+                if (Math.abs (ratio) < Math.log (1.5) && Math.abs (ratio) < Math.abs (ratio - counted)) {
+                    row.volumeUnit = row.base;
+                }
+            }
+        }
+        // one comparable figure, in quote currency, for sorting a column that can mix quote,
+        // base and contract volumes
+        if (row.quoteVolume !== undefined) {
+            row.turnover = row.quoteVolume;
+        } else if (row.baseVolume !== undefined && inverse) {
+            row.turnover = row.baseVolume * size;
+        } else if (row.baseVolume !== undefined && reference !== undefined) {
+            row.turnover = row.baseVolume * reference * size;
+        }
+        if (!app.isNumber (row.turnover)) {
+            row.turnover = undefined;
+        }
         return row;
     }
 
@@ -166,8 +223,8 @@ thead .short { display: none; }
         if (!row.ranged) {
             return '24h range not available';
         }
-        var where = (row.position === undefined) ? '' : ', last ' + price (row.last) + ' at ' + Math.round (row.position * 100) + '% of the range';
-        return '24h low ' + price (row.low) + ', high ' + price (row.high) + where;
+        var where = (row.position === undefined) ? '' : ', last ' + price (row.last, row.digits) + ' at ' + Math.round (row.position * 100) + '% of the range';
+        return '24h low ' + price (row.low, row.digits) + ', high ' + price (row.high, row.digits) + where;
     }
 
     function rangeTrack (row) {
@@ -188,7 +245,7 @@ thead .short { display: none; }
             return [ app.compact (row.quoteVolume), row.quote || 'quote' ];
         }
         if (row.baseVolume !== undefined) {
-            return [ app.compact (row.baseVolume), row.base || 'base' ];
+            return [ app.compact (row.baseVolume), row.volumeUnit || 'base' ];
         }
         return [ '–', '' ];
     }
@@ -223,18 +280,19 @@ thead .short { display: none; }
         node.appendChild (name);
         var volumes = [];
         if (row.baseVolume !== undefined) {
-            volumes.push (app.compact (row.baseVolume) + ' ' + (row.base || 'base'));
+            volumes.push (app.compact (row.baseVolume) + ' ' + (row.volumeUnit || 'base'));
         }
         if (row.quoteVolume !== undefined) {
             volumes.push (app.compact (row.quoteVolume) + ' ' + (row.quote || 'quote'));
         }
-        [ [ 'Bid', price (row.bid) ], [ 'Ask', price (row.ask) ], [ 'Low', price (row.low) ], [ 'High', price (row.high) ], [ 'Vol', volumes.join (' · ') || '–' ] ].forEach (function (pair) {
+        [ [ 'Bid', price (row.bid, row.digits) ], [ 'Ask', price (row.ask, row.digits) ], [ 'Low', price (row.low, row.digits) ], [ 'High', price (row.high, row.digits) ], [ 'Vol', volumes.join (' · ') || '–' ] ].forEach (function (pair) {
             labelled (node, 'span', pair[0], pair[1]);
         });
     }
 
     function setActive (index) {
         active = index;
+        activeSymbol = rows[index] ? rows[index].symbol : null;
         if (!parts) {
             return;
         }
@@ -271,6 +329,7 @@ thead .short { display: none; }
         ordered.forEach (function (row, position) {
             var line = document.createElement ('tr');
             line.setAttribute ('data-index', row.index);
+            line.setAttribute ('data-symbol', row.symbol);
             line.tabIndex = (position === 0) ? 0 : -1;
             var head = document.createElement ('th');
             head.scope = 'row';
@@ -278,7 +337,7 @@ thead .short { display: none; }
             name.title = row.symbol;
             head.appendChild (name);
             line.appendChild (head);
-            line.appendChild (app.element ('td', (row.last === undefined) ? 'missing' : '', price (row.last)));
+            line.appendChild (app.element ('td', (row.last === undefined) ? 'missing' : '', price (row.last, row.digits)));
             var changeCell = document.createElement ('td');
             var change = app.element ('span', 'chg');
             if (row.percentage !== undefined) {
@@ -407,8 +466,8 @@ thead .short { display: none; }
         var wrap = app.element ('div', 'single');
         if (row.ranged) {
             var ends = app.element ('div', 'ends');
-            labelled (ends, 'span', '24h low', price (row.low));
-            labelled (ends, 'span', '24h high', price (row.high));
+            labelled (ends, 'span', '24h low', price (row.low, row.digits));
+            labelled (ends, 'span', '24h high', price (row.high, row.digits));
             wrap.appendChild (ends);
             wrap.appendChild (rangeTrack (row));
         }
@@ -416,8 +475,8 @@ thead .short { display: none; }
         var volume = function (value, unit) {
             return app.compact (value) + ((value !== undefined && unit) ? ' ' + unit : '');
         };
-        [ [ 'Bid', price (row.bid) ], [ 'Ask', price (row.ask) ], [ 'Open', price (row.open) ], [ 'Average (VWAP)', price (row.vwap) ],
-            [ '24h volume', volume (row.baseVolume, row.base) ], [ '24h quote volume', volume (row.quoteVolume, row.quote) ] ].forEach (function (pair) {
+        [ [ 'Bid', price (row.bid, row.digits) ], [ 'Ask', price (row.ask, row.digits) ], [ 'Open', price (row.open, row.digits) ], [ 'Average (VWAP)', price (row.vwap, row.digits) ],
+            [ '24h volume', volume (row.baseVolume, row.volumeUnit) ], [ '24h quote volume', volume (row.quoteVolume, row.quote) ] ].forEach (function (pair) {
             var item = document.createElement ('div');
             item.appendChild (app.element ('dt', '', pair[0]));
             item.appendChild (app.element ('dd', (pair[1] === '–') ? 'missing' : '', pair[1]));
@@ -428,10 +487,54 @@ thead .short { display: none; }
         nodes.board.appendChild (wrap);
     }
 
+    // Rebuilding the board replaces the focused row or sort button. Remember where the user
+    // was (by symbol: the rows themselves may be newer ones) so a host context update does
+    // not throw a keyboard user back to the top of the document.
+    function place () {
+        var focus = document.activeElement;
+        var line = (parts && focus && focus.closest && parts.body.contains (focus)) ? focus.closest ('tr') : null;
+        var column = -1;
+        (parts ? parts.heads : []).forEach (function (entry, position) {
+            if (focus && entry.cell.contains (focus)) {
+                column = position;
+            }
+        });
+        return { focused: line ? line.getAttribute ('data-symbol') : null, column: column, active: activeSymbol, scroll: nodes.board.scrollTop };
+    }
+
+    function restore (kept) {
+        if (!parts) {
+            return;
+        }
+        var lineOf = function (symbol) {
+            var found = null;
+            Array.prototype.forEach.call (parts.body.rows, function (line) {
+                if (symbol !== null && !found && line.getAttribute ('data-symbol') === symbol) {
+                    found = line;
+                }
+            });
+            return found;
+        };
+        nodes.board.scrollTop = kept.scroll;
+        var focused = lineOf (kept.focused);
+        var hovered = lineOf (kept.active);
+        if (focused) {
+            Array.prototype.forEach.call (parts.body.rows, function (line) { line.tabIndex = (line === focused) ? 0 : -1; });
+            // focusin makes it the inspected row again
+            focused.focus ({ preventScroll: true });
+        } else if (kept.column >= 0 && parts.heads[kept.column]) {
+            parts.heads[kept.column].cell.querySelector ('button').focus ({ preventScroll: true });
+        }
+        if (hovered && !focused) {
+            setActive (Number (hovered.getAttribute ('data-index')));
+        }
+    }
+
     function render () {
         if (!data) {
             return;
         }
+        var kept = place ();
         var single = rows.length === 1;
         var venue = data.exchangeName || data.exchange || '';
         var newest;
@@ -453,19 +556,29 @@ thead .short { display: none; }
             nodes.board.className = 'board';
             nodes.board.appendChild (app.element ('div', 'empty', 'No prices were returned for these symbols.'));
         } else if (single) {
-            nodes.last.textContent = price (rows[0].last);
+            nodes.last.textContent = price (rows[0].last, rows[0].digits);
             setDelta (nodes.change, rows[0].percentage);
             renderSingle (rows[0]);
         } else {
             renderTable ();
+            restore (kept);
         }
     }
 
+    function usable (payload) {
+        return !!payload && payload.view === 'tickers' && Array.isArray (payload.tickers);
+    }
+
     function accept (payload) {
-        if (!payload || payload.view !== 'tickers' || !Array.isArray (payload.tickers)) {
+        if (!usable (payload)) {
+            if (!data) {
+                // nothing on screen yet: say so instead of waiting forever
+                setStatus ('Could not load: the host sent data this view cannot display.', true);
+            }
             return;
         }
         data = payload;
+        contracts = (payload.contracts && typeof payload.contracts === 'object') ? payload.contracts : null;
         rows = payload.tickers.filter (function (ticker) { return ticker && typeof ticker === 'object'; }).map (normalize);
         var seen = {};
         rows.forEach (function (row) { seen['$' + row.symbol] = true; });
@@ -492,6 +605,10 @@ thead .short { display: none; }
         setStatus ('Loading…');
         app.callTool ('show_tickers', request).then (function (payload) {
             finish ();
+            if (!usable (payload)) {
+                setStatus ('Could not load: the host returned no prices.', true);
+                return;
+            }
             accept (payload);
         }, function (error) {
             finish ();

@@ -71,6 +71,11 @@ function bookPayload (limit = 50) {
         'symbol': 'BTC/USDT',
         'base': 'BTC',
         'quote': 'USDT',
+        // a spot book: amounts are base currency (a contract market sends its contractSize,
+        // inverse flag and 'amountUnit': 'contracts' here)
+        'contractSize': 1,
+        'inverse': false,
+        'amountUnit': 'BTC',
         limit,
         'timestamp': Date.UTC (2026, 10, 23, 12, 0, 0),
         'datetime': '2026-11-23T12:00:00.000Z',
