@@ -12,10 +12,10 @@ const MARKET_TOOLS = [
     'list_exchanges', 'describe_exchange', 'describe_method', 'search_markets',
     'get_tickers', 'get_orderbook', 'get_ohlcv', 'get_trades', 'search_events',
     'call_read_method', 'call_implicit_get', 'get_safety_status',
-    'show_chart', 'show_orderbook', 'show_tickers',
+    'show_chart', 'show_orderbook', 'show_tickers', 'setup_account',
     'watch_subscribe', 'watch_read', 'watch_unsubscribe', 'watch_list', 'fetch_route',
 ];
-const READ_TOOLS = [ 'list_accounts', 'get_balance', 'get_orders', 'get_my_trades', 'get_positions' ];
+const READ_TOOLS = [ 'list_accounts', 'get_balance', 'get_orders', 'get_my_trades', 'get_positions', 'show_balance', 'show_orders', 'show_positions' ];
 const TRADE_TOOLS = [ 'create_order', 'edit_order', 'cancel_order', 'cancel_all_orders', 'set_leverage', 'set_margin_mode', 'call_write_method', 'execute_route' ];
 const FUNDS_TOOLS = [ 'withdraw', 'transfer', 'get_deposit_address' ];
 const IMPLICIT_WRITE_TOOLS = [ 'call_implicit_write' ];

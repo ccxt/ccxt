@@ -1,0 +1,668 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CCXT balance</title>
+<style>
+/* @include shared.css */
+/* the account this data belongs to, and the one thing that must never be misread: whether
+   it is real. LIVE is a solid inverted pill, the practice environments an outline — told
+   apart by the word and the form, not by a colour */
+.account { display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%; }
+.account .name { font-weight: 600; max-width: 14em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.env { flex: none; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; line-height: 16px; padding: 0 7px; border: 1px solid var(--text-2); border-radius: 999px; color: var(--text-2); white-space: nowrap; }
+.env.live { background: var(--text); border-color: var(--text); color: var(--bg); }
+.asof { color: var(--text-2); margin-top: 2px; }
+.hero .value { font-variant-numeric: normal; overflow-wrap: anywhere; }
+/* sits under the table: its height may change with the row, and rows must not move under the pointer */
+.readout { display: flex; flex-wrap: wrap; align-items: center; align-content: flex-start; gap: 2px 14px; min-height: 20px; margin: 8px 0 0; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.readout > span { min-width: 0; overflow-wrap: anywhere; }
+.readout b { color: var(--text); font-weight: 600; }
+.readout .sym { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.note { color: var(--text-2); margin-top: 6px; }
+.board.scroll { max-height: 520px; }
+th, td { padding: 6px 7px; }
+thead th { padding: 5px 7px; }
+thead button { border: 0; border-radius: 4px; padding: 2px 4px; margin: -2px -4px; color: inherit; font-weight: inherit; white-space: nowrap; }
+thead th[aria-sort="ascending"] button, thead th[aria-sort="descending"] button { color: var(--text); font-weight: 600; }
+thead .dir { display: inline-block; width: 1em; text-align: center; }
+tbody tr:hover, tbody tr.active { background: var(--bg-2); }
+tbody tr:focus-visible { outline-offset: -2px; }
+tbody th { font-weight: 600; border-bottom: 1px solid var(--border); }
+tbody tr:last-child th { border-bottom: 0; }
+th.l, td.l { text-align: left; }
+.name { display: block; max-width: 9.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.missing, .unit { color: var(--text-3); font-weight: 400; }
+.sub { display: block; white-space: nowrap; font-size: 11px; line-height: 1.25; color: var(--text-2); font-weight: 400; }
+thead .short { display: none; }
+/* value: the number, and its share of the valued holdings as a bar — one hue, because this
+   is magnitude and has no direction */
+.val { display: inline-flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.val .pct { min-width: 2.6em; text-align: right; color: var(--text-2); }
+.share { position: relative; flex: none; width: 56px; height: 6px; border-radius: 3px; background: var(--border); overflow: hidden; }
+.share i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); border-radius: 3px; }
+/* narrower hosts shed decoration first, then whole columns — the table never overflows */
+@media (max-width: 599px) {
+    thead .long { display: none; }
+    thead .short { display: inline; }
+    .share { width: 40px; }
+    th, td, thead th { padding-left: 5px; padding-right: 5px; }
+}
+@media (max-width: 519px) {
+    .share { display: none; }
+    .name { max-width: 7.5em; }
+}
+@media (max-width: 439px) {
+    .c-used { display: none; }
+    .val .pct { display: none; }
+    .name { max-width: 6em; }
+}
+@media (max-width: 379px) {
+    body { font-size: 12px; }
+    .c-free { display: none; }
+    th, td, thead th { padding-left: 4px; padding-right: 4px; }
+}
+</style>
+</head>
+<body>
+<div class="head">
+    <div>
+        <div class="title"><h1 id="heading">Balance</h1><span class="venue" id="venue"></span><span class="account" id="accountwrap" hidden><span class="name" id="account"></span><span class="env" id="env" hidden></span></span></div>
+        <div class="hero" id="hero" hidden><span class="value" id="figure">–</span><span class="context" id="context"></span></div>
+        <div class="asof" id="asof"></div>
+    </div>
+    <div class="controls">
+        <button type="button" id="refresh" title="Fetch the latest balances" hidden>Refresh</button>
+    </div>
+</div>
+<div class="board" id="board"></div>
+<div class="readout" id="readout" aria-live="off" hidden></div>
+<div class="note" id="note" hidden></div>
+<div class="status" id="status" role="status">Waiting for data…</div>
+<script>
+/* @include bridge.js */
+</script>
+<script>
+(function () {
+    'use strict';
+    // ---- shared by the account views (balance, orders, positions): kept identical in each ----
+    var app = window.ccxtApp;
+    var ENVIRONMENTS = {
+        live: [ 'LIVE', 'Live account: real funds' ],
+        sandbox: [ 'TESTNET', 'Testnet account: practice funds, nothing here is real' ],
+        demo: [ 'DEMO', 'Demo trading account: simulated funds' ]
+    };
+    var data = null;
+    var rows = [];
+    var args = null;
+    var sort = { key: null, direction: 1 };
+    var active = -1;
+    var activeKey = null;
+    var busy = false;
+    var parts = null;
+    var readoutHeight = 0;
+    var nodes = {};
+    [ 'heading', 'venue', 'accountwrap', 'account', 'env', 'hero', 'figure', 'context', 'asof', 'refresh', 'board', 'readout', 'note', 'status' ].forEach (function (id) {
+        nodes[id] = document.getElementById (id);
+    });
+
+    function setStatus (text, isError) {
+        nodes.status.textContent = text || '';
+        nodes.status.className = 'status' + (isError ? ' error' : '');
+    }
+
+    // every field of the payload is optional and none of it is trusted to have its type
+    function text (value) {
+        if (app.isNumber (value)) {
+            return String (value);
+        }
+        return (typeof value === 'string' && value) ? value : undefined;
+    }
+
+    function number (value) {
+        // "+ 0" turns a negative zero into zero: it would print as "-0"
+        return app.isNumber (value) ? value + 0 : undefined;
+    }
+
+    // outside the range a Date can hold, bridge.dateTime would throw
+    function time (value) {
+        return (app.isNumber (value) && Math.abs (value) <= 8.64e15) ? value : undefined;
+    }
+
+    function plural (count, word) {
+        return count + ' ' + word + ((count === 1) ? '' : 's');
+    }
+
+    function localized (value, options) {
+        var tag = app.context ().locale;
+        try {
+            return value.toLocaleString ((typeof tag === 'string' && tag) ? tag : undefined, options);
+        } catch (error) {
+            return value.toLocaleString (undefined, options);
+        }
+    }
+
+    // bridge.compact, bridge.price and bridge.percent stop at "T": beyond it, and below what
+    // fits a table cell, a number is written with its exponent instead of a row of zeros
+    function exponent (value) {
+        return value.toExponential (2).replace (/-/g, '−').replace ('e+', 'e');
+    }
+
+    function extreme (value) {
+        var size = Math.abs (value);
+        return size >= 1e15 || (size > 0 && size < 1e-8);
+    }
+
+    function compact (value) {
+        return (app.isNumber (value) && extreme (value)) ? exponent (value) : app.compact (value);
+    }
+
+    function price (value) {
+        return (app.isNumber (value) && extreme (value)) ? exponent (value) : app.price (value);
+    }
+
+    function percent (value) {
+        if (app.isNumber (value) && Math.abs (value) >= 1e15) {
+            return ((value > 0) ? '+' : '−') + exponent (Math.abs (value)) + '%';
+        }
+        // a loss too small to print is not "−0.00%"
+        return app.percent ((app.isNumber (value) && Math.abs (value) < 0.005) ? 0 : value);
+    }
+
+    // An amount of an asset or of contracts: the digits the venue reported, up to ~9
+    // significant ones (bridge.price pads to two decimals, which reads as money).
+    function quantity (value) {
+        if (!app.isNumber (value)) {
+            return '–';
+        }
+        var size = Math.abs (value);
+        if (size === 0) {
+            return '0';
+        }
+        if (size >= 1e9 || extreme (value)) {
+            return compact (value);
+        }
+        if (size < 1) {
+            return localized (value, { maximumSignificantDigits: 6 });
+        }
+        return localized (value, { maximumFractionDigits: Math.max (0, 8 - Math.floor (Math.log (size) / Math.LN10 + 1e-9)) });
+    }
+
+    // a value in the quote or settle currency
+    function money (value) {
+        if (!app.isNumber (value)) {
+            return '–';
+        }
+        var size = Math.abs (value);
+        if (size >= 1e9) {
+            return compact (value);
+        }
+        if (size >= 1 || size === 0) {
+            return localized (value, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+        return price (value);
+    }
+
+    function setEnvironment (node, value) {
+        var known = (typeof value === 'string' && Object.prototype.hasOwnProperty.call (ENVIRONMENTS, value)) ? ENVIRONMENTS[value] : null;
+        node.hidden = !known;
+        node.className = 'env' + ((value === 'live') ? ' live' : '');
+        node.textContent = known ? known[0] : '';
+        node.title = known ? known[1] : '';
+    }
+
+    function labelled (parent, label, value) {
+        var item = app.element ('span', '', label + ' ');
+        item.appendChild (app.element ('b', '', value));
+        parent.appendChild (item);
+        return item;
+    }
+
+    function setActive (index) {
+        active = index;
+        activeKey = rows[index] ? rows[index].key : null;
+        if (!parts) {
+            return;
+        }
+        Array.prototype.forEach.call (parts.body.rows, function (line) {
+            line.classList.toggle ('active', Number (line.getAttribute ('data-index')) === index);
+        });
+        nodes.readout.textContent = '';
+        if (index >= 0 && rows[index]) {
+            view.readout (nodes.readout, rows[index]);
+        } else {
+            nodes.readout.appendChild (app.element ('span', '', view.hint));
+        }
+        // The readout wraps, and how many lines it takes depends on the row. It only ever
+        // grows (until the data or the width changes): a view that shrank again when the
+        // pointer left would move the page under that pointer.
+        if (nodes.readout.offsetHeight > readoutHeight) {
+            readoutHeight = nodes.readout.offsetHeight;
+            nodes.readout.style.minHeight = readoutHeight + 'px';
+        }
+    }
+
+    function releaseReadout () {
+        readoutHeight = 0;
+        nodes.readout.style.minHeight = '';
+    }
+
+    function compare (a, b) {
+        var left = a[sort.key];
+        var right = b[sort.key];
+        // a row without the value goes last whichever way the column is sorted
+        if (left === undefined || right === undefined) {
+            return (left === right) ? (a.index - b.index) : ((left === undefined) ? 1 : -1);
+        }
+        var order = (typeof left === 'string') ? left.localeCompare (right) : (left - right);
+        return (order * sort.direction) || (a.index - b.index);
+    }
+
+    function fillBody () {
+        var body = parts.body;
+        var ordered = rows.slice ();
+        if (sort.key) {
+            ordered.sort (compare);
+        }
+        body.textContent = '';
+        ordered.forEach (function (row, position) {
+            var line = document.createElement ('tr');
+            line.setAttribute ('data-index', row.index);
+            line.setAttribute ('data-key', row.key);
+            line.tabIndex = (position === 0) ? 0 : -1;
+            view.columns.forEach (function (column) {
+                var cell = app.element (column.header ? 'th' : 'td', ((column.className || '') + ((column.text || column.left) ? ' l' : '')).trim ());
+                if (column.header) {
+                    cell.scope = 'row';
+                }
+                column.fill (cell, row);
+                line.appendChild (cell);
+            });
+            body.appendChild (line);
+        });
+        parts.heads.forEach (function (entry) {
+            var state = (sort.key === entry.column.key) ? ((sort.direction > 0) ? 'ascending' : 'descending') : 'none';
+            entry.cell.setAttribute ('aria-sort', state);
+            entry.glyph.textContent = (state === 'ascending') ? '↑' : ((state === 'descending') ? '↓' : '');
+        });
+        setActive (-1);
+    }
+
+    function sortBy (column) {
+        var natural = column.text ? 1 : -1;
+        if (sort.key !== column.key) {
+            sort = { key: column.key, direction: natural };
+        } else if (sort.direction === natural) {
+            sort = { key: column.key, direction: -natural };
+        } else {
+            // third press: back to the order the server sent
+            sort = { key: null, direction: 1 };
+        }
+        fillBody ();
+    }
+
+    function moveFocus (event) {
+        var line = event.target;
+        var all = parts.body.rows;
+        var current = Array.prototype.indexOf.call (all, line);
+        var next = { ArrowDown: current + 1, ArrowUp: current - 1, Home: 0, End: all.length - 1 }[event.key];
+        if (current < 0 || next === undefined) {
+            return;
+        }
+        event.preventDefault ();
+        next = Math.max (0, Math.min (all.length - 1, next));
+        line.tabIndex = -1;
+        all[next].tabIndex = 0;
+        all[next].focus ();
+    }
+
+    function renderTable () {
+        var table = document.createElement ('table');
+        var caption = app.element ('caption', '', view.caption () + ' Column headers sort the table; arrow keys move between rows.');
+        caption.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;';
+        table.appendChild (caption);
+        var thead = document.createElement ('thead');
+        var headRow = document.createElement ('tr');
+        var heads = view.columns.map (function (column) {
+            var cell = app.element ('th', ((column.className || '') + ((column.text || column.left) ? ' l' : '')).trim ());
+            cell.scope = 'col';
+            var button = document.createElement ('button');
+            button.type = 'button';
+            button.title = column.hint;
+            var glyph = app.element ('span', 'dir');
+            glyph.setAttribute ('aria-hidden', 'true');
+            var label = app.element ('span', '');
+            // "In orders" when there is room, "Used" when there is not
+            label.appendChild (app.element ('span', column.short ? 'long' : '', column.label));
+            if (column.short) {
+                label.appendChild (app.element ('span', 'short', column.short));
+            }
+            var unit = column.unit ? column.unit () : '';
+            if (unit) {
+                label.appendChild (document.createTextNode (' '));
+                label.appendChild (app.element ('span', 'unit', unit));
+            }
+            // the arrow sits on the side the column is aligned away from, so labels stay put
+            button.appendChild ((column.text || column.left) ? label : glyph);
+            button.appendChild ((column.text || column.left) ? glyph : label);
+            button.addEventListener ('click', function () { sortBy (column); });
+            cell.appendChild (button);
+            headRow.appendChild (cell);
+            return { column: column, cell: cell, glyph: glyph };
+        });
+        thead.appendChild (headRow);
+        table.appendChild (thead);
+        var body = document.createElement ('tbody');
+        var rowOf = function (event) {
+            var line = (event.target && event.target.closest) ? event.target.closest ('tr') : null;
+            return line ? Number (line.getAttribute ('data-index')) : -1;
+        };
+        body.addEventListener ('pointerover', function (event) { setActive (rowOf (event)); });
+        body.addEventListener ('pointerdown', function (event) { setActive (rowOf (event)); });
+        body.addEventListener ('pointerleave', function () { setActive (rowOf ({ target: document.activeElement })); });
+        body.addEventListener ('focusin', function (event) { setActive (rowOf (event)); });
+        body.addEventListener ('focusout', function () { setActive (-1); });
+        body.addEventListener ('keydown', moveFocus);
+        table.appendChild (body);
+        parts = { body: body, heads: heads };
+        nodes.board.className = 'board scroll';
+        nodes.board.appendChild (table);
+        fillBody ();
+    }
+
+    // Rebuilding the board replaces the focused row or sort button. Remember where the user
+    // was (by row key: the rows themselves may be newer ones) so a refresh or a host context
+    // update does not throw a keyboard user back to the top of the document.
+    function place () {
+        var focus = document.activeElement;
+        var line = (parts && focus && focus.closest && parts.body.contains (focus)) ? focus.closest ('tr') : null;
+        var column = -1;
+        (parts ? parts.heads : []).forEach (function (entry, position) {
+            if (focus && entry.cell.contains (focus)) {
+                column = position;
+            }
+        });
+        return { focused: line ? line.getAttribute ('data-key') : null, column: column, active: activeKey, scroll: nodes.board.scrollTop };
+    }
+
+    function restore (kept) {
+        if (!parts) {
+            return;
+        }
+        var lineOf = function (key) {
+            var found = null;
+            Array.prototype.forEach.call (parts.body.rows, function (line) {
+                if (key !== null && !found && line.getAttribute ('data-key') === key) {
+                    found = line;
+                }
+            });
+            return found;
+        };
+        nodes.board.scrollTop = kept.scroll;
+        var focused = lineOf (kept.focused);
+        var hovered = lineOf (kept.active);
+        if (focused) {
+            Array.prototype.forEach.call (parts.body.rows, function (line) { line.tabIndex = (line === focused) ? 0 : -1; });
+            // focusin makes it the inspected row again
+            focused.focus ({ preventScroll: true });
+        } else if (kept.column >= 0 && parts.heads[kept.column]) {
+            parts.heads[kept.column].cell.querySelector ('button').focus ({ preventScroll: true });
+        }
+        if (hovered && !focused) {
+            setActive (Number (hovered.getAttribute ('data-index')));
+        }
+    }
+
+    function setNote (lines) {
+        nodes.note.textContent = lines.join (' · ');
+        nodes.note.hidden = !lines.length;
+    }
+
+    function render () {
+        if (!data) {
+            return;
+        }
+        var kept = place ();
+        var account = text (data.account);
+        nodes.venue.textContent = text (data.exchangeName) || text (data.exchange) || '';
+        nodes.account.textContent = account || '';
+        nodes.account.title = account ? 'Account ' + account : '';
+        setEnvironment (nodes.env, data.environment);
+        nodes.accountwrap.hidden = !account && nodes.env.hidden;
+        view.header ();
+        nodes.refresh.hidden = !app.canCallTools ();
+        nodes.refresh.disabled = busy;
+        nodes.readout.hidden = !rows.length;
+        releaseReadout ();
+        nodes.board.textContent = '';
+        parts = null;
+        if (!rows.length) {
+            nodes.board.className = 'board';
+            nodes.board.appendChild (app.element ('div', 'empty', view.empty ()));
+        } else {
+            renderTable ();
+            restore (kept);
+        }
+    }
+
+    function usable (payload) {
+        return !!payload && payload.view === view.name && Array.isArray (payload[view.list]);
+    }
+
+    function accept (payload) {
+        if (!usable (payload)) {
+            if (!data) {
+                // nothing on screen yet: say so instead of waiting forever
+                setStatus ('Could not load: the host sent data this view cannot display.', true);
+            }
+            return;
+        }
+        data = payload;
+        rows = payload[view.list].filter (function (entry) { return entry && typeof entry === 'object'; }).map (view.normalize);
+        setStatus ('');
+        render ();
+    }
+
+    function reload () {
+        if (busy || !data) {
+            return;
+        }
+        var request = {};
+        var base = args || view.fallbackArgs ();
+        Object.keys (base).forEach (function (key) {
+            if (base[key] !== undefined) {
+                request[key] = base[key];
+            }
+        });
+        var finish = function () {
+            busy = false;
+            nodes.board.classList.remove ('busy');
+            nodes.refresh.disabled = false;
+        };
+        busy = true;
+        nodes.board.classList.add ('busy');
+        nodes.refresh.disabled = true;
+        setStatus ('Loading…');
+        app.callTool (view.tool, request).then (function (payload) {
+            finish ();
+            if (!usable (payload)) {
+                setStatus ('Could not load: the host returned no ' + view.noun + '.', true);
+                return;
+            }
+            accept (payload);
+        }, function (error) {
+            finish ();
+            setStatus ('Could not load: ' + ((error && error.message) || 'unknown error'), true);
+        });
+    }
+
+    function start () {
+        nodes.refresh.addEventListener ('click', reload);
+        var lastWidth = document.documentElement.clientWidth;
+        window.addEventListener ('resize', function () {
+            // the height grows with the content: only a new width changes how the readout wraps
+            var width = document.documentElement.clientWidth;
+            if (width !== lastWidth) {
+                lastWidth = width;
+                releaseReadout ();
+                if (parts) {
+                    setActive (active);
+                }
+            }
+        });
+        app.connect ({
+            name: 'ccxt-' + view.name,
+            onInput: function (input) { args = input; },
+            onResult: accept,
+            onError: function (message) { setStatus ('Could not load: ' + message, true); },
+            onContext: function () { render (); }
+        }).then (function () {
+            nodes.refresh.hidden = !data || !app.canCallTools ();
+        }, function () {
+            setStatus ('Could not connect to the host.', true);
+        });
+        // development hook: open the file directly and call window.ccxtView.accept (payload)
+        window.ccxtView = { accept: accept };
+    }
+    // ---- end of the shared part ----
+
+    var valued = 0; // sum of the positive values: the whole the share bars are parts of
+    var unvalued = 0;
+
+    function share (row) {
+        return (row.value > 0 && valued > 0) ? row.value / valued : undefined;
+    }
+
+    function shareText (part) {
+        if (part === undefined) {
+            return '';
+        }
+        return (part < 0.01) ? '<1%' : Math.round (part * 100) + '%';
+    }
+
+    function amountCell (key) {
+        return function (cell, row) {
+            cell.textContent = quantity (row[key]);
+            if (row[key] === undefined) {
+                cell.classList.add ('missing');
+            }
+        };
+    }
+
+    var view = {
+        name: 'balance',
+        list: 'balances',
+        tool: 'show_balance',
+        noun: 'balances',
+        hint: 'Point at, tap or focus a row for its price and share of the total.',
+        columns: [
+            { key: 'code', label: 'Asset', hint: 'Sort by asset', text: true, header: true, fill: function (cell, row) {
+                var name = app.element ('span', 'name', row.code);
+                name.title = row.code;
+                cell.appendChild (name);
+            } },
+            { key: 'free', label: 'Free', hint: 'Sort by the amount available to trade or withdraw', className: 'c-free', fill: amountCell ('free') },
+            { key: 'used', label: 'In orders', short: 'Used', hint: 'Sort by the amount held by open orders or as margin', className: 'c-used', fill: amountCell ('used') },
+            { key: 'total', label: 'Total', hint: 'Sort by total amount', fill: amountCell ('total') },
+            { key: 'value', label: 'Value', hint: 'Sort by value', className: 'c-value', unit: function () { return text (data.quote) || ''; }, fill: function (cell, row) {
+                if (row.value === undefined) {
+                    cell.textContent = '–';
+                    cell.classList.add ('missing');
+                    cell.title = 'No price available for this asset';
+                    return;
+                }
+                var wrap = app.element ('span', 'val');
+                var part = share (row);
+                if (part !== undefined) {
+                    var bar = app.element ('span', 'share');
+                    bar.setAttribute ('aria-hidden', 'true');
+                    var fill = document.createElement ('i');
+                    fill.style.width = 'max(1px, ' + (part * 100).toFixed (2) + '%)';
+                    bar.appendChild (fill);
+                    wrap.appendChild (bar);
+                    wrap.appendChild (app.element ('span', 'pct', shareText (part)));
+                }
+                wrap.appendChild (app.element ('span', '', money (row.value)));
+                cell.appendChild (wrap);
+            } }
+        ],
+        normalize: function (entry, index) {
+            var row = { index: index, code: text (entry.code) || '–' };
+            [ 'free', 'used', 'total', 'price', 'value' ].forEach (function (key) {
+                row[key] = number (entry[key]);
+            });
+            // some venues report free and used only
+            if (row.total === undefined && (row.free !== undefined || row.used !== undefined)) {
+                row.total = number ((row.free || 0) + (row.used || 0));
+            }
+            if (row.value === undefined && row.total !== undefined && row.price !== undefined) {
+                row.value = number (row.total * row.price);
+            }
+            row.key = row.code;
+            return row;
+        },
+        caption: function () {
+            return 'Balances of account ' + (text (data.account) || '') + ' on ' + (text (data.exchangeName) || text (data.exchange) || 'the exchange') + '.';
+        },
+        header: function () {
+            var quote = text (data.quote);
+            var total = number (data.totalValue);
+            valued = 0;
+            unvalued = 0;
+            rows.forEach (function (row) {
+                if (row.value > 0) {
+                    valued += row.value;
+                }
+                if (row.value === undefined && row.total !== 0) {
+                    unvalued++;
+                }
+            });
+            if (!app.isNumber (valued)) {
+                valued = 0;
+            }
+            nodes.hero.hidden = !rows.length;
+            if (total !== undefined) {
+                nodes.figure.textContent = '≈\u00a0' + money (total) + (quote ? ' ' + quote : '');
+                nodes.context.textContent = 'total value · ' + plural (rows.length, 'asset');
+            } else {
+                // nothing could be priced: the count is the one honest headline
+                nodes.figure.textContent = plural (rows.length, 'asset');
+                nodes.context.textContent = 'no valuation available';
+            }
+            var stamp = time (data.timestamp);
+            nodes.asof.textContent = (stamp === undefined) ? '' : 'as of ' + app.dateTime (stamp);
+            var hidden = number (data.hiddenZeroBalances);
+            var lines = [];
+            if (hidden > 0) {
+                lines.push (plural (Math.round (hidden), 'zero balance') + ' hidden');
+            }
+            if (total !== undefined && unvalued > 0) {
+                lines.push (plural (unvalued, 'asset') + ' without a ' + (quote ? quote + ' ' : '') + 'price ' + ((unvalued === 1) ? 'is' : 'are') + ' not in the total');
+            }
+            setNote (lines);
+        },
+        empty: function () {
+            return (number (data.hiddenZeroBalances) > 0) ? 'No non-zero balances.' : 'No balances.';
+        },
+        readout: function (node, row) {
+            var quote = text (data.quote);
+            node.appendChild (app.element ('b', 'sym', row.code));
+            var suffix = quote ? ' ' + quote : '';
+            [ [ 'Free', quantity (row.free) ], [ 'In orders', quantity (row.used) ], [ 'Total', quantity (row.total) ],
+                [ 'Price', (row.price === undefined) ? '–' : price (row.price) + suffix ],
+                [ 'Value', (row.value === undefined) ? '–' : money (row.value) + suffix ],
+                [ 'Share', shareText (share (row)) || '–' ] ].forEach (function (pair) {
+                labelled (node, pair[0], pair[1]);
+            });
+        },
+        fallbackArgs: function () {
+            return { account: data.account };
+        }
+    };
+
+    start ();
+}) ();
+</script>
+</body>
+</html>

@@ -1,6 +1,7 @@
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import { randomBytes } from 'crypto';
 import { z } from 'zod';
 import { log } from './logging.js';
 import { registerSecret } from './redact.js';
@@ -67,15 +68,26 @@ export function defaultConfigPath (): string {
     return path.join (process.env['XDG_CONFIG_HOME'] || path.join (home, '.config'), 'ccxt-mcp', 'config.json');
 }
 
+// The one place the config-file location is decided, shared by loadConfig and the setup form's
+// writer so an account saved from the form lands in the file the next start reads.
+// An unset MCPB file field can arrive as "" or an unsubstituted "${...}" template — those
+// count as "no explicit path" and fall back to the default location.
+export function resolveConfigPath (): { path: string, explicit: boolean } {
+    const rawExplicit = process.env['CCXT_MCP_CONFIG'];
+    const explicitPath = (rawExplicit !== undefined && rawExplicit.trim () !== '' && !rawExplicit.includes ('${')) ? rawExplicit : undefined;
+    return { 'path': explicitPath || defaultConfigPath (), 'explicit': explicitPath !== undefined };
+}
+
 // Actionable guidance an error can hand back so the AI can walk the user through configuring
-// credentials — points at the real config path and shows the exact shape. Credentials are
-// never entered in chat; they only ever live in this file.
+// credentials. The setup form comes first (a local browser page, no file editing); the config
+// file is the alternative and shows the exact shape. Credentials are never entered in chat.
 export function credentialSetupHelp (loadedPath?: string): string {
-    const configPath = (loadedPath !== undefined && loadedPath !== '') ? loadedPath : defaultConfigPath ();
-    return 'To fix: tell the user to add an account to the ccxt-mcp config file at "' + configPath
-        + '" — e.g. {"accounts":{"binance":{"exchange":"binance","apiKey":"...","secret":"...","sandbox":true,"trading":true}}} — then restart the server. '
-        + 'Use the exchange id and its required credentials (describe_exchange shows requiredCredentials). API keys go ONLY in that file, never in this chat. '
-        + 'Call get_safety_status to see the exact path and which accounts and tiers are active.';
+    const configPath = (loadedPath !== undefined && loadedPath !== '') ? loadedPath : resolveConfigPath ().path;
+    return 'To fix: call setup_account — it opens a local setup form in the user\'s browser where they type the exchange API key themselves; the account is usable as soon as they save it (no restart). '
+        + 'Alternative: the user adds the account to the ccxt-mcp config file at "' + configPath
+        + '" — e.g. {"accounts":{"binance":{"exchange":"binance","apiKey":"...","secret":"...","sandbox":true,"trading":true}}} — then restarts the server (describe_exchange shows an exchange\'s requiredCredentials). '
+        + 'API keys go ONLY in that form or that config file, never in this chat — do not ask the user to paste them here. '
+        + 'Call get_safety_status to see which accounts and tiers are active.';
 }
 
 export function cacheDirectory (): string {
@@ -141,15 +153,26 @@ function parseConfigObject (raw: any, problems: string[]): { accounts: Record<st
     return { accounts, 'settings': raw['settings'] ?? {} };
 }
 
-function validateAccount (name: string, raw: any, problems: string[]): AccountConfig | undefined {
+// what validateAccount needs to know about the exchange catalogue — the loader by default; the
+// setup form passes the pools' own directory so an account is checked against the same ccxt
+// the server instantiates it from
+export interface ExchangeDirectory {
+    isKnownExchange: (exchangeId: string) => boolean;
+    allExchangeIds: () => string[];
+    closestMatches: (needle: string, haystack: string[], count?: number) => string[];
+}
+
+const loaderDirectory: ExchangeDirectory = { isKnownExchange, allExchangeIds, closestMatches };
+
+export function validateAccount (name: string, raw: any, problems: string[], directory: ExchangeDirectory = loaderDirectory): AccountConfig | undefined {
     const parsed = accountSchema.safeParse (raw);
     if (!parsed.success) {
         problems.push ('account ' + JSON.stringify (name) + ' invalid: ' + parsed.error.issues.map ((issue) => issue.path.join ('.') + ' ' + issue.message).join ('; '));
         return undefined;
     }
     const account = { ...parsed.data, name } as AccountConfig;
-    if (!isKnownExchange (account.exchange)) {
-        problems.push ('account ' + JSON.stringify (name) + ': unknown exchange ' + JSON.stringify (account.exchange) + ' — closest matches: ' + closestMatches (account.exchange, allExchangeIds ()).join (', '));
+    if (!directory.isKnownExchange (account.exchange)) {
+        problems.push ('account ' + JSON.stringify (name) + ': unknown exchange ' + JSON.stringify (account.exchange) + ' — closest matches: ' + directory.closestMatches (account.exchange, directory.allExchangeIds ()).join (', '));
         return undefined;
     }
     if (account.prediction && !predictionExchanges ().includes (account.exchange)) {
@@ -180,7 +203,7 @@ function validateAccount (name: string, raw: any, problems: string[]): AccountCo
     return account;
 }
 
-function registerAccountSecrets (account: AccountConfig): void {
+export function registerAccountSecrets (account: AccountConfig): void {
     for (const field of CREDENTIAL_FIELDS) {
         registerSecret ((account as any)[field], field);
     }
@@ -351,11 +374,9 @@ export function loadConfig (): ResolvedConfig {
     const accounts: Record<string, AccountConfig> = {};
     let settingsRaw: any = {};
 
-    // an unset MCPB file field can arrive as "" or an unsubstituted "${...}" template —
-    // treat those as "no explicit path" and fall back to the default location
-    const rawExplicit = process.env['CCXT_MCP_CONFIG'];
-    const explicitPath = (rawExplicit !== undefined && rawExplicit.trim () !== '' && !rawExplicit.includes ('${')) ? rawExplicit : undefined;
-    const configPath = explicitPath || defaultConfigPath ();
+    const resolved = resolveConfigPath ();
+    const configPath = resolved.path;
+    const explicitPath = resolved.explicit ? resolved.path : undefined;
     let configPathUsed: string | undefined = undefined;
 
     if (fs.existsSync (configPath)) {
@@ -432,4 +453,141 @@ export function loadConfig (): ResolvedConfig {
     }
 
     return { accounts, settings, problems, 'configPath': configPathUsed };
+}
+
+// ---------------------------------------------------------------------------------------
+// Config-file writer (the setup form's save). Everything above only ever reads the file.
+
+export const ACCOUNT_NAME_PATTERN = /^[a-zA-Z0-9_-]{1,40}$/;
+// assigning one of these as an own key would either rewrite the object's prototype or be
+// indistinguishable from an inherited member when the file is read back
+const RESERVED_ACCOUNT_NAMES = [ '__proto__', 'constructor', 'prototype' ];
+
+export function isValidAccountName (name: any): name is string {
+    return typeof name === 'string' && ACCOUNT_NAME_PATTERN.test (name) && !RESERVED_ACCOUNT_NAMES.includes (name);
+}
+
+export type ConfigWriteErrorCode = 'INVALID_NAME' | 'INVALID_JSON' | 'INVALID_SHAPE' | 'ACCOUNT_EXISTS' | 'LEGACY_NAME' | 'IO_ERROR';
+
+export class ConfigWriteError extends Error {
+    code: ConfigWriteErrorCode;
+    constructor (code: ConfigWriteErrorCode, message: string) {
+        super (message);
+        this.code = code;
+    }
+}
+
+export interface ConfigWriteResult {
+    path: string; // the file actually written (a symlinked config resolves to its target)
+    shape: 'accounts' | 'legacy';
+    created: boolean; // the file did not exist before
+    replaced: boolean; // an account of that name was overwritten
+}
+
+function isPlainObject (value: any): value is Record<string, any> {
+    return value !== null && typeof value === 'object' && !Array.isArray (value);
+}
+
+// keep the file looking the way its owner wrote it: reuse its indentation when it has one
+function detectIndent (text: string): string | number {
+    const match = /^[{[]\r?\n([ \t]+)\S/.exec (text.trimStart ());
+    return (match !== null) ? match[1] : 4;
+}
+
+// Adds (or, with replace, overwrites) ONE account in the config file and leaves everything
+// else in it alone: other accounts, the settings block and any key this server does not know.
+// Both shapes parseConfigObject reads are written back in their own shape — a legacy
+// {"<exchangeId>": {...}} file is never converted, because other tools (ccxt-cli keys.json)
+// may read the same file. A file that is not valid JSON is refused, never overwritten: it
+// may hold keys the user can still recover by fixing a comma.
+// `account` is the account body WITHOUT its name; it must carry "exchange".
+export function writeAccountToConfigFile (configPath: string, name: string, account: Record<string, any>, options: { replace?: boolean, isKnownExchange?: (exchangeId: string) => boolean } = {}): ConfigWriteResult {
+    if (!isValidAccountName (name)) {
+        throw new ConfigWriteError ('INVALID_NAME', 'account name must be 1-40 characters: letters, digits, "-" and "_"');
+    }
+    const known = options.isKnownExchange ?? isKnownExchange;
+    // write through a symlink instead of replacing it with a regular file
+    let target = configPath;
+    let existing: string | undefined = undefined;
+    try {
+        target = fs.realpathSync (configPath);
+        existing = fs.readFileSync (target).toString ();
+    } catch (e: any) {
+        if (e?.code !== 'ENOENT') {
+            throw new ConfigWriteError ('IO_ERROR', 'could not read the config file: ' + String (e?.code ?? e?.message ?? e));
+        }
+    }
+    let root: Record<string, any> = {};
+    let indent: string | number = 4;
+    if (existing !== undefined && existing.trim () !== '') {
+        let parsed: any;
+        try {
+            parsed = JSON.parse (existing);
+        } catch (e: any) {
+            throw new ConfigWriteError ('INVALID_JSON', 'the existing config file is not valid JSON, so it was left untouched — fix or move it first');
+        }
+        if (!isPlainObject (parsed)) {
+            throw new ConfigWriteError ('INVALID_SHAPE', 'the existing config file is not a JSON object, so it was left untouched — fix or move it first');
+        }
+        root = parsed;
+        indent = detectIndent (existing);
+    }
+    let shape: 'accounts' | 'legacy' = 'accounts';
+    let replaced = false;
+    if (root['accounts'] !== undefined) {
+        if (!isPlainObject (root['accounts'])) {
+            throw new ConfigWriteError ('INVALID_SHAPE', 'the "accounts" entry of the existing config file is not an object, so the file was left untouched — fix it first');
+        }
+    } else if (Object.keys (root).some ((key) => isPlainObject (root[key]) && known (key))) {
+        // parseConfigObject reads this file as the legacy shape; adding an "accounts" key
+        // would switch it to the other shape and silently drop every account already in it
+        shape = 'legacy';
+    }
+    if (shape === 'legacy') {
+        if (name !== account['exchange']) {
+            throw new ConfigWriteError ('LEGACY_NAME', 'this config file uses the older {"<exchange id>": {...}} layout, where an account is always named after its exchange — use the account name ' + JSON.stringify (String (account['exchange'])) + ', or convert the file to the {"accounts": {...}} layout first');
+        }
+        replaced = Object.prototype.hasOwnProperty.call (root, name);
+    } else {
+        replaced = root['accounts'] !== undefined && Object.prototype.hasOwnProperty.call (root['accounts'], name);
+    }
+    if (replaced && options.replace !== true) {
+        throw new ConfigWriteError ('ACCOUNT_EXISTS', 'an account named ' + JSON.stringify (name) + ' already exists in the config file');
+    }
+    if (shape === 'legacy') {
+        // the key IS the exchange id in this shape
+        const body = { ...account };
+        delete body['exchange'];
+        root[name] = body;
+    } else {
+        if (root['accounts'] === undefined) {
+            root['accounts'] = {};
+        }
+        root['accounts'][name] = { ...account };
+    }
+    const directory = path.dirname (target);
+    const temp = path.join (directory, '.' + path.basename (target) + '.' + randomBytes (6).toString ('hex') + '.tmp');
+    try {
+        // the mode only applies to directories this call creates; an existing one is the user's
+        fs.mkdirSync (directory, { 'recursive': true, 'mode': 0o700 });
+        // temp file in the same directory + rename: a crash or a full disk mid-write leaves
+        // the previous file intact, and readers never see half a file. "wx" refuses to follow
+        // a pre-planted path; 0600 from the first byte, so the keys are never world-readable.
+        const fd = fs.openSync (temp, 'wx', 0o600);
+        try {
+            fs.writeSync (fd, JSON.stringify (root, null, indent) + '\n');
+            fs.fsyncSync (fd);
+        } finally {
+            fs.closeSync (fd);
+        }
+        fs.renameSync (temp, target);
+    } catch (e: any) {
+        try {
+            fs.unlinkSync (temp);
+        } catch (ee) {
+            // nothing was created, or it is already gone
+        }
+        throw new ConfigWriteError ('IO_ERROR', 'could not write the config file: ' + String (e?.code ?? e?.message ?? e));
+    }
+    return { 'path': target, shape, 'created': existing === undefined, replaced };
 }

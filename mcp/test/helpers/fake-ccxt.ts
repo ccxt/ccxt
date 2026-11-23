@@ -1,6 +1,9 @@
 // A minimal in-memory ccxt stand-in for tests: one exchange ("fakex") with one market,
 // deterministic prices, recorded writes, and a couple of implicit endpoints. Markets are
 // set in the constructor so the pools' ensureMarketsLoaded never touches the disk cache.
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import type { ResolvedConfig, AccountConfig } from '../../ts/types.js';
 import type { PoolsDeps } from '../../ts/pools.js';
 
@@ -321,6 +324,129 @@ class BadSymbol extends Error {}
 
 // ccxt.pro rejects pending watch futures with this when a socket is closed
 class ExchangeClosedByUser extends Error {}
+
+// An account with something in it, for the account views (show_balance / show_orders /
+// show_positions and the show_chart overlay): several holdings, orders in every state and
+// derivatives positions. Calls are recorded on the class because the server builds its own
+// instances; tests reset `calls` before use. Every id and amount is invented.
+const spotMarket = (base: string, quote: string) => ({ ...MARKET, 'symbol': base + '/' + quote, 'id': base + quote, base, quote });
+
+export class AccountExchange extends FakeExchange {
+    static calls: [ string, any[] ][] = [];
+
+    constructor (config: Record<string, any> = {}) {
+        super (config);
+        this.has = { ...this.has, 'fetchPositions': true, 'fetchClosedOrders': true, 'fetchCanceledAndClosedOrders': true, 'fetchOrders': true };
+        this.markets = {
+            'BTC/USDT': MARKET,
+            'ETH/USDT': spotMarket ('ETH', 'USDT'),
+            'SOL/USDT': spotMarket ('SOL', 'USDT'),
+            'DOGE/USDT': { ...spotMarket ('DOGE', 'USDT'), 'active': false }, // delisted: not priced
+            'XRP/USD': spotMarket ('XRP', 'USD'), // a USD market must not be mixed into a USDT valuation
+        };
+    }
+
+    async fetchBalance (params: any = {}): Promise<any> {
+        AccountExchange.calls.push ([ 'fetchBalance', [ params ] ]);
+        return {
+            'info': { 'raw': 'balance-payload' },
+            'timestamp': 1700000000000,
+            'datetime': '2023-11-14T22:13:20.000Z',
+            'free': {},
+            'used': {},
+            'total': {},
+            'SOL': { 'free': 10, 'used': 0, 'total': 10 },
+            'USDT': { 'free': 900, 'used': 100, 'total': 1000 },
+            'BTC': { 'free': 0.4, 'used': 0.1, 'total': 0.5 },
+            'ETH': { 'free': 1.5, 'used': 0.5, 'total': undefined }, // a venue that omits totals
+            'XRP': { 'free': 300, 'used': 0, 'total': 300 },
+            'DOGE': { 'free': 5000, 'used': 0, 'total': 5000 },
+            'ZERO': { 'free': 0, 'used': 0, 'total': 0 },
+        };
+    }
+
+    async fetchTickers (symbols: string[]): Promise<any> {
+        AccountExchange.calls.push ([ 'fetchTickers', [ symbols ] ]);
+        const tickers: Record<string, any> = {
+            'BTC/USDT': { 'symbol': 'BTC/USDT', 'last': 50000, 'info': { 'raw': true } },
+            'ETH/USDT': { 'symbol': 'ETH/USDT', 'close': 2000 }, // no last
+            'SOL/USDT': { 'symbol': 'SOL/USDT', 'bid': 99, 'ask': 101 }, // book only
+        };
+        const result: Record<string, any> = {};
+        for (const symbol of symbols) {
+            if (tickers[symbol] !== undefined) {
+                result[symbol] = tickers[symbol];
+            }
+        }
+        return result;
+    }
+
+    static order (id: string, timestamp: number | undefined, side: string, type: string, price: number | undefined, status: string, symbol = 'BTC/USDT'): any {
+        return { id, timestamp, 'datetime': (timestamp === undefined) ? undefined : new Date (timestamp).toISOString (), symbol, type, side, price, 'amount': 0.01, 'filled': (status === 'closed') ? 0.01 : 0, 'remaining': (status === 'closed') ? 0 : 0.01, status, 'info': { 'raw': 'order-payload' } };
+    }
+
+    // deliberately not in time order, with a market order (no price) in the middle
+    async fetchOpenOrders (symbol?: string, since?: number, limit?: number, params: any = {}): Promise<any> {
+        AccountExchange.calls.push ([ 'fetchOpenOrders', [ symbol, since, limit, params ] ]);
+        this.openOrdersFetches += 1;
+        const orders = [
+            AccountExchange.order ('o-2', 1700000002000, 'sell', 'limit', 52000, 'open'),
+            AccountExchange.order ('o-market', 1700000001000, 'sell', 'market', undefined, 'open'),
+            AccountExchange.order ('o-3', 1700000003000, 'buy', 'limit', 48000, 'open'),
+            AccountExchange.order ('o-undated', undefined, 'buy', 'limit', 47000, 'open'),
+            AccountExchange.order ('o-eth', 1700000000500, 'buy', 'limit', 1900, 'open', 'ETH/USDT'),
+        ];
+        return orders.filter ((order) => symbol === undefined || order.symbol === symbol);
+    }
+
+    async fetchClosedOrders (symbol?: string, since?: number, limit?: number, params: any = {}): Promise<any> {
+        AccountExchange.calls.push ([ 'fetchClosedOrders', [ symbol, since, limit, params ] ]);
+        return [ AccountExchange.order ('c-1', 1699990000000, 'buy', 'market', undefined, 'closed') ];
+    }
+
+    async fetchCanceledAndClosedOrders (symbol?: string, since?: number, limit?: number, params: any = {}): Promise<any> {
+        AccountExchange.calls.push ([ 'fetchCanceledAndClosedOrders', [ symbol, since, limit, params ] ]);
+        return [
+            AccountExchange.order ('c-1', 1699990000000, 'buy', 'market', undefined, 'closed'),
+            AccountExchange.order ('x-1', 1699980000000, 'sell', 'limit', 60000, 'canceled'),
+        ];
+    }
+
+    async fetchOrders (symbol?: string, since?: number, limit = 50, params: any = {}): Promise<any> {
+        AccountExchange.calls.push ([ 'fetchOrders', [ symbol, since, limit, params ] ]);
+        return Array.from ({ 'length': limit }, (_, i) => AccountExchange.order ('all-' + i, 1700000000000 + i * 1000, (i % 3 === 0) ? 'sell' : 'buy', 'limit', 40000 + i, (i % 2 === 0) ? 'open' : 'closed'));
+    }
+
+    async fetchPositions (symbols?: string[], params: any = {}): Promise<any> {
+        AccountExchange.calls.push ([ 'fetchPositions', [ symbols, params ] ]);
+        const position = (symbol: string, side: string, contracts: any, unrealizedPnl: any, extra: any = {}) => ({ symbol, side, contracts, 'contractSize': 1, 'entryPrice': 100, 'markPrice': 110, unrealizedPnl, 'leverage': 5, 'marginMode': 'cross', 'info': { 'raw': 'position-payload' }, ...extra });
+        const positions = [
+            position ('BTC/USDT:USDT', 'long', 2, 20.5),
+            position ('ETH/USDT:USDT', 'short', 3, -30.25),
+            position ('SOL/USDT:USDT', 'long', 0, 0), // closed: zero contracts
+            null,
+            position ('XRP/USDT:USDT', 'long', undefined, 1, { 'notional': 0 }), // closed: zero notional
+            position ('DOGE/USDT:USDT', 'long', '7', 0.5), // contracts as a string
+        ];
+        return positions.filter ((entry: any) => entry === null || symbols === undefined || symbols.includes (entry.symbol));
+    }
+}
+
+// The view files (ts/ui/<view>.html) are authored separately from the tools that feed them,
+// so a test that reads one waits for it to appear instead of failing on an unlucky ordering;
+// once the file exists this returns at once. CCXT_MCP_TEST_VIEW_WAIT_MS shortens the wait.
+export async function waitForViewFiles (files: string[]): Promise<void> {
+    const uiDir = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', '..', 'ts', 'ui');
+    const budget = Number (process.env['CCXT_MCP_TEST_VIEW_WAIT_MS'] ?? 600000);
+    const deadline = Date.now () + (Number.isFinite (budget) ? budget : 600000);
+    const missing = () => files.filter ((file) => !fs.existsSync (path.join (uiDir, file)));
+    while (missing ().length > 0 && Date.now () < deadline) {
+        await new Promise ((resolve) => setTimeout (resolve, 2000));
+    }
+    if (missing ().length > 0) {
+        throw new Error ('view file(s) missing from ts/ui: ' + missing ().join (', '));
+    }
+}
 
 export const fakeCcxtModule = {
     'version': 'fake-1.0',

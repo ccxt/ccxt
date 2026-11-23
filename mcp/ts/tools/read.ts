@@ -2,8 +2,124 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { ServerContext } from '../types.js';
 import { accountSummary } from '../types.js';
-import { ok, project, ORDER_FIELDS, TRADE_FIELDS, POSITION_FIELDS } from '../format.js';
+import { ok, project, ORDER_FIELDS, TRADE_FIELDS, POSITION_FIELDS, type Envelope } from '../format.js';
 import { run, clampLimit, parseSince, accountParam, paramsParam, sinceParam, environmentMeta } from './common.js';
+
+// The fetch-and-shape halves of get_balance / get_orders / get_positions. The show_* render
+// tools (./ui-account.ts) call the same functions, so a data tool and the view that draws the
+// same account can never disagree about which rows exist or how they are projected.
+
+export interface BalanceQuery {
+    nonzeroOnly?: boolean;
+    marketType?: string;
+    params?: Record<string, any>;
+}
+
+export interface BalanceRows {
+    balance: any; // the raw ccxt balance — only its timestamp/datetime are used by callers
+    currencies: Record<string, { free: any, used: any, total: any }>;
+    hidden: number; // zero rows left out because nonzeroOnly was not false
+}
+
+export async function loadBalance (exchange: any, query: BalanceQuery): Promise<BalanceRows> {
+    const requestParams = { ...(query.params ?? {}) };
+    if (query.marketType !== undefined) {
+        requestParams['type'] = query.marketType;
+    }
+    const balance = await exchange.fetchBalance (requestParams);
+    const skipKeys = new Set ([ 'info', 'free', 'used', 'total', 'timestamp', 'datetime', 'debt' ]);
+    const currencies: Record<string, any> = {};
+    let hidden = 0;
+    for (const [ code, entry ] of Object.entries (balance)) {
+        if (skipKeys.has (code) || entry === null || typeof entry !== 'object') {
+            continue;
+        }
+        const row = entry as any;
+        const isZero = !row.total && !row.free && !row.used;
+        if (isZero && query.nonzeroOnly !== false) {
+            hidden += 1;
+            continue;
+        }
+        currencies[code] = { 'free': row.free, 'used': row.used, 'total': row.total };
+    }
+    return { balance, currencies, hidden };
+}
+
+export interface OrderListQuery {
+    symbol?: string;
+    status?: string;
+    since?: number | string;
+    limit?: number;
+    params?: Record<string, any>;
+}
+
+export type OrderList = { status: string, orders: any[], hasMore: boolean } | { error: Envelope };
+
+export async function loadOrderList (exchange: any, query: OrderListQuery): Promise<OrderList> {
+    const statusValue = query.status ?? 'open';
+    const methodByStatus: Record<string, string[]> = {
+        'open': [ 'fetchOpenOrders' ],
+        'closed': [ 'fetchClosedOrders', 'fetchCanceledAndClosedOrders' ],
+        'canceled': [ 'fetchCanceledOrders', 'fetchCanceledAndClosedOrders' ],
+        'all': [ 'fetchOrders' ],
+    };
+    const candidates = methodByStatus[statusValue];
+    if (candidates === undefined) {
+        return { 'error': { 'ok': false, 'error': { 'code': 'BAD_REQUEST', 'message': 'unknown status ' + JSON.stringify (statusValue), 'retryable': false, 'hint': 'status must be one of: open, closed, canceled, all' } } };
+    }
+    const method = candidates.find ((name) => exchange.has?.[name]);
+    if (method === undefined) {
+        const supported = Object.keys (methodByStatus).filter ((key) => methodByStatus[key].some ((name) => exchange.has?.[name]));
+        return { 'error': { 'ok': false, 'error': { 'code': 'NOT_SUPPORTED', 'message': exchange.id + ' has no method for status "' + statusValue + '" order lists', 'retryable': false, 'hint': 'statuses this exchange supports: ' + supported.join (', ') } } };
+    }
+    const orderLimit = clampLimit (query.limit, 50, 200);
+    const orders = await exchange[method] (query.symbol, parseSince (exchange, query.since), orderLimit, query.params ?? {});
+    // the combined fallback returns both statuses — filter so the payload matches
+    // the status the caller asked for
+    const filtered = (method === 'fetchCanceledAndClosedOrders' && statusValue !== 'all')
+        ? orders.filter ((order: any) => order.status === statusValue)
+        : orders;
+    return {
+        'status': statusValue,
+        'orders': filtered.map ((order: any) => project (order, ORDER_FIELDS)),
+        'hasMore': orders.length >= orderLimit,
+    };
+}
+
+export interface PositionQuery {
+    symbols?: string[];
+    marketType?: string;
+    params?: Record<string, any>;
+}
+
+export type PositionList = { positions: any[] } | { error: Envelope };
+
+export async function loadOpenPositions (exchange: any, query: PositionQuery): Promise<PositionList> {
+    if (!exchange.has?.['fetchPositions']) {
+        return { 'error': { 'ok': false, 'error': { 'code': 'NOT_SUPPORTED', 'message': exchange.id + ' has no fetchPositions (spot-only exchange?)', 'retryable': false, 'hint': 'use get_balance for spot holdings' } } };
+    }
+    const requestParams = { ...(query.params ?? {}) };
+    if (query.marketType !== undefined) {
+        requestParams['type'] = query.marketType;
+    }
+    const positions = await exchange.fetchPositions (query.symbols, requestParams);
+    const open = positions.filter ((position: any) => {
+        if (position === undefined || position === null) {
+            return false;
+        }
+        const contracts = position.contracts;
+        if (contracts !== undefined && contracts !== null) {
+            return Number (contracts) !== 0;
+        }
+        const notional = position.notional;
+        if (notional !== undefined && notional !== null) {
+            return Number (notional) !== 0;
+        }
+        // some exchanges omit "contracts"/"notional" for open positions; keep them rather than guessing
+        return true;
+    });
+    return { 'positions': open.map ((position: any) => project (position, POSITION_FIELDS)) };
+}
 
 export function registerReadTools (server: McpServer, ctx: ServerContext): void {
     server.registerTool ('list_accounts', {
@@ -31,26 +147,7 @@ export function registerReadTools (server: McpServer, ctx: ServerContext): void 
         'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
     }, async ({ account: accountName, nonzeroOnly, marketType, params }) => run ({ 'tool': 'get_balance', 'account': accountName, 'exchange': ctx.config.accounts[accountName]?.exchange }, async () => {
         const { exchange, account } = await ctx.pools.getAuthenticated (accountName);
-        const requestParams = { ...(params ?? {}) };
-        if (marketType !== undefined) {
-            requestParams['type'] = marketType;
-        }
-        const balance = await exchange.fetchBalance (requestParams);
-        const skipKeys = new Set ([ 'info', 'free', 'used', 'total', 'timestamp', 'datetime', 'debt' ]);
-        const currencies: Record<string, any> = {};
-        let hidden = 0;
-        for (const [ code, entry ] of Object.entries (balance)) {
-            if (skipKeys.has (code) || entry === null || typeof entry !== 'object') {
-                continue;
-            }
-            const row = entry as any;
-            const isZero = !row.total && !row.free && !row.used;
-            if (isZero && nonzeroOnly !== false) {
-                hidden += 1;
-                continue;
-            }
-            currencies[code] = { 'free': row.free, 'used': row.used, 'total': row.total };
-        }
+        const { balance, currencies, hidden } = await loadBalance (exchange, { nonzeroOnly, marketType, params });
         return ok (currencies, {
             ...environmentMeta (account),
             'timestamp': balance.timestamp,
@@ -79,34 +176,15 @@ export function registerReadTools (server: McpServer, ctx: ServerContext): void 
             const order = await exchange.fetchOrder (id, symbol, params ?? {});
             return ok (includeInfo === true ? order : project (order, ORDER_FIELDS), environmentMeta (account));
         }
-        const statusValue = status ?? 'open';
-        const methodByStatus: Record<string, string[]> = {
-            'open': [ 'fetchOpenOrders' ],
-            'closed': [ 'fetchClosedOrders', 'fetchCanceledAndClosedOrders' ],
-            'canceled': [ 'fetchCanceledOrders', 'fetchCanceledAndClosedOrders' ],
-            'all': [ 'fetchOrders' ],
-        };
-        const candidates = methodByStatus[statusValue];
-        if (candidates === undefined) {
-            return { 'ok': false, 'error': { 'code': 'BAD_REQUEST', 'message': 'unknown status ' + JSON.stringify (statusValue), 'retryable': false, 'hint': 'status must be one of: open, closed, canceled, all' } };
+        const list = await loadOrderList (exchange, { symbol, status, since, limit, params });
+        if ('error' in list) {
+            return list.error;
         }
-        const method = candidates.find ((name) => exchange.has?.[name]);
-        if (method === undefined) {
-            const supported = Object.keys (methodByStatus).filter ((key) => methodByStatus[key].some ((name) => exchange.has?.[name]));
-            return { 'ok': false, 'error': { 'code': 'NOT_SUPPORTED', 'message': exchange.id + ' has no method for status "' + statusValue + '" order lists', 'retryable': false, 'hint': 'statuses this exchange supports: ' + supported.join (', ') } };
-        }
-        const orderLimit = clampLimit (limit, 50, 200);
-        const orders = await exchange[method] (symbol, parseSince (exchange, since), orderLimit, params ?? {});
-        // the combined fallback returns both statuses — filter so the payload matches
-        // the status the caller asked for
-        const filtered = (method === 'fetchCanceledAndClosedOrders' && statusValue !== 'all')
-            ? orders.filter ((order: any) => order.status === statusValue)
-            : orders;
-        return ok (filtered.map ((order: any) => project (order, ORDER_FIELDS)), {
+        return ok (list.orders, {
             ...environmentMeta (account),
-            'status': statusValue,
-            'count': filtered.length,
-            'hasMore': orders.length >= orderLimit,
+            'status': list.status,
+            'count': list.orders.length,
+            'hasMore': list.hasMore,
         });
     }));
 
@@ -144,29 +222,10 @@ export function registerReadTools (server: McpServer, ctx: ServerContext): void 
         'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
     }, async ({ account: accountName, symbols, marketType, params }) => run ({ 'tool': 'get_positions', 'account': accountName, 'exchange': ctx.config.accounts[accountName]?.exchange }, async () => {
         const { exchange, account } = await ctx.pools.getAuthenticated (accountName);
-        if (!exchange.has?.['fetchPositions']) {
-            return { 'ok': false, 'error': { 'code': 'NOT_SUPPORTED', 'message': exchange.id + ' has no fetchPositions (spot-only exchange?)', 'retryable': false, 'hint': 'use get_balance for spot holdings' } };
+        const list = await loadOpenPositions (exchange, { symbols, marketType, params });
+        if ('error' in list) {
+            return list.error;
         }
-        const requestParams = { ...(params ?? {}) };
-        if (marketType !== undefined) {
-            requestParams['type'] = marketType;
-        }
-        const positions = await exchange.fetchPositions (symbols, requestParams);
-        const open = positions.filter ((position: any) => {
-            if (position === undefined || position === null) {
-                return false;
-            }
-            const contracts = position.contracts;
-            if (contracts !== undefined && contracts !== null) {
-                return Number (contracts) !== 0;
-            }
-            const notional = position.notional;
-            if (notional !== undefined && notional !== null) {
-                return Number (notional) !== 0;
-            }
-            // some exchanges omit "contracts"/"notional" for open positions; keep them rather than guessing
-            return true;
-        });
-        return ok (open.map ((position: any) => project (position, POSITION_FIELDS)), { ...environmentMeta (account), 'count': open.length });
+        return ok (list.positions, { ...environmentMeta (account), 'count': list.positions.length });
     }));
 }

@@ -1,0 +1,564 @@
+<!doctype html>
+<!--
+    The account setup form. NOT an MCP Apps view: ts/setup.ts serves this page over loopback
+    HTTP to the user's own browser, filling in a per-response CSP nonce and the JSON block
+    that describes the session (the two upper-case placeholders below). It has no external assets and talks only to
+    the address it was loaded from. Everything that comes from the server or from the user is
+    put on the page with textContent — never as markup.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Connect an exchange account · CCXT</title>
+<link rel="icon" href="data:,">
+<style nonce="__CSP_NONCE__">
+/* @include shared.css */
+:root { --primary: #1f5fb4; --on-primary: #ffffff; --warn: #9a5b00; }
+@media (prefers-color-scheme: dark) {
+    :root { --primary: #8fbcf5; --on-primary: #0b0b0b; --warn: #e3a341; }
+}
+body { font-size: 15px; line-height: 1.5; padding: 0 16px 48px; }
+main { max-width: 640px; margin: 0 auto; }
+header.top { display: flex; align-items: center; gap: 10px; padding: 28px 0 6px; }
+.mark { font-weight: 700; letter-spacing: 0.06em; font-size: 13px; border: 1.5px solid var(--text); border-radius: 6px; padding: 2px 7px; }
+.top .product { color: var(--text-2); font-size: 13px; }
+h1 { font-size: 26px; line-height: 1.2; margin: 10px 0 6px; letter-spacing: -0.01em; }
+.lede { color: var(--text-2); margin: 0 0 18px; }
+.trust { display: flex; gap: 12px; align-items: flex-start; background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 22px; }
+.trust svg { flex: none; width: 22px; height: 22px; margin-top: 2px; stroke: var(--up); fill: none; overflow: hidden; }
+.trust strong { display: block; }
+.trust p { margin: 2px 0 0; color: var(--text-2); font-size: 14px; }
+section.step { border: 1px solid var(--border); border-radius: 12px; padding: 18px 18px 20px; margin-bottom: 14px; background: var(--bg); }
+.step h2 { display: flex; align-items: center; gap: 10px; font-size: 17px; margin: 0 0 4px; }
+.step h2 .n { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--text); color: var(--bg); font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; }
+.step > p.hint { margin: 0 0 14px; color: var(--text-2); font-size: 14px; }
+label.field { display: block; margin-top: 14px; }
+label.field:first-of-type { margin-top: 0; }
+.field .name { display: block; font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+.field .help { display: block; color: var(--text-2); font-size: 13px; margin-top: 4px; }
+input[type="text"], input[type="password"], input[type="number"], select {
+    width: 100%; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--text-3);
+    border-radius: 8px; padding: 9px 11px; min-height: 42px;
+}
+input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+.secret { display: flex; gap: 8px; }
+.secret input { flex: 1; min-width: 0; font-family: var(--mono); }
+.secret button { flex: none; min-width: 64px; min-height: 42px; }
+ul.checklist { list-style: none; margin: 0; padding: 0; }
+ul.checklist li { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; border-top: 1px solid var(--border); }
+ul.checklist li:first-child { border-top: 0; }
+ul.checklist .tick { flex: none; width: 20px; height: 20px; border-radius: 50%; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; margin-top: 2px; color: #fff; background: var(--up); }
+ul.checklist .tick.no { background: var(--down); }
+ul.checklist small { display: block; color: var(--text-2); font-size: 13px; }
+.site { margin: 12px 0 0; font-size: 14px; }
+a { color: var(--primary); }
+.options { display: grid; gap: 8px; }
+label.option { display: flex; gap: 12px; align-items: flex-start; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; cursor: pointer; }
+label.option input { flex: none; width: 18px; height: 18px; margin: 3px 0 0; accent-color: var(--primary); }
+label.option .t { font-weight: 600; }
+label.option .d { display: block; color: var(--text-2); font-size: 13.5px; }
+label.option:has(input:checked) { border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); }
+label.option:has(input:disabled) { cursor: default; opacity: 0.55; }
+label.option:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 1px; }
+.badge { display: inline-block; font-size: 11.5px; font-weight: 600; border-radius: 999px; padding: 1px 8px; margin-left: 6px; vertical-align: 1px; border: 1px solid var(--border); color: var(--text-2); white-space: nowrap; }
+.badge.good { color: var(--up); border-color: var(--up); }
+.badge.real { color: var(--down); border-color: var(--down); }
+.tick-inline { color: var(--up); font-weight: 700; }
+.always { display: flex; gap: 10px; align-items: flex-start; padding: 2px 2px 12px; color: var(--text-2); font-size: 14px; }
+.livebox { border: 1px solid var(--down); border-left-width: 4px; border-radius: 10px; padding: 14px; margin-top: 10px; }
+.livebox h3 { margin: 0 0 4px; font-size: 15px; color: var(--down); }
+.livebox p { margin: 0 0 12px; font-size: 14px; }
+.cap { display: flex; align-items: center; gap: 8px; max-width: 220px; }
+.cap span { color: var(--text-2); font-weight: 600; }
+.fineprint { color: var(--text-2); font-size: 13px; margin: 14px 0 0; }
+code { font-family: var(--mono); font-size: 12.5px; background: var(--bg-2); border-radius: 4px; padding: 1px 5px; overflow-wrap: anywhere; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 20px; }
+button.primary, button.secondary { font-size: 15px; font-weight: 600; min-height: 44px; padding: 8px 18px; border-radius: 10px; }
+button.primary { background: var(--primary); color: var(--on-primary); border-color: var(--primary); }
+button.primary:hover:not(:disabled) { background: var(--primary); color: var(--on-primary); filter: brightness(1.08); }
+button.secondary { color: var(--text); border-color: var(--text-3); }
+.expiry { margin-left: auto; color: var(--text-3); font-size: 13px; font-variant-numeric: tabular-nums; }
+.notice { border-radius: 10px; padding: 12px 14px; margin-top: 14px; border: 1px solid var(--border); border-left-width: 4px; font-size: 14px; overflow-wrap: anywhere; }
+.notice strong { display: block; }
+.notice.good { border-color: var(--up); }
+.notice.bad { border-color: var(--down); }
+.notice.warn { border-color: var(--warn); }
+.notice .detail { display: block; color: var(--text-2); font-size: 13px; margin-top: 4px; }
+.notice .row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.notice .row button { min-height: 36px; padding: 5px 12px; font-weight: 600; color: var(--text); border-color: var(--text-3); }
+.final { text-align: center; padding: 56px 8px 24px; }
+.final .disc { width: 64px; height: 64px; border-radius: 50%; background: var(--up); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; }
+.final .disc.gone { background: var(--text-3); }
+.final h1 { margin-top: 18px; }
+.final p { color: var(--text-2); max-width: 460px; margin: 6px auto 0; }
+.final .summary { color: var(--text); font-weight: 600; }
+@media (max-width: 480px) {
+    h1 { font-size: 22px; }
+    section.step { padding: 16px 14px 18px; }
+    .actions button { flex: 1 1 100%; }
+    .expiry { margin-left: 0; }
+}
+</style>
+</head>
+<body>
+<main>
+    <header class="top">
+        <span class="mark">CCXT</span>
+        <span class="product">Account setup</span>
+    </header>
+
+    <div id="form-view">
+        <h1>Connect an exchange account</h1>
+        <p class="lede">Add an API key so your AI assistant can show your balances, orders and positions.</p>
+
+        <div class="trust">
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+            <div>
+                <strong>This page runs on your own computer.</strong>
+                <p>Its address starts with <code>127.0.0.1</code>, which means &ldquo;this computer&rdquo;. What you type is saved to a file here and used to talk to the exchange you pick. It is never shown to the AI assistant and never sent to CCXT.</p>
+            </div>
+        </div>
+
+        <section class="step" aria-labelledby="s1">
+            <h2 id="s1"><span class="n">1</span>Choose your exchange</h2>
+            <p class="hint">The exchange where your account is.</p>
+            <label class="field">
+                <span class="name">Exchange</span>
+                <select id="exchange" autocomplete="off"></select>
+            </label>
+            <label class="field">
+                <span class="name">Name for this account</span>
+                <input id="account" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="40">
+                <span class="help">How the assistant will refer to it. Letters, digits, &ldquo;-&rdquo; and &ldquo;_&rdquo;.</span>
+            </label>
+        </section>
+
+        <section class="step" aria-labelledby="s2">
+            <h2 id="s2"><span class="n">2</span><span id="s2-title">Create an API key on the exchange</span></h2>
+            <p class="hint">An API key is a separate password for apps. You create it in the exchange&rsquo;s settings, usually under &ldquo;API management&rdquo;. Give it only these permissions:</p>
+            <ul class="checklist">
+                <li><span class="tick" aria-hidden="true">&#10003;</span><div><strong>Reading: on</strong><small>Lets the assistant see balances, orders and positions.</small></div></li>
+                <li><span class="tick" aria-hidden="true">&#10003;</span><div><strong>Trading: only if you want the assistant to place orders</strong><small>Leave it off for a view-only setup.</small></div></li>
+                <li><span class="tick no" aria-hidden="true">&#10005;</span><div><strong>Withdrawals: keep them DISABLED</strong><small>This setup never needs to move money out of your account.</small></div></li>
+                <li><span class="tick" aria-hidden="true">&#10003;</span><div><strong>Restrict the key to your IP address, if the exchange offers it</strong><small>Then the key only works from your own connection.</small></div></li>
+            </ul>
+            <p class="site" id="site" hidden><a id="site-link" target="_blank" rel="noopener noreferrer"></a></p>
+        </section>
+
+        <section class="step" aria-labelledby="s3">
+            <h2 id="s3"><span class="n">3</span>Enter the key</h2>
+            <p class="hint" id="fields-hint">Choose an exchange first &mdash; the boxes it needs will appear here.</p>
+            <div id="fields"></div>
+        </section>
+
+        <section class="step" aria-labelledby="s4">
+            <h2 id="s4"><span class="n">4</span>Where does this key work?</h2>
+            <p class="hint">Keys are made for one environment. Pick the one you created this key in.</p>
+            <div class="options" role="radiogroup" aria-labelledby="s4">
+                <label class="option"><input type="radio" name="environment" value="sandbox"><span><span class="t">Testnet</span><span class="badge good">Practice money</span><span class="d" data-note="sandbox">A separate practice copy of the exchange. Nothing here is real &mdash; the best place to start.</span></span></label>
+                <label class="option"><input type="radio" name="environment" value="demo"><span><span class="t">Demo trading</span><span class="badge good">Practice money</span><span class="d" data-note="demo">The exchange&rsquo;s demo mode, with a key created in its demo portal.</span></span></label>
+                <label class="option"><input type="radio" name="environment" value="live"><span><span class="t">Live</span><span class="badge real">Real money</span><span class="d" data-note="live">Your real account.</span></span></label>
+            </div>
+        </section>
+
+        <section class="step" aria-labelledby="s5">
+            <h2 id="s5"><span class="n">5</span>What may the assistant do?</h2>
+            <div class="always"><span class="tick-inline" aria-hidden="true">&#10003;</span><span>View balances, orders and positions &mdash; always included.</span></div>
+            <label class="option"><input type="checkbox" id="trading"><span><span class="t">Allow placing orders</span><span class="d" id="trading-note">Off: the assistant can only look. On: it can create and cancel orders.</span></span></label>
+            <div class="livebox" id="livebox" hidden>
+                <h3>Orders will use real money</h3>
+                <p>Set the largest single order the assistant may place. Anything bigger is refused, and every order still asks you to confirm first.</p>
+                <label class="field">
+                    <span class="name">Largest single order</span>
+                    <span class="cap"><input id="cap" type="number" inputmode="decimal" min="0" step="any" value="25" autocomplete="off"><span>USD</span></span>
+                </label>
+                <label class="option" id="live-confirm-row"><input type="checkbox" id="live-confirm"><span><span class="t">I understand the assistant will be able to place orders with real money on this account, up to this amount each.</span></span></label>
+            </div>
+            <p class="fineprint">Withdrawals and transfers cannot be switched on from this page. They can only be enabled by editing the settings file yourself: <code id="config-path"></code></p>
+        </section>
+
+        <div id="status" role="status" aria-live="polite"></div>
+
+        <div class="actions">
+            <button type="button" class="primary" id="save">Save account</button>
+            <button type="button" class="secondary" id="test">Test connection</button>
+            <span class="expiry" id="expiry"></span>
+        </div>
+    </div>
+
+    <div id="done-view" class="final" hidden>
+        <span class="disc" aria-hidden="true">&#10003;</span>
+        <h1 tabindex="-1" id="done-title">Saved &mdash; return to the chat</h1>
+        <p class="summary" id="done-summary"></p>
+        <p>Your assistant can use this account right away. Tell it you are done. You can close this tab.</p>
+        <p id="done-restart" hidden>Tools for newly enabled features appear after the assistant app is restarted.</p>
+    </div>
+
+    <div id="gone-view" class="final" hidden>
+        <span class="disc gone" aria-hidden="true">!</span>
+        <h1 tabindex="-1" id="gone-title">This form is no longer active</h1>
+        <p>For your safety it works once and for ten minutes only. Nothing was saved. Go back to the chat and ask the assistant to open the account setup again.</p>
+    </div>
+</main>
+
+<script type="application/json" id="boot">__BOOT_JSON__</script>
+<script nonce="__CSP_NONCE__">
+(function () {
+    'use strict';
+    var boot = JSON.parse (document.getElementById ('boot').textContent);
+    // the page's own path carries the session; every endpoint hangs off it
+    var base = location.pathname.replace (/\/+$/, '');
+    var $ = function (id) { return document.getElementById (id); };
+    var exchangeSelect = $('exchange');
+    var accountInput = $('account');
+    var fieldsBox = $('fields');
+    var statusBox = $('status');
+    var tradingBox = $('trading');
+    var state = { 'info': undefined, 'nameEdited': false, 'testedOk': '', 'busy': false, 'over': false };
+
+    function el (tag, className, text) {
+        var node = document.createElement (tag);
+        if (className) { node.className = className; }
+        if (text !== undefined) { node.textContent = text; }
+        return node;
+    }
+
+    function environment () {
+        var checked = document.querySelector ('input[name="environment"]:checked');
+        return checked ? checked.value : '';
+    }
+
+    function credentials () {
+        var out = {};
+        var inputs = fieldsBox.querySelectorAll ('input[data-field]');
+        for (var i = 0; i < inputs.length; i++) {
+            out[inputs[i].getAttribute ('data-field')] = inputs[i].value;
+        }
+        return out;
+    }
+
+    // what a successful test vouches for: the same exchange, keys and environment
+    function fingerprint () {
+        return JSON.stringify ([ exchangeSelect.value, credentials (), environment () ]);
+    }
+
+    function clearStatus () {
+        statusBox.textContent = '';
+    }
+
+    // kind: good | bad | warn; actions: [ [label, handler], ... ]
+    function showStatus (kind, title, detail, actions) {
+        clearStatus ();
+        var box = el ('div', 'notice ' + kind);
+        box.appendChild (el ('strong', '', title));
+        if (detail) { box.appendChild (el ('span', 'detail', detail)); }
+        if (actions && actions.length) {
+            var row = el ('div', 'row');
+            actions.forEach (function (action) {
+                var button = el ('button', '', action[0]);
+                button.type = 'button';
+                button.addEventListener ('click', action[1]);
+                row.appendChild (button);
+            });
+            box.appendChild (row);
+        }
+        statusBox.appendChild (box);
+        box.scrollIntoView ({ 'block': 'nearest' });
+    }
+
+    function setBusy (busy, label) {
+        state.busy = busy;
+        $('save').disabled = busy;
+        $('test').disabled = busy;
+        $('save').textContent = (busy && label === 'save') ? 'Saving…' : 'Save account';
+        $('test').textContent = (busy && label === 'test') ? 'Testing…' : 'Test connection';
+    }
+
+    function finish (viewId, titleId) {
+        state.over = true;
+        $('form-view').hidden = true;
+        $('done-view').hidden = viewId !== 'done-view';
+        $('gone-view').hidden = viewId !== 'gone-view';
+        // typed keys must not sit in the page after it has served its purpose
+        var inputs = fieldsBox.querySelectorAll ('input');
+        for (var i = 0; i < inputs.length; i++) { inputs[i].value = ''; }
+        $(titleId).focus ();
+        window.scrollTo (0, 0);
+    }
+
+    function gone () {
+        if (!state.over) { finish ('gone-view', 'gone-title'); }
+    }
+
+    function request (method, path, body) {
+        var options = { 'method': method, 'cache': 'no-store', 'credentials': 'same-origin', 'headers': {} };
+        if (body !== undefined) {
+            options.headers['Content-Type'] = 'application/json';
+            options.headers['X-Setup-Nonce'] = boot.csrf;
+            options.body = JSON.stringify (body);
+        }
+        return fetch (base + path, options).then (function (response) {
+            // 404 is the server saying the session is over (expired, used, or replaced)
+            if (response.status === 404) { gone (); throw new Error ('gone'); }
+            return response.json ().then (function (data) { data.status = response.status; return data; });
+        }, function () {
+            // the local server is not there any more
+            gone ();
+            throw new Error ('gone');
+        });
+    }
+
+    function renderFields (info) {
+        fieldsBox.textContent = '';
+        $('fields-hint').textContent = info.fields.length
+            ? 'Copy each value from the exchange and paste it here. They are hidden as you type.'
+            : 'This exchange does not need a key for the features offered here.';
+        info.fields.forEach (function (field) {
+            var label = el ('label', 'field');
+            label.appendChild (el ('span', 'name', field.label));
+            var row = el ('span', 'secret');
+            var input = el ('input');
+            input.type = 'password';
+            input.setAttribute ('data-field', field.name);
+            input.setAttribute ('autocomplete', 'off');
+            input.setAttribute ('autocapitalize', 'off');
+            input.setAttribute ('autocorrect', 'off');
+            input.spellcheck = false;
+            var toggle = el ('button', '', 'Show');
+            toggle.type = 'button';
+            toggle.setAttribute ('aria-pressed', 'false');
+            toggle.setAttribute ('aria-label', 'Show ' + field.label);
+            toggle.addEventListener ('click', function () {
+                var reveal = input.type === 'password';
+                input.type = reveal ? 'text' : 'password';
+                toggle.textContent = reveal ? 'Hide' : 'Show';
+                toggle.setAttribute ('aria-pressed', reveal ? 'true' : 'false');
+            });
+            row.appendChild (input);
+            row.appendChild (toggle);
+            label.appendChild (row);
+            fieldsBox.appendChild (label);
+        });
+    }
+
+    var NOTES = {
+        'sandbox': 'A separate practice copy of the exchange. Nothing here is real — the best place to start.',
+        'demo': 'The exchange’s demo mode, with a key created in its demo portal.',
+        'live': 'Your real account.',
+    };
+
+    function renderEnvironments (info) {
+        var radios = document.querySelectorAll ('input[name="environment"]');
+        for (var i = 0; i < radios.length; i++) {
+            var radio = radios[i];
+            var offered = !info || info.environments[radio.value] === true;
+            radio.disabled = !offered;
+            // an environment that is not offered is never swapped for another one silently —
+            // the choice between practice and real money is always the user's own click
+            if (!offered && radio.checked) { radio.checked = false; }
+            document.querySelector ('[data-note="' + radio.value + '"]').textContent = offered ? NOTES[radio.value] : ('Not offered by ' + info.name + '.');
+        }
+        syncPermissions ();
+    }
+
+    function syncPermissions () {
+        var live = environment () === 'live';
+        $('livebox').hidden = !(live && tradingBox.checked);
+        if (!(live && tradingBox.checked)) { $('live-confirm').checked = false; }
+        $('trading-note').textContent = live
+            ? 'Off: the assistant can only look. On: it can create and cancel orders with real money.'
+            : 'Off: the assistant can only look. On: it can create and cancel orders.';
+    }
+
+    function loadExchange () {
+        var id = exchangeSelect.value;
+        state.info = undefined;
+        state.testedOk = '';
+        clearStatus ();
+        if (!state.nameEdited) { accountInput.value = id; }
+        if (!id) {
+            fieldsBox.textContent = '';
+            $('fields-hint').textContent = 'Choose an exchange first — the boxes it needs will appear here.';
+            $('s2-title').textContent = 'Create an API key on the exchange';
+            $('site').hidden = true;
+            renderEnvironments (undefined);
+            return;
+        }
+        request ('GET', '/credentials?exchange=' + encodeURIComponent (id)).then (function (info) {
+            if (!info.ok || exchangeSelect.value !== id) { return; }
+            state.info = info;
+            $('s2-title').textContent = 'Create an API key on ' + info.name;
+            if (info.website) {
+                $('site-link').href = info.website;
+                $('site-link').textContent = 'Open the ' + info.name + ' website in a new tab';
+                $('site').hidden = false;
+            } else {
+                $('site').hidden = true;
+            }
+            renderFields (info);
+            renderEnvironments (info);
+        }, function () {});
+    }
+
+    function collect () {
+        var live = environment () === 'live';
+        var data = {
+            'name': accountInput.value.trim (),
+            'exchange': exchangeSelect.value,
+            'credentials': credentials (),
+            'environment': environment (),
+            'trading': tradingBox.checked,
+        };
+        if (live && tradingBox.checked) {
+            data.maxOrderValue = Number ($('cap').value);
+            data.liveConfirmed = $('live-confirm').checked;
+        }
+        return data;
+    }
+
+    // the server enforces all of this again; here it only saves a round trip and points at
+    // the box that needs attention
+    function problem (data, forSave) {
+        if (!data.exchange || !state.info) { exchangeSelect.focus (); return 'Choose your exchange first.'; }
+        var inputs = fieldsBox.querySelectorAll ('input[data-field]');
+        for (var i = 0; i < inputs.length; i++) {
+            if (!inputs[i].value.trim ()) { inputs[i].focus (); return 'Fill in every box in step 3.'; }
+        }
+        if (!data.environment) { return 'Choose where this key works in step 4.'; }
+        if (!forSave) { return ''; }
+        if (!/^[a-zA-Z0-9_-]{1,40}$/.test (data.name)) { accountInput.focus (); return 'Give the account a short name: letters, digits, “-” and “_” only.'; }
+        if (data.environment === 'live' && data.trading) {
+            if (!(data.maxOrderValue > 0) || !isFinite (data.maxOrderValue)) { $('cap').focus (); return 'Enter the largest single order in USD (a number above 0).'; }
+            if (!data.liveConfirmed) { $('live-confirm').focus (); return 'Tick the box confirming that orders will use real money.'; }
+        }
+        return '';
+    }
+
+    function explain (result) {
+        var kind = String (result.kind || '');
+        if (/Authentication|InvalidNonce/.test (kind)) {
+            return 'The exchange did not accept these keys. Check for a typo or a missing character, and that the key was created for the environment chosen in step 4 (a testnet key only works on testnet).';
+        }
+        if (/PermissionDenied|AccountNotEnabled|AccountSuspended/.test (kind)) {
+            return 'The keys are recognised but are not allowed to read the account. Check the key’s permissions and its IP restriction on the exchange.';
+        }
+        if (/Timeout|Network|NotAvailable|DDoS|RateLimit|OnMaintenance/.test (kind)) {
+            return 'The exchange could not be reached just now. Check your internet connection and try again in a moment.';
+        }
+        return 'The exchange answered with an error when the keys were tried.';
+    }
+
+    function runTest () {
+        var data = collect ();
+        var issue = problem (data, false);
+        if (issue) { showStatus ('bad', issue); return Promise.resolve (undefined); }
+        var tested = fingerprint ();
+        setBusy (true, 'test');
+        showStatus ('warn', 'Checking the keys with the exchange…');
+        return request ('POST', '/test', { 'exchange': data.exchange, 'credentials': data.credentials, 'environment': data.environment }).then (function (result) {
+            setBusy (false);
+            if (result.ok) { state.testedOk = tested; }
+            return result;
+        }, function () { setBusy (false); return undefined; });
+    }
+
+    function save (options) {
+        var data = collect ();
+        var issue = problem (data, true);
+        if (issue) { showStatus ('bad', issue); return; }
+        if (options.replace) { data.replace = true; }
+        setBusy (true, 'save');
+        request ('POST', '/save', data).then (function (result) {
+            setBusy (false);
+            if (result.ok) {
+                var where = { 'sandbox': 'Testnet', 'demo': 'Demo trading', 'live': 'Live' }[result.environment];
+                var may = (result.trading === 'live') ? 'can place orders with real money' : (result.trading ? 'can place practice orders' : 'view only');
+                $('done-summary').textContent = 'Account “' + result.account + '” on ' + (state.info ? state.info.name : result.exchange) + ' · ' + where + ' · ' + may;
+                $('done-restart').hidden = !(result.restartForTools && result.trading);
+                finish ('done-view', 'done-title');
+                return;
+            }
+            if (result.code === 'ACCOUNT_EXISTS') {
+                showStatus ('warn', 'An account named “' + data.name + '” already exists.', 'Replacing it removes its current keys and settings and uses the ones on this page instead.', [
+                    [ 'Replace it', function () { save ({ 'replace': true }); } ],
+                    [ 'Choose another name', function () { clearStatus (); accountInput.focus (); accountInput.select (); } ],
+                ]);
+                return;
+            }
+            showStatus ('bad', 'Not saved.', result.error || 'Something went wrong.');
+        }, function () { setBusy (false); });
+    }
+
+    function onSave () {
+        if (state.busy) { return; }
+        var data = collect ();
+        var issue = problem (data, true);
+        if (issue) { showStatus ('bad', issue); return; }
+        // a save is always preceded by a check that the keys work; a failed check does not
+        // block the save (the exchange may simply be unreachable) but is never silent
+        if (state.testedOk === fingerprint ()) { save ({}); return; }
+        runTest ().then (function (result) {
+            if (result === undefined) { return; }
+            if (result.ok) { save ({}); return; }
+            showStatus ('bad', 'The connection test failed — this account will probably not work.', explain (result) + ' (' + (result.error || 'no details') + ')', [
+                [ 'Go back and fix it', function () { clearStatus (); } ],
+                [ 'Save anyway', function () { save ({}); } ],
+            ]);
+        });
+    }
+
+    function onTest () {
+        if (state.busy) { return; }
+        runTest ().then (function (result) {
+            if (result === undefined) { return; }
+            if (result.ok) {
+                showStatus ('good', 'The keys work.', 'The exchange accepted them. Save the account to finish.');
+            } else {
+                showStatus ('bad', 'The connection test failed.', explain (result) + ' (' + (result.error || 'no details') + ')');
+            }
+        });
+    }
+
+    function startCountdown () {
+        var end = performance.now () + boot.expiresInMs;
+        var tick = function () {
+            if (state.over) { return; }
+            var left = Math.max (0, end - performance.now ());
+            if (left <= 0) { gone (); return; }
+            var minutes = Math.floor (left / 60000);
+            var seconds = Math.floor ((left % 60000) / 1000);
+            $('expiry').textContent = 'This form closes in ' + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+            setTimeout (tick, 1000);
+        };
+        tick ();
+    }
+
+    // ---- wire up
+    exchangeSelect.appendChild (el ('option', '', 'Choose an exchange…')).value = '';
+    boot.exchanges.forEach (function (id) {
+        exchangeSelect.appendChild (el ('option', '', id)).value = id;
+    });
+    exchangeSelect.value = boot.prefill.exchange || '';
+    if (boot.prefill.account) {
+        accountInput.value = boot.prefill.account;
+        state.nameEdited = true;
+    }
+    var preset = document.querySelector ('input[name="environment"][value="' + boot.prefill.environment + '"]');
+    if (preset) { preset.checked = true; }
+    $('config-path').textContent = boot.configPath;
+    accountInput.addEventListener ('input', function () { state.nameEdited = accountInput.value !== ''; });
+    exchangeSelect.addEventListener ('change', loadExchange);
+    tradingBox.addEventListener ('change', syncPermissions);
+    var radios = document.querySelectorAll ('input[name="environment"]');
+    for (var i = 0; i < radios.length; i++) { radios[i].addEventListener ('change', syncPermissions); }
+    $('save').addEventListener ('click', onSave);
+    $('test').addEventListener ('click', onTest);
+    loadExchange ();
+    syncPermissions ();
+    startCountdown ();
+}) ();
+</script>
+</body>
+</html>

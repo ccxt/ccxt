@@ -7,6 +7,8 @@ import { registerFundsTools, registerImplicitWriteTool } from './funds.js';
 import { registerWatchTools } from './watch.js';
 import { registerRouteTools, registerRouteExecuteTool } from './route.js';
 import { registerUiTools } from './ui.js';
+import { registerAccountUiTools } from './ui-account.js';
+import { registerSetupTools } from './setup.js';
 import { log } from '../logging.js';
 
 // By default every tier's tools are listed so the model can discover them and, when a
@@ -25,8 +27,11 @@ export function registerAllTools (server: McpServer, ctx: ServerContext): void {
     registerUiTools (server, ctx);
     registerWatchTools (server, ctx);
     registerRouteTools (server, ctx);
+    // always listed: it is how a user with no account yet gets one without editing a file
+    registerSetupTools (server, ctx);
     if (!hideDisabled || accounts.length > 0) {
         registerReadTools (server, ctx);
+        registerAccountUiTools (server, ctx);
     }
     if (!hideDisabled || tradingEnabled) {
         registerTradeTools (server, ctx);
@@ -57,6 +62,7 @@ Conventions:
 - To find the best price or execution route for converting an asset at a given size across exchanges, use fetch_route rather than comparing order books yourself — it is a quote, not an order. Read fillRatio before effectiveRate. To act on it, pass its routeId to execute_route (trading tier; every order still goes through the account's caps and confirmation).
 - The long tail of read methods (funding rates, ledger, open interest, settlements, …) is available via call_read_method; raw exchange-specific GET endpoints via call_implicit_get.
 - For LIVE data over WebSocket, use watch_subscribe (e.g. watchOHLCV/watchTicker/watchOrderBook/watchTrades, or watchOrders/watchMyTrades with an account) to open a background stream, then poll watch_read for new updates and watch_unsubscribe to stop. One-shot fetch* tools are simpler when you just need a current snapshot.
-- Private tools (balances, orders, positions, create_order, withdraw, …) take an "account" name (list_accounts). API credentials live only in the local config — they are never tool parameters and never appear in results; capability tiers (trading, funds, implicitWrites) can only be enabled by the user editing the config file, never from the conversation.
-- Every tool is listed by default, but a private one whose account or tier is not configured returns a clear error: relay its "hint" to the user (it has the config-file path + an example) so they can set it up — keys go only in that file, never in chat — then they restart the server. Call get_safety_status for the config path, configured accounts and enabled tiers. (A deployment may set hideDisabledTools to hide unconfigured tiers instead.)
+- Private tools (balances, orders, positions, create_order, withdraw, …) take an "account" name (list_accounts). API credentials live only on the user's machine — they are never tool parameters and never appear in results. NEVER ask the user to paste an API key, secret or passphrase into the chat, and if they do, tell them to revoke that key.
+- To connect an exchange account (first run, "get started", or any error saying an account is not configured), call setup_account: it opens a setup form in the user's own browser, served from their machine, where they type the key themselves. You only learn that the form was opened — wait for the user to say they saved it, then call list_accounts; the account works immediately, no restart. The form offers testnet/demo/live and an "allow placing orders" switch (live needs a per-order USD cap); the funds and implicitWrites tiers can only be enabled by the user editing the config file, never from the conversation or the form.
+- Every tool is listed by default, but a private one whose account or tier is not configured returns a clear error: relay its "hint" to the user — setup_account first; editing the config file (the hint has its path + an example) and restarting the server is the alternative. Call get_safety_status for the configured accounts and enabled tiers. (A deployment may set hideDisabledTools to hide unconfigured tiers instead; newly enabled tiers are then listed only after a restart.)
 - Write tools may return a preview with a confirmToken instead of executing — show the preview to the user, then repeat the identical call with "confirm" set to execute. get_safety_status shows what is currently enabled.`;

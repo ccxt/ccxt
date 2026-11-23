@@ -26,6 +26,16 @@ const PORTABLE_KEYS = [ '$schema', 'name', 'version', 'description', 'author', '
 const PORTABLE_MCP_STDIO_KEYS = [ 'type', 'command', 'args', 'env', 'cwd' ];
 const ASSET_EXTENSIONS = [ '.png', '.jpg', '.jpeg', '.webp', '.svg' ];
 const MAX_ASSET_BYTES = 5 * 1024 * 1024;
+// the starter prompts are one-click buttons: a host shows three at most and truncates long ones
+const MAX_DEFAULT_PROMPTS = 3;
+const MAX_DEFAULT_PROMPT_LENGTH = 60;
+// Two kinds of bundled skill (scripts/sync-plugin.mjs holds the same lists): a synced skill is
+// a byte-identical copy of the canonical .claude/skills/<name>; a plugin-native skill lives
+// only in plugin/skills, because it is about the plugin itself and must not be offered by the
+// repo's skill installer to people who run the server without the plugin.
+const SYNCED_SKILLS = [ 'ccxt-mcp' ];
+const PLUGIN_NATIVE_SKILLS = [ 'ccxt-get-started' ];
+const ONBOARDING_SKILL = 'ccxt-get-started';
 
 const mcpRoot = path.resolve (path.dirname (fileURLToPath (import.meta.url)), '..', '..');
 const repoRoot = path.resolve (mcpRoot, '..');
@@ -64,6 +74,20 @@ function walk (dir: string, prefix = ''): string[] {
         }
     }
     return entries.sort ();
+}
+
+// the YAML frontmatter of a SKILL.md, as its top-level "key: value" lines
+function frontmatter (file: string): Record<string, string> {
+    const match = /^---\n([\s\S]*?)\n---\n/.exec (fs.readFileSync (file, 'utf8'));
+    assert.ok (match, `${file} has no frontmatter`);
+    const fields: Record<string, string> = {};
+    for (const line of match[1].split ('\n')) {
+        const pair = /^([A-Za-z-]+):\s*(.*)$/.exec (line);
+        if (pair) {
+            fields[pair[1]] = pair[2];
+        }
+    }
+    return fields;
 }
 
 // every "./…" string anywhere in a JSON value
@@ -171,6 +195,10 @@ test ('the OpenAI interface block is identical in both manifests and within the 
             assert.ok (capability.length <= MAX_CAPABILITY_LENGTH, `${file} capability "${capability}" is over ${MAX_CAPABILITY_LENGTH} chars`);
         }
         assert.ok (Array.isArray (ui['defaultPrompt']) && ui['defaultPrompt'].every ((prompt: any) => typeof prompt === 'string'));
+        assert.ok (ui['defaultPrompt'].length > 0 && ui['defaultPrompt'].length <= MAX_DEFAULT_PROMPTS, `${file} interface.defaultPrompt must hold 1-${MAX_DEFAULT_PROMPTS} prompts`);
+        for (const prompt of ui['defaultPrompt']) {
+            assert.ok (prompt.trim ().length > 0 && prompt.length <= MAX_DEFAULT_PROMPT_LENGTH, `${file} starter prompt "${prompt}" must be 1-${MAX_DEFAULT_PROMPT_LENGTH} chars`);
+        }
         for (const field of [ 'composerIcon', 'logo' ]) {
             assert.ok (ui[field], `${file} interface.${field} is required`);
         }
@@ -235,17 +263,63 @@ test ('the plugin directory contains no symlinks', () => {
     }
 });
 
-test ('the bundled skill is byte-identical to the canonical .claude/skills/ccxt-mcp', () => {
-    const canonical = path.join (repoRoot, '.claude', 'skills', 'ccxt-mcp');
-    const bundled = path.join (pluginRoot, 'skills', 'ccxt-mcp');
-    assert.ok (fs.existsSync (path.join (bundled, 'SKILL.md')), 'the plugin does not bundle skills/ccxt-mcp/SKILL.md');
-    assert.deepEqual (walk (bundled), walk (canonical), 'file lists differ — run "npm run sync-plugin"');
-    for (const entry of walk (canonical)) {
-        if (fs.statSync (path.join (canonical, entry)).isFile ()) {
-            const same = fs.readFileSync (path.join (canonical, entry)).equals (fs.readFileSync (path.join (bundled, entry)));
-            assert.ok (same, `skills/ccxt-mcp/${entry} differs from the canonical skill — run "npm run sync-plugin"`);
+test ('plugin/skills holds exactly the declared skills, each with matching frontmatter', () => {
+    const declared = [ ...SYNCED_SKILLS, ...PLUGIN_NATIVE_SKILLS ].sort ();
+    assert.deepEqual (fs.readdirSync (path.join (pluginRoot, 'skills')).sort (), declared, 'declare every bundled skill as synced or plugin-native (here and in scripts/sync-plugin.mjs)');
+    for (const name of declared) {
+        const fields = frontmatter (path.join (pluginRoot, 'skills', name, 'SKILL.md'));
+        // hosts address a skill by its frontmatter name; one that differs from its directory
+        // is loaded under a name nothing else (the manifest, the docs) refers to
+        assert.equal (fields['name'], name, `skills/${name}/SKILL.md frontmatter name`);
+        assert.ok ((fields['description'] ?? '').length > 0, `skills/${name}/SKILL.md needs a description`);
+    }
+});
+
+test ('synced skills are byte-identical to their canonical .claude/skills copy', () => {
+    for (const name of SYNCED_SKILLS) {
+        const canonical = path.join (repoRoot, '.claude', 'skills', name);
+        const bundled = path.join (pluginRoot, 'skills', name);
+        assert.ok (fs.existsSync (path.join (bundled, 'SKILL.md')), `the plugin does not bundle skills/${name}/SKILL.md`);
+        assert.deepEqual (walk (bundled), walk (canonical), `skills/${name}: file lists differ — run "npm run sync-plugin"`);
+        for (const entry of walk (canonical)) {
+            if (fs.statSync (path.join (canonical, entry)).isFile ()) {
+                const same = fs.readFileSync (path.join (canonical, entry)).equals (fs.readFileSync (path.join (bundled, entry)));
+                assert.ok (same, `skills/${name}/${entry} differs from the canonical skill — run "npm run sync-plugin"`);
+            }
         }
     }
+});
+
+test ('plugin-native skills have no canonical twin', () => {
+    // two copies with no sync between them would drift; a skill is one kind or the other
+    for (const name of PLUGIN_NATIVE_SKILLS) {
+        assert.ok (!fs.existsSync (path.join (repoRoot, '.claude', 'skills', name)), `.claude/skills/${name} exists — make ${name} a synced skill instead`);
+    }
+});
+
+test ('the onboarding skill is wired for OpenAI hosts in both manifests', () => {
+    // Codex (checked with CLI 0.171.0, app-server plugin/read) resolves the onboarding skill
+    // from extensions["com.openai"].onboardingSkill — a path to the SKILL.md relative to the
+    // plugin root — in the portable manifest, and from the same key in a standalone Codex
+    // manifest; a top-level or interface-level key is ignored there.
+    const expected = './skills/' + ONBOARDING_SKILL + '/SKILL.md';
+    assert.equal (portableManifest['extensions']['com.openai']['onboardingSkill'], expected);
+    assert.equal (codexManifest['extensions']['com.openai']['onboardingSkill'], expected);
+    assert.ok (PLUGIN_NATIVE_SKILLS.includes (ONBOARDING_SKILL) || SYNCED_SKILLS.includes (ONBOARDING_SKILL));
+    // the Codex interface block stays at the manifest root: under extensions it would be a
+    // second copy that the identity test above does not compare
+    assert.deepEqual (Object.keys (codexManifest['extensions']), [ 'com.openai' ]);
+    assert.deepEqual (Object.keys (codexManifest['extensions']['com.openai']), [ 'onboardingSkill' ]);
+});
+
+test ('the onboarding skill keeps its safety script', () => {
+    // the skill is the only thing between a first-time user and a pasted API key; these are
+    // the lines a well-meaning edit must not drop
+    const text = fs.readFileSync (path.join (pluginRoot, 'skills', ONBOARDING_SKILL, 'SKILL.md'), 'utf8');
+    for (const needle of [ 'setup_account', 'list_accounts', 'show_balance', 'get_safety_status', 'Never enable withdrawals', 'delete that key on the exchange', 'explicit yes' ]) {
+        assert.ok (text.includes (needle), `skills/${ONBOARDING_SKILL}/SKILL.md no longer mentions "${needle}"`);
+    }
+    assert.ok (text.split ('\n').length <= 130, 'the onboarding skill is a script, not a manual — keep it short');
 });
 
 test ('the sync scripts report no drift', () => {

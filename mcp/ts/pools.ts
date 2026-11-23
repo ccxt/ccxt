@@ -239,6 +239,30 @@ export class ExchangePools {
         return exchange;
     }
 
+    // A detached authenticated instance for the setup form's connection test: built exactly
+    // like a pooled one (same sandbox/demo switch, same hardening) but never cached, so a
+    // failed or abandoned test leaves nothing behind. The caller closes it.
+    buildProbe (account: AccountConfig): any {
+        return this.buildAuthenticated (account);
+    }
+
+    // Drops the cached instance of an account whose record was just replaced (setup form), so
+    // the next call builds one from the new credentials and environment instead of reusing a
+    // client that still signs with the old keys. A private stream running on the old instance
+    // ends with it.
+    evictAuthenticated (accountName: string): void {
+        const exchange = this.authPool.get (accountName);
+        if (exchange !== undefined) {
+            this.authPool.delete (accountName);
+            void closeQuietly (exchange);
+        }
+    }
+
+    // the exchange catalogue this pool instantiates from — what an account must validate against
+    directory (): Pick<PoolsDeps, 'isKnownExchange' | 'allExchangeIds' | 'closestMatches'> {
+        return this.deps;
+    }
+
     // fire-and-forget markets prewarm for configured accounts (never blocks startup)
     prewarm (): void {
         for (const name of Object.keys (this.config.accounts)) {

@@ -2,24 +2,29 @@ import { z } from 'zod';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { ServerContext } from '../types.js';
 import { ok, project, TICKER_FIELDS } from '../format.js';
-import { run, clampLimit, parseSince, marketTypeMismatchNotice, fetchTickerList, normalizeBookSide, badTimeframe, exchangeParam, predictionParam, paramsParam, sinceParam } from './common.js';
+import { run, clampLimit, parseSince, marketTypeMismatchNotice, fetchTickerList, normalizeBookSide, badTimeframe, exchangeParam, predictionParam, paramsParam, sinceParam, ArgError } from './common.js';
 import type { Envelope } from '../format.js';
 import { marketTypeParam, joinNotices, missingTickersNotice } from './market.js';
 import { UI_VIEWS, uiToolMeta, uiMode, uiStatus, uiNotice, uiResult, registerUiResources, type UiPayload } from '../ui.js';
+import { accountEnvironment } from '../types.js';
+import { redact } from '../redact.js';
 
 // Render tools: each one pairs a public market-data fetch with a ui:// view (MCP Apps). The
 // model receives a compact summary as text; the view receives the full dataset as
 // structuredContent — but only on a host that renders it (CCXT_MCP_UI, see ../ui.ts): every
 // other host gets the text summary alone. They sit in the market tier — public data, no
 // account, read-only — and the data tools (get_ohlcv, get_orderbook, get_tickers) remain the
-// way to get raw rows.
+// way to get raw rows. The one exception is show_chart's optional `account`: it overlays that
+// account's own open orders on the chart, a read-tier fetch gated exactly like get_orders (the
+// account must be configured). The account views proper live in ./ui-account.ts.
 
 const CHART_DEFAULT_LIMIT = 200;
 const CHART_MAX_LIMIT = 500;
 const BOOK_DEFAULT_LEVELS = 50;
 const BOOK_MAX_LEVELS = 100;
+const CHART_MAX_ORDERS = 50;
 
-function finite (value: any): value is number {
+export function finite (value: any): value is number {
     return typeof value === 'number' && Number.isFinite (value);
 }
 
@@ -144,8 +149,9 @@ export function summarizeBook (bids: number[][], asks: number[][], unit?: Amount
     return summary;
 }
 
-// meta keys left undefined would serialize as null — drop them so an absent fact stays absent
-function compactMeta (meta: Record<string, any>): Record<string, any> {
+// keys left undefined would serialize as null — drop them so an absent fact stays absent
+// (used for envelope meta and for the summary objects of the account views)
+export function compactMeta (meta: Record<string, any>): Record<string, any> {
     const out: Record<string, any> = {};
     for (const [ key, value ] of Object.entries (meta)) {
         if (value !== undefined) {
@@ -155,22 +161,49 @@ function compactMeta (meta: Record<string, any>): Record<string, any> {
     return out;
 }
 
-export function registerUiTools (server: McpServer, ctx: ServerContext): void {
-    registerUiResources (server);
-    // with views switched off the ui:// link is not advertised either: an MCP Apps host would
-    // otherwise open the view for a result that carries no payload for it
-    const toolMeta = (view: string) => ((uiMode () === 'off') ? undefined : uiToolMeta (UI_VIEWS[view]));
-    // every show_* result is assembled here: meta.ui and the trailing notice always say what
-    // happened to the view, and the view payload is attached only when a host will render it
-    const respond = (fallbackTool: string, data: any, meta: Record<string, any>, notices: (string | undefined)[], view: Record<string, any>): Envelope | UiPayload => {
+// with views switched off the ui:// link is not advertised either: an MCP Apps host would
+// otherwise open the view for a result that carries no payload for it
+export function viewToolMeta (view: string): Record<string, any> | undefined {
+    return (uiMode () === 'off') ? undefined : uiToolMeta (UI_VIEWS[view]);
+}
+
+export type UiRespond = (fallbackTool: string, data: any, meta: Record<string, any>, notices: (string | undefined)[], view: Record<string, any>) => Envelope | UiPayload;
+
+// every show_* result is assembled here: meta.ui and the trailing notice always say what
+// happened to the view, and the view payload is attached only when a host will render it
+export function uiResponder (server: McpServer): UiRespond {
+    return (fallbackTool, data, meta, notices, view) => {
         const status = uiStatus (server);
         const envelope = ok (data, compactMeta ({ ...meta, 'ui': status, 'notice': joinNotices ([ ...notices, uiNotice (status, fallbackTool) ]) }));
         return uiResult (status, envelope, view);
     };
+}
+
+// What the chart draws for one of the account's open orders: a horizontal line at its price.
+// An order without a finite price (a market or trigger-only order) has no line to draw, so it
+// is left out here — show_orders is the complete list.
+export function chartOrders (orders: any[]): Record<string, any>[] {
+    const lines: Record<string, any>[] = [];
+    for (const order of orders ?? []) {
+        if (order === undefined || order === null || !finite (order.price)) {
+            continue;
+        }
+        lines.push (project (order, [ 'id', 'side', 'type', 'price', 'amount', 'filled', 'status' ]));
+        if (lines.length >= CHART_MAX_ORDERS) {
+            break;
+        }
+    }
+    return lines;
+}
+
+export function registerUiTools (server: McpServer, ctx: ServerContext): void {
+    registerUiResources (server);
+    const toolMeta = viewToolMeta;
+    const respond = uiResponder (server);
 
     server.registerTool ('show_chart', {
         'title': 'Show candlestick chart',
-        'description': 'Render an interactive candlestick + volume chart for a symbol on an exchange. Use this whenever the user asks to see, show, plot or chart a price. In hosts with MCP Apps support the chart is displayed to the user; the tool result is a compact summary (range, open/close, change %, high/low, volume), not the candles — use get_ohlcv when you need the raw rows.',
+        'description': 'Render an interactive candlestick + volume chart for a symbol on an exchange. Use this whenever the user asks to see, show, plot or chart a price. In hosts with MCP Apps support the chart is displayed to the user; the tool result is a compact summary (range, open/close, change %, high/low, volume), not the candles — use get_ohlcv when you need the raw rows. Pass "account" to also draw that account\'s open orders for the symbol on the chart.',
         'inputSchema': {
             'exchange': exchangeParam,
             'symbol': z.string ().describe ('unified symbol, e.g. "BTC/USDT" — resolve with search_markets'),
@@ -179,11 +212,18 @@ export function registerUiTools (server: McpServer, ctx: ServerContext): void {
             'limit': z.number ().int ().optional ().describe ('number of candles (default ' + CHART_DEFAULT_LIMIT + ', max ' + CHART_MAX_LIMIT + ')'),
             'marketType': marketTypeParam,
             'prediction': predictionParam,
+            'account': z.string ().optional ().describe ('optional configured account name (list_accounts) on this same exchange — overlays its open orders for the symbol on the chart'),
             'params': paramsParam,
         },
         'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
         '_meta': toolMeta ('chart'),
-    }, async ({ exchange: exchangeId, symbol, timeframe, since, limit, marketType, prediction, params }) => run ({ 'tool': 'show_chart', 'exchange': exchangeId }, async () => {
+    }, async ({ exchange: exchangeId, symbol, timeframe, since, limit, marketType, prediction, account: accountName, params }) => run ({ 'tool': 'show_chart', 'exchange': exchangeId, 'account': accountName }, async () => {
+        // resolved before any market data is fetched: an unknown account or one on another
+        // exchange is a mistake in the call, not something to draw a chart around
+        const auth = (accountName !== undefined) ? await ctx.pools.getAuthenticated (accountName) : undefined;
+        if (auth !== undefined && auth.account.exchange !== exchangeId) {
+            throw new ArgError ('account ' + JSON.stringify (auth.account.name) + ' is on ' + auth.account.exchange + ', not ' + exchangeId, 'pass exchange: "' + auth.account.exchange + '" to chart this account\'s orders, or omit "account"');
+        }
         const exchange = await ctx.pools.getPublic (exchangeId, marketType, prediction ?? false);
         const frame = timeframe ?? '1h';
         const timeframeError = badTimeframe (exchange, frame);
@@ -203,10 +243,38 @@ export function registerUiTools (server: McpServer, ctx: ServerContext): void {
             (candles.length === 0) ? 'the exchange returned no candles for this symbol/timeframe/since' : undefined,
             marketTypeMismatchNotice (exchange, [ symbol ], marketType),
         ];
+        // The overlay is decoration on a chart of public data: the candles above never depend
+        // on it, and a venue that cannot list open orders (or fails to) costs the user the
+        // lines, not the chart.
+        const overlay: Record<string, any> = {};
+        const overlayMeta: Record<string, any> = {};
+        if (auth !== undefined) {
+            overlay['account'] = auth.account.name;
+            overlay['environment'] = accountEnvironment (auth.account);
+            overlay['orders'] = [];
+            overlayMeta['account'] = auth.account.name;
+            overlayMeta['environment'] = overlay['environment'];
+            if (!auth.exchange.has?.['fetchOpenOrders']) {
+                notices.push ('open orders are not drawn: ' + auth.exchange.id + ' has no fetchOpenOrders');
+            } else {
+                try {
+                    const openOrders = await auth.exchange.fetchOpenOrders (symbol, undefined, undefined, {});
+                    overlay['orders'] = chartOrders (openOrders);
+                    overlayMeta['openOrders'] = overlay['orders'].length;
+                    const unpriced = (Array.isArray (openOrders) ? openOrders.length : 0) - overlay['orders'].length;
+                    if (unpriced > 0) {
+                        notices.push (unpriced + ' open order(s) are not drawn (no limit price, or more than ' + CHART_MAX_ORDERS + ') — get_orders lists them all');
+                    }
+                } catch (e: any) {
+                    notices.push ('open orders are not drawn: fetching them failed (' + redact (String (e?.message ?? e)).slice (0, 200) + ')');
+                }
+            }
+        }
         return respond ('get_ohlcv', summarizeCandles (exchange, candles), {
             'exchange': exchange.id,
             symbol,
             'timeframe': frame,
+            ...overlayMeta,
         }, notices, {
             'view': 'chart',
             'exchange': exchange.id,
@@ -216,6 +284,7 @@ export function registerUiTools (server: McpServer, ctx: ServerContext): void {
             timeframes,
             'limit': rowLimit,
             candles,
+            ...overlay,
         });
     }));
 

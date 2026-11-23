@@ -24,6 +24,22 @@ svg text.pill-text { fill: var(--bg); font-weight: 600; }
 .readout { display: flex; flex-wrap: wrap; gap: 2px 14px; min-height: 20px; margin: 0 0 6px; color: var(--text-2); font-variant-numeric: tabular-nums; }
 .readout b { color: var(--text); font-weight: 600; }
 .readout .when { color: var(--text); }
+/* the account overlay: a hairline at the price of each open order, tagged by side in words
+   (colour only reinforces the word) */
+.order, .leader { fill: none; stroke-width: 1; shape-rendering: crispEdges; stroke: var(--text-3); }
+.leader { shape-rendering: auto; }
+.tag { fill: var(--bg); stroke-width: 1; stroke: var(--text-3); }
+.order.buy, .leader.buy, .tag.buy { stroke: var(--up); }
+.order.sell, .leader.sell, .tag.sell { stroke: var(--down); }
+svg text.tag-text { fill: var(--text); font-weight: 600; }
+.overlay { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 6px; margin-top: 6px; color: var(--text-2); }
+.overlay .name { color: var(--text); font-weight: 600; max-width: 14em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* whether the account is real must never be misread: LIVE is a solid inverted pill, the
+   practice environments an outline — told apart by the word and the form, not by a colour */
+.env { flex: none; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; line-height: 16px; padding: 0 7px; border: 1px solid var(--text-2); border-radius: 999px; color: var(--text-2); white-space: nowrap; }
+.env.live { background: var(--text); border-color: var(--text); color: var(--bg); }
+#orderswrap { margin-bottom: 8px; }
+#orderswrap td:nth-child(-n+2), #orderswrap th:nth-child(-n+2), #orderswrap td:last-child, #orderswrap th:last-child { text-align: left; }
 </style>
 </head>
 <body>
@@ -40,6 +56,8 @@ svg text.pill-text { fill: var(--bg); font-weight: 600; }
 </div>
 <div class="readout" id="readout" aria-live="off"></div>
 <div class="plot" id="plot"></div>
+<div class="overlay" id="overlay" hidden></div>
+<div class="scroll" id="orderswrap" hidden></div>
 <div class="scroll" id="tablewrap" hidden></div>
 <div class="status" id="status" role="status">Waiting for data…</div>
 <script>
@@ -56,14 +74,18 @@ svg text.pill-text { fill: var(--bg); font-weight: 600; }
     var AXIS_BOTTOM = 22;
     var AXIS_MIN = 56;
     var PAD_TOP = 8;
+    var MAX_ORDERS = 50;
+    var TAG_HEIGHT = 16;
+    var ENVIRONMENTS = { live: 'LIVE', sandbox: 'TESTNET', demo: 'DEMO' };
     var data = null;
+    var orders = null; // the account overlay: null on a plain chart
     var args = null;
     var hover = -1;
     var digits; // decimals shared by every price of the dataset (undefined: each value picks its own)
     var busy = false;
     var layout = null;
     var nodes = {};
-    [ 'symbol', 'venue', 'last', 'change', 'range', 'timeframes', 'refresh', 'toggle', 'readout', 'plot', 'tablewrap', 'status' ].forEach (function (id) {
+    [ 'symbol', 'venue', 'last', 'change', 'range', 'timeframes', 'refresh', 'toggle', 'readout', 'plot', 'overlay', 'orderswrap', 'tablewrap', 'status' ].forEach (function (id) {
         nodes[id] = document.getElementById (id);
     });
 
@@ -292,6 +314,194 @@ svg text.pill-text { fill: var(--bg); font-weight: 600; }
         return result;
     }
 
+    // The account overlay (show_chart with `account`): that account's open orders on this
+    // symbol. Only an order with a price can be placed on a price scale; every field is
+    // optional and none is trusted to have its type.
+    function overlayOrders () {
+        if (!Array.isArray (data.orders)) {
+            return null;
+        }
+        var label = function (value) { return (typeof value === 'string' && value) ? value : (app.isNumber (value) ? String (value) : ''); };
+        return data.orders.filter (function (order) {
+            return order && typeof order === 'object' && app.isNumber (order.price) && order.price > 0;
+        }).map (function (order) {
+            var side = label (order.side).toLowerCase ();
+            return {
+                side: (side === 'buy' || side === 'sell') ? side : '',
+                type: label (order.type),
+                price: order.price,
+                amount: (app.isNumber (order.amount) && order.amount > 0) ? order.amount : undefined,
+                filled: (app.isNumber (order.filled) && order.filled >= 0) ? order.filled : undefined,
+                where: ''
+            };
+        });
+    }
+
+    function tagLabel (group) {
+        var name = (group.side === 'buy') ? 'Buy' : ((group.side === 'sell') ? 'Sell' : ((group.count > 1) ? 'orders' : 'Order'));
+        if (group.count === 1) {
+            return name + ((group.amount !== undefined) ? ' ' + app.compact (group.amount) : '');
+        }
+        if (!group.side) {
+            return group.count + ' ' + name;
+        }
+        return name + ' ×' + group.count + ((group.amount !== undefined) ? ' · ' + app.compact (group.amount) : '');
+    }
+
+    // Orders whose lines are within a few px of each other and on the same side share one
+    // tag ("Buy ×3 · 0.75"). When there are still more tags than fit the plot, it is cut into
+    // as many bands as fit and each band gets one tag, whatever the sides in it ("5 orders"),
+    // rather than tags being dropped.
+    function groupOrders (visible, bands) {
+        var groups = [];
+        visible.forEach (function (order) {
+            var group = groups[groups.length - 1];
+            var band = bands ? Math.max (0, Math.min (bands - 1, Math.floor (((order.y - PAD_TOP) * bands) / PRICE_HEIGHT))) : 0;
+            if (!group || (bands ? (group.band !== band) : (order.y - group.last > 3 || group.side !== order.side))) {
+                group = { side: order.side, band: band, count: 0, amount: 0, first: order.y, last: order.y };
+                groups.push (group);
+            }
+            group.count++;
+            group.last = order.y;
+            group.amount = (group.amount === undefined || order.amount === undefined) ? undefined : group.amount + order.amount;
+            if (group.side !== order.side) {
+                group.side = '';
+            }
+        });
+        return groups;
+    }
+
+    // Each tag wants to sit on its line. Tags that would overlap form a block that is centred
+    // on the lines it belongs to (and kept inside the plot), so a cluster of orders fans out
+    // to both sides instead of trailing off downwards.
+    function placeTags (groups, spacing, floor, ceiling) {
+        var blocks = [];
+        groups.forEach (function (entry, index) {
+            entry.anchor = (entry.first + entry.last) / 2;
+            var block = { from: index, count: 1, sum: entry.anchor - TAG_HEIGHT / 2 };
+            var settle = function (target) {
+                target.top = Math.max (floor, Math.min (ceiling - (target.count - 1) * spacing, target.sum / target.count));
+            };
+            settle (block);
+            while (blocks.length && blocks[blocks.length - 1].top + blocks[blocks.length - 1].count * spacing > block.top) {
+                var previous = blocks.pop ();
+                // a member's wish for the block's top is its own wish less its offset in the block
+                block = { from: previous.from, count: previous.count + block.count, sum: previous.sum + block.sum - block.count * previous.count * spacing };
+                settle (block);
+            }
+            blocks.push (block);
+        });
+        blocks.forEach (function (block) {
+            for (var offset = 0; offset < block.count; offset++) {
+                groups[block.from + offset].top = Math.round (block.top + offset * spacing);
+            }
+        });
+    }
+
+    // Draws the overlay into its (already attached, so text can be measured) group and
+    // returns how many orders fell outside the visible price range: those are counted under
+    // the plot — rescaling to an order far from the market would flatten the candles.
+    function drawOrders (group, y, top, bottom, plotWidth) {
+        var counts = { shown: 0, above: 0, below: 0, skipped: Math.max (0, orders.length - MAX_ORDERS) };
+        var visible = [];
+        orders.forEach (function (order, index) {
+            if (index >= MAX_ORDERS) {
+                order.where = 'not drawn';
+            } else if (order.price > top) {
+                order.where = 'above range';
+                counts.above++;
+            } else if (order.price < bottom) {
+                order.where = 'below range';
+                counts.below++;
+            } else {
+                order.where = 'on the chart';
+                order.y = Math.round (y (order.price)) + 0.5;
+                counts.shown++;
+                visible.push (order);
+            }
+        });
+        visible.sort (function (a, b) { return (a.y - b.y) || ((a.side < b.side) ? -1 : ((a.side > b.side) ? 1 : 0)); });
+        var drawn = {};
+        visible.forEach (function (order) {
+            var key = order.side + '@' + order.y;
+            if (!drawn[key]) {
+                drawn[key] = true;
+                group.appendChild (app.svg ('line', { 'class': 'order ' + order.side, x1: 0, x2: plotWidth, y1: order.y, y2: order.y }));
+            }
+        });
+        var spacing = TAG_HEIGHT + 2;
+        var most = Math.floor ((PRICE_HEIGHT + 2) / spacing);
+        var groups = groupOrders (visible, 0);
+        if (groups.length > most) {
+            groups = groupOrders (visible, most);
+        }
+        placeTags (groups, spacing, PAD_TOP, PAD_TOP + PRICE_HEIGHT - TAG_HEIGHT);
+        groups.forEach (function (entry) {
+            var text = app.svg ('text', { 'class': 'tag-text', x: plotWidth - 10, y: entry.top + 12, 'text-anchor': 'end' });
+            text.textContent = tagLabel (entry);
+            group.appendChild (text);
+            var measured = (typeof text.getComputedTextLength === 'function') ? text.getComputedTextLength () : 0;
+            var width = Math.ceil ((measured > 0) ? measured : text.textContent.length * 6.6) + 12;
+            var left = plotWidth - 4 - width;
+            var middle = entry.top + TAG_HEIGHT / 2;
+            if (Math.abs (middle - entry.anchor) > 2) {
+                group.insertBefore (app.svg ('path', { 'class': 'leader ' + entry.side, d: 'M' + (left - 14) + ' ' + entry.anchor + 'L' + left + ' ' + middle }), text);
+            }
+            group.insertBefore (app.svg ('rect', { 'class': 'tag ' + entry.side, x: left + 0.5, y: entry.top + 0.5, width: width - 1, height: TAG_HEIGHT - 1, rx: 4 }), text);
+        });
+        return counts;
+    }
+
+    function environmentBadge () {
+        var known = (typeof data.environment === 'string' && Object.prototype.hasOwnProperty.call (ENVIRONMENTS, data.environment)) ? ENVIRONMENTS[data.environment] : '';
+        return known ? app.element ('span', 'env' + ((data.environment === 'live') ? ' live' : ''), known) : null;
+    }
+
+    // the legend line under the plot: whose orders these are, in which environment, and
+    // how many could not be placed on the visible price range
+    function renderOverlay (counts) {
+        var node = nodes.overlay;
+        node.textContent = '';
+        node.hidden = !orders;
+        if (!orders) {
+            return;
+        }
+        var account = (typeof data.account === 'string' && data.account) ? data.account : '';
+        node.appendChild (app.element ('span', '', 'Orders:'));
+        if (account) {
+            var name = app.element ('span', 'name', account);
+            name.title = 'Account ' + account;
+            node.appendChild (name);
+        }
+        var badge = environmentBadge ();
+        if (badge) {
+            node.appendChild (badge);
+        }
+        var plural = function (count) { return count + ((count === 1) ? ' order' : ' orders'); };
+        var summary;
+        if (!orders.length) {
+            summary = 'no open orders with a price on this symbol';
+        } else if (!counts) {
+            summary = plural (orders.length) + ' open';
+        } else {
+            var outside = [];
+            if (counts.above) {
+                outside.push (plural (counts.above) + ' above range');
+            }
+            if (counts.below) {
+                outside.push (outside.length ? counts.below + ' below' : plural (counts.below) + ' below range');
+            }
+            summary = plural (counts.shown) + ' on the chart';
+            if (outside.length) {
+                summary += ' · ' + outside.join (', ');
+            }
+            if (counts.skipped) {
+                summary += ' · ' + counts.skipped + ' more not drawn';
+            }
+        }
+        node.appendChild (app.element ('span', '', summary));
+    }
+
     function renderPlot () {
         var candles = data.candles;
         var host = nodes.plot;
@@ -299,6 +509,7 @@ svg text.pill-text { fill: var(--bg); font-weight: 600; }
         layout = null;
         if (!candles.length) {
             host.appendChild (app.element ('div', 'empty', 'No candles were returned for this symbol and timeframe.'));
+            renderOverlay (null);
             return;
         }
         var width = Math.max (240, Math.floor (host.clientWidth || document.documentElement.clientWidth - 28));
@@ -343,7 +554,7 @@ svg text.pill-text { fill: var(--bg); font-weight: 600; }
         var x = function (index) { return (index + 0.5) * step; };
         var volumeBase = PAD_TOP + PRICE_HEIGHT + GAP + VOLUME_HEIGHT;
         var svg = app.svg ('svg', { viewBox: '0 0 ' + width + ' ' + height, height: height, role: 'img', tabindex: '0' });
-        svg.setAttribute ('aria-label', 'Candlestick chart of ' + data.symbol + ' on ' + (data.exchangeName || data.exchange) + ', ' + data.timeframe + ' candles. Use the left and right arrow keys to inspect candles, or the Table button for the values.');
+        svg.setAttribute ('aria-label', 'Candlestick chart of ' + data.symbol + ' on ' + (data.exchangeName || data.exchange) + ', ' + data.timeframe + ' candles' + ((orders && orders.length) ? ', with the open orders of the account marked as horizontal lines' : '') + '. Use the left and right arrow keys to inspect candles, or the Table button for the values.');
         // price grid + right-hand axis
         priceTicks.forEach (function (tick) {
             var ty = Math.round (y (tick)) + 0.5;
@@ -401,6 +612,9 @@ svg text.pill-text { fill: var(--bg); font-weight: 600; }
         svg.appendChild (app.svg ('path', { 'class': 'wick down', d: paths.wickDown }));
         svg.appendChild (app.svg ('path', { 'class': 'body up' + (hollow ? '' : ' solid'), d: paths.bodyUp }));
         svg.appendChild (app.svg ('path', { 'class': 'body down', d: paths.bodyDown }));
+        // open orders of the account: above the candles, below the crosshair and the hit area
+        var orderLayer = app.svg ('g', {});
+        svg.appendChild (orderLayer);
         // last-price marker on the axis
         var last = candles[count - 1];
         var lastY = Math.round (y (last[4])) + 0.5;
@@ -453,6 +667,7 @@ svg text.pill-text { fill: var(--bg); font-weight: 600; }
             }
         });
         host.appendChild (svg);
+        renderOverlay ((orders && orders.length) ? drawOrders (orderLayer, y, top, bottom, plotWidth) : null);
     }
 
     // Rebuilds the plot for the same data (new width, locale or time zone): keyboard focus
@@ -494,7 +709,44 @@ svg text.pill-text { fill: var(--bg); font-weight: 600; }
         readoutFor (active ? index : data.candles.length - 1);
     }
 
+    // the table twin of the overlay: every order with its price, including those the plot
+    // could only count as outside its range
+    function renderOrdersTable () {
+        var wrap = nodes.orderswrap;
+        wrap.textContent = '';
+        wrap.hidden = nodes.tablewrap.hidden || !orders || !orders.length;
+        if (wrap.hidden) {
+            return;
+        }
+        var table = document.createElement ('table');
+        var head = document.createElement ('tr');
+        [ 'Order', 'Type', 'Price', 'Amount', 'Filled', 'Shown' ].forEach (function (name) {
+            var cell = app.element ('th', '', name);
+            cell.scope = 'col';
+            head.appendChild (cell);
+        });
+        var thead = document.createElement ('thead');
+        thead.appendChild (head);
+        table.appendChild (thead);
+        var body = document.createElement ('tbody');
+        orders.slice ().sort (function (a, b) { return b.price - a.price; }).forEach (function (order) {
+            var row = document.createElement ('tr');
+            var side = app.element ('td', '');
+            side.appendChild (app.element ('span', 'delta' + (order.side ? ((order.side === 'buy') ? ' up' : ' down') : ''), (order.side === 'buy') ? '▲ Buy' : ((order.side === 'sell') ? '▼ Sell' : 'Order')));
+            row.appendChild (side);
+            row.appendChild (app.element ('td', '', order.type || '–'));
+            row.appendChild (app.element ('td', '', app.price (order.price, digits)));
+            row.appendChild (app.element ('td', '', app.compact (order.amount)));
+            row.appendChild (app.element ('td', '', app.compact (order.filled)));
+            row.appendChild (app.element ('td', '', order.where || '–'));
+            body.appendChild (row);
+        });
+        table.appendChild (body);
+        wrap.appendChild (table);
+    }
+
     function renderTable () {
+        renderOrdersTable ();
         var wrap = nodes.tablewrap;
         wrap.textContent = '';
         if (wrap.hidden || !data.candles.length) {
@@ -554,6 +806,7 @@ svg text.pill-text { fill: var(--bg); font-weight: 600; }
             return;
         }
         data = payload;
+        orders = overlayOrders ();
         setStatus ('');
         render ();
     }
@@ -565,6 +818,11 @@ svg text.pill-text { fill: var(--bg); font-weight: 600; }
         var request = {};
         var base = args || { exchange: data.exchange, symbol: data.symbol, limit: data.limit };
         Object.keys (base).forEach (function (key) { request[key] = base[key]; });
+        // the order overlay belongs to an account: without the original arguments, name it
+        // again or the reloaded chart would silently lose its orders
+        if (!args && typeof data.account === 'string' && data.account) {
+            request.account = data.account;
+        }
         request.timeframe = data.timeframe;
         Object.keys (changes || {}).forEach (function (key) { request[key] = changes[key]; });
         busy = true;

@@ -7,6 +7,7 @@ import { cleanCandles, summarizeCandles, summarizeBook, amountUnitOf } from '../
 import { joinNotices, missingTickersNotice } from '../../ts/tools/market.js';
 import { UI_VIEWS, UI_MIME_TYPE, UI_EXTENSION_ID, renderView, uiToolMeta, isUiPayload, toUiContent, uiNotice, uiMode, uiStatus, uiResult } from '../../ts/ui.js';
 import { registerSecret, clearSecrets } from '../../ts/redact.js';
+import { waitForViewFiles } from '../helpers/fake-ccxt.js';
 
 const uiDir = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', '..', 'ts', 'ui');
 // summarizeCandles only needs iso8601 from the exchange
@@ -260,11 +261,12 @@ test ('missingTickersNotice names the symbols, and is silent when none is missin
 // ---------------------------------------------------------------------------------------
 // ui.ts
 
-test ('UI_VIEWS: three ui:// views with distinct names/uris and an existing file each', () => {
-    assert.deepEqual (Object.keys (UI_VIEWS).sort (), [ 'chart', 'orderbook', 'tickers' ]);
+test ('UI_VIEWS: six ui:// views with distinct names/uris and an existing file each', async () => {
+    assert.deepEqual (Object.keys (UI_VIEWS).sort (), [ 'balance', 'chart', 'orderbook', 'orders', 'positions', 'tickers' ]);
     const views = Object.values (UI_VIEWS);
-    assert.equal (new Set (views.map ((view) => view.uri)).size, 3);
-    assert.equal (new Set (views.map ((view) => view.name)).size, 3);
+    await waitForViewFiles (views.map ((view) => view.file));
+    assert.equal (new Set (views.map ((view) => view.uri)).size, 6);
+    assert.equal (new Set (views.map ((view) => view.name)).size, 6);
     for (const view of views) {
         assert.match (view.uri, /^ui:\/\/ccxt\/[a-z]+\.html$/);
         assert.ok (view.uri.endsWith ('/' + view.file));
@@ -286,7 +288,8 @@ test ('uiToolMeta: standard nested key plus the legacy flat key and the openai a
     assert.notEqual (uiToolMeta (UI_VIEWS['chart']), uiToolMeta (UI_VIEWS['chart']));
 });
 
-test ('renderView resolves every @include with the fragment verbatim', () => {
+test ('renderView resolves every @include with the fragment verbatim', async () => {
+    await waitForViewFiles (Object.values (UI_VIEWS).map ((view) => view.file));
     const css = fs.readFileSync (path.join (uiDir, 'shared.css'), 'utf8');
     const bridge = fs.readFileSync (path.join (uiDir, 'bridge.js'), 'utf8');
     for (const view of Object.values (UI_VIEWS)) {

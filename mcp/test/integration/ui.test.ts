@@ -8,9 +8,9 @@ import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { createServer } from '../../ts/factory.js';
 import { registerSecret, clearSecrets } from '../../ts/redact.js';
-import { FakeExchange, fakeCcxtModule, fakePoolsDeps, makeConfig } from '../helpers/fake-ccxt.js';
+import { FakeExchange, fakeCcxtModule, fakePoolsDeps, makeConfig, waitForViewFiles } from '../helpers/fake-ccxt.js';
 
-// MCP Apps UI (io.modelcontextprotocol/ui): the three show_* tools, their ui:// resources and
+// MCP Apps UI (io.modelcontextprotocol/ui): the three market show_* tools, all six ui:// resources and
 // the model-summary / view-payload split, exercised over a real client <-> server pair. The
 // view payload only goes to a host that renders it (CCXT_MCP_UI, default auto).
 
@@ -22,6 +22,13 @@ const UI_TOOLS: Record<string, string> = {
     'show_orderbook': 'ui://ccxt/orderbook.html',
     'show_tickers': 'ui://ccxt/tickers.html',
 };
+// the read-tier account views (their behaviour is covered in ui-account.test.ts)
+const ACCOUNT_UI_TOOLS: Record<string, string> = {
+    'show_balance': 'ui://ccxt/balance.html',
+    'show_orders': 'ui://ccxt/orders.html',
+    'show_positions': 'ui://ccxt/positions.html',
+};
+const ALL_UI_TOOLS: Record<string, string> = { ...UI_TOOLS, ...ACCOUNT_UI_TOOLS };
 const UI_META_KEYS = [ 'ui', 'ui/resourceUri', 'openai/outputTemplate' ];
 const T0 = 1700000000000;
 const HOUR = 3600000;
@@ -89,7 +96,7 @@ async function callRaw (client: Client, name: string, args: any): Promise<{ resu
 // ---------------------------------------------------------------------------------------
 // (a) tools/list
 
-test ('tools/list: the three show_* tools — and only they — advertise a ui:// resource', async () => {
+test ('tools/list: the six show_* tools — and only they — advertise a ui:// resource', async () => {
     const client = await connect ({ 'accounts': { 'acc': { 'apiKey': 'FAKEKEY123456', 'secret': 'FAKESECRET123456', 'sandbox': true, 'trading': true, 'funds': true, 'implicitWrites': true } } });
     const { tools } = await client.listTools ();
     const byName = new Map (tools.map ((tool: any) => [ tool.name, tool ]));
@@ -97,14 +104,24 @@ test ('tools/list: the three show_* tools — and only they — advertise a ui:/
         const tool: any = byName.get (name);
         assert.ok (tool !== undefined, name + ' must be listed');
         assert.deepEqual (tool._meta, { 'ui': { 'resourceUri': uri }, 'ui/resourceUri': uri, 'openai/outputTemplate': uri }, name + ' _meta');
-        // public market data: read-only, no account parameter
+        // public market data: read-only, and usable without an account — show_chart alone
+        // accepts one, optionally, for its open-orders overlay
         assert.equal (tool.annotations?.readOnlyHint, true, name + ' must be readOnly');
-        assert.ok (!('account' in (tool.inputSchema?.properties ?? {})), name + ' must not take an account');
+        assert.equal ('account' in (tool.inputSchema?.properties ?? {}), name === 'show_chart', name + ' account parameter');
+        assert.ok (!(tool.inputSchema?.required ?? []).includes ('account'), name + ' must not require an account');
         // structuredContent is deliberately un-schema'd (the view contract lives in the view);
         // declaring an outputSchema would make the SDK validate every result against it
         assert.equal (tool.outputSchema, undefined, name + ' must not declare an outputSchema');
     }
-    const others = tools.filter ((tool: any) => !(tool.name in UI_TOOLS));
+    for (const [ name, uri ] of Object.entries (ACCOUNT_UI_TOOLS)) {
+        const tool: any = byName.get (name);
+        assert.ok (tool !== undefined, name + ' must be listed');
+        assert.deepEqual (tool._meta, { 'ui': { 'resourceUri': uri }, 'ui/resourceUri': uri, 'openai/outputTemplate': uri }, name + ' _meta');
+        assert.equal (tool.annotations?.readOnlyHint, true, name + ' must be readOnly');
+        assert.ok ((tool.inputSchema?.required ?? []).includes ('account'), name + ' must require an account');
+        assert.equal (tool.outputSchema, undefined, name + ' must not declare an outputSchema');
+    }
+    const others = tools.filter ((tool: any) => !(tool.name in ALL_UI_TOOLS));
     assert.ok (others.length > 20, 'the non-UI tools are listed too');
     for (const tool of others as any[]) {
         for (const key of UI_META_KEYS) {
@@ -131,12 +148,12 @@ test ('tools/list: every advertised ui:// uri is a listed resource', async () =>
 // ---------------------------------------------------------------------------------------
 // (b) resources
 
-test ('resources/list: three ui:// resources with the MCP Apps mime type', async () => {
+test ('resources/list: six ui:// resources with the MCP Apps mime type', async () => {
     const client = await connect ();
     assert.ok (client.getServerCapabilities ()?.resources !== undefined, 'server must advertise the resources capability');
     const { resources } = await client.listResources ();
     const ui = resources.filter ((resource: any) => resource.uri.startsWith ('ui://'));
-    assert.deepEqual (ui.map ((resource: any) => resource.uri).sort (), Object.values (UI_TOOLS).sort ());
+    assert.deepEqual (ui.map ((resource: any) => resource.uri).sort (), Object.values (ALL_UI_TOOLS).sort ());
     for (const resource of ui as any[]) {
         assert.equal (resource.mimeType, UI_MIME, resource.uri);
         assert.ok (typeof resource.name === 'string' && resource.name.length > 0);
@@ -144,7 +161,7 @@ test ('resources/list: three ui:// resources with the MCP Apps mime type', async
         assert.ok (typeof resource.description === 'string' && resource.description.length > 0);
         assert.equal (resource._meta?.ui?.prefersBorder, true, resource.uri + ' list entry _meta.ui.prefersBorder');
     }
-    assert.equal (new Set (ui.map ((resource: any) => resource.name)).size, 3);
+    assert.equal (new Set (ui.map ((resource: any) => resource.name)).size, 6);
     await client.close ();
 });
 
@@ -194,8 +211,9 @@ function assertSelfContained (html: string, label: string): void {
     }
 }
 
-for (const [ toolName, uri ] of Object.entries (UI_TOOLS)) {
+for (const [ toolName, uri ] of Object.entries (ALL_UI_TOOLS)) {
     test ('resources/read ' + uri + ': one self-contained MCP Apps document', async () => {
+        await waitForViewFiles ([ uri.slice (uri.lastIndexOf ('/') + 1) ]);
         const client = await connect ();
         const result: any = await client.readResource ({ uri });
         assert.equal (result.contents.length, 1);
@@ -349,7 +367,7 @@ test ('CCXT_MCP_UI=off: no view payload and no ui:// link even for an MCP Apps h
             assert.ok (!('structuredContent' in result), name + ' must not carry a view payload');
         }
         const { tools } = await client.listTools ();
-        for (const name of Object.keys (UI_TOOLS)) {
+        for (const name of Object.keys (ALL_UI_TOOLS)) {
             const tool: any = tools.find ((entry: any) => entry.name === name);
             assert.ok (tool !== undefined, name + ' must stay listed');
             // an MCP Apps host would open the view for a result that has no payload for it

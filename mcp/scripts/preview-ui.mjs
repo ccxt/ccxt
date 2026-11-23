@@ -5,8 +5,11 @@
 // Usage:  node scripts/preview-ui.mjs [outfile]      (default: <tmpdir>/ccxt-mcp-ui-preview.html)
 //         then open the file in a browser; add #dark to the URL for the dark theme.
 //
-// The canned payloads mirror what show_chart / show_orderbook / show_tickers put in
-// structuredContent (see ts/tools/ui.ts) — keep them in step when those shapes change.
+// The canned payloads mirror what show_chart / show_orderbook / show_tickers (ts/tools/ui.ts)
+// and show_balance / show_orders / show_positions (ts/tools/ui-account.ts) put in
+// structuredContent — keep them in step when those shapes change. The account views are
+// previewed twice, a LIVE and a SANDBOX example, because the environment badge is the one
+// thing a user must never misread; every account, id and amount here is made up.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -58,7 +61,173 @@ function chartPayload (timeframe = '1h', limit = 200) {
         'timeframes': Object.keys (STEP),
         limit,
         'candles': makeCandles (limit, STEP[timeframe] ?? STEP['1h'], 94000, 7 + limit + (STEP[timeframe] ?? 1) % 97),
+        // the account overlay (show_chart with `account`): that account's open orders on this
+        // symbol, priced ones only — one is far from the candle range, one is partly filled
+        'account': 'main',
+        'environment': 'live',
+        'orders': [
+            { 'id': '48211930077', 'side': 'buy', 'type': 'limit', 'price': 92800, 'amount': 0.015, 'filled': 0, 'status': 'open' },
+            { 'id': '48211930412', 'side': 'buy', 'type': 'limit', 'price': 90500, 'amount': 0.03, 'filled': 0.01, 'status': 'open' },
+            { 'id': '48211931156', 'side': 'sell', 'type': 'limit', 'price': 96400, 'amount': 0.02, 'filled': 0, 'status': 'open' },
+            { 'id': '48211931890', 'side': 'sell', 'type': 'limit', 'price': 120000, 'amount': 0.05, 'filled': 0, 'status': 'open' },
+        ],
     };
+}
+
+const NOW = Date.UTC (2026, 10, 23, 12, 0, 0);
+const NOW_ISO = '2026-11-23T12:00:00.000Z';
+const iso = (ms) => new Date (ms).toISOString ();
+// JSON round trip: an absent field is absent in a real payload (undefined never reaches the view)
+const plain = (value) => JSON.parse (JSON.stringify (value));
+
+function balancePayload (environment = 'live') {
+    if (environment !== 'live') {
+        // a testnet account on an exchange without fetchTickers: no valuation at all, and
+        // no timestamp — rows keep the server's fallback order (total desc)
+        return plain ({
+            'view': 'balance',
+            'account': 'testnet',
+            'exchange': 'bybit',
+            'exchangeName': 'Bybit',
+            environment,
+            'balances': [
+                { 'code': 'USDT', 'free': 100000, 'used': 0, 'total': 100000 },
+                { 'code': 'BTC', 'free': 1, 'used': 0, 'total': 1 },
+                { 'code': 'ETH', 'free': 0.5, 'used': 0.5, 'total': 1 },
+                { 'code': 'USDC', 'used': 0, 'total': 0 },
+            ],
+            'hiddenZeroBalances': 0,
+        });
+    }
+    const rows = [
+        // [ code, free, used, total, price ]
+        [ 'BTC', 0.41250000, 0.03, 0.4425, 94250.12 ],
+        [ 'USDT', 12840.55, 2784, 15624.55, 1 ],
+        [ 'ETH', 3.2, 0, 3.2, 3312.45 ],
+        [ 'SOL', 41.7, 12, 53.7, 187.33 ],
+        [ 'PEPE', 1250000000, 0, 1250000000, 0.00001234 ],
+        [ 'DOGE', 1500.5, 0, 1500.5, 0.08412 ],
+        // held but not valued: no market against the quote currency, or the ticker had no price
+        [ '1000000MOGCOINLONGNAME', 7300000.123456, 0, 7300000.123456, undefined ],
+        [ 'LDBNB', 0.00004213, 0, 0.00004213, undefined ],
+        // free/used unknown — some venues report a total only
+        [ 'XRP', undefined, undefined, 250, 0.6123 ],
+    ];
+    const balances = rows.map (([ code, free, used, total, price ]) => ({
+        code, free, used, total, price,
+        'value': (price === undefined) ? undefined : Number ((total * price).toPrecision (12)),
+    })).sort ((a, b) => (b.value ?? -1) - (a.value ?? -1) || b.total - a.total);
+    return plain ({
+        'view': 'balance',
+        'account': 'main',
+        'exchange': 'binance',
+        'exchangeName': 'Binance',
+        environment,
+        'timestamp': NOW,
+        'datetime': NOW_ISO,
+        balances,
+        'quote': 'USDT',
+        'totalValue': Number (balances.reduce ((sum, row) => sum + (row.value ?? 0), 0).toFixed (2)),
+        'hiddenZeroBalances': 412,
+    });
+}
+
+// every field of ORDER_FIELDS (ts/format.ts) that a venue would realistically fill in
+function order (id, ageMinutes, symbol, type, side, price, amount, filled, status, extra = {}) {
+    const timestamp = NOW - ageMinutes * 60000;
+    const average = (filled > 0) ? (extra.average ?? price) : undefined;
+    return {
+        id,
+        'clientOrderId': extra.clientOrderId,
+        timestamp,
+        'datetime': iso (timestamp),
+        'lastTradeTimestamp': (filled > 0) ? timestamp + 42000 : undefined,
+        symbol, type, side, price,
+        'triggerPrice': extra.triggerPrice,
+        'stopLossPrice': extra.stopLossPrice,
+        'takeProfitPrice': extra.takeProfitPrice,
+        amount,
+        'cost': (average !== undefined) ? Number ((filled * average).toPrecision (10)) : 0,
+        filled,
+        'remaining': (amount !== undefined) ? Number ((amount - filled).toPrecision (10)) : undefined,
+        average, status,
+        'timeInForce': extra.timeInForce ?? ((type === 'limit') ? 'GTC' : 'IOC'),
+        'postOnly': extra.postOnly ?? false,
+        'reduceOnly': extra.reduceOnly,
+        'fee': extra.fee,
+    };
+}
+
+const ORDERS = [
+    order ('48211931890', 3, 'BTC/USDT', 'limit', 'sell', 120000, 0.05, 0, 'open', { 'clientOrderId': 'ccxt-mcp-7f3a91', 'postOnly': true }),
+    order ('48211931156', 18, 'BTC/USDT', 'limit', 'sell', 96400, 0.02, 0, 'open'),
+    order ('48211930412', 95, 'BTC/USDT', 'limit', 'buy', 90500, 0.03, 0.01, 'open', { 'fee': { 'cost': 0.00001, 'currency': 'BTC' } }),
+    // a stop order has no limit price, only a trigger
+    order ('7719004411', 240, 'ETH/USDT:USDT', 'market', 'sell', undefined, 1.5, 0, 'open', { 'triggerPrice': 3050, 'stopLossPrice': 3050, 'reduceOnly': true }),
+    order ('9f1c2e7a-55d0-4b6e-9a31-0c5d8e2f7b44', 1500, '1000000MOGCOINLONGNAME/USDT:USDT', 'limit', 'buy', 0.00000123, 81000000, 0, 'open'),
+    // a filled market order: price is absent, the fill is in average/cost
+    order ('48211800321', 2900, 'SOL/USDT', 'market', 'buy', undefined, 12, 12, 'closed', { 'average': 184.92, 'fee': { 'cost': 2.21904, 'currency': 'USDT' } }),
+    order ('48211700555', 4400, 'ETH/USDT', 'limit', 'sell', 3390, 0.8, 0.8, 'closed', { 'fee': { 'cost': 2.712, 'currency': 'USDT' } }),
+    order ('48211600777', 5900, 'DOGE/USDT', 'limit', 'buy', 0.0791, 5000, 0, 'canceled'),
+    // sparse row: some venues return almost nothing for old orders
+    { 'id': '48211500999', 'symbol': 'XRP/USDT', 'side': 'buy', 'status': 'canceled' },
+];
+
+function ordersPayload (environment = 'live', status = 'open', symbol = undefined) {
+    const live = environment === 'live';
+    const orders = ORDERS.filter ((row) => (status === 'all' || row.status === status) && (symbol === undefined || row.symbol === symbol));
+    return plain ({
+        'view': 'orders',
+        'account': live ? 'main' : 'testnet',
+        'exchange': live ? 'binance' : 'bybit',
+        'exchangeName': live ? 'Binance' : 'Bybit',
+        environment, status, symbol, orders,
+        'hasMore': status === 'all',
+    });
+}
+
+function positionsPayload (environment = 'live') {
+    const live = environment === 'live';
+    // POSITION_FIELDS (ts/format.ts)
+    const position = (symbol, side, contracts, contractSize, entryPrice, markPrice, leverage, marginMode, extra = {}) => {
+        const notional = Number ((contracts * contractSize * markPrice).toPrecision (10));
+        const unrealizedPnl = Number (((markPrice - entryPrice) * contracts * contractSize * ((side === 'long') ? 1 : -1)).toPrecision (8));
+        const initialMargin = Number ((notional / leverage).toPrecision (8));
+        return {
+            symbol, side, contracts, contractSize, notional, entryPrice, markPrice,
+            'liquidationPrice': extra.liquidationPrice,
+            unrealizedPnl,
+            'realizedPnl': extra.realizedPnl,
+            'percentage': Number (((unrealizedPnl / initialMargin) * 100).toFixed (2)),
+            leverage, marginMode,
+            'collateral': initialMargin,
+            initialMargin,
+            'maintenanceMargin': Number ((notional * 0.005).toPrecision (6)),
+            'hedged': false,
+            'timestamp': NOW,
+            'datetime': NOW_ISO,
+        };
+    };
+    const positions = live ? [
+        position ('BTC/USDT:USDT', 'long', 0.25, 1, 91200, 94250.1, 10, 'cross', { 'liquidationPrice': 83410.5, 'realizedPnl': 12.4 }),
+        // a losing short
+        position ('ETH/USDT:USDT', 'short', 4, 1, 3180, 3312.45, 5, 'isolated', { 'liquidationPrice': 3795.2, 'realizedPnl': -3.15 }),
+        // contracts with a contractSize other than 1, and a symbol that will not fit a narrow column
+        position ('1000000MOGCOINLONGNAME/USDT:USDT', 'long', 12000, 1000, 0.00000118, 0.00000123, 3, 'isolated'),
+        // an inverse dated future, flat PnL, no liquidation price under cross margin
+        position ('BTC/USD:BTC-261225', 'short', 15, 100, 94250, 94250, 20, 'cross'),
+        // sparse row: only what the venue reported
+        { 'symbol': 'SOL/USDT:USDT', 'side': 'long', 'contracts': 30, 'entryPrice': 181.4 },
+    ] : [
+        position ('BTC/USDT:USDT', 'long', 1, 1, 95010, 94250.1, 2, 'cross', { 'liquidationPrice': 48100 }),
+    ];
+    return plain ({
+        'view': 'positions',
+        'account': live ? 'main' : 'testnet',
+        'exchange': live ? 'binance' : 'bybit',
+        'exchangeName': live ? 'Binance' : 'Bybit',
+        environment, positions,
+    });
 }
 
 function bookPayload (limit = 50) {
@@ -111,6 +280,13 @@ const views = [
     { 'id': 'chart', 'file': 'chart.html', 'tool': 'show_chart', 'args': { 'exchange': 'binance', 'symbol': 'BTC/USDT', 'timeframe': '1h', 'limit': 200 }, 'payload': chartPayload () },
     { 'id': 'orderbook', 'file': 'orderbook.html', 'tool': 'show_orderbook', 'args': { 'exchange': 'binance', 'symbol': 'BTC/USDT', 'limit': 50 }, 'payload': bookPayload () },
     { 'id': 'tickers', 'file': 'tickers.html', 'tool': 'show_tickers', 'args': { 'exchange': 'binance', 'symbols': tickersPayload ().symbols }, 'payload': tickersPayload () },
+    { 'id': 'balance', 'file': 'balance.html', 'tool': 'show_balance', 'args': { 'account': 'main' }, 'payload': balancePayload ('live') },
+    { 'id': 'balance-sandbox', 'file': 'balance.html', 'tool': 'show_balance', 'args': { 'account': 'testnet', 'nonzeroOnly': false }, 'payload': balancePayload ('sandbox') },
+    { 'id': 'orders', 'file': 'orders.html', 'tool': 'show_orders', 'args': { 'account': 'main' }, 'payload': ordersPayload ('live', 'open') },
+    { 'id': 'orders-sandbox', 'file': 'orders.html', 'tool': 'show_orders', 'args': { 'account': 'testnet', 'status': 'all' }, 'payload': ordersPayload ('sandbox', 'all') },
+    { 'id': 'orders-empty', 'file': 'orders.html', 'tool': 'show_orders', 'args': { 'account': 'main', 'symbol': 'LTC/USDT' }, 'payload': ordersPayload ('live', 'open', 'LTC/USDT') },
+    { 'id': 'positions', 'file': 'positions.html', 'tool': 'show_positions', 'args': { 'account': 'main' }, 'payload': positionsPayload ('live') },
+    { 'id': 'positions-sandbox', 'file': 'positions.html', 'tool': 'show_positions', 'args': { 'account': 'testnet' }, 'payload': positionsPayload ('sandbox') },
 ].filter ((view) => fs.existsSync (path.join (uiDir, view.file))).map ((view) => ({ ...view, 'html': renderView (view.file) }));
 
 // "</script" inside the embedded JSON would end the host page's script block early
@@ -135,6 +311,7 @@ const page = `<!doctype html>
 // a real host. tools/call is answered locally from a payload factory.
 var VIEWS = ${embed (views.map (({ id, tool, args, payload, html }) => ({ id, tool, args, payload, html })))};
 var STEP = ${embed (STEP)};
+var ORDERS = ${embed (plain (ORDERS))};
 var dark = location.hash.indexOf ('dark') !== -1;
 var narrow = location.hash.indexOf ('narrow') !== -1;
 if (dark) { document.body.className = 'dark'; }
@@ -147,13 +324,31 @@ function answer (view, name, args) {
         payload.timeframe = args.timeframe || payload.timeframe;
         payload.limit = args.limit || payload.limit;
         payload.candles = makeCandles (payload.limit, STEP[payload.timeframe] || STEP['1h'], 94000, 11 + (STEP[payload.timeframe] || 1) % 97);
+        // like the server: the overlay is only present when the call carries an account
+        if (args.account === undefined) {
+            delete payload.account;
+            delete payload.environment;
+            delete payload.orders;
+        }
         return payload;
+    }
+    if (name === 'show_orders') {
+        // a view that switches the status filter gets the matching slice of the canned orders
+        var status = args.status || 'open';
+        var orders = JSON.parse (JSON.stringify (view.payload));
+        orders.status = status;
+        orders.symbol = args.symbol;
+        orders.orders = ORDERS.filter (function (row) {
+            return (status === 'all' || row.status === status) && (args.symbol === undefined || row.symbol === args.symbol);
+        });
+        orders.hasMore = status === 'all';
+        return orders;
     }
     return view.payload;
 }
 VIEWS.forEach (function (view) {
     var title = document.createElement ('h2');
-    title.textContent = view.tool;
+    title.textContent = view.tool + ((view.id.indexOf ('-') !== -1) ? ' — ' + view.id : '');
     document.body.appendChild (title);
     var frame = document.createElement ('iframe');
     frame.id = 'view-' + view.id;

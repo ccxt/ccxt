@@ -45,6 +45,27 @@ export const UI_VIEWS: Record<string, UiView> = {
         'title': 'CCXT price board',
         'description': 'Sortable 24h price board rendered by show_tickers',
     },
+    'balance': {
+        'name': 'ccxt-balance',
+        'uri': 'ui://ccxt/balance.html',
+        'file': 'balance.html',
+        'title': 'CCXT account balance',
+        'description': 'Account holdings with their estimated value rendered by show_balance',
+    },
+    'orders': {
+        'name': 'ccxt-orders',
+        'uri': 'ui://ccxt/orders.html',
+        'file': 'orders.html',
+        'title': 'CCXT orders',
+        'description': 'Filterable list of an account\'s orders rendered by show_orders',
+    },
+    'positions': {
+        'name': 'ccxt-positions',
+        'uri': 'ui://ccxt/positions.html',
+        'file': 'positions.html',
+        'title': 'CCXT positions',
+        'description': 'Open derivatives positions with PnL rendered by show_positions',
+    },
 };
 
 // the nested key is the standard; the flat key is its deprecated predecessor that some hosts

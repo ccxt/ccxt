@@ -14,7 +14,7 @@ Your API keys stay on your machine, and **the AI model never sees them**:
 - Credentials are **never tool parameters**: no tool schema accepts a key, so neither the model nor a prompt-injected page can supply, request, or change them. Tools reference accounts by **name** ("binance-main").
 - Keys leave the process only inside signed HTTPS requests to the exchange itself — the same as any trading bot.
 - Every tool result, error, and log line passes a **redaction filter** holding your loaded secret values (some exchanges echo signed URLs in error bodies — that path is closed). Raw request URLs/headers/bodies are never emitted. `verbose` is force-disabled.
-- **Capability tiers are opt-in and file-owned.** Out of the box the server does public market data only. Configuring an account enables private reads. `trading`, `funds` (withdraw/transfer), and `implicitWrites` (raw endpoints) must each be enabled per account **in the config file** — there is no tool that edits config, so a conversation can never grant itself permissions. Unregistered tiers do not even appear in the tool list.
+- **Capability tiers are opt-in and owned by you.** Out of the box the server does public market data only. Adding an account enables private reads. `trading` must be enabled per account — in the local setup form (testnet by default; live needs a per-order cap and an explicit confirmation there) or in the config file; `funds` (withdraw/transfer) and `implicitWrites` (raw endpoints) **only in the config file**. No tool takes a credential or a tier as an argument — `setup_account` merely opens the form in your browser — so a conversation can never grant itself permissions. Every tier's tools are listed by default and execution is gated at the account; `"settings": {"hideDisabledTools": true}` hides the tiers that are not enabled.
 - Writes are **previewed and confirmed** (native confirmation form where the host supports elicitation, otherwise an explicit preview + confirm-token round-trip), validated against market limits and your notional caps, and journaled to an append-only audit log.
 
 Recommended exchange-side backstops (they hold even if your machine is compromised): create API keys with **withdrawal permission disabled** and an **IP allowlist**.
@@ -27,7 +27,7 @@ Requires Node.js ≥ 18. The npm package is `ccxt-mcp`; the server binary is `np
 
 ### Plugins (one-step install)
 
-A plugin installs the server **and** the `ccxt-mcp` usage skill together. One plugin directory ([`plugin/`](plugin/README.md)) serves all three hosts below; it pins the server (`npx -y ccxt-mcp@<plugin version>`), so updating the plugin updates the server.
+A plugin installs the server **and** two skills together: `ccxt-mcp` (usage) and `ccxt-get-started` (guided first run — say "Get started"). One plugin directory ([`plugin/`](plugin/README.md)) serves all three hosts below; it pins the server (`npx -y ccxt-mcp@<plugin version>`), so updating the plugin updates the server.
 
 **Claude Code**
 
@@ -42,7 +42,7 @@ Lighter, from a shell: `claude plugin marketplace add ccxt/ccxt --sparse .claude
 
 **xAI Grok** — Grok documents that it reads Claude Code marketplaces, plugins, skills and MCPs with zero configuration, so the same marketplace is used: with `ccxt/ccxt` already added in Claude Code, install `ccxt-mcp` from `/plugins` → Marketplace tab (Grok's own sources come from `[[marketplace.sources]]` in `~/.grok/config.toml`; adding one is not documented, and this route is untested), or run `grok --plugin-dir <path to mcp/plugin>`.
 
-The plugin runs the server version in `package.json`. The `show_*` view tools ship in the `ccxt-mcp` release after 0.1.3; a plugin that still pins 0.1.3 installs a server without them (`get_ohlcv` / `get_orderbook` / `get_tickers` return the same data as rows).
+The plugin runs the server version in `package.json`. The `show_*` view tools and `setup_account` ship in `ccxt-mcp` releases after 0.1.3; a plugin that still pins 0.1.3 installs a server without them (the `get_*` tools return the same data as rows, and accounts go in the config file).
 
 ### Claude Code
 
@@ -99,7 +99,9 @@ Add to `claude_desktop_config.json` (Settings → Developer → Edit Config):
 
 With no configuration the server serves **public market data on all exchanges** — that alone is a useful install.
 
-To add accounts, create the config file (path shown by the `get_safety_status` tool):
+**Guided setup (no file editing).** Ask the assistant to "get started" / "connect my exchange account". The `setup_account` tool opens a form in your default browser, served by this server on `127.0.0.1` through a single-use link that expires after 10 minutes. You type the API key there — never in the chat; the model sees neither the key nor the link. The form offers testnet (default), demo or live, checks the keys against the exchange, writes the account to the config file below (mode 0600) and applies it without a restart. "Allow placing orders" is off by default; on a live account it requires a per-order USD cap and an explicit confirmation, and saves `"confirm": "always"`. The `funds` and `implicitWrites` tiers are not in the form. Without a reachable desktop browser the tool returns `SETUP_FORM_UNAVAILABLE` and names the config file.
+
+To add accounts by hand, create the config file (path shown by the `get_safety_status` tool):
 
 - macOS: `~/Library/Application Support/ccxt-mcp/config.json`
 - Linux: `~/.config/ccxt-mcp/config.json`
@@ -155,13 +157,13 @@ Environment variables work too: `<EXCHANGEID>_<CREDENTIAL>` (e.g. `BINANCE_APIKE
 
 ## Tools
 
-**market** — `list_exchanges`, `describe_exchange`, `describe_method` (search/signatures/per-exchange params + docs links), `search_markets`, `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_trades`, `search_events` (prediction markets), `call_read_method` (any unified `fetch*`/`load*` — structurally read-only), `call_implicit_get` (raw GET endpoints), `get_safety_status`, `fetch_route` (best execution route for converting an asset at a given size across ~50 exchanges, via the [CCXT order router](https://docs.ccxt.com/router/) — a quote, no keys needed).
+**market** — `list_exchanges`, `describe_exchange`, `describe_method` (search/signatures/per-exchange params + docs links), `search_markets`, `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_trades`, `search_events` (prediction markets), `call_read_method` (any unified `fetch*`/`load*` — structurally read-only), `call_implicit_get` (raw GET endpoints), `get_safety_status`, `setup_account` (opens the local account-setup form; optional `exchange` / `account` / `sandbox` prefill, no credentials), `fetch_route` (best execution route for converting an asset at a given size across ~50 exchanges, via the [CCXT order router](https://docs.ccxt.com/router/) — a quote, no keys needed).
 
-**views (MCP Apps)** — `show_chart` (candlestick + volume; `timeframe` default `1h`, `limit` default 200 / max 500), `show_orderbook` (cumulative depth chart + ladder; `limit` default 50 / max 100 levels per side), `show_tickers` (sortable 24h price board; up to 50 symbols). Market tier: public data, read-only, no account — see [Interactive views](#interactive-views-mcp-apps).
+**views (MCP Apps)** — `show_chart` (candlestick + volume; `timeframe` default `1h`, `limit` default 200 / max 500), `show_orderbook` (cumulative depth chart + ladder; `limit` default 50 / max 100 levels per side), `show_tickers` (sortable 24h price board; up to 50 symbols). Market tier: public data, read-only, no account. Read tier: `show_balance` (holdings with a best-effort valuation), `show_orders` (`status` `open` default / `closed` / `canceled` / `all`; `limit` default 50 / max 200), `show_positions` (open derivatives positions), and `show_chart`'s optional `account`, which overlays that account's open orders for the symbol — see [Interactive views](#interactive-views-mcp-apps).
 
 **live (WebSocket)** — `watch_subscribe` opens a background ccxt.pro stream; `watch_read` returns fresh data. **State** streams are snapshots of "what is X right now" — `watchTicker(s)`, `watchOrderBook(ForSymbols)`, `watchOHLCV`, `watchBalance`, `watchPositions`, `watchBidsAsks`, `watchMarkPrice(s)`: the server merges live updates into the **full current set**, so `watch_read` always returns every subscribed symbol in `latest` (a multi-symbol stream never shows just the one that last ticked). **Event** streams are logs — `watchTrades` and the private `watchOrders`/`watchMyTrades`/`watch(My)Liquidations` (private need an account): `watch_read` returns new items oldest-first in `events` with a cursor. Pass `waitForChange: true` to `watch_read` to **block until the next update** (or timeout) instead of polling — the efficient way to wait for a fill or position change. `watch_unsubscribe` stops it; `watch_list` shows active streams. The long-lived server holds the socket so the agent always has fresh data; idle streams auto-stop after 10 minutes.
 
-**read** — `list_accounts`, `get_balance`, `get_orders`, `get_my_trades`, `get_positions`.
+**read** — `list_accounts`, `get_balance`, `get_orders`, `get_my_trades`, `get_positions`, and the account views `show_balance`, `show_orders`, `show_positions`.
 
 `search_markets` returns full market rows (~450 characters each, max 100 per call) by default. Pass `fields` to get compact rows — `["symbol"]` lists every okx USDT-settled swap (528) in one ~15k-character call instead of six calls and ~240k characters — and the max limit rises with how compact the rows are (up to 1000). `meta` always carries `returned`/`available`/`offset`/`hasMore`, plus `nextOffset` when there is more, `limitClamped` when the requested limit was reduced, and `marketTypes` (the types the exchange actually has) when nothing matched.
 
@@ -173,19 +175,20 @@ Every list result is capped and paginated to fit host context limits (with in-ba
 
 ## Interactive views (MCP Apps)
 
-`show_chart`, `show_orderbook` and `show_tickers` implement [MCP Apps](https://modelcontextprotocol.io/docs/extensions/apps) (extension `io.modelcontextprotocol/ui`, spec 2026-01-26): each tool's `_meta.ui.resourceUri` points at a `ui://ccxt/<view>.html` resource (`mimeType` `text/html;profile=mcp-app`) that hosts with MCP Apps support render in a sandboxed iframe.
+`show_chart`, `show_orderbook`, `show_tickers` and the account views `show_balance`, `show_orders`, `show_positions` implement [MCP Apps](https://modelcontextprotocol.io/docs/extensions/apps) (extension `io.modelcontextprotocol/ui`, spec 2026-01-26): each tool's `_meta.ui.resourceUri` points at a `ui://ccxt/<view>.html` resource (`mimeType` `text/html;profile=mcp-app`) that hosts with MCP Apps support render in a sandboxed iframe.
 
-- The model gets a compact summary as text; the view gets the full dataset as `structuredContent` — attached only for hosts that advertise the MCP Apps extension, because a host without it may hand `structuredContent` to the model in place of the summary. Every other host receives the text summary alone; `get_ohlcv` / `get_orderbook` / `get_tickers` remain the raw-data tools.
+- The model gets a compact summary as text; the view gets the full dataset as `structuredContent` — attached only for hosts that advertise the MCP Apps extension, because a host without it may hand `structuredContent` to the model in place of the summary. Every other host receives the text summary alone; the `get_*` tools remain the raw-data tools.
+- The account views are read tier and read-only: they run the same private reads as `get_balance` / `get_orders` / `get_positions`, and their payload passes the same redaction and carries no raw exchange payload. `show_balance` values holdings in one quote currency (USDT / USD / USDC) from a single `fetchTickers` call — an estimate, with a notice when currencies could not be priced. A failed open-orders read never fails `show_chart`; a notice says the orders are not drawn.
 - `meta.ui` is `"displayed"` (view payload attached), `"unsupported"` (host did not advertise MCP Apps) or `"off"`. The `CCXT_MCP_UI` environment variable overrides the detection: `auto` (default), `always` (send views even when the host does not advertise support), `off` (never).
 - On contract markets order-book amounts are in contracts: `show_orderbook` reports `meta.amountUnit` / `meta.contractSize` (also in the view payload) plus base- and quote-currency depth totals. `show_tickers` and `get_tickers` name symbols that returned no ticker in `meta.missing`.
-- The `show_*` tools ship in the `ccxt-mcp` release after 0.1.3; on an older server they are absent from the tool list.
+- The `show_*` tools ship in `ccxt-mcp` releases after 0.1.3; on an older server they are absent from the tool list.
 - Views are self-contained single files: no network access, no external assets, no tracking. They can ask the host to re-run the same tool (refresh, timeframe switch).
 
 The MCP Apps docs list Claude (claude.ai), Claude Desktop, VS Code GitHub Copilot, Goose, Postman and MCPJam among supporting clients, and OpenAI documents ChatGPT as implementing the MCP Apps standard. Terminal hosts (Claude Code CLI, Codex CLI, Grok CLI) have no surface to draw a view and show the text summary. Whether a host renders views for a *local stdio* server varies and is not uniformly documented — the views work "in hosts that support MCP Apps", no more specific promise is made.
 
 ## Troubleshooting
 
-- **"Trading is not enabled for account …"** — edit the config file (see tiers above); this is not something the conversation can change.
+- **"Trading is not enabled for account …"** — reopen the setup form (`setup_account`) and replace the account with order placement on, or edit the config file (see tiers above); this is not something the conversation can change.
 - **AUTH_FAILED on a sandbox account** — testnet keys come from the exchange's testnet portal, not your live account (and vice versa).
 - **HTTP 451 / geo-blocks** — some exchanges block cloud/VPN/US IPs; set a proxy via account `options` if needed.
 - **Slow first call on a big exchange** — the initial `loadMarkets()` can take seconds; it is cached on disk for 24h afterwards.
@@ -198,7 +201,7 @@ npm run mcp.ts          # run the server from live TypeScript sources (tsx)
 cd mcp && npm test      # unit + schema + integration tests
 cd mcp && npm run build # tsc + copy the UI views + regenerate js/data/method-docs.json
 cd mcp && npm run ui:preview  # write a fake-host preview page for developing the views
-cd mcp && npm run sync-plugin # copy .claude/skills/ccxt-mcp into plugin/skills (CI fails on drift)
+cd mcp && npm run sync-plugin # copy .claude/skills/ccxt-mcp into plugin/skills (CI fails on drift; ccxt-get-started lives only in the plugin)
 ```
 
 See `DESIGN.md` for the architecture, the prior-art analysis this server is built on, and the decision log.

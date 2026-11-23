@@ -151,7 +151,7 @@
     "enable_trading": {
       "type": "boolean",
       "title": "Allow placing orders — sandbox/demo only (applies to all exchanges above)",
-      "description": "Enable order placement on sandbox/testnet or demo accounts only. Live trading and withdrawals must be enabled in the config file, not here.",
+      "description": "Enable order placement on sandbox/testnet or demo accounts only. Live trading is enabled in the guided setup form (ask the assistant to \"get started\") or the config file, withdrawals in the config file only, never here.",
       "default": false
     },
     "config_file": {

@@ -32,6 +32,8 @@ async function main (): Promise<void> {
         shuttingDown = true;
         log ('info', 'shutting down (' + reason + ')');
         try {
+            // the setup form's loopback listener must not outlive the server that owns it
+            await ctx.setup?.close ();
             await ctx.subscriptions.closeAll ();
             await pools.closeAll ();
         } catch (e) {

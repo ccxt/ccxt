@@ -1,7 +1,7 @@
 {
   "name": "ccxt-mcp",
   "version": "0.1.3",
-  "description": "The official CCXT MCP server plus the ccxt-mcp usage skill: connect your agent to 100+ crypto exchanges and prediction markets for market data, interactive charts, balances and opt-in trading, with API keys kept local.",
+  "description": "The official CCXT MCP server plus a guided-setup skill and the ccxt-mcp usage skill: connect your agent to 100+ crypto exchanges and prediction markets for market data, interactive charts, balances and opt-in trading, with API keys kept local.",
   "author": {
     "name": "CCXT",
     "url": "https://ccxt.com"
@@ -22,24 +22,31 @@
   "interface": {
     "displayName": "CCXT",
     "shortDescription": "Crypto exchange data & trading",
-    "longDescription": "The official CCXT plugin. It connects your agent to 100+ cryptocurrency exchanges and prediction markets through the unified CCXT API, and bundles a skill that teaches the agent how to use it.\n\nWith no setup and no API keys you get public market data on every exchange: tickers, order books, candles, recent trades, funding rates, market search and prediction-market events, plus interactive candlestick charts, order-book depth views and ticker boards rendered inline in hosts that support MCP Apps.\n\nAdd an account in a local config file to read balances, orders, positions and trade history. Your API keys stay on your machine and are never visible to the model, which refers to accounts by name only.\n\nTrading is opt-in and sandbox-first: order placement is off until you enable it for an account, is meant to be tried on an exchange testnet or demo account first, and live trading and withdrawals each need their own explicit switch plus optional per-order value caps.\n\nThe MCP server runs locally over stdio through npx (Node.js 18 or newer is required).",
+    "longDescription": "The official CCXT plugin. It connects your agent to 100+ cryptocurrency exchanges and prediction markets through the unified CCXT API, and bundles two skills: a guided first-run setup and a usage guide for the agent.\n\nWith no setup and no API keys you get public market data on every exchange: tickers, order books, candles, recent trades, funding rates, market search and prediction-market events, plus interactive candlestick charts, order-book depth views and ticker boards rendered inline in hosts that support MCP Apps.\n\nSay \"Get started\" to connect an exchange account. The assistant explains how to create an API key and opens a setup form in your own web browser, served from your own computer. You type the key there, never into the chat; it is saved to a local file and the model never sees it. After that you can see your balances, orders and positions as interactive tables, and your open orders drawn on the chart.\n\nTrading is opt-in and sandbox-first: order placement is off until you switch it on for an account, the setup form defaults to the exchange testnet (practice money), and live trading requires a per-order USD cap and an explicit confirmation. Withdrawals and transfers cannot be enabled from the form or from the conversation, only by editing the local config file yourself.\n\nThe MCP server runs locally over stdio through npx (Node.js 18 or newer is required).",
     "developerName": "CCXT",
     "category": "Finance",
     "capabilities": [
       "Read market data",
       "Render charts",
+      "Guided account setup",
+      "Show balances and orders",
       "Trade (opt-in)"
     ],
     "websiteURL": "https://ccxt.com",
     "supportURL": "https://github.com/ccxt/ccxt/issues",
     "defaultPrompt": [
+      "Get started: connect my exchange account",
       "Show the BTC/USDT 1h chart on Binance",
-      "Compare the ETH/USDT price across exchanges",
-      "Show the BTC/USDT order book on Kraken"
+      "Show my open orders"
     ],
     "brandColor": "#0a0a0a",
     "composerIcon": "./assets/icon.svg",
     "composerIconDark": "./assets/icon-dark.svg",
     "logo": "./assets/logo.png"
+  },
+  "extensions": {
+    "com.openai": {
+      "onboardingSkill": "./skills/ccxt-get-started/SKILL.md"
+    }
   }
 }
