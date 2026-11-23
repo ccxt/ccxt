@@ -1676,7 +1676,7 @@ export default class bithumb extends Exchange {
             if (side === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrders() requires each order to have a side');
             }
-            const amount = this.safeValue (rawOrder, 'amount');
+            const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
@@ -1706,7 +1706,7 @@ export default class bithumb extends Exchange {
         return this.parseOrders (data, market);
     }
 
-    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Dict {
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
         /**
          * @method
          * @ignore
