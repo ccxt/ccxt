@@ -323,8 +323,7 @@ export default class limitless extends Exchange {
         const eventKeys = Object.keys (eventGroups);
         for (let i = 0; i < eventKeys.length; i++) {
             const eventKey = eventKeys[i];
-            const g = eventGroups[eventKey];
-            eventsDict[eventKey] = this.parseEvent (g);
+            eventsDict[eventKey] = this.parseEvent (this.safeDict (eventGroups, eventKey, {}));
         }
         this.events = eventsDict;
         const marketsLength = markets.length;
@@ -445,15 +444,14 @@ export default class limitless extends Exchange {
         const tokenEntries = Object.keys (tokens);
         for (let i = 0; i < tokenEntries.length; i++) {
             const outcomeLabel = tokenEntries[i];
-            const tokenData = tokens[outcomeLabel];
-            const tokenId = tokenData;
+            const tokenId = this.safeString (tokens, outcomeLabel);
             const outcomeHandle = this.slugToOutcomeSymbol (groupId, slug, outcomeLabel);
             // winningOutcomeIndex indexes the API's canonical outcome order (yes=0, no=1 for
             // limitless's binary yes/no markets). Object.keys iteration order is NOT stable across
             // languages (Go randomizes map iteration), so map the leg to its canonical index by
             // label rather than by loop position — otherwise Go/Java flag the wrong winner
             const labelLower = outcomeLabel.toLowerCase ();
-            let legIndex = i;
+            let legIndex: int = i;
             if (labelLower === 'yes') {
                 legIndex = 0;
             } else if (labelLower === 'no') {
@@ -1063,10 +1061,8 @@ export default class limitless extends Exchange {
             // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price
             const rawBids = this.safeList (book, 'bids', []);
             const rawAsks = this.safeList (book, 'asks', []);
-            const rawBidsLength = rawBids.length;
-            const rawAsksLength = rawAsks.length;
-            const yesBestBid = (rawBidsLength > 0) ? rawBids[0] : undefined;
-            const yesBestAsk = (rawAsksLength > 0) ? rawAsks[0] : undefined;
+            const yesBestBid = this.safeDict (rawBids, 0);
+            const yesBestAsk = this.safeDict (rawAsks, 0);
             const yesBidPrice = this.safeString (yesBestBid, 'price');
             const yesBidSize = this.safeString (yesBestBid, 'size');
             const yesAskPrice = this.safeString (yesBestAsk, 'price');
@@ -1165,7 +1161,7 @@ export default class limitless extends Exchange {
         // market and book only once
         await this.loadOutcomes (outcomes);
         const outcomesBySlug: Dict = {};
-        const slugs: any[] = [];
+        const slugs: string[] = [];
         for (let i = 0; i < outcomes.length; i++) {
             const outcomeObj = this.outcome (outcomes[i]);
             const slug = this.safeString (outcomeObj['info'], 'slug');
@@ -1422,7 +1418,7 @@ export default class limitless extends Exchange {
             const first = this.safeDict (rawHistory, 0, {});
             const firstPrices = this.safeList (first, 'prices');
             if (firstPrices !== undefined) {
-                let selectedSeries = first;
+                let selectedSeries: Dict = first;
                 for (let i = 0; i < rawHistoryLength; i++) {
                     const series = this.safeDict (rawHistory, i, {});
                     const title = this.safeStringUpper (series, 'title', '');
@@ -2159,7 +2155,10 @@ export default class limitless extends Exchange {
                     throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument');
                 } else {
                     const quoteAmount = this.parseToNumeric (Precise.stringMul (amountString, priceString));
-                    const costRequest = (cost !== undefined) ? cost : quoteAmount;
+                    let costRequest: Num = quoteAmount;
+                    if (cost !== undefined) {
+                        costRequest = cost;
+                    }
                     makerAmount = this.costToPredictionPrecision (outcome, costRequest);
                 }
             } else {
@@ -2277,10 +2276,8 @@ export default class limitless extends Exchange {
         const payload = '02' + this.rlpEncodeList (fields);
         const hashHex = this.hash (this.base16ToBinary (payload), keccak, 'hex');
         const signature = ecdsa (hashHex, this.remove0xPrefix (privateKey), secp256k1, undefined);
-        let rHex = this.safeString (signature, 'r');
-        let sHex = this.safeString (signature, 's');
-        rHex = this.padHexToEven (rHex);
-        sHex = this.padHexToEven (sHex);
+        const rHex: string = this.padHexToEven (this.safeString (signature, 'r'));
+        const sHex: string = this.padHexToEven (this.safeString (signature, 's'));
         const yParity = this.safeInteger (signature, 'v');
         const signedFields: string[] = [];
         for (let i = 0; i < fields.length; i++) {
