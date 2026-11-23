@@ -87,7 +87,7 @@ public partial class weex : ccxt.weex
         return requestId;
     }
 
-    public async virtual Task<T> subscribePublic<T>(object messageHashes, object channels, bool? isContract = null, object parameters = null, IDictionary<string, object>? subscription = null)
+    public async virtual Task<T> subscribePublic<T>(IList<object> messageHashes, IList<object> channels, bool? isContract = null, object parameters = null, IDictionary<string, object>? subscription = null)
     {
         isContract ??= false;
         parameters ??= new Dictionary<string, object>();

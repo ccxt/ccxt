@@ -804,7 +804,7 @@ public partial class hyperliquid : Exchange
      * @param {int} maxDecimals the maxDecimals to use in the calculation
      * @returns {int} The calculated price precision
      */
-    public virtual object calculatePricePrecision(double? price, Int64? amountPrecision, Int64 maxDecimals)
+    public virtual Int64? calculatePricePrecision(double? price, Int64? amountPrecision, Int64 maxDecimals)
     {
         object pricePrecision = 0;
         string? priceStr = this.numberToString(price);
@@ -967,7 +967,7 @@ public partial class hyperliquid : Exchange
             string? amountPrecisionStr = this.safeString(innerBaseTokenInfo, "szDecimals");
             Int64? amountPrecision = this.parseToInt(amountPrecisionStr);
             double? price = this.safeNumber(extraData, "midPx");
-            object pricePrecision = 0;
+            Int64? pricePrecision = 0;
             if ((price != null))
             {
                 pricePrecision = this.calculatePricePrecision(price, amountPrecision, 8);
@@ -1099,7 +1099,7 @@ public partial class hyperliquid : Exchange
         string? amountPrecisionStr = this.safeString(market, "szDecimals");
         Int64? amountPrecision = this.parseToInt(amountPrecisionStr);
         double? price = this.safeNumber(market, "markPx", 0);
-        object pricePrecision = 0;
+        Int64? pricePrecision = 0;
         if ((price != null))
         {
             pricePrecision = this.calculatePricePrecision(price, amountPrecision, 6);
@@ -4448,7 +4448,8 @@ public partial class hyperliquid : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            result.Add(this.parsePosition(this.safeDict(data, i, new Dictionary<string, object>() {})));
+            Dictionary<string, object> parsedPosition = this.parsePosition(this.safeDict(data, i, new Dictionary<string, object>() {}));
+            result.Add(parsedPosition);
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
@@ -5829,11 +5830,11 @@ public partial class hyperliquid : Exchange
         return (this.safeCurrencyCode(coinId) + "/USDC:USDC");
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if (((response == null)) || ((response == null)))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         // {"status":"err","response":"User or API Wallet 0xb8a6f8b26223de27c31938d56e470a5b832703a5 does not exist."}
         //
@@ -5892,7 +5893,7 @@ public partial class hyperliquid : Exchange
         {
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)

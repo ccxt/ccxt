@@ -1526,7 +1526,7 @@ public partial class kraken : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(items, currency, since, limit));
     }
 
-    public async virtual Task<List<ccxt.LedgerEntry>> FetchLedgerEntriesByIds(object ids, string code = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.LedgerEntry>> FetchLedgerEntriesByIds(IList<object> ids, string code = null, IDictionary<string, object> parameters = null)
     {
         // https://www.kraken.com/features/api#query-ledgers
         parameters ??= new Dictionary<string, object>();
@@ -1534,7 +1534,7 @@ public partial class kraken : Exchange
         {
             await this.loadMarkets();
         }
-        string idsValue = String.Join(",", ((IList<object>)ids).ToArray());
+        string idsValue = String.Join(",", ids.ToArray());
         Dictionary<string, object> request = this.extend(new Dictionary<string, object>() {
             { "id", idsValue },
         }, parameters);
@@ -4213,7 +4213,7 @@ public partial class kraken : Exchange
         return ((Int64)((object)((this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0))))!);
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((code == 520))
         {
@@ -4221,7 +4221,7 @@ public partial class kraken : Exchange
         }
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         if ((this.safeString(body, 0) == "{"))
         {
@@ -4262,6 +4262,6 @@ public partial class kraken : Exchange
                 }
             }
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

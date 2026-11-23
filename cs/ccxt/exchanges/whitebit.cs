@@ -1461,7 +1461,7 @@ public partial class whitebit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding limits structure]{@link https://docs.ccxt.com/?id=funding-limits-structure}
      */
-    public async virtual Task<Dictionary<string, object>> FetchFundingLimits(IList<object> codes = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchFundingLimits(IList<object>? codes = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4996,7 +4996,7 @@ public partial class whitebit : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if (((code == 418)) || ((code == 429)))
         {
@@ -5061,6 +5061,6 @@ public partial class whitebit : Exchange
                 throw new ExchangeError (feedback) ;
             }
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

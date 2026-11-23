@@ -2549,7 +2549,7 @@ public partial class coinsph : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if ((((query != null && key != null && query.ContainsKey(key) ? query[key] : null)) is var hxArr112083 && ((hxArr112083 is IList<object>) || (hxArr112083.GetType().IsGenericType && hxArr112083.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            if ((((query != null && key != null && query.ContainsKey(key) ? query[key] : null)) is var hxArr112089 && ((hxArr112089 is IList<object>) || (hxArr112089.GetType().IsGenericType && hxArr112089.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 if ((i != 0))
                 {
@@ -2633,11 +2633,11 @@ public partial class coinsph : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         string? responseCode = this.safeString(response, "code");
         if (((responseCode != null)) && (responseCode != "200") && (responseCode != "0"))
@@ -2647,6 +2647,6 @@ public partial class coinsph : Exchange
             this.throwExactlyMatchedException(this.exceptionsExact, responseCode, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

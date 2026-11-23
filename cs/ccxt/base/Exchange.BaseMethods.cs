@@ -1578,7 +1578,7 @@ public partial class BaseExchange
         Int64? timestamp = this.safeInteger(obj, key, defaultValue);
         if ((timestamp == null) || (timestamp == 0))
         {
-            return ((Int64?)((object)(null)));
+            return null;
         }
         return timestamp;
     }
@@ -2191,7 +2191,7 @@ public partial class BaseExchange
             IDictionary<string, object> value = this.safeDict(marketValues, i, new Dictionary<string, object>() {});
             if ((marketsById != null && (value != null && value.ContainsKey("id") ? value["id"] : null) is string inOpKey13 && marketsById.ContainsKey(inOpKey13)))
             {
-                IList<object> marketsByIdArray = ((IList<object>)getValue(marketsById, (value != null && value.ContainsKey("id") ? value["id"] : null)));
+                IList<object> marketsByIdArray = ((IList<object>)(marketsById != null && (value != null && value.ContainsKey("id") ? value["id"] : null) != null && marketsById.TryGetValue((string)(value != null && value.ContainsKey("id") ? value["id"] : null), out var marketsByIdValue2186_65) ? marketsByIdValue2186_65 : null));
                 marketsByIdArray.Add(value);
                 marketsById[(string)(value != null && value.ContainsKey("id") ? value["id"] : null)] = marketsByIdArray;
             } else
@@ -2346,9 +2346,9 @@ public partial class BaseExchange
         for (int i = 0; i < (sourceExchangeHelpers?.Count ?? 0); i++)
         {
             object helper = sourceExchangeHelpers[i];
-            if (!(getValue(sourceExchange.options, helper) == null))
+            if (!((sourceExchange.options != null && helper != null && sourceExchange.options.TryGetValue((string)helper, out var sourceExchangeOption2341_18) ? sourceExchangeOption2341_18 : null) == null))
             {
-                this.options[(string)helper] = getValue(sourceExchange.options, helper);
+                this.options[(string)helper] = (sourceExchange.options != null && helper != null && sourceExchange.options.TryGetValue((string)helper, out var sourceExchangeOption2343_47) ? sourceExchangeOption2343_47 : null);
             }
         }
         return this;
@@ -5603,11 +5603,11 @@ public partial class BaseExchange
         return null;
     }
 
-    public virtual object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public virtual bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         // it is a stub method that must be overrided in the derived exchange classes
         // throw new NotSupported (this.id + ' handleErrors() not implemented yet');
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     public virtual object calculateRateLimiterCost(IList<object> api, string method, string? path, object parameters, IDictionary<string, object> config = null)

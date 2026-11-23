@@ -2721,7 +2721,7 @@ public partial class gate : ccxt.gate
         return reqid;
     }
 
-    public async virtual Task<T> subscribePublic<T>(object url, string messageHash, object payload, string channel, object parameters = null, object subscription = null)
+    public async virtual Task<T> subscribePublic<T>(object url, string messageHash, IList<object> payload, string channel, object parameters = null, object subscription = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 requestId = this.requestId();
@@ -2746,7 +2746,7 @@ public partial class gate : ccxt.gate
         return await this.watch<T>(url, messageHash, message, messageHash, subscription);
     }
 
-    public async virtual Task<T> subscribePublicMultiple<T>(object url, object messageHashes, IList<object> payload, string channel, IDictionary<string, object> parameters = null)
+    public async virtual Task<T> subscribePublicMultiple<T>(object url, IList<object> messageHashes, IList<object> payload, string channel, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 requestId = this.requestId();
@@ -2762,7 +2762,7 @@ public partial class gate : ccxt.gate
         return await this.watchMultiple<T>(url, messageHashes, message, messageHashes);
     }
 
-    public async virtual Task<object> unSubscribePublicMultiple(object url, string topic, IList<object> symbols, IList<object> messageHashes, object subMessageHashes, object payload, string channel, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> unSubscribePublicMultiple(object url, string topic, IList<object> symbols, IList<object> messageHashes, IList<object> subMessageHashes, object payload, string channel, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 requestId = this.requestId();

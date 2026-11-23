@@ -3935,11 +3935,11 @@ public partial class extended : Exchange
         return ((string?)((object)(this.extendedStarknetComputePoseidonHashOnElements(new List<object> {this.getExtendedStringToFelt("StarkNet Message"), domainHash, senderPublicKey, transferHash}))));
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         //
         //     {"status":"ERROR","error":{"code":1140,"message":"New order cost exceeds available balance","debugInfo":"Order cost 2.000000 exceeds available for trade 0\nOrder price = 200, mark price = 95.2147597125 estimated market price = 94.81"}}
@@ -3954,7 +3954,7 @@ public partial class extended : Exchange
             this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)

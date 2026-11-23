@@ -3302,14 +3302,14 @@ public partial class polymarket : PredictionExchange
         return result;
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         // the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg");
         // map the known messages so callers can distinguish a dead book or a rejected order
         // from a transport outage (the base otherwise maps a bare 404 to a retryable error)
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         string? errorMessage = this.safeString2(response, "error", "errorMsg");
         if ((errorMessage != null))
@@ -3318,7 +3318,7 @@ public partial class polymarket : PredictionExchange
             this.throwExactlyMatchedException(this.exceptionsExact, errorMessage, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     public override Int64 nonce()
@@ -3373,7 +3373,7 @@ public partial class polymarket : PredictionExchange
             List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
             for (int i = 0; i < queryKeys.Count; i++)
             {
-                if (((getValue(query, queryKeys[i])) is var hxArr152172 && ((hxArr152172 is IList<object>) || (hxArr152172.GetType().IsGenericType && hxArr152172.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+                if (((getValue(query, queryKeys[i])) is var hxArr152178 && ((hxArr152178 is IList<object>) || (hxArr152178.GetType().IsGenericType && hxArr152178.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
                 {
                     hasArrayParam = true;
                 }
@@ -3745,7 +3745,7 @@ public partial class polymarket : PredictionExchange
             ((IDictionary<string,object>)this.orderbooks)[(string)outcome] = seededBook;
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, outcome);
-        Int64? timestamp = ((Int64)this.parsePolyTimestamp(this.safeString(eventVar, "timestamp")));
+        Int64? timestamp = this.parsePolyTimestamp(this.safeString(eventVar, "timestamp"));
         List<object> rawBids = this.safeList(eventVar, "bids", new List<object>() {});
         List<object> rawAsks = this.safeList(eventVar, "asks", new List<object>() {});
         List<object> bids = new List<object>() {};
@@ -3776,7 +3776,7 @@ public partial class polymarket : PredictionExchange
 
     public virtual void handleOrderBookDelta(WebSocketClient client, object eventVar)
     {
-        Int64? timestamp = ((Int64)this.parsePolyTimestamp(this.safeString(eventVar, "timestamp")));
+        Int64? timestamp = this.parsePolyTimestamp(this.safeString(eventVar, "timestamp"));
         List<object> changes = this.safeList(eventVar, "price_changes", new List<object>() {});
         Dictionary<string, object> updated = new Dictionary<string, object>() {};
         for (int i = 0; i < changes.Count; i++)
@@ -3818,7 +3818,7 @@ public partial class polymarket : PredictionExchange
         {
             return;
         }
-        Int64? timestamp = ((Int64)this.parsePolyTimestamp(this.safeString(eventVar, "timestamp")));
+        Int64? timestamp = this.parsePolyTimestamp(this.safeString(eventVar, "timestamp"));
         double? price = this.safeNumber(eventVar, "price");
         double? amount = this.safeNumber(eventVar, "size");
         IDictionary<string, object> market = this.safeOutcome(tokenId);
@@ -4135,7 +4135,7 @@ public partial class polymarket : PredictionExchange
         return this.safeString2(market, "market", "symbol");
     }
 
-    public virtual object parsePolyTimestamp(string? raw)
+    public virtual Int64? parsePolyTimestamp(string? raw)
     {
         if ((raw == null))
         {

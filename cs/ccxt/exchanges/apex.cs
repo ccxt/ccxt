@@ -2253,7 +2253,7 @@ public partial class apex : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         //
         // {"code":3,"msg":"Order price must be greater than 0. Order price is 0.","key":"ORDER_PRICE_MUST_GREETER_ZERO","detail":{"price":"0"}}
@@ -2261,7 +2261,7 @@ public partial class apex : Exchange
         //
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         Int64? errorCode = this.safeInteger(response, "code");
         if ((errorCode != null) && (errorCode != 0))
@@ -2273,6 +2273,6 @@ public partial class apex : Exchange
             this.throwExactlyMatchedException(this.exceptionsExact, status, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

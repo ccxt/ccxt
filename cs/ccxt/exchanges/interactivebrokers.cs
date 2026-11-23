@@ -1140,15 +1140,15 @@ public partial class interactivebrokers : Exchange
         if (authenticated != true)
         {
             // the sso login is alive but the brokerage session is not (e.g. taken over by a login with the same username elsewhere, or after the daily reset)
-            Int64? lostTimestamp = ((Int64)this.ibkrGatewayOnSessionLost());
-            object regainDelay = this.ibkrGatewayRegainDelay();
-            if (isLessThanOrEqual(regainDelay, 0))
+            Int64? lostTimestamp = this.ibkrGatewayOnSessionLost();
+            Int64? regainDelay = this.ibkrGatewayRegainDelay();
+            if ((regainDelay == null || regainDelay <= 0))
             {
                 string gatewayUrl = this.safeString(this.options, "gatewayUrl");
                 throw new AuthenticationError (((((this.id + " the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), log in again at ") + gatewayUrl) + " in a browser or set options.autoRegainSession to take it back automatically, ") + this.json(response))) ;
             }
-            object regainTimestamp = this.sum(lostTimestamp, regainDelay);
-            if (isLessThan(this.milliseconds(), regainTimestamp))
+            Int64 regainTimestamp = this.sum(lostTimestamp, regainDelay);
+            if (this.milliseconds() < regainTimestamp)
             {
                 string? regainDatetime = this.iso8601(regainTimestamp);
                 throw new AuthenticationError (((((this.id + " the brokerage session of the client portal gateway is not authenticated (e.g. it was taken over by a login with the same username elsewhere), it will be taken back at ") + regainDatetime) + " (options.autoRegainSession), ") + this.json(response))) ;
@@ -1209,7 +1209,7 @@ public partial class interactivebrokers : Exchange
      * @ignore
      * @returns {int} the delay in milliseconds
      */
-    public virtual object ibkrGatewayRegainDelay()
+    public virtual Int64? ibkrGatewayRegainDelay()
     {
         double? seconds = this.safeNumber(this.options, "autoRegainSession", 0);
         if (((seconds == null)) || (isLessThanOrEqual(seconds, 0)))
@@ -1226,7 +1226,7 @@ public partial class interactivebrokers : Exchange
      * @ignore
      * @returns {int} the timestamp when the session was found lost
      */
-    public virtual object ibkrGatewayOnSessionLost()
+    public virtual Int64? ibkrGatewayOnSessionLost()
     {
         this.options["gatewayAuthenticatedTimestamp"] = null;
         Int64? lostTimestamp = this.safeInteger(this.options, "gatewaySessionLostTimestamp");
@@ -1248,8 +1248,8 @@ public partial class interactivebrokers : Exchange
      */
     public virtual bool ibkrGatewayScheduleRegain()
     {
-        object regainDelay = this.ibkrGatewayRegainDelay();
-        if ((isLessThanOrEqual(regainDelay, 0)) || (this.safeBool(this.options, "gatewayRegainScheduled", false) == true))
+        Int64? regainDelay = this.ibkrGatewayRegainDelay();
+        if (((regainDelay == null || regainDelay <= 0)) || (this.safeBool(this.options, "gatewayRegainScheduled", false) == true))
         {
             return false;
         }
@@ -1435,10 +1435,10 @@ public partial class interactivebrokers : Exchange
     public async virtual Task<object> loadAccountId(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> accountIdFromParamsqueryVariable = (IList<object>)this.handleOptionAndParams(parameters, "loadAccountId", "accountId");
-        var accountIdFromParams = accountIdFromParamsqueryVariable[0];
-        IDictionary<string, object> query = ((IDictionary<string, object>)accountIdFromParamsqueryVariable[1]);
-        object accountId = accountIdFromParams;
+        (string?, IDictionary<string, object>) accountIdFromParamsqueryVariable = this.handleOptionStringAndParams(parameters, "loadAccountId", "accountId");
+        string? accountIdFromParams = accountIdFromParamsqueryVariable.Item1;
+        IDictionary<string, object> query = (accountIdFromParamsqueryVariable.Item2);
+        string? accountId = accountIdFromParams;
         if ((accountId == null))
         {
             ccxt.BaseExchange.FromAccountList(await this.FetchAccounts());
@@ -2718,13 +2718,13 @@ public partial class interactivebrokers : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} the raw snapshot items
      */
-    public async virtual Task<List<object>> ibkrFetchSnapshot(object symbols, object fields, object readyFields, object parameters = null)
+    public async virtual Task<List<object>> ibkrFetchSnapshot(IList<object> symbols, object fields, IList<object> readyFields, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> conids = new List<object>() {};
-        for (int i = 0; i < getArrayLength(symbols); i++)
+        for (int i = 0; i < (symbols?.Count ?? 0); i++)
         {
-            Dictionary<string, object> market = this.market(getValue(symbols, i));
+            Dictionary<string, object> market = this.market((symbols != null && i < symbols.Count ? symbols[i] : null));
             conids.Add(this.safeString(market, "id", ""));
         }
         IDictionary<string, object> options = this.safeDict(this.options, "fetchTickers", new Dictionary<string, object>() {});
@@ -2750,20 +2750,20 @@ public partial class interactivebrokers : Exchange
         return response;
     }
 
-    public virtual bool ibkrSnapshotReady(IList<object> response, object fieldIds)
+    public virtual bool ibkrSnapshotReady(IList<object> response, IList<object> fieldIds)
     {
         int numItems = response?.Count ?? 0;
         if ((numItems == 0))
         {
             return false;
         }
-        int numFields = getArrayLength(fieldIds);
+        int numFields = fieldIds?.Count ?? 0;
         for (int i = 0; i < numItems; i++)
         {
             bool found = false;
             for (int j = 0; j < numFields; j++)
             {
-                if ((this.safeString((response != null && i < response.Count ? response[i] : null), getValue(fieldIds, j)) != null))
+                if ((this.safeString((response != null && i < response.Count ? response[i] : null), (fieldIds != null && j < fieldIds.Count ? fieldIds[j] : null)) != null))
                 {
                     found = true;
                     break;
@@ -3083,7 +3083,7 @@ public partial class interactivebrokers : Exchange
         object requestLimit = maxLimit;
         if ((limit != null))
         {
-            requestLimit = mathMin(limit, maxLimit);
+            requestLimit = Math.Min(limit.Value, maxLimit.GetValueOrDefault());
         }
         int duration = this.parseTimeframe(timeframeVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -4234,7 +4234,7 @@ public partial class interactivebrokers : Exchange
         var accountQuery = ((IList<object>) accountIdaccountQueryVariable)[1];
         IList<object> currencyqueryVariable = (IList<object>)this.handleOptionAndParams(accountQuery, "fetchMyTrades", "currency", this.safeString(options, "transactionsCurrency", "USD"));
         var currency = currencyqueryVariable[0];
-        var query = currencyqueryVariable[1];
+        IDictionary<string, object> query = ((IDictionary<string, object>)currencyqueryVariable[1]);
         object days = this.safeInteger(options, "transactionsDays", 90);
         if ((since != null))
         {
@@ -4278,7 +4278,7 @@ public partial class interactivebrokers : Exchange
         return ccxt.BaseExchange.FromTradeList(this.parseTrades(transactions, market, since, limit));
     }
 
-    public virtual object parseTransactionDate(string? date)
+    public virtual Int64? parseTransactionDate(string? date)
     {
         // "Mon Dec 11 00:00:00 EST 2023" -> 2023-12-11T00:00:00-05:00
         if ((date == null))
@@ -4347,7 +4347,7 @@ public partial class interactivebrokers : Exchange
             //
             string? transactionMarketId = this.safeString(trade, "conid");
             Dictionary<string, object> transactionMarket = this.safeMarket(transactionMarketId,((IDictionary<string, object>)market));
-            Int64? transactionTimestamp = ((Int64)this.parseTransactionDate(this.safeString(trade, "date")));
+            Int64? transactionTimestamp = this.parseTransactionDate(this.safeString(trade, "date"));
             string? qty = this.safeString(trade, "qty");
             string? typeId = this.safeStringLower(trade, "type");
             string? transactionSide = null;
@@ -4894,7 +4894,7 @@ public partial class interactivebrokers : Exchange
         return null;
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if (((code == 401)) && (this.safeBool(this.options, "useGateway", false) == true))
         {
@@ -4905,7 +4905,7 @@ public partial class interactivebrokers : Exchange
         }
         if ((response == null))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         //
         //     {
@@ -4922,6 +4922,6 @@ public partial class interactivebrokers : Exchange
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

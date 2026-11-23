@@ -1711,11 +1711,11 @@ public partial class indodax : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         // { success: 0, error: "invalid order." }
         // or
@@ -1723,17 +1723,17 @@ public partial class indodax : Exchange
         // {"success":"1","status":"approved","withdraw_currency":"strm","withdraw_address":"0x2b9A8cd5535D99b419aEfFBF1ae8D90a7eBdb24E","withdraw_amount":"2165.05767839","fee":"21.11000000","amount_after_fee":"2143.94767839","submit_time":"1730759489","withdraw_id":"strm-3423","txid":""}
         if (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
         {
-            return null;  // public endpoints may return []-arrays
+            return ((bool?)((object)(null)));  // public endpoints may return []-arrays
         }
         string? error = this.safeString(response, "error", "");
         string? status = this.safeString(response, "success");
         if (((status == null)) && (error == ""))
         {
-            return null;  // no 'success' property on public responses
+            return ((bool?)((object)(null)));  // no 'success' property on public responses
         }
         if (status == "approved")
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         if ((this.safeInteger(response, "success", 0) == 1))
         {
@@ -1743,7 +1743,7 @@ public partial class indodax : Exchange
                 throw new ExchangeError (((this.id + ": malformed response: ") + this.json(response))) ;
             } else
             {
-                return null;
+                return ((bool?)((object)(null)));
             }
         }
         string feedback = ((this.id + " ") + body);

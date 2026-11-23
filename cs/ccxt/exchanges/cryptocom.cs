@@ -3914,10 +3914,10 @@ public partial class cryptocom : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < positions.Count; i++)
         {
-            IDictionary<string, object> entry = ((IDictionary<string, object>)positions[i]);
-            string? marketId = this.safeString(entry, "instrument_name");
+            string? marketId = this.safeString((positions != null && i < positions.Count ? positions[i] : null), "instrument_name");
             Dictionary<string, object> marketInner = this.safeMarket(marketId, null, null, "contract");
-            result.Add(this.parsePosition(entry, marketInner));
+            Dictionary<string, object> position = this.parsePosition(this.safeDict(positions, i, new Dictionary<string, object>() {}), marketInner);
+            result.Add(position);
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", null));
     }
@@ -4276,7 +4276,7 @@ public partial class cryptocom : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         string? errorCode = this.safeString(response, "code");
         if (errorCode != "0")
@@ -4285,6 +4285,6 @@ public partial class cryptocom : Exchange
             this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             throw new ExchangeError (((this.id + " ") + body)) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

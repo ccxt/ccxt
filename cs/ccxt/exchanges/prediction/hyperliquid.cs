@@ -2584,11 +2584,11 @@ public partial class hyperliquid : PredictionExchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         string? status = this.safeString(response, "status", "");
         if (status == "err")
@@ -2614,7 +2614,7 @@ public partial class hyperliquid : PredictionExchange
                 throw new ExchangeError (feedback) ;
             }
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     public override object calculateRateLimiterCost(IList<object> api, string method, string? path, object parameters, IDictionary<string, object> config = null)

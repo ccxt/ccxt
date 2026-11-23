@@ -1082,11 +1082,11 @@ public partial class coinspot : Exchange
         return this.safeOrder(new Dictionary<string, object>() {             { "info", response },         });
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         string? status = this.safeString(response, "status");
         if (status == "error")
@@ -1094,7 +1094,7 @@ public partial class coinspot : Exchange
             string feedback = ((this.id + " ") + this.json(response));
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     public override Int64 nonce()

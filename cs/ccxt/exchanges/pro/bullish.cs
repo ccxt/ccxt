@@ -106,7 +106,7 @@ public partial class bullish : ccxt.bullish
         return await this.watch((wsUrl == null ? null : wsUrl + (string)(object)(url)), messageHash, this.deepExtend(message, parameters), messageHash);
     }
 
-    public async virtual Task<object> watchPrivate(string messageHash, string subscribeHash, object request = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<T> watchPrivate<T>(string messageHash, string subscribeHash, object request = null, IDictionary<string, object>? parameters = null)
     {
         request ??= new Dictionary<string, object>();
         parameters ??= new Dictionary<string, object>();
@@ -126,7 +126,7 @@ public partial class bullish : ccxt.bullish
             { "params", request },
             { "id", id },
         };
-        object result = await this.watch(url, messageHash, this.deepExtend(message, parameters), subscribeHash);
+        T result = await this.watch<T>(url, messageHash, this.deepExtend(message, parameters), subscribeHash);
         return result;
     }
 
@@ -442,7 +442,7 @@ public partial class bullish : ccxt.bullish
         {
             request["tradingAccountId"] = tradingAccountId;
         }
-        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watchPrivate(messageHash, subscribeHash, request, paramsOmitted));
+        ccxt.pro.ArrayCache orders = await this.watchPrivate<ccxt.pro.ArrayCache>(messageHash, subscribeHash, request, paramsOmitted);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
@@ -575,7 +575,7 @@ public partial class bullish : ccxt.bullish
         {
             request["tradingAccountId"] = tradingAccountId;
         }
-        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watchPrivate(messageHash, subscribeHash, request, paramsOmitted));
+        ccxt.pro.ArrayCache trades = await this.watchPrivate<ccxt.pro.ArrayCache>(messageHash, subscribeHash, request, paramsOmitted);
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
@@ -692,7 +692,7 @@ public partial class bullish : ccxt.bullish
             request["tradingAccountId"] = tradingAccountId;
             messageHash = messageHash + ("::" + tradingAccountId);
         }
-        return ccxt.BaseExchange.ToBalances(await this.watchPrivate(messageHash, messageHash, request, paramsOmitted));
+        return ccxt.BaseExchange.ToBalances(await this.watchPrivate<object>(messageHash, messageHash, request, paramsOmitted));
     }
 
     public virtual void handleBalance(WebSocketClient client, Dictionary<string, object> message)
@@ -812,7 +812,7 @@ public partial class bullish : ccxt.bullish
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "topic", "derivativesPositionsV2" },
         };
-        object positions = await this.watchPrivate(messageHash, subscribeHash, request, parameters);
+        object positions = await this.watchPrivate<object>(messageHash, subscribeHash, request, parameters);
         if (this.newUpdates)
         {
             return ccxt.BaseExchange.ToPositionList(positions);

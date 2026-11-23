@@ -3588,11 +3588,11 @@ public partial class bitstamp : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         //
         //     {"error": "No permission found"} // fetchDepositAddress returns this on apiKeys that don't have the permission required
@@ -3650,6 +3650,6 @@ public partial class bitstamp : Exchange
             }
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

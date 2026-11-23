@@ -2216,7 +2216,7 @@ public partial class derive : Exchange
         };
     }
 
-    public virtual string? hashOrderMessage(object order)
+    public virtual string? hashOrderMessage(IList<object> order)
     {
         byte[] accountHash = ((byte[])this.hash(this.ethAbiEncode(new List<object>() {"bytes32", "uint256", "uint256", "address", "bytes32", "uint256", "address", "address"}, order), keccak, "binary"));
         bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
@@ -2231,7 +2231,7 @@ public partial class derive : Exchange
         return ((string?)((object)(this.hash(this.binaryConcat(prefix, binaryDomainSeparator, accountHash), keccak, "hex"))));
     }
 
-    public virtual string? signOrder(object order, string privateKey)
+    public virtual string? signOrder(IList<object> order, string privateKey)
     {
         string? hashOrder = this.hashOrderMessage(order);
         return ((string?)((object)(this.signHash(hashOrder, privateKey))));
@@ -4765,11 +4765,11 @@ public partial class derive : Exchange
         throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires the walletAddress credential, a deriveWalletAddress parameter inside 'params', or exchange.options['deriveWalletAddress'] = ADDRESS.")) ;
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         IDictionary<string, object> error = this.safeDict(response, "error");
         if ((error != null))
@@ -4780,7 +4780,7 @@ public partial class derive : Exchange
             this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     public override Int64 nonce()

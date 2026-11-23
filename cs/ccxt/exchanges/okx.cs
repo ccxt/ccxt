@@ -4394,7 +4394,7 @@ public partial class okx : Exchange
         string? defaultTgtCcy = this.safeString(this.options, "tgtCcy", "base_ccy");
         string? tgtCcy = this.safeString(orderParams, "tgtCcy", defaultTgtCcy);
         // conditional sell orders must not carry tgtCcy
-        if (((contract != true)) && (!margin) && (trigger || (!conditional) || (!(side == "sell"))))
+        if (((contract != true)) && (!margin) && (trigger || (!conditional) || ((side != "sell"))))
         {
             request["tgtCcy"] = tgtCcy;
         }
@@ -4814,7 +4814,7 @@ public partial class okx : Exchange
         return this.parseOrders(data);
     }
 
-    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, string? type, string? side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
+    public virtual Dictionary<string, object> editOrderRequest(string? id, string? symbol, string? type, string? side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
@@ -4861,8 +4861,8 @@ public partial class okx : Exchange
             double? triggerPrice = this.safeNumber2(parameters, "triggerPrice", "newTriggerPx");
             if ((triggerPrice != null))
             {
-                request["newTriggerPx"] = this.priceToPrecision(((string)symbol), triggerPrice);
-                request["newOrdPx"] = ((price == null)) ? "-1" : this.priceToPrecision(((string)symbol), price);
+                request["newTriggerPx"] = this.priceToPrecision(symbol, triggerPrice);
+                request["newOrdPx"] = ((price == null)) ? "-1" : this.priceToPrecision(symbol, price);
                 request["newTriggerPxType"] = this.safeString(parameters, "newTriggerPxType", "last");
             }
             if (((stopLossTriggerPrice == null)) && ((takeProfitTriggerPrice == null)) && ((triggerPrice == null)) && ((amount == null)))
@@ -4875,8 +4875,8 @@ public partial class okx : Exchange
                 {
                     throw new BadRequest ((this.id + " editOrder() requires a newSlOrdPx parameter for editing an algo order")) ;
                 }
-                request["newSlTriggerPx"] = this.priceToPrecision(((string)symbol), stopLossTriggerPrice);
-                request["newSlOrdPx"] = ((type == "market")) ? "-1" : this.priceToPrecision(((string)symbol), stopLossPrice);
+                request["newSlTriggerPx"] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                request["newSlOrdPx"] = ((type == "market")) ? "-1" : this.priceToPrecision(symbol, stopLossPrice);
                 request["newSlTriggerPxType"] = stopLossTriggerPriceType;
             }
             if ((takeProfitTriggerPrice != null))
@@ -4885,22 +4885,22 @@ public partial class okx : Exchange
                 {
                     throw new BadRequest ((this.id + " editOrder() requires a newTpOrdPx parameter for editing an algo order")) ;
                 }
-                request["newTpTriggerPx"] = this.priceToPrecision(((string)symbol), takeProfitTriggerPrice);
-                request["newTpOrdPx"] = ((type == "market")) ? "-1" : this.priceToPrecision(((string)symbol), takeProfitPrice);
+                request["newTpTriggerPx"] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                request["newTpOrdPx"] = ((type == "market")) ? "-1" : this.priceToPrecision(symbol, takeProfitPrice);
                 request["newTpTriggerPxType"] = takeProfitTriggerPriceType;
             }
         } else
         {
             if ((stopLossTriggerPrice != null))
             {
-                request["newSlTriggerPx"] = this.priceToPrecision(((string)symbol), stopLossTriggerPrice);
-                request["newSlOrdPx"] = ((type == "market")) ? "-1" : this.priceToPrecision(((string)symbol), stopLossPrice);
+                request["newSlTriggerPx"] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                request["newSlOrdPx"] = ((type == "market")) ? "-1" : this.priceToPrecision(symbol, stopLossPrice);
                 request["newSlTriggerPxType"] = stopLossTriggerPriceType;
             }
             if ((takeProfitTriggerPrice != null))
             {
-                request["newTpTriggerPx"] = this.priceToPrecision(((string)symbol), takeProfitTriggerPrice);
-                request["newTpOrdPx"] = ((type == "market")) ? "-1" : this.priceToPrecision(((string)symbol), takeProfitPrice);
+                request["newTpTriggerPx"] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                request["newTpOrdPx"] = ((type == "market")) ? "-1" : this.priceToPrecision(symbol, takeProfitPrice);
                 request["newTpTriggerPxType"] = takeProfitTriggerPriceType;
             }
             if (hasStopLoss)
@@ -4908,8 +4908,8 @@ public partial class okx : Exchange
                 stopLossTriggerPrice = this.safeNumber(stopLoss, "triggerPrice");
                 stopLossPrice = this.safeNumber(stopLoss, "price");
                 string? stopLossType = this.safeString(stopLoss, "type");
-                request["newSlTriggerPx"] = this.priceToPrecision(((string)symbol), stopLossTriggerPrice);
-                request["newSlOrdPx"] = (stopLossType == "market") ? "-1" : this.priceToPrecision(((string)symbol), stopLossPrice);
+                request["newSlTriggerPx"] = this.priceToPrecision(symbol, stopLossTriggerPrice);
+                request["newSlOrdPx"] = (stopLossType == "market") ? "-1" : this.priceToPrecision(symbol, stopLossPrice);
                 request["newSlTriggerPxType"] = stopLossTriggerPriceType;
             }
             if (hasTakeProfit)
@@ -4918,20 +4918,20 @@ public partial class okx : Exchange
                 takeProfitPrice = this.safeNumber(takeProfit, "price");
                 string? takeProfitType = this.safeString(takeProfit, "type");
                 request["newTpOrdKind"] = (takeProfitType == "limit") ? takeProfitType : "condition";
-                request["newTpTriggerPx"] = this.priceToPrecision(((string)symbol), takeProfitTriggerPrice);
-                request["newTpOrdPx"] = (takeProfitType == "market") ? "-1" : this.priceToPrecision(((string)symbol), takeProfitPrice);
+                request["newTpTriggerPx"] = this.priceToPrecision(symbol, takeProfitTriggerPrice);
+                request["newTpOrdPx"] = (takeProfitType == "market") ? "-1" : this.priceToPrecision(symbol, takeProfitPrice);
                 request["newTpTriggerPxType"] = takeProfitTriggerPriceType;
             }
         }
         if ((amount != null))
         {
-            request["newSz"] = this.amountToPrecision(((string)symbol), amount);
+            request["newSz"] = this.amountToPrecision(symbol, amount);
         }
         if (isAlgoOrder != true)
         {
             if ((price != null))
             {
-                request["newPx"] = this.priceToPrecision(((string)symbol), price);
+                request["newPx"] = this.priceToPrecision(symbol, price);
             }
         }
         Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"clOrdId", "clientOrderId", "takeProfitPrice", "stopLossPrice", "stopLoss", "takeProfit", "postOnly", "triggerPrice"});
@@ -7763,7 +7763,8 @@ public partial class okx : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (positions?.Count ?? 0); i++)
         {
-            result.Add(this.parsePosition(this.safeDict(positions, i, new Dictionary<string, object>() {})));
+            Dictionary<string, object> parsedPosition = this.parsePosition(this.safeDict(positions, i, new Dictionary<string, object>() {}));
+            result.Add(parsedPosition);
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", this.marketSymbols(symbols)));
     }
@@ -9033,7 +9034,7 @@ public partial class okx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
      */
-    public async virtual Task<Dictionary<string, object>> FetchBorrowRateHistories(IList<object> codes = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchBorrowRateHistories(IList<object>? codes = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -11202,11 +11203,11 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToCurrencies(result);
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         //
         //    {
@@ -11244,7 +11245,7 @@ public partial class okx : Exchange
             this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     /**

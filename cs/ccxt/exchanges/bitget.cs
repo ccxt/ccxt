@@ -6770,7 +6770,7 @@ public partial class bitget : Exchange
         };
         bool? isStock = ((bool?)(market.ContainsKey("stock") ? market["stock"] : null));
         bool isStockSpot = (isStock == true) && ((((market.ContainsKey("spot") ? market["spot"] : null) as bool?) == true));
-        object paramsStock = this.omit(paramsUTA, "stock");
+        Dictionary<string, object> paramsStock = this.omit(paramsUTA, "stock");
         string? marketType = null;
         IDictionary<string, object> timeframes = null;
         object timeframesOption = this.handleOption("fetchOHLCV", "timeframes");
@@ -6791,7 +6791,7 @@ public partial class bitget : Exchange
         Int64 duration = (timeframeSeconds * 1000L);
         Int64? until = this.safeInteger(paramsStock, "until");
         bool limitDefined = (limit != null);
-        object paramsOmitted = this.omit(paramsStock, new List<object>() {"until"});
+        Dictionary<string, object> paramsOmitted = this.omit(paramsStock, new List<object>() {"until"});
         // retrievable periods listed here:
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
         // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
@@ -11347,7 +11347,6 @@ public partial class bitget : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         Dictionary<string, object> response = null;
-        List<object> result = null;
         (bool?, IDictionary<string, object>) utaparamsUTAVariable = await this.handleUTAAndParams(paramsProductType, "fetchPosition", false);
         bool? uta = utaparamsUTAVariable.Item1;
         IDictionary<string, object> paramsUTA = utaparamsUTAVariable.Item2;
@@ -11394,7 +11393,8 @@ public partial class bitget : Exchange
             //     }
             //
             IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            result = this.safeList(data, "list", new List<object>() {});
+            List<object> utaPositionRows = this.safeList(data, "list", new List<object>() {});
+            return ccxt.BaseExchange.ToPosition(this.parsePosition(this.safeDict(utaPositionRows, 0, new Dictionary<string, object>() {}), market));
         } else
         {
             request["marginCoin"] = (market.ContainsKey("settleId") ? market["settleId"] : null);
@@ -11430,9 +11430,9 @@ public partial class bitget : Exchange
             //         ]
             //     }
             //
-            result = this.safeList(response, "data", new List<object>() {});
+            List<object> singlePositionRows = this.safeList(response, "data", new List<object>() {});
+            return ccxt.BaseExchange.ToPosition(this.parsePosition(this.safeDict(singlePositionRows, 0, new Dictionary<string, object>() {}), market));
         }
-        return ccxt.BaseExchange.ToPosition(this.parsePosition(this.safeDict(result, 0, new Dictionary<string, object>() {}), market));
     }
 
     /**
@@ -13030,7 +13030,7 @@ public partial class bitget : Exchange
             { "coin", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         string? symbol = this.safeString(paramsUTA, "symbol");
-        object paramsOmitted = this.omit(paramsUTA, "symbol");
+        Dictionary<string, object> paramsOmitted = this.omit(paramsUTA, "symbol");
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
@@ -14689,11 +14689,11 @@ public partial class bitget : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if (((response == null)) || ((response == null)))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         //
         // spot
@@ -14739,7 +14739,7 @@ public partial class bitget : Exchange
         {
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     public override Int64 nonce()

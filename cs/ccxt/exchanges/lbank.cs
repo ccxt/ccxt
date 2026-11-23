@@ -3476,7 +3476,7 @@ public partial class lbank : Exchange
         return (pem + "-----END PRIVATE KEY-----");
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
@@ -3591,6 +3591,6 @@ public partial class lbank : Exchange
             }, errorCode, typeof(ExchangeError));
             throwDynamicException(ErrorClass, message);return null;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

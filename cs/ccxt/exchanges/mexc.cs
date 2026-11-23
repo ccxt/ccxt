@@ -7105,11 +7105,11 @@ public partial class mexc : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         // spot
         //     {"code":-1128,"msg":"Combination of optional parameters invalid.","_extend":null}
@@ -7124,7 +7124,7 @@ public partial class mexc : Exchange
         bool? success = this.safeBool(response, "success", false); // v1
         if ((success == true))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         string? responseCode = this.safeString(response, "code");
         if (((responseCode != null)) && (responseCode != "200") && (responseCode != "0"))
@@ -7134,6 +7134,6 @@ public partial class mexc : Exchange
             this.throwExactlyMatchedException(this.exceptionsExact, responseCode, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

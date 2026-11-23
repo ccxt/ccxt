@@ -3675,7 +3675,7 @@ public partial class grvt : Exchange
         };
     }
 
-    public virtual object feeAmountMultiplier()
+    public virtual Int64? feeAmountMultiplier()
     {
         return this.convertToBigIntCustom("10000");  // multiply needed https://t.me/c/3396937126/88
     }
@@ -3891,7 +3891,7 @@ public partial class grvt : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if (url.EndsWith("auth/api_key/login") || url.EndsWith("auth/wallet/login"))
         {
@@ -3933,6 +3933,6 @@ public partial class grvt : Exchange
                 }
             }
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

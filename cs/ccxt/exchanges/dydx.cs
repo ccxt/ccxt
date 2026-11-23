@@ -1424,7 +1424,7 @@ public partial class dydx : Exchange
         return signature;
     }
 
-    public virtual string? signDydxTx(string? privateKey, object message, string? memo, string? chainId, IDictionary<string, object> account, object authenticators, object fee = null)
+    public virtual string? signDydxTx(string? privateKey, object message, string? memo, string? chainId, IDictionary<string, object> account, object authenticators, IDictionary<string, object>? fee = null)
     {
         var encodedTxsignDocVariable = this.encodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee);
         var encodedTx = ((IList<object>) encodedTxsignDocVariable)[0];
@@ -2883,11 +2883,11 @@ public partial class dydx : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if (((response == null)) || ((response == null)))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         //
         // abci response
@@ -2913,7 +2913,7 @@ public partial class dydx : Exchange
                 throw new ExchangeError (feedback) ;
             }
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     public override void setSandboxMode(bool? enable)

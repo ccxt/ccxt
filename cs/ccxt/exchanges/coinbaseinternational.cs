@@ -3943,19 +3943,19 @@ public partial class coinbaseinternational : Exchange
         return ((this.apiKey.Length == 8)) && ((this.secret.Length == 43));
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         //
         //     { "jsonrpc": "2.0", "id": 1, "error": { "code": 13004, "message": "invalid_credentials" } }
         //
         if ((response == null))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         IDictionary<string, object> error = this.safeDict(response, "error");
         if ((error == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         string? errorCode = this.safeString(error, "code");
         string? errorMessage = this.safeString(error, "message");

@@ -1833,7 +1833,7 @@ public partial class bitvavo : Exchange
         return this.parseOrder(response, market);
     }
 
-    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, string? type, string? side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
+    public virtual Dictionary<string, object> editOrderRequest(string? id, string? symbol, string? type, string? side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {};
@@ -1843,19 +1843,19 @@ public partial class bitvavo : Exchange
         Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"amountRemaining", "triggerPrice", "stopPrice", "triggerAmount"});
         if ((price != null))
         {
-            request["price"] = this.priceToPrecision(((string)symbol), price);
+            request["price"] = this.priceToPrecision(symbol, price);
         }
         if ((amount != null))
         {
-            request["amount"] = this.amountToPrecision(((string)symbol), amount);
+            request["amount"] = this.amountToPrecision(symbol, amount);
         }
         if ((amountRemaining != null))
         {
-            request["amountRemaining"] = this.amountToPrecision(((string)symbol), amountRemaining);
+            request["amountRemaining"] = this.amountToPrecision(symbol, amountRemaining);
         }
         if ((triggerPrice != null))
         {
-            request["triggerAmount"] = this.priceToPrecision(((string)symbol), triggerPrice);
+            request["triggerAmount"] = this.priceToPrecision(symbol, triggerPrice);
         }
         request = this.extend(request, paramsOmitted);
         if (this.isEmpty(request))
@@ -3029,11 +3029,11 @@ public partial class bitvavo : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         //
         //     {"errorCode":308,"error":"The signature length is invalid (HMAC-SHA256 should return a 64 length hexadecimal string)."}
@@ -3049,7 +3049,7 @@ public partial class bitvavo : Exchange
             this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     public override object calculateRateLimiterCost(IList<object> api, string method, string? path, object parameters, IDictionary<string, object> config = null)

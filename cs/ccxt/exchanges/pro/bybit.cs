@@ -2767,7 +2767,7 @@ public partial class bybit : ccxt.bybit
         return await this.watchMultiple<T>(url, messageHashes, message, messageHashes, subscription);
     }
 
-    public async virtual Task<object> unWatchTopics(object url, string topic, IList<object> symbols, IList<object> messageHashes, object subMessageHashes, object topics, object parameters = null, IDictionary<string, object>? subExtension = null)
+    public async virtual Task<object> unWatchTopics(object url, string topic, IList<object> symbols, IList<object> messageHashes, IList<object> subMessageHashes, IList<object> topics, object parameters = null, IDictionary<string, object>? subExtension = null)
     {
         parameters ??= new Dictionary<string, object>();
         subExtension ??= new Dictionary<string, object>();

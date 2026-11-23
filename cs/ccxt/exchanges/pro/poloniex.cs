@@ -151,7 +151,7 @@ public partial class poloniex : ccxt.poloniex
      * @param {object} [params] extra parameters specific to the poloniex api
      * @returns {object} data from the websocket stream
      */
-    public async virtual Task<T> subscribe<T>(string? name, string? messageHash, bool? isPrivate, object symbols = null, object parameters = null)
+    public async virtual Task<T> subscribe<T>(string? name, string? messageHash, bool? isPrivate, IList<object>? symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string publicOrPrivate = "public";
@@ -178,9 +178,9 @@ public partial class poloniex : ccxt.poloniex
             {
                 throw new ArgumentsRequired ((this.id + " subscribe() symbols is required")) ;
             }
-            marketIds = this.marketIds(this.toArray(symbols));
+            marketIds = this.marketIds(symbols);
         }
-        string symbolsSuffix = ((symbols == null)) ? "" : String.Join(",", ((IList<object>)symbols).ToArray());
+        string symbolsSuffix = ((symbols == null)) ? "" : String.Join(",", symbols.ToArray());
         object symbolsHash = messageHash;
         if (!this.isEmpty(symbols))
         {
@@ -204,14 +204,14 @@ public partial class poloniex : ccxt.poloniex
      * @param {object} [params] extra parameters specific to the poloniex api
      * @returns {object} true once the exchange acknowledges the unsubscribe
      */
-    public async virtual Task<object> unSubscribe(object name, object symbols, object messageHashes, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> unSubscribe(object name, IList<object> symbols, IList<object> messageHashes, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "unsubscribe" },
             { "channel", new List<object>() {name} },
-            { "symbols", this.marketIds(this.toArray(symbols)) },
+            { "symbols", this.marketIds(symbols) },
         };
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes);
     }

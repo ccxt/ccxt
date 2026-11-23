@@ -830,7 +830,7 @@ public partial class sxbet : PredictionExchange
      * @param {string} hex the hex string, no '0x' prefix
      * @returns {int} the parsed integer
      */
-    public virtual object hexToInt(string? hex)
+    public virtual Int64? hexToInt(string? hex)
     {
         string digits = "0123456789abcdef";
         string lowerHex = hex.ToLower();
@@ -2105,11 +2105,11 @@ public partial class sxbet : PredictionExchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} the raw bestOdds rows ({marketHash, outcomeOne, outcomeTwo})
      */
-    public async virtual Task<List<object>> fetchSxbetBestOdds(object marketHashes, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<object>> fetchSxbetBestOdds(IList<object> marketHashes, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
-            { "marketHashes", String.Join(",", ((IList<object>)marketHashes).ToArray()) },
+            { "marketHashes", String.Join(",", marketHashes.ToArray()) },
         };
         Dictionary<string, object> response = await this.sxbetPrivateGetOrdersV3OddsBest(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
@@ -3111,7 +3111,7 @@ public partial class sxbet : PredictionExchange
         }
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         // sx.bet returns { "error": "Bad Request", "message": <code or [strings]>, "statusCode": 4xx };
         // map the known codes to ccxt errors so callers can distinguish a rejected order or a
@@ -3119,12 +3119,12 @@ public partial class sxbet : PredictionExchange
         // exchange-not-available error). unmapped codes fall through to the base http-status handling
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         object message = this.safeValue(response, "message");
         if ((message == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         // validation failures arrive in string-array form, business errors in single-code-string form
         object messageString = null;
@@ -3144,7 +3144,7 @@ public partial class sxbet : PredictionExchange
         {
             throw new BadRequest (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     /**

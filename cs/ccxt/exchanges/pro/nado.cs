@@ -150,15 +150,15 @@ public partial class nado : ccxt.nado
             markets.Add(market);
             messageHashes.Add(("trade:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
         }
-        object trades = await this.watchPublicMultiple("trade", markets, messageHashes, parameters);
+        ccxt.pro.ArrayCache trades = await this.watchPublicMultiple<ccxt.pro.ArrayCache>("trade", markets, messageHashes, parameters);
         IDictionary<string, object> first = this.safeDict(trades, 0);
         string? tradeSymbol = this.safeString(first, "symbol");
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, tradeSymbol, limit));
+            limitResolved = ((Int64?)trades.getLimit(tradeSymbol, limit));
         }
-        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limitResolved, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
     /**
@@ -267,7 +267,7 @@ public partial class nado : ccxt.nado
                 ((IDictionary<string,object>)this.orderbooks)[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = this.orderBook(snapshot, limit);
             }
         }
-        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublicMultiple("book_depth", markets, messageHashes, parameters));
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.watchPublicMultiple<object>("book_depth", markets, messageHashes, parameters));
         return (orderbook as IOrderBook).limit().Copy();
     }
 
@@ -349,7 +349,7 @@ public partial class nado : ccxt.nado
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr16487 && ((hxArr16487 is IList<object>) || (hxArr16487.GetType().IsGenericType && hxArr16487.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr16499 && ((hxArr16499 is IList<object>) || (hxArr16499.GetType().IsGenericType && hxArr16499.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]")) ;
         }
@@ -369,7 +369,7 @@ public partial class nado : ccxt.nado
                 { "granularity", this.safeInteger(this.timeframes, timeframe, this.parseTimeframe(timeframe)) },
             }, parameters));
         }
-        var resultSymbolresultTimeframestoredVariable = await this.watchPublicMultiple("latest_candlestick", markets, messageHashes, parameters, subscriptionParams);
+        var resultSymbolresultTimeframestoredVariable = await this.watchPublicMultiple<object>("latest_candlestick", markets, messageHashes, parameters, subscriptionParams);
         var resultSymbol = ((IList<object>) resultSymbolresultTimeframestoredVariable)[0];
         var resultTimeframe = ((IList<object>) resultSymbolresultTimeframestoredVariable)[1];
         var stored = ((IList<object>) resultSymbolresultTimeframestoredVariable)[2];
@@ -414,7 +414,7 @@ public partial class nado : ccxt.nado
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr19669 && ((hxArr19669 is IList<object>) || (hxArr19669.GetType().IsGenericType && hxArr19669.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr19681 && ((hxArr19681 is IList<object>) || (hxArr19681.GetType().IsGenericType && hxArr19681.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]")) ;
         }
@@ -1335,7 +1335,7 @@ public partial class nado : ccxt.nado
         };
     }
 
-    public async virtual Task<object> watchPublicMultiple(string streamType, IList<object> markets, IList<object> messageHashes, object parameters = null, IList<object>? subscriptionParams = null)
+    public async virtual Task<T> watchPublicMultiple<T>(string streamType, IList<object> markets, IList<object> messageHashes, object parameters = null, IList<object>? subscriptionParams = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "subscriptions");
@@ -1365,7 +1365,7 @@ public partial class nado : ccxt.nado
                 }
             }
         }
-        return await this.watchMultiple(url, messageHashes, null, messageHashes);
+        return await this.watchMultiple<T>(url, messageHashes, null, messageHashes);
     }
 
     public async virtual Task<object> unWatchPublic(string streamType, IDictionary<string, object> market, string messageHash, IDictionary<string, object>? parameters = null)
@@ -1417,7 +1417,7 @@ public partial class nado : ccxt.nado
         string? value = this.safeString(message, key);
         if ((value == null))
         {
-            return ((Int64?)((object)(null)));
+            return null;
         }
         // keep the string-size reads inline: assigning the size to a standalone
         // local is the regex transpiler's ARRAY hint and would emit php count()

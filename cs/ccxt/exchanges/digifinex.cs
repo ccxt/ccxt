@@ -4459,7 +4459,8 @@ public partial class digifinex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < positions.Count; i++)
         {
-            result.Add(this.parsePosition(this.safeDict(positions, i, new Dictionary<string, object>() {}), market));
+            Dictionary<string, object> parsedPosition = this.parsePosition(this.safeDict(positions, i, new Dictionary<string, object>() {}), market);
+            result.Add(parsedPosition);
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
@@ -5438,16 +5439,16 @@ public partial class digifinex : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;  // fall back to default error handler
+            return ((bool?)((object)(null)));  // fall back to default error handler
         }
         string? codeError = this.safeString(response, "code");
         if ((codeError == "0") || (codeError == "200"))
         {
-            return null;  // no error
+            return ((bool?)((object)(null)));  // no error
         }
         string feedback = ((this.id + " ") + body);
         if ((codeError == null))

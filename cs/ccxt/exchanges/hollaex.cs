@@ -2277,12 +2277,12 @@ public partial class hollaex : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         // { "message": "Invalid token" }
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         Int64? statusCode = this.parseToInt(code);
         if ((statusCode >= 400) && ((statusCode == null || statusCode <= 503)))
@@ -2302,6 +2302,6 @@ public partial class hollaex : Exchange
             string status = ((object)code).ToString();
             this.throwExactlyMatchedException(this.exceptionsExact, status, feedback);
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

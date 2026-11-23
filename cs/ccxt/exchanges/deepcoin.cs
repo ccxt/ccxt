@@ -3626,7 +3626,7 @@ public partial class deepcoin : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? msg = this.safeString(response, "msg");
@@ -3669,6 +3669,6 @@ public partial class deepcoin : Exchange
                 throw new NullResponse (feedback) ;
             }
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

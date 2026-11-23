@@ -2884,16 +2884,16 @@ public partial class predictfun : PredictionExchange
      * @param {object} requestBody the request body
      * @returns {undefined} nothing, it throws when the venue reported a failure
      */
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         bool? success = this.safeBool(response, "success", true);
         if ((success == true))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         string feedback = ((this.id + " ") + body);
         // the message is matched first because it is the more specific of the two: several

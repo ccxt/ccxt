@@ -2978,7 +2978,7 @@ public partial class polymarket : Exchange
      * @param {object} bodyOp the structured operation object transmitted to the venue
      * @returns {object} the signed request body with the op, sig, salt and ts fields
      */
-    public async virtual Task<Dictionary<string, object>> signPerpsOp(object signable, IDictionary<string, object> bodyOp, IDictionary<string, object> parameters = null)
+    public async virtual Task<Dictionary<string, object>> signPerpsOp(IList<object> signable, IDictionary<string, object> bodyOp, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> credentials = await this.loadProxyCredentials();
@@ -3177,11 +3177,11 @@ public partial class polymarket : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         //
         //     {
@@ -3219,6 +3219,6 @@ public partial class polymarket : Exchange
                 throw new ExchangeError (feedback) ;
             }
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

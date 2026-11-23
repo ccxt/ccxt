@@ -3132,7 +3132,7 @@ public partial class btse : Exchange
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public async virtual Task<object> requestWalletHistoryRows(string methodName, object historyTypes, string code = null, object since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> requestWalletHistoryRows(string methodName, IList<object> historyTypes, string code = null, object since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         // the helper always receives a non empty history type list, the list is
         // rebuilt through safeList so the transpilers treat it as an array in
@@ -4052,11 +4052,11 @@ public partial class btse : Exchange
         return response;
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if (((response == null)) || ((response == null)))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         //
         // spot
@@ -4135,7 +4135,7 @@ public partial class btse : Exchange
                 this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), rowMessage, feedback);
             }
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)

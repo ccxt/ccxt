@@ -643,7 +643,7 @@ public partial class kalshi : PredictionExchange
         return this.outcomes;
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         // kalshi returns { "error": { "code": "...", ... } } with a 4xx; map known codes to ccxt
         // errors (e.g. not_found -> BadSymbol) so callers can distinguish them from a transport
@@ -651,7 +651,7 @@ public partial class kalshi : PredictionExchange
         // through to the base http-status handling.
         if (((response == null)) || ((response == null)))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         IDictionary<string, object> error = this.safeDict(response, "error");
         if ((error != null))
@@ -668,7 +668,7 @@ public partial class kalshi : PredictionExchange
             string feedback = ((this.id + " ") + body);
             throw new BadRequest (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     public override object calculateFee(string? symbol, string? type, string? side, double? amount, double? price, object takerOrMaker = null, IDictionary<string, object> parameters = null)

@@ -2376,7 +2376,7 @@ public partial class pacifica : Exchange
         return this.safeOrder(new Dictionary<string, object>() {             { "id", orderId },             { "info", response },             { "symbol", symbol },         });
     }
 
-    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, string? type, string? side, double? amount, double? price, IDictionary<string, object> market, IDictionary<string, object> parameters = null)
+    public virtual Dictionary<string, object> editOrderRequest(string? id, string? symbol, string? type, string? side, double? amount, double? price, IDictionary<string, object> market, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((side == null))
@@ -2393,8 +2393,8 @@ public partial class pacifica : Exchange
         }
         string operationType = "edit_order";
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
-        string? priceNormalized = this.priceToPrecision(((string)symbol), price);
-        string? amountNormalized = this.amountToPrecision(((string)symbol), amount);
+        string? priceNormalized = this.priceToPrecision(symbol, price);
+        string? amountNormalized = this.amountToPrecision(symbol, amount);
         Dictionary<string, object> sigPayload = new Dictionary<string, object>() {
             { "symbol", this.safeString(market, "id") },
             { "price", priceNormalized },
@@ -3143,7 +3143,8 @@ public partial class pacifica : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            result.Add(this.parsePosition(this.safeDict(data, i, new Dictionary<string, object>() {}), null));
+            Dictionary<string, object> parsedPosition = this.parsePosition(this.safeDict(data, i, new Dictionary<string, object>() {}), null);
+            result.Add(parsedPosition);
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(result, "symbol", symbolsNormalized));
     }
@@ -4157,11 +4158,11 @@ public partial class pacifica : Exchange
         throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires address either as \"exchange.walletAddress = ...\" or as parameter or \"address\" in params")) ;
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         //
         //     {"success":false,"data":null,"error":"Beta access required. Signer must redeem a valid beta code.","code":403}
@@ -4198,7 +4199,7 @@ public partial class pacifica : Exchange
                 throw new ExchangeError (feedback) ;
             }
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)

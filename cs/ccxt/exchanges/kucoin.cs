@@ -10885,7 +10885,7 @@ public partial class kucoin : Exchange
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object} a dictionary of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure} indexed by the market symbol
      */
-    public async virtual Task<Dictionary<string, object>> FetchBorrowRateHistories(IList<object> codes = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<Dictionary<string, object>> FetchBorrowRateHistories(IList<object>? codes = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -12015,7 +12015,6 @@ public partial class kucoin : Exchange
         bool? utaOption = utaOptionparamsUtaVariable.Item1;
         IDictionary<string, object> paramsUta = (utaOptionparamsUtaVariable.Item2);
         Dictionary<string, object> response = null;
-        IDictionary<string, object> position = new Dictionary<string, object>() {};
         if ((utaOption == true))
         {
             request["accountMode"] = "unified";
@@ -12045,7 +12044,7 @@ public partial class kucoin : Exchange
             //     }
             //
             List<object> data = this.safeList(response, "data", new List<object>() {});
-            position = this.safeDict(data, 0, new Dictionary<string, object>() {});
+            return ccxt.BaseExchange.ToPosition(this.parsePosition(this.safeDict(data, 0, new Dictionary<string, object>() {}), market));
         } else
         {
             response = await this.futuresPrivateGetPosition(this.extend(request, paramsUta));
@@ -12093,9 +12092,9 @@ public partial class kucoin : Exchange
             //        }
             //    }
             //
-            position = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            IDictionary<string, object> position = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            return ccxt.BaseExchange.ToPosition(this.parsePosition(position, market));
         }
-        return ccxt.BaseExchange.ToPosition(this.parsePosition(position, market));
     }
 
     /**
@@ -13509,12 +13508,12 @@ public partial class kucoin : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if (((response == null)) || ((response == null)))
         {
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, body);
-            return null;
+            return ((bool?)((object)(null)));
         }
         //
         // bad
@@ -13531,7 +13530,7 @@ public partial class kucoin : Exchange
         {
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     /**

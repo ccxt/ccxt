@@ -3612,7 +3612,7 @@ public partial class bitrue : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if (((code == 418)) || ((code == 429)))
         {
@@ -3639,7 +3639,7 @@ public partial class bitrue : Exchange
         }
         if ((response == null))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
@@ -3668,7 +3668,7 @@ public partial class bitrue : Exchange
             // https://github.com/ccxt/ccxt/issues/7742
             if ((error == "200") || Precise.stringEquals(error, "0"))
             {
-                return null;
+                return ((bool?)((object)(null)));
             }
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
@@ -3685,7 +3685,7 @@ public partial class bitrue : Exchange
         {
             throw new ExchangeError (((this.id + " ") + body)) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     public override object calculateRateLimiterCost(IList<object> api, string method, string? path, object parameters, IDictionary<string, object> config = null)

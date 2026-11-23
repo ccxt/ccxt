@@ -2059,11 +2059,11 @@ public partial class bit2me : Exchange
         };
     }
 
-    public override object handleErrors(Int64? httpCode, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? httpCode, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         //
         //     {"statusCode":404,"error":"Not Found","message":"Market not found for symbol FOO/BAR","reqId":"9834b8a8-97b8-470d-ade2-3d31687c0723"}
@@ -2086,6 +2086,6 @@ public partial class bit2me : Exchange
             this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

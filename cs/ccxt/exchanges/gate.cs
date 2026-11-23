@@ -5822,7 +5822,7 @@ public partial class gate : Exchange
         bool isMarketOrder = ((type == "market"));
         if (isLimitOrder && (price == null))
         {
-            throw new ArgumentsRequired ((((this.id + " createOrder () requires a price argument for ") + (type)) + " orders")) ;
+            throw new ArgumentsRequired ((((this.id + " createOrder () requires a price argument for ") + type) + " orders")) ;
         }
         if (isMarketOrder)
         {
@@ -6132,7 +6132,7 @@ public partial class gate : Exchange
         return await this.CreateOrder(symbol, "market", "buy", cost, null, paramsExtended);
     }
 
-    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, string? type, string? side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
+    public virtual Dictionary<string, object> editOrderRequest(string? id, string? symbol, string? type, string? side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
@@ -6165,7 +6165,7 @@ public partial class gate : Exchange
         {
             if ((this.safeBool(market, "spot", false) == true))
             {
-                request["amount"] = this.amountToPrecision(((string)symbol), amount);
+                request["amount"] = this.amountToPrecision(symbol, amount);
             } else
             {
                 string? signedAmount = this.getGateFuturesSignedAmount(symbol, side, amount);
@@ -6180,7 +6180,7 @@ public partial class gate : Exchange
         }
         if ((price != null))
         {
-            request["price"] = this.priceToPrecision(((string)symbol), price);
+            request["price"] = this.priceToPrecision(symbol, price);
         }
         if (!(this.safeBool(market, "spot", false) == true))
         {
@@ -10374,11 +10374,11 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToPositionList(this.parsePositions(responseList, symbols, paramsValue));
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         //
         //    {"label": "ORDER_NOT_FOUND", "message": "Order not found"}
@@ -10395,6 +10395,6 @@ public partial class gate : Exchange
             this.throwExactlyMatchedException(this.exceptionsExact, label, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

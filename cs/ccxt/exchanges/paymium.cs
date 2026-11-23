@@ -785,17 +785,17 @@ public partial class paymium : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         object errors = this.safeValue(response, "errors");
         if ((errors != null))
         {
             throw new ExchangeError (((this.id + " ") + this.json(response))) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

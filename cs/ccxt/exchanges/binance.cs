@@ -9269,7 +9269,7 @@ public partial class binance : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} request to be sent to the exchange
      */
-    public virtual Dictionary<string, object> createOrderRequest(object symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -9338,7 +9338,7 @@ public partial class binance : Exchange
                 if ((trailingTriggerPrice != null))
                 {
                     string activationPriceKey = isAlgoOrder == true ? "activatePrice" : "activationPrice";
-                    request[(string)activationPriceKey] = this.priceToPrecision(((string)symbol), trailingTriggerPrice);
+                    request[(string)activationPriceKey] = this.priceToPrecision(symbol, trailingTriggerPrice);
                 }
             } else
             {
@@ -9376,7 +9376,7 @@ public partial class binance : Exchange
                 }
                 if ((trailingTriggerPrice != null))
                 {
-                    stopPrice = this.priceToPrecision(((string)symbol), trailingTriggerPrice);
+                    stopPrice = this.priceToPrecision(symbol, trailingTriggerPrice);
                 }
                 string? trailingPercentConverted = Precise.stringMul(trailingPercent, "100");
                 request["trailingDelta"] = trailingPercentConverted;
@@ -9408,7 +9408,7 @@ public partial class binance : Exchange
         {
             if ((type == "market"))
             {
-                throw new InvalidOrder ((((((this.id + " ") + (type)) + " is not a valid order type for the ") + this.safeString(market, "symbol", "")) + " market")) ;
+                throw new InvalidOrder ((((((this.id + " ") + type) + " is not a valid order type for the ") + this.safeString(market, "symbol", "")) + " market")) ;
             }
         } else
         {
@@ -9421,10 +9421,10 @@ public partial class binance : Exchange
             {
                 if ((initialUppercaseType != uppercaseType))
                 {
-                    throw new InvalidOrder ((((((this.id + " triggerPrice parameter is not allowed for ") + this.safeString(market, "symbol", "")) + " ") + (type)) + " orders")) ;
+                    throw new InvalidOrder ((((((this.id + " triggerPrice parameter is not allowed for ") + this.safeString(market, "symbol", "")) + " ") + type) + " orders")) ;
                 } else
                 {
-                    throw new InvalidOrder ((((((this.id + " ") + (type)) + " is not a valid order type for the ") + this.safeString(market, "symbol", "")) + " market")) ;
+                    throw new InvalidOrder ((((((this.id + " ") + type) + " is not a valid order type for the ") + this.safeString(market, "symbol", "")) + " market")) ;
                 }
             }
         }
@@ -9562,7 +9562,7 @@ public partial class binance : Exchange
                     string? marketAmountPrecision = this.safeString((market.ContainsKey("precision") ? market["precision"] : null), "amount");
                     if ((marketAmountPrecision != null))
                     {
-                        request["quantity"] = this.amountToPrecision(((string)symbol), amount);
+                        request["quantity"] = this.amountToPrecision(symbol, amount);
                     } else
                     {
                         request["quantity"] = this.parseToNumeric(amount);
@@ -9644,7 +9644,7 @@ public partial class binance : Exchange
             }
             if ((trailingPercent == null))
             {
-                throw new InvalidOrder ((((this.id + " createOrder() requires a trailingPercent param for a ") + (type)) + " order")) ;
+                throw new InvalidOrder ((((this.id + " createOrder() requires a trailingPercent param for a ") + type) + " order")) ;
             }
         }
         if (quantityIsRequired)
@@ -9653,7 +9653,7 @@ public partial class binance : Exchange
             bool isPrecisionAvailable = ((marketAmountPrecision != null));
             if (isPrecisionAvailable)
             {
-                request["quantity"] = this.amountToPrecision(((string)symbol), amount);
+                request["quantity"] = this.amountToPrecision(symbol, amount);
             } else
             {
                 request["quantity"] = this.parseToNumeric(amount); // some options don't have the precision available
@@ -9663,13 +9663,13 @@ public partial class binance : Exchange
         {
             if ((price == null))
             {
-                throw new InvalidOrder ((((this.id + " createOrder() requires a price argument for a ") + (type)) + " order")) ;
+                throw new InvalidOrder ((((this.id + " createOrder() requires a price argument for a ") + type) + " order")) ;
             }
             string? pricePrecision = this.safeString((market.ContainsKey("precision") ? market["precision"] : null), "price");
             bool isPricePrecisionAvailable = ((pricePrecision != null));
             if (isPricePrecisionAvailable)
             {
-                request["price"] = this.priceToPrecision(((string)symbol), price);
+                request["price"] = this.priceToPrecision(symbol, price);
             } else
             {
                 request["price"] = this.parseToNumeric(price); // some options don't have the precision available
@@ -9681,24 +9681,24 @@ public partial class binance : Exchange
             {
                 if ((stopPrice == null))
                 {
-                    throw new InvalidOrder ((((this.id + " createOrder() requires a triggerPrice extra param for a ") + (type)) + " order")) ;
+                    throw new InvalidOrder ((((this.id + " createOrder() requires a triggerPrice extra param for a ") + type) + " order")) ;
                 }
             } else
             {
                 // check for delta price as well
                 if ((trailingDelta == null) && (stopPrice == null) && (trailingPercent == null))
                 {
-                    throw new InvalidOrder ((((this.id + " createOrder() requires a triggerPrice, trailingDelta or trailingPercent param for a ") + (type)) + " order")) ;
+                    throw new InvalidOrder ((((this.id + " createOrder() requires a triggerPrice, trailingDelta or trailingPercent param for a ") + type) + " order")) ;
                 }
             }
             if ((stopPrice != null))
             {
                 if ((isAlgoOrder == true))
                 {
-                    request["triggerPrice"] = this.priceToPrecision(((string)symbol), stopPrice);
+                    request["triggerPrice"] = this.priceToPrecision(symbol, stopPrice);
                 } else
                 {
-                    request["stopPrice"] = this.priceToPrecision(((string)symbol), stopPrice);
+                    request["stopPrice"] = this.priceToPrecision(symbol, stopPrice);
                 }
             }
         }
@@ -9745,7 +9745,7 @@ public partial class binance : Exchange
         {
             if ((this.safeBool(market, "spot", false) == true))
             {
-                request["icebergQty"] = this.amountToPrecision(((string)symbol), icebergAmount);
+                request["icebergQty"] = this.amountToPrecision(symbol, icebergAmount);
             }
         }
         Dictionary<string, object> requestParams = this.omit(paramsStp, omitKeys);
@@ -14561,7 +14561,7 @@ public partial class binance : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async virtual Task<List<ccxt.Position>> FetchOptionPositions(IList<object> symbols = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Position>> FetchOptionPositions(IList<object>? symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -14756,7 +14756,7 @@ public partial class binance : Exchange
      * @param {boolean} [params.useV2] set to true if you want to use obsolete endpoint, where some more additional fields were provided
      * @returns {object} data on account positions
      */
-    public async virtual Task<List<ccxt.Position>> FetchAccountPositions(IList<object> symbols = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Position>> FetchAccountPositions(IList<object>? symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbols != null))
@@ -16137,7 +16137,7 @@ public partial class binance : Exchange
         return ((IDictionary<string, object>)((object)(new Dictionary<string, object>() {})));
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if (((code == 418)) || ((code == 429)))
         {
@@ -16192,7 +16192,7 @@ public partial class binance : Exchange
         }
         if ((response == null))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
         bool? success = this.safeBool(response, "success", true);
@@ -16228,7 +16228,7 @@ public partial class binance : Exchange
             // https://github.com/ccxt/ccxt/issues/7742
             if ((error == "200") || Precise.stringEquals(error, "0"))
             {
-                return null;
+                return ((bool?)((object)(null)));
             }
             // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
             // despite that their message is very confusing, it is raised by Binance
@@ -16265,7 +16265,7 @@ public partial class binance : Exchange
                 }
             }
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     public override object calculateRateLimiterCost(IList<object> api, string method, string? path, object parameters, IDictionary<string, object> config = null)

@@ -2081,7 +2081,7 @@ public partial class cex : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         // in some cases, like from createOrder, exchange returns nested escaped JSON string:
         //      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"} }
@@ -2121,6 +2121,6 @@ public partial class cex : Exchange
                 throw new ExchangeError (((this.id + " createOrder() ") + rejectReason)) ;
             }
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

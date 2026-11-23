@@ -2386,7 +2386,7 @@ public partial class coinbase : Exchange
         return await this.FetchTickersV2(symbols, parameters);
     }
 
-    public async virtual Task<ccxt.Tickers> FetchTickersV2(IList<object> symbols = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<ccxt.Tickers> FetchTickersV2(IList<object>? symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2425,7 +2425,7 @@ public partial class coinbase : Exchange
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }
 
-    public async virtual Task<ccxt.Tickers> FetchTickersV3(IList<object> symbols = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<ccxt.Tickers> FetchTickersV3(IList<object>? symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -6090,11 +6090,11 @@ public partial class coinbase : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         string feedback = ((this.id + " ") + body);
         //
@@ -6167,7 +6167,7 @@ public partial class coinbase : Exchange
         {
             throw new ExchangeError (((this.id + " failed due to a malformed response ") + this.json(response))) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     /**

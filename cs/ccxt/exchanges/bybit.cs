@@ -2583,7 +2583,7 @@ public partial class bybit : Exchange
         return (subType, paramsSubType);
     }
 
-    public virtual string? getAmount(object symbol, object amount)
+    public virtual string? getAmount(string? symbol, object amount)
     {
         // some markets like options might not have the precision available
         // and we shouldn't crash in those cases
@@ -2592,12 +2592,12 @@ public partial class bybit : Exchange
         string? amountString = this.numberToString(amount);
         if (!emptyPrecisionAmount && (amountString != "0"))
         {
-            return this.amountToPrecision(((string)symbol), amount);
+            return this.amountToPrecision(symbol, amount);
         }
         return amountString;
     }
 
-    public virtual string? getPrice(object symbol, string? price)
+    public virtual string? getPrice(string? symbol, string? price)
     {
         if ((price == null))
         {
@@ -2607,7 +2607,7 @@ public partial class bybit : Exchange
         bool emptyPrecisionPrice = ((this.safeNumber((market.ContainsKey("precision") ? market["precision"] : null), "price") == null));
         if (!emptyPrecisionPrice)
         {
-            return this.priceToPrecision(((string)symbol), price);
+            return this.priceToPrecision(symbol, price);
         }
         return ((string?)((object)(price)));
     }
@@ -5906,7 +5906,7 @@ public partial class bybit : Exchange
         return this.parseOrders(data);
     }
 
-    public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, string? type, string? side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
+    public virtual Dictionary<string, object> editOrderRequest(string? id, string? symbol, string? type, string? side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))
@@ -8328,10 +8328,13 @@ public partial class bybit : Exchange
             if ((inOp(rawPosition, "data")) && (inOp(rawPosition, "is_valid")))
             {
                 // futures only
-                results.Add(this.parsePosition(this.safeDict(rawPosition, "data", new Dictionary<string, object>() {})));
+                IDictionary<string, object> futuresData = this.safeDict(rawPosition, "data", new Dictionary<string, object>() {});
+                Dictionary<string, object> futuresPosition = this.parsePosition(futuresData);
+                results.Add(futuresPosition);
             } else
             {
-                results.Add(this.parsePosition(this.safeDict(positions, i, new Dictionary<string, object>() {})));
+                Dictionary<string, object> parsedPosition = this.parsePosition(this.safeDict(positions, i, new Dictionary<string, object>() {}));
+                results.Add(parsedPosition);
             }
         }
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(results, "symbol", symbolsNormalized));
@@ -12004,11 +12007,11 @@ public partial class bybit : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         //
         //     {
@@ -12038,7 +12041,7 @@ public partial class bybit : Exchange
                 // https://github.com/ccxt/ccxt/pull/11624
                 // POST https://api.bybit.com/v2/private/position/switch-isolated 200 OK
                 // {"ret_code":30084,"ret_msg":"Isolated not modified","ext_code":"","ext_info":"","result":null,"time_now":"1642005219.937988","rate_limit_status":73,"rate_limit_reset_ms":1642005219894,"rate_limit":75}
-                return null;
+                return ((bool?)((object)(null)));
             }
             string feedback = ((this.id + " ") + body);
             if (errorCode == "10005" && url.IndexOf("order", StringComparison.Ordinal) < 0)
@@ -12053,6 +12056,6 @@ public partial class bybit : Exchange
             this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

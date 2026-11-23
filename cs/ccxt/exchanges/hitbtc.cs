@@ -3383,7 +3383,7 @@ public partial class hitbtc : Exchange
         string? marginMode = marginModeparamsMarginModeVariable.Item1;
         IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);
         Dictionary<string, object> paramsOmitted = this.omit(paramsMarginMode, new List<object>() {"marginMode", "margin"});
-        List<object> response = null;
+        List<object> response = new List<object>() {};
         if ((marginMode != null))
         {
             response = await this.privateGetMarginAccount(this.extend(request, paramsOmitted));
@@ -3435,7 +3435,8 @@ public partial class hitbtc : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            result.Add(this.parsePosition(this.safeDict(response, i, new Dictionary<string, object>() {})));
+            Dictionary<string, object> position = this.parsePosition(this.safeDict(response, i, new Dictionary<string, object>() {}));
+            result.Add(position);
         }
         return ccxt.BaseExchange.ToPositionList(result);
     }
@@ -4287,7 +4288,7 @@ public partial class hitbtc : Exchange
         return (marginMode, paramsMarginMode);
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         //
         //     {
@@ -4315,7 +4316,7 @@ public partial class hitbtc : Exchange
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)

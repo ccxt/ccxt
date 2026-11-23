@@ -4630,7 +4630,7 @@ public partial class aster : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} data on account positions
      */
-    public async virtual Task<List<ccxt.Position>> FetchAccountPositions(IList<object> symbols = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Position>> FetchAccountPositions(IList<object>? symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbols != null))
@@ -5201,11 +5201,11 @@ public partial class aster : Exchange
         return ((bool?)((object)(null)));  // just c#
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         //
         //    {
@@ -5223,6 +5223,6 @@ public partial class aster : Exchange
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

@@ -1260,7 +1260,7 @@ public partial class btcturk : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         string? errorCode = this.safeString(response, "code", "0");
         string? message = this.safeString(response, "message");
@@ -1274,6 +1274,6 @@ public partial class btcturk : Exchange
         {
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

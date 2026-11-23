@@ -3605,7 +3605,7 @@ public partial class bitfinex : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         // ["error", 11010, "ratelimit: error"]
         if ((response != null))
@@ -3634,7 +3634,11 @@ public partial class bitfinex : Exchange
             this.throwExactlyMatchedException(this.exceptionsExact, errorText, feedback);
             throw new ExchangeError ((((((this.id + " ") + errorText) + " (#") + errorCode) + ")")) ;
         }
-        return response;
+        if ((response == null))
+        {
+            return ((bool?)((object)(null)));
+        }
+        return ((bool?)((object)(true)));
     }
 
     public virtual string? parseLedgerEntryType(string? type)

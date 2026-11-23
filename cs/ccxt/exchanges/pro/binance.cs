@@ -374,7 +374,7 @@ public partial class binance : ccxt.binance
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} the raw stream subscription response
      */
-    public async virtual Task<object> watchStockMarketStream(object streams, IList<object> messageHashes, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> watchStockMarketStream(IList<object> streams, IList<object> messageHashes, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = this.getStockWsUrl("market");

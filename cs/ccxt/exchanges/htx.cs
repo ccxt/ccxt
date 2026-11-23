@@ -9222,11 +9222,11 @@ public partial class htx : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         string? status = this.safeString(response, "status");
         if ((status != null))
@@ -9265,7 +9265,7 @@ public partial class htx : Exchange
             this.throwExactlyMatchedException(this.exceptionsExact, errcode, feedBack);
             this.throwExactlyMatchedException(this.exceptionsExact, errmessage, feedBack);
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     /**
@@ -9752,7 +9752,9 @@ public partial class htx : Exchange
         object data = this.safeValue(response, "data");
         if ((this.safeBool(market, "linear", false) == true))
         {
-            return ccxt.BaseExchange.ToPosition(this.parsePosition(this.safeDict(data, 0, new Dictionary<string, object>() {}), market));
+            List<object> positionRows = this.safeList(response, "data", new List<object>() {});
+            IDictionary<string, object> positionRow = this.safeDict(positionRows, 0, new Dictionary<string, object>() {});
+            return ccxt.BaseExchange.ToPosition(this.parsePosition(positionRow, market));
         }
         object account = null;
         if (((marginModeOption == null)) || ((marginModeOption == "cross")))

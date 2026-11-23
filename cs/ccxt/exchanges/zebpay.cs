@@ -2298,12 +2298,12 @@ public partial class zebpay : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), body, body);
-            return null;
+            return ((bool?)((object)(null)));
         }
         //
         // bad
@@ -2318,6 +2318,6 @@ public partial class zebpay : Exchange
         this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
         this.throwExactlyMatchedException(this.exceptionsExact, message, feedback);
         this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

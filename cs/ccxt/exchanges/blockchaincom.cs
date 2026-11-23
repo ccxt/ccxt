@@ -1424,12 +1424,12 @@ public partial class blockchaincom : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         // {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         string? text = this.safeString(response, "text");
         if ((text != null))
@@ -1445,6 +1445,6 @@ public partial class blockchaincom : Exchange
         string feedback = ((this.id + " ") + this.json(response));
         this.throwExactlyMatchedException(this.exceptionsExact, errorCode, feedback);
         this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorMessage, feedback);
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

@@ -210,7 +210,7 @@ public partial class xt : ccxt.xt
      * @param {object} params extra parameters specific to the xt api
      * @returns {object} data from the websocket stream
      */
-    public async virtual Task<T> subscribe<T>(string? name, string access, string methodName, IDictionary<string, object> market = null, object symbols = null, object parameters = null)
+    public async virtual Task<T> subscribe<T>(string? name, string access, string methodName, IDictionary<string, object> market = null, IList<object>? symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         bool privateAccess = (access == "private");
@@ -247,7 +247,7 @@ public partial class xt : ccxt.xt
         object messageHash = ((name + "::") + tradeType);
         if ((symbols != null))
         {
-            messageHash = ((object)(messageHash == null ? null : messageHash + "::" + String.Join(",", ((IList<object>)symbols).ToArray())));
+            messageHash = ((object)(messageHash == null ? null : messageHash + "::" + String.Join(",", symbols.ToArray())));
         }
         Dictionary<string, object> request = this.extend(subscribe, paramsMarketType);
         object tail = access;
@@ -280,7 +280,7 @@ public partial class xt : ccxt.xt
      * @param {object} subscriptionParams extra parameters specific to the subscription
      * @returns {object} data from the websocket stream
      */
-    public async virtual Task<object> unSubscribe(string messageHash, string? name, string access, string methodName, object topic, IDictionary<string, object> market = null, IList<object> symbols = null, object parameters = null, object subscriptionParams = null)
+    public async virtual Task<object> unSubscribe(string messageHash, string? name, string access, string methodName, object topic, IDictionary<string, object> market = null, IList<object>? symbols = null, object parameters = null, object subscriptionParams = null)
     {
         parameters ??= new Dictionary<string, object>();
         subscriptionParams ??= new Dictionary<string, object>();

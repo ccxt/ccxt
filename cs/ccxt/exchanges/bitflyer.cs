@@ -311,7 +311,7 @@ public partial class bitflyer : Exchange
         string? month = this.safeString(months, monthName);
         if ((month == null))
         {
-            return ((Int64?)((object)(null)));
+            return null;
         }
         return this.parse8601((expiryYear == null ? null : expiryYear + "-" + month + "-" + day + "T00:00:00Z"));
     }
@@ -1462,11 +1462,11 @@ public partial class bitflyer : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;  // fallback to the default error handler
+            return ((bool?)((object)(null)));  // fallback to the default error handler
         }
         string feedback = ((this.id + " ") + body);
         // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
@@ -1477,6 +1477,6 @@ public partial class bitflyer : Exchange
             this.throwExactlyMatchedException(this.exceptionsExact, statusCode, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

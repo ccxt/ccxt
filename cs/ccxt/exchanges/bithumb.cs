@@ -1860,7 +1860,7 @@ public partial class bithumb : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " createOrders() requires each order to have a side")) ;
             }
-            object amount = this.safeValue(rawOrder, "amount");
+            double? amount = this.safeNumber(rawOrder, "amount");
             double? price = this.safeNumber(rawOrder, "price");
             IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             Dictionary<string, object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
@@ -1890,7 +1890,7 @@ public partial class bithumb : Exchange
         return this.parseOrders(data, market);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, double? price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
     {
         /**
         * @method
@@ -3788,11 +3788,11 @@ public partial class bithumb : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;  // fallback to default error handler
+            return ((bool?)((object)(null)));  // fallback to default error handler
         }
         // generation 2:
         //
@@ -3824,17 +3824,17 @@ public partial class bithumb : Exchange
             string? message = this.safeString(response, "message");
             if (status == "0000")
             {
-                return null;  // no error
+                return ((bool?)((object)(null)));  // no error
             } else if ((message == "거래 진행중인 내역이 존재하지 않습니다."))
             {
                 // https://github.com/ccxt/ccxt/issues/9017
-                return null;  // no error
+                return ((bool?)((object)(null)));  // no error
             }
             string feedback = ((this.id + " ") + message);
             this.throwExactlyMatchedException(this.exceptions, status, feedback);
             this.throwExactlyMatchedException(this.exceptions, message, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

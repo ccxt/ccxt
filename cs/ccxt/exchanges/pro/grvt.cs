@@ -113,7 +113,7 @@ public partial class grvt : ccxt.grvt
         }
     }
 
-    public async virtual Task<object> subscribeMultiple(object messageHashes, IDictionary<string, object> request, object rawHashes, bool? publicOrPrivate = null)
+    public async virtual Task<object> subscribeMultiple(IList<object> messageHashes, IDictionary<string, object> request, IList<object> rawHashes, bool? publicOrPrivate = null)
     {
         publicOrPrivate ??= true;
         Dictionary<string, object> payload = new Dictionary<string, object>() {

@@ -3660,16 +3660,16 @@ public partial class limitless : PredictionExchange
      * @name limitless#handleErrors
      * @description maps limitless error responses to ccxt exceptions
      */
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         Int64? statusCodeInt = this.parseToInt(code);
         if ((statusCodeInt >= 200) && (((statusCodeInt == null || statusCodeInt < 300))))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         string feedback = ((this.id + " ") + body);
         // the API returns either a string message or an array of field-validation errors
@@ -3686,6 +3686,6 @@ public partial class limitless : PredictionExchange
         {
             throw new BadRequest (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

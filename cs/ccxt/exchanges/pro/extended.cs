@@ -489,13 +489,12 @@ public partial class extended : ccxt.extended
         }
         for (int i = 0; i < rawPositions.Count; i++)
         {
-            IDictionary<string, object> rawPosition = ((IDictionary<string, object>)rawPositions[i]);
-            string? marketId = this.safeString(rawPosition, "market");
+            string? marketId = this.safeString((rawPositions != null && i < rawPositions.Count ? rawPositions[i] : null), "market");
             if ((marketId == null))
             {
                 continue;
             }
-            Dictionary<string, object> position = this.parsePosition(rawPosition);
+            Dictionary<string, object> position = this.parsePosition(this.safeDict(rawPositions, i, new Dictionary<string, object>() {}));
             newPositions.Add(position);
             stored.append(position);
         }

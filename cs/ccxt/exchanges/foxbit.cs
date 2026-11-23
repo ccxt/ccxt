@@ -2322,11 +2322,11 @@ public partial class foxbit : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         IDictionary<string, object> error = this.safeDict(response, "error");
         string? codeError = this.safeString(error, "code");
@@ -2348,6 +2348,6 @@ public partial class foxbit : Exchange
             this.throwExactlyMatchedException(this.exceptionsExact, codeError, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

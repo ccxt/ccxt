@@ -3068,7 +3068,7 @@ public partial class bitget : ccxt.bitget
         return await this.watch(url, messageHash, message, messageHash);
     }
 
-    public async virtual Task<T> watchPublicMultiple<T>(object uta, object messageHashes, IList<object> argsArray, object parameters = null)
+    public async virtual Task<T> watchPublicMultiple<T>(object uta, IList<object> messageHashes, IList<object> argsArray, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object url = ((uta is true)) ? (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("utaPublic") ? this.urlsApiSections["ws"]["utaPublic"] : null) : (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null);

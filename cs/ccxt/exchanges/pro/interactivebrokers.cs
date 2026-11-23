@@ -263,12 +263,12 @@ public partial class interactivebrokers : ccxt.interactivebrokers
      * @param {object} [subscription] the cache to clean, see cleanCache
      * @returns {boolean} true
      */
-    public async virtual Task<object> ibkrUnsubscribe(WebSocketClient client, object subHashes, object request, object subscription = null)
+    public async virtual Task<object> ibkrUnsubscribe(WebSocketClient client, IList<object> subHashes, object request, object subscription = null)
     {
         subscription ??= new Dictionary<string, object>();
-        for (int i = 0; i < getArrayLength(subHashes); i++)
+        for (int i = 0; i < (subHashes?.Count ?? 0); i++)
         {
-            object subHash = getValue(subHashes, i);
+            object subHash = (subHashes != null && i < subHashes.Count ? subHashes[i] : null);
             this.cleanUnsubscription(client, subHash, ("unsubscribe::" + (subHash)));
         }
         this.cleanCache(subscription);

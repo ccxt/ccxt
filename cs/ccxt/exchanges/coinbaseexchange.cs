@@ -2600,7 +2600,7 @@ public partial class coinbaseexchange : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if (((code == 400)) || ((code == 404)))
         {
@@ -2614,7 +2614,7 @@ public partial class coinbaseexchange : Exchange
             }
             throw new ExchangeError (((this.id + " ") + body)) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     public async override Task<object> request(string path, IList<object> api = null, object method = null, object parameters = null, object config = null)

@@ -3586,7 +3586,7 @@ public partial class myriad : PredictionExchange
     {
         if ((wei == null))
         {
-            return ((double?)((object)(null)));
+            return null;
         }
         return ((double?)((object)(this.parseNumber(Precise.stringDiv(wei, "1000000000000000000")))));
     }
@@ -4378,17 +4378,17 @@ public partial class myriad : PredictionExchange
         return this.ethGetAddressFromPrivateKey(this.privateKey).ToLower();
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         // Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         string? error = this.safeString(response, "error");
         if (((error == null)) || (error == ""))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         string feedback = ((this.id + " ") + body);
         this.throwExactlyMatchedException(this.exceptionsExact, error, feedback);

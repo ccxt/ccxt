@@ -292,11 +292,11 @@ public partial class mudrex : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null) || !(response is IDictionary<string, object>))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         bool? success = this.safeBool(response, "success", true);
         if (success != true)
@@ -328,7 +328,7 @@ public partial class mudrex : Exchange
             }
             throw new ExchangeError (msg) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)

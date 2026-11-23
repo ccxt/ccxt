@@ -3758,7 +3758,8 @@ public partial class delta : Exchange
         //
         // {"result":{},"success":true}
         //
-        Dictionary<string, object> position = this.parsePosition(this.safeDict(response, "result", new Dictionary<string, object>() {}));
+        IDictionary<string, object> positionRow = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        Dictionary<string, object> position = this.parsePosition(positionRow);
         return ccxt.BaseExchange.ToPositionList(new List<object>() {position});
     }
 
@@ -4464,11 +4465,11 @@ public partial class delta : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         //
         // {"error":{"code":"insufficient_margin","context":{"available_balance":"0.000000000000000000","required_additional_balance":"1.618626000000000000000000000"}},"success":false}
@@ -4482,6 +4483,6 @@ public partial class delta : Exchange
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), errorCode, feedback);
             throw new ExchangeError (feedback) ;
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 }

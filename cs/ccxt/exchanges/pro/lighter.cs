@@ -90,7 +90,7 @@ public partial class lighter : ccxt.lighter
         return await this.watch<T>(url, messageHash, this.extend(request, parameters), messageHash, subscription);
     }
 
-    public async virtual Task<object> subscribePublicMultiple(object messageHashes, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> subscribePublicMultiple(IList<object> messageHashes, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
@@ -118,14 +118,14 @@ public partial class lighter : ccxt.lighter
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
     }
 
-    public async virtual Task<object> subscribePrivate(object messageHash, IDictionary<string, object>? parameters = null)
+    public async virtual Task<T> subscribePrivate<T>(object messageHash, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.preLoadLighterLibrary();
         Dictionary<string, object> request = this.extend(parameters, new Dictionary<string, object>() {
             { "auth", this.createAuth(parameters) },
         });
-        return await this.subscribePublic<object>(messageHash, request);
+        return await this.subscribePublic<T>(messageHash, request);
     }
 
     public override void handleDelta(ccxt.pro.IOrderBookSide bookside, object delta)
@@ -1143,7 +1143,7 @@ public partial class lighter : ccxt.lighter
         if ((type == "spot"))
         {
             request["channel"] = ("account_all_assets/" + this.numberToString(accountIndex));
-            return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(messageHash, this.extend(request, paramsAccountIndex)));
+            return ccxt.BaseExchange.ToBalances(await this.subscribePrivate<object>(messageHash, this.extend(request, paramsAccountIndex)));
         } else
         {
             request["channel"] = ("user_stats/" + this.numberToString(accountIndex));
@@ -1282,13 +1282,13 @@ public partial class lighter : ccxt.lighter
             messageHash = this.getMessageHash("orders");
             request["channel"] = ("account_all_orders/" + this.numberToString(accountIndex));
         }
-        object orders = await this.subscribePrivate(messageHash, this.extend(request, paramsAccountIndex));
+        ccxt.pro.ArrayCache orders = await this.subscribePrivate<ccxt.pro.ArrayCache>(messageHash, this.extend(request, paramsAccountIndex));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbol, limit));
+            limitResolved = ((Int64?)orders.getLimit(symbol, limit));
         }
-        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbol, since, limitResolved, true));
+        return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limitResolved, true));
     }
 
     /**

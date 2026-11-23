@@ -2132,16 +2132,16 @@ public partial class bitopro : Exchange
         };
     }
 
-    public override object handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
+    public override bool? handleErrors(Int64? code, string reason, string url, string method, IDictionary<string, object> headers, string body, object response, Dictionary<string, object> requestHeaders, string requestBody)
     {
         if ((response == null))
         {
-            return null;  // fallback to the default error handler
+            return ((bool?)((object)(null)));  // fallback to the default error handler
         }
         Int64? statusCode = this.parseToInt(code);
         if (statusCode >= 200 && ((statusCode == null || statusCode < 300)))
         {
-            return null;
+            return ((bool?)((object)(null)));
         }
         string feedback = ((this.id + " ") + body);
         string? error = this.safeString(response, "error");

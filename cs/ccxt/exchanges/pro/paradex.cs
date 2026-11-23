@@ -264,7 +264,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters merged into each unsubscribe request
      * @returns {boolean} true once every channel is unsubscribed
      */
-    public async virtual Task<object> unsubscribeChannels(object url, string topic, IList<object> channels, IList<object> subMessageHashes, object symbols, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> unsubscribeChannels(object url, string topic, IList<object> channels, IList<object> subMessageHashes, IList<object> symbols, IDictionary<string, object> parameters = null)
     {
         // a channel the server refuses (not subscribed) does not stop the others, its error is thrown once they are sent
         parameters ??= new Dictionary<string, object>();
@@ -296,7 +296,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters merged into each unsubscribe request
      * @returns {int} the number of channels refused
      */
-    public async virtual Task<object> unsubscribeChannelsFrom(object url, string topic, IList<object> channels, IList<object> subMessageHashes, object symbols, object start, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> unsubscribeChannelsFrom(object url, string topic, IList<object> channels, IList<object> subMessageHashes, IList<object> symbols, object start, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64? refused = 0;
@@ -330,7 +330,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters merged into the unsubscribe request
      * @returns {boolean} true once unsubscribed
      */
-    public async virtual Task<object> unsubscribeChannelAt(object url, string topic, IList<object> channels, IList<object> subMessageHashes, object symbols, Int64 index, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> unsubscribeChannelAt(object url, string topic, IList<object> channels, IList<object> subMessageHashes, IList<object> symbols, Int64 index, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? channel = ((string)(channels != null && index < channels.Count ? channels[(int)index] : null));
@@ -365,7 +365,7 @@ public partial class paradex : ccxt.paradex
      * @param {string[]} subscribeHashes the subscriptions the watch relies on
      * @returns {undefined}
      */
-    public async virtual Task<object> waitForPendingUnsubscribe(object url, object subscribeHashes)
+    public async virtual Task<object> waitForPendingUnsubscribe(object url, IList<object> subscribeHashes)
     {
         if (!((this.clients != null && url != null && this.clients.ContainsKey((string)url))))
         {
@@ -2331,7 +2331,7 @@ public partial class paradex : ccxt.paradex
         };
     }
 
-    public virtual object sbeReadUint(object frameHex, object offset, Int64 length)
+    public virtual Int64? sbeReadUint(object frameHex, object offset, Int64 length)
     {
         // a little-endian unsigned integer of at most 4 bytes, so that it stays exact in every language
         string digits = "0123456789abcdef";
@@ -2387,7 +2387,7 @@ public partial class paradex : ccxt.paradex
         return ((string?)((object)(Precise.stringDiv(mantissa, "100000000", 8))));
     }
 
-    public virtual object sbeReadTimestamp(string frameHex, Int64 offset)
+    public virtual Int64? sbeReadTimestamp(string frameHex, Int64 offset)
     {
         // timestamps are microseconds, truncated to milliseconds with Precise: a float
         // quotient like 1791906071000.999 is rounded up when php converts it to an int
