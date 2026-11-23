@@ -13111,7 +13111,7 @@ export default class binance extends Exchange {
         //
         const result: List = [];
         for (let i = 0; i < settlements.length; i++) {
-            result.push (this.parseSettlement (this.safeValue (settlements, i), market));
+            result.push (this.parseSettlement (this.extend ({}, settlements[i]), market));
         }
         return result;
     }

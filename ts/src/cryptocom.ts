@@ -3083,7 +3083,7 @@ export default class cryptocom extends Exchange {
         //
         const result: Dict[] = [];
         for (let i = 0; i < settlements.length; i++) {
-            result.push (this.parseSettlement (this.safeDict (settlements, i, {}), market));
+            result.push (this.parseSettlement (this.extend ({}, settlements[i]), market));
         }
         return result;
     }

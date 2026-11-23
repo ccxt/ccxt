@@ -8755,7 +8755,7 @@ export default class okx extends Exchange {
         const data: List = this.safeList (response, 'data', []);
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
-            result.push (this.parseSettlement (data[i], market));
+            result.push (this.parseSettlement (this.extend ({}, data[i]), market));
         }
         const sorted = this.sortBy (result, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, this.safeString (market, 'symbol'), since, limit);
@@ -8814,7 +8814,7 @@ export default class okx extends Exchange {
             const timestamp = this.safeInteger (entry, 'ts');
             const details = this.safeList (entry, 'details', []) as List;
             for (let j = 0; j < details.length; j++) {
-                const settlement = this.parseSettlement (details[j], market);
+                const settlement = this.parseSettlement (this.extend ({}, details[j]), market);
                 result.push (this.extend (settlement, {
                     'timestamp': timestamp,
                     'datetime': this.iso8601 (timestamp),

@@ -1634,7 +1634,7 @@ export default class kalshi extends Exchange {
         const rawSettlementsLength = rawSettlements.length;
         const parsed: Dict[] = [];
         for (let i = 0; i < rawSettlementsLength; i++) {
-            parsed.push (this.parseSettlement (rawSettlements[i]));
+            parsed.push (this.parseSettlement (this.extend ({}, rawSettlements[i])));
         }
         const wantedOutcomeObj: Dict = (outcome !== undefined) ? this.outcome (outcome) : {};
         const wantedOutcome = this.safeString (wantedOutcomeObj, 'outcome');
