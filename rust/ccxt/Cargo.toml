@@ -1,6 +1,6 @@
 [package]
 name = "ccxt"
-version = "4.5.93"
+version = "4.5.94"
 edition = "2021"
 description = "CCXT – CryptoCurrency eXchange Trading Library (Rust) – typed unified-method API (re-exports the ccxt-base engine)"
 license = "MIT"
@@ -133,4 +133,4 @@ all = ["alpaca", "apex", "aster", "backpack", "bequant", "bigone", "binance", "b
 # The engine holding the REST exchanges (`Binance`, …). Kept a separate crate so
 # no single rustc invocation compiles the whole generated surface at once (CI
 # memory ceiling); this crate re-exports it at its root.
-ccxt-base = { path = "../ccxt-base", version = "4.5.93", features = ["engine"] }
+ccxt-base = { path = "../ccxt-base", version = "4.5.94", features = ["engine"] }
