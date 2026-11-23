@@ -4825,6 +4825,67 @@ function rustTypedOrderBodies (content: string): string {
     return out + content.slice (last);
 }
 
+// `parseOHLCV` builds a fresh row list on every path: a venue override returns `Some(..)` through the `DerivedExchange`
+// slot (`None` = not overridden), the base a `List`. `.into_list()` drops, `.as_array()` copies unwrap, any other use boxes it.
+function rustTypedParseOhlcv (content: string): string {
+    const sigTail = '(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Value {\n';
+    const nullTail = '\n\n    Value::Null\n';
+    const typeRets = (body: string, wrap: (x: string) => string, name: string) => {
+        let out = '', last = 0, r: RegExpExecArray | null;
+        const ret = /(?<=^ *)return ([^\n]*)/gm;
+        while ((r = ret.exec (body)) !== null) {
+            const head = 'return Value::from(';
+            if (!r[1].startsWith ('Value::from(')) throw new Error (name + ': unproven return ' + r[1].slice (0, 80));
+            const open = r.index + head.length, close = balancedCloseIndex (body, open);
+            const inner = body.slice (open, close);
+            if (!inner.startsWith ('vec![') && !/^__yd\d+$/.test (inner)) throw new Error (name + ': unproven return ' + r[1].slice (0, 80));
+            out += body.slice (last, r.index) + 'return ' + wrap ('std::sync::Arc::new(' + inner + ')');
+            last = close + 1;
+            ret.lastIndex = last;
+        }
+        return out + body.slice (last);
+    };
+    const derived = '\n    fn parse_ohlcv' + sigTail;
+    const at = content.indexOf (derived);
+    if (at >= 0 && content.startsWith ('\nimpl crate::exchange::DerivedExchange for ', content.lastIndexOf ('\nimpl ', at))) {
+        const open = at + derived.length, end = content.indexOf (nullTail + '}', open);
+        if (end < 0) throw new Error ('parseOHLCV: override without the Value::Null tail');
+        const body = typeRets (content.slice (open, end), (x) => 'Some(' + x + ')', 'parseOHLCV');
+        content = content.slice (0, at) + derived.replace ('-> Value {', '-> Option<crate::value::List> {') + body + '\n\n    None\n' + content.slice (end + nullTail.length);
+    }
+    const base = '\n    fn parse_ohlcv' + sigTail;
+    const probe = '{ let __v = crate::exchange::DerivedExchange::parse_ohlcv(self, ohlcv.clone(), market); if !matches!(__v, crate::Value::Null) { return __v; } }';
+    const b = content.indexOf (probe);
+    const typed = new Set<number> ();
+    if (b >= 0) {
+        const s = content.lastIndexOf (base, b), end = content.indexOf (nullTail + '}', b);
+        let body = content.slice (s + base.length, end).replace (probe, '\u0000');
+        body = typeRets (body, (x) => x, 'parseOHLCV').replace ('\u0000', 'if let Some(__v) = crate::exchange::DerivedExchange::parse_ohlcv(self, ohlcv.clone(), market) { return __v; }');
+        content = content.slice (0, s) + base.replace ('-> Value {', '-> crate::value::List {') + body + '\n\n    Default::default()\n' + content.slice (end + nullTail.length);
+        const ws = '\n    fn parse_ws_ohlcv' + sigTail + '        return <Self as crate::exchange_generated::ExchangeBase>::parse_ohlcv(self, ohlcv, market);' + nullTail + '}';
+        const w = content.indexOf (ws);
+        if (w >= 0) {
+            content = content.slice (0, w) + ws.replace ('-> Value {', '-> crate::value::List {').replace (nullTail, '\n') + content.slice (w + ws.length);
+            typed.add (content.indexOf ('return <Self as crate::exchange_generated::ExchangeBase>::parse_ohlcv(', w) + 'return '.length);
+        }
+    }
+    const call = new RegExp ('(?<![\\w.])(?:self(?:\\.parent)?\\.|<Self as crate::exchange_generated::ExchangeBase>::)(parse_ohlcv' + (b >= 0 ? '|parse_ws_ohlcv' : '') + ')\\(', 'g');
+    const starts: number[] = [];
+    let m: RegExpExecArray | null;
+    while ((m = call.exec (content)) !== null) starts.push (m.index);
+    const copy = '.as_array().cloned().unwrap_or_default()';
+    for (const s of starts.reverse ()) {
+        const close = balancedCloseIndex (content, content.indexOf ('(', content.indexOf ('parse_', s)) + 1);
+        if (close >= content.length || typed.has (s)) continue;
+        const pre = content.slice (s, close + 1), after = content.slice (close + 1);
+        if (/^\s*(?:\/\/|\*)/.test (content.slice (content.lastIndexOf ('\n', s) + 1, s))) continue;
+        if (after.startsWith ('.into_list()')) content = content.slice (0, close + 1) + after.slice ('.into_list()'.length);
+        else if (after.startsWith (copy)) content = content.slice (0, close + 1) + '.to_vec()' + after.slice (copy.length);
+        else content = content.slice (0, s) + 'Value::Arr(' + pre + ')' + after;
+    }
+    return content;
+}
+
 function rustTypedParseOrder (content: string): string {
     return rustTypedOrderBodies (rustTypedParseFamily (content, 'order'));
 }
@@ -8583,8 +8644,8 @@ function typeWsOhlcvReturns(content: string): string {
     const listLocal = (l: string) => { const v = /^\s*return Value::Arr\((\w+)\);$/.exec(l);
         return v !== null && new RegExp(String.raw`\n\s*let mut ${v[1]}: crate::value::List = `).test('\n' + body); };
     const tail = body.trimEnd().split('\n').pop() ?? '';
-    if (!/^ {8}return\b/.test(tail) || !rets.every((l) => /^\s*return Value::from\(vec!\[.*\]\);$/.test(l) || listLocal(l))) return content;
-    const b = body.replace(/^(\s*return )Value::from\((vec!\[.*\])\);$/gm, '$1std::sync::Arc::new($2);')
+    if (!/^ {8}return\b/.test(tail) || !rets.every((l) => /^\s*return Value::from\(vec!\[.*\]\);$/.test(l) || listLocal(l) || /^\s*return Value::Arr\(self\.parse_ohlcv\(\w+, \w+\)\);$/.test(l))) return content;
+    const b = body.replace(/^(\s*return )Value::Arr\((self\.parse_ohlcv\(\w+, \w+\))\);$/gm, '$1$2;').replace(/^(\s*return )Value::from\((vec!\[.*\])\);$/gm, '$1std::sync::Arc::new($2);')
         .replace(/^(\s*return )Value::Arr\((\w+)\);$/gm, '$1$2;');
     content = content.replace(decl, () => `${d[1]}crate::value::List${d[2]}${b.trimEnd()}\n}`);
     const head = /\bself\.parse_ws_ohlcv\(/g;
@@ -15209,6 +15270,7 @@ impl std::ops::DerefMut for ${coreName} {
             rustContent = rustTypedParseTrade(rustContent);
             rustContent = rustTypedParseTicker(rustContent);
             rustContent = rustTypedParsePositionFamilies(rustContent);
+            rustContent = rustTypedParseOhlcv(rustContent);
             rustContent = rustTypedRequestBuilders(rustContent);
             rustContent = rustTypedVenueBuilders(rustContent, (isPrediction ? 'prediction/' : '') + exchangeName);
 
@@ -16008,6 +16070,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = rustTypedParseOrder(finalFile);
         finalFile = rustTypedParseTicker(finalFile);
         finalFile = rustTypedParsePositionFamilies(finalFile);
+        finalFile = rustTypedParseOhlcv(finalFile);
         finalFile = rustTypedSafeTrade(finalFile);
         finalFile = rustTypedParseTrade(finalFile);
         finalFile = rustTypedMarketSymbols(finalFile);
