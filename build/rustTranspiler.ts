@@ -5275,6 +5275,7 @@ function rustTypedParsePositionFamilies (content: string): string {
 // `Option<&Dict>` (the TypeScript declaration): a missing or non-map row stays `Value::Null` in the body.
 function rustBorrowedParseRows (content: string): string {
     const optFns = [ 'parse_transaction', 'parse_order', 'parse_income', 'parse_account', 'parse_margin_mode', 'parse_ledger_entry', 'parse_position', 'parse_transfer', 'parse_deposit_address', 'parse_leverage', 'parse_borrow_interest' ];
+    optFns.push ('parse_prediction_order');
     const fns = optFns.join ('|');
     const slot = (fn: string) => optFns.includes (fn) ? 'Option<&crate::value::Dict>' : '&crate::value::Dict';
     content = content.replace (new RegExp ('\\n    fn (' + fns + ')\\(&self, (\\w+): impl Into<crate::Value>([,)])', 'g'), (_m, f: string, x: string, e: string) => '\n    fn ' + f + '(&self, ' + x + ': ' + slot (f) + e);
