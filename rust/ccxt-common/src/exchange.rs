@@ -278,7 +278,7 @@ pub trait DerivedExchange {
     /// a seconds timestamp and the venue answers -1130.
     fn nonce(&self) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::nonce(p)) }
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Value { self.derived_parent_mut().map_or(Value::Null, |p| DerivedExchange::sign(p, path, optional_args)) }
-    fn handle_errors(&mut self, code: Value, reason: &str, url: &str, method: &str, headers: Value, body: &str, response: Value, request_headers: Value, request_body: Value) -> Value { self.derived_parent_mut().map_or(Value::Null, |p| DerivedExchange::handle_errors(p, code, reason, url, method, headers, body, response, request_headers, request_body)) }
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: Value, body: &str, response: Value, request_headers: Value, request_body: Value) -> Value { self.derived_parent_mut().map_or(Value::Null, |p| DerivedExchange::handle_errors(p, code, reason, url, method, headers, body, response, request_headers, request_body)) }
 }
 
 // `Internals` no longer holds raw pointers, so `Send`/`Sync` are auto-derived
@@ -1825,7 +1825,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         // the derived handle_errors; a Null result falls back to httpExceptions.
         let handled = crate::exchange::DerivedExchange::handle_errors(
             self,
-            Value::Int(status as i64),
+            status as i64,
             reason,
             &url.to_string(),
             &method.to_string(),
@@ -3128,7 +3128,7 @@ mod http_error_tests {
         fn deref_mut(&mut self) -> &mut Exchange { &mut self.exchange }
     }
     impl DerivedExchange for EnvelopeCore {
-        fn handle_errors(&mut self, _code: Value, _reason: &str, _url: &str, _method: &str, _headers: Value, _body: &str, response: Value, _request_headers: Value, _request_body: Value) -> Value {
+        fn handle_errors(&mut self, _code: i64, _reason: &str, _url: &str, _method: &str, _headers: Value, _body: &str, response: Value, _request_headers: Value, _request_body: Value) -> Value {
             let code = response.at("code");
             if !matches!(code, Value::Null) && *code != Value::Str("0".into()) {
                 panic!("{}", crate::exchange_errors::create_error("InsufficientFunds", "code 51008"));
