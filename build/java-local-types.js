@@ -27164,6 +27164,12 @@ const JAVA_ORDERBOOK_PARAM_SLOTS = {
     'handleOrderBookMessage': [ 2 ],
 };
 const JAVA_ORDERBOOK_PARAM_SLOT_TYPE = 'io.github.ccxt.ws.WsOrderBook';
+// ws order-book side slots (TS `bookside`): callers pass `book['asks'|'bids']` of a WsOrderBook local or forward the slot
+const JAVA_BOOKSIDE_PARAM_SLOTS = {
+    'handleDelta': [ 0 ],
+    'handleDeltas': [ 0 ],
+};
+const JAVA_BOOKSIDE_PARAM_SLOT_TYPE = 'io.github.ccxt.ws.OrderBookSide';
 // per-file dictionary slots: the declaration overrides nothing and its only caller hands a Dict local
 const JAVA_FILE_MAP_PARAM_SLOTS = {
     'handleOrders': { index: 1, file: /(^|[\\/])ts[\\/]src[\\/]pro[\\/]phemex\.ts$/ },
@@ -27187,6 +27193,9 @@ function javaListParamSlot (printer, node) {
 }
 
 function javaParamSlotTypeAt (name, index, fileName) {
+    if (JAVA_BOOKSIDE_PARAM_SLOTS[name]?.includes (index)) {
+        return JAVA_BOOKSIDE_PARAM_SLOT_TYPE;
+    }
     if (JAVA_ORDERBOOK_PARAM_SLOTS[name]?.includes (index) && JAVA_ORDERBOOK_PARAM_SLOT_FILES.test (fileName)) {
         return JAVA_ORDERBOOK_PARAM_SLOT_TYPE;
     }
@@ -27211,6 +27220,14 @@ function javaListSlotArgument (arg) {
     return javaParamSlotTypeAt (call.expression.name.text, call.arguments.indexOf (arg), arg.getSourceFile ().fileName);
 }
 
+// `book['asks'|'bids']` on a local or parameter the printer declares WsOrderBook: the typed field get() answers
+function javaBookSideFieldRead (printer, node) {
+    return node !== undefined && ts.isElementAccessExpression (node) && ts.isIdentifier (node.expression)
+        && ts.isStringLiteralLike (node.argumentExpression) && (node.argumentExpression.text === 'asks' || node.argumentExpression.text === 'bids')
+        && printer.printNode (node.expression, 0) === node.expression.text
+        && [ ORDERBOOK_TYPE, 'WsOrderBook' ].includes (r77j2Normalize (printer.javaDeclaredTypeOf (node.expression) ?? ''));
+}
+
 export function installJavaListParamSlots (transpiler) {
     const printer = transpiler?.javaTranspiler;
     if (!printer || typeof printer.javaNativeParameterTypeOf !== 'function' || printer._javaListParamSlotsPatched) {
@@ -27221,9 +27238,25 @@ export function installJavaListParamSlots (transpiler) {
     printer.javaNativeParameterTypeOf = function (node) {
         return javaListParamSlot (printer, node) ?? upstreamType (node);
     };
+    const upstreamElement = printer.printElementAccessExpression.bind (printer);
+    printer.printElementAccessExpression = function (node, identation) {
+        if (javaListSlotArgument (node) === JAVA_BOOKSIDE_PARAM_SLOT_TYPE && javaBookSideFieldRead (printer, node)) {
+            const name = node.expression.text;
+            return `(${name} == null ? null : ${name}.${node.argumentExpression.text})`;
+        }
+        return upstreamElement (node, identation);
+    };
     const upstreamTyped = printer.javaNativeArgumentAlreadyTyped.bind (printer);
     printer.javaNativeArgumentAlreadyTyped = function (arg, type) {
         const slot = javaListSlotArgument (arg);
+        if (slot === JAVA_BOOKSIDE_PARAM_SLOT_TYPE && slot === type) {
+            const declaration = ts.isIdentifier (arg) ? printer.javaDeclarationOfIdentifier (arg) : undefined;
+            const forwarded = declaration !== undefined && declaration.kind === ts.SyntaxKind.Parameter && printer.javaNativeParameterType (declaration) === slot;
+            if (!forwarded && !javaBookSideFieldRead (printer, arg)) {
+                throw new Error (`java param slot: argument ${arg.getText ()} is not a WsOrderBook side or a forwarded ${slot}`);
+            }
+            return true;
+        }
         if (slot === JAVA_ORDERBOOK_PARAM_SLOT_TYPE && slot === type) {
             if (!ts.isIdentifier (arg) || printer.javaDeclaredTypeOf (arg) !== slot) {
                 throw new Error (`java param slot: argument ${arg.getText ()} is not a declared ${slot}`);
