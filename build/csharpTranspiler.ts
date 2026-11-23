@@ -1488,6 +1488,7 @@ const CORE_IDICT_ARGS: Record<string, number[]> = {
     'parseFundingRateWs': [ 0 ],
     'parseLedgerEntry': [ 0 ],
     'parseOutcomeMarket': [ 0 ],
+    'parsePosition': [ 0 ],
     'parsePredictionOpenInterest': [ 0 ],
     'parseTransaction': [ 0 ],
     'parseTransfer': [ 1 ],

@@ -5258,13 +5258,12 @@ export default class xt extends Exchange {
      */
     mergePositionBreakInfo (entry: Dict, breakBySymbolSide: Dict): Dict {
         const breakEntry = this.safeDict (breakBySymbolSide, this.safeString (entry, 'symbol', '') + '_' + this.safeString (entry, 'positionSide', ''));
-        if (breakEntry === undefined) {
-            return entry;
+        const extra: Dict = {};
+        if (breakEntry !== undefined) {
+            extra['breakPrice'] = this.safeString (breakEntry, 'breakPrice');
+            extra['calMarkPrice'] = this.safeString (breakEntry, 'calMarkPrice');
         }
-        return this.extend (entry, {
-            'breakPrice': this.safeString (breakEntry, 'breakPrice'),
-            'calMarkPrice': this.safeString (breakEntry, 'calMarkPrice'),
-        });
+        return this.extend (entry, extra);
     }
 
     /**
