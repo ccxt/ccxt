@@ -13,37 +13,10 @@ import { shortenJavaReferences } from './javaUtilImports.js';
 
 // every name whose every generated return expression is already a Java String
 export const JAVA_STRING_RETURN_METHODS = new Set ([
-    'applyScale', 'calcOrderPrice', 'convertToInstrumentType', 'convertToX18',
-    'amountToPrecision', 'costToPrecision', 'costToPredictionPrecision', 'createAuthToken',
-    'createOrderAppendix', 'createOrderNonce',
-    'currencyFromPrecision', 'encodeMarginMode', 'encodeOrderSide', 'encodeOrderType',
-    'encodeTriggerPriceType', 'encodeWorkingType',
-    'feeToPrecision', 'fromEn', 'fromPrecision', 'fromWeiWithDecimals',
-    'futuresRequestId', 'generateClientOrderId',
-    'getDexFromHip3Symbol', 'getDexFromSymbols',
-    'getMarketIdByType',
-    
-    'getTifFromRawOrderType', 
-    'handleTakerOrMaker', 'handleTimeInForce', 'hexToDecimalString', 'mapSide',
-    'marketOutcomeToSymbol', 'outcomeSearchQuery',
-    'paraseTransferStatus', 'parseAccountId', 'parseAccountType', 'parseDepositStatus',
-    'parseFundingInterval', 'parseLedgerDirection', 'parseLedgerEntryDirection',
-    'parseLedgerEntryStatus', 'parseLedgerStatus', 'parseLedgerType',
-    'parseMarginModeType', 'parseMarginStatus', 'parseMarginType', 'parseMarketType',
-    'parseOrderSide', 'parseOrderState', 'parseOrderStatus', 'parseOrderTimeInForce',
-    'parseOrderTimeInForceInteger', 'parseOrderType', 'parseOrderTypeByMarket',
-    'parseOrderTypeInteger', 'parseStatus', 'parseTakerOrMaker', 'parseTimeInForce',
-    'parseTradeSide', 'parseTradeType', 'parseTradingOrderStatus', 'parseTransactionDepositStatus',
-    'parseTransactionState', 'parseTransactionStatus', 'parseTransactionType',
-    'parseTransactionWithdrawalStatus', 'parseTransferStatus', 'parseTransferType', 'parseType',
-    'parseUnits', 'parseValueToPricision', 'parseWithdrawalStatus', 'parseWsOrderSide',
-    'parseWsOrderStatus', 'parseWsOrderType', 'parseWsPositionSide', 'parseWsTimeInForce', 'pow',
-    'priceToPrecision', 'scaleNumber',
-    'symbol', 
-    'tokenIdToSymbol', 'typeToTradeType', 'walletAddressOrUndefined',
-    // extended/gate/lighter/nado string producers
-    
-    'createAuth', 'removeMarketSuffix',
+    'amountToPrecision', 'costToPrecision', 'feeToPrecision', 'handleTimeInForce', 'outcomeSearchQuery', 'priceToPrecision',
+    'walletAddressOrUndefined',
+    'createAuthToken', 'currencyFromPrecision', 'encodeTriggerPriceType', 'fromEn', 'fromPrecision',
+    'futuresRequestId', 'parseUnits',
 ]);
 
 // ===== 1b. string-returning names whose retype keeps a (String) checkcast =====
