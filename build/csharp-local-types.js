@@ -18723,6 +18723,8 @@ export const CSHARP_STRING_PARAMS = {
     'tradeRequest': { 0: 'string' },
     'unWatch': { 0: 'string?', 1: 'string?', 2: 'string?', 3: 'string?', 4: 'string?', 6: 'string?' },
     'unWatchPrivate': { 1: 'string?' },
+    'unWatchOHLCV': { 0: 'string?' },
+    'unWatchOrderBook': { 0: 'string?' },
     'unWatchTicker': { 0: 'string?' },
     'unWatchWalletEvents': { 0: 'string' },
     'unsubscribe': { 0: 'string?' },
