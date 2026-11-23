@@ -258,7 +258,7 @@ const RUST_BORROW_VALUE_METHODS = new Set([ 'clone', 'resolve', 'reject', 'futur
  * body use is a `&self` read, `&p`, a borrow or a hand-on to another borrowed slot. Callers then pass `&x` / `x`, not `x.clone()`.
  */
 function rustBorrowWsHandlerParams (files: Map<string, string>, outside: string): Map<string, string> {
-    type Def = { file: string, start: number, bodyOpen: number, end: number, params: Array<{ name: string, idx: number, at: number, len: number, isRef: boolean }> };
+    type Def = { file: string, start: number, bodyOpen: number, end: number, params: Array<{ name: string, idx: number, at: number, len: number, isRef: boolean }>, typed: Set<number> };
     const defs = new Map<string, Def[]>();
     const masks = new Map<string, string>();
     const bad = new Set<string>();
@@ -272,15 +272,19 @@ function rustBorrowWsHandlerParams (files: Map<string, string>, outside: string)
             const end = rustBorrowClose(m, bodyOpen);
             if (h[1] === undefined || bodyOpen < 0 || end < 0) { bad.add(name); continue; }
             const params: Def['params'] = [];
+            const typed = new Set<number>();
             let off = h.index! + h[0].length - h[5].length - 1;
-            h[5].split(', ').slice(1).forEach((p, i) => {
+            // keep the comma inside a typed map slot from splitting it (same length, so offsets hold)
+            h[5].replace(/IndexMap<String, Value>/g, 'IndexMap<String,_Value>').split(', ').slice(1).forEach((p, i) => {
                 off += 2;
                 const pm = /^mut (client|message): Value$/.exec(p) ?? /^(client|message): &Value$/.exec(p) ?? /^(client): &crate::pro::ws_client::ClientHandle$/.exec(p);
                 // a typed client handle slot is already lent
                 if (pm) params.push({ name: pm[1], idx: i, at: off, len: p.length, isRef: !p.endsWith(': Value') });
+                // a message the printer already typed as a borrowed map: same family slot, nothing to edit
+                else if (p === 'message: &indexmap::IndexMap<String,_Value>') typed.add(i);
                 off += p.length;
             });
-            (defs.get(name) ?? defs.set(name, []).get(name)!).push({ file, start: h.index!, bodyOpen, end, params });
+            (defs.get(name) ?? defs.set(name, []).get(name)!).push({ file, start: h.index!, bodyOpen, end, params, typed });
         }
     }
     const why = new Map<string, number>();
@@ -290,8 +294,8 @@ function rustBorrowWsHandlerParams (files: Map<string, string>, outside: string)
     for (const [name, ds] of defs) {
         if (bad.has(name) || outsideNames.has(name)) { if (ds.some(d => d.params.length)) no(bad.has(name) ? 'name async/private' : 'name outside ' + name); continue; }
         const counts = new Map<number, number>();
-        for (const d of ds) for (const p of d.params) counts.set(p.idx, (counts.get(p.idx) ?? 0) + 1);
-        for (const [idx, n] of counts) if (n === ds.length) slots.add(`${name}#${idx}`); else no('mixed sig');
+        for (const d of ds) for (const i of [ ...d.params.map(p => p.idx), ...d.typed ]) counts.set(i, (counts.get(i) ?? 0) + 1);
+        for (const [idx, n] of counts) if (n === ds.length && ds.some(d => d.params.some(p => p.idx === idx))) slots.add(`${name}#${idx}`); else no('mixed sig');
     }
     type Call = { file: string, nameAt: number, open: number, close: number, name: string };
     const calls: Call[] = [];
@@ -353,7 +357,8 @@ function rustBorrowWsHandlerParams (files: Map<string, string>, outside: string)
         for (const k of [...slots]) {
             const [name, idx] = k.split('#');
             for (const d of defs.get(name)!) {
-                const p = d.params.find(x => x.idx === Number(idx))!;
+                const p = d.params.find(x => x.idx === Number(idx));
+                if (p === undefined) continue;
                 if (!useOk(d, p.name)) { slots.delete(k); changed = true; break; }
             }
         }
@@ -381,7 +386,7 @@ function rustBorrowWsHandlerParams (files: Map<string, string>, outside: string)
     for (const c of calls) {
         const m = masks.get(c.file)!, src = files.get(c.file)!;
         rustBorrowArgs(m, c.open, c.close).forEach(([s, e], i) => {
-            if (!slots.has(`${c.name}#${i}`)) return;
+            if (!slots.has(`${c.name}#${i}`) || defs.get(c.name)!.some(d => d.file === c.file && d.typed.has(i))) return;
             const text = src.slice(s, e).trim();
             const at = s + src.slice(s, e).indexOf(text);
             const id = /^([A-Za-z_][A-Za-z0-9_]*)(\.clone\(\))?$/.exec(text);
