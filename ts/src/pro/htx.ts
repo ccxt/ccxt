@@ -270,7 +270,7 @@ export default class htx extends htxRest {
         const marketId: Str = this.safeString (market, 'id', '');
         const messageHash = 'market.' + marketId + '.trade.detail';
         const url = this.getUrlByMarketType (market['type'], market['linear']);
-        const trades = await this.subscribePublic (url, symbolValue, messageHash, undefined, params);
+        const trades: ArrayCache = await this.subscribePublic (url, symbolValue, messageHash, undefined, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolValue, limit);
@@ -370,7 +370,7 @@ export default class htx extends htxRest {
         const marketId: Str = this.safeString (market, 'id', '');
         const messageHash = 'market.' + marketId + '.kline.' + interval;
         const url = this.getUrlByMarketType (market['type'], market['linear']);
-        const ohlcv = await this.subscribePublic (url, symbolValue, messageHash, undefined, params);
+        const ohlcv: ArrayCacheByTimestamp = await this.subscribePublic (url, symbolValue, messageHash, undefined, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit (symbolValue, limit);
@@ -1077,7 +1077,7 @@ export default class htx extends htxRest {
         const subscriptionParams = {
             'isV5': isV5Linear,
         };
-        const orders = await this.subscribePrivate (channel, messageHash, type, subType, paramsRequest, subscriptionParams);
+        const orders: ArrayCacheBySymbolById = await this.subscribePrivate (channel, messageHash, type, subType, paramsRequest, subscriptionParams);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);

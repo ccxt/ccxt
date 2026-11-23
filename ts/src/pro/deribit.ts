@@ -411,7 +411,7 @@ export default class deribit extends deribitRest {
         if (interval === 'raw') {
             await this.authenticate ();
         }
-        const trades = await this.watchMultipleWrapper ('trades', interval, symbols, paramsInterval);
+        const trades: ArrayCache = await this.watchMultipleWrapper ('trades', interval, symbols, paramsInterval);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved = limit;

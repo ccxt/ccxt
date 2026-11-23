@@ -96,7 +96,7 @@ export default class gemini extends geminiRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     override async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        const trades = await this.helperForWatchMultipleConstruct ('trades', symbols, params);
+        const trades: ArrayCache = await this.helperForWatchMultipleConstruct ('trades', symbols, params);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved = limit;

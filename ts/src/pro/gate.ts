@@ -994,7 +994,7 @@ export default class gate extends gateRest {
             messageHashes.push ('trades:' + symbol);
         }
         const url = this.getUrlByMarket (market);
-        const trades = await this.subscribePublicMultiple (url, messageHashes, marketIds, channel, params);
+        const trades: ArrayCache = await this.subscribePublicMultiple (url, messageHashes, marketIds, channel, params);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved = limit;
@@ -1114,7 +1114,7 @@ export default class gate extends gateRest {
         const messageHash = 'candles:' + interval + ':' + market['symbol'];
         const url = this.getUrlByMarket (market);
         const payload = [ interval, marketId ];
-        const ohlcv = await this.subscribePublic (url, messageHash, payload, channel, params);
+        const ohlcv: ArrayCacheByTimestamp = await this.subscribePublic (url, messageHash, payload, channel, params);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit (symbolValue, limit);
@@ -1298,7 +1298,7 @@ export default class gate extends gateRest {
         const payload = [ marketId ];
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
-        const trades = await this.subscribePrivate (url, messageHash, payload, channel, paramsSubType, requiresUid);
+        const trades: ArrayCacheBySymbolById = await this.subscribePrivate (url, messageHash, payload, channel, paramsSubType, requiresUid);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbol, limit);
@@ -1734,7 +1734,7 @@ export default class gate extends gateRest {
         const url = this.getUrlByMarketType (type, isInverse);
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
-        const orders = await this.subscribePrivate (url, messageHash, payload, channel, query, requiresUid);
+        const orders: ArrayCacheBySymbolById = await this.subscribePrivate (url, messageHash, payload, channel, query, requiresUid);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);

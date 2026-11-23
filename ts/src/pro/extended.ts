@@ -190,7 +190,7 @@ export default class extended extends extendedRest {
             symbolResolved = this.safeString (market, 'symbol', '');
             messageHash = 'orders:' + this.safeString (market, 'symbol', '');
         }
-        const orders = await this.watchPrivate (messageHash, {
+        const orders: ArrayCacheBySymbolById = await this.watchPrivate (messageHash, {
             'symbol': symbolResolved,
             'limit': limit,
         });
@@ -304,7 +304,7 @@ export default class extended extends extendedRest {
             symbolResolved = this.safeString (market, 'symbol', '');
             messageHash = 'myTrades:' + this.safeString (market, 'symbol', '');
         }
-        const trades = await this.watchPrivate (messageHash, {
+        const trades: ArrayCacheBySymbolById = await this.watchPrivate (messageHash, {
             'symbol': symbolResolved,
             'limit': limit,
         });
