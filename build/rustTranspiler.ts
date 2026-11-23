@@ -14341,6 +14341,16 @@ export class RustTranspilerBuilder {
         return slots;
     }
 
+    private _intVirtualSlots: Set<string> | null = null;
+    /** Trait slots typed `Option<i64>` (`None` = not overridden): the printed base probes them with `if let Some(__v) =`. */
+    intVirtualSlots(): Set<string> {
+        if (this._intVirtualSlots) return this._intVirtualSlots;
+        let src = '';
+        try { src = fs.readFileSync(BASE_METHODS_FILE, 'utf8'); } catch (_) { /* base not generated yet */ }
+        this._intVirtualSlots = new Set([ ...src.matchAll(/\n    fn ([a-z_][a-z0-9_]*)\(&self\) -> i64 \{\n        \/\/ virtual-dispatch \(static: DerivedExchange::\1\(self, \.\.\.\)\)\n        if let Some\(__v\) = crate::exchange::DerivedExchange::\1\(self, \)/g) ].map(m => m[1]));
+        return this._intVirtualSlots;
+    }
+
     /**
      * Trait method signatures — keyed by snake-case name, value is the
      * list of arg names (matching the trait declaration in exchange.rs).
@@ -14847,6 +14857,10 @@ ${arms.join('\n')}
                     traitIdx = args.length;
                     break;
                 }
+            }
+            if (['keptint', 'int'].includes((inh as any).isTyped) && slots.length === 0 && !inh.isMut && this.intVirtualSlots().has(name)) {
+                out.push(`    fn ${name}(&self) -> Option<i64> {`, `        // Forward to the inherent method on ${coreName}.`, `        Some(${coreName}::${name}(self))`, `    }`);
+                continue;
             }
             out.push(`    fn ${name}(&self, ${traitParams}) -> crate::Value {`);
             out.push(`        // Forward to the inherent method on ${coreName}.`);

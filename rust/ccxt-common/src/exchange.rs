@@ -276,7 +276,7 @@ pub trait DerivedExchange {
     /// `ExchangeBase::nonce` at deref step 0 and never looks at the REST
     /// parent's inherent one. Binance spot then signs its ws-api subscribe with
     /// a seconds timestamp and the venue answers -1130.
-    fn nonce(&self) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::nonce(p)) }
+    fn nonce(&self) -> Option<i64> { self.derived_parent().and_then(|p| DerivedExchange::nonce(p)) }
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> { self.derived_parent_mut().and_then(|p| DerivedExchange::sign(p, path, optional_args)) }
     fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: Value, body: &str, response: Value, request_headers: Value, request_body: Option<&str>) -> Value { self.derived_parent_mut().map_or(Value::Null, |p| DerivedExchange::handle_errors(p, code, reason, url, method, headers, body, response, request_headers, request_body)) }
 }
