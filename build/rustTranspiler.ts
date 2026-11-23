@@ -9210,7 +9210,7 @@ function typedNetworkCodeArgs (content: string): string {
 }
 // The WS handler dispatcher takes `&[&Value]`: call sites lend their locals and the arms copy only where a handler owns.
 function lendWsDispatchArgs(content: string): string {
-    const sig = 'pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {';
+    const sig = 'pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) {';
     const start = content.indexOf(sig);
     if (start < 0) return content;
     const end = content.indexOf('\n    }\n}', start);
@@ -14446,7 +14446,7 @@ ${fallthrough}
             // drains and awaits them right after `handle_message`, same as `this.spawn(...)`.
             if (fact.isAsync) {
                 seen.add(name);
-                arms.push(`            "${name}" => { crate::exchange_stubs::enqueue_spawn("${name}", args.to_vec()); crate::Value::Null },`);
+                arms.push(`            "${name}" => crate::exchange_stubs::enqueue_spawn("${name}", args.to_vec()),`);
                 continue;
             }
             if (sig.ret !== 'void' && sig.ret !== 'value' && !rustDispatch.isKeptReturn(sig.ret)) continue;
@@ -14454,9 +14454,8 @@ ${fallthrough}
             if (callArgs.some(a => a === undefined)) continue;
             seen.add(name);
             const call = `self.${name}(${callArgs.join(', ')})`;
-            arms.push(sig.ret === 'void'
-                ? `            "${name}" => { ${call}; crate::Value::Null },`
-                : `            "${name}" => ${rustDispatch.result(call, sig.ret)},`);
+            // every caller drops the result, so the dispatcher returns nothing
+            arms.push(`            "${name}" => { ${call}; },`);
         }
         // Emit the dispatcher if there are handler arms OR the (already
         // rewritten) content calls it — otherwise a `.call` rewrite with no
@@ -14467,11 +14466,11 @@ ${fallthrough}
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) -> crate::Value {
-        let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[crate::Value]) {
+        let __n = match __name.strict() { Some(s) => s, None => return };
         match __n {
 ${arms.join('\n')}
-            _ => crate::Value::Null,
+            _ => {}
         }
     }
 }`;
