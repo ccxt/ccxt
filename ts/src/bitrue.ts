@@ -2178,7 +2178,7 @@ export default class bitrue extends Exchange {
         //         }
         //     }
         //
-        return this.parseOrder (data, market);
+        return this.parseOrder (this.extend ({}, data), market);
     }
 
     /**
@@ -2273,7 +2273,7 @@ export default class bitrue extends Exchange {
         //         }
         //     }
         //
-        return this.parseOrder (data, market);
+        return this.parseOrder (this.extend ({}, data), market);
     }
 
     /**
@@ -2493,7 +2493,7 @@ export default class bitrue extends Exchange {
         //         }
         //     }
         //
-        return this.parseOrder (data, market);
+        return this.parseOrder (this.extend ({}, data), market);
     }
 
     /**
