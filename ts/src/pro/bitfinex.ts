@@ -287,7 +287,7 @@ export default class bitfinex extends bitfinexRest {
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
     override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
-        const trades = await this.subscribe ('trades', symbol, params);
+        const trades: ArrayCache = await this.subscribe ('trades', symbol, params);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbol, limit);

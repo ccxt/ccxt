@@ -24293,9 +24293,10 @@ function h28c01IsWrapper (method) {
             returns++;
             const e = stripParens (n.expression);
             const call = (e?.kind === ts.SyntaxKind.AwaitExpression) ? e.expression : undefined;
-            ok = call?.kind === ts.SyntaxKind.CallExpression && call.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+            ok = (call?.kind === ts.SyntaxKind.CallExpression && call.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
                 && call.expression.expression?.kind === ts.SyntaxKind.ThisKeyword
-                && (WS_RESOLVE_WATCH_CORES.includes (call.expression.name?.text) || h28c01WrapperOf (call) !== undefined);
+                && (WS_RESOLVE_WATCH_CORES.includes (call.expression.name?.text) || h28c01WrapperOf (call) !== undefined))
+                || (h28c01WatchLocal (method, e) !== undefined);
             return;
         }
         n.forEachChild (visit);
@@ -24323,6 +24324,53 @@ function h28c01IsWrapper (method) {
     source.forEachChild (callers);
     h28c01WrapperCache.set (method, proven);
     return proven;
+}
+
+// `const r = await this.watch (..); ...; return r;` in a wrapper: the declaration of r when it is a
+// top-level const of the body, unannotated, and read only by return statements; else undefined
+function h28c01WatchLocal (method, identifier) {
+    if (identifier?.kind !== ts.SyntaxKind.Identifier || method?.body === undefined) {
+        return undefined;
+    }
+    let found;
+    for (const st of method.body.statements) {
+        if (st.kind === ts.SyntaxKind.VariableStatement && (st.declarationList.flags & ts.NodeFlags.Const)) {
+            for (const d of st.declarationList.declarations) {
+                if (d.name?.kind === ts.SyntaxKind.Identifier && d.name.text === identifier.text) {
+                    found = d;
+                }
+            }
+        }
+    }
+    const e = stripParens (found?.initializer);
+    const call = (e?.kind === ts.SyntaxKind.AwaitExpression) ? e.expression : undefined;
+    if (found === undefined || found.type !== undefined || found.parent.declarations.length !== 1 || call?.kind !== ts.SyntaxKind.CallExpression
+            || call.expression?.kind !== ts.SyntaxKind.PropertyAccessExpression || call.expression.expression?.kind !== ts.SyntaxKind.ThisKeyword
+            || !WS_RESOLVE_WATCH_CORES.includes (call.expression.name?.text)) {
+        return undefined;
+    }
+    let ok = true;
+    let declarations = 0;
+    const visit = (n) => {
+        if (!ok) {
+            return;
+        }
+        if (n.kind === ts.SyntaxKind.Identifier && n.text === identifier.text) {
+            if (n === found.name) {
+                declarations++;
+            } else {
+                ok = n.parent?.kind === ts.SyntaxKind.ReturnStatement && n.parent.expression === n;
+            }
+            return;
+        }
+        if ((n.kind === ts.SyntaxKind.VariableDeclaration || n.kind === ts.SyntaxKind.Parameter) && n !== found && bindingNamesOf (n.name).includes (identifier.text)) {
+            ok = false;
+            return;
+        }
+        n.forEachChild (visit);
+    };
+    method.forEachChild (visit);
+    return (ok && declarations === 1) ? found : undefined;
 }
 
 // `const xs = await this.<wrapper> (...)` read once by filterBySinceLimit / filterBySymbolSinceLimit:
@@ -24510,6 +24558,12 @@ function h28c01SettledCache (csharp, source, watched) {
 
 // rewrites `object xs = await this.<wrapper><T>(` of a proven caller; undefined = not this family
 function h28c01WrapperCacheDeclaration (csharp, declaration, printed, identation) {
+    const owner = enclosingFunction (declaration);
+    if (owner?.kind === ts.SyntaxKind.MethodDeclaration && h28c01IsWrapper (owner) && h28c01WatchLocal (owner, declaration.name) === declaration) {
+        // the wrapper's watched value, returned as its Task<T>
+        const head = csharp.getIden (identation) + csharp.VAR_TOKEN + ' ';
+        return printed.startsWith (head) ? csharp.getIden (identation) + 'T ' + printed.slice (head.length) : undefined;
+    }
     const type = h28c01CallerCacheType (csharp, declaration);
     if (type === undefined) {
         return undefined;
@@ -24553,7 +24607,8 @@ function installH28c01GenericWatchWrappers (csharp) {
             const owner = ts.findAncestor (node.parent, isFunctionScope);
             const ret = node.parent?.parent;
             const inWrapper = owner?.kind === ts.SyntaxKind.MethodDeclaration && h28c01IsWrapper (owner)
-                && node.parent?.kind === ts.SyntaxKind.AwaitExpression && ret?.kind === ts.SyntaxKind.ReturnStatement;
+                && node.parent?.kind === ts.SyntaxKind.AwaitExpression && (ret?.kind === ts.SyntaxKind.ReturnStatement
+                    || (ret?.kind === ts.SyntaxKind.VariableDeclaration && h28c01WatchLocal (owner, ret.name) === ret));
             return inWrapper ? 'this.' + name + '<T>(' + printed.slice (head.length) : printed;
         }
         if (h28c01WrapperOf (node) === undefined) {

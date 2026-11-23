@@ -407,7 +407,7 @@ export default class bullish extends bullishRest {
         if (tradingAccountId !== undefined) {
             request['tradingAccountId'] = tradingAccountId;
         }
-        const orders = await this.watchPrivate (messageHash, subscribeHash, request, paramsOmitted);
+        const orders: ArrayCacheBySymbolById = await this.watchPrivate (messageHash, subscribeHash, request, paramsOmitted);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);
@@ -526,7 +526,7 @@ export default class bullish extends bullishRest {
         if (tradingAccountId !== undefined) {
             request['tradingAccountId'] = tradingAccountId;
         }
-        const trades = await this.watchPrivate (messageHash, subscribeHash, request, paramsOmitted);
+        const trades: ArrayCacheBySymbolById = await this.watchPrivate (messageHash, subscribeHash, request, paramsOmitted);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limit);
