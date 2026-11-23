@@ -1624,12 +1624,101 @@ function javaRepoMethodUsesIndex (): any {
     return javaRepoMethodIndex;
 }
 
+// Every Java declaration of a method name in java/lib and java/tests, as parameter type lists; a name with a
+// varargs, generic or multi-line declaration answers undefined (unknown), and so does a missing Java tree.
+let javaDeclarationIndex: Map<string, string[][] | undefined> | undefined;
+function javaDeclarationsIndex (): Map<string, string[][] | undefined> {
+    if (javaDeclarationIndex !== undefined) {
+        return javaDeclarationIndex;
+    }
+    // workers load the table the main process wrote once, instead of each scanning the Java tree
+    const saved = process.env.CCXT_JAVA_DECLARATIONS_FILE;
+    if (saved !== undefined && fs.existsSync (saved)) {
+        const rows: [string, string[][] | null][] = JSON.parse (fs.readFileSync (saved, 'utf8'));
+        javaDeclarationIndex = new Map (rows.map (([ name, list ]) => [ name, list ?? undefined ]));
+        return javaDeclarationIndex;
+    }
+    const index = new Map<string, string[][] | undefined> ();
+    const head = /^\s*(?:(?:public|protected|private|static|final|abstract|default|synchronized)\s+)+(<[^(]*>\s+)?[\w.<>, ?\[\]]+?\s+(\w+)\s*\(([^)]*)(\))?/;
+    const bare = /^\s*()(?!return\b|new\b|throw\b|else\b)[\w.<>, ?\[\]]+?\s+(\w+)\s*\(([^)]*)(\))\s*(?:throws\s[\w., ]+)?\s*[;{]\s*$/;
+    const visit = (dir: string) => {
+        if (!fs.existsSync (dir)) {
+            return;
+        }
+        for (const entry of fs.readdirSync (dir, { withFileTypes: true })) {
+            const full = path.join (dir, entry.name);
+            if (entry.isDirectory ()) {
+                visit (full);
+                continue;
+            }
+            if (!entry.name.endsWith ('.java')) {
+                continue;
+            }
+            for (const line of fs.readFileSync (full, 'utf8').split ('\n')) {
+                if (line.length > 400 || !line.includes ('(')) {
+                    continue;
+                }
+                // interface members may carry no modifier: a typed head ending the line counts too
+                const m = head.exec (line) ?? bare.exec (line);
+                if (m === null || /\s=\s/.test (line.slice (0, m.index + m[0].indexOf ('(')))) {
+                    continue;
+                }
+                const name = m[2];
+                if (index.has (name) && index.get (name) === undefined) {
+                    continue;
+                }
+                if (m[1] !== undefined || m[4] === undefined || m[3].includes ('...')) {
+                    index.set (name, undefined);
+                    continue;
+                }
+                const params: string[] = [];
+                let depth = 0;
+                let cur = '';
+                for (const c of m[3]) {
+                    depth += c === '<' ? 1 : (c === '>' ? -1 : 0);
+                    if (c === ',' && depth === 0) {
+                        params.push (cur);
+                        cur = '';
+                    } else {
+                        cur += c;
+                    }
+                }
+                if (cur.trim () !== '') {
+                    params.push (cur);
+                }
+                const types = params.map ((p) => p.trim ().replace (/^final\s+/, '').replace (/\s+\w+$/, '').replace (/\s+/g, '').replace (/\bjava\.(?:util|lang)\./g, ''));
+                const list = index.get (name) ?? [];
+                if (!list.some ((t) => t.join (',') === types.join (','))) {
+                    list.push (types);
+                }
+                index.set (name, list);
+            }
+        }
+    };
+    visit (path.resolve (__dirname, '..', 'java', 'lib', 'src', 'main', 'java'));
+    visit (path.resolve (__dirname, '..', 'java', 'tests', 'src'));
+    javaDeclarationIndex = index;
+    return index;
+}
+
+// main process only: scan the Java tree once, before any worker starts or any Java file is rewritten
+function javaWriteDeclarationsFile (): void {
+    if (process.env.CCXT_JAVA_DECLARATIONS_FILE !== undefined) {
+        return;
+    }
+    const file = path.resolve (__dirname, '..', '.cache', 'java-declarations.' + process.pid + '.json');
+    fs.mkdirSync (path.dirname (file), { recursive: true });
+    fs.writeFileSync (file, JSON.stringify ([ ...javaDeclarationsIndex () ].map (([ name, list ]) => [ name, list ?? null ])));
+    process.env.CCXT_JAVA_DECLARATIONS_FILE = file;
+}
+
 export function installJavaRepoMethodUses (transpiler: any): void {
     const printer = transpiler?.javaTranspiler;
     if (!printer || printer._javaRepoMethodUsesInstalled) {
         return;
     }
     printer._javaRepoMethodUsesInstalled = true;
+    printer.javaDeclarationsOf = (name: string) => javaDeclarationsIndex ().get (name);
     printer.javaRepoMethodUses = (name: string, ownFile: string) => {
         const index = javaRepoMethodUsesIndex ();
         if (index.handWritten === undefined) {
@@ -1825,6 +1914,7 @@ class NewTranspiler {
     }
 
     constructor() {
+        javaWriteDeclarationsFile ();
         this.setupTranspiler()
     }
 
