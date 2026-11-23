@@ -9824,7 +9824,11 @@ export function csharpWsAndIndexGetValue (content: string): string {
             // ContainsKey-then-indexer read could race a concurrent TryRemove, so it keeps the helper
             if ((wsMap[2] !== 'subscriptions') || (csharpInOpReceiverType (region, r, i) === undefined)) return undefined;
             const kt = /^"[ ]*"$/.test (keyMask) ? 'literal' : bindingType (keyMask);
-            return ((kt !== undefined) && [ 'literal', 'string', 'string?', 'object' ].includes (kt)) ? dictionaryGetValue (r, k, kt) : undefined;
+            if ((kt !== undefined) && [ 'literal', 'string', 'string?', 'object' ].includes (kt)) return dictionaryGetValue (r, k, kt);
+            // `keys[i]`: an element of a declared list indexed by an int name, read as an `object` key
+            const wel = /^([A-Za-z_]\w*)\[([A-Za-z_]\w*)\]$/.exec (keyMask);
+            const listed = (wel !== null) && listTypes.includes ((bindingType (wel[1]) ?? '').replace (/\s+/g, '')) && (bindingType (wel[2]) === 'int');
+            return listed ? dictionaryGetValue (r, k, 'object') : undefined;
         }
         const rt = bindingType (r);
         if (rt === undefined) return undefined;
@@ -9867,6 +9871,7 @@ function wsAndIndexGetValueSelfTest (): string[] {
     const cases: [string, string, string][] = [
         [ 'subscriptions literal', '        object a = getValue(client.subscriptions, "token");', '(client.subscriptions != null && client.subscriptions.ContainsKey("token") ? client.subscriptions["token"] : null)' ],
         [ 'subscriptions string key', '        object a = getValue(client.subscriptions, s);', '(client.subscriptions != null && s != null && client.subscriptions.ContainsKey(s) ? client.subscriptions[s] : null)' ],
+        [ 'subscriptions keys element key', '        List<object> ks = new List<object>(d.Keys);\n        for (int i = 0; i < ks.Count; i++)\n        {\n            object a = getValue(client.subscriptions, ks[i]);\n        }', '(client.subscriptions != null && ks[i] != null && client.subscriptions.ContainsKey((string)ks[i]) ? client.subscriptions[(string)ks[i]] : null)' ],
         [ 'subscriptions object key', '        object a = getValue(client.subscriptions, mh);', '(client.subscriptions != null && mh != null && client.subscriptions.ContainsKey((string)mh) ? client.subscriptions[(string)mh] : null)' ],
         [ 'Int64? index', '        Int64? r = this.parseToInt("1");\n        object a = getValue(xs, r);', '(xs != null && r != null && r < xs.Count ? xs[(int)r] : null)' ],
         [ 'mixed int/Int64 expression', '        int n = (xs?.Count ?? 0);\n        for (Int64 i = 0; i < n; i++)\n        {\n            object a = getValue(xs, ((n - i) - 1));\n        }', '(xs != null && ((n - i) - 1) < xs.Count ? xs[(int)((n - i) - 1)] : null)' ],
