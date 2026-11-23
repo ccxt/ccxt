@@ -144,7 +144,7 @@ export default class nado extends nadoRest {
             markets.push (market);
             messageHashes.push ('trade:' + market['symbol']);
         }
-        const trades = await this.watchPublicMultiple ('trade', markets, messageHashes, params);
+        const trades: ArrayCache = await this.watchPublicMultiple ('trade', markets, messageHashes, params);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved: Int = limit;

@@ -3849,7 +3849,8 @@ class NewTranspiler {
     // VENUE_NUMERIC_ARG_NAMES filter and counts a ref/out argument as a write
     typeVenueArgs (content: string, table: Record<string, any>, rows: (positions: any) => [ number, string ][], numeric: boolean): string {
         const names = Object.keys (table);
-        if (!names.some (name => content.includes (' ' + name + '('))) {
+        // a generic watch wrapper prints `name<T>(`
+        if (!names.some (name => content.includes (' ' + name + '(') || content.includes (' ' + name + '<T>('))) {
             return content;
         }
         const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)(<T>)?\((.*)\)\s*$/;

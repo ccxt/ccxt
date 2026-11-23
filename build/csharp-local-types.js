@@ -24207,7 +24207,8 @@ function h28c01IsWrapper (method) {
             const e = stripParens (n.expression);
             const call = (e?.kind === ts.SyntaxKind.AwaitExpression) ? e.expression : undefined;
             ok = call?.kind === ts.SyntaxKind.CallExpression && call.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
-                && call.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && WS_RESOLVE_WATCH_CORES.includes (call.expression.name?.text);
+                && call.expression.expression?.kind === ts.SyntaxKind.ThisKeyword
+                && (WS_RESOLVE_WATCH_CORES.includes (call.expression.name?.text) || h28c01WrapperOf (call) !== undefined);
             return;
         }
         n.forEachChild (visit);
@@ -24470,6 +24471,12 @@ function installH28c01GenericWatchWrappers (csharp) {
         }
         if (h28c01WrapperOf (node) === undefined) {
             return printed;
+        }
+        // a wrapper returning another generic wrapper hands its own T on
+        const owner = ts.findAncestor (node.parent, isFunctionScope);
+        if (owner?.kind === ts.SyntaxKind.MethodDeclaration && owner !== h28c01WrapperOf (node) && h28c01IsWrapper (owner)
+                && node.parent?.kind === ts.SyntaxKind.AwaitExpression && node.parent.parent?.kind === ts.SyntaxKind.ReturnStatement) {
+            return 'this.' + name + '<T>(' + printed.slice (head.length);
         }
         const declaration = (node.parent?.kind === ts.SyntaxKind.AwaitExpression && node.parent.parent?.kind === ts.SyntaxKind.VariableDeclaration
             && node.parent.parent.initializer === node.parent) ? node.parent.parent : undefined;
