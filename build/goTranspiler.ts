@@ -22400,7 +22400,7 @@ function h27g26StructRowReadsSelfTest (): string[] {
 // as goChan3StructRowNilReads (map form, also the `StructBox` seed) for a key declared `var k *string`: a nil
 // key read as absent in SafeMapTyped, so the typed read runs only under `k != nil` and the miss stays `!rowOk`
 function h28a23StructRowPtrKeyReads (content: string): string {
-    const box = /^(\t+)(?:var (\w+) map\[string\]any = ((?:ccxt\.)?)StructResultMap\((r\d*)\.Value, \3(\w+)MapToMap\)\n|var (\w+) any = nil\n\1if !((?:ccxt\.)?)StructAbsent\((r\d*)\.Value\) \{\n\1\t\6 = \7StructBox\(\8\.Value, \7(\w+)MapToMap\)\n\1\}\n)\1var (\w+) map\[string\]any = (?:ccxt\.)?SafeMapTyped\((\w+), (\w+)\)\n\1if \10 == nil \{\n/gm;
+    const box = /^(\t+)(?:var (\w+) map\[string\]any = ((?:ccxt\.)?)StructResultMap\((r\d*)\.Value, \3(\w+)MapToMap\)\n|var (\w+) any = nil\n\1if !((?:ccxt\.)?)StructAbsent\((r\d*)\.Value\) \{\n\1\t\6 = \7StructBox\(\8\.Value, \7(\w+)MapToMap\)\n\1\}\n)\1var (\w+) map\[string\]any = (?:ccxt\.)?SafeMapTyped\((\w+), (\w+(?:\.Symbol)?)\)\n(\1if \10 == nil \{\n)?/gm;
     const edits: Edit[] = [];
     for (let m = box.exec (content); m !== null; m = box.exec (content)) {
         const ind = m[1];
@@ -22414,19 +22414,29 @@ function h28a23StructRowPtrKeyReads (content: string): string {
         }
         const [ fs0, fe0 ] = goChan3Func (content, m.index);
         const fn = content.substring (fs0, fe0).replace (/"(?:[^"\\\n]|\\.)*"/g, '""').replace (/^(\t*)\/\/.*$/gm, '$1');   // names in strings and comments are not reads
-        if (!new RegExp ('\\n\\t+var ' + key + ' \\*string = ').test (fn)) {
-            continue;   // the key must be a declared *string local
+        // the key is a declared *string local, or statically a string: a `string` parameter or local, or a MarketInterface's Symbol
+        const nilTest = (m[13] !== undefined);
+        const ptrKey = new RegExp ('\\n\\t+var ' + key + ' \\*string = ').test (fn);
+        const [ kVar, kField ] = key.split ('.');
+        const decls = (fn.match (new RegExp ('(?:\\bvar |[(, ])' + kVar + ' [\\w*\\[]', 'g')) ?? []).length;
+        const strKey = (decls === 1) && ((kField !== undefined) ? new RegExp ('\\n\\t+var ' + kVar + ' (?:ccxt\\.)?MarketInterface = ').test (fn)
+            : new RegExp ('^func [^\\n]*[(, ]' + kVar + ' string[,)]|\\n\\t+var ' + kVar + ' string = ').test (fn));
+        if (ptrKey ? !nilTest : !strKey) {
+            continue;
         }
         const uses = (id: string) => (fn.match (new RegExp ('(?<![\\w.])' + id + '\\b', 'g')) ?? []).length;
         const from = q + elem + 'FromMap(' + row + ')';
         const froms = fn.split (from).length - 1;
         const boxUses = (m[2] !== undefined) ? 2 : 3;
-        if ((uses (name) !== boxUses) || (froms === 0) || (uses (row) !== 2 + froms) || (uses (row + 'Ok') !== 0)) {
+        if ((uses (name) !== boxUses) || (froms === 0) || (uses (row) !== (nilTest ? 2 : 1) + froms) || (uses (row + 'Ok') !== 0)) {
             continue;   // the box or the row is read elsewhere: keep the round trip
         }
         const T = q + elem;
-        const read = ind + 'var ' + name + ' map[string]' + T + ' = ' + rv + '.Value\n' + ind + 'var ' + row + ' ' + T + '\n' + ind + 'var ' + row + 'Ok bool\n'
-            + ind + 'if ' + key + ' != nil {\n' + ind + '\t' + row + ', ' + row + 'Ok = ' + name + '[*' + key + ']\n' + ind + '}\n' + ind + 'if !' + row + 'Ok {\n';
+        const head = ind + 'var ' + name + ' map[string]' + T + ' = ' + rv + '.Value\n';
+        const read = ptrKey ? (head + ind + 'var ' + row + ' ' + T + '\n' + ind + 'var ' + row + 'Ok bool\n'
+            + ind + 'if ' + key + ' != nil {\n' + ind + '\t' + row + ', ' + row + 'Ok = ' + name + '[*' + key + ']\n' + ind + '}\n' + ind + 'if !' + row + 'Ok {\n')
+            : nilTest ? (head + ind + row + ', ' + row + 'Ok := ' + name + '[' + key + ']\n' + ind + 'if !' + row + 'Ok {\n')
+                : (head + ind + 'var ' + row + ' ' + T + ' = ' + name + '[' + key + ']\n');
         edits.push ({ 'start': m.index, 'end': m.index + m[0].length, 'text': read });
         for (let at = content.indexOf (from, m.index + m[0].length); (at >= 0) && (at < fe0); at = content.indexOf (from, at + from.length)) {
             edits.push ({ 'start': at, 'end': at + from.length, 'text': row });
@@ -22453,6 +22463,19 @@ function h28a23StructRowPtrKeyReadsSelfTest (): string[] {
     ok (h28a23StructRowPtrKeyReads (boxUsed) === boxUsed, 'a box read elsewhere keeps the wrap');
     const mapElem = srm.replace (/Ticker/g, 'map[string]any');
     ok (h28a23StructRowPtrKeyReads (mapElem) === mapElem, 'a map-element map keeps the wrap');
+    const strFn = (b: string) => 'func (this *X) f(ch chan AsyncResult[Ticker], symbol string) {\n\tr1 := <-this.FAsync()\n\tvar ts any = nil\n\tif !StructAbsent(r1.Value) {\n\t\tts = StructBox(r1.Value, TickerMapToMap)\n\t}\n' + b + '}\n';
+    const strTail = '\tvar t map[string]any = SafeMapTyped(ts, symbol)\n\tch <- AsyncResult[Ticker]{Value: TickerFromMap(t)}\n';
+    ok (h28a23StructRowPtrKeyReads (strFn (strTail)).includes ('\tvar ts map[string]Ticker = r1.Value\n\tvar t Ticker = ts[symbol]\n\tch <- AsyncResult[Ticker]{Value: t}\n'), 'string key: ' + h28a23StructRowPtrKeyReads (strFn (strTail)));
+    const strNil = strTail.replace ('\tch <-', '\tif t == nil {\n\t\tpanic(\"no\")\n\t}\n\tch <-');
+    ok (h28a23StructRowPtrKeyReads (strFn (strNil)).includes ('\tt, tOk := ts[symbol]\n\tif !tOk {\n'), 'string key, nil-tested: ' + h28a23StructRowPtrKeyReads (strFn (strNil)));
+    const mkt = strFn (strTail.replace ('ts, symbol', 'ts, market.Symbol')).replace ('\tr1 :=', '\tvar market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))\n\tr1 :=');
+    ok (h28a23StructRowPtrKeyReads (mkt).includes ('\tvar t Ticker = ts[market.Symbol]\n'), 'market symbol key: ' + h28a23StructRowPtrKeyReads (mkt));
+    const anyStr = strFn (strTail).replace ('symbol string', 'symbol any');
+    ok (h28a23StructRowPtrKeyReads (anyStr) === anyStr, 'an any key keeps the wrap');
+    const mapMkt = mkt.replace ('var market MarketInterface = MarketInterfaceFromMap(this.Market(symbol))', 'var market map[string]any = this.Market(symbol)');
+    ok (h28a23StructRowPtrKeyReads (mapMkt) === mapMkt, 'a map market keeps the wrap');
+    const rowUsed = strFn (strTail + '\tthis.Use(t)\n');
+    ok (h28a23StructRowPtrKeyReads (rowUsed) === rowUsed, 'a string-key row read elsewhere keeps the wrap');
     return problems;
 }
 // ===== end h28-H28-A23
