@@ -684,7 +684,7 @@ export default class lbank extends lbankRest {
             message['pair'] = market['id'];
         }
         const request = this.deepExtend (message, params);
-        const orders = await this.watch (url, messageHash, request, messageHash, request);
+        const orders: ArrayCacheBySymbolById = await this.watch (url, messageHash, request, messageHash, request);
         return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limit, true);
     }
 

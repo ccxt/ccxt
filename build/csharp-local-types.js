@@ -2219,7 +2219,15 @@ function wsCacheAnnotatedWatchType (declaration) {
         return undefined;
     }
     const annotated = String (type.typeName.text);
-    return CSHARP_WS_WATCH_CACHE_ANNOTATIONS.includes (annotated) ? ('ccxt.pro.' + annotated) : undefined;
+    return csharpWsCacheAnnotation (annotated);
+}
+
+// ArrayCache subclasses print as their base: every member the consumers read is on ArrayCache, and
+// the cast then holds for any ArrayCache-family box the handlers store
+const CSHARP_WS_WATCH_CACHE_SUBCLASSES = [ 'ArrayCacheBySymbolById', 'ArrayCacheBySymbolBySide', 'ArrayCacheByOutcomeById' ];
+function csharpWsCacheAnnotation (annotated) {
+    const base = CSHARP_WS_WATCH_CACHE_SUBCLASSES.includes (annotated) ? 'ArrayCache' : annotated;
+    return CSHARP_WS_WATCH_CACHE_ANNOTATIONS.includes (base) ? ('ccxt.pro.' + base) : undefined;
 }
 
 // `const trades = await this.watchPrivate (...)` read through `trades.getLimit`: every settle in the
@@ -24106,7 +24114,7 @@ function h28c01IsWrapper (method) {
             const e = stripParens (n.expression);
             const call = (e?.kind === ts.SyntaxKind.AwaitExpression) ? e.expression : undefined;
             ok = call?.kind === ts.SyntaxKind.CallExpression && call.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
-                && call.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && call.expression.name?.text === 'watch';
+                && call.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && WS_RESOLVE_WATCH_CORES.includes (call.expression.name?.text);
             return;
         }
         n.forEachChild (visit);
@@ -24167,8 +24175,7 @@ function h28c01AnnotatedCache (declaration) {
     if (type?.kind !== ts.SyntaxKind.TypeReference || type.typeName?.kind !== ts.SyntaxKind.Identifier || type.typeArguments !== undefined) {
         return undefined;
     }
-    const name = String (type.typeName.text);
-    return CSHARP_WS_WATCH_CACHE_ANNOTATIONS.includes (name) ? name : undefined;
+    return csharpWsCacheAnnotation (String (type.typeName.text))?.slice ('ccxt.pro.'.length);
 }
 
 // a venue method name other venue classes also declare: C# binds every `this.<name>` call to the
@@ -24269,13 +24276,13 @@ function installH28c01GenericWatchWrappers (csharp) {
         if (!printed.startsWith (head)) {
             return printed;
         }
-        if (name === 'watch') {
+        if (WS_RESOLVE_WATCH_CORES.includes (name)) {
             // the core watch a generic wrapper returns
             const owner = ts.findAncestor (node.parent, isFunctionScope);
             const ret = node.parent?.parent;
             const inWrapper = owner?.kind === ts.SyntaxKind.MethodDeclaration && h28c01IsWrapper (owner)
                 && node.parent?.kind === ts.SyntaxKind.AwaitExpression && ret?.kind === ts.SyntaxKind.ReturnStatement;
-            return inWrapper ? 'this.watch<T>(' + printed.slice (head.length) : printed;
+            return inWrapper ? 'this.' + name + '<T>(' + printed.slice (head.length) : printed;
         }
         if (h28c01WrapperOf (node) === undefined) {
             return printed;

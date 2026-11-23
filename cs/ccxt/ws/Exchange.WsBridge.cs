@@ -316,6 +316,12 @@ public partial class BaseExchange
         return (T)(await this.watch(url2, messageHash2, message, subscribeHash2, subscription));
     }
 
+    // the generator proves T from the TypeScript cache annotation of the caller
+    public async Task<T> watchMultiple<T>(object url2, object messageHashes2, object message = null, object subscribeHashes2 = null, object subscription = null)
+    {
+        return (T)(await this.watchMultiple(url2, messageHashes2, message, subscribeHashes2, subscription));
+    }
+
     public async Task<object> watchMultiple(object url2, object messageHashes2, object message = null, object subscribeHashes2 = null, object subscription = null)
     {
         var url = url2.ToString();
