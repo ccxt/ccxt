@@ -7872,9 +7872,10 @@ export class BaseExchange {
         }
         const market = this.market (symbol);
         const marketSymbol = this.safeString (market, 'symbol', '');
-        const result = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
+        const precision: Dict = this.safeDict (market, 'precision', {});
+        const result = this.decimalToPrecision (price, ROUND, precision['price'], this.precisionMode, this.paddingMode);
         if (result === '0') {
-            const pricePrecision = this.numberToString (market['precision']['price']);
+            const pricePrecision = this.numberToString (precision['price']);
             if (pricePrecision === undefined) {
                 throw new BadSymbol (this.id + ' priceToPrecision() market ' + marketSymbol + ' has no price precision');
             }
@@ -7889,9 +7890,10 @@ export class BaseExchange {
         }
         const market = this.market (symbol);
         const marketSymbol = this.safeString (market, 'symbol', '');
-        const result = this.decimalToPrecision (amount, TRUNCATE, market['precision']['amount'], this.precisionMode, this.paddingMode);
+        const precision: Dict = this.safeDict (market, 'precision', {});
+        const result = this.decimalToPrecision (amount, TRUNCATE, precision['amount'], this.precisionMode, this.paddingMode);
         if (result === '0') {
-            const amountPrecision = this.numberToString (market['precision']['amount']);
+            const amountPrecision = this.numberToString (precision['amount']);
             if (amountPrecision === undefined) {
                 throw new BadSymbol (this.id + ' amountToPrecision() market ' + marketSymbol + ' has no amount precision');
             }
@@ -7905,7 +7907,8 @@ export class BaseExchange {
             return undefined;
         }
         const market = this.market (symbol);
-        return this.decimalToPrecision (fee, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
+        const precision: Dict = this.safeDict (market, 'precision', {});
+        return this.decimalToPrecision (fee, ROUND, precision['price'], this.precisionMode, this.paddingMode);
     }
 
     currencyToPrecision (code: Str, fee: any, networkCode: Str = undefined): Str {
