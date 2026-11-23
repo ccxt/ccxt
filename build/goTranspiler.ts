@@ -11001,6 +11001,7 @@ export function formatGoSource (filePath: string, content: string): string {
     content = goChan3Pass (content);  // GO-CHAN3: AsyncResult[any] -> AsyncResult[T], after go-err
     content = h27g26StructRowReads (content);  // struct list rows read by SafeDictMap / inline FromMap / len
     content = h28a23StructRowPtrKeyReads (content);  // struct map rows keyed by a *string local
+    content = h42g14StructBoxStringKeyReads (content);  // struct map boxes read once by a string key
     content = h29a22StructBoxInfoReads (content);  // `info` of a boxed struct read from the typed field
     content = goAsyncTupleSlotReads (content, filePath);  // again: async []any producers are received as rN.Value only after GOCHAN3
     content = goAsyncMapPairHolders (content);
@@ -16215,6 +16216,7 @@ async function runMain () {
             [ 'go base native passes self: ', goBaseNativePassesSelfTest, true ], [ 'go unbox defaulted safe integer: ', goUnboxDefaultedSafeIntegerSelfTest, true ], [ 'go defaulted limit int64 self test: ', goDefaultedLimitInt64SelfTest, true ], goTupleTruthySelfTest,
             [ 'h27-g26 struct row reads: ', h27g26StructRowReadsSelfTest ],
             [ 'h28-a23 struct row *string key: ', h28a23StructRowPtrKeyReadsSelfTest ],
+            [ 'h42-g14 struct box string key: ', h42g14StructBoxStringKeyReadsSelfTest ],
             [ 'h29-a22 struct box info reads: ', h29a22StructBoxInfoReadsSelfTest ],
             [ 'h29-g16 append task list slots: ', goChan3H29G16SelfTest ],
             [ 'go row string leaf self: ', goRowStringLeafSelfTest, true ], [ 'go block scoped decl check: ', goBlockScopedDeclCheck, true ], goPointerNonNilArithSelfTest, goFloatComparisonsSelfTest,
@@ -22484,6 +22486,79 @@ function h28a23StructRowPtrKeyReadsSelfTest (): string[] {
     return problems;
 }
 // ===== end h28-H28-A23
+// ===== h42-G14
+// a struct map box read once by a statically `string` key: bind the typed result and index it
+// (map[string]T by the key; LeverageTiers by its Tiers field). A missing key gives the zero row, as XFromMap(nil) did.
+function h42g14StructBoxStringKeyReads (content: string): string {
+    const box = /^(\t+)(?:var (\w+) map\[string\]any = ((?:ccxt\.)?)StructResultMap\((r\d*)\.Value, \3(\w+)ToMap\)\n|var (\w+) any = nil\n\1if !((?:ccxt\.)?)StructAbsent\((r\d*)\.Value\) \{\n\1\t\6 = \7StructBox\(\8\.Value, \7(\w+)ToMap\)\n\1\}\n)/gm;
+    const edits: Edit[] = [];
+    for (let m = box.exec (content); m !== null; m = box.exec (content)) {
+        const [ ind, name, q, rv, elem ] = [ m[1], m[2] ?? m[6], m[3] ?? m[7], m[4] ?? m[8], m[5] ?? m[9] ];
+        const [ fs0, fe0 ] = goChan3Func (content, m.index);
+        const fn = content.substring (fs0, fe0).replace (/"(?:[^"\\\n]|\\.)*"/g, '""').replace (/^(\t*)\/\/.*$/gm, '$1');
+        const uses = (id: string) => (fn.match (new RegExp ('(?<![\\w.])' + id + '\\b', 'g')) ?? []).length;
+        if (uses (name) !== ((m[2] !== undefined) ? 2 : 3)) {
+            continue;   // the box is read more than once: keep it
+        }
+        const tail = content.substring (m.index + m[0].length, fe0);
+        const isStrKey = (k: string) => ((fn.match (new RegExp ('(?:\\bvar |[(, ])' + k + ' [\\w*\\[]', 'g')) ?? []).length === 1)
+            && new RegExp ('^func [^\\n]*[(, ]' + k + ' string[,)]|\\n\\t+var ' + k + ' string = ').test (fn);
+        const map = /^(\w+)Map$/.exec (elem);
+        let read: RegExpExecArray | null = null;
+        let T = '';
+        let text = '';
+        if (map !== null) {
+            T = q + map[1];
+            read = new RegExp (T.replace ('.', '\\.') + 'FromMap\\(this\\.SafeDictMap\\(' + name + ', (\\w+)\\)\\)').exec (tail);
+            text = (read !== null) ? (name + '[' + read[1] + ']') : '';
+        } else if (elem === 'LeverageTiers') {
+            T = q + elem;
+            read = new RegExp ('^\\t+var (\\w+) \\[\\]any = (?:ccxt\\.)?SafeListTyped\\(' + name + ', (\\w+)\\)$', 'm').exec (tail);
+            if ((read !== null) && (uses (read[1]) === (fn.split (q + 'LeverageTiersFromList(' + read[1] + ')').length))) {
+                [ read[1], read[2] ] = [ read[2], read[1] ];
+            } else {
+                read = null;
+            }
+        }
+        if ((read === null) || !isStrKey (read[1])) {
+            continue;
+        }
+        const at = m.index + m[0].length + read.index;
+        const head = ind + 'var ' + name + ' ' + ((map !== null) ? ('map[string]' + T) : T) + ' = ' + rv + '.Value\n';
+        edits.push ({ 'start': m.index, 'end': m.index + m[0].length, 'text': head });
+        if (map !== null) {
+            edits.push ({ 'start': at, 'end': at + read[0].length, 'text': text });
+            continue;
+        }
+        const row = read[2];
+        const lineInd = /^\t+/.exec (read[0])[0];
+        edits.push ({ 'start': at, 'end': at + read[0].length, 'text': lineInd + 'var ' + row + ' []' + q + 'LeverageTier = ' + name + '.Tiers[' + read[1] + ']' });
+        const from = q + 'LeverageTiersFromList(' + row + ')';
+        for (let f = content.indexOf (from, at); (f >= 0) && (f < fe0); f = content.indexOf (from, f + from.length)) {
+            edits.push ({ 'start': f, 'end': f + from.length, 'text': row });
+        }
+    }
+    return edits.length ? goChan3Splice (content, edits) : content;
+}
+
+function h42g14StructBoxStringKeyReadsSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (c: boolean, msg: string) => { if (!c) { problems.push (msg); } };
+    const fee = 'func (this *X) f(ch chan AsyncResult[DepositWithdrawFee], code string) any {\n\tr := <-this.FAsync()\n\tvar fees any = nil\n\tif !StructAbsent(r.Value) {\n\t\tfees = StructBox(r.Value, DepositWithdrawFeeMapToMap)\n\t}\n\n\tch <- AsyncResult[DepositWithdrawFee]{Value: DepositWithdrawFeeFromMap(this.SafeDictMap(fees, code))}\n\treturn nil\n}\n';
+    ok (h42g14StructBoxStringKeyReads (fee).includes ('\tvar fees map[string]DepositWithdrawFee = r.Value\n\n\tch <- AsyncResult[DepositWithdrawFee]{Value: fees[code]}\n'), 'string key: ' + h42g14StructBoxStringKeyReads (fee));
+    const anyKey = fee.replace ('code string', 'code any');
+    ok (h42g14StructBoxStringKeyReads (anyKey) === anyKey, 'an any key keeps the wrap');
+    const ptrKey = fee.replace ('code string', 'code *string');
+    ok (h42g14StructBoxStringKeyReads (ptrKey) === ptrKey, 'a *string key (nil possible) keeps the wrap');
+    const twice = fee.replace ('\treturn nil', '\tthis.Use(ObjectKeys(fees))\n\treturn nil');
+    ok (h42g14StructBoxStringKeyReads (twice) === twice, 'a box read twice keeps the wrap');
+    const tiers = 'func (this *X) f(ch chan AsyncResult[[]LeverageTier], symbol string) any {\n\tr1 := <-this.FAsync()\n\tvar result map[string]any = StructResultMap(r1.Value, LeverageTiersToMap)\n\tvar tiers []any = SafeListTyped(result, symbol)\n\n\tch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(tiers)}\n\treturn nil\n}\n';
+    ok (h42g14StructBoxStringKeyReads (tiers).includes ('\tvar result LeverageTiers = r1.Value\n\tvar tiers []LeverageTier = result.Tiers[symbol]\n\n\tch <- AsyncResult[[]LeverageTier]{Value: tiers}\n'), 'leverage tiers: ' + h42g14StructBoxStringKeyReads (tiers));
+    const tiersUsed = tiers.replace ('\treturn nil', '\tthis.Use(tiers)\n\treturn nil');
+    ok (h42g14StructBoxStringKeyReads (tiersUsed) === tiersUsed, 'a tiers list read elsewhere keeps the wrap');
+    return problems;
+}
+// ===== end h42-G14
 // ===== h29-H29-A22
 function h29a22StructBoxInfoReads (content: string): string {
     const box = /^(\t+)(?:var )?(\w+) (?:map\[string\]any )?= ((?:ccxt\.)?)Struct(?:Box|ResultMap)\((r\d*)\.Value, \3(\w+)ToMap\)\n/gm;
