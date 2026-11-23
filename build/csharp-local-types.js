@@ -17140,6 +17140,7 @@ export const SIGNATURE_ARG_TYPES = {
     'parseTradingFee': { 0: 'IDictionary<string, object>' },
     'parseSettlement': { 0: 'IDictionary<string, object>' },
     'parseDepositAddress': { 0: 'IDictionary<string, object>' },
+    'parseTransfer': { 0: 'IDictionary<string, object>' },
     'parseLeverage': { 0: 'IDictionary<string, object>' },
     // TS declares the row `Dict` on every declaration; no body writes it or reads it as a list
     'parseIncome': { 0: 'IDictionary<string, object>' },
