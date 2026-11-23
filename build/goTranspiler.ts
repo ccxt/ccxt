@@ -1347,9 +1347,40 @@ function goChan3Table (): Map<string, string> {
             }
             table.set (method, type);
         }
+        for (const [ method, type ] of goChan3DeclaredVenueTypes ()) {
+            if (!table.has (method) && !carriers.has (method)) {
+                table.set (method, type);
+            }
+        }
         GO_CHAN3_TABLE = table;
     }
     return GO_CHAN3_TABLE;
+}
+
+// `Receiver.Method` -> T of venue-private async methods (no `override`, not in the base) from their ts/src
+// `Promise<Dict | Dict[] | List | string>` declaration, when every return is a literal of that kind
+function goChan3DeclaredVenueTypes (): Map<string, string> {
+    const out = new Map<string, string> ();
+    const src = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'ts', 'src');
+    const kinds: Record<string, [ string, RegExp ]> = { 'Dict': [ 'map[string]any', /^\{/ ], 'List': [ '[]any', /^\[/ ], 'string': [ 'string', /^'[^']*'$/ ] };
+    const decl = /^ {4}async (\w+) \([^\n]*\): Promise<(Dict|List|string)> \{\n([\s\S]*?)^ {4}\}\n/gm;
+    const read = (p: string) => (fs.existsSync (p) ? fs.readFileSync (p, 'utf8') : '');
+    const base = read (path.join (src, 'base', 'Exchange.ts')) + read (path.join (src, 'base', 'PredictionExchange.ts'));
+    for (const dir of [ '', 'pro', 'prediction', path.join ('prediction', 'pro') ]) {
+        const folder = path.join (src, dir);
+        for (const f of (fs.existsSync (folder) ? fs.readdirSync (folder) : []).filter ((n) => n.endsWith ('.ts'))) {
+            const text = read (path.join (folder, f));
+            for (let m = decl.exec (text); m !== null; m = decl.exec (text)) {
+                const [ , name, kind, body ] = m;
+                const rets = [ ...body.matchAll (/\breturn\b\s*([^;]*);/g) ].map ((r) => r[1].trim ());
+                if (!rets.length || !rets.every ((r) => kinds[kind][1].test (r)) || new RegExp ('\\n {4}(?:async )?' + name + ' \\(').test (base)) {
+                    continue;
+                }
+                out.set (capitalize (f.replace ('.ts', '')) + '.' + capitalize (name), kinds[kind][0]);
+            }
+        }
+    }
+    return out;
 }
 
 function goChan3SetTableForTest (table: Map<string, string> | undefined, resolved?: Set<string>) {
