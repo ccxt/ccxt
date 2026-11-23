@@ -4740,7 +4740,7 @@ function rustTypedSafeOrder (content: string): string {
 
 // `parseOrder` builds every order through `safeOrder` (a `Dict`): a venue override returns `Some(..)` through the
 // `DerivedExchange` slot (`None` = not overridden), the base `Dict`. `.into_dict()` drops, `.as_map()` copies unwrap, any other use boxes it.
-function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'position' | 'transfer' | 'transaction' | 'balance' | 'margin_modification' | 'income' | 'margin_mode' | 'account' | 'funding_rate' | 'deposit_address' | 'leverage' | 'ledger_entry' | 'open_interest' | 'currency' | 'deposit_withdraw_fee' | 'market', p0: string | undefined = undefined): string {
+function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'position' | 'transfer' | 'transaction' | 'balance' | 'margin_modification' | 'income' | 'margin_mode' | 'account' | 'funding_rate' | 'deposit_address' | 'leverage' | 'ledger_entry' | 'open_interest' | 'currency' | 'deposit_withdraw_fee' | 'market' | 'borrow_interest', p0: string | undefined = undefined): string {
     const fn = 'parse_' + fam, Fn = 'parse' + fam.replace (/(?:^|_)(\w)/g, (_x, c: string) => c.toUpperCase ());
     // `parseBalance (response)` and `parseAccount (account)` have no second argument; p0 names a base parameter that differs from the family
     const sub = p0 ?? fam;
@@ -5229,6 +5229,7 @@ function rustTypedParsePositionFamilies (content: string): string {
     box ('safe_currency_structure');
     content = rustTypedParseFamily (content, 'currency', 'rawCurrency');
     content = rustTypedParseFamily (content, 'deposit_withdraw_fee', 'fee');
+    content = rustTypedParseFamily (content, 'borrow_interest', 'info');
     // `safeMarketStructure` answers `extend (cleanStructure, market)` or `extend (cleanStructure)`: a map on every input
     const sms = 'fn safe_market_structure(&self, optional_args: &[Value]) -> Value {', smsAt = content.indexOf (sms);
     if (smsAt >= 0) {
@@ -5269,10 +5270,11 @@ function rustTypedParsePositionFamilies (content: string): string {
     return content.split (Q).join ('');
 }
 
-// The `parseTransaction` / `parseIncome` / `parseAccount` / `parseMarginMode` / `parseLedgerEntry` slots borrow their `Dict` row as
+// The `parseTransaction` / `parseOrder` / `parseIncome` / `parseAccount` / `parseMarginMode` / `parseLedgerEntry` / `parsePosition` /
+// `parseTransfer` / `parseDepositAddress` / `parseLeverage` / `parseBorrowInterest` slots borrow their `Dict` row as
 // `Option<&Dict>` (the TypeScript declaration): a missing or non-map row stays `Value::Null` in the body.
 function rustBorrowedParseRows (content: string): string {
-    const optFns = [ 'parse_transaction', 'parse_income', 'parse_account', 'parse_margin_mode', 'parse_ledger_entry' ];
+    const optFns = [ 'parse_transaction', 'parse_order', 'parse_income', 'parse_account', 'parse_margin_mode', 'parse_ledger_entry', 'parse_position', 'parse_transfer', 'parse_deposit_address', 'parse_leverage', 'parse_borrow_interest' ];
     const fns = optFns.join ('|');
     const slot = (fn: string) => optFns.includes (fn) ? 'Option<&crate::value::Dict>' : '&crate::value::Dict';
     content = content.replace (new RegExp ('\\n    fn (' + fns + ')\\(&self, (\\w+): impl Into<crate::Value>([,)])', 'g'), (_m, f: string, x: string, e: string) => '\n    fn ' + f + '(&self, ' + x + ': ' + slot (f) + e);
