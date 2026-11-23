@@ -1303,7 +1303,7 @@ export default class coinbaseinternational extends Exchange {
         }
         await this.authenticateV2 ();
         const code = this.safeString (paramsResolved, 'code');
-        let paramsOmitted: Dict = paramsResolved;
+        let paramsOmitted: Dict = this.extend ({}, paramsResolved);
         if (this.isNativeDeribitCredentials ()) {
             paramsOmitted = this.omit (paramsResolved, 'code');
         }
@@ -2783,12 +2783,13 @@ export default class coinbaseinternational extends Exchange {
      */
     override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         const paramsResolved = this.handleRouteAndParams ('fetchOpenOrders', params);
+        const [ paginate, paramsFinal ] = this.handleOptionBoolAndParams (paramsResolved, 'fetchOpenOrders', 'paginate', false);
+        const nativeDeribit = this.isNativeDeribitCredentials ();
+        if (nativeDeribit && paginate) {
+            throw new NotSupported (this.id + ' fetchOpenOrders() does not support pagination');
+        }
         let paramsPaginate: Dict = paramsResolved;
-        if (this.isNativeDeribitCredentials ()) {
-            const [ paginate, paramsFinal ] = this.handleOptionBoolAndParams (paramsResolved, 'fetchOpenOrders', 'paginate', false);
-            if (paginate) {
-                throw new NotSupported (this.id + ' fetchOpenOrders() does not support pagination');
-            }
+        if (nativeDeribit) {
             paramsPaginate = paramsFinal;
         }
         if (this.markets === undefined) {
@@ -2858,12 +2859,13 @@ export default class coinbaseinternational extends Exchange {
      */
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         const paramsResolved = this.handleRouteAndParams ('fetchMyTrades', params);
+        const [ paginate, paramsFinal ] = this.handleOptionBoolAndParams (paramsResolved, 'fetchMyTrades', 'paginate', false);
+        const nativeDeribit = this.isNativeDeribitCredentials ();
+        if (nativeDeribit && paginate) {
+            throw new NotSupported (this.id + ' fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters');
+        }
         let paramsPaginate: Dict = paramsResolved;
-        if (this.isNativeDeribitCredentials ()) {
-            const [ paginate, paramsFinal ] = this.handleOptionBoolAndParams (paramsResolved, 'fetchMyTrades', 'paginate', false);
-            if (paginate) {
-                throw new NotSupported (this.id + ' fetchMyTrades() automatic pagination is not implemented; use since, until or native pagination parameters');
-            }
+        if (nativeDeribit) {
             paramsPaginate = paramsFinal;
         }
         if (this.markets === undefined) {
