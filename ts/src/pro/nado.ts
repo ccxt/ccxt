@@ -59,11 +59,12 @@ export default class nado extends nadoRest {
                 'tradesLimit': 1000,
                 'requestId': 0,
                 // the subscription gateway sits behind cloudflare, which 403s any
-                // handshake that does not offer permessage-deflate (RFC 7692);
-                // the node 'ws' client already defaults to offering it, the flag
-                // makes the venue requirement explicit and reaches the Go mirror
+                // handshake that does not offer permessage-deflate (RFC 7692).
+                // 15 is the zlib wbits value Python's aiohttp reads directly; the
+                // TS mapper and the Go mirror both treat any non-zero value as
+                // enabled. `true` would be read as wbits 1 and is invalid there.
                 'ws': {
-                    'compress': true,
+                    'compress': 15,
                 },
             },
             'urls': {

@@ -19,7 +19,7 @@ import { wsPerMessageDeflate } from '../../base/ws/WsClient.js';
 test ('nado declares the permessage-deflate opt-in', () => {
     const exchange = new nado ();
     const wsOptions = exchange.options['ws'];
-    assert.strictEqual (wsOptions['compress'], true);
+    assert.strictEqual (wsOptions['compress'], 15);
 });
 
 test ('compress maps onto the ws perMessageDeflate option', () => {
