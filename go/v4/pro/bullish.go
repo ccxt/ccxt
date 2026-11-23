@@ -65,7 +65,7 @@ func (this *Bullish) RequestId() int64 {
 	this.Options["requestId"] = requestId
 	return requestId
 }
-func (this *Bullish) Ping(client any) any {
+func (this *Bullish) Ping(client ccxt.ClientInterface) any {
 	// bullish does not support built-in ws protocol-level ping-pong
 	// https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--keep-websocket-open
 	var id string = strconv.FormatInt(this.RequestId(), 10)
@@ -77,7 +77,7 @@ func (this *Bullish) Ping(client any) any {
 		"id":      id,
 	}
 }
-func (this *Bullish) HandlePong(client any, message map[string]any) map[string]any {
+func (this *Bullish) HandlePong(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "id": "7",
@@ -225,7 +225,7 @@ func (this *Bullish) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Bullish) HandleTrades(client any, message map[string]any) {
+func (this *Bullish) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "type": "snapshot",
@@ -319,7 +319,7 @@ func (this *Bullish) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(r1.Value)} // no need to send a subscribe message, the server sends a ticker update on connect
 	return nil
 }
-func (this *Bullish) HandleTicker(client any, message map[string]any) {
+func (this *Bullish) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "type": "update",
@@ -431,7 +431,7 @@ func (this *Bullish) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Bullish) HandleOrderBook(client any, message map[string]any) {
+func (this *Bullish) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "type": "snapshot",
@@ -570,7 +570,7 @@ func (this *Bullish) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Bullish) HandleOrders(client any, message map[string]any) {
+func (this *Bullish) HandleOrders(client ccxt.ClientInterface, message map[string]any) {
 	// snapshot
 	//     {
 	//         "type": "snapshot",
@@ -733,7 +733,7 @@ func (this *Bullish) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Bullish) HandleMyTrades(client any, message map[string]any) {
+func (this *Bullish) HandleMyTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// snapshot
 	//     {
@@ -795,7 +795,7 @@ func (this *Bullish) HandleMyTrades(client any, message map[string]any) {
 		var trades ccxt.WsArrayCache = this.MyTrades
 		var symbols map[string]any = map[string]any{}
 		for i := 0; i < len(rawTrades); i++ {
-			var parsedTrade map[string]any = ccxt.TradeToMap(this.ParseTrade(rawTrades[i]))
+			var parsedTrade map[string]any = ccxt.TradeToMap(this.ParseTrade(this.SafeDict(rawTrades, i, map[string]any{})))
 			trades.Append(parsedTrade)
 			var symbol *string = this.SafeString(parsedTrade, "symbol")
 			if symbol != nil {
@@ -868,7 +868,7 @@ func (this *Bullish) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r1.Value)}
 	return nil
 }
-func (this *Bullish) HandleBalance(client any, message map[string]any) {
+func (this *Bullish) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// snapshot
 	//     {
@@ -1028,7 +1028,7 @@ func (this *Bullish) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(positions, symbolsNormalized, since, limit, true))}
 	return nil
 }
-func (this *Bullish) HandlePositions(client any, message map[string]any) {
+func (this *Bullish) HandlePositions(client ccxt.ClientInterface, message map[string]any) {
 	// exchange does not return messages for sandbox mode
 	// current method is implemented blindly
 	// todo: check if this works with not-sandbox mode
@@ -1067,7 +1067,7 @@ func (this *Bullish) HandlePositions(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(positions, "positions")
 }
-func (this *Bullish) HandleErrorMessage(client any, message map[string]any) {
+func (this *Bullish) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "data": {
@@ -1111,7 +1111,7 @@ func (this *Bullish) HandleErrorMessage(client any, message map[string]any) {
 
 	}
 }
-func (this *Bullish) HandleMessage(client any, message map[string]any) {
+func (this *Bullish) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var dataType *string = this.SafeString(message, "dataType")
 	var result, _ = message["result"].(map[string]any)
 	if result != nil {

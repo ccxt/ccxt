@@ -2486,12 +2486,12 @@ func (this *Coinbaseexchange) fetchPaymentMethodsBody(ch chan AsyncResult[[]map[
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Coinbaseexchange) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Coinbaseexchange) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseexchange) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
+func (this *Coinbaseexchange) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3191,7 +3191,7 @@ func (this *Coinbaseexchange) Sign(path string, optionalArgs ...any) map[string]
 	}
 	return literal227215
 }
-func (this *Coinbaseexchange) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Coinbaseexchange) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if (code == 400) || (code == 404) {
 		if strings.HasPrefix(body, "{") {
 			var message *string = this.SafeString(response, "message")

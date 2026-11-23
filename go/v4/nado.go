@@ -2079,10 +2079,9 @@ func (this *Nado) queryTransactionsByEventTypeBody(ch chan AsyncResult[[]Transac
 		var submissionIdx *string = this.SafeString(event, "submission_idx")
 		var tx any = map[string]any{}
 		for j := 0; j < len(txs); j++ {
-			var rawTx any = txs[j]
-			var txSubmissionIdx *string = this.SafeString(rawTx, "submission_idx")
+			var txSubmissionIdx *string = this.SafeString(txs[j], "submission_idx")
 			if txSubmissionIdx == submissionIdx || (txSubmissionIdx != nil && submissionIdx != nil && *txSubmissionIdx == *submissionIdx) {
-				tx = rawTx
+				tx = txs[j]
 				break
 			}
 		}
@@ -2181,10 +2180,9 @@ func (this *Nado) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 		var productId *string = this.SafeString(position, "product_id")
 		var product any = map[string]any{}
 		for j := 0; j < len(products); j++ {
-			var rawProduct any = products[j]
-			var rawProductId *string = this.SafeString(rawProduct, "product_id")
+			var rawProductId *string = this.SafeString(products[j], "product_id")
 			if rawProductId == productId || (rawProductId != nil && productId != nil && *rawProductId == *productId) {
-				product = rawProduct
+				product = products[j]
 				break
 			}
 		}
@@ -2272,12 +2270,12 @@ func (this *Nado) fetchStatusBody(ch chan AsyncResult[Status], optionalArgs ...a
 	//     }
 	//
 	var status *string = this.SafeString(response, "data")
-	var ternaryStr170222 string = "error"
+	var ternaryStr170022 string = "error"
 	if status != nil && *status == "active" {
-		ternaryStr170222 = "ok"
+		ternaryStr170022 = "ok"
 	}
 	ch <- AsyncResult[Status]{Value: StatusFromMap(map[string]any{
-		"status":  ternaryStr170222,
+		"status":  ternaryStr170022,
 		"updated": nil,
 		"eta":     nil,
 		"url":     nil,
@@ -3918,7 +3916,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) Order {
 		}
 		price = this.ParseX18(this.SafeString(rawOrder, "priceX18"))
 	}
-	var literal300631 map[string]any = map[string]any{
+	var literal300431 map[string]any = map[string]any{
 		"info":                order,
 		"id":                  nil,
 		"clientOrderId":       nil,
@@ -3944,18 +3942,18 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) Order {
 		"trades":              nil,
 	}
 	if id != nil {
-		literal300631["id"] = *id
+		literal300431["id"] = *id
 	}
 	if timeInForce != nil {
-		literal300631["timeInForce"] = *timeInForce
+		literal300431["timeInForce"] = *timeInForce
 	}
 	if average != nil {
-		literal300631["average"] = *average
+		literal300431["average"] = *average
 	}
 	if status != nil {
-		literal300631["status"] = *status
+		literal300431["status"] = *status
 	}
-	return this.SafeOrder(literal300631, marketResolved)
+	return this.SafeOrder(literal300431, marketResolved)
 }
 func (this *Nado) ParseOrderTimeInForce(timeInForce *string) *string {
 	var timeInForces map[string]any = map[string]any{
@@ -4077,7 +4075,7 @@ func (this *Nado) queryContractsBody(ch chan AsyncResult[map[string]any], option
 func (this *Nado) OrderVerifyingContract(productId any) string {
 	return "0x" + this.PadHex(this.IntToBase16(productId), 40)
 }
-func (this *Nado) PadHex(value string, length any, optionalArgs ...any) string {
+func (this *Nado) PadHex(value string, length int64, optionalArgs ...any) string {
 	var left bool = GetArgBool(optionalArgs, 0, true)
 	_ = left
 	var zeros string = "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
@@ -4299,7 +4297,7 @@ func (this *Nado) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersValue,
 	}
 }
-func (this *Nado) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Nado) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

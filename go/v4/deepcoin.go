@@ -1964,12 +1964,12 @@ func (this *Deepcoin) ParseLedgerEntryType(typeVar *string) *string {
  * @param {string} [params.userId] user id
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Deepcoin) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Deepcoin) TransferAsync(code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Deepcoin) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
+func (this *Deepcoin) transferBody(ch chan AsyncResult[TransferEntry], code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2414,12 +2414,12 @@ func (this *Deepcoin) HandleTypePostOnlyAndTimeInForce(typeVar string, params an
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Deepcoin) CreateMarketOrderWithCostAsync(symbol string, side string, cost any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Deepcoin) CreateMarketOrderWithCostAsync(symbol string, side string, cost float64, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createMarketOrderWithCostBody(ch, symbol, side, cost, optionalArgs...)
 	return ch
 }
-func (this *Deepcoin) createMarketOrderWithCostBody(ch chan AsyncResult[Order], symbol string, side string, cost any, optionalArgs ...any) any {
+func (this *Deepcoin) createMarketOrderWithCostBody(ch chan AsyncResult[Order], symbol string, side string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2445,12 +2445,12 @@ func (this *Deepcoin) createMarketOrderWithCostBody(ch chan AsyncResult[Order], 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Deepcoin) CreateMarketBuyOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Deepcoin) CreateMarketBuyOrderWithCostAsync(symbol string, cost float64, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Deepcoin) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost any, optionalArgs ...any) any {
+func (this *Deepcoin) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2476,12 +2476,12 @@ func (this *Deepcoin) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Deepcoin) CreateMarketSellOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Deepcoin) CreateMarketSellOrderWithCostAsync(symbol string, cost float64, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createMarketSellOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Deepcoin) createMarketSellOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost any, optionalArgs ...any) any {
+func (this *Deepcoin) createMarketSellOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4428,7 +4428,7 @@ func (this *Deepcoin) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": nil,
 	}
 }
-func (this *Deepcoin) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Deepcoin) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	var data map[string]any = SafeMapTyped(response, "data")
 	var msg *string = this.SafeString(response, "msg")
 	var messageCode *string = this.SafeString(response, "code")

@@ -2539,7 +2539,7 @@ func (this *Opinion) OpinionWsUrl() string {
 	var wsUrl string = *this.SafeString(this.Urls["api"], "ws", "")
 	return wsUrl + "?apikey=" + *apiKey
 }
-func (this *Opinion) Ping(client any) any {
+func (this *Opinion) Ping(client ccxt.ClientInterface) any {
 	// the venue keeps the socket open only while application-level heartbeats arrive
 	return map[string]any{
 		"action": "HEARTBEAT",
@@ -2584,7 +2584,7 @@ func (this *Opinion) subscribeOpinionChannelBody(ch chan ccxt.AsyncResult[any], 
 	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
-func (this *Opinion) HandleMessage(client any, message map[string]any) {
+func (this *Opinion) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	// every data payload carries its channel name in msgType; frames without one -
 	// subscribe acks and heartbeat echoes - carry nothing to route
 	var msgType *string = this.SafeString(message, "msgType")
@@ -2745,7 +2745,7 @@ func (this *Opinion) seedOrderBookBody(ch chan ccxt.AsyncResult[bool], outcome s
 	}
 	return nil
 }
-func (this *Opinion) HandleOrderBook(client any, message map[string]any) {
+func (this *Opinion) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "marketId": 2764,
@@ -2827,7 +2827,7 @@ func (this *Opinion) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTic
 	ch <- ccxt.AsyncResult[ccxt.PredictionTicker]{Value: ccxt.PredictionTickerFromMap(r1.Value)}
 	return nil
 }
-func (this *Opinion) HandleTicker(client any, message map[string]any) {
+func (this *Opinion) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
@@ -2917,7 +2917,7 @@ func (this *Opinion) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionT
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(this.FilterBySinceLimit(trades, since, limit, "timestamp", true))}
 	return nil
 }
-func (this *Opinion) HandleTrades(client any, message map[string]any) {
+func (this *Opinion) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "tokenId": "19120407572139442221452465677574895365338028945317996490376653704877573103648",
@@ -3047,7 +3047,7 @@ func (this *Opinion) ParseWsOrderStatus(status *int64) any {
 	}
 	return nil
 }
-func (this *Opinion) HandleOrder(client any, message map[string]any) {
+func (this *Opinion) HandleOrder(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "orderUpdateType": "orderConfirm",
@@ -3169,7 +3169,7 @@ func (this *Opinion) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(this.FilterByValueSinceLimit(trades, "outcome", sym, since, limit, "timestamp", true))}
 	return nil
 }
-func (this *Opinion) HandleMyTrade(client any, message map[string]any) {
+func (this *Opinion) HandleMyTrade(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "orderId": "3c7af25f-e21f-11f0-9714-0a58a9feac02",
@@ -3225,7 +3225,7 @@ func (this *Opinion) HandleMyTrade(client any, message map[string]any) {
 	stored.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(stored, "myTrades")
 }
-func (this *Opinion) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Opinion) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		return nil
 	}

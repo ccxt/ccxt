@@ -978,7 +978,7 @@ func (this *Kucoin) watchUtaTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Tickers, symbolsNormalized)}
 	return nil
 }
-func (this *Kucoin) HandleTicker(client any, message map[string]any) {
+func (this *Kucoin) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// market/snapshot
 	//
@@ -1088,7 +1088,7 @@ func (this *Kucoin) HandleTicker(client any, message map[string]any) {
 		this.HandleContractTicker(client, message)
 	}
 }
-func (this *Kucoin) HandleContractTicker(client any, message map[string]any) {
+func (this *Kucoin) HandleContractTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// ticker (v1)
 	//
@@ -1123,7 +1123,7 @@ func (this *Kucoin) HandleContractTicker(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(ticker, "ticker:"+*this.SafeString(market, "symbol", ""))
 }
-func (this *Kucoin) HandleUtaTicker(client any, message map[string]any) {
+func (this *Kucoin) HandleUtaTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// watchTicker
 	//     {
@@ -1317,7 +1317,7 @@ func (this *Kucoin) watchMultiHelperBody(ch chan ccxt.AsyncResult[map[string]any
 	ch <- ccxt.AsyncResult[map[string]any]{Value: r2.Value}
 	return nil
 }
-func (this *Kucoin) HandleBidAsk(client any, message map[string]any) {
+func (this *Kucoin) HandleBidAsk(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// arrives one symbol dict
 	//
@@ -1582,7 +1582,7 @@ func (this *Kucoin) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 		return nil
 	}
 }
-func (this *Kucoin) HandleOHLCV(client any, message map[string]any) {
+func (this *Kucoin) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "data": {
@@ -1661,7 +1661,7 @@ func (this *Kucoin) HandleOHLCV(client any, message map[string]any) {
 	stored.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func (this *Kucoin) HandleUtaOHLCV(client any, message map[string]any) {
+func (this *Kucoin) HandleUtaOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "T": "kline.SPOT",
@@ -2005,7 +2005,7 @@ func (this *Kucoin) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol str
 	ch <- ccxt.AsyncResult[bool]{Value: r2.Value}
 	return nil
 }
-func (this *Kucoin) HandleTrade(client any, message map[string]any) {
+func (this *Kucoin) HandleTrade(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "data": {
@@ -2044,7 +2044,7 @@ func (this *Kucoin) HandleTrade(client any, message map[string]any) {
 	cache.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(cache, messageHash)
 }
-func (this *Kucoin) HandleUtaTrade(client any, message map[string]any) {
+func (this *Kucoin) HandleUtaTrade(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "T": "trade.SPOT",
@@ -2484,7 +2484,7 @@ func (this *Kucoin) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool
 	ch <- ccxt.AsyncResult[bool]{Value: r2.Value}
 	return nil
 }
-func (this *Kucoin) HandleOrderBook(client any, message map[string]any) {
+func (this *Kucoin) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// initial snapshot is fetched with ccxt's fetchOrderBook
 	// the feed does not include a snapshot, just the deltas
@@ -2578,7 +2578,7 @@ func (this *Kucoin) HandleOrderBook(client any, message map[string]any) {
 	this.HandleBookDelta(book, data)
 	client.(ccxt.ClientInterface).Resolve(book, messageHash)
 }
-func (this *Kucoin) HandleUtaOrderBook(client any, message map[string]any) {
+func (this *Kucoin) HandleUtaOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// snapshot
 	//     {
@@ -2713,7 +2713,7 @@ func (this *Kucoin) HandleBidAsks(bookSide any, bidAsks []any) {
 		bookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 	}
 }
-func (this *Kucoin) HandleOrderBookSubscription(client any, message map[string]any, subscription map[string]any) {
+func (this *Kucoin) HandleOrderBookSubscription(client ccxt.ClientInterface, message map[string]any, subscription map[string]any) {
 	var limit *int64 = this.SafeInteger(subscription, "limit")
 	var symbols any = this.SafeList(subscription, "symbols")
 	if symbols == nil {
@@ -2741,7 +2741,7 @@ func (this *Kucoin) HandleOrderBookSubscription(client any, message map[string]a
 	}
 	this.Options["orderBookLimits"] = limits
 }
-func (this *Kucoin) HandleSubscriptionStatus(client any, message map[string]any) {
+func (this *Kucoin) HandleSubscriptionStatus(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// classic
 	//     {
@@ -2792,7 +2792,7 @@ func (this *Kucoin) HandleSubscriptionStatus(client any, message map[string]any)
 		}
 	}
 }
-func (this *Kucoin) HandleSystemStatus(client any, message map[string]any) map[string]any {
+func (this *Kucoin) HandleSystemStatus(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	// todo: answer the question whether handleSystemStatus should be renamed
 	// and unified as handleStatus for any usage pattern that
@@ -3153,7 +3153,7 @@ func (this *Kucoin) ParseWsUtaOrder(order map[string]any, optionalArgs ...any) a
 		"postOnly":            this.SafeBool(order, "pO"),
 	}, marketResolved))
 }
-func (this *Kucoin) HandleOrder(client any, message map[string]any) {
+func (this *Kucoin) HandleOrder(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// Trigger Orders
 	//
@@ -3251,7 +3251,7 @@ func (this *Kucoin) HandleOrder(client any, message map[string]any) {
 	var symbolSpecificMessageHash string = messageHash + ":" + *this.SafeString(parsed, "symbol", "")
 	client.(ccxt.ClientInterface).Resolve(cachedOrders, symbolSpecificMessageHash)
 }
-func (this *Kucoin) HandleUtaOrder(client any, message map[string]any) {
+func (this *Kucoin) HandleUtaOrder(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "T": "orderAll.UNIFIED",
@@ -3432,7 +3432,7 @@ func (this *Kucoin) GetMyTradesMessageHashSuffix(topic string) string {
 	}
 	return suffix
 }
-func (this *Kucoin) HandleMyTrade(client any, message map[string]any) {
+func (this *Kucoin) HandleMyTrade(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "type": "message",
@@ -3477,7 +3477,7 @@ func (this *Kucoin) HandleMyTrade(client any, message map[string]any) {
 	var symbolSpecificMessageHash string = messageHash + ":" + *this.SafeString(parsed, "symbol", "")
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, symbolSpecificMessageHash)
 }
-func (this *Kucoin) HandleUtaMyTrade(client any, message map[string]any) {
+func (this *Kucoin) HandleUtaMyTrade(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "T": "execution.lite.UNIFIED",
@@ -3712,7 +3712,7 @@ func (this *Kucoin) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 		return nil
 	}
 }
-func (this *Kucoin) SetBalanceCache(client any, typeVar string) {
+func (this *Kucoin) SetBalanceCache(client ccxt.ClientInterface, typeVar string) {
 	if _, ok := this.Balance[typeVar]; (client.(ccxt.ClientInterface).SubscriptionHas(typeVar)) && ok {
 		return
 	}
@@ -3728,12 +3728,12 @@ func (this *Kucoin) SetBalanceCache(client any, typeVar string) {
 		this.Balance[typeVar] = map[string]any{}
 	}
 }
-func (this *Kucoin) LoadBalanceSnapshotAsync(client any, messageHash string, typeVar string) <-chan ccxt.AsyncResult[bool] {
+func (this *Kucoin) LoadBalanceSnapshotAsync(client ccxt.ClientInterface, messageHash string, typeVar string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadBalanceSnapshotBody(ch, client, messageHash, typeVar)
 	return ch
 }
-func (this *Kucoin) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string, typeVar string) any {
+func (this *Kucoin) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, messageHash string, typeVar string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var uta bool = (typeVar == "unified")
@@ -3759,7 +3759,7 @@ func (this *Kucoin) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 	}
 	return nil
 }
-func (this *Kucoin) HandleBalance(client any, message map[string]any) {
+func (this *Kucoin) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// {
 	//     "id":"6217a451294b030001e3a26a",
@@ -3880,7 +3880,7 @@ func (this *Kucoin) HandleBalance(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Resolve(this.Balance[*uniformType], *uniformType+":balance")
 	}
 }
-func (this *Kucoin) HandleUtaBalance(client any, message map[string]any) {
+func (this *Kucoin) HandleUtaBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "T": "balance.UNIFIED",
@@ -4122,7 +4122,7 @@ func (this *Kucoin) GetCurrentPosition(symbol string) any {
 	}
 	return this.SafeDict(values, 0)
 }
-func (this *Kucoin) SetPositionsCache(client any, uta bool) {
+func (this *Kucoin) SetPositionsCache(client ccxt.ClientInterface, uta bool) {
 	if !(this.IsEmpty(this.Positions)) {
 		return
 	}
@@ -4137,12 +4137,12 @@ func (this *Kucoin) SetPositionsCache(client any, uta bool) {
 		this.Positions = ccxt.NewArrayCacheBySymbolById()
 	}
 }
-func (this *Kucoin) LoadPositionsSnapshotAsync(client any, messageHash string, uta any) <-chan ccxt.AsyncResult[bool] {
+func (this *Kucoin) LoadPositionsSnapshotAsync(client ccxt.ClientInterface, messageHash string, uta any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadPositionsSnapshotBody(ch, client, messageHash, uta)
 	return ch
 }
-func (this *Kucoin) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string, uta any) any {
+func (this *Kucoin) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, messageHash string, uta any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -4170,7 +4170,7 @@ func (this *Kucoin) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], cl
 	}
 	return nil
 }
-func (this *Kucoin) SetPositionCache(client any, symbol string) {
+func (this *Kucoin) SetPositionCache(client ccxt.ClientInterface, symbol string) {
 	var fetchPositionSnapshot bool = this.HandleOption("watchPosition", "fetchPositionSnapshot", false) == true
 	if fetchPositionSnapshot == true {
 		var messageHash string = "fetchPositionSnapshot:" + symbol
@@ -4180,12 +4180,12 @@ func (this *Kucoin) SetPositionCache(client any, symbol string) {
 		}
 	}
 }
-func (this *Kucoin) LoadPositionSnapshotAsync(client any, messageHash string, symbol string) <-chan ccxt.AsyncResult[bool] {
+func (this *Kucoin) LoadPositionSnapshotAsync(client ccxt.ClientInterface, messageHash string, symbol string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadPositionSnapshotBody(ch, client, messageHash, symbol)
 	return ch
 }
-func (this *Kucoin) loadPositionSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string, symbol string) any {
+func (this *Kucoin) loadPositionSnapshotBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, messageHash string, symbol string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -4208,7 +4208,7 @@ func (this *Kucoin) loadPositionSnapshotBody(ch chan ccxt.AsyncResult[bool], cli
 	}
 	return nil
 }
-func (this *Kucoin) HandlePosition(client any, message map[string]any) {
+func (this *Kucoin) HandlePosition(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// ccxt.Position Changes Caused Operations
 	//    {
@@ -4334,7 +4334,7 @@ func (this *Kucoin) HandlePosition(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(position, messageHash)
 }
-func (this *Kucoin) HandleUtaPosition(client any, message map[string]any) {
+func (this *Kucoin) HandleUtaPosition(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "T": "positionAll.UNIFIED",
@@ -4553,7 +4553,7 @@ func (this *Kucoin) unWatchFundingRateBody(ch chan ccxt.AsyncResult[bool], symbo
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Kucoin) HandleUtaFundingRate(client any, message map[string]any) {
+func (this *Kucoin) HandleUtaFundingRate(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "T": "funding-fee",
@@ -4717,7 +4717,7 @@ func (this *Kucoin) unWatchMarkPriceBody(ch chan ccxt.AsyncResult[bool], symbol 
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Kucoin) HandleSubject(client any, message map[string]any) {
+func (this *Kucoin) HandleSubject(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "type":"message",
@@ -4804,7 +4804,7 @@ func (this *Kucoin) HandleSubject(client any, message map[string]any) {
 		ccxt.CallDynamically(method, client, message)
 	}
 }
-func (this *Kucoin) Ping(client any) any {
+func (this *Kucoin) Ping(client ccxt.ClientInterface) any {
 	// kucoin does not support built-in ws protocol-level ping-pong
 	// instead it requires a custom json-based text ping-pong
 	// https://docs.kucoin.com/#ping
@@ -4814,10 +4814,10 @@ func (this *Kucoin) Ping(client any) any {
 		"type": "ping",
 	}
 }
-func (this *Kucoin) HandlePong(client any, message map[string]any) {
+func (this *Kucoin) HandlePong(client ccxt.ClientInterface, message map[string]any) {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 }
-func (this *Kucoin) HandleErrorMessage(client any, message map[string]any) bool {
+func (this *Kucoin) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	//    {
 	//        "id": "1",
@@ -4848,7 +4848,7 @@ func (this *Kucoin) HandleErrorMessage(client any, message map[string]any) bool 
 	this.HandleErrors(1, "", client.(ccxt.ClientInterface).GetUrl(), "", map[string]any{}, *data, message, map[string]any{}, "")
 	return false
 }
-func (this *Kucoin) HandleMessage(client any, message map[string]any) {
+func (this *Kucoin) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var typeVar *string = this.SafeString2(message, "type", "message")
 	var methods map[string]any = map[string]any{
 		"welcome": this.HandleSystemStatus,

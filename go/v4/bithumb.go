@@ -608,7 +608,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 		//     ]
 		//
 		for i := 0; i < len(response); i++ {
-			var entry any = GetValue(response, i)
+			var entry any = response[i]
 			var marketId *string = this.SafeString(entry, "market")
 			var baseId *string = nil
 			var quoteId any = nil
@@ -705,7 +705,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 			if i >= 0 && i < len(results) {
 				response = results[i]
 			}
-			var data map[string]any = SafeMapTyped(response, "data")
+			var data, _ = response["data"].(map[string]any)
 			var extension map[string]any
 			extension, _ = quoteCurrencies[quote].(map[string]any)
 			if extension == nil {
@@ -1305,7 +1305,7 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 				}
 			}
 			for j := 0; j < len(tickers); j++ {
-				var entry any = tickers[j]
+				var entry, _ = tickers[j].(map[string]any)
 				var marketId *string = this.SafeString(entry, "market", expectedMarketId)
 				if marketId == nil {
 					continue
@@ -1315,7 +1315,7 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 				if symbol == nil {
 					continue
 				}
-				result[*symbol] = TickerToMap(this.ParseTicker(entry, market))
+				result[*symbol] = TickerToMap(this.ParseTicker(this.SafeDict(tickers, j, map[string]any{}), market))
 			}
 		}
 	} else {
@@ -1499,7 +1499,7 @@ func (this *Bithumb) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 		data = this.SafeDict(response, "data", map[string]any{})
 	}
 
-	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(data, market)}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.Extend(map[string]any{}, data), market)}
 	return nil
 }
 func (this *Bithumb) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
@@ -2289,12 +2289,12 @@ func (this *Bithumb) createOrderBody(ch chan AsyncResult[Order], symbol string, 
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bithumb) CreateMarketBuyOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bithumb) CreateMarketBuyOrderWithCostAsync(symbol string, cost float64, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost any, optionalArgs ...any) any {
+func (this *Bithumb) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2336,12 +2336,12 @@ func (this *Bithumb) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order]
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bithumb) CreateTwapOrderAsync(symbol string, side string, amount any, duration any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bithumb) CreateTwapOrderAsync(symbol string, side string, amount float64, duration any, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createTwapOrderBody(ch, symbol, side, amount, duration, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) createTwapOrderBody(ch chan AsyncResult[Order], symbol string, side string, amount any, duration any, optionalArgs ...any) any {
+func (this *Bithumb) createTwapOrderBody(ch chan AsyncResult[Order], symbol string, side string, amount float64, duration any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2364,7 +2364,7 @@ func (this *Bithumb) createTwapOrderBody(ch chan AsyncResult[Order], symbol stri
 		"market":   this.GetGen2MarketId(market),
 		"duration": durationSeconds,
 	}
-	if !IsEqual(amount, nil) {
+	if true {
 		request["volume"] = this.AmountToPrecision(symbol, amount) // required for sale
 	}
 	var sideRequest string
@@ -3387,12 +3387,12 @@ func (this *Bithumb) cancelUnifiedOrderBody(ch chan AsyncResult[Order], order an
  * @param {string} [params.two_factor_type] *generation 2 KRW withdraw only* the two factor type, for example kakao
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bithumb) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Bithumb) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
+func (this *Bithumb) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3823,12 +3823,12 @@ func (this *Bithumb) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bithumb) FetchDepositAsync(id any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Bithumb) FetchDepositAsync(id string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.fetchDepositBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) fetchDepositBody(ch chan AsyncResult[Transaction], id any, optionalArgs ...any) any {
+func (this *Bithumb) fetchDepositBody(ch chan AsyncResult[Transaction], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3853,7 +3853,7 @@ func (this *Bithumb) fetchDepositBody(ch chan AsyncResult[Transaction], id any, 
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
-	if !IsEqual(id, nil) {
+	if true {
 		request["uuid"] = id
 	}
 
@@ -4323,7 +4323,7 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	return literal341415
 }
-func (this *Bithumb) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Bithumb) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

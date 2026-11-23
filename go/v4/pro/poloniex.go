@@ -558,7 +558,7 @@ func (this *Poloniex) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Orde
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(r2.Value)}
 	return nil
 }
-func (this *Poloniex) HandleOrderRequest(client any, message map[string]any) {
+func (this *Poloniex) HandleOrderRequest(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "id": "1234567",
@@ -1173,7 +1173,7 @@ func (this *Poloniex) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], 
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r3.Value)}
 	return nil
 }
-func (this *Poloniex) SetBalanceCache(client any, typeVar string) {
+func (this *Poloniex) SetBalanceCache(client ccxt.ClientInterface, typeVar string) {
 	if client.(ccxt.ClientInterface).SubscriptionHas(typeVar) {
 		return
 	}
@@ -1187,12 +1187,12 @@ func (this *Poloniex) SetBalanceCache(client any, typeVar string) {
 		}
 	}
 }
-func (this *Poloniex) LoadBalanceSnapshotAsync(client any, messageHash string, typeVar string) <-chan ccxt.AsyncResult[bool] {
+func (this *Poloniex) LoadBalanceSnapshotAsync(client ccxt.ClientInterface, messageHash string, typeVar string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadBalanceSnapshotBody(ch, client, messageHash, typeVar)
 	return ch
 }
-func (this *Poloniex) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string, typeVar string) any {
+func (this *Poloniex) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, messageHash string, typeVar string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -1261,7 +1261,7 @@ func (this *Poloniex) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 	_ = market
 	return []any{this.SafeInteger(ohlcv, "startTime"), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "quantity")}
 }
-func (this *Poloniex) HandleOHLCV(client any, message map[string]any) map[string]any {
+func (this *Poloniex) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "channel": "candles_minute_1",
@@ -1325,7 +1325,7 @@ func (this *Poloniex) HandleOHLCV(client any, message map[string]any) map[string
 	}
 	return message
 }
-func (this *Poloniex) HandleTrade(client any, message map[string]any) map[string]any {
+func (this *Poloniex) HandleTrade(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "channel": "trades",
@@ -1504,7 +1504,7 @@ func (this *Poloniex) ParseWsOrderTrade(trade any, optionalArgs ...any) map[stri
 		},
 	}, market))
 }
-func (this *Poloniex) HandleOrder(client any, message map[string]any) map[string]any {
+func (this *Poloniex) HandleOrder(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	// ccxt.Order is created
 	//
@@ -1748,7 +1748,7 @@ func (this *Poloniex) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 		"trades": trades,
 	}))
 }
-func (this *Poloniex) HandleTicker(client any, message map[string]any) map[string]any {
+func (this *Poloniex) HandleTicker(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "channel": "ticker",
@@ -1801,7 +1801,7 @@ func (this *Poloniex) HandleTicker(client any, message map[string]any) map[strin
 	client.(ccxt.ClientInterface).Resolve(newTickers, "ticker")
 	return message
 }
-func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
+func (this *Poloniex) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// snapshot
 	//
@@ -1919,7 +1919,7 @@ func (this *Poloniex) HandleOrderBook(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Poloniex) HandleBalance(client any, message map[string]any) {
+func (this *Poloniex) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//       "channel": "balances",
@@ -1981,7 +1981,7 @@ func (this *Poloniex) HandleBalance(client any, message map[string]any) {
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
-func (this *Poloniex) HandleMyTrades(client any, parsedTrade map[string]any) {
+func (this *Poloniex) HandleMyTrades(client ccxt.ClientInterface, parsedTrade map[string]any) {
 	// emulated using the orders' stream
 	var messageHash string = "myTrades"
 	var symbol string = *this.SafeString(parsedTrade, "symbol", "")
@@ -1995,10 +1995,10 @@ func (this *Poloniex) HandleMyTrades(client any, parsedTrade map[string]any) {
 	var symbolMessageHash string = messageHash + ":" + symbol
 	client.(ccxt.ClientInterface).Resolve(trades, symbolMessageHash)
 }
-func (this *Poloniex) HandlePong(client any) {
+func (this *Poloniex) HandlePong(client ccxt.ClientInterface) {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 }
-func (this *Poloniex) HandleMessage(client any, message map[string]any) {
+func (this *Poloniex) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	if this.HandleErrorMessage(client, message) == true {
 		return
 	}
@@ -2050,7 +2050,7 @@ func (this *Poloniex) HandleMessage(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Poloniex) HandleUnsubscription(client any, message map[string]any) {
+func (this *Poloniex) HandleUnsubscription(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "event": "unsubscribe",
@@ -2084,7 +2084,7 @@ func (this *Poloniex) HandleUnsubscription(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Poloniex) HandleErrorMessage(client any, message map[string]any) bool {
+func (this *Poloniex) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	//    {
 	//        message: 'Invalid channel value ["ordersss"]',
@@ -2155,7 +2155,7 @@ func (this *Poloniex) HandleErrorMessage(client any, message map[string]any) boo
 	}
 	return false
 }
-func (this *Poloniex) HandleAuthenticate(client any, message map[string]any) map[string]any {
+func (this *Poloniex) HandleAuthenticate(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "success": true,
@@ -2178,7 +2178,7 @@ func (this *Poloniex) HandleAuthenticate(client any, message map[string]any) map
 	}
 	return message
 }
-func (this *Poloniex) Ping(client any) any {
+func (this *Poloniex) Ping(client ccxt.ClientInterface) any {
 	return map[string]any{
 		"event": "ping",
 	}

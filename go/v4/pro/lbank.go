@@ -323,7 +323,7 @@ func (this *Lbank) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol strin
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Lbank) HandleOHLCV(client any, message map[string]any) {
+func (this *Lbank) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// request
 	//    {
@@ -520,7 +520,7 @@ func (this *Lbank) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol
 	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(r1.Value)}
 	return nil
 }
-func (this *Lbank) HandleTicker(client any, message map[string]any) {
+func (this *Lbank) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "tick":{
@@ -766,7 +766,7 @@ func (this *Lbank) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol stri
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Lbank) HandleTrades(client any, message map[string]any) {
+func (this *Lbank) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// request
 	//     {
@@ -961,7 +961,7 @@ func (this *Lbank) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optio
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limit, true))}
 	return nil
 }
-func (this *Lbank) HandleOrders(client any, message map[string]any) {
+func (this *Lbank) HandleOrders(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "orderUpdate":{
@@ -1146,7 +1146,7 @@ func (this *Lbank) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r2.Value)}
 	return nil
 }
-func (this *Lbank) HandleBalance(client any, message map[string]any) {
+func (this *Lbank) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "data": {
@@ -1309,7 +1309,7 @@ func (this *Lbank) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Lbank) HandleOrderBook(client any, message map[string]any) {
+func (this *Lbank) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// request
 	//    {
@@ -1389,7 +1389,7 @@ func (this *Lbank) HandleOrderBook(client any, message map[string]any) {
 	messageHash = "fetchOrderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Lbank) HandleErrorMessage(client any, message map[string]any) {
+func (this *Lbank) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        SERVER: 'V2',
@@ -1402,12 +1402,12 @@ func (this *Lbank) HandleErrorMessage(client any, message map[string]any) {
 	error := ccxt.ExchangeError(this.Id + " " + errMsg)
 	client.(ccxt.ClientInterface).Reject(error)
 }
-func (this *Lbank) HandlePingAsync(client any, message any) <-chan ccxt.AsyncResult[bool] {
+func (this *Lbank) HandlePingAsync(client ccxt.ClientInterface, message any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.handlePingBody(ch, client, message)
 	return ch
 }
-func (this *Lbank) handlePingBody(ch chan ccxt.AsyncResult[bool], client any, message any) any {
+func (this *Lbank) handlePingBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, message any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	//
@@ -1447,7 +1447,7 @@ func (this *Lbank) handlePingBody(ch chan ccxt.AsyncResult[bool], client any, me
 	}
 	return nil
 }
-func (this *Lbank) HandleMessage(client any, message map[string]any) {
+func (this *Lbank) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var status *string = this.SafeString(message, "status")
 	if status != nil && *status == "error" {
 		this.HandleErrorMessage(client, message)

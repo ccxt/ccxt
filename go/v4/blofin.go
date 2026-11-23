@@ -3153,7 +3153,7 @@ func (this *Blofin) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 	var chain *string = this.SafeString(query, "chain")
 	if chain == nil {
 		if networkCode == nil {
-			var networks map[string]any = SafeMapTyped(currency, "networks")
+			var networks, _ = currency["networks"].(map[string]any)
 			var networkKeys []string = nil
 			if networks != nil {
 				networkKeys = make([]string, 0, len(networks))
@@ -3299,7 +3299,7 @@ func (this *Blofin) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[st
 	result["networks"] = networkFees
 	if chainsLength == 1 {
 		// a single network means the currency-level fee is unambiguous
-		var networks map[string]any = SafeMapTyped(result, "networks")
+		var networks, _ = result["networks"].(map[string]any)
 		var networkKeys []string = nil
 		if networks != nil {
 			networkKeys = make([]string, 0, len(networks))
@@ -3326,12 +3326,12 @@ func (this *Blofin) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[st
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
  */
-func (this *Blofin) FetchDepositAsync(id any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Blofin) FetchDepositAsync(id string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.fetchDepositBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Blofin) fetchDepositBody(ch chan AsyncResult[Transaction], id any, optionalArgs ...any) any {
+func (this *Blofin) fetchDepositBody(ch chan AsyncResult[Transaction], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3364,13 +3364,13 @@ func (this *Blofin) fetchDepositBody(ch chan AsyncResult[Transaction], id any, o
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
 		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
-		if IsEqual(this.SafeString(entry, "depositId"), id) {
+		if this.SafeString(entry, "depositId") != nil && *this.SafeString(entry, "depositId") == id {
 
 			ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(entry, currency)}
 			return nil
 		}
 	}
-	panic(ExchangeError(Add(this.Id+" fetchDeposit() could not find deposit ", id)))
+	panic(ExchangeError(this.Id + " fetchDeposit() could not find deposit " + id))
 }
 
 /**
@@ -3465,12 +3465,12 @@ func (this *Blofin) fetchWithdrawalBody(ch chan AsyncResult[Transaction], id any
  * @param {string} [params.clientId] a client-supplied id of up to 32 case-sensitive alphanumerics
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
  */
-func (this *Blofin) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Blofin) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Blofin) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
+func (this *Blofin) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// LIVE API vs DOCS quirks, verified against the venue 2026-09-14:
@@ -3926,12 +3926,12 @@ func (this *Blofin) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string,
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Blofin) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Blofin) TransferAsync(code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Blofin) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
+func (this *Blofin) transferBody(ch chan AsyncResult[TransferEntry], code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5078,7 +5078,7 @@ func (this *Blofin) ParseADLRank(info any, optionalArgs ...any) map[string]any {
 		"datetime":   this.Iso8601(timestamp),
 	}
 }
-func (this *Blofin) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Blofin) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

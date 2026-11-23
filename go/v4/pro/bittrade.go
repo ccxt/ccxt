@@ -114,7 +114,7 @@ func (this *Bittrade) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sym
 	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(r1.Value)}
 	return nil
 }
-func (this *Bittrade) HandleTicker(client any, message map[string]any) map[string]any {
+func (this *Bittrade) HandleTicker(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "ch": "market.btcusdt.detail",
@@ -228,7 +228,7 @@ func (this *Bittrade) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Bittrade) HandleTrades(client any, message map[string]any) map[string]any {
+func (this *Bittrade) HandleTrades(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "ch": "market.btcusdt.trade.detail",
@@ -266,7 +266,7 @@ func (this *Bittrade) HandleTrades(client any, message map[string]any) map[strin
 		this.Trades[symbol] = tradesCache
 	}
 	for i := 0; i < len(data); i++ {
-		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(data[i], market))
+		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(this.SafeDict(data, i, map[string]any{}), market))
 		tradesCache.Append(trade)
 	}
 	client.(ccxt.ClientInterface).Resolve(tradesCache, ch)
@@ -349,7 +349,7 @@ func (this *Bittrade) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
 	return nil
 }
-func (this *Bittrade) HandleOHLCV(client any, message map[string]any) {
+func (this *Bittrade) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "ch": "market.btcusdt.kline.1min",
@@ -467,7 +467,7 @@ func (this *Bittrade) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Bittrade) HandleOrderBookSnapshot(client any, message map[string]any, subscription map[string]any) {
+func (this *Bittrade) HandleOrderBookSnapshot(client ccxt.ClientInterface, message map[string]any, subscription map[string]any) {
 	//
 	//     {
 	//         "id": 1583473663565,
@@ -513,12 +513,12 @@ func (this *Bittrade) HandleOrderBookSnapshot(client any, message map[string]any
 	}
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Bittrade) WatchOrderBookSnapshotAsync(client any, message map[string]any, subscription map[string]any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
+func (this *Bittrade) WatchOrderBookSnapshotAsync(client ccxt.ClientInterface, message map[string]any, subscription map[string]any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
 	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)
 	go this.watchOrderBookSnapshotBody(ch, client, message, subscription)
 	return ch
 }
-func (this *Bittrade) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], client any, message map[string]any, subscription map[string]any) any {
+func (this *Bittrade) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], client ccxt.ClientInterface, message map[string]any, subscription map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	chSent := false
@@ -587,12 +587,12 @@ func (this *Bittrade) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.O
 
 	return nil
 }
-func (this *Bittrade) HandleDelta(bookside any, delta any) {
+func (this *Bittrade) HandleDelta(bookside ccxt.IOrderBookSide, delta any) {
 	var price *float64 = this.SafeFloat(delta, 0)
 	var amount *float64 = this.SafeFloat(delta, 1)
-	bookside.(ccxt.IOrderBookSide).Store(price, amount)
+	bookside.Store(price, amount)
 }
-func (this *Bittrade) HandleOrderBookMessage(client any, message any, orderbook ccxt.OrderBookInterface) any {
+func (this *Bittrade) HandleOrderBookMessage(client ccxt.ClientInterface, message any, orderbook ccxt.OrderBookInterface) any {
 	//
 	//     {
 	//         "ch": "market.btcusdt.mbp.150",
@@ -632,7 +632,7 @@ func (this *Bittrade) HandleOrderBookMessage(client any, message any, orderbook 
 	}
 	return orderbook
 }
-func (this *Bittrade) HandleOrderBook(client any, message map[string]any) {
+func (this *Bittrade) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// deltas
 	//
@@ -675,7 +675,7 @@ func (this *Bittrade) HandleOrderBook(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	}
 }
-func (this *Bittrade) HandleOrderBookSubscription(client any, message map[string]any, subscription map[string]any) {
+func (this *Bittrade) HandleOrderBookSubscription(client ccxt.ClientInterface, message map[string]any, subscription map[string]any) {
 	var symbol *string = this.SafeString(subscription, "symbol")
 	if symbol == nil {
 		return
@@ -690,7 +690,7 @@ func (this *Bittrade) HandleOrderBookSubscription(client any, message map[string
 	// watch the snapshot in a separate async call
 	this.Spawn(this.WatchOrderBookSnapshotAsync, client, message, subscription)
 }
-func (this *Bittrade) HandleSubscriptionStatus(client any, message map[string]any) any {
+func (this *Bittrade) HandleSubscriptionStatus(client ccxt.ClientInterface, message map[string]any) any {
 	//
 	//     {
 	//         "id": 1583414227,
@@ -721,7 +721,7 @@ func (this *Bittrade) HandleSubscriptionStatus(client any, message map[string]an
 	}
 	return message
 }
-func (this *Bittrade) HandleSystemStatus(client any, message map[string]any) map[string]any {
+func (this *Bittrade) HandleSystemStatus(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	// todo: answer the question whether handleSystemStatus should be renamed
 	// and unified as handleStatus for any usage pattern that
@@ -734,7 +734,7 @@ func (this *Bittrade) HandleSystemStatus(client any, message map[string]any) map
 	//
 	return message
 }
-func (this *Bittrade) HandleSubject(client any, message map[string]any) {
+func (this *Bittrade) HandleSubject(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "ch": "market.btcusdt.mbp.150",
@@ -775,12 +775,12 @@ func (this *Bittrade) HandleSubject(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Bittrade) PongAsync(client any, message map[string]any) <-chan ccxt.AsyncResult[bool] {
+func (this *Bittrade) PongAsync(client ccxt.ClientInterface, message map[string]any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.pongBody(ch, client, message)
 	return ch
 }
-func (this *Bittrade) pongBody(ch chan ccxt.AsyncResult[bool], client any, message map[string]any) any {
+func (this *Bittrade) pongBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, message map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	//
@@ -795,10 +795,10 @@ func (this *Bittrade) pongBody(ch chan ccxt.AsyncResult[bool], client any, messa
 	}
 	return nil
 }
-func (this *Bittrade) HandlePing(client any, message map[string]any) {
+func (this *Bittrade) HandlePing(client ccxt.ClientInterface, message map[string]any) {
 	this.Spawn(this.PongAsync, client, message)
 }
-func (this *Bittrade) HandleErrorMessage(client any, message map[string]any) bool {
+func (this *Bittrade) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	//     {
 	//         "ts": 1586323747018,
@@ -853,7 +853,7 @@ func (this *Bittrade) HandleErrorMessage(client any, message map[string]any) boo
 	}
 	return true
 }
-func (this *Bittrade) HandleMessage(client any, message map[string]any) {
+func (this *Bittrade) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	if this.HandleErrorMessage(client, message) == true {
 		//
 		//     {"id":1583414227,"status":"ok","subbed":"market.btcusdt.mbp.150","ts":1583414229143}

@@ -2746,7 +2746,7 @@ func (this *Mexc) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 	}
 
 	// when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
-	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.Extend(map[string]any{}, ticker), market)}
 	return nil
 }
 func (this *Mexc) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -2980,12 +2980,12 @@ func (this *Mexc) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], opti
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Mexc) CreateMarketBuyOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Mexc) CreateMarketBuyOrderWithCostAsync(symbol string, cost float64, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Mexc) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost any, optionalArgs ...any) any {
+func (this *Mexc) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3023,12 +3023,12 @@ func (this *Mexc) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], s
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Mexc) CreateMarketSellOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Mexc) CreateMarketSellOrderWithCostAsync(symbol string, cost float64, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createMarketSellOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Mexc) createMarketSellOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost any, optionalArgs ...any) any {
+func (this *Mexc) createMarketSellOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3369,8 +3369,8 @@ func (this *Mexc) createSwapOrderBody(ch chan AsyncResult[Order], market map[str
 	}
 	var volString *string = this.AmountToPrecision(symbol, amount)
 	if volString == nil {
-		volStringStr := "0"
-		volString = &volStringStr
+		volStringValue := "0"
+		volString = &volStringValue
 	}
 	var request map[string]any = map[string]any{
 		"symbol":   market["id"],
@@ -3381,8 +3381,8 @@ func (this *Mexc) createSwapOrderBody(ch chan AsyncResult[Order], market map[str
 	if (orderType != 5) && (orderType != 6) {
 		var priceString *string = this.PriceToPrecision(symbol, price)
 		if priceString == nil {
-			priceStringStr := "0"
-			priceString = &priceStringStr
+			priceStringValue := "0"
+			priceString = &priceStringValue
 		}
 		request["price"] = this.ParseNumber(priceString)
 	}
@@ -7346,12 +7346,12 @@ func (this *Mexc) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], optio
  * @param {string} [params.symbol] market symbol required for margin account transfers eg:BTCUSDT
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Mexc) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Mexc) TransferAsync(code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Mexc) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
+func (this *Mexc) transferBody(ch chan AsyncResult[TransferEntry], code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -7563,12 +7563,12 @@ func (this *Mexc) ParseTransferStatus(status *string) *string {
  * @param {object} [params.toAccountType] skipped by default, set to 'EMAIL|UID|MOBILE' when making an "internal transfer"
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Mexc) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Mexc) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Mexc) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
+func (this *Mexc) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -8432,7 +8432,7 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	return literal649715
 }
-func (this *Mexc) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Mexc) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		return nil
 	}

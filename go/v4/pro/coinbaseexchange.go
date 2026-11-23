@@ -445,12 +445,12 @@ func (this *Coinbaseexchange) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Coinbaseexchange) WatchMyTradesForSymbolsAsync(symbols any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
+func (this *Coinbaseexchange) WatchMyTradesForSymbolsAsync(symbols []string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.Trade] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.Trade], 1)
 	go this.watchMyTradesForSymbolsBody(ch, symbols, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseexchange) watchMyTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbols any, optionalArgs ...any) any {
+func (this *Coinbaseexchange) watchMyTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbols []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var since *int64 = ccxt.GetArgInt64Ptr(optionalArgs, 0, nil)
@@ -720,7 +720,7 @@ func (this *Coinbaseexchange) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.O
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Coinbaseexchange) HandleTrade(client any, message map[string]any) map[string]any {
+func (this *Coinbaseexchange) HandleTrade(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "type": "match",
@@ -757,7 +757,7 @@ func (this *Coinbaseexchange) HandleTrade(client any, message map[string]any) ma
 	}
 	return message
 }
-func (this *Coinbaseexchange) HandleMyTrade(client any, message map[string]any) map[string]any {
+func (this *Coinbaseexchange) HandleMyTrade(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	var marketId *string = this.SafeString(message, "product_id")
 	if marketId != nil {
 		var trade map[string]any = this.ParseWsTrade(message)
@@ -889,7 +889,7 @@ func (this *Coinbaseexchange) ParseWsOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, "open")
 }
-func (this *Coinbaseexchange) HandleOrder(client any, message map[string]any) {
+func (this *Coinbaseexchange) HandleOrder(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// ccxt.Order is created
 	//
@@ -1161,7 +1161,7 @@ func (this *Coinbaseexchange) ParseWsOrder(order any, optionalArgs ...any) map[s
 		"trades":             nil,
 	}))
 }
-func (this *Coinbaseexchange) HandleTicker(client any, message map[string]any) map[string]any {
+func (this *Coinbaseexchange) HandleTicker(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "type": "ticker",
@@ -1250,17 +1250,17 @@ func (this *Coinbaseexchange) ParseTicker(ticker any, optionalArgs ...any) ccxt.
 		"info":          ticker,
 	})
 }
-func (this *Coinbaseexchange) HandleDelta(bookside any, delta any) {
+func (this *Coinbaseexchange) HandleDelta(bookside ccxt.IOrderBookSide, delta any) {
 	var price *float64 = this.SafeNumber(delta, 0)
 	var amount *float64 = this.SafeNumber(delta, 1)
-	bookside.(ccxt.IOrderBookSide).Store(price, amount)
+	bookside.Store(price, amount)
 }
-func (this *Coinbaseexchange) HandleDeltas(bookside any, deltas []any) {
+func (this *Coinbaseexchange) HandleDeltas(bookside ccxt.IOrderBookSide, deltas []any) {
 	for i := 0; i < len(deltas); i++ {
 		this.HandleDelta(bookside, deltas[i])
 	}
 }
-func (this *Coinbaseexchange) HandleOrderBook(client any, message map[string]any) {
+func (this *Coinbaseexchange) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// first message (snapshot)
 	//
@@ -1324,7 +1324,7 @@ func (this *Coinbaseexchange) HandleOrderBook(client any, message map[string]any
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	}
 }
-func (this *Coinbaseexchange) HandleSubscriptionStatus(client any, message map[string]any) map[string]any {
+func (this *Coinbaseexchange) HandleSubscriptionStatus(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "type": "subscriptions",
@@ -1338,7 +1338,7 @@ func (this *Coinbaseexchange) HandleSubscriptionStatus(client any, message map[s
 	//
 	return message
 }
-func (this *Coinbaseexchange) HandleErrorMessage(client any, message map[string]any) bool {
+func (this *Coinbaseexchange) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	//     {
 	//         "type": "error",
@@ -1377,7 +1377,7 @@ func (this *Coinbaseexchange) HandleErrorMessage(client any, message map[string]
 		return ret__
 	}
 }
-func (this *Coinbaseexchange) HandleMessage(client any, message map[string]any) {
+func (this *Coinbaseexchange) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var typeVar *string = this.SafeString(message, "type")
 	var methods map[string]any = map[string]any{
 		"snapshot":  this.HandleOrderBook,

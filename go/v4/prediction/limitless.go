@@ -472,8 +472,7 @@ func (this *Limitless) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketIn
 	}
 	for i := 0; i < len(eventKeys); i++ {
 		var eventKey string = eventKeys[i]
-		var g any = eventGroups[eventKey]
-		eventsDict[eventKey] = this.ParseEvent(g)
+		eventsDict[eventKey] = this.ParseEvent(this.SafeDict(eventGroups, eventKey, map[string]any{}))
 	}
 	this.Events = eventsDict
 	var marketsLength int = len(markets)
@@ -603,8 +602,7 @@ func (this *Limitless) ParseMarket(raw any) map[string]any {
 	}
 	for i := 0; i < len(tokenEntries); i++ {
 		var outcomeLabel string = tokenEntries[i]
-		var tokenData any = tokens[outcomeLabel]
-		var tokenId any = tokenData
+		var tokenId *string = this.SafeString(tokens, outcomeLabel)
 		var outcomeHandle string = this.SlugToOutcomeSymbol(groupId, slug, outcomeLabel)
 		// winningOutcomeIndex indexes the API's canonical outcome order (yes=0, no=1 for
 		// limitless's binary yes/no markets). Object.keys iteration order is NOT stable across
@@ -1303,19 +1301,13 @@ func (this *Limitless) ParsePredictionTicker(ticker any, optionalArgs ...any) ma
 		// the book endpoint is quoted in the yes token, the no side mirrors at 1 - price
 		var rawBids []any = ccxt.SafeListTyped(book, "bids")
 		var rawAsks []any = ccxt.SafeListTyped(book, "asks")
-		var rawBidsLength int = len(rawBids)
-		var rawAsksLength int = len(rawAsks)
-		var yesBestBid any
-		if rawBidsLength > 0 {
-			yesBestBid = rawBids[0]
-		} else {
-			yesBestBid = nil
+		var yesBestBid map[string]any
+		if 0 < len(rawBids) {
+			yesBestBid, _ = rawBids[0].(map[string]any)
 		}
-		var yesBestAsk any
-		if rawAsksLength > 0 {
-			yesBestAsk = rawAsks[0]
-		} else {
-			yesBestAsk = nil
+		var yesBestAsk map[string]any
+		if 0 < len(rawAsks) {
+			yesBestAsk, _ = rawAsks[0].(map[string]any)
 		}
 		var yesBidPrice *string = this.SafeString(yesBestBid, "price")
 		var yesBidSize *string = this.SafeString(yesBestBid, "size")
@@ -1430,7 +1422,7 @@ func (this *Limitless) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt
 		panic(r.Err)
 	}
 	var outcomesBySlug map[string]any = map[string]any{}
-	var slugs []any = []any{}
+	var slugs []string = []string{}
 	for i := 0; i < len(outcomes); i++ {
 		var outcomeObj map[string]any = this.Outcome(outcomes[i])
 		var slug *string = this.SafeString(outcomeObj["info"], "slug")
@@ -1452,7 +1444,7 @@ func (this *Limitless) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt
 	}
 	var promises []any = []any{}
 	for i := 0; i < len(slugs); i++ {
-		var slug any = slugs[i]
+		var slug string = slugs[i]
 		promises = append(promises, this.LimitlessPublicGetMarketsAddressOrSlug(this.Extend(map[string]any{
 			"addressOrSlug": slug,
 		}, params)))
@@ -1467,7 +1459,7 @@ func (this *Limitless) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt
 	}
 	var responses []any = r1.Value
 	for i := 0; i < len(slugs); i++ {
-		var slug any = slugs[i]
+		var slug string = slugs[i]
 		var detailIndex int64 = int64(i) * 2
 		var detail any = this.SafeDict(responses, detailIndex)
 		var book any = this.SafeDict(responses, detailIndex+1)
@@ -1984,11 +1976,11 @@ func (this *Limitless) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes157315 []any = ccxt.PredictionOrdersToList(r1.Value)
-	if retRes157315 == nil {
+	var retRes156915 []any = ccxt.PredictionOrdersToList(r1.Value)
+	if retRes156915 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes157315)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes156915)}
 	}
 	return nil
 }
@@ -2036,11 +2028,11 @@ func (this *Limitless) fetchClosedOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Pre
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes159515 []any = ccxt.PredictionOrdersToList(r1.Value)
-	if retRes159515 == nil {
+	var retRes159115 []any = ccxt.PredictionOrdersToList(r1.Value)
+	if retRes159115 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes159515)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes159115)}
 	}
 	return nil
 }
@@ -2774,11 +2766,9 @@ func (this *Limitless) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
 				panic(ccxt.InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
 			} else {
 				var quoteAmount any = this.ParseToNumeric(ccxt.Precise.StringMul(amountString, priceString))
-				var costRequest any
+				var costRequest any = quoteAmount
 				if cost != nil {
 					costRequest = cost
-				} else {
-					costRequest = quoteAmount
 				}
 				makerAmount = this.CostToPredictionPrecision(outcome, costRequest)
 			}
@@ -2916,16 +2906,8 @@ func (this *Limitless) SignEvmTransaction(tx any, privateKey any) any {
 	var payload string = "02" + this.RlpEncodeList(fields)
 	var hashHex string = this.HashString(this.Base16ToBinary(payload), ccxt.Keccak, "hex")
 	var signature map[string]any = ccxt.Ecdsa(hashHex, this.Remove0xPrefix(privateKey), ccxt.Secp256k1, nil)
-	var rHex any
-	if derefPtr := this.SafeString(signature, "r"); derefPtr != nil {
-		rHex = *derefPtr
-	}
-	var sHex any
-	if derefPtr := this.SafeString(signature, "s"); derefPtr != nil {
-		sHex = *derefPtr
-	}
-	rHex = this.PadHexToEven(rHex)
-	sHex = this.PadHexToEven(sHex)
+	var rHex any = this.PadHexToEven(this.SafeString(signature, "r"))
+	var sHex any = this.PadHexToEven(this.SafeString(signature, "s"))
 	var yParity *int64 = this.SafeInteger(signature, "v")
 	var signedFields []any = []any{}
 	for i := 0; i < len(fields); i++ {
@@ -3272,11 +3254,11 @@ func (this *Limitless) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes249119 []any = r1.Value
-		if retRes249119 == nil {
+		var retRes248819 []any = r1.Value
+		if retRes248819 == nil {
 			ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: nil}
 		} else {
-			ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(retRes249119)}
+			ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(retRes248819)}
 		}
 		return nil
 	}
@@ -4141,7 +4123,7 @@ func (this *Limitless) Sign(path string, optionalArgs ...any) map[string]any {
  * @name limitless#handleErrors
  * @description maps limitless error responses to ccxt exceptions
  */
-func (this *Limitless) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Limitless) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		return nil
 	}

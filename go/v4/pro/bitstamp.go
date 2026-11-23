@@ -207,7 +207,7 @@ func (this *Bitstamp) unWatchChannelBody(ch chan ccxt.AsyncResult[bool], channel
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Bitstamp) HandleOrderBook(client any, message map[string]any) {
+func (this *Bitstamp) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// initial snapshot is fetched with ccxt's fetchOrderBook
 	// the feed does not include a snapshot, just the deltas
@@ -442,7 +442,7 @@ func (this *Bitstamp) ParseWsTrade(trade any, optionalArgs ...any) map[string]an
 		"fee":          nil,
 	}, marketResolved))
 }
-func (this *Bitstamp) HandleTrade(client any, message map[string]any) {
+func (this *Bitstamp) HandleTrade(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "data": {
@@ -529,7 +529,7 @@ func (this *Bitstamp) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.Funding
 	ch <- ccxt.AsyncResult[ccxt.FundingRate]{Value: ccxt.FundingRateFromMap(r1.Value)}
 	return nil
 }
-func (this *Bitstamp) HandleFundingRate(client any, message map[string]any) {
+func (this *Bitstamp) HandleFundingRate(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "data": {
@@ -787,7 +787,7 @@ func (this *Bitstamp) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], option
 	ch <- ccxt.AsyncResult[bool]{Value: r2.Value}
 	return nil
 }
-func (this *Bitstamp) HandleMyTrades(client any, message map[string]any) {
+func (this *Bitstamp) HandleMyTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "data": {
@@ -881,7 +881,7 @@ func (this *Bitstamp) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) 
 		"fee":          fee,
 	}, marketResolved))
 }
-func (this *Bitstamp) HandleOrders(client any, message map[string]any) {
+func (this *Bitstamp) HandleOrders(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "data": {
@@ -1048,7 +1048,7 @@ func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 	}
 	return ccxt.OrderToMap(this.SafeOrder(literal75131, marketResolved))
 }
-func (this *Bitstamp) HandleOrderBookSubscription(client any, message map[string]any) {
+func (this *Bitstamp) HandleOrderBookSubscription(client ccxt.ClientInterface, message map[string]any) {
 	var channel *string = this.SafeString(message, "channel")
 	if channel == nil {
 		return
@@ -1065,7 +1065,7 @@ func (this *Bitstamp) HandleOrderBookSubscription(client any, message map[string
 	orderbook.Fields().Nonce = nil
 	orderbook.SetCache([]any{})
 }
-func (this *Bitstamp) HandleSubscriptionStatus(client any, message map[string]any) {
+func (this *Bitstamp) HandleSubscriptionStatus(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "event": "bts:subscription_succeeded",
@@ -1086,7 +1086,7 @@ func (this *Bitstamp) HandleSubscriptionStatus(client any, message map[string]an
 		this.HandleOrderBookSubscription(client, message)
 	}
 }
-func (this *Bitstamp) HandleUnsubscriptionStatus(client any, message map[string]any) {
+func (this *Bitstamp) HandleUnsubscriptionStatus(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "event": "bts:unsubscription_succeeded",
@@ -1146,7 +1146,7 @@ func (this *Bitstamp) PruneCachedBySymbols(newCache ccxt.WsArrayCache, cache ccx
 	}
 	return newCache
 }
-func (this *Bitstamp) HandleSubject(client any, message map[string]any) {
+func (this *Bitstamp) HandleSubject(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "data": {
@@ -1210,7 +1210,7 @@ func (this *Bitstamp) HandleSubject(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Bitstamp) HandleErrorMessage(client any, message map[string]any) bool {
+func (this *Bitstamp) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	// {
 	//     "event": "bts:error",
 	//     "channel": '',
@@ -1225,7 +1225,7 @@ func (this *Bitstamp) HandleErrorMessage(client any, message map[string]any) boo
 	}
 	return true
 }
-func (this *Bitstamp) HandleMessage(client any, message map[string]any) {
+func (this *Bitstamp) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	if this.HandleErrorMessage(client, message) != true {
 		return
 	}

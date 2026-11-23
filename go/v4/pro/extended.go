@@ -106,7 +106,7 @@ func (this *Extended) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Extended) HandleOrderBook(client any, message map[string]any) {
+func (this *Extended) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "ts": 1701563440000,
@@ -181,12 +181,12 @@ func (this *Extended) HandleOrderBook(client any, message map[string]any) {
 	orderbook.SetNonce(nonce)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Extended) HandleDelta(bookside any, delta any) {
+func (this *Extended) HandleDelta(bookside ccxt.IOrderBookSide, delta any) {
 	var price *float64 = this.SafeFloat(delta, "p")
 	var amount *float64 = this.SafeFloat2(delta, "c", "q")
-	bookside.(ccxt.IOrderBookSide).Store(price, amount)
+	bookside.Store(price, amount)
 }
-func (this *Extended) HandleDeltas(bookside any, deltas []any) {
+func (this *Extended) HandleDeltas(bookside ccxt.IOrderBookSide, deltas []any) {
 	for i := 0; i < len(deltas); i++ {
 		this.HandleDelta(bookside, deltas[i])
 	}
@@ -325,7 +325,7 @@ func (this *Extended) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], 
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r1.Value)}
 	return nil
 }
-func (this *Extended) HandleBalance(client any, message map[string]any) {
+func (this *Extended) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "type": "BALANCE",
@@ -461,7 +461,7 @@ func (this *Extended) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Extended) HandleMyTrades(client any, message map[string]any) {
+func (this *Extended) HandleMyTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "type": "TRADE",
@@ -600,7 +600,7 @@ func (this *Extended) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positio
 	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.Positions, symbolsNormalized, since, limit, true))}
 	return nil
 }
-func (this *Extended) HandlePositions(client any, message map[string]any) {
+func (this *Extended) HandlePositions(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "type": "POSITION",
@@ -661,7 +661,7 @@ func (this *Extended) HandlePositions(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
 }
-func (this *Extended) HandleOrders(client any, message map[string]any) {
+func (this *Extended) HandleOrders(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "type": "ORDER",
@@ -783,7 +783,7 @@ func (this *Extended) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.Funding
 	ch <- ccxt.AsyncResult[ccxt.FundingRate]{Value: ccxt.FundingRateFromMap(retRes55315)}
 	return nil
 }
-func (this *Extended) HandleFundingRate(client any, message map[string]any) {
+func (this *Extended) HandleFundingRate(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "ts": 1701563440000,
@@ -884,7 +884,7 @@ func (this *Extended) watchMarkPriceBody(ch chan ccxt.AsyncResult[ccxt.Ticker], 
 	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(retRes62715)}
 	return nil
 }
-func (this *Extended) HandleMarkPrice(client any, message map[string]any) {
+func (this *Extended) HandleMarkPrice(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "type": "MP",
@@ -974,7 +974,7 @@ func (this *Extended) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Extended) HandleTrades(client any, message map[string]any) {
+func (this *Extended) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "ts": 1701563440000,
@@ -1026,7 +1026,7 @@ func (this *Extended) HandleTrades(client any, message map[string]any) {
 		subscription["nonce"] = nil
 	}
 	for i := 0; i < len(data); i++ {
-		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(data[i], market))
+		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(this.SafeDict(data, i, map[string]any{}), market))
 		stored.Append(trade)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -1113,7 +1113,7 @@ func (this *Extended) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
 	return nil
 }
-func (this *Extended) HandleOHLCV(client any, message map[string]any) {
+func (this *Extended) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "ts": 1695738675123,
@@ -1170,7 +1170,7 @@ func (this *Extended) HandleOHLCV(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func (this *Extended) FindSubscription(client any, name string) any {
+func (this *Extended) FindSubscription(client ccxt.ClientInterface, name string) any {
 	var keys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
@@ -1182,7 +1182,7 @@ func (this *Extended) FindSubscription(client any, name string) any {
 	}
 	return nil
 }
-func (this *Extended) HandleErrorMessage(client any, message map[string]any) bool {
+func (this *Extended) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	//     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
 	//
@@ -1197,7 +1197,7 @@ func (this *Extended) HandleErrorMessage(client any, message map[string]any) boo
 	this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
 	panic(ccxt.ExchangeError(feedback))
 }
-func (this *Extended) HandleMessage(client any, message map[string]any) {
+func (this *Extended) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	if this.HandleErrorMessage(client, message) == true {
 		return
 	}

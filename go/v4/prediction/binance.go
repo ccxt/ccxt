@@ -2105,7 +2105,7 @@ func (this *Binance) fetchWalletBody(ch chan ccxt.AsyncResult[map[string]any], m
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var cachedWallet map[string]any = this.SafeDictMap(this.Options, "wallet")
+	var cachedWallet, _ = this.Options["wallet"].(map[string]any)
 	if cachedWallet != nil {
 
 		ch <- ccxt.AsyncResult[map[string]any]{Value: cachedWallet}
@@ -2388,12 +2388,12 @@ func (this *Binance) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrd
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Binance) CreateMarketOrderWithCostAsync(symbol string, side string, cost any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
+func (this *Binance) CreateMarketOrderWithCostAsync(symbol string, side string, cost float64, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionOrder], 1)
 	go this.createMarketOrderWithCostBody(ch, symbol, side, cost, optionalArgs...)
 	return ch
 }
-func (this *Binance) createMarketOrderWithCostBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], symbol string, side string, cost any, optionalArgs ...any) any {
+func (this *Binance) createMarketOrderWithCostBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], symbol string, side string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2545,7 +2545,7 @@ func (this *Binance) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Prediction
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(orders)}
 	return nil
 }
-func (this *Binance) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Binance) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		return nil
 	}

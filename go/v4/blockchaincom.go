@@ -1445,12 +1445,12 @@ func (this *Blockchaincom) ParseTransaction(transaction map[string]any, optional
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Blockchaincom) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Blockchaincom) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Blockchaincom) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
+func (this *Blockchaincom) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1650,12 +1650,12 @@ func (this *Blockchaincom) fetchDepositsBody(ch chan AsyncResult[[]Transaction],
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Blockchaincom) FetchDepositAsync(id any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Blockchaincom) FetchDepositAsync(id string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.fetchDepositBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Blockchaincom) fetchDepositBody(ch chan AsyncResult[Transaction], id any, optionalArgs ...any) any {
+func (this *Blockchaincom) fetchDepositBody(ch chan AsyncResult[Transaction], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1877,7 +1877,7 @@ func (this *Blockchaincom) Sign(path string, optionalArgs ...any) map[string]any
 	}
 	return literal131315
 }
-func (this *Blockchaincom) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Blockchaincom) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	// {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
 	if response == nil {
 		return nil

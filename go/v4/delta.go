@@ -2633,8 +2633,8 @@ func (this *Delta) editOrderBody(ch chan AsyncResult[Order], id string, symbol s
 	if amount != nil {
 		var sizeString *string = this.AmountToPrecision(symbol, amount)
 		if sizeString == nil {
-			sizeStringStr := "0"
-			sizeString = &sizeStringStr
+			sizeStringValue := "0"
+			sizeString = &sizeStringValue
 		}
 		request["size"] = this.ParseToInt(sizeString)
 	}
@@ -5306,7 +5306,7 @@ func (this *Delta) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResult,
 	}
 }
-func (this *Delta) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Delta) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		return nil
 	}

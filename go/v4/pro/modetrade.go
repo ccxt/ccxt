@@ -174,7 +174,7 @@ func (this *Modetrade) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBoo
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Modetrade) HandleOrderBook(client any, message map[string]any) {
+func (this *Modetrade) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "topic": "PERP_BTC_USDC@orderbook",
@@ -305,7 +305,7 @@ func (this *Modetrade) ParseWsTicker(ticker map[string]any, optionalArgs ...any)
 		"info":          ticker,
 	}, market))
 }
-func (this *Modetrade) HandleTicker(client any, message map[string]any) map[string]any {
+func (this *Modetrade) HandleTicker(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "topic": "PERP_BTC_USDC@ticker",
@@ -388,7 +388,7 @@ func (this *Modetrade) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(this.FilterByArray(tickers, "symbol", symbolsNormalized))}
 	return nil
 }
-func (this *Modetrade) HandleTickers(client any, message map[string]any) {
+func (this *Modetrade) HandleTickers(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "topic":"tickers",
@@ -472,7 +472,7 @@ func (this *Modetrade) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccx
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(this.FilterByArray(tickers, "symbol", symbolsNormalized))}
 	return nil
 }
-func (this *Modetrade) HandleBidAsk(client any, message map[string]any) {
+func (this *Modetrade) HandleBidAsk(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//       "topic": "bbos",
@@ -588,7 +588,7 @@ func (this *Modetrade) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sy
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
 	return nil
 }
-func (this *Modetrade) HandleOHLCV(client any, message map[string]any) {
+func (this *Modetrade) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "topic":"PERP_BTC_USDC@kline_1m",
@@ -700,7 +700,7 @@ func (this *Modetrade) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], s
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySymbolSinceLimit(trades, market.Symbol, since, limitResolved, true))}
 	return nil
 }
-func (this *Modetrade) HandleTrade(client any, message map[string]any) {
+func (this *Modetrade) HandleTrade(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// {
 	//     "topic":"PERP_ADA_USDC@trade",
@@ -822,7 +822,7 @@ func (this *Modetrade) ParseWsTrade(trade any, optionalArgs ...any) map[string]a
 		"info":         trade,
 	}, marketResolved))
 }
-func (this *Modetrade) HandleAuth(client any, message map[string]any) {
+func (this *Modetrade) HandleAuth(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "event": "auth",
@@ -1237,7 +1237,7 @@ func (this *Modetrade) ParseWsOrder(order any, optionalArgs ...any) map[string]a
 		"trades":             trades,
 	}))
 }
-func (this *Modetrade) HandleOrderUpdate(client any, message map[string]any) {
+func (this *Modetrade) HandleOrderUpdate(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "topic": "executionreport",
@@ -1302,7 +1302,7 @@ func (this *Modetrade) HandleOrderUpdate(client any, message map[string]any) {
 		this.HandleOrder(client, data, topic)
 	}
 }
-func (this *Modetrade) HandleOrder(client any, message any, topic any) {
+func (this *Modetrade) HandleOrder(client ccxt.ClientInterface, message any, topic any) {
 	var parsed map[string]any = this.ParseWsOrder(message)
 	var symbol *string = this.SafeString(parsed, "symbol")
 	var orderId *string = this.SafeString(parsed, "id")
@@ -1340,7 +1340,7 @@ func (this *Modetrade) HandleOrder(client any, message any, topic any) {
 		client.(ccxt.ClientInterface).Resolve(this.Orders, ccxt.Add(ccxt.Add(topic, ":"), symbol))
 	}
 }
-func (this *Modetrade) HandleMyTrade(client any, message any) {
+func (this *Modetrade) HandleMyTrade(client ccxt.ClientInterface, message any) {
 	//
 	// {
 	//     symbol: 'PERP_XRP_USDC',
@@ -1475,7 +1475,7 @@ func (this *Modetrade) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positi
 	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.Positions, symbolsNormalized, since, limit, true))}
 	return nil
 }
-func (this *Modetrade) SetPositionsCache(client any, optionalArgs ...any) {
+func (this *Modetrade) SetPositionsCache(client ccxt.ClientInterface, optionalArgs ...any) {
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false) == true
@@ -1489,12 +1489,12 @@ func (this *Modetrade) SetPositionsCache(client any, optionalArgs ...any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 }
-func (this *Modetrade) LoadPositionsSnapshotAsync(client any, messageHash string) <-chan ccxt.AsyncResult[bool] {
+func (this *Modetrade) LoadPositionsSnapshotAsync(client ccxt.ClientInterface, messageHash string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadPositionsSnapshotBody(ch, client, messageHash)
 	return ch
 }
-func (this *Modetrade) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string) any {
+func (this *Modetrade) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, messageHash string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -1520,7 +1520,7 @@ func (this *Modetrade) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool],
 	}
 	return nil
 }
-func (this *Modetrade) HandlePositions(client any, message map[string]any) {
+func (this *Modetrade) HandlePositions(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "topic":"position",
@@ -1688,7 +1688,7 @@ func (this *Modetrade) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances],
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r1.Value)}
 	return nil
 }
-func (this *Modetrade) HandleBalance(client any, message map[string]any) {
+func (this *Modetrade) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "topic":"balance",
@@ -1758,7 +1758,7 @@ func (this *Modetrade) HandleBalance(client any, message map[string]any) {
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
 }
-func (this *Modetrade) HandleErrorMessage(client any, message map[string]any) bool {
+func (this *Modetrade) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	// {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
 	//
@@ -1799,7 +1799,7 @@ func (this *Modetrade) HandleErrorMessage(client any, message map[string]any) bo
 		return ret__
 	}
 }
-func (this *Modetrade) HandleMessage(client any, message map[string]any) {
+func (this *Modetrade) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	if this.HandleErrorMessage(client, message) {
 		return
 	}
@@ -1865,17 +1865,17 @@ func (this *Modetrade) HandleMessage(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Modetrade) Ping(client any) any {
+func (this *Modetrade) Ping(client ccxt.ClientInterface) any {
 	return map[string]any{
 		"event": "ping",
 	}
 }
-func (this *Modetrade) PongAsync(client any, message map[string]any) <-chan ccxt.AsyncResult[bool] {
+func (this *Modetrade) PongAsync(client ccxt.ClientInterface, message map[string]any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.pongBody(ch, client, message)
 	return ch
 }
-func (this *Modetrade) pongBody(ch chan ccxt.AsyncResult[bool], client any, message map[string]any) any {
+func (this *Modetrade) pongBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, message map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -1887,17 +1887,17 @@ func (this *Modetrade) pongBody(ch chan ccxt.AsyncResult[bool], client any, mess
 	}
 	return nil
 }
-func (this *Modetrade) HandlePing(client any, message map[string]any) {
+func (this *Modetrade) HandlePing(client ccxt.ClientInterface, message map[string]any) {
 	this.Spawn(this.PongAsync, client, message)
 }
-func (this *Modetrade) HandlePong(client any, message map[string]any) map[string]any {
+func (this *Modetrade) HandlePong(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	// { event: "pong", ts: 1614667590000 }
 	//
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return message
 }
-func (this *Modetrade) HandleSubscribe(client any, message map[string]any) map[string]any {
+func (this *Modetrade) HandleSubscribe(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "id": "666888",

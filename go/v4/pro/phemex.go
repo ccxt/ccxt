@@ -217,7 +217,7 @@ func (this *Phemex) ParsePerpetualTicker(ticker any, optionalArgs ...any) any {
 		"info":          ticker,
 	}))
 }
-func (this *Phemex) HandleTicker(client any, message map[string]any) {
+func (this *Phemex) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "spot_market24h": {
@@ -369,7 +369,7 @@ func (this *Phemex) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r1.Value)}
 	return nil
 }
-func (this *Phemex) HandleBalance(client any, message any, typeVar string) {
+func (this *Phemex) HandleBalance(client ccxt.ClientInterface, message any, typeVar string) {
 	// spot
 	//    [
 	//       {
@@ -447,7 +447,7 @@ func (this *Phemex) HandleBalance(client any, message any, typeVar string) {
 	var messageHash string = typeVar + ":balance"
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
-func (this *Phemex) HandleTrades(client any, message map[string]any) {
+func (this *Phemex) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "sequence": 1795484727,
@@ -492,7 +492,7 @@ func (this *Phemex) HandleTrades(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func (this *Phemex) HandleOHLCV(client any, message map[string]any) {
+func (this *Phemex) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "kline": [
@@ -549,8 +549,7 @@ func (this *Phemex) HandleOHLCV(client any, message map[string]any) {
 			}
 		}
 		for i := 0; i < len(ohlcvs); i++ {
-			var candle any = ohlcvs[i]
-			stored.Append(candle)
+			stored.Append(ohlcvs[i])
 		}
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
@@ -1068,7 +1067,7 @@ func (this *Phemex) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Phemex) HandleUnSubscription(client any, message map[string]any) {
+func (this *Phemex) HandleUnSubscription(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// phemex answers subscribe and unsubscribe requests alike, so the answer is matched to a pending unsubscribe by id
 	//
@@ -1111,7 +1110,7 @@ func (this *Phemex) CustomHandleDeltas(bookside any, deltas []any, optionalArgs 
 		this.CustomHandleDelta(bookside, ccxt.DerefScalar(deltas[i]), market)
 	}
 }
-func (this *Phemex) HandleOrderBook(client any, message map[string]any) {
+func (this *Phemex) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "book": {
@@ -1270,7 +1269,7 @@ func (this *Phemex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], op
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Phemex) HandleMyTrades(client any, message []any) {
+func (this *Phemex) HandleMyTrades(client ccxt.ClientInterface, message []any) {
 	//
 	// swap
 	//    [
@@ -1488,7 +1487,7 @@ func (this *Phemex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Phemex) HandleOrders(client any, message map[string]any) {
+func (this *Phemex) HandleOrders(client ccxt.ClientInterface, message map[string]any) {
 	// spot update
 	// {
 	//        "closed":[
@@ -1664,8 +1663,7 @@ func (this *Phemex) HandleOrders(client any, message map[string]any) {
 		}
 		trades = ccxt.ArrayTyped(this.SafeList(ordersDict, "fills", []any{}))
 		for i := 0; i < len(orders); i++ {
-			var rawOrder any = orders[i]
-			var parsedOrder map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrder))
+			var parsedOrder map[string]any = ccxt.OrderToMap(this.ParseOrder(this.SafeDict(orders, i, map[string]any{})))
 			parsedOrders = append(parsedOrders, parsedOrder)
 		}
 	} else {
@@ -1898,7 +1896,7 @@ func (this *Phemex) ParseWSSwapOrder(order any, optionalArgs ...any) any {
 		"trades":             nil,
 	}, marketValue))
 }
-func (this *Phemex) HandleMessage(client any, message map[string]any) {
+func (this *Phemex) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	// private spot update
 	// {
 	//     "orders": { closed: [ ], fills: [ ], open: [] },
@@ -2051,7 +2049,7 @@ func (this *Phemex) HandleMessage(client any, message map[string]any) {
 		this.HandleBalance(client, accounts, typeVar)
 	}
 }
-func (this *Phemex) HandleAuthenticate(client any, message map[string]any) {
+func (this *Phemex) HandleAuthenticate(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// {
 	//     "error": null,

@@ -738,7 +738,8 @@ func (this *Zebpay) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface]
 		//     "customMessage": ["OK"]
 		// }
 		//
-		var responseData []any = SafeListTyped(response, "data")
+		var responseData []any
+		responseData, _ = response["data"].([]any)
 		data = this.SafeDictMap(responseData, 0, map[string]any{})
 	}
 
@@ -2856,7 +2857,7 @@ func (this *Zebpay) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResolved,
 	}
 }
-func (this *Zebpay) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Zebpay) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, body)
 		return nil

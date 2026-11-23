@@ -382,7 +382,7 @@ func (this *Kraken) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symb
 	ch <- ccxt.AsyncResult[ccxt.Order]{Value: ccxt.OrderFromMap(r2.Value)}
 	return nil
 }
-func (this *Kraken) HandleCreateEditOrder(client any, message map[string]any) {
+func (this *Kraken) HandleCreateEditOrder(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//  createOrder
 	//     {
@@ -592,7 +592,7 @@ func (this *Kraken) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id s
 	ch <- ccxt.AsyncResult[ccxt.Order]{Value: ccxt.OrderFromMap(r2.Value)}
 	return nil
 }
-func (this *Kraken) HandleCancelOrder(client any, message map[string]any) {
+func (this *Kraken) HandleCancelOrder(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "method": "cancel_order",
@@ -662,7 +662,7 @@ func (this *Kraken) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order]
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(r2.Value)}
 	return nil
 }
-func (this *Kraken) HandleCancelAllOrders(client any, message map[string]any) {
+func (this *Kraken) HandleCancelAllOrders(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "method": "cancel_all",
@@ -678,7 +678,7 @@ func (this *Kraken) HandleCancelAllOrders(client any, message map[string]any) {
 	var reqId *string = this.SafeString(message, "req_id")
 	client.(ccxt.ClientInterface).Resolve(message, reqId)
 }
-func (this *Kraken) HandleTicker(client any, message map[string]any) {
+func (this *Kraken) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "channel": "ticker",
@@ -742,7 +742,7 @@ func (this *Kraken) HandleTicker(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(result, messageHash)
 }
-func (this *Kraken) HandleTrades(client any, message map[string]any) {
+func (this *Kraken) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "channel": "trade",
@@ -786,7 +786,7 @@ func (this *Kraken) HandleTrades(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func (this *Kraken) HandleOHLCV(client any, message map[string]any) {
+func (this *Kraken) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "channel": "ohlc",
@@ -1376,7 +1376,7 @@ func (this *Kraken) loadMarketsBody(ch chan ccxt.AsyncResult[map[string]any], op
 		panic(r.Err)
 	}
 	var markets map[string]any = r.Value
-	var marketsByWsName map[string]any = this.SafeDictMap(this.Options, "marketsByWsName")
+	var marketsByWsName, _ = this.Options["marketsByWsName"].(map[string]any)
 	if (marketsByWsName == nil) || (reload == true) {
 		marketsByWsName = map[string]any{}
 		var symbols []string = this.Symbols // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
@@ -1397,7 +1397,7 @@ func (this *Kraken) loadMarketsBody(ch chan ccxt.AsyncResult[map[string]any], op
 	ch <- ccxt.AsyncResult[map[string]any]{Value: markets}
 	return nil
 }
-func (this *Kraken) Ping(client any) any {
+func (this *Kraken) Ping(client ccxt.ClientInterface) any {
 	var url string = client.(ccxt.ClientInterface).GetUrl()
 	var request map[string]any = map[string]any{}
 	if strings.Index(url, "v2") >= 0 {
@@ -1407,7 +1407,7 @@ func (this *Kraken) Ping(client any) any {
 	}
 	return request
 }
-func (this *Kraken) HandlePong(client any, message map[string]any) map[string]any {
+func (this *Kraken) HandlePong(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return message
 }
@@ -1436,7 +1436,7 @@ func (this *Kraken) watchHeartbeatBody(ch chan ccxt.AsyncResult[map[string]any],
 	ch <- ccxt.AsyncResult[map[string]any]{Value: r1.Value}
 	return nil
 }
-func (this *Kraken) HandleHeartbeat(client any, message map[string]any) {
+func (this *Kraken) HandleHeartbeat(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// every second (approx) if no other updates are sent
 	//
@@ -1445,7 +1445,7 @@ func (this *Kraken) HandleHeartbeat(client any, message map[string]any) {
 	var event *string = this.SafeString(message, "channel")
 	client.(ccxt.ClientInterface).Resolve(message, event)
 }
-func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
+func (this *Kraken) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// first message (snapshot)
 	//
@@ -1648,7 +1648,7 @@ func (this *Kraken) FormatNumber(data any) string {
 	}
 	return joinedResult
 }
-func (this *Kraken) HandleSystemStatus(client any, message map[string]any) map[string]any {
+func (this *Kraken) HandleSystemStatus(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	// todo: answer the question whether handleSystemStatus should be renamed
 	// and unified as handleStatus for any usage pattern that
@@ -1882,7 +1882,7 @@ func (this *Kraken) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], op
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(r.Value)}
 	return nil
 }
-func (this *Kraken) HandleMyTrades(client any, message map[string]any, optionalArgs ...any) {
+func (this *Kraken) HandleMyTrades(client ccxt.ClientInterface, message map[string]any, optionalArgs ...any) {
 	//
 	//     {
 	//         "channel": "executions",
@@ -2056,7 +2056,7 @@ func (this *Kraken) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(retRes144615)}
 	return nil
 }
-func (this *Kraken) HandleOrders(client any, message map[string]any, optionalArgs ...any) {
+func (this *Kraken) HandleOrders(client ccxt.ClientInterface, message map[string]any, optionalArgs ...any) {
 	//
 	//     {
 	//         "channel": "executions",
@@ -2326,7 +2326,7 @@ func (this *Kraken) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r2.Value)}
 	return nil
 }
-func (this *Kraken) HandleBalance(client any, message map[string]any) {
+func (this *Kraken) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "channel": "balances",
@@ -2394,7 +2394,7 @@ func (this *Kraken) GetMessageHash(unifiedElementName string, optionalArgs ...an
 	}
 	return messageHash
 }
-func (this *Kraken) HandleSubscriptionStatus(client any, message map[string]any) {
+func (this *Kraken) HandleSubscriptionStatus(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// public
 	//
@@ -2423,7 +2423,7 @@ func (this *Kraken) HandleSubscriptionStatus(client any, message map[string]any)
 		client.(ccxt.ClientInterface).SubscriptionSet(channelId, message)
 	}
 }
-func (this *Kraken) HandleUnsubscriptionStatus(client any, message map[string]any) map[string]any {
+func (this *Kraken) HandleUnsubscriptionStatus(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	// one acknowledgement per symbol in the unsubscribe request
 	//
@@ -2459,7 +2459,7 @@ func (this *Kraken) HandleUnsubscriptionStatus(client any, message map[string]an
 	}
 	return message
 }
-func (this *Kraken) HandleErrorMessage(client any, message map[string]any) bool {
+func (this *Kraken) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	//     {
 	//         "errorMessage": "Currency pair not in ISO 4217-A3 format foobar",
@@ -2497,7 +2497,7 @@ func (this *Kraken) HandleErrorMessage(client any, message map[string]any) bool 
 	}
 	return true
 }
-func (this *Kraken) HandleMessage(client any, message map[string]any) {
+func (this *Kraken) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var channel *string = this.SafeString(message, "channel")
 	if channel != nil {
 		if channel != nil && *channel == "executions" {

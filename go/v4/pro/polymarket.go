@@ -237,7 +237,7 @@ func (this *Polymarket) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], sym
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Polymarket) HandleOrderBook(client any, message map[string]any) {
+func (this *Polymarket) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "ch": "book::1",
@@ -427,7 +427,7 @@ func (this *Polymarket) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccx
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Tickers, symbolsNormalized)}
 	return nil
 }
-func (this *Polymarket) HandleTicker(client any, message map[string]any) {
+func (this *Polymarket) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "ch": "tickers::1",
@@ -523,7 +523,7 @@ func (this *Polymarket) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]cc
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Bidsasks, symbolsNormalized)}
 	return nil
 }
-func (this *Polymarket) HandleBidAsk(client any, message map[string]any) {
+func (this *Polymarket) HandleBidAsk(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "ch": "bbo::1",
@@ -667,7 +667,7 @@ func (this *Polymarket) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Polymarket) HandleTrades(client any, message map[string]any) {
+func (this *Polymarket) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "ch": "trades::1",
@@ -882,7 +882,7 @@ func (this *Polymarket) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol 
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Polymarket) HandleOHLCV(client any, message map[string]any) {
+func (this *Polymarket) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "ch": "klines::1::1h",
@@ -1061,7 +1061,7 @@ func (this *Polymarket) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], 
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Polymarket) HandleOrder(client any, message map[string]any) {
+func (this *Polymarket) HandleOrder(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "ch": "orders",
@@ -1187,7 +1187,7 @@ func (this *Polymarket) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade]
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Polymarket) HandleMyTrades(client any, message map[string]any) {
+func (this *Polymarket) HandleMyTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "ch": "fills",
@@ -1330,7 +1330,7 @@ func (this *Polymarket) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Posit
 	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.Positions, symbolsNormalized, since, limit, true))}
 	return nil
 }
-func (this *Polymarket) SetPositionsCache(client any, optionalArgs ...any) {
+func (this *Polymarket) SetPositionsCache(client ccxt.ClientInterface, optionalArgs ...any) {
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	if this.Positions != nil {
@@ -1347,12 +1347,12 @@ func (this *Polymarket) SetPositionsCache(client any, optionalArgs ...any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 }
-func (this *Polymarket) LoadPositionsSnapshotAsync(client any, messageHash string) <-chan ccxt.AsyncResult[bool] {
+func (this *Polymarket) LoadPositionsSnapshotAsync(client ccxt.ClientInterface, messageHash string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadPositionsSnapshotBody(ch, client, messageHash)
 	return ch
 }
-func (this *Polymarket) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string) any {
+func (this *Polymarket) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, messageHash string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -1431,7 +1431,7 @@ func (this *Polymarket) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances]
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r3.Value)}
 	return nil
 }
-func (this *Polymarket) SetBalanceCache(client any) {
+func (this *Polymarket) SetBalanceCache(client ccxt.ClientInterface) {
 	if _, ok := this.Balance["info"]; ok {
 		return
 	}
@@ -1444,12 +1444,12 @@ func (this *Polymarket) SetBalanceCache(client any) {
 		}
 	}
 }
-func (this *Polymarket) LoadBalanceSnapshotAsync(client any, messageHash string) <-chan ccxt.AsyncResult[bool] {
+func (this *Polymarket) LoadBalanceSnapshotAsync(client ccxt.ClientInterface, messageHash string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadBalanceSnapshotBody(ch, client, messageHash)
 	return ch
 }
-func (this *Polymarket) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string) any {
+func (this *Polymarket) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, messageHash string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -1470,7 +1470,7 @@ func (this *Polymarket) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], 
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
 	return nil
 }
-func (this *Polymarket) HandlePortfolio(client any, message map[string]any) {
+func (this *Polymarket) HandlePortfolio(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "ch": "portfolio",
@@ -1548,7 +1548,7 @@ func (this *Polymarket) HandlePortfolio(client any, message map[string]any) {
 	this.Balance, _ = this.SafeBalance(result).(map[string]any)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
 }
-func (this *Polymarket) HandleAck(client any, message any) {
+func (this *Polymarket) HandleAck(client ccxt.ClientInterface, message any) {
 	//
 	// subscribe or unsubscribe acknowledgement
 	//
@@ -1673,7 +1673,7 @@ func (this *Polymarket) HandleAck(client any, message any) {
 		}
 	}
 }
-func (this *Polymarket) HandleMessage(client any, message map[string]any) {
+func (this *Polymarket) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var ch *string = this.SafeString(message, "ch")
 	if ch == nil {
 		this.HandleAck(client, message)
@@ -1696,7 +1696,7 @@ func (this *Polymarket) HandleMessage(client any, message map[string]any) {
 		ccxt.CallDynamically(method, client, message)
 	}
 }
-func (this *Polymarket) Ping(client any) any {
+func (this *Polymarket) Ping(client ccxt.ClientInterface) any {
 	return map[string]any{
 		"id":  this.RequestId(),
 		"req": "post",

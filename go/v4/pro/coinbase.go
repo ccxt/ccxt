@@ -560,7 +560,7 @@ func (this *Coinbase) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optiona
 	ch <- ccxt.AsyncResult[bool]{Value: r2.Value}
 	return nil
 }
-func (this *Coinbase) HandleTickers(client any, message map[string]any) {
+func (this *Coinbase) HandleTickers(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "channel": "ticker",
@@ -783,7 +783,7 @@ func (this *Coinbase) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
 	return nil
 }
-func (this *Coinbase) HandleOHLCV(client any, message any) {
+func (this *Coinbase) HandleOHLCV(client ccxt.ClientInterface, message any) {
 	//
 	//     {
 	//         "channel": "candles",
@@ -1228,7 +1228,7 @@ func (this *Coinbase) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Coinbase) HandleTrade(client any, message map[string]any) {
+func (this *Coinbase) HandleTrade(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "channel": "market_trades",
@@ -1285,19 +1285,13 @@ func (this *Coinbase) HandleTrade(client any, message map[string]any) {
 		// coinbase sends trades newest-first, append them in reverse so the cache stays sorted by ascending timestamp
 		var tradesLength int = len(currentTrades)
 		for j := 0; j < tradesLength; j++ {
-			var item any
-			if (tradesLength-j)-1 >= 0 && (tradesLength-j)-1 < len(currentTrades) {
-				item = currentTrades[(tradesLength-j)-1]
-			} else {
-				item = nil
-			}
-			tradesArray.Append(ccxt.TradeToMap(this.ParseTrade(item)))
+			tradesArray.Append(ccxt.TradeToMap(this.ParseTrade(this.SafeDict(currentTrades, (tradesLength-j)-1, map[string]any{}))))
 		}
 	}
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 	this.TryResolveUsdc(client, messageHash, tradesArray)
 }
-func (this *Coinbase) HandleOrder(client any, message map[string]any) {
+func (this *Coinbase) HandleOrder(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "channel": "user",
@@ -1428,7 +1422,7 @@ func (this *Coinbase) HandleOrderBookHelper(orderbook ccxt.OrderBookInterface, u
 		orderbookSide.(ccxt.IOrderBookSide).Store(price, amount)
 	}
 }
-func (this *Coinbase) HandleOrderBook(client any, message map[string]any) {
+func (this *Coinbase) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "channel": "l2_data",
@@ -1493,12 +1487,12 @@ func (this *Coinbase) HandleOrderBook(client any, message map[string]any) {
 		this.TryResolveUsdc(client, messageHash, orderbook)
 	}
 }
-func (this *Coinbase) TryResolveUsdc(client any, messageHash string, result any) {
+func (this *Coinbase) TryResolveUsdc(client ccxt.ClientInterface, messageHash string, result any) {
 	if strings.HasSuffix(messageHash, "/USD") || strings.HasSuffix(messageHash, "-USD") {
 		client.(ccxt.ClientInterface).Resolve(result, messageHash+"C") // when subscribing to BTC/USDC and coinbase returns BTC/USD, so resolve USDC too
 	}
 }
-func (this *Coinbase) HandleSubscriptionStatus(client any, message map[string]any) map[string]any {
+func (this *Coinbase) HandleSubscriptionStatus(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "type": "subscriptions",
@@ -1550,7 +1544,7 @@ func (this *Coinbase) HandleSubscriptionStatus(client any, message map[string]an
 	}
 	return message
 }
-func (this *Coinbase) HandleHeartbeats(client any, message map[string]any) map[string]any {
+func (this *Coinbase) HandleHeartbeats(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	// although the subscription takes a product_ids parameter (i.e. symbol),
 	// there is no (clear) way of mapping the message back to the symbol.
 	//
@@ -1569,7 +1563,7 @@ func (this *Coinbase) HandleHeartbeats(client any, message map[string]any) map[s
 	//
 	return message
 }
-func (this *Coinbase) HandleMessage(client any, message map[string]any) {
+func (this *Coinbase) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var channel *string = this.SafeString(message, "channel")
 	var methods map[string]any = map[string]any{
 		"subscriptions": this.HandleSubscriptionStatus,

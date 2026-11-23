@@ -111,9 +111,9 @@ func (this *Okx) GetUrl(channel string, optionalArgs ...any) string {
 	// for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
 	var access string = ccxt.GetArgString(optionalArgs, 0, "public")
 	_ = access
-	var isSandbox any = this.Options["sandboxMode"]
+	var isSandbox *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var sandboxSuffix string = ""
-	if isSandbox == true {
+	if isSandbox != nil && *isSandbox == true {
 		sandboxSuffix = "?brokerId=9999"
 	}
 	var isBusiness bool = (access == "business")
@@ -452,7 +452,7 @@ func (this *Okx) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol string
 	ch <- ccxt.AsyncResult[bool]{Value: r.Value}
 	return nil
 }
-func (this *Okx) HandleTrades(client any, message map[string]any) {
+func (this *Okx) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "arg": { channel: "trades", instId: "BTC-USDT" },
@@ -492,7 +492,7 @@ func (this *Okx) HandleTrades(client any, message map[string]any) {
 	var data, _ = message["data"].([]any)
 	var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 	for i := 0; i < len(data); i++ {
-		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(data[i]))
+		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(this.SafeDict(data, i, map[string]any{})))
 		var stored ccxt.WsArrayCache = this.Trades[*symbol]
 		if stored == nil {
 			stored = ccxt.NewArrayCache(tradesLimit)
@@ -616,7 +616,7 @@ func (this *Okx) watchFundingRatesBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	ch <- ccxt.AsyncResult[map[string]ccxt.FundingRate]{Value: ccxt.FundingRateMapFromMap(this.FilterByArray(this.FundingRates, "symbol", symbolsNormalized))}
 	return nil
 }
-func (this *Okx) HandleFundingRate(client any, message map[string]any) {
+func (this *Okx) HandleFundingRate(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// "data":[
 	//     {
@@ -1023,7 +1023,7 @@ func (this *Okx) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalArgs
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Okx) HandleTicker(client any, message map[string]any) {
+func (this *Okx) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "arg": { channel: "tickers", instId: "BTC-USDT" },
@@ -1147,7 +1147,7 @@ func (this *Okx) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tick
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Bidsasks, symbolsNormalized)}
 	return nil
 }
-func (this *Okx) HandleBidAsk(client any, message map[string]any) {
+func (this *Okx) HandleBidAsk(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// tickers
 	//
@@ -1345,7 +1345,7 @@ func (this *Okx) watchLiquidationsForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt
 	ch <- ccxt.AsyncResult[[]ccxt.Liquidation]{Value: ccxt.LiquidationsFromList(this.FilterBySymbolsSinceLimit(this.Liquidations, symbolsNormalized, since, limit, true))}
 	return nil
 }
-func (this *Okx) HandleLiquidation(client any, message map[string]any) {
+func (this *Okx) HandleLiquidation(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "arg": {
@@ -1375,8 +1375,7 @@ func (this *Okx) HandleLiquidation(client any, message map[string]any) {
 	//
 	var rawLiquidations, _ = message["data"].([]any)
 	for i := 0; i < len(rawLiquidations); i++ {
-		var rawLiquidation any = rawLiquidations[i]
-		var liquidation any = this.ParseWsLiquidation(rawLiquidation)
+		var liquidation any = this.ParseWsLiquidation(rawLiquidations[i])
 		var symbol string = *this.SafeString(liquidation, "symbol", "")
 		if this.Liquidations == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
@@ -1478,7 +1477,7 @@ func (this *Okx) watchMyLiquidationsForSymbolsBody(ch chan ccxt.AsyncResult[[]cc
 	ch <- ccxt.AsyncResult[[]ccxt.Liquidation]{Value: ccxt.LiquidationsFromList(this.FilterBySymbolsSinceLimit(this.Liquidations, symbolsNormalized, since, limit, true))}
 	return nil
 }
-func (this *Okx) HandleMyLiquidation(client any, message map[string]any) {
+func (this *Okx) HandleMyLiquidation(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "arg": {
@@ -1856,7 +1855,7 @@ func (this *Okx) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], symb
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Okx) HandleOHLCV(client any, message map[string]any) {
+func (this *Okx) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "arg": { channel: "candle1m", instId: "BTC-USDT" },
@@ -2180,7 +2179,7 @@ func (this *Okx) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol str
 	ch <- ccxt.AsyncResult[bool]{Value: r.Value}
 	return nil
 }
-func (this *Okx) HandleDelta(bookside any, delta any) {
+func (this *Okx) HandleDelta(bookside ccxt.IOrderBookSide, delta any) {
 	//
 	//     [
 	//         "31685", // price
@@ -2191,14 +2190,14 @@ func (this *Okx) HandleDelta(bookside any, delta any) {
 	//
 	var price *float64 = this.SafeFloat(delta, 0)
 	var amount *float64 = this.SafeFloat(delta, 1)
-	bookside.(ccxt.IOrderBookSide).Store(price, amount)
+	bookside.Store(price, amount)
 }
-func (this *Okx) HandleDeltas(bookside any, deltas []any) {
+func (this *Okx) HandleDeltas(bookside ccxt.IOrderBookSide, deltas []any) {
 	for i := 0; i < len(deltas); i++ {
 		this.HandleDelta(bookside, deltas[i])
 	}
 }
-func (this *Okx) HandleOrderBookMessage(client any, message any, orderbook ccxt.OrderBookInterface, messageHash any, optionalArgs ...any) any {
+func (this *Okx) HandleOrderBookMessage(client ccxt.ClientInterface, message any, orderbook ccxt.OrderBookInterface, messageHash any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "asks": [
@@ -2246,7 +2245,7 @@ func (this *Okx) HandleOrderBookMessage(client any, message any, orderbook ccxt.
 	orderbook.SetDatetime(this.Iso8601(timestamp))
 	return orderbook
 }
-func (this *Okx) HandleOrderBook(client any, message map[string]any) map[string]any {
+func (this *Okx) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	// snapshot
 	//
@@ -2507,10 +2506,10 @@ func (this *Okx) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], optio
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r2.Value)}
 	return nil
 }
-func (this *Okx) HandleBalanceAndPosition(client any, message map[string]any) {
+func (this *Okx) HandleBalanceAndPosition(client ccxt.ClientInterface, message map[string]any) {
 	this.HandleMyLiquidation(client, message)
 }
-func (this *Okx) HandleBalance(client any, message map[string]any) {
+func (this *Okx) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         arg: {
@@ -2638,9 +2637,9 @@ func (this *Okx) OrderToTrade(order any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeInteger(info, "fillTime")
 	var feeMarketId *string = this.SafeString(info, "fillFeeCcy")
 	var isTaker bool = (this.SafeString(info, "execType", "") != nil && *this.SafeString(info, "execType", "") == "T")
-	var ternaryStr187528 string = "maker"
+	var ternaryStr187428 string = "maker"
 	if isTaker {
-		ternaryStr187528 = "taker"
+		ternaryStr187428 = "taker"
 	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         info,
@@ -2650,7 +2649,7 @@ func (this *Okx) OrderToTrade(order any, optionalArgs ...any) any {
 		"id":           this.SafeString(info, "tradeId"),
 		"order":        this.SafeString(order, "id"),
 		"type":         this.SafeString(order, "type"),
-		"takerOrMaker": ternaryStr187528,
+		"takerOrMaker": ternaryStr187428,
 		"side":         this.SafeString(order, "side"),
 		"price":        this.SafeNumber(info, "fillPx"),
 		"amount":       this.SafeNumber(info, "fillSz"),
@@ -2854,7 +2853,7 @@ func (this *Okx) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], o
 	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.Positions, symbolsNormalized, since, limit, true))}
 	return nil
 }
-func (this *Okx) HandlePositions(client any, message map[string]any) {
+func (this *Okx) HandlePositions(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        arg: {
@@ -3057,7 +3056,7 @@ func (this *Okx) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optiona
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Okx) HandleOrders(client any, message map[string]any) {
+func (this *Okx) HandleOrders(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "arg":{
@@ -3155,7 +3154,7 @@ func (this *Okx) HandleOrders(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Okx) HandleMyTrades(client any, message map[string]any) {
+func (this *Okx) HandleMyTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "arg":{
@@ -3333,7 +3332,7 @@ func (this *Okx) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symbol 
 	ch <- ccxt.AsyncResult[ccxt.Order]{Value: ccxt.OrderFromMap(r2.Value)}
 	return nil
 }
-func (this *Okx) HandlePlaceOrders(client any, message map[string]any) {
+func (this *Okx) HandlePlaceOrders(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//  batch-orders/order/cancel-order
 	//    {
@@ -3631,7 +3630,7 @@ func (this *Okx) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], o
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(r2.Value)}
 	return nil
 }
-func (this *Okx) HandleCancelOrders(client any, message map[string]any) {
+func (this *Okx) HandleCancelOrders(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "id": "1512",
@@ -3659,7 +3658,7 @@ func (this *Okx) HandleCancelOrders(client any, message map[string]any) {
 	var orders []any = this.ParseOrders(args, nil, nil, nil)
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 }
-func (this *Okx) HandleCancelAllOrders(client any, message map[string]any) {
+func (this *Okx) HandleCancelAllOrders(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "id": "1512",
@@ -3681,7 +3680,7 @@ func (this *Okx) HandleCancelAllOrders(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(data, messageHash)
 }
-func (this *Okx) HandleSubscriptionStatus(client any, message map[string]any) map[string]any {
+func (this *Okx) HandleSubscriptionStatus(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     { event: 'subscribe', arg: { channel: "tickers", instId: "BTC-USDT" } }
 	//
@@ -3689,23 +3688,23 @@ func (this *Okx) HandleSubscriptionStatus(client any, message map[string]any) ma
 	// client.(*ccxt.WSClient).Subscriptions[channel] = message
 	return message
 }
-func (this *Okx) HandleAuthenticate(client any, message map[string]any) {
+func (this *Okx) HandleAuthenticate(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     { event: "login", success: true }
 	//
 	var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
 	future.Resolve(true)
 }
-func (this *Okx) Ping(client any) any {
+func (this *Okx) Ping(client ccxt.ClientInterface) any {
 	// OKX does not support the built-in WebSocket protocol-level ping-pong.
 	// Instead, it requires a custom text-based ping-pong mechanism.
 	return "ping"
 }
-func (this *Okx) HandlePong(client any, message any) any {
+func (this *Okx) HandlePong(client ccxt.ClientInterface, message any) any {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return message
 }
-func (this *Okx) HandleErrorMessage(client any, message map[string]any) any {
+func (this *Okx) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) any {
 	//
 	//     { event: 'error', msg: "Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}", code: "60012" }
 	//     { event: 'error", msg: "channel:ticker,instId:BTC-USDT doesn"t exist", code: "60018" }
@@ -3775,12 +3774,12 @@ func (this *Okx) HandleErrorMessage(client any, message map[string]any) any {
 	}
 	return true
 }
-func (this *Okx) HandleTextMessage(client any, message string) {
+func (this *Okx) HandleTextMessage(client ccxt.ClientInterface, message string) {
 	if message == "pong" {
 		this.HandlePong(client, message)
 	}
 }
-func (this *Okx) HandleMessage(client any, message map[string]any) {
+func (this *Okx) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	if this.HandleErrorMessage(client, message) != true {
 		return
 	}
@@ -3881,7 +3880,7 @@ func (this *Okx) HandleMessage(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Okx) HandleUnSubscriptionTrades(client any, symbol string, channel string) {
+func (this *Okx) HandleUnSubscriptionTrades(client ccxt.ClientInterface, symbol string, channel string) {
 	var subMessageHash string = channel + ":" + symbol
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
@@ -3889,7 +3888,7 @@ func (this *Okx) HandleUnSubscriptionTrades(client any, symbol string, channel s
 		delete(this.Trades, symbol)
 	}
 }
-func (this *Okx) HandleUnsubscriptionOrderBook(client any, symbol string, channel string) {
+func (this *Okx) HandleUnsubscriptionOrderBook(client ccxt.ClientInterface, symbol string, channel string) {
 	var subMessageHash string = channel + ":" + symbol
 	var messageHash string = "unsubscribe:orderbook:" + symbol
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
@@ -3897,7 +3896,7 @@ func (this *Okx) HandleUnsubscriptionOrderBook(client any, symbol string, channe
 		delete(this.Orderbooks, symbol)
 	}
 }
-func (this *Okx) HandleUnsubscriptionOHLCV(client any, symbol string, channel string) {
+func (this *Okx) HandleUnsubscriptionOHLCV(client ccxt.ClientInterface, symbol string, channel string) {
 	var tf string = strings.Replace(channel, "candle", "", 1)
 	var timeframe *string = this.FindTimeframe(tf)
 	if timeframe == nil {
@@ -3916,7 +3915,7 @@ func (this *Okx) HandleUnsubscriptionOHLCV(client any, symbol string, channel st
 		delete(this.Ohlcvs[symbol], *timeframe)
 	}
 }
-func (this *Okx) HandleUnsubscriptionTicker(client any, symbol string, channel string) {
+func (this *Okx) HandleUnsubscriptionTicker(client ccxt.ClientInterface, symbol string, channel string) {
 	var subMessageHash string = channel + "::" + symbol
 	var messageHash string = "unsubscribe:ticker:" + symbol
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
@@ -3924,7 +3923,7 @@ func (this *Okx) HandleUnsubscriptionTicker(client any, symbol string, channel s
 		delete(this.Tickers, symbol)
 	}
 }
-func (this *Okx) HandleUnsubscriptionMarkPrice(client any, symbol string, channel string) {
+func (this *Okx) HandleUnsubscriptionMarkPrice(client ccxt.ClientInterface, symbol string, channel string) {
 	var subMessageHash string = channel + "::" + symbol
 	var messageHash string = "unsubscribe:mark-price:" + symbol
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
@@ -3932,7 +3931,7 @@ func (this *Okx) HandleUnsubscriptionMarkPrice(client any, symbol string, channe
 		delete(this.Tickers, symbol)
 	}
 }
-func (this *Okx) HandleUnsubscription(client any, message map[string]any) {
+func (this *Okx) HandleUnsubscription(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// {
 	//     "event": "unsubscribe",

@@ -182,7 +182,7 @@ func (this *Bit2me) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Bit2me) HandleOrderBook(client any, message map[string]any) {
+func (this *Bit2me) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// every message is a full snapshot of the book
 	//
@@ -267,7 +267,7 @@ func (this *Bit2me) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, finalLimit, "timestamp", true))}
 	return nil
 }
-func (this *Bit2me) HandleTrades(client any, message map[string]any) {
+func (this *Bit2me) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "event": "public-trades",
@@ -427,7 +427,7 @@ func (this *Bit2me) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, unifiedSymbol, since, finalLimit, true))}
 	return nil
 }
-func (this *Bit2me) HandleOrder(client any, message map[string]any) {
+func (this *Bit2me) HandleOrder(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "event": "my-orders",
@@ -587,7 +587,7 @@ func (this *Bit2me) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], op
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySymbolSinceLimit(trades, unifiedSymbol, since, finalLimit, true))}
 	return nil
 }
-func (this *Bit2me) HandleMyTrade(client any, message map[string]any) {
+func (this *Bit2me) HandleMyTrade(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "event": "my-trades",
@@ -650,7 +650,7 @@ func (this *Bit2me) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r.Value)}
 	return nil
 }
-func (this *Bit2me) HandleBalance(client any, message map[string]any) {
+func (this *Bit2me) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "event": "my-balance",
@@ -754,7 +754,7 @@ func (this *Bit2me) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], symb
  * @param {object} result the value to resolve with
  * @param {object} [error] when set the command is rejected with it instead
  */
-func (this *Bit2me) SettleRequest(client any, messageHash string, result any, optionalArgs ...any) {
+func (this *Bit2me) SettleRequest(client ccxt.ClientInterface, messageHash string, result any, optionalArgs ...any) {
 	error := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = error
 	if client.(ccxt.ClientInterface).SubscriptionHas(messageHash) {
@@ -766,7 +766,7 @@ func (this *Bit2me) SettleRequest(client any, messageHash string, result any, op
 		client.(ccxt.ClientInterface).Resolve(result, messageHash)
 	}
 }
-func (this *Bit2me) HandleCreateOrder(client any, message map[string]any) {
+func (this *Bit2me) HandleCreateOrder(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "event": "added-order",
@@ -858,7 +858,7 @@ func (this *Bit2me) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id s
 	ch <- ccxt.AsyncResult[ccxt.Order]{Value: ccxt.OrderFromMap(r2.Value)}
 	return nil
 }
-func (this *Bit2me) HandleCancelOrder(client any, message map[string]any) {
+func (this *Bit2me) HandleCancelOrder(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "event": "canceled-order",
@@ -928,7 +928,7 @@ func (this *Bit2me) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], i
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(r2.Value)}
 	return nil
 }
-func (this *Bit2me) HandleCancelOrders(client any, message map[string]any) {
+func (this *Bit2me) HandleCancelOrders(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "event": "canceled-orders",
@@ -1020,7 +1020,7 @@ func (this *Bit2me) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order]
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(r2.Value)}
 	return nil
 }
-func (this *Bit2me) HandleCancelAllOrders(client any, message map[string]any) {
+func (this *Bit2me) HandleCancelAllOrders(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "event": "canceled-all-orders",
@@ -1105,7 +1105,7 @@ func (this *Bit2me) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	ch <- ccxt.AsyncResult[*string]{Value: resolved}
 	return nil
 }
-func (this *Bit2me) HandleAuthenticate(client any, message map[string]any) {
+func (this *Bit2me) HandleAuthenticate(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     { "event": "authenticate" }
 	//     { "event": "authenticate", "error": "jwt expired" }
@@ -1124,14 +1124,14 @@ func (this *Bit2me) HandleAuthenticate(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Bit2me) HandleSubscriptionStatus(client any, message map[string]any) map[string]any {
+func (this *Bit2me) HandleSubscriptionStatus(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     { "event": "subscribe", "symbol": "BTC/USDC", "subscription": { "name": "order-book" }, "result": "subscribed" }
 	//     { "event": "unsubscribe" }
 	//
 	return message
 }
-func (this *Bit2me) HandleErrorMessage(client any, message map[string]any) {
+func (this *Bit2me) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     { "event": "added-order", "symbol": "BTC/USDC", "error": { "code": "PRICE_LOWER_MARKET_MIN", "minPrice": 0.001, "message": "The price can not be lower than 0.001" } }
 	//     { "event": "canceled-order", "orderId": "73352609-a885-4dc6-99c4-8a03e5df6bda", "error": { "code": "ORDER_NOT_FOUND", "message": "The order with ID 73352609-a885-4dc6-99c4-8a03e5df6bda was not found" } }
@@ -1226,7 +1226,7 @@ func (this *Bit2me) HandleErrorMessage(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Bit2me) HandleMessage(client any, message map[string]any) {
+func (this *Bit2me) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var event *string = this.SafeString(message, "event")
 	if event != nil && *event == "authenticate" {
 		this.HandleAuthenticate(client, message)

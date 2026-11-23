@@ -1120,11 +1120,11 @@ func (this *Aster) Describe() map[string]any {
 		},
 	})
 }
-func (this *Aster) IsInverse(typeVar any, optionalArgs ...any) bool {
+func (this *Aster) IsInverse(typeVar string, optionalArgs ...any) bool {
 	var subType *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = subType
 	if subType == nil {
-		return (IsEqual(typeVar, "delivery"))
+		return (typeVar == "delivery")
 	} else {
 		return (subType != nil && *subType == "inverse")
 	}
@@ -2195,7 +2195,7 @@ func (this *Aster) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, o
 	//        "askQty": "0.32399"            // only in SPOT
 	//    }
 	//
-	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(response, market)}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.Extend(map[string]any{}, response), market)}
 	return nil
 }
 
@@ -5111,7 +5111,7 @@ func (this *Aster) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalA
 	methodOption, paramsMethod := this.HandleOptionStringAndParams(params, "fetchPositions", "method")
 	var defaultMethod *string = methodOption
 	if defaultMethod == nil {
-		var options map[string]any = this.SafeDictMap(this.Options, "fetchPositions")
+		var options, _ = this.Options["fetchPositions"].(map[string]any)
 		if options == nil {
 			defaultMethod = this.SafeString(this.Options, "fetchPositions", "positionRisk")
 		} else {
@@ -5588,12 +5588,12 @@ func (this *Aster) SignWithdrawPayload(withdrawPayload map[string]any, network a
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Aster) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Aster) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Aster) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
+func (this *Aster) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5692,12 +5692,12 @@ func (this *Aster) ParseTransaction(transaction map[string]any, optionalArgs ...
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Aster) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Aster) TransferAsync(code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Aster) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
+func (this *Aster) transferBody(ch chan AsyncResult[TransferEntry], code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6088,7 +6088,7 @@ func (this *Aster) initializeClientBody(ch chan AsyncResult[bool], optionalArgs 
 	ch <- AsyncResult[bool]{} // just c#
 	return nil
 }
-func (this *Aster) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Aster) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

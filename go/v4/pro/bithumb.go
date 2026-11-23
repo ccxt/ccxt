@@ -51,12 +51,12 @@ func (this *Bithumb) Describe() map[string]any {
 		"exceptions": map[string]any{},
 	})
 }
-func (this *Bithumb) PongAsync(client any, message any) <-chan ccxt.AsyncResult[bool] {
+func (this *Bithumb) PongAsync(client ccxt.ClientInterface, message any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.pongBody(ch, client, message)
 	return ch
 }
-func (this *Bithumb) pongBody(ch chan ccxt.AsyncResult[bool], client any, message any) any {
+func (this *Bithumb) pongBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, message any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var ping *int64 = this.SafeInteger(message, "ping")
@@ -77,10 +77,10 @@ func (this *Bithumb) pongBody(ch chan ccxt.AsyncResult[bool], client any, messag
 	}
 	return nil
 }
-func (this *Bithumb) HandlePing(client any, message any) {
+func (this *Bithumb) HandlePing(client ccxt.ClientInterface, message any) {
 	this.Spawn(this.PongAsync, client, message)
 }
-func (this *Bithumb) HandlePong(client any, message any) {
+func (this *Bithumb) HandlePong(client ccxt.ClientInterface, message any) {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 }
 
@@ -263,7 +263,7 @@ func (this *Bithumb) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Tickers, symbolsResolved)}
 	return nil
 }
-func (this *Bithumb) HandleTicker(client any, message map[string]any) {
+func (this *Bithumb) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// generation 1
 	//
@@ -554,7 +554,7 @@ func (this *Bithumb) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Bithumb) HandleOrderBook(client any, message map[string]any) {
+func (this *Bithumb) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// generation 1
 	//
@@ -779,7 +779,7 @@ func (this *Bithumb) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Bithumb) HandleTrades(client any, message map[string]any) {
+func (this *Bithumb) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// generation 1
 	//
@@ -924,7 +924,7 @@ func (this *Bithumb) ParseWsTrade(trade any, optionalArgs ...any) map[string]any
 		"fee":          nil,
 	}, market))
 }
-func (this *Bithumb) HandleErrorMessage(client any, message map[string]any) bool {
+func (this *Bithumb) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	//    {
 	//        "status" : "5100",
@@ -1028,7 +1028,7 @@ func (this *Bithumb) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(balance)}
 	return nil
 }
-func (this *Bithumb) HandleBalance(client any, message map[string]any) {
+func (this *Bithumb) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "type": "myAsset",
@@ -1226,7 +1226,7 @@ func (this *Bithumb) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Bithumb) HandleOrders(client any, message map[string]any) {
+func (this *Bithumb) HandleOrders(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "type": "myOrder",
@@ -1374,7 +1374,7 @@ func (this *Bithumb) ParseWsOrder(order any, optionalArgs ...any) map[string]any
 		"trades":             nil,
 	}, market))
 }
-func (this *Bithumb) HandleTextMessage(client any, message string) {
+func (this *Bithumb) HandleTextMessage(client ccxt.ClientInterface, message string) {
 	var content string = strings.ToLower(message)
 	if content == "pong" {
 		this.HandlePong(client, message)
@@ -1382,7 +1382,7 @@ func (this *Bithumb) HandleTextMessage(client any, message string) {
 		this.HandlePing(client, message)
 	}
 }
-func (this *Bithumb) HandleMessage(client any, message map[string]any) {
+func (this *Bithumb) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var status *string = this.SafeString(message, "status")
 	if status != nil && *status == "UP" {
 		this.HandlePong(client, message)

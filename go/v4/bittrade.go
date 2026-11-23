@@ -1234,7 +1234,7 @@ func (this *Bittrade) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		var marketId *string = this.SafeString(tickers[i], "symbol")
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol string = *this.SafeString(market, "symbol", "")
-		var ticker map[string]any = TickerToMap(this.ParseTicker(tickers[i], market))
+		var ticker map[string]any = TickerToMap(this.ParseTicker(this.SafeDict(tickers, i, map[string]any{}), market))
 		ticker["timestamp"] = timestamp
 		ticker["datetime"] = this.Iso8601(timestamp)
 		result[symbol] = ticker
@@ -1521,7 +1521,7 @@ func (this *Bittrade) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol strin
 	for i := 0; i < len(data); i++ {
 		var trades []any = SafeListTyped(data[i], "data")
 		for j := 0; j < len(trades); j++ {
-			var trade map[string]any = TradeToMap(this.ParseTrade(trades[j], market))
+			var trade map[string]any = TradeToMap(this.ParseTrade(this.SafeDict(trades, j, map[string]any{}), market))
 			result = append(result, trade)
 		}
 	}
@@ -2341,12 +2341,12 @@ func (this *Bittrade) ParseOrder(order any, optionalArgs ...any) Order {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bittrade) CreateMarketBuyOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bittrade) CreateMarketBuyOrderWithCostAsync(symbol string, cost float64, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Bittrade) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost any, optionalArgs ...any) any {
+func (this *Bittrade) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3012,12 +3012,12 @@ func (this *Bittrade) ParseTransactionStatus(status *string) *string {
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bittrade) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Bittrade) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bittrade) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
+func (this *Bittrade) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3149,7 +3149,7 @@ func (this *Bittrade) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResult,
 	}
 }
-func (this *Bittrade) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Bittrade) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

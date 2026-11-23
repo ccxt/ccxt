@@ -130,7 +130,7 @@ func (this *Deribit) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r1.Value)}
 	return nil
 }
-func (this *Deribit) HandleBalance(client any, message map[string]any) {
+func (this *Deribit) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// subscription
 	//     {
@@ -340,7 +340,7 @@ func (this *Deribit) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Tickers, symbolsNormalized)}
 	return nil
 }
-func (this *Deribit) HandleTicker(client any, message map[string]any) {
+func (this *Deribit) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -450,7 +450,7 @@ func (this *Deribit) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Bidsasks, symbolsNormalized)}
 	return nil
 }
-func (this *Deribit) HandleBidAsk(client any, message map[string]any) {
+func (this *Deribit) HandleBidAsk(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -592,7 +592,7 @@ func (this *Deribit) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.T
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Deribit) HandleTrades(client any, message map[string]any) {
+func (this *Deribit) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -629,8 +629,7 @@ func (this *Deribit) HandleTrades(client any, message map[string]any) {
 	}
 	var stored ccxt.WsArrayCache = this.Trades[*symbol]
 	for i := 0; i < len(trades); i++ {
-		var trade any = trades[i]
-		var parsed map[string]any = ccxt.TradeToMap(this.ParseTrade(trade, market))
+		var parsed map[string]any = ccxt.TradeToMap(this.ParseTrade(this.SafeDict(trades, i, map[string]any{}), market))
 		stored.Append(parsed)
 	}
 	if symbol != nil {
@@ -711,7 +710,7 @@ func (this *Deribit) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limit, true))}
 	return nil
 }
-func (this *Deribit) HandleMyTrades(client any, message map[string]any) {
+func (this *Deribit) HandleMyTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -854,7 +853,7 @@ func (this *Deribit) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Deribit) HandleOrderBook(client any, message map[string]any) {
+func (this *Deribit) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//  snapshot
 	//     {
@@ -981,17 +980,17 @@ func (this *Deribit) CleanOrderBook(data map[string]any) map[string]any {
 	data["asks"] = cleanedAsks
 	return data
 }
-func (this *Deribit) HandleDelta(bookside any, delta any) {
+func (this *Deribit) HandleDelta(bookside ccxt.IOrderBookSide, delta any) {
 	var price *float64 = this.SafeNumber(delta, 1)
 	var amount *float64 = this.SafeNumber(delta, 2)
 	var action *string = this.SafeString(delta, 0)
 	if (action != nil && *action == "new") || (action != nil && *action == "change") {
-		bookside.(ccxt.IOrderBookSide).StoreArray([]any{price, amount, 1})
+		bookside.StoreArray([]any{price, amount, 1})
 	} else if action != nil && *action == "delete" {
-		bookside.(ccxt.IOrderBookSide).StoreArray([]any{price, amount, 0})
+		bookside.StoreArray([]any{price, amount, 0})
 	}
 }
-func (this *Deribit) HandleDeltas(bookside any, deltas []any) {
+func (this *Deribit) HandleDeltas(bookside ccxt.IOrderBookSide, deltas []any) {
 	for i := 0; i < len(deltas); i++ {
 		this.HandleDelta(bookside, deltas[i])
 	}
@@ -1072,7 +1071,7 @@ func (this *Deribit) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Deribit) HandleOrders(client any, message map[string]any) {
+func (this *Deribit) HandleOrders(client ccxt.ClientInterface, message map[string]any) {
 	// Does not return a snapshot of current orders
 	//
 	//     {
@@ -1236,7 +1235,7 @@ func (this *Deribit) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[strin
 	ch <- ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV]{Value: ccxt.OHLCVForSymbolsMapFromMap(this.CreateOHLCVObject(symbol, timeframe, filtered))}
 	return nil
 }
-func (this *Deribit) HandleOHLCV(client any, message map[string]any) {
+func (this *Deribit) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -1387,7 +1386,7 @@ func (this *Deribit) watchMultipleWrapperBody(ch chan ccxt.AsyncResult[any], cha
 	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
-func (this *Deribit) HandleMessage(client any, message map[string]any) {
+func (this *Deribit) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// error
 	//     {
@@ -1482,7 +1481,7 @@ func (this *Deribit) HandleMessage(client any, message map[string]any) {
 		this.HandleAuthenticationMessage(client, message)
 	}
 }
-func (this *Deribit) HandleAuthenticationMessage(client any, message map[string]any) map[string]any {
+func (this *Deribit) HandleAuthenticationMessage(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "jsonrpc": "2.0",

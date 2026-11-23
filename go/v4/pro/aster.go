@@ -590,7 +590,7 @@ func (this *Aster) unWatchMarkPricesBody(ch chan ccxt.AsyncResult[bool], optiona
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Aster) HandleTicker(client any, message map[string]any) {
+func (this *Aster) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//             "e": "24hrTicker",
@@ -825,7 +825,7 @@ func (this *Aster) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], optionalA
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Aster) HandleBidAsk(client any, message map[string]any) {
+func (this *Aster) HandleBidAsk(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//             "e": "bookTicker",
@@ -1099,7 +1099,7 @@ func (this *Aster) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], s
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Aster) HandleTrade(client any, message map[string]any) {
+func (this *Aster) HandleTrade(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "e": "aggTrade",
@@ -1528,7 +1528,7 @@ func (this *Aster) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool]
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Aster) HandleOrderBook(client any, message map[string]any) {
+func (this *Aster) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//             "e": "depthUpdate",
@@ -1839,7 +1839,7 @@ func (this *Aster) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], sy
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Aster) HandleOHLCV(client any, message map[string]any) {
+func (this *Aster) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//             "e": "kline",
@@ -2161,7 +2161,7 @@ func (this *Aster) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r3.Value)}
 	return nil
 }
-func (this *Aster) SetBalanceCache(client any, typeVar string) {
+func (this *Aster) SetBalanceCache(client ccxt.ClientInterface, typeVar string) {
 	if _, ok := this.Balance[typeVar]; (client.(ccxt.ClientInterface).SubscriptionHas(typeVar)) && ok {
 		return
 	}
@@ -2177,12 +2177,12 @@ func (this *Aster) SetBalanceCache(client any, typeVar string) {
 		this.Balance[typeVar] = map[string]any{}
 	}
 }
-func (this *Aster) LoadBalanceSnapshotAsync(client any, messageHash string, typeVar string) <-chan ccxt.AsyncResult[bool] {
+func (this *Aster) LoadBalanceSnapshotAsync(client ccxt.ClientInterface, messageHash string, typeVar string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadBalanceSnapshotBody(ch, client, messageHash, typeVar)
 	return ch
 }
-func (this *Aster) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string, typeVar string) any {
+func (this *Aster) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, messageHash string, typeVar string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = map[string]any{
@@ -2206,7 +2206,7 @@ func (this *Aster) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], clien
 	}
 	return nil
 }
-func (this *Aster) HandleBalance(client any, message map[string]any) {
+func (this *Aster) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// spot balance update
 	//     {
@@ -2394,7 +2394,7 @@ func (this *Aster) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position],
 	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(cache, symbolsNormalized, since, limit, true))}
 	return nil
 }
-func (this *Aster) SetPositionsCache(client any) {
+func (this *Aster) SetPositionsCache(client ccxt.ClientInterface) {
 	if this.Positions != nil {
 		return
 	}
@@ -2409,12 +2409,12 @@ func (this *Aster) SetPositionsCache(client any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 }
-func (this *Aster) LoadPositionsSnapshotAsync(client any, messageHash string) <-chan ccxt.AsyncResult[bool] {
+func (this *Aster) LoadPositionsSnapshotAsync(client ccxt.ClientInterface, messageHash string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadPositionsSnapshotBody(ch, client, messageHash)
 	return ch
 }
-func (this *Aster) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string) any {
+func (this *Aster) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, messageHash string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -2440,7 +2440,7 @@ func (this *Aster) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], cli
 	}
 	return nil
 }
-func (this *Aster) HandlePositions(client any, message map[string]any) {
+func (this *Aster) HandlePositions(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "e": "ACCOUNT_UPDATE",
@@ -2715,7 +2715,7 @@ func (this *Aster) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opt
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Aster) HandleOrderUpdate(client any, message map[string]any) {
+func (this *Aster) HandleOrderUpdate(client ccxt.ClientInterface, message map[string]any) {
 	var rawOrder any = this.SafeDict(message, "o", message)
 	var e *string = this.SafeString(message, "e")
 	var isOrderUpdate bool = (e != nil && *e == "ORDER_TRADE_UPDATE") || (e != nil && *e == "ALGO_UPDATE")
@@ -2726,7 +2726,7 @@ func (this *Aster) HandleOrderUpdate(client any, message map[string]any) {
 	this.HandleOrder(client, rawOrder)
 	this.HandleMyTrade(client, tradeMessage)
 }
-func (this *Aster) HandleMyTrade(client any, message any) {
+func (this *Aster) HandleMyTrade(client ccxt.ClientInterface, message any) {
 	var messageHash string = "myTrades"
 	var executionType *string = this.SafeString(message, "x")
 	if executionType != nil && *executionType == "TRADE" {
@@ -2833,7 +2833,7 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 		client.(ccxt.ClientInterface).Resolve(this.MyTrades, messageHashSymbol)
 	}
 }
-func (this *Aster) HandleOrder(client any, message any) {
+func (this *Aster) HandleOrder(client ccxt.ClientInterface, message any) {
 	//
 	// spot
 	//     {
@@ -2992,16 +2992,16 @@ func (this *Aster) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 		"trades":              nil,
 	}))
 }
-func (this *Aster) GetMarketFromOrder(client any, order any) any {
+func (this *Aster) GetMarketFromOrder(client ccxt.ClientInterface, order any) any {
 	var marketId *string = this.SafeString(order, "s")
 	var marketType string = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
 	return this.SafeMarket(marketId, nil, nil, marketType)
 }
-func (this *Aster) HandleBalanceAndPosition(client any, message map[string]any) {
+func (this *Aster) HandleBalanceAndPosition(client ccxt.ClientInterface, message map[string]any) {
 	this.HandleBalance(client, message)
 	this.HandlePositions(client, message)
 }
-func (this *Aster) HandleMessage(client any, message map[string]any) {
+func (this *Aster) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var messageInner map[string]any
 	messageInner, _ = message["data"].(map[string]any)
 	if messageInner == nil {

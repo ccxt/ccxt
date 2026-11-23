@@ -299,7 +299,7 @@ func (this *Bitget) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Tickers, symbolsList)}
 	return nil
 }
-func (this *Bitget) HandleTicker(client any, message map[string]any) {
+func (this *Bitget) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// default
 	//
@@ -588,7 +588,7 @@ func (this *Bitget) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Bidsasks, symbolsList)}
 	return nil
 }
-func (this *Bitget) HandleBidAsk(client any, message map[string]any) {
+func (this *Bitget) HandleBidAsk(client ccxt.ClientInterface, message map[string]any) {
 	var ticker map[string]any = this.ParseWsBidAsk(message)
 	var symbol *string = this.SafeString(ticker, "symbol")
 	if symbol != nil {
@@ -798,7 +798,7 @@ func (this *Bitget) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Bitget) HandleOHLCV(client any, message map[string]any) {
+func (this *Bitget) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "action": "snapshot",
@@ -1193,7 +1193,7 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 		return nil
 	}
 }
-func (this *Bitget) HandleOrderBook(client any, message map[string]any) {
+func (this *Bitget) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//   {
 	//       "action":"snapshot",
@@ -1340,12 +1340,12 @@ func (this *Bitget) HandleOrderBook(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Orderbooks[*symbol], messageHash)
 }
-func (this *Bitget) HandleCheckSumErrorAsync(client any, symbol string, messageHash string, checksumMessage string) <-chan ccxt.AsyncResult[bool] {
+func (this *Bitget) HandleCheckSumErrorAsync(client ccxt.ClientInterface, symbol string, messageHash string, checksumMessage string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.handleCheckSumErrorBody(ch, client, symbol, messageHash, checksumMessage)
 	return ch
 }
-func (this *Bitget) handleCheckSumErrorBody(ch chan ccxt.AsyncResult[bool], client any, symbol string, messageHash string, checksumMessage string) any {
+func (this *Bitget) handleCheckSumErrorBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, symbol string, messageHash string, checksumMessage string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -1357,14 +1357,14 @@ func (this *Bitget) handleCheckSumErrorBody(ch chan ccxt.AsyncResult[bool], clie
 	client.(ccxt.ClientInterface).Reject(error, messageHash)
 	return nil
 }
-func (this *Bitget) HandleDelta(bookside any, delta any) {
+func (this *Bitget) HandleDelta(bookside ccxt.IOrderBookSide, delta any) {
 	var bidAsk []any = this.ParseOrderBookBidAsk(delta, 0, 1)
 	// we store the string representations in the orderbook for checksum calculation
 	// this simplifies the code for generating checksums as we do not need to do any complex number transformations
 	bidAsk = append(bidAsk, delta)
-	bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
+	bookside.StoreArray(bidAsk)
 }
-func (this *Bitget) HandleDeltas(bookside any, deltas []any) {
+func (this *Bitget) HandleDeltas(bookside ccxt.IOrderBookSide, deltas []any) {
 	for i := 0; i < len(deltas); i++ {
 		this.HandleDelta(bookside, ccxt.GetValue(deltas, i))
 	}
@@ -1560,7 +1560,7 @@ func (this *Bitget) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol str
 	ch <- ccxt.AsyncResult[bool]{Value: r.Value}
 	return nil
 }
-func (this *Bitget) HandleTrades(client any, message map[string]any) {
+func (this *Bitget) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "action": "snapshot",
@@ -1880,7 +1880,7 @@ func (this *Bitget) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(newPositions, symbolsNormalized, since, limit, true))}
 	return nil
 }
-func (this *Bitget) HandlePositions(client any, message map[string]any) {
+func (this *Bitget) HandlePositions(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "action": "snapshot",
@@ -2248,7 +2248,7 @@ func (this *Bitget) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Bitget) HandleOrder(client any, message map[string]any) {
+func (this *Bitget) HandleOrder(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// spot
 	//
@@ -2807,7 +2807,7 @@ func (this *Bitget) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], op
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Bitget) HandleMyTrades(client any, message map[string]any) {
+func (this *Bitget) HandleMyTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// spot
 	// {
@@ -3032,7 +3032,7 @@ func (this *Bitget) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r.Value)}
 	return nil
 }
-func (this *Bitget) HandleBalance(client any, message map[string]any) {
+func (this *Bitget) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// spot
 	//
@@ -3528,7 +3528,7 @@ func (this *Bitget) watchPrivateBody(ch chan ccxt.AsyncResult[any], uta any, mes
 	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
-func (this *Bitget) HandleAuthenticate(client any, message map[string]any) {
+func (this *Bitget) HandleAuthenticate(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//  { event: "login", code: 0 }
 	//
@@ -3536,7 +3536,7 @@ func (this *Bitget) HandleAuthenticate(client any, message map[string]any) {
 	var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
 	future.Resolve(true)
 }
-func (this *Bitget) HandleErrorMessage(client any, message map[string]any) bool {
+func (this *Bitget) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	//    { event: "error", code: 30015, msg: "Invalid sign" }
 	//
@@ -3575,12 +3575,12 @@ func (this *Bitget) HandleErrorMessage(client any, message map[string]any) bool 
 		return ret__
 	}
 }
-func (this *Bitget) HandleTextMessage(client any, message string) {
+func (this *Bitget) HandleTextMessage(client ccxt.ClientInterface, message string) {
 	if message == "pong" {
 		this.HandlePong(client, message)
 	}
 }
-func (this *Bitget) HandleMessage(client any, message map[string]any) {
+func (this *Bitget) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//   {
 	//       "action": "snapshot",
@@ -3713,14 +3713,14 @@ func (this *Bitget) HandleMessage(client any, message map[string]any) {
 		this.HandleOrderBook(client, message)
 	}
 }
-func (this *Bitget) Ping(client any) any {
+func (this *Bitget) Ping(client ccxt.ClientInterface) any {
 	return "ping"
 }
-func (this *Bitget) HandlePong(client any, message any) any {
+func (this *Bitget) HandlePong(client ccxt.ClientInterface, message any) any {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return message
 }
-func (this *Bitget) HandleSubscriptionStatus(client any, message map[string]any) map[string]any {
+func (this *Bitget) HandleSubscriptionStatus(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "event": "subscribe",
@@ -3729,7 +3729,7 @@ func (this *Bitget) HandleSubscriptionStatus(client any, message map[string]any)
 	//
 	return message
 }
-func (this *Bitget) HandleOrderBookUnSubscription(client any, message map[string]any) {
+func (this *Bitget) HandleOrderBookUnSubscription(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"books","instId":"BTCUSDT"}}
 	//
@@ -3763,7 +3763,7 @@ func (this *Bitget) HandleOrderBookUnSubscription(client any, message map[string
 	}
 	client.(ccxt.ClientInterface).Resolve(true, messageHash)
 }
-func (this *Bitget) HandleTradesUnSubscription(client any, message map[string]any) {
+func (this *Bitget) HandleTradesUnSubscription(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"trade","instId":"BTCUSDT"}}
 	//
@@ -3793,7 +3793,7 @@ func (this *Bitget) HandleTradesUnSubscription(client any, message map[string]an
 	}
 	client.(ccxt.ClientInterface).Resolve(true, messageHash)
 }
-func (this *Bitget) HandleTickerUnSubscription(client any, message map[string]any) {
+func (this *Bitget) HandleTickerUnSubscription(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"trade","instId":"BTCUSDT"}}
 	//
@@ -3823,7 +3823,7 @@ func (this *Bitget) HandleTickerUnSubscription(client any, message map[string]an
 	}
 	client.(ccxt.ClientInterface).Resolve(true, messageHash)
 }
-func (this *Bitget) HandleOHLCVUnSubscription(client any, message map[string]any) {
+func (this *Bitget) HandleOHLCVUnSubscription(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"candle1m","instId":"BTCUSDT"}}
 	//
@@ -3870,7 +3870,7 @@ func (this *Bitget) HandleOHLCVUnSubscription(client any, message map[string]any
 	}
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 }
-func (this *Bitget) HandleUnSubscriptionStatus(client any, message map[string]any) map[string]any {
+func (this *Bitget) HandleUnSubscriptionStatus(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//  {
 	//      "op":"unsubscribe",

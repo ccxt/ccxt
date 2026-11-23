@@ -131,7 +131,7 @@ func (this *Whitebit) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sym
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
 	return nil
 }
-func (this *Whitebit) HandleOHLCV(client any, message map[string]any) map[string]any {
+func (this *Whitebit) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	// {
 	//     "method": "candles_update",
@@ -229,7 +229,7 @@ func (this *Whitebit) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Whitebit) HandleOrderBook(client any, message map[string]any) {
+func (this *Whitebit) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// {
 	//     "method":"depth_update",
@@ -301,12 +301,12 @@ func (this *Whitebit) HandleOrderBook(client any, message map[string]any) {
 	var messageHash string = "orderbook" + ":" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Whitebit) HandleDelta(bookside any, delta any) {
+func (this *Whitebit) HandleDelta(bookside ccxt.IOrderBookSide, delta any) {
 	var price *float64 = this.SafeFloat(delta, 0)
 	var amount *float64 = this.SafeFloat(delta, 1)
-	bookside.(ccxt.IOrderBookSide).Store(price, amount)
+	bookside.Store(price, amount)
 }
-func (this *Whitebit) HandleDeltas(bookside any, deltas []any) {
+func (this *Whitebit) HandleDeltas(bookside ccxt.IOrderBookSide, deltas []any) {
 	for i := 0; i < len(deltas); i++ {
 		this.HandleDelta(bookside, deltas[i])
 	}
@@ -405,7 +405,7 @@ func (this *Whitebit) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Tickers, symbolsNormalized)}
 	return nil
 }
-func (this *Whitebit) HandleTicker(client any, message map[string]any) map[string]any {
+func (this *Whitebit) HandleTicker(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//   {
 	//       "method": "market_update",
@@ -512,7 +512,7 @@ func (this *Whitebit) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sy
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Whitebit) HandleTrades(client any, message map[string]any) {
+func (this *Whitebit) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "method":"trades_update",
@@ -622,7 +622,7 @@ func (this *Whitebit) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySymbolSinceLimit(trades, symbolValue, since, limitResolved, true))}
 	return nil
 }
-func (this *Whitebit) HandleMyTrades(client any, message map[string]any, optionalArgs ...any) {
+func (this *Whitebit) HandleMyTrades(client ccxt.ClientInterface, message map[string]any, optionalArgs ...any) {
 	//
 	//   {
 	//       "method": "deals_update",
@@ -799,7 +799,7 @@ func (this *Whitebit) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(trades, symbolValue, since, limitResolved, true))}
 	return nil
 }
-func (this *Whitebit) HandleOrder(client any, message map[string]any, optionalArgs ...any) {
+func (this *Whitebit) HandleOrder(client ccxt.ClientInterface, message map[string]any, optionalArgs ...any) {
 	//
 	// {
 	//     "method": "ordersPending_update",
@@ -1024,7 +1024,7 @@ func (this *Whitebit) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], 
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r2.Value)}
 	return nil
 }
-func (this *Whitebit) SetBalanceCache(client any, typeVar string, subscriptionHash string) {
+func (this *Whitebit) SetBalanceCache(client ccxt.ClientInterface, typeVar string, subscriptionHash string) {
 	if client.(ccxt.ClientInterface).SubscriptionHas(subscriptionHash) {
 		return
 	}
@@ -1037,12 +1037,12 @@ func (this *Whitebit) SetBalanceCache(client any, typeVar string, subscriptionHa
 		}
 	}
 }
-func (this *Whitebit) LoadBalanceSnapshotAsync(client any, messageHash string, typeVar string, subscriptionHash string) <-chan ccxt.AsyncResult[bool] {
+func (this *Whitebit) LoadBalanceSnapshotAsync(client ccxt.ClientInterface, messageHash string, typeVar string, subscriptionHash string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadBalanceSnapshotBody(ch, client, messageHash, typeVar, subscriptionHash)
 	return ch
 }
-func (this *Whitebit) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string, typeVar string, subscriptionHash string) any {
+func (this *Whitebit) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, messageHash string, typeVar string, subscriptionHash string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -1065,7 +1065,7 @@ func (this *Whitebit) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], cl
 	}
 	return nil
 }
-func (this *Whitebit) HandleBalance(client any, message map[string]any) {
+func (this *Whitebit) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// spot
 	//
@@ -1445,7 +1445,7 @@ func (this *Whitebit) authenticateBody(ch chan ccxt.AsyncResult[int], optionalAr
 	ch <- ccxt.AsyncResult[int]{Value: authorized}
 	return nil
 }
-func (this *Whitebit) HandleAuthenticate(client any, message map[string]any) map[string]any {
+func (this *Whitebit) HandleAuthenticate(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     { error: null, result: { status: "success" }, id: 1656084550 }
 	//
@@ -1453,7 +1453,7 @@ func (this *Whitebit) HandleAuthenticate(client any, message map[string]any) map
 	future.Resolve(1)
 	return message
 }
-func (this *Whitebit) HandleErrorMessage(client any, message map[string]any) any {
+func (this *Whitebit) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) any {
 	//
 	//     {
 	//         "error": { code: 1, message: "invalid argument" },
@@ -1495,7 +1495,7 @@ func (this *Whitebit) HandleErrorMessage(client any, message map[string]any) any
 	}
 	return true
 }
-func (this *Whitebit) HandleMessage(client any, message map[string]any) {
+func (this *Whitebit) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// auth
 	//    { error: null, result: { status: "success" }, id: 1656084550 }
@@ -1533,7 +1533,7 @@ func (this *Whitebit) HandleMessage(client any, message map[string]any) {
 		ccxt.CallDynamically(method, client, message)
 	}
 }
-func (this *Whitebit) HandleSubscriptionStatus(client any, message map[string]any, id *int64) {
+func (this *Whitebit) HandleSubscriptionStatus(client ccxt.ClientInterface, message map[string]any, id *int64) {
 	// not every method stores its subscription
 	// as an object so we can't do indeById here
 	var subs map[string]any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
@@ -1558,11 +1558,11 @@ func (this *Whitebit) HandleSubscriptionStatus(client any, message map[string]an
 		}
 	}
 }
-func (this *Whitebit) HandlePong(client any, message map[string]any) map[string]any {
+func (this *Whitebit) HandlePong(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return message
 }
-func (this *Whitebit) Ping(client any) any {
+func (this *Whitebit) Ping(client ccxt.ClientInterface) any {
 	return map[string]any{
 		"id":     0,
 		"method": "ping",

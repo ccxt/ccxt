@@ -351,7 +351,7 @@ func (this *Upbit) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(resolved)}
 	return nil
 }
-func (this *Upbit) HandleTicker(client any, message map[string]any) {
+func (this *Upbit) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	// 2020-03-17T23:07:36.511Z "onMessage" <Buffer 7b 22 74 79 70 65 22 3a 22 74 69 63 6b 65 72 22 2c 22 63 6f 64 65 22 3a 22 42 54 43 2d 45 54 48 22 2c 22 6f 70 65 6e 69 6e 67 5f 70 72 69 63 65 22 3a ... >
 	// { type: "ticker",
 	//   "code": "BTC-ETH",
@@ -396,7 +396,7 @@ func (this *Upbit) HandleTicker(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	}
 }
-func (this *Upbit) HandleOrderBook(client any, message map[string]any) {
+func (this *Upbit) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	// { type: "orderbook",
 	//   "code": "BTC-ETH",
 	//   "timestamp": 1584486737444,
@@ -456,7 +456,7 @@ func (this *Upbit) HandleOrderBook(client any, message map[string]any) {
 	var messageHash string = "orderbook:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Upbit) HandleTrades(client any, message map[string]any) {
+func (this *Upbit) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	// { type: "trade",
 	//   "code": "KRW-BTC",
 	//   "timestamp": 1584508285812,
@@ -486,7 +486,7 @@ func (this *Upbit) HandleTrades(client any, message map[string]any) {
 	var messageHash string = "trade:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func (this *Upbit) HandleOHLCV(client any, message map[string]any) {
+func (this *Upbit) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	// {
 	//     type: 'candle.1s',
 	//     code: 'KRW-USDT',
@@ -876,7 +876,7 @@ func (this *Upbit) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	}
 	return ccxt.TradeToMap(this.SafeTrade(literal59031, marketResolved))
 }
-func (this *Upbit) HandleMyOrder(client any, message map[string]any) {
+func (this *Upbit) HandleMyOrder(client ccxt.ClientInterface, message map[string]any) {
 	// see: parseWsOrder
 	var tradeId *string = this.SafeString(message, "trade_uuid")
 	if tradeId != nil {
@@ -884,7 +884,7 @@ func (this *Upbit) HandleMyOrder(client any, message map[string]any) {
 	}
 	this.HandleOrder(client, message)
 }
-func (this *Upbit) HandleMyTrade(client any, message map[string]any) {
+func (this *Upbit) HandleMyTrade(client ccxt.ClientInterface, message map[string]any) {
 	// see: parseWsOrder
 	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -897,7 +897,7 @@ func (this *Upbit) HandleMyTrade(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).Resolve(myTrades, messageHash)
 	client.(ccxt.ClientInterface).Resolve(myTrades, "myTrades:"+*this.SafeString(trade, "symbol", ""))
 }
-func (this *Upbit) HandleOrder(client any, message map[string]any) {
+func (this *Upbit) HandleOrder(client ccxt.ClientInterface, message map[string]any) {
 	var parsed map[string]any = this.ParseWsOrder(message)
 	var symbol *string = this.SafeString(parsed, "symbol")
 	var orderId *string = this.SafeString(parsed, "id")
@@ -995,7 +995,7 @@ func (this *Upbit) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r1.Value)}
 	return nil
 }
-func (this *Upbit) HandleBalance(client any, message map[string]any) {
+func (this *Upbit) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// {
 	//     "type": "myAsset",
@@ -1041,7 +1041,7 @@ func (this *Upbit) HandleBalance(client any, message map[string]any) {
 	var messageHash *string = this.SafeString(message, "type")
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
-func (this *Upbit) HandleMessage(client any, message map[string]any) {
+func (this *Upbit) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var methods map[string]any = map[string]any{
 		"ticker":    this.HandleTicker,
 		"orderbook": this.HandleOrderBook,

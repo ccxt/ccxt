@@ -1863,8 +1863,7 @@ func (this *Bitteam) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 		rawTickers = ArrayTyped(response)
 	}
 	for i := 0; i < len(rawTickers); i++ {
-		var rawTicker any = rawTickers[i]
-		var ticker map[string]any = TickerToMap(this.ParseTicker(rawTicker))
+		var ticker map[string]any = TickerToMap(this.ParseTicker(this.SafeDict(rawTickers, i, map[string]any{})))
 		tickers = append(tickers, ticker)
 	}
 
@@ -2208,7 +2207,7 @@ func (this *Bitteam) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var low *string = this.SafeString2(ticker, "lowPrice24", "lowest_price_24h")
 	var close *string = this.SafeString2(ticker, "lastPrice", "last_price")
 	var changePcnt *string = this.SafeString2(ticker, "change24", "price_change_percent_24h")
-	var literal178932 map[string]any = map[string]any{
+	var literal178832 map[string]any = map[string]any{
 		"symbol":        marketResolved["symbol"],
 		"timestamp":     nil,
 		"datetime":      nil,
@@ -2230,18 +2229,18 @@ func (this *Bitteam) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"info":          ticker,
 	}
 	if bestBidPrice != nil {
-		literal178932["bid"] = *bestBidPrice
+		literal178832["bid"] = *bestBidPrice
 	}
 	if bestBidVolume != nil {
-		literal178932["bidVolume"] = *bestBidVolume
+		literal178832["bidVolume"] = *bestBidVolume
 	}
 	if bestAskPrice != nil {
-		literal178932["ask"] = *bestAskPrice
+		literal178832["ask"] = *bestAskPrice
 	}
 	if bestAskVolume != nil {
-		literal178932["askVolume"] = *bestAskVolume
+		literal178832["askVolume"] = *bestAskVolume
 	}
-	return this.SafeTicker(literal178932, marketResolved)
+	return this.SafeTicker(literal178832, marketResolved)
 }
 
 /**
@@ -2598,7 +2597,7 @@ func (this *Bitteam) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"cost":     feeCost,
 	}
 	var intTs int64 = this.ParseToInt(timestamp)
-	var literal210931 map[string]any = map[string]any{
+	var literal210831 map[string]any = map[string]any{
 		"id":           id,
 		"order":        nil,
 		"timestamp":    intTs,
@@ -2614,9 +2613,9 @@ func (this *Bitteam) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"info":         trade,
 	}
 	if order != nil {
-		literal210931["order"] = *order
+		literal210831["order"] = *order
 	}
-	return this.SafeTrade(literal210931, marketResolved)
+	return this.SafeTrade(literal210831, marketResolved)
 }
 
 /**
@@ -3033,7 +3032,7 @@ func (this *Bitteam) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResolved,
 	}
 }
-func (this *Bitteam) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Bitteam) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		return nil
 	}

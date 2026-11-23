@@ -4644,7 +4644,7 @@ func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) Trade {
 	_ = market
 	var id *string = this.SafeStringN(trade, []any{"execId", "id", "tradeId"})
 	var marketId *string = this.SafeString(trade, "symbol")
-	var marketType any = "spot"
+	var marketType string = "spot"
 	if InOp(trade, "createType") {
 		marketType = "contract"
 	}
@@ -4657,11 +4657,7 @@ func (this *Bybit) ParseTrade(trade any, optionalArgs ...any) Trade {
 		}
 	}
 	if market != nil {
-		if derefPtr := this.SafeString(market, "type"); derefPtr != nil {
-			marketType = *derefPtr
-		} else {
-			marketType = nil
-		}
+		marketType = *this.SafeString(market, "type", marketType)
 	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, marketType)
 	var symbol *string = this.SafeString(marketResolved, "symbol")
@@ -5583,7 +5579,7 @@ func (this *Bybit) ParseOrder(order any, optionalArgs ...any) Order {
 			takeProfitPrice = triggerPrice
 		}
 	}
-	var literal414431 map[string]any = map[string]any{
+	var literal414831 map[string]any = map[string]any{
 		"info":                order,
 		"id":                  id,
 		"clientOrderId":       clientOrderId,
@@ -5611,12 +5607,12 @@ func (this *Bybit) ParseOrder(order any, optionalArgs ...any) Order {
 		"trades":              nil,
 	}
 	if amount != nil {
-		literal414431["amount"] = *amount
+		literal414831["amount"] = *amount
 	}
 	if cost != nil {
-		literal414431["cost"] = *cost
+		literal414831["cost"] = *cost
 	}
-	return this.SafeOrder(literal414431, marketResolved)
+	return this.SafeOrder(literal414831, marketResolved)
 }
 
 /**
@@ -5629,12 +5625,12 @@ func (this *Bybit) ParseOrder(order any, optionalArgs ...any) Order {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bybit) CreateMarketBuyOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bybit) CreateMarketBuyOrderWithCostAsync(symbol string, cost float64, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Bybit) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost any, optionalArgs ...any) any {
+func (this *Bybit) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5672,12 +5668,12 @@ func (this *Bybit) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bybit) CreateMarketSellOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bybit) CreateMarketSellOrderWithCostAsync(symbol string, cost float64, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createMarketSellOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Bybit) createMarketSellOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost any, optionalArgs ...any) any {
+func (this *Bybit) createMarketSellOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -7338,11 +7334,11 @@ func (this *Bybit) fetchOrdersClassicBody(ch chan AsyncResult[[]Order], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes545319 []any = r1.Value
-		if retRes545319 == nil {
+		var retRes545719 []any = r1.Value
+		if retRes545719 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes545319)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes545719)}
 		}
 		return nil
 	}
@@ -7617,11 +7613,11 @@ func (this *Bybit) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order]
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes563719 []any = r1.Value
-		if retRes563719 == nil {
+		var retRes564119 []any = r1.Value
+		if retRes564119 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes563719)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes564119)}
 		}
 		return nil
 	}
@@ -7776,11 +7772,11 @@ func (this *Bybit) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes575915 []any = OrdersToList(r1.Value)
-	if retRes575915 == nil {
+	var retRes576315 []any = OrdersToList(r1.Value)
+	if retRes576315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes575915)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes576315)}
 	}
 	return nil
 }
@@ -7834,11 +7830,11 @@ func (this *Bybit) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optiona
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes578715 []any = OrdersToList(r1.Value)
-	if retRes578715 == nil {
+	var retRes579115 []any = OrdersToList(r1.Value)
+	if retRes579115 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes578715)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes579115)}
 	}
 	return nil
 }
@@ -7892,11 +7888,11 @@ func (this *Bybit) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes581519 []any = r1.Value
-		if retRes581519 == nil {
+		var retRes581919 []any = r1.Value
+		if retRes581919 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes581519)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes581919)}
 		}
 		return nil
 	}
@@ -8042,11 +8038,11 @@ func (this *Bybit) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string,
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes593215 []any = TradesToList(r.Value)
-	if retRes593215 == nil {
+	var retRes593615 []any = TradesToList(r.Value)
+	if retRes593615 == nil {
 		ch <- AsyncResult[[]Trade]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes593215)}
+		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes593615)}
 	}
 	return nil
 }
@@ -8095,11 +8091,11 @@ func (this *Bybit) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes595519 []any = r1.Value
-		if retRes595519 == nil {
+		var retRes595919 []any = r1.Value
+		if retRes595919 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes595519)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes595919)}
 		}
 		return nil
 	}
@@ -8266,7 +8262,7 @@ func (this *Bybit) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[st
 	}
 	var coin *string = this.SafeString(result, "coin")
 	var currencyFromResponse map[string]any = this.Currency(coin)
-	var parsed []any = this.ParseDepositAddresses(chains, []any{currencyFromResponse["code"]}, false, map[string]any{
+	var parsed []any = this.ParseDepositAddresses(chains, []any{this.SafeString(currencyFromResponse, "code", "")}, false, map[string]any{
 		"currency": currencyFromResponse["code"],
 	})
 
@@ -8362,11 +8358,11 @@ func (this *Bybit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optiona
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes613419 []any = r1.Value
-		if retRes613419 == nil {
+		var retRes613819 []any = r1.Value
+		if retRes613819 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes613419)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes613819)}
 		}
 		return nil
 	}
@@ -8465,11 +8461,11 @@ func (this *Bybit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes620419 []any = r1.Value
-		if retRes620419 == nil {
+		var retRes620819 []any = r1.Value
+		if retRes620819 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes620419)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes620819)}
 		}
 		return nil
 	}
@@ -8684,11 +8680,11 @@ func (this *Bybit) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes639219 []any = r1.Value
-		if retRes639219 == nil {
+		var retRes639619 []any = r1.Value
+		if retRes639619 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes639219)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes639619)}
 		}
 		return nil
 	}
@@ -8980,12 +8976,12 @@ func (this *Bybit) ParseLedgerEntryType(typeVar *string) *string {
  * @param {string} [params.accountType] 'UTA', 'FUND', 'FUND,UTA', and 'SPOT (for classic accounts only)
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bybit) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Bybit) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bybit) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
+func (this *Bybit) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -9148,14 +9144,7 @@ func (this *Bybit) fetchPositionBody(ch chan AsyncResult[Position], symbol strin
 	var result, _ = response["result"].(map[string]any)
 	var positions []any = SafeList2Typed(result, "list", "dataList")
 	var timestamp *int64 = this.SafeInteger(response, "time")
-	var first map[string]any
-	if 0 < len(positions) {
-		first, _ = positions[0].(map[string]any)
-	}
-	if first == nil {
-		first = map[string]any{}
-	}
-	var position map[string]any = PositionToMap(this.ParsePosition(first, market))
+	var position map[string]any = PositionToMap(this.ParsePosition(this.SafeDict(positions, 0, map[string]any{}), market))
 	position["timestamp"] = timestamp
 	position["datetime"] = this.Iso8601(timestamp)
 
@@ -9203,11 +9192,11 @@ func (this *Bybit) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes681519 []any = r1.Value
-		if retRes681519 == nil {
+		var retRes681819 []any = r1.Value
+		if retRes681819 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes681519)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes681819)}
 		}
 		return nil
 	}
@@ -10176,11 +10165,11 @@ func (this *Bybit) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenIntere
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes756919 []any = r1.Value
-		if retRes756919 == nil {
+		var retRes757219 []any = r1.Value
+		if retRes757219 == nil {
 			ch <- AsyncResult[[]OpenInterest]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes756919)}
+			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes757219)}
 		}
 		return nil
 	}
@@ -10202,11 +10191,11 @@ func (this *Bybit) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenIntere
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes758115 []any = OpenInterestsToList(r2.Value)
-	if retRes758115 == nil {
+	var retRes758415 []any = OpenInterestsToList(r2.Value)
+	if retRes758415 == nil {
 		ch <- AsyncResult[[]OpenInterest]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes758115)}
+		ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes758415)}
 	}
 	return nil
 }
@@ -10583,12 +10572,12 @@ func (this *Bybit) ParseBorrowInterest(info any, optionalArgs ...any) any {
  * @param {string} [params.transferId] UUID, which is unique across the platform
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Bybit) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Bybit) TransferAsync(code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Bybit) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
+func (this *Bybit) transferBody(ch chan AsyncResult[TransferEntry], code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -10693,11 +10682,11 @@ func (this *Bybit) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes790119 []any = r1.Value
-		if retRes790119 == nil {
+		var retRes790419 []any = r1.Value
+		if retRes790419 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes790119)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes790419)}
 		}
 		return nil
 	}
@@ -11049,12 +11038,12 @@ func (this *Bybit) fetchMarketLeverageTiersBody(ch chan AsyncResult[[]LeverageTi
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	retRes815415Recv, _ := LeverageTiersToList(r1.Value), r1.Value != nil
-	var retRes815415 []any = retRes815415Recv
-	if retRes815415 == nil {
+	retRes815715Recv, _ := LeverageTiersToList(r1.Value), r1.Value != nil
+	var retRes815715 []any = retRes815715Recv
+	if retRes815715 == nil {
 		ch <- AsyncResult[[]LeverageTier]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(retRes815415)}
+		ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(retRes815715)}
 	}
 	return nil
 }
@@ -11069,13 +11058,9 @@ func (this *Bybit) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInter
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(fee, "symbol")
-	var defaultType any = "contract"
+	var defaultType string = "contract"
 	if market != nil {
-		if derefPtr := this.SafeString(market, "type"); derefPtr != nil {
-			defaultType = *derefPtr
-		} else {
-			defaultType = nil
-		}
+		defaultType = *this.SafeString(market, "type", "contract")
 	}
 	var symbol *string = this.SafeSymbol(marketId, market, nil, defaultType)
 	return TradingFeeInterfaceFromMap(map[string]any{
@@ -12002,11 +11987,11 @@ func (this *Bybit) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation], o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes885019 []any = r1.Value
-		if retRes885019 == nil {
+		var retRes885319 []any = r1.Value
+		if retRes885319 == nil {
 			ch <- AsyncResult[[]Liquidation]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes885019)}
+			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes885319)}
 		}
 		return nil
 	}
@@ -12159,11 +12144,11 @@ func (this *Bybit) getLeverageTiersPaginatedBody(ch chan AsyncResult[[]LeverageT
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes897419 []any = r1.Value
-		if retRes897419 == nil {
+		var retRes897719 []any = r1.Value
+		if retRes897719 == nil {
 			ch <- AsyncResult[[]LeverageTier]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(retRes897419)}
+			ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(retRes897719)}
 		}
 		return nil
 	}
@@ -12235,11 +12220,11 @@ func (this *Bybit) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], op
 	}
 	var symbol *string = nil
 	if symbols != nil {
-		var symbolsElem901940 *string = nil
+		var symbolsElem902240 *string = nil
 		if 0 >= 0 && 0 < len(symbols) {
-			symbolsElem901940 = &symbols[0]
+			symbolsElem902240 = &symbols[0]
 		}
-		var market map[string]any = this.Market(symbolsElem901940)
+		var market map[string]any = this.Market(symbolsElem902240)
 		if *this.SafeBool(market, "spot", false) {
 			panic(NotSupported(this.Id + " fetchLeverageTiers() is not supported for spot market"))
 		}
@@ -12390,11 +12375,11 @@ func (this *Bybit) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory]
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes911819 []any = r1.Value
-		if retRes911819 == nil {
+		var retRes912119 []any = r1.Value
+		if retRes912119 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes911819)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes912119)}
 		}
 		return nil
 	}
@@ -12471,9 +12456,9 @@ func (this *Bybit) ParseIncome(income any, optionalArgs ...any) map[string]any {
 	_ = market
 	var marketId *string = this.SafeString(income, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, "contract")
-	var code any = "USDT"
+	var code string = "USDT"
 	if *this.SafeBool(marketResolved, "inverse", false) {
-		code = marketResolved["quote"]
+		code = *this.SafeString(marketResolved, "quote", "USDT")
 	}
 	var timestamp *int64 = this.SafeInteger(income, "execTime")
 	return map[string]any{
@@ -13861,7 +13846,7 @@ func (this *Bybit) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResolved,
 	}
 }
-func (this *Bybit) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Bybit) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

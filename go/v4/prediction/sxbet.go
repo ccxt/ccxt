@@ -827,7 +827,7 @@ func (this *Sxbet) LoadSxObv3MetadataAsync() <-chan ccxt.AsyncResult[map[string]
 func (this *Sxbet) loadSxObv3MetadataBody(ch chan ccxt.AsyncResult[map[string]any]) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var cached map[string]any = this.SafeDictMap(this.Options, "sxObv3Metadata")
+	var cached, _ = this.Options["sxObv3Metadata"].(map[string]any)
 	if cached != nil {
 
 		ch <- ccxt.AsyncResult[map[string]any]{Value: cached}
@@ -3175,12 +3175,12 @@ func (this *Sxbet) connectSxbetCentrifugoBody(ch chan ccxt.AsyncResult[bool], ur
 	ch <- ccxt.AsyncResult[bool]{Value: resolved1}
 	return nil
 }
-func (this *Sxbet) PongAsync(client any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Sxbet) PongAsync(client ccxt.ClientInterface, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.pongBody(ch, client, optionalArgs...)
 	return ch
 }
-func (this *Sxbet) pongBody(ch chan ccxt.AsyncResult[bool], client any, optionalArgs ...any) any {
+func (this *Sxbet) pongBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
@@ -3224,7 +3224,7 @@ func (this *Sxbet) subscribeSxbetChannelBody(ch chan ccxt.AsyncResult[ccxt.Array
 	ch <- ccxt.AsyncResult[ccxt.ArrayCacheInterface]{Value: ccxt.AsArrayCache(r1.Value)}
 	return nil
 }
-func (this *Sxbet) HandleTextMessage(client any, message string) {
+func (this *Sxbet) HandleTextMessage(client ccxt.ClientInterface, message string) {
 	var lines []string = strings.Split(message, "\n")
 	var linesLength int = len(lines)
 	for i := 0; i < linesLength; i++ {
@@ -3235,12 +3235,12 @@ func (this *Sxbet) HandleTextMessage(client any, message string) {
 		}
 	}
 }
-func (this *Sxbet) HandleMessage(client any, message any) {
+func (this *Sxbet) HandleMessage(client ccxt.ClientInterface, message any) {
 	// Centrifugo packs several commands per frame joined by newlines; a multi-command frame fails the
 	// base JSON.parse and arrives here in raw-string form, a single command arrives already parsed
 	this.HandleCentrifugoFrame(client, message)
 }
-func (this *Sxbet) HandleCentrifugoFrame(client any, msg any) {
+func (this *Sxbet) HandleCentrifugoFrame(client ccxt.ClientInterface, msg any) {
 	var keys []string = ccxt.ObjectKeys(msg)
 	var keysLength int = len(keys)
 	if keysLength == 0 {
@@ -3466,7 +3466,7 @@ func (this *Sxbet) ApplySxbetWsSnapshot(snapshot any) []any {
 	}
 	return refreshed
 }
-func (this *Sxbet) HandleOrderBook(client any, rows []any) {
+func (this *Sxbet) HandleOrderBook(client ccxt.ClientInterface, rows []any) {
 	//
 	//     {
 	//         "marketHash": "0x...",
@@ -3566,7 +3566,7 @@ func (this *Sxbet) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTicke
 	ch <- ccxt.AsyncResult[ccxt.PredictionTicker]{Value: ccxt.PredictionTickerFromMap(tickerResult)}
 	return nil
 }
-func (this *Sxbet) HandleTicker(client any, rows []any) {
+func (this *Sxbet) HandleTicker(client ccxt.ClientInterface, rows []any) {
 	//
 	//     {
 	//         "marketHash": "0xbf06...16a2eb",
@@ -3709,7 +3709,7 @@ func (this *Sxbet) ParseSxbetV3PublicTrade(trade any) any {
 		"fee":          nil,
 	})
 }
-func (this *Sxbet) HandleTrades(client any, rows []any) {
+func (this *Sxbet) HandleTrades(client ccxt.ClientInterface, rows []any) {
 	//
 	//     { "trade": { "tradeId": "0xac6b...", "marketHash": "0x1fec...", "isBettingOutcomeOne": true,
 	//                  "totalStake": "1000000", "weightedAverageOdds": "40000000000000000000",
@@ -3789,7 +3789,7 @@ func (this *Sxbet) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionT
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionTrade]{Value: ccxt.PredictionTradesFromList(this.FilterBySinceLimit(trades, since, limit, "timestamp", true))}
 	return nil
 }
-func (this *Sxbet) HandleMyTrade(client any, rows []any) {
+func (this *Sxbet) HandleMyTrade(client ccxt.ClientInterface, rows []any) {
 	//
 	//     FillV3 rows - identical to GET /fills-v3
 	//
@@ -3865,7 +3865,7 @@ func (this *Sxbet) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOrd
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(this.FilterBySinceLimit(orders, since, limit, "timestamp", true))}
 	return nil
 }
-func (this *Sxbet) HandleOrder(client any, rows []any) {
+func (this *Sxbet) HandleOrder(client ccxt.ClientInterface, rows []any) {
 	//
 	//     OrderV3 rows - identical to GET /orders-v3 (plus INACTIVE states with inactiveReason)
 	//
@@ -3887,7 +3887,7 @@ func (this *Sxbet) HandleOrder(client any, rows []any) {
 		}
 	}
 }
-func (this *Sxbet) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Sxbet) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	// sx.bet returns { "error": "Bad Request", "message": <code or [strings]>, "statusCode": 4xx }
 	// map the known codes to ccxt errors so callers can distinguish a rejected order or a
 	// validation problem from a transport outage (the base otherwise maps a bare 4xx to the

@@ -1199,11 +1199,7 @@ func (this *Toobit) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	var all []any = this.ArrayConcat(symbols, contracts)
 	var result []any = []any{}
 	for i := 0; i < len(all); i++ {
-		var market, _ = all[i].(map[string]any)
-		if market == nil {
-			market = map[string]any{}
-		}
-		var parsed map[string]any = this.ParseMarket(market)
+		var parsed map[string]any = this.ParseMarket(this.SafeDict(all, i, map[string]any{}))
 		if parsed != nil {
 			result = append(result, parsed)
 		}
@@ -1242,9 +1238,9 @@ func (this *Toobit) ParseMarket(market any) map[string]any {
 			symbol = nil
 		}
 	}
-	var ternaryStr99720 string = "spot"
+	var ternaryStr99620 string = "spot"
 	if isContract {
-		ternaryStr99720 = "swap"
+		ternaryStr99620 = "swap"
 	}
 	var result map[string]any = map[string]any{
 		"id":             id,
@@ -1255,7 +1251,7 @@ func (this *Toobit) ParseMarket(market any) map[string]any {
 		"baseId":         baseId,
 		"quoteId":        quoteId,
 		"settleId":       settleId,
-		"type":           ternaryStr99720,
+		"type":           ternaryStr99620,
 		"spot":           !isContract,
 		"margin":         false,
 		"swap":           isContract,
@@ -2094,11 +2090,11 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes166419 []any = r1.Value
-		if retRes166419 == nil {
+		var retRes166319 []any = r1.Value
+		if retRes166319 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes166419)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes166319)}
 		}
 		return nil
 	}
@@ -3130,12 +3126,12 @@ func (this *Toobit) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Toobit) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Toobit) TransferAsync(code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Toobit) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
+func (this *Toobit) transferBody(ch chan AsyncResult[TransferEntry], code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3432,11 +3428,11 @@ func (this *Toobit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes277715 []any = TransactionsToList(r.Value)
-	if retRes277715 == nil {
+	var retRes277615 []any = TransactionsToList(r.Value)
+	if retRes277615 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes277715)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes277615)}
 	}
 	return nil
 }
@@ -3473,11 +3469,11 @@ func (this *Toobit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes279215 []any = TransactionsToList(r.Value)
-	if retRes279215 == nil {
+	var retRes279115 []any = TransactionsToList(r.Value)
+	if retRes279115 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes279215)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes279115)}
 	}
 	return nil
 }
@@ -3762,12 +3758,12 @@ func (this *Toobit) ParseDepositAddress(depositAddress any, optionalArgs ...any)
  * @param {string} [params.addressType] recipient identifier type, one of BLOCK_CHAIN, PHONE_NUMBER, EMAIL, or UID
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Toobit) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Toobit) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Toobit) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
+func (this *Toobit) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4195,7 +4191,7 @@ func (this *Toobit) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": nil,
 	}
 }
-func (this *Toobit) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Toobit) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		return nil
 	}

@@ -169,7 +169,7 @@ func (this *Hashkey) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symb
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
 	return nil
 }
-func (this *Hashkey) HandleOHLCV(client any, message any) {
+func (this *Hashkey) HandleOHLCV(client ccxt.ClientInterface, message any) {
 	//
 	//     {
 	//         "symbol": "DOGEUSDT",
@@ -285,7 +285,7 @@ func (this *Hashkey) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(r1.Value)}
 	return nil
 }
-func (this *Hashkey) HandleTicker(client any, message any) {
+func (this *Hashkey) HandleTicker(client ccxt.ClientInterface, message any) {
 	//
 	//     {
 	//         "symbol": "ETHUSDT",
@@ -373,7 +373,7 @@ func (this *Hashkey) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Hashkey) HandleTrades(client any, message any) {
+func (this *Hashkey) HandleTrades(client ccxt.ClientInterface, message any) {
 	//
 	//     {
 	//         "symbol": "ETHUSDT",
@@ -462,7 +462,7 @@ func (this *Hashkey) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Hashkey) HandleOrderBook(client any, message any) {
+func (this *Hashkey) HandleOrderBook(client ccxt.ClientInterface, message any) {
 	//
 	//     {
 	//         "symbol": "ETHUSDT",
@@ -583,7 +583,7 @@ func (this *Hashkey) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Hashkey) HandleOrder(client any, message any) {
+func (this *Hashkey) HandleOrder(client ccxt.ClientInterface, message any) {
 	//
 	// swap
 	//     {
@@ -747,7 +747,7 @@ func (this *Hashkey) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Hashkey) HandleMyTrade(client any, message any, optionalArgs ...any) {
+func (this *Hashkey) HandleMyTrade(client ccxt.ClientInterface, message any, optionalArgs ...any) {
 	//
 	//     {
 	//         "e": "ticketInfo",
@@ -932,7 +932,7 @@ func (this *Hashkey) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.Positions, symbolsNormalized, since, limit, true))}
 	return nil
 }
-func (this *Hashkey) HandlePosition(client any, message any) {
+func (this *Hashkey) HandlePosition(client ccxt.ClientInterface, message any) {
 	//
 	//     {
 	//         "e": "outboundContractPositionInfo",
@@ -1058,7 +1058,7 @@ func (this *Hashkey) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r3.Value)}
 	return nil
 }
-func (this *Hashkey) SetBalanceCache(client any, typeVar string, subscribeHash string) {
+func (this *Hashkey) SetBalanceCache(client ccxt.ClientInterface, typeVar string, subscribeHash string) {
 	if client.(ccxt.ClientInterface).SubscriptionHas(subscribeHash) {
 		return
 	}
@@ -1073,12 +1073,12 @@ func (this *Hashkey) SetBalanceCache(client any, typeVar string, subscribeHash s
 	}
 	this.Balance[typeVar] = map[string]any{}
 }
-func (this *Hashkey) LoadBalanceSnapshotAsync(client any, messageHash string, typeVar string) <-chan ccxt.AsyncResult[bool] {
+func (this *Hashkey) LoadBalanceSnapshotAsync(client ccxt.ClientInterface, messageHash string, typeVar string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadBalanceSnapshotBody(ch, client, messageHash, typeVar)
 	return ch
 }
-func (this *Hashkey) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string, typeVar string) any {
+func (this *Hashkey) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, messageHash string, typeVar string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -1101,7 +1101,7 @@ func (this *Hashkey) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], cli
 	}
 	return nil
 }
-func (this *Hashkey) HandleBalance(client any, message any) {
+func (this *Hashkey) HandleBalance(client ccxt.ClientInterface, message any) {
 	//
 	//     {
 	//         "e": "outboundContractAccountInfo",        // event type
@@ -1295,13 +1295,13 @@ func (this *Hashkey) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], list
 	}
 	return nil
 }
-func (this *Hashkey) HandleListMessage(client any, message []any) {
+func (this *Hashkey) HandleListMessage(client ccxt.ClientInterface, message []any) {
 	this.HandleStreamMessage(client, this.SafeDict(message, 0, map[string]any{}))
 }
-func (this *Hashkey) HandleMessage(client any, message map[string]any) {
+func (this *Hashkey) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	this.HandleStreamMessage(client, message)
 }
-func (this *Hashkey) HandleStreamMessage(client any, message any) {
+func (this *Hashkey) HandleStreamMessage(client ccxt.ClientInterface, message any) {
 	var topic *string = this.SafeString2(message, "topic", "e")
 	if topic != nil && *topic == "kline" {
 		this.HandleOHLCV(client, message)

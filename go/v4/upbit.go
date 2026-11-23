@@ -407,12 +407,12 @@ func (this *Upbit) Describe() map[string]any {
 		},
 	})
 }
-func (this *Upbit) FetchCurrencyAsync(code any, optionalArgs ...any) <-chan AsyncResult[Currency] {
+func (this *Upbit) FetchCurrencyAsync(code string, optionalArgs ...any) <-chan AsyncResult[Currency] {
 	ch := make(chan AsyncResult[Currency], 1)
 	go this.fetchCurrencyBody(ch, code, optionalArgs...)
 	return ch
 }
-func (this *Upbit) fetchCurrencyBody(ch chan AsyncResult[Currency], code any, optionalArgs ...any) any {
+func (this *Upbit) fetchCurrencyBody(ch chan AsyncResult[Currency], code string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// this method is for retrieving funding fees and limits per currency
@@ -540,12 +540,12 @@ func (this *Upbit) fetchCurrencyByIdBody(ch chan AsyncResult[Currency], id any, 
 	})}
 	return nil
 }
-func (this *Upbit) FetchMarketAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[MarketInterface] {
+func (this *Upbit) FetchMarketAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[MarketInterface] {
 	ch := make(chan AsyncResult[MarketInterface], 1)
 	go this.fetchMarketBody(ch, symbol, optionalArgs...)
 	return ch
 }
-func (this *Upbit) fetchMarketBody(ch chan AsyncResult[MarketInterface], symbol any, optionalArgs ...any) any {
+func (this *Upbit) fetchMarketBody(ch chan AsyncResult[MarketInterface], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// this method is for retrieving trading fees and limits per market
@@ -2156,12 +2156,12 @@ func (this *Upbit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optiona
  * @param {string} [params.txid] withdrawal transaction id, the id argument is reserved for uuid
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Upbit) FetchDepositAsync(id any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Upbit) FetchDepositAsync(id string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.fetchDepositBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Upbit) fetchDepositBody(ch chan AsyncResult[Transaction], id any, optionalArgs ...any) any {
+func (this *Upbit) fetchDepositBody(ch chan AsyncResult[Transaction], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3155,12 +3155,12 @@ func (this *Upbit) createDepositAddressBody(ch chan AsyncResult[DepositAddress],
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Upbit) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Upbit) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Upbit) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
+func (this *Upbit) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3295,7 +3295,7 @@ func (this *Upbit) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	return literal248015
 }
-func (this *Upbit) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Upbit) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

@@ -1774,7 +1774,7 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan AsyncResult[map[string]any]
 			"deposit":  depositLimitsResult,
 			"withdraw": withdrawLimitsResult,
 		}
-		var currencyNetworks map[string]any = this.SafeDictMap(currency, "networks")
+		var currencyNetworks, _ = currency["networks"].(map[string]any)
 		if currencyNetworks != nil {
 			limits["networks"] = currencyNetworks
 		}
@@ -2049,7 +2049,7 @@ func (this *Whitebit) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 						var marketId *string = this.SafeString(order, "market")
 						var marketNew map[string]any = this.SafeMarket(marketId, nil, "_")
 
-						ch <- AsyncResult[Order]{Value: this.ParseOrder(order, marketNew)}
+						ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(orders, i, map[string]any{}), marketNew)}
 						chSent = true
 						return nil
 					}
@@ -2106,7 +2106,7 @@ func (this *Whitebit) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 						var orderId *string = this.SafeString(order, "id", "")
 						if orderId != nil && *orderId == id {
 
-							ch <- AsyncResult[Order]{Value: this.ParseOrder(order, marketNew)}
+							ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(marketOrders, j, map[string]any{}), marketNew)}
 							chSent = true
 							return nil
 						}
@@ -2270,7 +2270,7 @@ func (this *Whitebit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
-		var ticker map[string]any = TickerToMap(this.ParseTicker(this.SafeValue(response, marketId), market))
+		var ticker map[string]any = TickerToMap(this.ParseTicker(this.SafeDict(response, marketId, map[string]any{}), market))
 		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			result[*symbol] = ticker
@@ -2822,12 +2822,12 @@ func (this *Whitebit) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs ..
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Whitebit) CreateMarketOrderWithCostAsync(symbol string, side string, cost any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Whitebit) CreateMarketOrderWithCostAsync(symbol string, side string, cost float64, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createMarketOrderWithCostBody(ch, symbol, side, cost, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) createMarketOrderWithCostBody(ch chan AsyncResult[Order], symbol string, side string, cost any, optionalArgs ...any) any {
+func (this *Whitebit) createMarketOrderWithCostBody(ch chan AsyncResult[Order], symbol string, side string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2854,12 +2854,12 @@ func (this *Whitebit) createMarketOrderWithCostBody(ch chan AsyncResult[Order], 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Whitebit) CreateMarketBuyOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Whitebit) CreateMarketBuyOrderWithCostAsync(symbol string, cost float64, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost any, optionalArgs ...any) any {
+func (this *Whitebit) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4412,12 +4412,12 @@ func (this *Whitebit) setLeverageBody(ch chan AsyncResult[map[string]any], lever
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Whitebit) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Whitebit) TransferAsync(code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
+func (this *Whitebit) transferBody(ch chan AsyncResult[TransferEntry], code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4483,12 +4483,12 @@ func (this *Whitebit) ParseTransfer(transfer any, optionalArgs ...any) TransferE
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Whitebit) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Whitebit) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
+func (this *Whitebit) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4652,12 +4652,12 @@ func (this *Whitebit) ParseTransactionStatus(status *string) *string {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Whitebit) FetchDepositAsync(id any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Whitebit) FetchDepositAsync(id string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.fetchDepositBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Whitebit) fetchDepositBody(ch chan AsyncResult[Transaction], id any, optionalArgs ...any) any {
+func (this *Whitebit) fetchDepositBody(ch chan AsyncResult[Transaction], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -6107,7 +6107,7 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	return literal435515
 }
-func (this *Whitebit) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Whitebit) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if (code == 418) || (code == 429) {
 		panic(DDoSProtection(this.Id + " " + strconv.FormatInt(code, 10) + " " + reason + " " + body))
 	}

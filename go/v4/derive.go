@@ -2190,13 +2190,13 @@ func (this *Derive) ParseTrades(trades any, optionalArgs ...any) []any {
 	var tradesArray []any = this.ToArray(trades)
 	var result []any = []any{}
 	for i := 0; i < len(tradesArray); i++ {
-		var rawTrade any = tradesArray[i]
+		var rawTrade, _ = tradesArray[i].(map[string]any)
 		var isFetchTrades bool = (this.SafeString(rawTrade, "order_id") == nil)
 		var liquidityRole *string = this.SafeString(rawTrade, "liquidity_role")
 		if isFetchTrades && (liquidityRole != nil && *liquidityRole == "maker") {
 			continue
 		}
-		var parsed map[string]any = TradeToMap(this.ParseTrade(rawTrade, market))
+		var parsed map[string]any = TradeToMap(this.ParseTrade(this.SafeDict(tradesArray, i, map[string]any{}), market))
 		var trade map[string]any = this.Extend(parsed, params)
 		result = append(result, trade)
 	}
@@ -4784,12 +4784,12 @@ func (this *Derive) ParseBalanceList(response any) map[string]any {
  * @param {int} [params.new_subaccount_manager] a manager id creates a fresh subaccount under the sender wallet as the destination instead of toAccount, the creation charges a fee so max_fee_usd must cover it
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Derive) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Derive) TransferAsync(code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Derive) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
+func (this *Derive) transferBody(ch chan AsyncResult[TransferEntry], code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5220,12 +5220,12 @@ func (this *Derive) ParseBorrowInterest(info any, optionalArgs ...any) any {
  * @param {string} [params.subaccount_id] *required* the subaccount id
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Derive) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Derive) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Derive) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
+func (this *Derive) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5609,7 +5609,7 @@ func (this *Derive) HandleDeriveWalletAddress(methodName string, params any) (*s
 	}
 	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires the walletAddress credential, a deriveWalletAddress parameter inside 'params', or exchange.options['deriveWalletAddress'] = ADDRESS."))
 }
-func (this *Derive) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Derive) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

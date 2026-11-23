@@ -2339,7 +2339,7 @@ func (this *Nado) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) map[
 		"fee":          fee,
 	}, marketResolved))
 }
-func (this *Nado) HandleTrade(client any, message map[string]any) {
+func (this *Nado) HandleTrade(client ccxt.ClientInterface, message map[string]any) {
 	var marketId *string = this.SafeString(message, "product_id")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol string = *this.SafeString(market, "symbol", "")
@@ -2354,7 +2354,7 @@ func (this *Nado) HandleTrade(client any, message map[string]any) {
 	trades.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 }
-func (this *Nado) HandleMyTrade(client any, message map[string]any) {
+func (this *Nado) HandleMyTrade(client ccxt.ClientInterface, message map[string]any) {
 	var trade map[string]any = this.ParseWsMyTrade(message)
 	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -2365,7 +2365,7 @@ func (this *Nado) HandleMyTrade(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).Resolve(trades, "myTrades")
 	client.(ccxt.ClientInterface).Resolve(trades, "myTrades:"+*this.SafeString(trade, "symbol", ""))
 }
-func (this *Nado) HandleOHLCV(client any, message map[string]any) {
+func (this *Nado) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "type": "latest_candlestick",
@@ -2478,7 +2478,7 @@ func (this *Nado) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	}
 	return ccxt.OrderToMap(this.SafeOrder(literal144531, marketResolved))
 }
-func (this *Nado) HandleOrder(client any, message map[string]any) {
+func (this *Nado) HandleOrder(client ccxt.ClientInterface, message map[string]any) {
 	var order map[string]any = this.ParseWsOrder(message)
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
@@ -2553,7 +2553,7 @@ func (this *Nado) ParseWsPosition(position map[string]any, optionalArgs ...any) 
 		"percentage":                  nil,
 	}))
 }
-func (this *Nado) HandlePosition(client any, message map[string]any) {
+func (this *Nado) HandlePosition(client ccxt.ClientInterface, message map[string]any) {
 	var marketId *string = this.SafeString(message, "product_id")
 	var market map[string]any = this.SafeMarket(marketId)
 	if !(*this.SafeBool(market, "contract", false)) {
@@ -2606,7 +2606,7 @@ func (this *Nado) ParseWsBidAsk(bidask map[string]any, optionalArgs ...any) map[
 		"info":      bidask,
 	}, marketResolved))
 }
-func (this *Nado) HandleBidAsk(client any, message map[string]any) {
+func (this *Nado) HandleBidAsk(client ccxt.ClientInterface, message map[string]any) {
 	var ticker map[string]any = this.ParseWsBidAsk(message)
 	var symbol *string = this.SafeString(ticker, "symbol")
 	if symbol == nil {
@@ -2667,7 +2667,7 @@ func (this *Nado) ParseWsAllBidsAsks(message map[string]any) map[string]any {
 	}
 	return result
 }
-func (this *Nado) HandleAllBidsAsks(client any, message map[string]any) {
+func (this *Nado) HandleAllBidsAsks(client ccxt.ClientInterface, message map[string]any) {
 	var tickers map[string]any = this.ParseWsAllBidsAsks(message)
 	var symbols []string = nil
 	if tickers != nil {
@@ -2687,11 +2687,11 @@ func (this *Nado) HandleAllBidsAsks(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).Resolve(tickers, "bidask")
 	client.(ccxt.ClientInterface).Resolve(tickers, "ticker")
 }
-func (this *Nado) HandleDelta(bookside any, delta any) {
+func (this *Nado) HandleDelta(bookside ccxt.IOrderBookSide, delta any) {
 	var bidAsk []any = []any{this.ParseX18(this.SafeString(delta, 0)), this.ParseX18(this.SafeString(delta, 1))}
-	bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
+	bookside.StoreArray(bidAsk)
 }
-func (this *Nado) HandleOrderBook(client any, message map[string]any) {
+func (this *Nado) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "type": "book_depth",
@@ -2757,7 +2757,7 @@ func (this *Nado) HandleOrderBook(client any, message map[string]any) {
 	ccxt.AddElementToObject(orderbook, "maxTimestamp", this.SafeString(message, "max_timestamp"))
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Nado) HandleExecuteResponse(client any, message map[string]any) {
+func (this *Nado) HandleExecuteResponse(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "status": "success",
@@ -2780,7 +2780,7 @@ func (this *Nado) HandleExecuteResponse(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(message, messageHash)
 }
-func (this *Nado) HandleSubscription(client any, message map[string]any) {
+func (this *Nado) HandleSubscription(client ccxt.ClientInterface, message map[string]any) {
 	var id *string = this.SafeString(message, "id")
 	if id == nil {
 		return
@@ -2792,7 +2792,7 @@ func (this *Nado) HandleSubscription(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Resolve(message, subscribeHash)
 	}
 }
-func (this *Nado) HandleAuthentication(client any, message map[string]any) {
+func (this *Nado) HandleAuthentication(client ccxt.ClientInterface, message map[string]any) {
 	var id *string = this.SafeString(message, "id")
 	if id == nil {
 		return
@@ -2804,7 +2804,7 @@ func (this *Nado) HandleAuthentication(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Resolve(message, messageHash)
 	}
 }
-func (this *Nado) HandleUnsubscription(client any, message map[string]any) {
+func (this *Nado) HandleUnsubscription(client ccxt.ClientInterface, message map[string]any) {
 	var id *string = this.SafeString(message, "id", "")
 	var unsubscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict("unsubscription:" + *id)
 	if unsubscription != nil {
@@ -2883,7 +2883,7 @@ func (this *Nado) HandleUnsubscriptionCache(messageHash string) {
 		this.Positions = nil
 	}
 }
-func (this *Nado) Ping(client any) any {
+func (this *Nado) Ping(client ccxt.ClientInterface) any {
 	var gatewayUrl *string = this.SafeString(this.UrlsApi["ws"], "gateway")
 	if gatewayUrl != nil && client.(ccxt.ClientInterface).GetUrl() == *gatewayUrl {
 		// the v2 gateway is kept alive with protocol-level ping frames,
@@ -2896,7 +2896,7 @@ func (this *Nado) Ping(client any) any {
 		"client_time": this.NumberToString(this.Milliseconds()),
 	}
 }
-func (this *Nado) HandlePong(client any, message map[string]any) map[string]any {
+func (this *Nado) HandlePong(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "result": {
@@ -2911,7 +2911,7 @@ func (this *Nado) HandlePong(client any, message map[string]any) map[string]any 
 	client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(result, "server_time", this.Milliseconds()))
 	return message
 }
-func (this *Nado) HandleErrorMessage(client any, message map[string]any) bool {
+func (this *Nado) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	var error any = this.SafeValue(message, "error")
 	var status *string = this.SafeString(message, "status")
 	if (error == nil) && (status == nil || *status != "failure") {
@@ -2938,7 +2938,7 @@ func (this *Nado) HandleErrorMessage(client any, message map[string]any) bool {
 	}
 	return true
 }
-func (this *Nado) HandleMessage(client any, message map[string]any) {
+func (this *Nado) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	if this.HandleErrorMessage(client, message) == true {
 		return
 	}

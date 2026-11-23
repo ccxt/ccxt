@@ -220,7 +220,7 @@ func (this *Gemini) ParseWsTrade(trade any, optionalArgs ...any) map[string]any 
 		"fee":          nil,
 	}, market))
 }
-func (this *Gemini) HandleTrade(client any, message map[string]any) {
+func (this *Gemini) HandleTrade(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "type": "trade",
@@ -246,7 +246,7 @@ func (this *Gemini) HandleTrade(client any, message map[string]any) {
 	var messageHash string = "trades:" + *this.SafeString(trade, "symbol", "")
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func (this *Gemini) HandleTrades(client any, message map[string]any) {
+func (this *Gemini) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "type": "l2_updates",
@@ -303,7 +303,7 @@ func (this *Gemini) HandleTrades(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}
 }
-func (this *Gemini) HandleTradesForMultidata(client any, trades []any, timestamp *int64) {
+func (this *Gemini) HandleTradesForMultidata(client ccxt.ClientInterface, trades []any, timestamp *int64) {
 	var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 	var storesForSymbols map[string]any = map[string]any{}
 	for i := 0; i < len(trades); i++ {
@@ -406,7 +406,7 @@ func (this *Gemini) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
 	return nil
 }
-func (this *Gemini) HandleOHLCV(client any, message any) any {
+func (this *Gemini) HandleOHLCV(client ccxt.ClientInterface, message any) any {
 	//
 	//     {
 	//         "type": "candles_15m_updates",
@@ -467,8 +467,7 @@ func (this *Gemini) HandleOHLCV(client any, message any) any {
 	var changesLength int = len(changes)
 	// reverse order of array to store candles in ascending order
 	for i := 0; i < changesLength; i++ {
-		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(this.SafeValue(changes, (changesLength-i)-1), market))
-		stored.Append(parsed)
+		stored.Append(ccxt.OHLCVToList(this.ParseOHLCV(this.SafeValue(changes, (changesLength-i)-1), market)))
 	}
 	var messageHash string = "ohlcv:" + *symbol + ":" + timeframeId
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -533,7 +532,7 @@ func (this *Gemini) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Gemini) HandleOrderBook(client any, message map[string]any) {
+func (this *Gemini) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	_, has1 := message["auction_events"]
 	_, has2 := message["trades"]
 	_, has3 := message["changes"]
@@ -647,7 +646,7 @@ func (this *Gemini) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(r.Value)}
 	return nil
 }
-func (this *Gemini) HandleBidsAsksForMultidata(client any, rawBidAskChanges []any, timestamp *int64, nonce *int64) {
+func (this *Gemini) HandleBidsAsksForMultidata(client ccxt.ClientInterface, rawBidAskChanges []any, timestamp *int64, nonce *int64) {
 	//
 	// {
 	//     eventId: '1683002916916153',
@@ -781,7 +780,7 @@ func (this *Gemini) helperForWatchMultipleConstructBody(ch chan ccxt.AsyncResult
 	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
-func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges []any, timestamp *int64, nonce *int64) {
+func (this *Gemini) HandleOrderBookForMultidata(client ccxt.ClientInterface, rawOrderBookChanges []any, timestamp *int64, nonce *int64) {
 	//
 	// rawOrderBookChanges
 	//
@@ -830,7 +829,7 @@ func (this *Gemini) HandleOrderBookForMultidata(client any, rawOrderBookChanges 
 	this.Orderbooks[*symbol] = orderbook
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Gemini) HandleL2Updates(client any, message map[string]any) {
+func (this *Gemini) HandleL2Updates(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "type": "l2_updates",
@@ -944,7 +943,7 @@ func (this *Gemini) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Gemini) HandleHeartbeat(client any, message map[string]any) map[string]any {
+func (this *Gemini) HandleHeartbeat(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "type": "heartbeat",
@@ -957,7 +956,7 @@ func (this *Gemini) HandleHeartbeat(client any, message map[string]any) map[stri
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return message
 }
-func (this *Gemini) HandleSubscription(client any, message map[string]any) map[string]any {
+func (this *Gemini) HandleSubscription(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "type": "subscription_ack",
@@ -970,7 +969,7 @@ func (this *Gemini) HandleSubscription(client any, message map[string]any) map[s
 	//
 	return message
 }
-func (this *Gemini) HandleOrder(client any, message []any) {
+func (this *Gemini) HandleOrder(client ccxt.ClientInterface, message []any) {
 	//
 	//     [
 	//         {
@@ -1088,13 +1087,13 @@ func (this *Gemini) ParseWsOrderType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Gemini) HandleError(client any, message any) {
+func (this *Gemini) HandleError(client ccxt.ClientInterface, message any) {
 	panic(ccxt.ExchangeError(this.Json(message)))
 }
-func (this *Gemini) HandleListMessage(client any, message []any) {
+func (this *Gemini) HandleListMessage(client ccxt.ClientInterface, message []any) {
 	this.HandleOrder(client, message)
 }
-func (this *Gemini) HandleMessage(client any, message any) {
+func (this *Gemini) HandleMessage(client ccxt.ClientInterface, message any) {
 	//
 	//  public
 	//     {

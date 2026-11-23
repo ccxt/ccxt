@@ -429,7 +429,7 @@ func (this *P2b) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInter
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *P2b) HandleOHLCV(client any, message map[string]any) map[string]any {
+func (this *P2b) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "method": "kline.update",
@@ -489,7 +489,7 @@ func (this *P2b) HandleOHLCV(client any, message map[string]any) map[string]any 
 	}
 	return message
 }
-func (this *P2b) HandleTrade(client any, message map[string]any) map[string]any {
+func (this *P2b) HandleTrade(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "method": "deals.update",
@@ -524,15 +524,14 @@ func (this *P2b) HandleTrade(client any, message map[string]any) map[string]any 
 		this.Trades[symbol] = tradesArray
 	}
 	for i := 0; i < len(trades); i++ {
-		var item any = trades[i]
-		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(item, market))
+		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(this.SafeDict(trades, i, map[string]any{}), market))
 		tradesArray.Append(trade)
 	}
 	var messageHash string = "deals::" + symbol
 	client.(ccxt.ClientInterface).Resolve(tradesArray, messageHash)
 	return message
 }
-func (this *P2b) HandleTicker(client any, message map[string]any) map[string]any {
+func (this *P2b) HandleTicker(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	// state
 	//
@@ -594,7 +593,7 @@ func (this *P2b) HandleTicker(client any, message map[string]any) map[string]any
 	}
 	return message
 }
-func (this *P2b) HandleOrderBook(client any, message map[string]any) {
+func (this *P2b) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "method": "depth.update",
@@ -662,7 +661,7 @@ func (this *P2b) HandleOrderBook(client any, message map[string]any) {
 	orderbook.SetSymbol(symbol)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *P2b) HandleMessage(client any, message map[string]any) {
+func (this *P2b) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	if this.HandleErrorMessage(client, message) == true {
 		return
 	}
@@ -684,14 +683,14 @@ func (this *P2b) HandleMessage(client any, message map[string]any) {
 		ccxt.CallDynamically(endpoint, client, message)
 	}
 }
-func (this *P2b) HandleErrorMessage(client any, message map[string]any) bool {
+func (this *P2b) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	var error *string = this.SafeString(message, "error")
 	if error != nil {
 		panic(ccxt.ExchangeError(this.Id + " error: " + this.Json(error)))
 	}
 	return false
 }
-func (this *P2b) Ping(client any) any {
+func (this *P2b) Ping(client ccxt.ClientInterface) any {
 	/**
 	 * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#ping
 	 * @param client
@@ -702,7 +701,7 @@ func (this *P2b) Ping(client any) any {
 		"id":     this.Milliseconds(),
 	}
 }
-func (this *P2b) HandlePong(client any, message map[string]any) map[string]any {
+func (this *P2b) HandlePong(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//    {
 	//        error: null,

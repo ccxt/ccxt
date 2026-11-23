@@ -126,7 +126,7 @@ func (this *Onetrading) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances]
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r1.Value)}
 	return nil
 }
-func (this *Onetrading) HandleBalanceSnapshot(client any, message map[string]any) {
+func (this *Onetrading) HandleBalanceSnapshot(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// snapshot
 	//     {
@@ -286,7 +286,7 @@ func (this *Onetrading) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccx
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(this.FilterByArray(tickers, "symbol", symbolsList))}
 	return nil
 }
-func (this *Onetrading) HandleTicker(client any, message map[string]any) {
+func (this *Onetrading) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "ticker_updates": [{
@@ -504,7 +504,7 @@ func (this *Onetrading) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBo
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Onetrading) HandleOrderBook(client any, message map[string]any) {
+func (this *Onetrading) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//  snapshot
 	//     {
@@ -686,7 +686,7 @@ func (this *Onetrading) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], 
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(resolved)}
 	return nil
 }
-func (this *Onetrading) HandleTrading(client any, message map[string]any) {
+func (this *Onetrading) HandleTrading(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "order_book_sequence": 892925263,
@@ -868,7 +868,7 @@ func (this *Onetrading) ParseTradingOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Onetrading) HandleOrders(client any, message map[string]any) {
+func (this *Onetrading) HandleOrders(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//  snapshot
 	//     {
@@ -945,7 +945,7 @@ func (this *Onetrading) HandleOrders(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Resolve(this.Orders, "orders:"+symbol)
 		var rawTrades []any = ccxt.SafeListTyped(rawOrders[i], "trades")
 		for ii := 0; ii < len(rawTrades); ii++ {
-			var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(rawTrades[ii]))
+			var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(this.SafeDict(rawTrades, ii, map[string]any{})))
 			symbol = *this.SafeString(trade, "symbol", symbol)
 			this.MyTrades.Append(trade)
 			client.(ccxt.ClientInterface).Resolve(this.MyTrades, "myTrades:"+symbol)
@@ -954,7 +954,7 @@ func (this *Onetrading) HandleOrders(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).Resolve(this.Orders, "orders")
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, "myTrades")
 }
-func (this *Onetrading) HandleAccountUpdate(client any, message map[string]any) {
+func (this *Onetrading) HandleAccountUpdate(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// order created
 	//     {
@@ -1386,7 +1386,7 @@ func (this *Onetrading) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], s
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
 	return nil
 }
-func (this *Onetrading) HandleOHLCV(client any, message map[string]any) {
+func (this *Onetrading) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//  snapshot
 	//     {
@@ -1481,7 +1481,7 @@ func (this *Onetrading) FindTimeframe(timeframe any, optionalArgs ...any) *strin
 	}
 	return nil
 }
-func (this *Onetrading) HandleSubscriptions(client any, message map[string]any) map[string]any {
+func (this *Onetrading) HandleSubscriptions(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "channels": [{
@@ -1495,7 +1495,7 @@ func (this *Onetrading) HandleSubscriptions(client any, message map[string]any) 
 	//
 	return message
 }
-func (this *Onetrading) HandleHeartbeat(client any, message map[string]any) map[string]any {
+func (this *Onetrading) HandleHeartbeat(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "subscription": "SYSTEM",
@@ -1506,10 +1506,10 @@ func (this *Onetrading) HandleHeartbeat(client any, message map[string]any) map[
 	//
 	return message
 }
-func (this *Onetrading) HandleErrorMessage(client any, message map[string]any) any {
+func (this *Onetrading) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) any {
 	panic(ccxt.ExchangeError(this.Id + " " + this.Json(message)))
 }
-func (this *Onetrading) HandleMessage(client any, message map[string]any) {
+func (this *Onetrading) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var error *string = this.SafeString(message, "error")
 	if error != nil {
 		this.HandleErrorMessage(client, message)
@@ -1547,7 +1547,7 @@ func (this *Onetrading) HandleMessage(client any, message map[string]any) {
 		ccxt.CallDynamically(handler, client, message)
 	}
 }
-func (this *Onetrading) HandlePricePointUpdates(client any, message map[string]any) map[string]any {
+func (this *Onetrading) HandlePricePointUpdates(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "channel_name": "MARKET_TICKER",
@@ -1568,7 +1568,7 @@ func (this *Onetrading) HandlePricePointUpdates(client any, message map[string]a
 	//
 	return message
 }
-func (this *Onetrading) HandleAuthenticationMessage(client any, message map[string]any) map[string]any {
+func (this *Onetrading) HandleAuthenticationMessage(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "channel_name": "SYSTEM",

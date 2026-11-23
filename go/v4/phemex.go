@@ -6192,12 +6192,12 @@ func (this *Phemex) setLeverageBody(ch chan AsyncResult[map[string]any], leverag
  * @param {string} [params.bizType] for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Phemex) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Phemex) TransferAsync(code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Phemex) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
+func (this *Phemex) transferBody(ch chan AsyncResult[TransferEntry], code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6292,7 +6292,9 @@ func (this *Phemex) transferBody(ch chan AsyncResult[TransferEntry], code string
 			}
 		}
 		if this.SafeString(transfer, "amount") == nil {
-			AddElementToObject(transfer, "amount", amount)
+			if transfer != nil {
+				transfer["amount"] = amount
+			}
 		}
 		if this.SafeString(transfer, "currency") == nil {
 			if transfer != nil {
@@ -6600,12 +6602,12 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
  * @param {string} [params.network] unified network code
  * @returns {object} a [transaction structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transaction-structure}
  */
-func (this *Phemex) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Phemex) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Phemex) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
+func (this *Phemex) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -7203,8 +7205,7 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan AsyncResult[[]ADL], option
 	ranks, _ = data["positions"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(ranks); i++ {
-		var rank any = ranks[i]
-		result = append(result, this.ParseADLRank(rank))
+		result = append(result, this.ParseADLRank(ranks[i]))
 	}
 
 	ch <- AsyncResult[[]ADL]{Value: ADLsFromList(this.FilterByArrayADLRanks(result, "symbol", symbolsNormalized, false))}
@@ -7340,7 +7341,7 @@ func (this *Phemex) ParseADLRank(info any, optionalArgs ...any) map[string]any {
 		"datetime":   nil,
 	}
 }
-func (this *Phemex) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Phemex) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

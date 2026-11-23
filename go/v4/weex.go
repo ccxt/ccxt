@@ -6149,7 +6149,7 @@ func (this *Weex) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	return literal445015
 }
-func (this *Weex) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Weex) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	//
 	//     {
 	//         "code": -1140,

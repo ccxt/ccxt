@@ -779,23 +779,21 @@ func (this *Backpack) ParseCurrency(rawCurrency any) map[string]any {
 	var deposit any = nil
 	var withdraw any = nil
 	if this.IsEmpty(parsedNetworks) {
-		if stock {
-			active = nil
-		} else {
+		if !stock {
 			active = false
 		}
 		deposit = false
 		withdraw = false
 	}
-	var ternaryStr62820 string = "crypto"
+	var ternaryStr63020 string = "crypto"
 	if stock {
-		ternaryStr62820 = "stock"
+		ternaryStr63020 = "stock"
 	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        currencyId,
 		"code":      code,
 		"precision": nil,
-		"type":      ternaryStr62820,
+		"type":      ternaryStr63020,
 		"name":      this.SafeString(rawCurrency, "displayName"),
 		"active":    active,
 		"deposit":   deposit,
@@ -1093,10 +1091,7 @@ func (this *Backpack) ParseMarket(market any) map[string]any {
 	var minPrice *float64 = this.SafeNumber(priceFilter, "minPrice")
 	var pricePrecision *float64 = this.SafeNumber(priceFilter, "tickSize")
 	var quantityFilter, _ = filters["quantity"].(map[string]any)
-	var maxQuantity any
-	if derefPtr := this.SafeNumber(quantityFilter, "maxQuantity"); derefPtr != nil {
-		maxQuantity = *derefPtr
-	}
+	var maxQuantity *float64 = this.SafeNumber(quantityFilter, "maxQuantity")
 	var minQuantity *float64 = this.SafeNumber(quantityFilter, "minQuantity")
 	var amountPrecision *float64 = this.SafeNumber(quantityFilter, "stepSize")
 	var typeVar string
@@ -1110,7 +1105,7 @@ func (this *Backpack) ParseMarket(market any) map[string]any {
 	var inverse any = nil
 	var settle *string = nil
 	var settleId *string = nil
-	var contractSize any = nil
+	var contractSize *float64 = nil
 	if (typeOfMarket != nil && *typeOfMarket == "spot") || rfq {
 		typeVar = "spot"
 		if rfq {
@@ -1154,7 +1149,7 @@ func (this *Backpack) ParseMarket(market any) map[string]any {
 		settleId = this.SafeString(market, "quoteSymbol")
 		settle = this.SafeCurrencyCode(settleId)
 		symbol = *base + "/" + *quote + ":" + *quote // settle is the quote currency
-		contractSize = 1
+		contractSize = this.ParseNumber("1")
 	} else {
 		return nil
 	}
@@ -1166,7 +1161,7 @@ func (this *Backpack) ParseMarket(market any) map[string]any {
 	} else {
 		active = (orderBookState != nil && *orderBookState == "Open")
 	}
-	var literal93841 map[string]any = map[string]any{
+	var literal94441 map[string]any = map[string]any{
 		"id":             id,
 		"symbol":         symbol,
 		"base":           base,
@@ -1219,11 +1214,11 @@ func (this *Backpack) ParseMarket(market any) map[string]any {
 		"info":    market,
 	}
 	if rfq {
-		literal93841["executionModel"] = "rfq"
+		literal94441["executionModel"] = "rfq"
 	} else {
-		literal93841["executionModel"] = nil
+		literal94441["executionModel"] = nil
 	}
-	return this.SafeMarketStructure(literal93841)
+	return this.SafeMarketStructure(literal94441)
 }
 
 /**
@@ -1391,7 +1386,7 @@ func (this *Backpack) ParseConversion(order any, optionalArgs ...any) Conversion
 	var cost *float64 = this.SafeNumber(order, "cost")
 	var fee map[string]any = SafeMapTyped(order, "fee")
 	var timestamp *int64 = this.SafeInteger(order, "timestamp")
-	var literal111315 map[string]any = map[string]any{
+	var literal111915 map[string]any = map[string]any{
 		"info":         this.SafeDict(order, "info"),
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -1402,16 +1397,16 @@ func (this *Backpack) ParseConversion(order any, optionalArgs ...any) Conversion
 		"fee":          this.SafeNumber(fee, "cost"),
 	}
 	if fromIsBase {
-		literal111315["fromAmount"] = filled
+		literal111915["fromAmount"] = filled
 	} else {
-		literal111315["fromAmount"] = cost
+		literal111915["fromAmount"] = cost
 	}
 	if fromIsBase {
-		literal111315["toAmount"] = cost
+		literal111915["toAmount"] = cost
 	} else {
-		literal111315["toAmount"] = filled
+		literal111915["toAmount"] = filled
 	}
-	return ConversionFromMap(literal111315)
+	return ConversionFromMap(literal111915)
 }
 
 /**
@@ -1528,7 +1523,7 @@ func (this *Backpack) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fro
 	var fromCurrency *string = this.SafeCurrencyCode(fromCode)
 	var toCurrency *string = this.SafeCurrencyCode(toCode)
 
-	var literal119915 map[string]any = map[string]any{
+	var literal120515 map[string]any = map[string]any{
 		"info":         quote,
 		"timestamp":    this.SafeInteger(quote, "publishedAt"),
 		"datetime":     this.Iso8601(this.SafeInteger(quote, "publishedAt")),
@@ -1539,16 +1534,16 @@ func (this *Backpack) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fro
 		"fee":          nil,
 	}
 	if fromIsBase {
-		literal119915["fromAmount"] = baseAmount
+		literal120515["fromAmount"] = baseAmount
 	} else {
-		literal119915["fromAmount"] = quoteAmount
+		literal120515["fromAmount"] = quoteAmount
 	}
 	if fromIsBase {
-		literal119915["toAmount"] = quoteAmount
+		literal120515["toAmount"] = quoteAmount
 	} else {
-		literal119915["toAmount"] = baseAmount
+		literal120515["toAmount"] = baseAmount
 	}
-	ch <- AsyncResult[Conversion]{Value: ConversionFromMap(literal119915)}
+	ch <- AsyncResult[Conversion]{Value: ConversionFromMap(literal120515)}
 	return nil
 }
 
@@ -1776,11 +1771,10 @@ func (this *Backpack) StockDataRequest(methodName string, params any, optionalAr
 func (this *Backpack) FilterStockStructures(entries []any) []any {
 	var result []any = []any{}
 	for i := 0; i < len(entries); i++ {
-		var entry any = entries[i]
-		var symbol *string = this.SafeString(entry, "symbol")
+		var symbol *string = this.SafeString(entries[i], "symbol")
 		var market map[string]any = SafeMapTyped(this.Markets, symbol)
 		if *this.SafeBool(market, "stock", false) {
-			result = append(result, entry)
+			result = append(result, entries[i])
 		}
 	}
 	return result
@@ -1893,7 +1887,7 @@ func (this *Backpack) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 			continue
 		}
 		var marketIsRfq bool = (this.SafeString(market["info"], "marketType") != nil && *this.SafeString(market["info"], "marketType") == "RFQ")
-		var ticker map[string]any = this.SafeDictMap(tickers, marketSymbol)
+		var ticker, _ = tickers[marketSymbol].(map[string]any)
 		if (ticker != nil) && ((source != "External") || (market["stock"] == true)) {
 			result[marketSymbol] = ticker
 		} else if marketIsRfq {
@@ -2633,10 +2627,9 @@ func (this *Backpack) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		}
 		var filtered []any = []any{}
 		for i := 0; i < len(rfqTrades); i++ {
-			var trade any = rfqTrades[i]
-			var timestamp *int64 = this.SafeInteger(trade, "timestamp")
+			var timestamp *int64 = this.SafeInteger(rfqTrades[i], "timestamp")
 			if (until == nil) || ((timestamp != nil) && (until != nil && *timestamp <= *until)) {
-				filtered = append(filtered, trade)
+				filtered = append(filtered, rfqTrades[i])
 			}
 		}
 		var sorted []any = this.SortBy(filtered, "timestamp")
@@ -3091,12 +3084,12 @@ func (this *Backpack) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
  * @param {string} params.network the network to withdraw on (mandatory)
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Backpack) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Backpack) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Backpack) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
+func (this *Backpack) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4476,14 +4469,16 @@ func (this *Backpack) ParsePosition(position any, optionalArgs ...any) Position 
 	var entryPrice *float64 = this.SafeNumber(position, "entryPrice")
 	var markPrice *float64 = this.SafeNumber(position, "markPrice")
 	var netCost *string = this.SafeString(position, "netCost")
-	var hedged any = false
-	var side any = "long"
-	if Precise.StringLt(netCost, "0") {
-		side = "short"
-	}
-	if netCost == nil {
-		hedged = nil
-		side = nil
+	var hedged any = nil
+	var side *string = nil
+	if netCost != nil {
+		hedged = false
+		sideStr := "long"
+		side = &sideStr
+		if Precise.StringLt(netCost, "0") {
+			sideStr2 := "short"
+			side = &sideStr2
+		}
 	}
 	var unrealizedPnl *float64 = this.SafeNumber(position, "pnlUnrealized")
 	var realizedPnl *float64 = this.SafeNumber(position, "pnlRealized")
@@ -4709,7 +4704,7 @@ func (this *Backpack) GenerateBatchPayload(params any, ts string, recvWindow str
 	}
 	return payload
 }
-func (this *Backpack) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Backpack) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

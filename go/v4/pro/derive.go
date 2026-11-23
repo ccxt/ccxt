@@ -163,7 +163,7 @@ func (this *Derive) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Derive) HandleOrderBook(client any, message map[string]any) {
+func (this *Derive) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// {
 	//     method: 'subscription',
@@ -382,7 +382,7 @@ func (this *Derive) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Bidsasks, symbolsResolved)}
 	return nil
 }
-func (this *Derive) HandleTicker(client any, message map[string]any) map[string]any {
+func (this *Derive) HandleTicker(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "method": "subscription",
@@ -594,7 +594,7 @@ func (this *Derive) unWatchPublicBody(ch chan ccxt.AsyncResult[bool], messageHas
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Derive) HandleOrderBookUnSubscription(client any, topic string) {
+func (this *Derive) HandleOrderBookUnSubscription(client ccxt.ClientInterface, topic string) {
 	var parsedTopic []string = strings.Split(topic, ".")
 	var marketId *string = this.SafeString(parsedTopic, 1)
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
@@ -609,7 +609,7 @@ func (this *Derive) HandleOrderBookUnSubscription(client any, topic string) {
 	}
 	this.CleanUnsubscription(ccxt.AsClient(client), topic, "unwatch"+topic)
 }
-func (this *Derive) HandleTradesUnSubscription(client any, topic string) {
+func (this *Derive) HandleTradesUnSubscription(client ccxt.ClientInterface, topic string) {
 	var parsedTopic []string = strings.Split(topic, ".")
 	var marketId *string = this.SafeString(parsedTopic, 1)
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
@@ -619,7 +619,7 @@ func (this *Derive) HandleTradesUnSubscription(client any, topic string) {
 	}
 	this.CleanUnsubscription(ccxt.AsClient(client), topic, "unwatch"+topic)
 }
-func (this *Derive) HandleTickerUnSubscription(client any, topic string) {
+func (this *Derive) HandleTickerUnSubscription(client ccxt.ClientInterface, topic string) {
 	var parsedTopic []string = strings.Split(topic, ".")
 	var marketId *string = this.SafeString(parsedTopic, 1)
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
@@ -638,15 +638,15 @@ func (this *Derive) HandleTickerUnSubscription(client any, topic string) {
 	}
 	this.CleanUnsubscription(ccxt.AsClient(client), topic, "unwatch"+topic)
 }
-func (this *Derive) HandleOrdersUnSubscription(client any, topic string) {
+func (this *Derive) HandleOrdersUnSubscription(client ccxt.ClientInterface, topic string) {
 	this.Orders = nil
 	this.CleanUnsubscription(ccxt.AsClient(client), topic, "unwatch"+topic, true)
 }
-func (this *Derive) HandleMyTradesUnSubscription(client any, topic string) {
+func (this *Derive) HandleMyTradesUnSubscription(client ccxt.ClientInterface, topic string) {
 	this.MyTrades = nil
 	this.CleanUnsubscription(ccxt.AsClient(client), topic, "unwatch"+topic, true)
 }
-func (this *Derive) HandleUnSubscribe(client any, message map[string]any) map[string]any {
+func (this *Derive) HandleUnSubscribe(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "id": 1,
@@ -749,7 +749,7 @@ func (this *Derive) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symb
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySymbolSinceLimit(trades, symbol, since, limitResolved, true))}
 	return nil
 }
-func (this *Derive) HandleTrade(client any, message map[string]any) {
+func (this *Derive) HandleTrade(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//
 	var params, _ = message["params"].(map[string]any)
@@ -765,7 +765,7 @@ func (this *Derive) HandleTrade(client any, message map[string]any) {
 		tradesArray = ccxt.NewArrayCache(limit)
 	}
 	for i := 0; i < len(data); i++ {
-		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(data[i]))
+		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(this.SafeDict(data, i, map[string]any{})))
 		tradesArray.Append(trade)
 	}
 	this.Trades[symbol] = tradesArray
@@ -934,7 +934,7 @@ func (this *Derive) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Derive) HandleOrder(client any, message map[string]any) {
+func (this *Derive) HandleOrder(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// {
 	//     method: 'subscription',
@@ -1001,7 +1001,7 @@ func (this *Derive) HandleOrder(client any, message map[string]any) {
 				order = this.SafeDictMap(orders, orderId)
 			}
 			if order != nil {
-				var fee map[string]any = this.SafeDictMap(order, "fee")
+				var fee, _ = order["fee"].(map[string]any)
 				if fee != nil {
 					if parsed != nil {
 						parsed["fee"] = fee
@@ -1149,7 +1149,7 @@ func (this *Derive) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], op
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Derive) HandleMyTrade(client any, message map[string]any) {
+func (this *Derive) HandleMyTrade(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//
 	var myTrades ccxt.WsArrayCache = this.MyTrades
@@ -1162,7 +1162,7 @@ func (this *Derive) HandleMyTrade(client any, message map[string]any) {
 	var topic *string = this.SafeString(params, "channel")
 	var rawTrades, _ = params["data"].([]any)
 	for i := 0; i < len(rawTrades); i++ {
-		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(rawTrades[i]))
+		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(this.SafeDict(rawTrades, i, map[string]any{})))
 		myTrades.Append(trade)
 		client.(ccxt.ClientInterface).Resolve(myTrades, topic)
 		if topic != nil {
@@ -1446,7 +1446,7 @@ func (this *Derive) HandlePositionDelta(subaccountIdKey string, entry map[string
 	} else {
 		oppositeSide = "short"
 	}
-	var opposite map[string]any = this.SafeDictMap(symbolPositions, oppositeSide)
+	var opposite, _ = symbolPositions[oppositeSide].(map[string]any)
 	if opposite != nil {
 		var oppositeContracts *string = this.SafeString(opposite, "contracts")
 		if (oppositeContracts != nil) && (oppositeContracts == nil || *oppositeContracts != "0") {
@@ -1494,7 +1494,7 @@ func (this *Derive) HandlePositionDelta(subaccountIdKey string, entry map[string
 	cache.Append(position)
 	return position
 }
-func (this *Derive) HandleBalance(client any, message map[string]any) {
+func (this *Derive) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "method": "subscription",
@@ -1573,7 +1573,7 @@ func (this *Derive) HandleBalance(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Resolve(positionUpdates, "positions:"+*topic)
 	}
 }
-func (this *Derive) HandleErrorMessage(client any, message map[string]any) bool {
+func (this *Derive) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	// {
 	//     id: '690c6276-0fc6-4121-aafa-f28bf5adedcb',
@@ -1615,7 +1615,7 @@ func (this *Derive) HandleErrorMessage(client any, message map[string]any) bool 
 		return ret__
 	}
 }
-func (this *Derive) HandleMessage(client any, message map[string]any) {
+func (this *Derive) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	if this.HandleErrorMessage(client, message) == true {
 		return
 	}
@@ -1680,7 +1680,7 @@ func (this *Derive) HandleMessage(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Derive) HandleAuth(client any, message map[string]any) {
+func (this *Derive) HandleAuth(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// {
 	//     id: 1,

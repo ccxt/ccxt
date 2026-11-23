@@ -128,7 +128,7 @@ func (this *Bitrue) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r1.Value)}
 	return nil
 }
-func (this *Bitrue) HandleBalance(client any, message map[string]any) {
+func (this *Bitrue) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "e": "BALANCE",
@@ -294,7 +294,7 @@ func (this *Bitrue) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Bitrue) HandleOrder(client any, message map[string]any) {
+func (this *Bitrue) HandleOrder(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "e": "ORDER",
@@ -447,7 +447,7 @@ func (this *Bitrue) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: ccxt.OrderBookTyped(r1.Value)}
 	return nil
 }
-func (this *Bitrue) HandleOrderBook(client any, message map[string]any) {
+func (this *Bitrue) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "channel": "market_ethbtc_simple_depth_step0",
@@ -756,7 +756,7 @@ func (this *Bitrue) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol str
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Bitrue) HandleTrades(client any, message map[string]any) {
+func (this *Bitrue) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "event_rep": "",
@@ -964,7 +964,7 @@ func (this *Bitrue) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Bitrue) HandleOHLCV(client any, message map[string]any) {
+func (this *Bitrue) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "channel": "market_e_btcusdt_kline_1min",
@@ -1092,7 +1092,7 @@ func (this *Bitrue) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbo
 	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(r1.Value)}
 	return nil
 }
-func (this *Bitrue) HandleTicker(client any, message map[string]any) {
+func (this *Bitrue) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "channel": "market_e_btcusdt_ticker",
@@ -1185,15 +1185,15 @@ func (this *Bitrue) ParseWsOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitrue) HandlePing(client any, message map[string]any) {
+func (this *Bitrue) HandlePing(client ccxt.ClientInterface, message map[string]any) {
 	this.Spawn(this.PongAsync, client, message)
 }
-func (this *Bitrue) PongAsync(client any, message map[string]any) <-chan ccxt.AsyncResult[bool] {
+func (this *Bitrue) PongAsync(client ccxt.ClientInterface, message map[string]any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.pongBody(ch, client, message)
 	return ch
 }
-func (this *Bitrue) pongBody(ch chan ccxt.AsyncResult[bool], client any, message map[string]any) any {
+func (this *Bitrue) pongBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, message map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	//
@@ -1212,7 +1212,7 @@ func (this *Bitrue) pongBody(ch chan ccxt.AsyncResult[bool], client any, message
 	}
 	return nil
 }
-func (this *Bitrue) HandleMessage(client any, message map[string]any) {
+func (this *Bitrue) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	if _, ok := message["channel"]; ok {
 		var channel *string = this.SafeString(message, "channel")
 		if strings.Index(*channel, "_depth_step") > -1 {

@@ -1583,7 +1583,8 @@ func (this *Digifinex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol strin
 	//     }
 	//
 	var date *int64 = this.SafeInteger(response, "date")
-	var tickers []any = SafeListTyped(response, "ticker")
+	var tickers []any
+	tickers, _ = response["ticker"].([]any)
 	var firstTicker map[string]any
 	if 0 < len(tickers) {
 		firstTicker, _ = tickers[0].(map[string]any)
@@ -2587,12 +2588,12 @@ func (this *Digifinex) CreateOrderRequest(symbol *string, typeVar *string, side 
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Digifinex) CreateMarketBuyOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Digifinex) CreateMarketBuyOrderWithCostAsync(symbol string, cost float64, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost any, optionalArgs ...any) any {
+func (this *Digifinex) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4011,7 +4012,7 @@ func (this *Digifinex) fetchDepositAddressBody(ch chan AsyncResult[DepositAddres
 	if data == nil {
 		data = []any{}
 	}
-	var addresses map[string]any = this.IndexBy(this.ParseDepositAddresses(data, []any{currency["code"]}, false), "currency")
+	var addresses map[string]any = this.IndexBy(this.ParseDepositAddresses(data, []any{this.SafeString(currency, "code", "")}, false), "currency")
 	var address, _ = addresses[code].(map[string]any)
 	if address == nil {
 		panic(InvalidAddress(this.Id + " fetchDepositAddress() did not return an address for " + code + " - create the deposit address in the user settings on the exchange website first."))
@@ -4340,12 +4341,12 @@ func (this *Digifinex) ParseTransfer(transfer any, optionalArgs ...any) Transfer
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Digifinex) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Digifinex) TransferAsync(code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
+func (this *Digifinex) transferBody(ch chan AsyncResult[TransferEntry], code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4431,12 +4432,12 @@ func (this *Digifinex) transferBody(ch chan AsyncResult[TransferEntry], code str
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Digifinex) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Digifinex) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Digifinex) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
+func (this *Digifinex) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6387,7 +6388,7 @@ func (this *Digifinex) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": nil,
 	}
 }
-func (this *Digifinex) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Digifinex) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		return nil // fall back to default error handler
 	}

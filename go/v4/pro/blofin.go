@@ -78,7 +78,7 @@ func (this *Blofin) Describe() map[string]any {
 		},
 	})
 }
-func (this *Blofin) Ping(client any) any {
+func (this *Blofin) Ping(client ccxt.ClientInterface) any {
 	return "ping"
 }
 
@@ -241,7 +241,7 @@ func (this *Blofin) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Blofin) HandleTrades(client any, message map[string]any) {
+func (this *Blofin) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//       arg: {
@@ -283,7 +283,7 @@ func (this *Blofin) HandleTrades(client any, message map[string]any) {
 func (this *Blofin) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return ccxt.TradeToMap(this.ParseTrade(trade, market))
+	return ccxt.TradeToMap(this.ParseTrade(this.Extend(map[string]any{}, trade), market))
 }
 
 /**
@@ -366,7 +366,7 @@ func (this *Blofin) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Blofin) HandleOrderBook(client any, message map[string]any) {
+func (this *Blofin) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//   {
 	//     arg: {
@@ -498,7 +498,7 @@ func (this *Blofin) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Tickers, symbols)}
 	return nil
 }
-func (this *Blofin) HandleTicker(client any, message map[string]any) {
+func (this *Blofin) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// message
 	//
@@ -517,7 +517,7 @@ func (this *Blofin) HandleTicker(client any, message map[string]any) {
 	var channelName *string = this.SafeString(arg, "channel")
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
-		var ticker map[string]any = this.ParseWsTicker(this.SafeDict(data, i, map[string]any{}))
+		var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(this.SafeDict(data, i, map[string]any{})))
 		var symbol string = *this.SafeString(ticker, "symbol", "")
 		this.Tickers[symbol] = ccxt.TickerFromMap(ticker)
 		if channelName != nil {
@@ -525,11 +525,6 @@ func (this *Blofin) HandleTicker(client any, message map[string]any) {
 			client.(ccxt.ClientInterface).Resolve(ccxt.TickerToMap(this.Tickers[symbol]), messageHash)
 		}
 	}
-}
-func (this *Blofin) ParseWsTicker(ticker any, optionalArgs ...any) map[string]any {
-	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
-	_ = market
-	return ccxt.TickerToMap(this.ParseTicker(ticker, market))
 }
 
 /**
@@ -597,7 +592,7 @@ func (this *Blofin) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Bidsasks, symbolsList)}
 	return nil
 }
-func (this *Blofin) HandleBidAsk(client any, message map[string]any) {
+func (this *Blofin) HandleBidAsk(client ccxt.ClientInterface, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
 		var ticker map[string]any = this.ParseWsBidAsk(this.SafeDict(data, i, map[string]any{}))
@@ -806,7 +801,7 @@ func (this *Blofin) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], s
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Blofin) HandleOHLCV(client any, message map[string]any) {
+func (this *Blofin) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// message
 	//
@@ -901,7 +896,7 @@ func (this *Blofin) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], op
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r2.Value)}
 	return nil
 }
-func (this *Blofin) HandleBalance(client any, message map[string]any) {
+func (this *Blofin) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         arg: {
@@ -1075,7 +1070,7 @@ func (this *Blofin) watchOrdersForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Or
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySinceLimit(requested, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Blofin) HandleOrders(client any, message map[string]any) {
+func (this *Blofin) HandleOrders(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         action: 'update',
@@ -1177,7 +1172,7 @@ func (this *Blofin) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.Positions, symbols, since, limit))}
 	return nil
 }
-func (this *Blofin) HandlePositions(client any, message map[string]any) {
+func (this *Blofin) HandlePositions(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         arg: { channel: 'positions' },
@@ -1249,7 +1244,7 @@ func (this *Blofin) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.FundingRa
 	ch <- ccxt.AsyncResult[ccxt.FundingRate]{Value: ccxt.FundingRateFromMap(r1.Value)}
 	return nil
 }
-func (this *Blofin) HandleFundingRate(client any, message map[string]any) {
+func (this *Blofin) HandleFundingRate(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "arg": {
@@ -1451,7 +1446,7 @@ func (this *Blofin) unsubscribeMultipleWrapperBody(ch chan ccxt.AsyncResult[any]
 	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
-func (this *Blofin) HandleUnsubscription(client any, message map[string]any) {
+func (this *Blofin) HandleUnsubscription(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "event": "unsubscribe",
@@ -1493,12 +1488,12 @@ func (this *Blofin) GetSubscriptionRequest(args []any) map[string]any {
 		"args": args,
 	}
 }
-func (this *Blofin) HandleTextMessage(client any, message string) {
+func (this *Blofin) HandleTextMessage(client ccxt.ClientInterface, message string) {
 	if message == "pong" {
 		client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	}
 }
-func (this *Blofin) HandleMessage(client any, message map[string]any) {
+func (this *Blofin) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// message examples
 	//

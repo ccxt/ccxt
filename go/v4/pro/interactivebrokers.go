@@ -201,12 +201,12 @@ func (this *Interactivebrokers) ibkrConnectBody(ch chan ccxt.AsyncResult[any]) a
  * @param {object} client the websocket client
  * @returns {undefined}
  */
-func (this *Interactivebrokers) IbkrKeepAliveSessionAsync(client any) <-chan ccxt.AsyncResult[any] {
+func (this *Interactivebrokers) IbkrKeepAliveSessionAsync(client ccxt.ClientInterface) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.ibkrKeepAliveSessionBody(ch, client)
 	return ch
 }
-func (this *Interactivebrokers) ibkrKeepAliveSessionBody(ch chan ccxt.AsyncResult[any], client any) any {
+func (this *Interactivebrokers) ibkrKeepAliveSessionBody(ch chan ccxt.AsyncResult[any], client ccxt.ClientInterface) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var current ccxt.ClientInterface = nil
@@ -305,12 +305,12 @@ func (this *Interactivebrokers) ibkrKeepAliveSessionBody(ch chan ccxt.AsyncResul
  * @param {object} [subscription] extra data stored with the subscription
  * @returns {undefined}
  */
-func (this *Interactivebrokers) IbkrSubscribeAsync(client any, subscribeHash any, request any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Interactivebrokers) IbkrSubscribeAsync(client ccxt.ClientInterface, subscribeHash any, request any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.ibkrSubscribeBody(ch, client, subscribeHash, request, optionalArgs...)
 	return ch
 }
-func (this *Interactivebrokers) ibkrSubscribeBody(ch chan ccxt.AsyncResult[any], client any, subscribeHash any, request any, optionalArgs ...any) any {
+func (this *Interactivebrokers) ibkrSubscribeBody(ch chan ccxt.AsyncResult[any], client ccxt.ClientInterface, subscribeHash any, request any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var subscription map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -363,12 +363,12 @@ func (this *Interactivebrokers) ibkrSubscribeBody(ch chan ccxt.AsyncResult[any],
  * @param {object} [subscription] the cache to clean, see cleanCache
  * @returns {boolean} true
  */
-func (this *Interactivebrokers) IbkrUnsubscribeAsync(client any, subHashes any, request any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Interactivebrokers) IbkrUnsubscribeAsync(client ccxt.ClientInterface, subHashes any, request any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.ibkrUnsubscribeBody(ch, client, subHashes, request, optionalArgs...)
 	return ch
 }
-func (this *Interactivebrokers) ibkrUnsubscribeBody(ch chan ccxt.AsyncResult[any], client any, subHashes any, request any, optionalArgs ...any) any {
+func (this *Interactivebrokers) ibkrUnsubscribeBody(ch chan ccxt.AsyncResult[any], client ccxt.ClientInterface, subHashes any, request any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var subscription map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -400,12 +400,12 @@ func (this *Interactivebrokers) ibkrUnsubscribeBody(ch chan ccxt.AsyncResult[any
  * @param {string} marketId the conid
  * @returns {undefined}
  */
-func (this *Interactivebrokers) IbkrUnsubscribeMarketDataAsync(client any, marketId any) <-chan ccxt.AsyncResult[any] {
+func (this *Interactivebrokers) IbkrUnsubscribeMarketDataAsync(client ccxt.ClientInterface, marketId any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.ibkrUnsubscribeMarketDataBody(ch, client, marketId)
 	return ch
 }
-func (this *Interactivebrokers) ibkrUnsubscribeMarketDataBody(ch chan ccxt.AsyncResult[any], client any, marketId any) any {
+func (this *Interactivebrokers) ibkrUnsubscribeMarketDataBody(ch chan ccxt.AsyncResult[any], client ccxt.ClientInterface, marketId any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var keys []string = client.(ccxt.ClientInterface).SubscriptionKeys()
@@ -755,7 +755,7 @@ func (this *Interactivebrokers) ibkrUnWatchMarketDataBody(ch chan ccxt.AsyncResu
 	ch <- ccxt.AsyncResult[any]{Value: true}
 	return nil
 }
-func (this *Interactivebrokers) HandleTicker(client any, message map[string]any) {
+func (this *Interactivebrokers) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "server_id": "q0",
@@ -988,7 +988,7 @@ func (this *Interactivebrokers) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool],
 	ch <- ccxt.AsyncResult[bool]{Value: true}
 	return nil
 }
-func (this *Interactivebrokers) HandleOHLCV(client any, message map[string]any) {
+func (this *Interactivebrokers) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "serverId": "smh265598",
@@ -1123,12 +1123,12 @@ func (this *Interactivebrokers) IbkrWsPeriod(duration int64, limit any) string {
  * @param {string} serverId the serverId of the smh response
  * @returns {undefined}
  */
-func (this *Interactivebrokers) IbkrCancelHistoryAsync(client any, serverId string) <-chan ccxt.AsyncResult[any] {
+func (this *Interactivebrokers) IbkrCancelHistoryAsync(client ccxt.ClientInterface, serverId string) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.ibkrCancelHistoryBody(ch, client, serverId)
 	return ch
 }
-func (this *Interactivebrokers) ibkrCancelHistoryBody(ch chan ccxt.AsyncResult[any], client any, serverId string) any {
+func (this *Interactivebrokers) ibkrCancelHistoryBody(ch chan ccxt.AsyncResult[any], client ccxt.ClientInterface, serverId string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -1149,7 +1149,7 @@ func (this *Interactivebrokers) ibkrCancelHistoryBody(ch chan ccxt.AsyncResult[a
  * @param {string} symbol unified market symbol
  * @param {object} delta the raw smd message
  */
-func (this *Interactivebrokers) IbkrUpdateOHLCVs(client any, symbol string, delta map[string]any) {
+func (this *Interactivebrokers) IbkrUpdateOHLCVs(client ccxt.ClientInterface, symbol string, delta map[string]any) {
 	var lastString any = this.IbkrParseValue(this.SafeString(delta, "31"))
 	if lastString == nil {
 		return
@@ -1242,7 +1242,7 @@ func (this *Interactivebrokers) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	accountIdqueryVariable := r1.Value
+	var accountIdqueryVariable []any = r1.Value
 	accountId := ccxt.GetValue(accountIdqueryVariable, 0)
 	query := ccxt.GetValue(accountIdqueryVariable, 1)
 	var bookExchange *string = this.SafeString(query, "exchange")
@@ -1311,7 +1311,7 @@ func (this *Interactivebrokers) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bo
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	accountIdqueryVariable := r1.Value
+	var accountIdqueryVariable []any = r1.Value
 	accountId := ccxt.GetValue(accountIdqueryVariable, 0)
 	query := ccxt.GetValue(accountIdqueryVariable, 1)
 
@@ -1345,7 +1345,7 @@ func (this *Interactivebrokers) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bo
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Interactivebrokers) HandleOrderBook(client any, message map[string]any) {
+func (this *Interactivebrokers) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// the price ladder is a list of rows, the first message after subscribing is an empty placeholder ladder,
 	// then the full ladder is sent, then only the changed rows are sent, every row carries its full state
@@ -1654,7 +1654,7 @@ func (this *Interactivebrokers) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool]
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Interactivebrokers) HandleOrders(client any, message map[string]any) {
+func (this *Interactivebrokers) HandleOrders(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "topic": "sor",
@@ -1862,7 +1862,7 @@ func (this *Interactivebrokers) unWatchMyTradesBody(ch chan ccxt.AsyncResult[boo
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Interactivebrokers) HandleMyTrades(client any, message map[string]any) {
+func (this *Interactivebrokers) HandleMyTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "topic": "str",
@@ -1912,7 +1912,7 @@ func (this *Interactivebrokers) HandleMyTrades(client any, message map[string]an
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < len(args); i++ {
 		var rawTrade any = args[i]
-		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(rawTrade))
+		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(this.SafeDict(args, i, map[string]any{})))
 		var tradeTimestamp *int64 = this.SafeInteger(trade, "timestamp")
 		if (threshold != nil) && (tradeTimestamp != nil) && (*tradeTimestamp < *threshold) {
 			continue
@@ -1980,7 +1980,7 @@ func (this *Interactivebrokers) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.B
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	accountIdqueryVariable := r1.Value
+	var accountIdqueryVariable []any = r1.Value
 	accountId := ccxt.GetValue(accountIdqueryVariable, 0)
 	query := ccxt.GetValue(accountIdqueryVariable, 1)
 
@@ -2057,7 +2057,7 @@ func (this *Interactivebrokers) unWatchBalanceBody(ch chan ccxt.AsyncResult[bool
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	accountIdqueryVariable := r.Value
+	var accountIdqueryVariable []any = r.Value
 	accountId := ccxt.GetValue(accountIdqueryVariable, 0)
 	query := ccxt.GetValue(accountIdqueryVariable, 1)
 
@@ -2089,7 +2089,7 @@ func (this *Interactivebrokers) unWatchBalanceBody(ch chan ccxt.AsyncResult[bool
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Interactivebrokers) HandleBalance(client any, message map[string]any) {
+func (this *Interactivebrokers) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "result": [
@@ -2141,7 +2141,7 @@ func (this *Interactivebrokers) HandleBalance(client any, message map[string]any
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
 }
-func (this *Interactivebrokers) HandleSessionStatus(client any, message map[string]any) {
+func (this *Interactivebrokers) HandleSessionStatus(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     { "topic": "sts", "args": { "authenticated": true, "competing": false, "message": "", "fail": "", "serverName": "...", "serverVersion": "..." } }
 	//
@@ -2163,7 +2163,7 @@ func (this *Interactivebrokers) HandleSessionStatus(client any, message map[stri
 		client.(ccxt.ClientInterface).Reject(error)
 	}
 }
-func (this *Interactivebrokers) HandleErrorMessage(client any, message map[string]any) bool {
+func (this *Interactivebrokers) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	//     { "topic": "smd+123", "error": "..." }
 	//
@@ -2196,15 +2196,15 @@ func (this *Interactivebrokers) HandleErrorMessage(client any, message map[strin
 	}
 	return true
 }
-func (this *Interactivebrokers) Ping(client any) any {
+func (this *Interactivebrokers) Ping(client ccxt.ClientInterface) any {
 	// https://www.interactivebrokers.com/docs/web-api/ws/ping - "tic" keeps the websocket session alive, no response is sent
 	return "tic"
 }
-func (this *Interactivebrokers) HandleTextMessage(client any, message string) {
+func (this *Interactivebrokers) HandleTextMessage(client ccxt.ClientInterface, message string) {
 	// plain text frames carry no data, but like every message they prove the connection is alive
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 }
-func (this *Interactivebrokers) HandleMessage(client any, message map[string]any) {
+func (this *Interactivebrokers) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// every message (including the 10 second system heartbeats) proves the connection is alive
 	//

@@ -98,7 +98,7 @@ func (this *Blockchaincom) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balanc
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r1.Value)}
 	return nil
 }
-func (this *Blockchaincom) HandleBalance(client any, message map[string]any) {
+func (this *Blockchaincom) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//  subscribed
 	//     {
@@ -220,7 +220,7 @@ func (this *Blockchaincom) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV]
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
 	return nil
 }
-func (this *Blockchaincom) HandleOHLCV(client any, message map[string]any) {
+func (this *Blockchaincom) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//  subscribed
 	//     {
@@ -319,7 +319,7 @@ func (this *Blockchaincom) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker]
 	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(r1.Value)}
 	return nil
 }
-func (this *Blockchaincom) HandleTicker(client any, message map[string]any) {
+func (this *Blockchaincom) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//  subscribed
 	//     {
@@ -461,7 +461,7 @@ func (this *Blockchaincom) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limit, "timestamp", true))}
 	return nil
 }
-func (this *Blockchaincom) HandleTrades(client any, message map[string]any) {
+func (this *Blockchaincom) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//  subscribed
 	//     {
@@ -606,7 +606,7 @@ func (this *Blockchaincom) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Blockchaincom) HandleOrders(client any, message map[string]any) {
+func (this *Blockchaincom) HandleOrders(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "seqnum": 1,
@@ -845,7 +845,7 @@ func (this *Blockchaincom) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.Orde
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Blockchaincom) HandleOrderBook(client any, message map[string]any) {
+func (this *Blockchaincom) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//  subscribe
 	//     {
@@ -919,16 +919,16 @@ func (this *Blockchaincom) HandleOrderBook(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Blockchaincom) HandleDelta(bookside any, delta any) {
+func (this *Blockchaincom) HandleDelta(bookside ccxt.IOrderBookSide, delta any) {
 	var bookArray []any = this.ParseOrderBookBidAsk(delta, "px", "qty", "num")
-	bookside.(ccxt.IOrderBookSide).StoreArray(bookArray)
+	bookside.StoreArray(bookArray)
 }
-func (this *Blockchaincom) HandleDeltas(bookside any, deltas []any) {
+func (this *Blockchaincom) HandleDeltas(bookside ccxt.IOrderBookSide, deltas []any) {
 	for i := 0; i < len(deltas); i++ {
 		this.HandleDelta(bookside, deltas[i])
 	}
 }
-func (this *Blockchaincom) HandleMessage(client any, message map[string]any) {
+func (this *Blockchaincom) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var channel *string = this.SafeString(message, "channel")
 	if channel != nil && *channel == "ticker" {
 		this.HandleTicker(client, message)
@@ -948,7 +948,7 @@ func (this *Blockchaincom) HandleMessage(client any, message map[string]any) {
 		panic(ccxt.NotSupported(this.Id + " received an unsupported message: " + this.Json(message)))
 	}
 }
-func (this *Blockchaincom) HandleAuthenticationMessage(client any, message map[string]any) {
+func (this *Blockchaincom) HandleAuthenticationMessage(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "seqnum": 0,

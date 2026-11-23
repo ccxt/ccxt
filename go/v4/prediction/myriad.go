@@ -1626,12 +1626,12 @@ func (this *Myriad) createAmmOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
  * @param {object} [params] extra parameters passed through to createAmmOrder
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Myriad) CreateMarketBuyOrderWithCostAsync(outcome string, cost any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
+func (this *Myriad) CreateMarketBuyOrderWithCostAsync(outcome string, cost float64, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionOrder], 1)
 	go this.createMarketBuyOrderWithCostBody(ch, outcome, cost, optionalArgs...)
 	return ch
 }
-func (this *Myriad) createMarketBuyOrderWithCostBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], outcome string, cost any, optionalArgs ...any) any {
+func (this *Myriad) createMarketBuyOrderWithCostBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], outcome string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// myriad's AMM prices buys in COLLATERAL, so `cost` maps directly onto the AMM value input.
@@ -4469,12 +4469,12 @@ func (this *Myriad) connectCentrifugoBody(ch chan ccxt.AsyncResult[bool], url *s
 	ch <- ccxt.AsyncResult[bool]{Value: resolved1}
 	return nil
 }
-func (this *Myriad) PongAsync(client any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Myriad) PongAsync(client ccxt.ClientInterface, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.pongBody(ch, client, optionalArgs...)
 	return ch
 }
-func (this *Myriad) pongBody(ch chan ccxt.AsyncResult[bool], client any, optionalArgs ...any) any {
+func (this *Myriad) pongBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
@@ -4519,7 +4519,7 @@ func (this *Myriad) subscribeMyriadChannelBody(ch chan ccxt.AsyncResult[any], me
 	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
-func (this *Myriad) HandleTextMessage(client any, message string) {
+func (this *Myriad) HandleTextMessage(client ccxt.ClientInterface, message string) {
 	var lines []string = strings.Split(message, "\n")
 	var linesLength int = len(lines)
 	for i := 0; i < linesLength; i++ {
@@ -4530,12 +4530,12 @@ func (this *Myriad) HandleTextMessage(client any, message string) {
 		}
 	}
 }
-func (this *Myriad) HandleMessage(client any, message map[string]any) {
+func (this *Myriad) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	// Centrifugo packs several commands per frame joined by \n; a multi-command frame fails the
 	// base JSON.parse and arrives here as a raw string, a single command arrives already parsed
 	this.HandleCentrifugoFrame(client, message)
 }
-func (this *Myriad) HandleCentrifugoFrame(client any, msg any) {
+func (this *Myriad) HandleCentrifugoFrame(client ccxt.ClientInterface, msg any) {
 	var keys []string = ccxt.ObjectKeys(msg)
 	var keysLength int = len(keys)
 	if keysLength == 0 {
@@ -4686,7 +4686,7 @@ func (this *Myriad) seedOrderBookBody(ch chan ccxt.AsyncResult[bool], outcome st
 	}
 	return nil
 }
-func (this *Myriad) HandleOrderBook(client any, data map[string]any) {
+func (this *Myriad) HandleOrderBook(client ccxt.ClientInterface, data map[string]any) {
 	var networkId *string = this.SafeString(data, "networkId")
 	var marketId *string = this.SafeString(data, "marketId")
 	var ts *int64 = this.SafeInteger(data, "ts")
@@ -4853,7 +4853,7 @@ func (this *Myriad) WalletAddressOrUndefined() any {
 	}
 	return nil
 }
-func (this *Myriad) HandleTrades(client any, data any) {
+func (this *Myriad) HandleTrades(client ccxt.ClientInterface, data any) {
 	var networkId *string = this.SafeString(data, "networkId")
 	var marketId *string = this.SafeString(data, "marketId")
 	var ts *int64 = this.SafeInteger(data, "ts")
@@ -5122,7 +5122,7 @@ func (this *Myriad) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], outco
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(result, since, limit, 0, true))}
 	return nil
 }
-func (this *Myriad) HandleTicker(client any, data any) {
+func (this *Myriad) HandleTicker(client ccxt.ClientInterface, data any) {
 	var networkId *string = this.SafeString(data, "networkId")
 	var marketId *string = this.SafeString(data, "marketId")
 	var ts *int64 = this.SafeInteger(data, "ts")
@@ -5217,7 +5217,11 @@ func (this *Myriad) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOr
 		}
 		var info map[string]any = r.Value.Info
 		networkId = *this.SafeString(info, "networkId", networkId)
-		outcomeResolved = this.SafeOutcomeSymbol(outcomeResolved, outcomeObj)
+		if derefPtr := this.SafeOutcomeSymbol(outcomeResolved, outcomeObj); derefPtr != nil {
+			outcomeResolved = *derefPtr
+		} else {
+			outcomeResolved = nil
+		}
 	}
 	var channel string = "orders:" + networkId + ":" + trader
 	var messageHash string = "orders"
@@ -5231,7 +5235,7 @@ func (this *Myriad) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOr
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(this.FilterByValueSinceLimit(orders, "outcome", outcomeResolved, since, limit, "timestamp", true))}
 	return nil
 }
-func (this *Myriad) HandleOrder(client any, data any) {
+func (this *Myriad) HandleOrder(client ccxt.ClientInterface, data any) {
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheByOutcomeById(limit)
@@ -5412,7 +5416,7 @@ func (this *Myriad) seedPositionBalancesBody(ch chan ccxt.AsyncResult[bool], tra
 	this.Options["positionBalances"] = balances
 	return nil
 }
-func (this *Myriad) HandlePosition(client any, data any) {
+func (this *Myriad) HandlePosition(client ccxt.ClientInterface, data any) {
 	if this.Positions == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "positionsLimit", 1000)
 		this.Positions = ccxt.NewArrayCacheByOutcomeById(limit)
@@ -5493,7 +5497,7 @@ func (this *Myriad) WalletAddressFromKeys() string {
 	}
 	return strings.ToLower(this.EthGetAddressFromPrivateKey(this.PrivateKey))
 }
-func (this *Myriad) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Myriad) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	// Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
 	if response == nil {
 		return nil

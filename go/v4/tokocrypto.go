@@ -1647,7 +1647,7 @@ func (this *Tokocrypto) fetchTickerBody(ch chan AsyncResult[Ticker], symbol stri
 		return nil
 	}
 
-	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(response, market)}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.Extend(map[string]any{}, response), market)}
 	return nil
 }
 
@@ -3264,12 +3264,12 @@ func (this *Tokocrypto) ParseTransaction(transaction map[string]any, optionalArg
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Tokocrypto) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Tokocrypto) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Tokocrypto) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
+func (this *Tokocrypto) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3418,7 +3418,7 @@ func (this *Tokocrypto) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": nil,
 	}
 }
-func (this *Tokocrypto) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Tokocrypto) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if (code == 418) || (code == 429) {
 		panic(DDoSProtection(this.Id + " " + strconv.FormatInt(code, 10) + " " + reason + " " + body))
 	}

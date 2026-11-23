@@ -96,7 +96,7 @@ func (this *Ndax) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol 
 	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(r1.Value)}
 	return nil
 }
-func (this *Ndax) HandleTicker(client any, message map[string]any) {
+func (this *Ndax) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	var payload map[string]any
 	payload, _ = message["o"].(map[string]any)
 	if payload == nil {
@@ -208,7 +208,7 @@ func (this *Ndax) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Ndax) HandleTrades(client any, message map[string]any) {
+func (this *Ndax) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	var payload []any = ccxt.SafeListTyped(message, "o")
 	//
 	// initial snapshot
@@ -342,7 +342,7 @@ func (this *Ndax) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
 	return nil
 }
-func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
+func (this *Ndax) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "m": 1,
@@ -543,7 +543,7 @@ func (this *Ndax) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
+func (this *Ndax) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "m": 3,
@@ -628,7 +628,7 @@ func (this *Ndax) HandleOrderBook(client any, message map[string]any) {
 	this.Orderbooks[symbol] = orderbook
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Ndax) HandleOrderBookSubscription(client any, message map[string]any, subscription map[string]any) {
+func (this *Ndax) HandleOrderBookSubscription(client ccxt.ClientInterface, message map[string]any, subscription map[string]any) {
 	//
 	//     {
 	//         "m": 1,
@@ -671,7 +671,7 @@ func (this *Ndax) HandleOrderBookSubscription(client any, message map[string]any
 	var messageHash *string = this.SafeString(subscription, "messageHash")
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Ndax) HandleSubscriptionStatus(client any, message map[string]any) {
+func (this *Ndax) HandleSubscriptionStatus(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "m": 1,
@@ -690,7 +690,7 @@ func (this *Ndax) HandleSubscriptionStatus(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Ndax) HandleMessage(client any, message map[string]any) {
+func (this *Ndax) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "m": 0, // message type, 0 request, 1 reply, 2 subscribe, 3 event, unsubscribe, 5 error

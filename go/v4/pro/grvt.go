@@ -61,7 +61,7 @@ func (this *Grvt) Describe() map[string]any {
 		},
 	})
 }
-func (this *Grvt) HandleMessage(client any, message map[string]any) {
+func (this *Grvt) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// confirmation
 	//
@@ -259,7 +259,7 @@ func (this *Grvt) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tick
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Tickers, symbolsNormalized)}
 	return nil
 }
-func (this *Grvt) HandleTicker(client any, message map[string]any) {
+func (this *Grvt) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// v1.ticker.s
 	//
@@ -460,7 +460,7 @@ func (this *Grvt) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trad
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Grvt) HandleTrades(client any, message map[string]any) {
+func (this *Grvt) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "stream": "v1.trade",
@@ -506,7 +506,7 @@ func (this *Grvt) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	// same as REST api
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	return ccxt.TradeToMap(this.ParseTrade(trade, market))
+	return ccxt.TradeToMap(this.ParseTrade(this.Extend(map[string]any{}, trade), market))
 }
 
 /**
@@ -631,7 +631,7 @@ func (this *Grvt) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]m
 	ch <- ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV]{Value: ccxt.OHLCVForSymbolsMapFromMap(this.CreateOHLCVObject(symbol, timeframe, filtered))}
 	return nil
 }
-func (this *Grvt) HandleOHLCV(client any, message map[string]any) {
+func (this *Grvt) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "stream": "v1.candle",
@@ -805,7 +805,7 @@ func (this *Grvt) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Ord
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Grvt) HandleOrderBook(client any, message map[string]any) {
+func (this *Grvt) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "stream": "v1.book.s",
@@ -992,7 +992,7 @@ func (this *Grvt) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opti
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Grvt) HandleMyTrade(client any, message map[string]any) {
+func (this *Grvt) HandleMyTrade(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "stream": "v1.fill",
@@ -1131,7 +1131,7 @@ func (this *Grvt) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.Positions, symbolsNormalized, since, limit, true))}
 	return nil
 }
-func (this *Grvt) HandlePosition(client any, message map[string]any) {
+func (this *Grvt) HandlePosition(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "stream": "v1.position",
@@ -1244,7 +1244,7 @@ func (this *Grvt) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], option
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbol, since, limitResolved, true))}
 	return nil
 }
-func (this *Grvt) HandleOrder(client any, message map[string]any) {
+func (this *Grvt) HandleOrder(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "stream": "v1.order",
@@ -1325,7 +1325,7 @@ func (this *Grvt) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	_ = market
 	return ccxt.OrderToMap(this.ParseOrder(order, market))
 }
-func (this *Grvt) HandleErrorMessage(client any, response map[string]any) bool {
+func (this *Grvt) HandleErrorMessage(client ccxt.ClientInterface, response map[string]any) bool {
 	//
 	//    {
 	//        "jsonrpc": "2.0",

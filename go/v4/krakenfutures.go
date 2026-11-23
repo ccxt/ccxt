@@ -4633,12 +4633,12 @@ func (this *Krakenfutures) ParseKrakenAccountName(account string) any {
  * @param {dict} [params] Exchange specific parameters
  * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Krakenfutures) TransferOutAsync(code string, amount any, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Krakenfutures) TransferOutAsync(code string, amount float64, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferOutBody(ch, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) transferOutBody(ch chan AsyncResult[TransferEntry], code string, amount any, optionalArgs ...any) any {
+func (this *Krakenfutures) transferOutBody(ch chan AsyncResult[TransferEntry], code string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4665,12 +4665,12 @@ func (this *Krakenfutures) transferOutBody(ch chan AsyncResult[TransferEntry], c
  * @param {object} [params] Exchange specific parameters
  * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Krakenfutures) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Krakenfutures) TransferAsync(code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Krakenfutures) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
+func (this *Krakenfutures) transferBody(ch chan AsyncResult[TransferEntry], code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4912,7 +4912,7 @@ func (this *Krakenfutures) ParseLeverage(leverage any, optionalArgs ...any) Leve
 		"shortLeverage": leverageValue,
 	})
 }
-func (this *Krakenfutures) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Krakenfutures) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		return nil
 	}

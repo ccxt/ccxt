@@ -2720,7 +2720,7 @@ func (this *Coinbase) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 	var fiatData []any = this.SafeListSlice(fiatResponse, "data", []any{})
 	var cryptoData []any = this.SafeListSlice(cryptoResponse, "data", []any{})
 	var ratesData, _ = ratesResponse["data"].(map[string]any)
-	var rates map[string]any = SafeMapTyped(ratesData, "rates")
+	var rates, _ = ratesData["rates"].(map[string]any)
 	var ratesIds []string = nil
 	if rates != nil {
 		ratesIds = make([]string, 0, len(rates))
@@ -4128,12 +4128,12 @@ func (this *Coinbase) prepareAccountRequestWithCurrencyCodeBody(ch chan AsyncRes
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Coinbase) CreateMarketBuyOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Coinbase) CreateMarketBuyOrderWithCostAsync(symbol string, cost float64, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost any, optionalArgs ...any) any {
+func (this *Coinbase) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5900,12 +5900,12 @@ func (this *Coinbase) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], 
  * @param {object} [params.travel_rule_data] some regions require travel rule information for crypto withdrawals, see the exchange docs for details https://docs.cdp.coinbase.com/coinbase-app/transfer-apis/travel-rule
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Coinbase) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Coinbase) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
+func (this *Coinbase) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6315,12 +6315,12 @@ func (this *Coinbase) depositBody(ch chan AsyncResult[Transaction], code string,
  * @param {string} [params.accountId] the id of the account that the funds were deposited into
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Coinbase) FetchDepositAsync(id any, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Coinbase) FetchDepositAsync(id string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.fetchDepositBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) fetchDepositBody(ch chan AsyncResult[Transaction], id any, optionalArgs ...any) any {
+func (this *Coinbase) fetchDepositBody(ch chan AsyncResult[Transaction], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var code *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -6473,12 +6473,12 @@ func (this *Coinbase) fetchDepositMethodIdsBody(ch chan AsyncResult[[]map[string
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [deposit id structure]{@link https://docs.ccxt.com/?id=deposit-id-structure}
  */
-func (this *Coinbase) FetchDepositMethodIdAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Coinbase) FetchDepositMethodIdAsync(id string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.fetchDepositMethodIdBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) fetchDepositMethodIdBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Coinbase) fetchDepositMethodIdBody(ch chan AsyncResult[map[string]any], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6747,12 +6747,12 @@ func (this *Coinbase) ParseConversion(conversion any, optionalArgs ...any) Conve
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Coinbase) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Coinbase) TransferAsync(code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Coinbase) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
+func (this *Coinbase) transferBody(ch chan AsyncResult[TransferEntry], code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -7436,7 +7436,7 @@ func (this *Coinbase) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResolved,
 	}
 }
-func (this *Coinbase) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Coinbase) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

@@ -1708,7 +1708,7 @@ func (this *Lbank) ParseBalance(response map[string]any) map[string]any {
 	var toBtc, _ = data["toBtc"].(map[string]any)
 	if toBtc != nil {
 		var used, _ = data["freeze"].(map[string]any)
-		var free map[string]any = SafeMapTyped(data, "free")
+		var free, _ = data["free"].(map[string]any)
 		var currencies []string = nil
 		if free != nil {
 			currencies = make([]string, 0, len(free))
@@ -2118,12 +2118,12 @@ func (this *Lbank) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFe
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Lbank) CreateMarketBuyOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Lbank) CreateMarketBuyOrderWithCostAsync(symbol string, cost float64, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Lbank) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost any, optionalArgs ...any) any {
+func (this *Lbank) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3276,12 +3276,12 @@ func (this *Lbank) fetchDepositAddressSupplementBody(ch chan AsyncResult[Deposit
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Lbank) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Lbank) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Lbank) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
+func (this *Lbank) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4293,7 +4293,7 @@ func (this *Lbank) ConvertSecretToPem(secret string) string {
 	}
 	return pem + "-----END PRIVATE KEY-----"
 }
-func (this *Lbank) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Lbank) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		panic(NullResponse(this.Id + " parseBalance() returned empty response"))
 	}

@@ -167,9 +167,9 @@ func (this *Hyperliquid) Nonce() int64 {
  * @param {int} side outcome side, 0 = YES, 1 = NO
  * @returns {int} the outcome side encoding
  */
-func (this *Hyperliquid) OutcomeEncoding(outcomeId any, side any) any {
+func (this *Hyperliquid) OutcomeEncoding(outcomeId any, side int64) any {
 	var outcomeIdInt int64 = this.ParseToInt(outcomeId)
-	return this.Sum(10*outcomeIdInt, side)
+	return 10*outcomeIdInt + side
 }
 
 /**
@@ -2976,7 +2976,7 @@ func (this *Hyperliquid) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	return literal226715
 }
-func (this *Hyperliquid) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Hyperliquid) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		return nil
 	}

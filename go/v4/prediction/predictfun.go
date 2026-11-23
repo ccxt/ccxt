@@ -3297,7 +3297,7 @@ func (this *Predictfun) ParseOrderStatus(status *string) *string {
  * @param {object} requestBody the request body
  * @returns {undefined} nothing, it throws when the venue reported a failure
  */
-func (this *Predictfun) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Predictfun) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		return nil
 	}
@@ -3771,7 +3771,7 @@ func (this *Predictfun) OrderBookMessageHashes(marketId string) []any {
  * @param {object} message the raw rejection
  * @param {object} subscription the subscription that request registered, empty when it cannot be attributed
  */
-func (this *Predictfun) HandleSubscriptionError(client any, message map[string]any, subscription map[string]any) {
+func (this *Predictfun) HandleSubscriptionError(client ccxt.ClientInterface, message map[string]any, subscription map[string]any) {
 	var rawError map[string]any
 	rawError, _ = message["error"].(map[string]any)
 	if rawError == nil {
@@ -3812,7 +3812,7 @@ func (this *Predictfun) HandleSubscriptionError(client any, message map[string]a
  * @param {ccxt.Client} client the websocket client
  * @param {object} subscription the subscription the acknowledged request id belongs to
  */
-func (this *Predictfun) HandleUnSubscription(client any, subscription map[string]any) {
+func (this *Predictfun) HandleUnSubscription(client ccxt.ClientInterface, subscription map[string]any) {
 	var messageHashes []any = ccxt.SafeListTyped(subscription, "messageHashes")
 	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
 	var messageHashesLength int = len(messageHashes)
@@ -4139,7 +4139,7 @@ func (this *Predictfun) watchWalletEventsBody(ch chan ccxt.AsyncResult[any], mes
  * @param {string} [messageHash] the hash this call is about to park on, not registered yet
  * @returns {string[]} the message hashes
  */
-func (this *Predictfun) WalletEventMessageHashes(client any, optionalArgs ...any) []any {
+func (this *Predictfun) WalletEventMessageHashes(client ccxt.ClientInterface, optionalArgs ...any) []any {
 	// handleSubscriptionError rejects exactly this list, so a hash missing from it belongs to a
 	// caller the venue's refusal never reaches - watchOrders (outcome) would sit forever on a
 	// topic that was turned down. the unnarrowed pair is always listed, the narrowed ones are
@@ -4320,7 +4320,7 @@ func (this *Predictfun) OutcomesByMarketId(marketId *string) []any {
  * @param {ccxt.Client} client the websocket client
  * @param {object} message the raw message
  */
-func (this *Predictfun) HandleOrderBook(client any, message map[string]any) {
+func (this *Predictfun) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "type": "M",
@@ -4424,7 +4424,7 @@ func (this *Predictfun) HandleOrderBook(client any, message map[string]any) {
  * @param {ccxt.Client} client the websocket client
  * @param {object} message the raw message
  */
-func (this *Predictfun) HandleWalletEvent(client any, message map[string]any) {
+func (this *Predictfun) HandleWalletEvent(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "type": "M",
@@ -4489,7 +4489,7 @@ func (this *Predictfun) HandleWalletEvent(client any, message map[string]any) {
  * @param {ccxt.Client} client the websocket client
  * @param {object} order the parsed order
  */
-func (this *Predictfun) HandleWalletEventOrder(client any, order any) {
+func (this *Predictfun) HandleWalletEventOrder(client ccxt.ClientInterface, order any) {
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheByOutcomeById(limit)
@@ -4512,7 +4512,7 @@ func (this *Predictfun) HandleWalletEventOrder(client any, order any) {
  * @param {object} event the raw event
  * @param {object} order the order the same event was parsed into
  */
-func (this *Predictfun) HandleWalletEventTrade(client any, event any, order any) {
+func (this *Predictfun) HandleWalletEventTrade(client ccxt.ClientInterface, event any, order any) {
 	var trade any = this.ParseWalletEventTrade(event, order)
 	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -4767,7 +4767,7 @@ func (this *Predictfun) ParseWalletEventTrade(event any, order any) any {
  * @param {ccxt.Client} client the websocket client
  * @param {object} message the raw message
  */
-func (this *Predictfun) HandleHeartbeat(client any, message map[string]any) {
+func (this *Predictfun) HandleHeartbeat(client ccxt.ClientInterface, message map[string]any) {
 	// client.send () is a coroutine in the python port, so firing it from this synchronous
 	// handler would drop it unsent and the venue would close the socket on its next probe
 	this.Spawn(this.PongAsync, client, message)
@@ -4781,12 +4781,12 @@ func (this *Predictfun) HandleHeartbeat(client any, message map[string]any) {
  * @param {ccxt.Client} client the websocket client
  * @param {object} message the raw probe
  */
-func (this *Predictfun) PongAsync(client any, message map[string]any) <-chan ccxt.AsyncResult[bool] {
+func (this *Predictfun) PongAsync(client ccxt.ClientInterface, message map[string]any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.pongBody(ch, client, message)
 	return ch
 }
-func (this *Predictfun) pongBody(ch chan ccxt.AsyncResult[bool], client any, message map[string]any) any {
+func (this *Predictfun) pongBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, message map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// the server probes every fifteen seconds and drops the connection on the next probe unless
@@ -4832,7 +4832,7 @@ func (this *Predictfun) pongBody(ch chan ccxt.AsyncResult[bool], client any, mes
  * @param {ccxt.Client} client the websocket client
  * @param {object} message the raw message
  */
-func (this *Predictfun) HandleMessage(client any, message map[string]any) {
+func (this *Predictfun) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var messageType *string = this.SafeString(message, "type")
 	if messageType != nil && *messageType == "R" {
 		// a subscription reply - the venue reports a rejected topic here instead of closing.

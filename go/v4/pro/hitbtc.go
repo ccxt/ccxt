@@ -426,7 +426,7 @@ func (this *Hitbtc) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
+func (this *Hitbtc) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "ch": "orderbook/full",                 // Channel
@@ -509,10 +509,10 @@ func (this *Hitbtc) HandleOrderBook(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	}
 }
-func (this *Hitbtc) HandleDelta(bookside any, delta any) {
+func (this *Hitbtc) HandleDelta(bookside ccxt.IOrderBookSide, delta any) {
 	var price *float64 = this.SafeNumber(delta, 0)
 	var amount *float64 = this.SafeNumber(delta, 1)
-	bookside.(ccxt.IOrderBookSide).Store(price, amount)
+	bookside.Store(price, amount)
 }
 
 /**
@@ -633,7 +633,7 @@ func (this *Hitbtc) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(this.FilterByArray(newTickers, "symbol", symbolsNormalized))}
 	return nil
 }
-func (this *Hitbtc) HandleTicker(client any, message map[string]any) {
+func (this *Hitbtc) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "ch": "ticker/1s",
@@ -821,7 +821,7 @@ func (this *Hitbtc) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(this.FilterByArray(newTickers, "symbol", symbolsNormalized))}
 	return nil
 }
-func (this *Hitbtc) HandleBidAsk(client any, message map[string]any) {
+func (this *Hitbtc) HandleBidAsk(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "ch": "orderbook/top/100ms", // or 'orderbook/top/100ms/batch'
@@ -986,7 +986,7 @@ func (this *Hitbtc) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol str
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Hitbtc) HandleTrades(client any, message map[string]any) map[string]any {
+func (this *Hitbtc) HandleTrades(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "result": {
@@ -1213,7 +1213,7 @@ func (this *Hitbtc) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol stri
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Hitbtc) HandleOHLCV(client any, message map[string]any) map[string]any {
+func (this *Hitbtc) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "ch": "candles/M1",                     // Channel
@@ -1369,7 +1369,7 @@ func (this *Hitbtc) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySinceLimit(orders, since, limitResolved, "timestamp"))}
 	return nil
 }
-func (this *Hitbtc) HandleOrder(client any, message map[string]any) map[string]any {
+func (this *Hitbtc) HandleOrder(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "jsonrpc": "2.0",
@@ -1447,7 +1447,7 @@ func (this *Hitbtc) HandleOrder(client any, message map[string]any) map[string]a
 	}
 	return message
 }
-func (this *Hitbtc) HandleOrderHelper(client any, message map[string]any, order any) {
+func (this *Hitbtc) HandleOrderHelper(client ccxt.ClientInterface, message map[string]any, order any) {
 	if this.Orders == nil {
 		return
 	}
@@ -1957,7 +1957,7 @@ func (this *Hitbtc) fetchOpenOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order]
 		return nil
 	}
 }
-func (this *Hitbtc) HandleBalance(client any, message map[string]any) {
+func (this *Hitbtc) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "jsonrpc": "2.0",
@@ -2008,13 +2008,13 @@ func (this *Hitbtc) HandleBalance(client any, message map[string]any) {
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, messageHash)
 }
-func (this *Hitbtc) HandleNotification(client any, message map[string]any) map[string]any {
+func (this *Hitbtc) HandleNotification(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     { jsonrpc: "2.0", result: true, id: null }
 	//
 	return message
 }
-func (this *Hitbtc) HandleOrderRequest(client any, message map[string]any) map[string]any {
+func (this *Hitbtc) HandleOrderRequest(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	// createOrderWs, cancelOrderWs
 	//
@@ -2058,7 +2058,7 @@ func (this *Hitbtc) HandleOrderRequest(client any, message map[string]any) map[s
 	}
 	return message
 }
-func (this *Hitbtc) HandleMessage(client any, message map[string]any) {
+func (this *Hitbtc) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	if this.HandleError(client, message) {
 		return
 	}
@@ -2117,7 +2117,7 @@ func (this *Hitbtc) HandleMessage(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Hitbtc) HandleUnSubscription(client any, message map[string]any) {
+func (this *Hitbtc) HandleUnSubscription(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// hitbtc answers subscribe and unsubscribe requests alike, listing the symbols still subscribed on the channel
 	//
@@ -2148,7 +2148,7 @@ func (this *Hitbtc) HandleUnSubscription(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Hitbtc) HandleAuthenticate(client any, message map[string]any) map[string]any {
+func (this *Hitbtc) HandleAuthenticate(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "jsonrpc": "2.0",
@@ -2169,7 +2169,7 @@ func (this *Hitbtc) HandleAuthenticate(client any, message map[string]any) map[s
 	}
 	return message
 }
-func (this *Hitbtc) HandleError(client any, message map[string]any) bool {
+func (this *Hitbtc) HandleError(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	//    {
 	//        jsonrpc: '2.0',

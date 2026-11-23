@@ -1622,12 +1622,12 @@ func (this *Interactivebrokers) IbkrHasFreshSessionToken() bool {
  * @param {string} [params.accountId] the account id to use
  * @returns {Array} the account id and the params without accountId
  */
-func (this *Interactivebrokers) LoadAccountIdAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Interactivebrokers) LoadAccountIdAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.loadAccountIdBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Interactivebrokers) loadAccountIdBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Interactivebrokers) loadAccountIdBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1650,7 +1650,7 @@ func (this *Interactivebrokers) loadAccountIdBody(ch chan AsyncResult[any], opti
 		panic(ArgumentsRequired(this.Id + " requires an accountId in params[\"accountId\"] or options[\"accountId\"], fetchAccounts() returned no accounts"))
 	}
 
-	ch <- AsyncResult[any]{Value: []any{accountId, query}}
+	ch <- AsyncResult[[]any]{Value: []any{accountId, query}}
 	return nil
 }
 
@@ -1686,7 +1686,7 @@ func (this *Interactivebrokers) fetchBalanceBody(ch chan AsyncResult[Balances], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	accountIdaccountQueryVariable := r1.Value
+	var accountIdaccountQueryVariable []any = r1.Value
 	accountId := GetValue(accountIdaccountQueryVariable, 0)
 	accountQuery := GetValue(accountIdaccountQueryVariable, 1)
 	var accountParams map[string]any = this.Extend(map[string]any{}, accountQuery)
@@ -2350,8 +2350,8 @@ func (this *Interactivebrokers) fetchFuturesAndSwapMarketsBody(ch chan AsyncResu
 	_ = params
 	var options, _ = this.Options["fetchMarkets"].(map[string]any)
 	var types []any = this.SafeListSlice(options, "types", []any{})
-	var cryptoCmeFutureSymbols map[string]any = SafeMapTyped(options, "cryptoCmeFutureSymbols")
-	var cryptoCboeFutureSymbols map[string]any = SafeMapTyped(options, "cryptoCboeFutureSymbols")
+	var cryptoCmeFutureSymbols, _ = options["cryptoCmeFutureSymbols"].(map[string]any)
+	var cryptoCboeFutureSymbols, _ = options["cryptoCboeFutureSymbols"].(map[string]any)
 
 	r := <-this.FetchCoinbaseDerivativesSymbolsAsync()
 	if r.Err != nil {
@@ -2540,7 +2540,7 @@ func (this *Interactivebrokers) fetchBondMarketsBody(ch chan AsyncResult[any], o
 	var entries map[string]any = map[string]any{}
 	var options, _ = this.Options["fetchMarkets"].(map[string]any)
 	var bondSymbols []any = SafeListTyped(options, "bondSymbols")
-	var bondFilters map[string]any = SafeMapTyped(options, "bondFilters")
+	var bondFilters, _ = options["bondFilters"].(map[string]any)
 	var searchPromises []any = []any{}
 	for i := 0; i < len(bondSymbols); i++ {
 		var searchRequest map[string]any = map[string]any{
@@ -4072,7 +4072,7 @@ func (this *Interactivebrokers) createOrderBody(ch chan AsyncResult[Order], symb
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	accountIdparamsWithoutAccoundIdVariable := r2.Value
+	var accountIdparamsWithoutAccoundIdVariable []any = r2.Value
 	accountId := GetValue(accountIdparamsWithoutAccoundIdVariable, 0)
 	paramsWithoutAccoundId := GetValue(accountIdparamsWithoutAccoundIdVariable, 1)
 	var orderRequest map[string]any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, paramsWithoutAccoundId)
@@ -4128,7 +4128,7 @@ func (this *Interactivebrokers) createTestOrderBody(ch chan AsyncResult[any], sy
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	accountIdparamsWithoutAccoundIdVariable := r2.Value
+	var accountIdparamsWithoutAccoundIdVariable []any = r2.Value
 	accountId := GetValue(accountIdparamsWithoutAccoundIdVariable, 0)
 	paramsWithoutAccoundId := GetValue(accountIdparamsWithoutAccoundIdVariable, 1)
 	var orderRequest map[string]any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, paramsWithoutAccoundId)
@@ -4384,7 +4384,7 @@ func (this *Interactivebrokers) editOrderBody(ch chan AsyncResult[Order], id str
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	accountIdqueryVariable := r2.Value
+	var accountIdqueryVariable []any = r2.Value
 	accountId := GetValue(accountIdqueryVariable, 0)
 	query := GetValue(accountIdqueryVariable, 1)
 	var orderRequest map[string]any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, query)
@@ -4456,7 +4456,7 @@ func (this *Interactivebrokers) cancelOrderBody(ch chan AsyncResult[Order], id s
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	accountIdqueryVariable := r2.Value
+	var accountIdqueryVariable []any = r2.Value
 	accountId := GetValue(accountIdqueryVariable, 0)
 	query := GetValue(accountIdqueryVariable, 1)
 	var request map[string]any = map[string]any{
@@ -5262,7 +5262,7 @@ func (this *Interactivebrokers) fetchMyTradesFromTransactionsBody(ch chan AsyncR
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	accountIdaccountQueryVariable := r.Value
+	var accountIdaccountQueryVariable []any = r.Value
 	accountId := GetValue(accountIdaccountQueryVariable, 0)
 	accountQuery := GetValue(accountIdaccountQueryVariable, 1)
 	currency, query := this.HandleOptionAndParams(accountQuery, "fetchMyTrades", "currency", this.SafeString(options, "transactionsCurrency", "USD"))
@@ -5495,7 +5495,7 @@ func (this *Interactivebrokers) fetchPositionsBody(ch chan AsyncResult[[]Positio
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	accountIdqueryVariable := r2.Value
+	var accountIdqueryVariable []any = r2.Value
 	accountId := GetValue(accountIdqueryVariable, 0)
 	query := GetValue(accountIdqueryVariable, 1)
 	var request map[string]any = map[string]any{
@@ -5571,7 +5571,7 @@ func (this *Interactivebrokers) fetchPositionsForSymbolBody(ch chan AsyncResult[
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	accountIdqueryVariable := r2.Value
+	var accountIdqueryVariable []any = r2.Value
 	accountId := GetValue(accountIdqueryVariable, 0)
 	query := GetValue(accountIdqueryVariable, 1)
 	var request map[string]any = map[string]any{
@@ -6009,7 +6009,7 @@ func (this *Interactivebrokers) requestBody(ch chan AsyncResult[any], path any, 
 
 	return nil
 }
-func (this *Interactivebrokers) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Interactivebrokers) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if (code == 401) && (*this.SafeBool(this.Options, "useGateway", false)) {
 		// the gateway answers every request with 401 once its sso login is lost (daily reset, container restart, competing login)
 		this.Options["gatewayAuthenticatedTimestamp"] = nil

@@ -1603,12 +1603,12 @@ func (this *PredictionExchange) cancelOrdersBody(ch chan AsyncResult[[]Predictio
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *PredictionExchange) CreateMarketBuyOrderWithCostAsync(outcome string, cost any, optionalArgs ...any) <-chan AsyncResult[PredictionOrder] {
+func (this *PredictionExchange) CreateMarketBuyOrderWithCostAsync(outcome string, cost float64, optionalArgs ...any) <-chan AsyncResult[PredictionOrder] {
 	ch := make(chan AsyncResult[PredictionOrder], 1)
 	go this.createMarketBuyOrderWithCostBody(ch, outcome, cost, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) createMarketBuyOrderWithCostBody(ch chan AsyncResult[PredictionOrder], outcome string, cost any, optionalArgs ...any) any {
+func (this *PredictionExchange) createMarketBuyOrderWithCostBody(ch chan AsyncResult[PredictionOrder], outcome string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	// safeBool, not this.options['...'] — a raw missing-key access throws KeyError in Python/PHP
@@ -1636,12 +1636,12 @@ func (this *PredictionExchange) createMarketBuyOrderWithCostBody(ch chan AsyncRe
  * @param {object} [params] extra exchange-specific parameters
  * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
  */
-func (this *PredictionExchange) CreateMarketSellOrderWithCostAsync(outcome string, cost any, optionalArgs ...any) <-chan AsyncResult[PredictionOrder] {
+func (this *PredictionExchange) CreateMarketSellOrderWithCostAsync(outcome string, cost float64, optionalArgs ...any) <-chan AsyncResult[PredictionOrder] {
 	ch := make(chan AsyncResult[PredictionOrder], 1)
 	go this.createMarketSellOrderWithCostBody(ch, outcome, cost, optionalArgs...)
 	return ch
 }
-func (this *PredictionExchange) createMarketSellOrderWithCostBody(ch chan AsyncResult[PredictionOrder], outcome string, cost any, optionalArgs ...any) any {
+func (this *PredictionExchange) createMarketSellOrderWithCostBody(ch chan AsyncResult[PredictionOrder], outcome string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

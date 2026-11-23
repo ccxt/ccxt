@@ -112,7 +112,7 @@ func (this *Coinone) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Coinone) HandleOrderBook(client any, message map[string]any) {
+func (this *Coinone) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "response_type": "DATA",
@@ -172,9 +172,9 @@ func (this *Coinone) HandleOrderBook(client any, message map[string]any) {
 	this.Orderbooks[symbol] = orderbook
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Coinone) HandleDelta(bookside any, delta any) {
+func (this *Coinone) HandleDelta(bookside ccxt.IOrderBookSide, delta any) {
 	var bidAsk []any = this.ParseOrderBookBidAsk(delta, "price", "qty")
-	bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
+	bookside.StoreArray(bidAsk)
 }
 
 /**
@@ -224,7 +224,7 @@ func (this *Coinone) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(r1.Value)}
 	return nil
 }
-func (this *Coinone) HandleTicker(client any, message map[string]any) {
+func (this *Coinone) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "response_type": "DATA",
@@ -390,7 +390,7 @@ func (this *Coinone) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Coinone) HandleTrades(client any, message map[string]any) {
+func (this *Coinone) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "response_type": "DATA",
@@ -477,7 +477,7 @@ func (this *Coinone) ParseWsTrade(trade any, optionalArgs ...any) map[string]any
 		"fee":          nil,
 	}, marketResolved))
 }
-func (this *Coinone) HandleErrorMessage(client any, message map[string]any) bool {
+func (this *Coinone) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	//     {
 	//         "response_type": "ERROR",
@@ -491,7 +491,7 @@ func (this *Coinone) HandleErrorMessage(client any, message map[string]any) bool
 	}
 	return false
 }
-func (this *Coinone) HandleMessage(client any, message map[string]any) {
+func (this *Coinone) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	if this.HandleErrorMessage(client, message) == true {
 		return
 	}
@@ -529,12 +529,12 @@ func (this *Coinone) HandleMessage(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Coinone) Ping(client any) any {
+func (this *Coinone) Ping(client ccxt.ClientInterface) any {
 	return map[string]any{
 		"request_type": "PING",
 	}
 }
-func (this *Coinone) HandlePong(client any, message map[string]any) map[string]any {
+func (this *Coinone) HandlePong(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "response_type":"PONG"

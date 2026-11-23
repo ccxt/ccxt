@@ -105,7 +105,7 @@ func (this *Hollaex) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Hollaex) HandleOrderBook(client any, message map[string]any) {
+func (this *Hollaex) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "topic":"orderbook",
@@ -214,7 +214,7 @@ func (this *Hollaex) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Hollaex) HandleTrades(client any, message map[string]any) {
+func (this *Hollaex) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "topic": "trade",
@@ -313,7 +313,7 @@ func (this *Hollaex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Hollaex) HandleMyTrades(client any, message map[string]any, optionalArgs ...any) {
+func (this *Hollaex) HandleMyTrades(client ccxt.ClientInterface, message map[string]any, optionalArgs ...any) {
 	//
 	// {
 	//     "topic":"usertrade",
@@ -437,7 +437,7 @@ func (this *Hollaex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Hollaex) HandleOrder(client any, message map[string]any, optionalArgs ...any) {
+func (this *Hollaex) HandleOrder(client ccxt.ClientInterface, message map[string]any, optionalArgs ...any) {
 	//
 	//     {
 	//         "topic": "order",
@@ -573,7 +573,7 @@ func (this *Hollaex) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r.Value)}
 	return nil
 }
-func (this *Hollaex) HandleBalance(client any, message map[string]any) {
+func (this *Hollaex) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "topic": "wallet",
@@ -710,7 +710,7 @@ func (this *Hollaex) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash
 	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Hollaex) HandleErrorMessage(client any, message map[string]any) any {
+func (this *Hollaex) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) any {
 	//
 	//     { error: "Bearer or HMAC authentication required" }
 	//     { error: "Error: wrong input" }
@@ -744,7 +744,7 @@ func (this *Hollaex) HandleErrorMessage(client any, message map[string]any) any 
 	}
 	return true
 }
-func (this *Hollaex) HandleMessage(client any, message map[string]any) {
+func (this *Hollaex) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// pong
 	//
@@ -851,13 +851,13 @@ func (this *Hollaex) HandleMessage(client any, message map[string]any) {
 		ccxt.CallDynamically(method, client, message)
 	}
 }
-func (this *Hollaex) Ping(client any) any {
+func (this *Hollaex) Ping(client ccxt.ClientInterface) any {
 	// hollaex does not support built-in ws protocol-level ping-pong
 	return map[string]any{
 		"op": "ping",
 	}
 }
-func (this *Hollaex) HandlePong(client any, message map[string]any) map[string]any {
+func (this *Hollaex) HandlePong(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return message
 }

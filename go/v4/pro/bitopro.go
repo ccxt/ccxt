@@ -134,7 +134,7 @@ func (this *Bitopro) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Bitopro) HandleOrderBook(client any, message map[string]any) {
+func (this *Bitopro) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "event": "ORDER_BOOK",
@@ -222,7 +222,7 @@ func (this *Bitopro) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Bitopro) HandleTrade(client any, message map[string]any) {
+func (this *Bitopro) HandleTrade(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "event": "TRADE",
@@ -329,7 +329,7 @@ func (this *Bitopro) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Bitopro) HandleMyTrade(client any, message map[string]any) {
+func (this *Bitopro) HandleMyTrade(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "event": "USER_TRADE",
@@ -500,7 +500,7 @@ func (this *Bitopro) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(r1.Value)}
 	return nil
 }
-func (this *Bitopro) HandleTicker(client any, message map[string]any) {
+func (this *Bitopro) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "event": "TICKER",
@@ -615,7 +615,7 @@ func (this *Bitopro) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r1.Value)}
 	return nil
 }
-func (this *Bitopro) HandleBalance(client any, message map[string]any) {
+func (this *Bitopro) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "event": "ACCOUNT_BALANCE",
@@ -682,7 +682,7 @@ func (this *Bitopro) HandleBalance(client any, message map[string]any) {
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	client.(ccxt.ClientInterface).Resolve(this.Balance, event)
 }
-func (this *Bitopro) HandleMessage(client any, message map[string]any) {
+func (this *Bitopro) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var methods map[string]any = map[string]any{
 		"TRADE":           this.HandleTrade,
 		"TICKER":          this.HandleTicker,

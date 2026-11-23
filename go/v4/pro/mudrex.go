@@ -42,7 +42,7 @@ func (this *Mudrex) Describe() map[string]any {
 		},
 	})
 }
-func (this *Mudrex) Ping(client any) any {
+func (this *Mudrex) Ping(client ccxt.ClientInterface) any {
 	return map[string]any{
 		"id":     this.RequestId(),
 		"method": "PING",
@@ -262,7 +262,7 @@ func (this *Mudrex) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbo
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
 	return nil
 }
-func (this *Mudrex) HandleMessage(client any, message map[string]any) {
+func (this *Mudrex) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	if this.SafeString(message, "method") != nil && *this.SafeString(message, "method") == "PONG" {
 		return
 	}
@@ -280,7 +280,7 @@ func (this *Mudrex) HandleMessage(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Mudrex) HandleErrorMessage(client any, message map[string]any) {
+func (this *Mudrex) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) {
 	var error, _ = message["error"].(map[string]any)
 	var code *string = this.SafeString(error, "code")
 	var msg string = *this.SafeString(error, "msg", "")
@@ -290,7 +290,7 @@ func (this *Mudrex) HandleErrorMessage(client any, message map[string]any) {
 	}
 	panic(ccxt.ExchangeError(feedback))
 }
-func (this *Mudrex) HandleOHLCV(client any, message map[string]any) {
+func (this *Mudrex) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	var stream *string = this.SafeString(message, "stream")
 	if stream == nil {
 		return
@@ -332,7 +332,7 @@ func (this *Mudrex) HandleOHLCV(client any, message map[string]any) {
 	var messageHash *string = stream
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func (this *Mudrex) HandleTicker(client any, message map[string]any) {
+func (this *Mudrex) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	var data []map[string]any = this.SafeListMapsTyped(message, "data")
 	for i := 0; i < len(data); i++ {
 		var t map[string]any = data[i]

@@ -3023,7 +3023,7 @@ func (this *Polymarket) createOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	if response != nil {
 		for i := 0; i < len(response); i++ {
 			// request echo first so the response's real orderID/status win on overlap
-			var rawItem any = ccxt.GetValue(response, i)
+			var rawItem any = response[i]
 			var enriched map[string]any = this.Extend(this.SafeDict(requests, i), rawItem)
 			var parsedItem map[string]any = this.ParsePredictionOrder(enriched, this.SafeDict(outcomes, i))
 			parsedItem["info"] = rawItem // keep info the raw exchange response
@@ -3239,12 +3239,12 @@ func (this *Polymarket) BuildClobOrderBody(outcome *string, typeVar *string, sid
  * @param {object} [params] extra parameters specific to the exchange API endpoint (see createOrder)
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Polymarket) CreateMarketBuyOrderWithCostAsync(outcome string, cost any, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
+func (this *Polymarket) CreateMarketBuyOrderWithCostAsync(outcome string, cost float64, optionalArgs ...any) <-chan ccxt.AsyncResult[ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[ccxt.PredictionOrder], 1)
 	go this.createMarketBuyOrderWithCostBody(ch, outcome, cost, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) createMarketBuyOrderWithCostBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], outcome string, cost any, optionalArgs ...any) any {
+func (this *Polymarket) createMarketBuyOrderWithCostBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder], outcome string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3941,12 +3941,11 @@ func (this *Polymarket) ParseEvent(rawEvent any) map[string]any {
 func (this *Polymarket) ParseEvents(rawEvents []any) []any {
 	var result []any = []any{}
 	for i := 0; i < len(rawEvents); i++ {
-		var rawEvent any = ccxt.DerefScalar(rawEvents[i])
-		result = append(result, this.ParseEvent(rawEvent))
+		result = append(result, this.ParseEvent(ccxt.DerefScalar(rawEvents[i])))
 	}
 	return result
 }
-func (this *Polymarket) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Polymarket) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	// the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg")
 	// map the known messages so callers can distinguish a dead book or a rejected order
 	// from a transport outage (the base otherwise maps a bare 404 to a retryable error)
@@ -4103,16 +4102,16 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) map[string]any {
 			})
 		}
 	}
-	var literal285615 map[string]any = map[string]any{
+	var literal285515 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": headersValue,
 	}
 	if bodyValue != nil {
-		literal285615["body"] = *bodyValue
+		literal285515["body"] = *bodyValue
 	}
-	return literal285615
+	return literal285515
 }
 func (this *Polymarket) HashMessage(message any) string {
 	return "0x" + this.HashString(message, ccxt.Keccak, "hex")
@@ -4396,21 +4395,21 @@ func (this *Polymarket) loadApiCredentialsBody(ch chan ccxt.AsyncResult[bool]) a
 	}
 	panic(ccxt.AuthenticationError(this.Id + " requires L2 api credentials (apiKey, secret, password) or a privateKey to derive them"))
 }
-func (this *Polymarket) Ping(client any) any {
+func (this *Polymarket) Ping(client ccxt.ClientInterface) any {
 	// Polymarket keeps the ws alive with a plain-text "PING" (the server replies "PONG"); the
 	// keepAlive interval set in describe.streaming sends it on both the market and user channels
 	return "PING"
 }
-func (this *Polymarket) HandleTextMessage(client any, message string) {
+func (this *Polymarket) HandleTextMessage(client ccxt.ClientInterface, message string) {
 	// Polymarket keeps the ws alive with text PING/PONG (not protocol ping-pong frames), so the
 	// client's onPong never fires; refresh client.lastPong here on the "PONG" reply, otherwise the
 	// base keepalive treats the connection as stale and times it out after maxPingPongMisses.
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 }
-func (this *Polymarket) HandleMessage(client any, message map[string]any) {
+func (this *Polymarket) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	this.HandleMessageEvent(client, message)
 }
-func (this *Polymarket) HandleListMessage(client any, message []any) {
+func (this *Polymarket) HandleListMessage(client ccxt.ClientInterface, message []any) {
 	for i := 0; i < len(message); i++ {
 		var event any = ccxt.GetValue(message, i)
 		if (event == nil) || (!ccxt.IsObject(event)) {
@@ -4419,7 +4418,7 @@ func (this *Polymarket) HandleListMessage(client any, message []any) {
 		this.HandleMessageEvent(client, event)
 	}
 }
-func (this *Polymarket) HandleMessageEvent(client any, event any) {
+func (this *Polymarket) HandleMessageEvent(client ccxt.ClientInterface, event any) {
 	var eventType *string = this.SafeString(event, "event_type")
 	if eventType != nil && *eventType == "book" {
 		this.HandleOrderBookSnapshot(client, event)
@@ -4433,7 +4432,7 @@ func (this *Polymarket) HandleMessageEvent(client any, event any) {
 		this.HandleMyTrade(client, event)
 	}
 }
-func (this *Polymarket) HandleOrderBookSnapshot(client any, event any) {
+func (this *Polymarket) HandleOrderBookSnapshot(client ccxt.ClientInterface, event any) {
 	var tokenId *string = this.SafeString(event, "asset_id")
 	var outcome any = this.TokenIdToSymbol(tokenId)
 	if outcome == nil {
@@ -4472,7 +4471,7 @@ func (this *Polymarket) HandleOrderBookSnapshot(client any, event any) {
 	client.(ccxt.ClientInterface).Resolve(orderbook, ccxt.Add("orderbook::", outcome))
 	client.(ccxt.ClientInterface).Resolve(orderbook, ccxt.Add("ticker::", outcome))
 }
-func (this *Polymarket) HandleOrderBookDelta(client any, event any) {
+func (this *Polymarket) HandleOrderBookDelta(client ccxt.ClientInterface, event any) {
 	var timestamp any = this.ParsePolyTimestamp(this.SafeString(event, "timestamp"))
 	var changes []any = ccxt.SafeListTyped(event, "price_changes")
 	var updated map[string]any = map[string]any{}
@@ -4514,7 +4513,7 @@ func (this *Polymarket) HandleOrderBookDelta(client any, event any) {
 		client.(ccxt.ClientInterface).Resolve(orderbook, "ticker::"+outcome)
 	}
 }
-func (this *Polymarket) HandleTrade(client any, event any) {
+func (this *Polymarket) HandleTrade(client ccxt.ClientInterface, event any) {
 	var tokenId *string = this.SafeString(event, "asset_id")
 	var outcome any = this.TokenIdToSymbol(tokenId)
 	if outcome == nil {
@@ -4936,7 +4935,7 @@ func (this *Polymarket) subscribeUserChannelBody(ch chan ccxt.AsyncResult[ccxt.A
 	ch <- ccxt.AsyncResult[ccxt.ArrayCacheInterface]{Value: ccxt.AsArrayCache(r.Value)}
 	return nil
 }
-func (this *Polymarket) HandleOrder(client any, event any) {
+func (this *Polymarket) HandleOrder(client ccxt.ClientInterface, event any) {
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheByOutcomeById(limit)
@@ -4950,7 +4949,7 @@ func (this *Polymarket) HandleOrder(client any, event any) {
 		client.(ccxt.ClientInterface).Resolve(stored, "orders::"+*outcome)
 	}
 }
-func (this *Polymarket) HandleMyTrade(client any, event any) {
+func (this *Polymarket) HandleMyTrade(client ccxt.ClientInterface, event any) {
 	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheByOutcomeById(limit)

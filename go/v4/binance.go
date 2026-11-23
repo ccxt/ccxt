@@ -4282,7 +4282,7 @@ func (this *Binance) Describe() map[string]any {
 		"rollingWindowSize": 60000,
 	})
 }
-func (this *Binance) IsInverse(typeVar any, optionalArgs ...any) bool {
+func (this *Binance) IsInverse(typeVar *string, optionalArgs ...any) bool {
 	var subType *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = subType
 	return (subType != nil && *subType == "inverse")
@@ -6609,7 +6609,7 @@ func (this *Binance) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 		panic(NullResponse(this.Id + " fetchTicker() returned empty response"))
 	}
 
-	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(response, market)}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.Extend(map[string]any{}, response), market)}
 	return nil
 }
 func (this *Binance) CheckNoStockSymbols(symbols []string, methodName string) {
@@ -6929,7 +6929,7 @@ func (this *Binance) ParseTickersForRolling(response []any, symbols []string) ma
 	for i := 0; i < len(response); i++ {
 		var marketId *string = this.SafeString(this.SafeDict(response, i), "symbol")
 		var tickerMarket map[string]any = this.SafeMarket(marketId, nil, nil, "spot")
-		var parsedTicker map[string]any = TickerToMap(this.ParseTicker(this.SafeValue(response, i)))
+		var parsedTicker map[string]any = TickerToMap(this.ParseTicker(this.SafeDict(response, i, map[string]any{})))
 		parsedTicker["symbol"] = tickerMarket["symbol"]
 		results = append(results, parsedTicker)
 	}
@@ -7003,7 +7003,7 @@ func (this *Binance) fetchMarkPriceBody(ch chan AsyncResult[Ticker], symbol stri
 		panic(NullResponse(this.Id + " fetchMarkPrice() returned empty response"))
 	}
 
-	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(response, market)}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.Extend(map[string]any{}, response), market)}
 	return nil
 }
 
@@ -10213,12 +10213,12 @@ func (this *Binance) CreateOrderRequest(symbol *string, typeVar *string, side *s
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Binance) CreateMarketOrderWithCostAsync(symbol string, side string, cost any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Binance) CreateMarketOrderWithCostAsync(symbol string, side string, cost float64, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createMarketOrderWithCostBody(ch, symbol, side, cost, optionalArgs...)
 	return ch
 }
-func (this *Binance) createMarketOrderWithCostBody(ch chan AsyncResult[Order], symbol string, side string, cost any, optionalArgs ...any) any {
+func (this *Binance) createMarketOrderWithCostBody(ch chan AsyncResult[Order], symbol string, side string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -10256,12 +10256,12 @@ func (this *Binance) createMarketOrderWithCostBody(ch chan AsyncResult[Order], s
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Binance) CreateMarketBuyOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Binance) CreateMarketBuyOrderWithCostAsync(symbol string, cost float64, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Binance) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost any, optionalArgs ...any) any {
+func (this *Binance) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -10299,12 +10299,12 @@ func (this *Binance) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order]
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Binance) CreateMarketSellOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Binance) CreateMarketSellOrderWithCostAsync(symbol string, cost float64, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createMarketSellOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Binance) createMarketSellOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost any, optionalArgs ...any) any {
+func (this *Binance) createMarketSellOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -13417,12 +13417,12 @@ func (this *Binance) ParseIncome(income any, optionalArgs ...any) map[string]any
  * @param {string} [params.symbol] the unified symbol, required for isolated margin transfers
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Binance) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Binance) TransferAsync(code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Binance) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
+func (this *Binance) transferBody(ch chan AsyncResult[TransferEntry], code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -14074,12 +14074,12 @@ func (this *Binance) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[s
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Binance) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Binance) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Binance) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
+func (this *Binance) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -14186,7 +14186,7 @@ func (this *Binance) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchTradingFee", market, params)
 	isPortfolioMargin, paramsPapi := this.HandleOptionBoolAndParams2(paramsSubType, "fetchTradingFee", "papi", "portfolioMargin", false)
 	var isLinear bool = this.IsLinear(&typeVar, subType)
-	var isInverse bool = this.IsInverse(typeVar, subType)
+	var isInverse bool = this.IsInverse(&typeVar, subType)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -15947,7 +15947,7 @@ func (this *Binance) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 	defaultMethod, paramsMethod = this.HandleOptionStringAndParams(params, "fetchPositions", "method") // check if there is a key in options|params
 	if defaultMethod == nil {
 		// check if .options['fetchPositions'] dict exist at all
-		var options map[string]any = this.SafeDictMap(this.Options, "fetchPositions")
+		var options, _ = this.Options["fetchPositions"].(map[string]any)
 		if options == nil {
 			// if undefined, for backward compatibility, check if it is a string
 			defaultMethod = this.SafeString(this.Options, "fetchPositions", "positionRisk")
@@ -17437,7 +17437,7 @@ func (this *Binance) GetNetworkCodeByNetworkUrl(currencyCode *string, optionalAr
 	}
 	var networkCode any = nil
 	var currency map[string]any = this.Currency(currencyCode)
-	var networks map[string]any = SafeMapTyped(currency, "networks")
+	var networks, _ = currency["networks"].(map[string]any)
 	var networkCodes []string = nil
 	if networks != nil {
 		networkCodes = make([]string, 0, len(networks))
@@ -17635,7 +17635,7 @@ func (this *Binance) GetExceptionsByUrl(url string, exactOrBroad string) any {
 	}
 	return map[string]any{}
 }
-func (this *Binance) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Binance) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if (code == 418) || (code == 429) {
 		panic(DDoSProtection(this.Id + " " + strconv.FormatInt(code, 10) + " " + reason + " " + body))
 	}
@@ -18435,12 +18435,12 @@ func (this *Binance) redeemGiftCodeBody(ch chan AsyncResult[map[string]any], gif
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-func (this *Binance) VerifyGiftCodeAsync(id any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
+func (this *Binance) VerifyGiftCodeAsync(id string, optionalArgs ...any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.verifyGiftCodeBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Binance) verifyGiftCodeBody(ch chan AsyncResult[map[string]any], id any, optionalArgs ...any) any {
+func (this *Binance) verifyGiftCodeBody(ch chan AsyncResult[map[string]any], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -20676,7 +20676,7 @@ func (this *Binance) fetchFundingIntervalsBody(ch chan AsyncResult[map[string]Fu
 			panic(responseRecv.Err)
 		}
 		response = responseRecv.Value
-	} else if this.IsInverse(typeVar, subType) {
+	} else if this.IsInverse(&typeVar, subType) {
 
 		responseRecv := <-this.DapiPublicGetFundingInfo(paramsSubType)
 		if responseRecv.Err != nil {

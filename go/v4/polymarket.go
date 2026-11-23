@@ -3367,12 +3367,12 @@ func (this *Polymarket) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction],
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
  */
-func (this *Polymarket) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Polymarket) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Polymarket) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
+func (this *Polymarket) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3971,7 +3971,7 @@ func (this *Polymarket) loadProxyCredentialsBody(ch chan AsyncResult[any], optio
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var credentials map[string]any = this.SafeDictMap(this.Options, "proxyCredentials")
+	var credentials, _ = this.Options["proxyCredentials"].(map[string]any)
 	if credentials != nil {
 		var expires *int64 = this.SafeInteger(credentials, "expires")
 		var margin int64 = *this.SafeInteger(this.Options, "proxyRefreshMargin", 3600000)
@@ -4202,7 +4202,7 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	return literal287315
 }
-func (this *Polymarket) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Polymarket) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		return nil
 	}

@@ -169,7 +169,7 @@ func (this *Apex) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trad
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Apex) HandleTrades(client any, message map[string]any) {
+func (this *Apex) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "topic": "recentlyTrade.H.BTCUSDT",
@@ -408,7 +408,7 @@ func (this *Apex) GetWsPrivateUrl() string {
 	}
 	return *url
 }
-func (this *Apex) HandleOrderBook(client any, message map[string]any) {
+func (this *Apex) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "topic": "orderbook25.H.BTCUSDT",
@@ -480,11 +480,11 @@ func (this *Apex) HandleOrderBook(client any, message map[string]any) {
 	this.Orderbooks[*symbol] = orderbook
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Apex) HandleDelta(bookside any, delta any) {
+func (this *Apex) HandleDelta(bookside ccxt.IOrderBookSide, delta any) {
 	var bidAsk []any = this.ParseOrderBookBidAsk(delta, 0, 1)
-	bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
+	bookside.StoreArray(bidAsk)
 }
-func (this *Apex) HandleDeltas(bookside any, deltas []any) {
+func (this *Apex) HandleDeltas(bookside ccxt.IOrderBookSide, deltas []any) {
 	for i := 0; i < len(deltas); i++ {
 		this.HandleDelta(bookside, deltas[i])
 	}
@@ -591,7 +591,7 @@ func (this *Apex) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tick
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Tickers, symbolsNormalized)}
 	return nil
 }
-func (this *Apex) HandleTicker(client any, message map[string]any) {
+func (this *Apex) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	// "topic":"instrumentInfo.H.BTCUSDT",
 	//     "type":"snapshot",
 	//     "data":{
@@ -764,7 +764,7 @@ func (this *Apex) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[string]m
 	ch <- ccxt.AsyncResult[map[string]map[string][]ccxt.OHLCV]{Value: ccxt.OHLCVForSymbolsMapFromMap(this.CreateOHLCVObject(symbol, timeframe, filtered))}
 	return nil
 }
-func (this *Apex) HandleOHLCV(client any, message map[string]any) {
+func (this *Apex) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "topic": "candle.5.BTCUSDT",
@@ -1065,7 +1065,7 @@ func (this *Apex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], option
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Apex) HandleMyTrades(client any, lists []any) {
+func (this *Apex) HandleMyTrades(client ccxt.ClientInterface, lists []any) {
 	// [
 	//     {
 	//         "symbol":"ETH-USDT",
@@ -1113,7 +1113,7 @@ func (this *Apex) HandleMyTrades(client any, lists []any) {
 	var messageHash string = "myTrades"
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 }
-func (this *Apex) HandleOrder(client any, lists []any) {
+func (this *Apex) HandleOrder(client ccxt.ClientInterface, lists []any) {
 	// [
 	//     {
 	//         "symbol":"ETH-USDT",
@@ -1172,7 +1172,7 @@ func (this *Apex) HandleOrder(client any, lists []any) {
 	var messageHash string = "orders"
 	client.(ccxt.ClientInterface).Resolve(orders, messageHash)
 }
-func (this *Apex) SetPositionsCache(client any, optionalArgs ...any) {
+func (this *Apex) SetPositionsCache(client ccxt.ClientInterface, optionalArgs ...any) {
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	if this.Positions != nil {
@@ -1184,12 +1184,12 @@ func (this *Apex) SetPositionsCache(client any, optionalArgs ...any) {
 		this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash)
 	}
 }
-func (this *Apex) LoadPositionsSnapshotAsync(client any, messageHash string) <-chan ccxt.AsyncResult[bool] {
+func (this *Apex) LoadPositionsSnapshotAsync(client ccxt.ClientInterface, messageHash string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadPositionsSnapshotBody(ch, client, messageHash)
 	return ch
 }
-func (this *Apex) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string) any {
+func (this *Apex) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, messageHash string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// as only one ws channel gives positions for all types, for snapshot must load all positions
@@ -1216,7 +1216,7 @@ func (this *Apex) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 	}
 	return nil
 }
-func (this *Apex) HandlePositions(client any, lists []any) {
+func (this *Apex) HandlePositions(client ccxt.ClientInterface, lists []any) {
 	//
 	// [
 	//     {
@@ -1330,7 +1330,7 @@ func (this *Apex) authenticateBody(ch chan ccxt.AsyncResult[*string], url string
 	ch <- ccxt.AsyncResult[*string]{Value: resolved}
 	return nil
 }
-func (this *Apex) HandleErrorMessage(client any, message map[string]any) bool {
+func (this *Apex) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	//   {
 	//       "success": false,
@@ -1428,7 +1428,7 @@ func (this *Apex) HandleErrorMessage(client any, message map[string]any) bool {
 		return ret__
 	}
 }
-func (this *Apex) HandleMessage(client any, message map[string]any) {
+func (this *Apex) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	if this.HandleErrorMessage(client, message) == true {
 		return
 	}
@@ -1479,7 +1479,7 @@ func (this *Apex) HandleMessage(client any, message map[string]any) {
 		this.HandleAuthenticate(client, message)
 	}
 }
-func (this *Apex) Ping(client any) any {
+func (this *Apex) Ping(client ccxt.ClientInterface) any {
 	var timeStamp int64 = this.Milliseconds()
 	client.(ccxt.ClientInterface).SetLastPong(timeStamp)
 	return map[string]any{
@@ -1487,12 +1487,12 @@ func (this *Apex) Ping(client any) any {
 		"op":   "ping",
 	}
 }
-func (this *Apex) PongAsync(client any, message map[string]any) <-chan ccxt.AsyncResult[bool] {
+func (this *Apex) PongAsync(client ccxt.ClientInterface, message map[string]any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.pongBody(ch, client, message)
 	return ch
 }
-func (this *Apex) pongBody(ch chan ccxt.AsyncResult[bool], client any, message map[string]any) any {
+func (this *Apex) pongBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, message map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	//
@@ -1530,7 +1530,7 @@ func (this *Apex) pongBody(ch chan ccxt.AsyncResult[bool], client any, message m
 	}
 	return nil
 }
-func (this *Apex) HandlePong(client any, message map[string]any) map[string]any {
+func (this *Apex) HandlePong(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//   {
 	//       "success": true,
@@ -1544,11 +1544,11 @@ func (this *Apex) HandlePong(client any, message map[string]any) map[string]any 
 	client.(ccxt.ClientInterface).SetLastPong(this.SafeInteger(message, "pong", this.Milliseconds()))
 	return message
 }
-func (this *Apex) HandlePing(client any, message map[string]any) {
+func (this *Apex) HandlePing(client ccxt.ClientInterface, message map[string]any) {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	this.Spawn(this.PongAsync, client, message)
 }
-func (this *Apex) HandleAccount(client any, message map[string]any) {
+func (this *Apex) HandleAccount(client ccxt.ClientInterface, message map[string]any) {
 	var contents, _ = message["contents"].(map[string]any)
 	var fills []any
 	fills, _ = contents["fills"].([]any)
@@ -1575,7 +1575,7 @@ func (this *Apex) HandleAccount(client any, message map[string]any) {
 		this.HandleOrder(client, orders)
 	}
 }
-func (this *Apex) HandleAuthenticate(client any, message map[string]any) map[string]any {
+func (this *Apex) HandleAuthenticate(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "success": true,
@@ -1599,7 +1599,7 @@ func (this *Apex) HandleAuthenticate(client any, message map[string]any) map[str
 	}
 	return message
 }
-func (this *Apex) HandleSubscriptionStatus(client any, message map[string]any) map[string]any {
+func (this *Apex) HandleSubscriptionStatus(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "topic": "kline",

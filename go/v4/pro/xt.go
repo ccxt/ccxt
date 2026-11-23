@@ -1263,7 +1263,7 @@ func (this *Xt) unWatchFundingRateBody(ch chan ccxt.AsyncResult[bool], symbol st
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Xt) HandleFundingRate(client any, message map[string]any) map[string]any {
+func (this *Xt) HandleFundingRate(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "topic": "fund_rate",
@@ -1296,7 +1296,7 @@ func (this *Xt) HandleFundingRate(client any, message map[string]any) map[string
 	}
 	return message
 }
-func (this *Xt) SetPositionsCache(client any) {
+func (this *Xt) SetPositionsCache(client ccxt.ClientInterface) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
@@ -1309,12 +1309,12 @@ func (this *Xt) SetPositionsCache(client any) {
 		}
 	}
 }
-func (this *Xt) LoadPositionsSnapshotAsync(client any, messageHash string) <-chan ccxt.AsyncResult[bool] {
+func (this *Xt) LoadPositionsSnapshotAsync(client ccxt.ClientInterface, messageHash string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadPositionsSnapshotBody(ch, client, messageHash)
 	return ch
 }
-func (this *Xt) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client any, messageHash string) any {
+func (this *Xt) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, messageHash string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -1340,7 +1340,7 @@ func (this *Xt) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client
 	}
 	return nil
 }
-func (this *Xt) HandlePosition(client any, message map[string]any) {
+func (this *Xt) HandlePosition(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//      topic: 'position',
@@ -1395,7 +1395,7 @@ func (this *Xt) HandlePosition(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve([]any{position}, "position::contract")
 }
-func (this *Xt) HandleTicker(client any, message map[string]any) map[string]any {
+func (this *Xt) HandleTicker(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	// spot
 	//
@@ -1482,7 +1482,7 @@ func (this *Xt) HandleTicker(client any, message map[string]any) map[string]any 
 	}
 	return message
 }
-func (this *Xt) HandleTickers(client any, message map[string]any) map[string]any {
+func (this *Xt) HandleTickers(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	// spot
 	//
@@ -1590,7 +1590,7 @@ func (this *Xt) HandleTickers(client any, message map[string]any) map[string]any
 	client.(ccxt.ClientInterface).Resolve(ccxt.TickerMapToMap(this.Tickers), messageHashStart)
 	return message
 }
-func (this *Xt) HandleOHLCV(client any, message map[string]any) map[string]any {
+func (this *Xt) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	// spot
 	//
@@ -1664,7 +1664,7 @@ func (this *Xt) HandleOHLCV(client any, message map[string]any) map[string]any {
 	}
 	return message
 }
-func (this *Xt) HandleTrade(client any, message map[string]any) map[string]any {
+func (this *Xt) HandleTrade(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	// spot
 	//
@@ -1725,7 +1725,7 @@ func (this *Xt) HandleTrade(client any, message map[string]any) map[string]any {
 	}
 	return message
 }
-func (this *Xt) HandleOrderBook(client any, message map[string]any) {
+func (this *Xt) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// spot
 	//
@@ -1987,7 +1987,7 @@ func (this *Xt) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 		"trades": nil,
 	}, marketResolved))
 }
-func (this *Xt) HandleOrder(client any, message map[string]any) map[string]any {
+func (this *Xt) HandleOrder(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	// spot
 	//
@@ -2053,7 +2053,7 @@ func (this *Xt) HandleOrder(client any, message map[string]any) map[string]any {
 	}
 	return message
 }
-func (this *Xt) HandleBalance(client any, message map[string]any) {
+func (this *Xt) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// spot
 	//
@@ -2105,7 +2105,7 @@ func (this *Xt) HandleBalance(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance::"+tradeType)
 }
-func (this *Xt) HandleMyTrades(client any, message map[string]any) {
+func (this *Xt) HandleMyTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// spot
 	//
@@ -2163,12 +2163,12 @@ func (this *Xt) HandleMyTrades(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, "trade::"+tradeType)
 }
-func (this *Xt) HandleTextMessage(client any, message string) {
+func (this *Xt) HandleTextMessage(client ccxt.ClientInterface, message string) {
 	if message == "pong" {
 		client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	}
 }
-func (this *Xt) HandleMessage(client any, message map[string]any) {
+func (this *Xt) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var event *string = this.SafeString(message, "event")
 	if event != nil && *event == "pong" {
 		client.(ccxt.ClientInterface).OnPong()
@@ -2210,11 +2210,11 @@ func (this *Xt) HandleMessage(client any, message map[string]any) {
 		this.HandleSubscriptionStatus(client, message)
 	}
 }
-func (this *Xt) Ping(client any) any {
+func (this *Xt) Ping(client ccxt.ClientInterface) any {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return "ping"
 }
-func (this *Xt) HandleSubscriptionStatus(client any, message map[string]any) map[string]any {
+func (this *Xt) HandleSubscriptionStatus(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     {
 	//         id: '1763045665228ticker@eth_usdt',
@@ -2241,7 +2241,7 @@ func (this *Xt) HandleSubscriptionStatus(client any, message map[string]any) map
 	}
 	return message
 }
-func (this *Xt) HandleUnSubscription(client any, subscription map[string]any) {
+func (this *Xt) HandleUnSubscription(client ccxt.ClientInterface, subscription map[string]any) {
 	var messageHashes []string = this.SafeStringList(subscription, []any{"messageHashes"})
 	var subMessageHashes []any = ccxt.SafeListTyped(subscription, "subMessageHashes")
 	if messageHashes != nil {
@@ -2256,7 +2256,7 @@ func (this *Xt) HandleUnSubscription(client any, subscription map[string]any) {
 	}
 	this.CleanCache(subscription)
 }
-func (this *Xt) HandleErrorMessage(client any, message map[string]any) {
+func (this *Xt) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "id": "123",

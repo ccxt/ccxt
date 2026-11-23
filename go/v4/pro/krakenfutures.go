@@ -569,7 +569,7 @@ func (this *Krakenfutures) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Po
 	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.Positions, symbolsNormalized, since, limit, true))}
 	return nil
 }
-func (this *Krakenfutures) HandlePositions(client any, message map[string]any) {
+func (this *Krakenfutures) HandlePositions(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        feed: 'open_positions',
@@ -860,7 +860,7 @@ func (this *Krakenfutures) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balanc
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r1.Value)}
 	return nil
 }
-func (this *Krakenfutures) HandleTrade(client any, message map[string]any) {
+func (this *Krakenfutures) HandleTrade(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// snapshot
 	//
@@ -1041,7 +1041,7 @@ func (this *Krakenfutures) ParseWsOrderTrade(trade any, optionalArgs ...any) map
 		},
 	}, market))
 }
-func (this *Krakenfutures) HandleOrder(client any, message map[string]any) map[string]any {
+func (this *Krakenfutures) HandleOrder(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//  update (verbose)
 	//
@@ -1267,7 +1267,7 @@ func (this *Krakenfutures) HandleOrder(client any, message map[string]any) map[s
 	}
 	return message
 }
-func (this *Krakenfutures) HandleOrderSnapshot(client any, message map[string]any) {
+func (this *Krakenfutures) HandleOrderSnapshot(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// verbose
 	//
@@ -1484,7 +1484,7 @@ func (this *Krakenfutures) ParseWsOrder(order any, optionalArgs ...any) map[stri
 		"trades": nil,
 	}))
 }
-func (this *Krakenfutures) HandleTicker(client any, message map[string]any) {
+func (this *Krakenfutures) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "time": 1680811086487,
@@ -1527,7 +1527,7 @@ func (this *Krakenfutures) HandleTicker(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	}
 }
-func (this *Krakenfutures) HandleBidAsk(client any, message map[string]any) {
+func (this *Krakenfutures) HandleBidAsk(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "feed": "ticker_lite",
@@ -1639,7 +1639,7 @@ func (this *Krakenfutures) ParseWsTicker(ticker map[string]any, optionalArgs ...
 		"indexPrice":    this.SafeString(ticker, "index"),
 	}))
 }
-func (this *Krakenfutures) HandleOrderBookSnapshot(client any, message map[string]any) {
+func (this *Krakenfutures) HandleOrderBookSnapshot(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "feed": "book_snapshot",
@@ -1693,7 +1693,7 @@ func (this *Krakenfutures) HandleOrderBookSnapshot(client any, message map[strin
 	orderbook.Reset(snapshot)
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Krakenfutures) HandleOrderBook(client any, message map[string]any) {
+func (this *Krakenfutures) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "feed": "book",
@@ -1724,7 +1724,7 @@ func (this *Krakenfutures) HandleOrderBook(client any, message map[string]any) {
 	orderbook.SetDatetime(this.Iso8601(timestamp))
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Krakenfutures) HandleBalance(client any, message map[string]any) {
+func (this *Krakenfutures) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// snapshot
 	//
@@ -2042,7 +2042,7 @@ func (this *Krakenfutures) PruneStaleBalanceKeys(balanceObject map[string]any, s
 	}
 	return balanceObject
 }
-func (this *Krakenfutures) HandleMyTrades(client any, message map[string]any) {
+func (this *Krakenfutures) HandleMyTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "feed": "fills_snapshot",
@@ -2223,7 +2223,7 @@ func (this *Krakenfutures) GetMessageHash(unifiedElementName string, optionalArg
 	}
 	return messageHash
 }
-func (this *Krakenfutures) HandleErrorMessage(client any, message map[string]any) bool {
+func (this *Krakenfutures) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	//    {
 	//        event: 'alert',
@@ -2264,7 +2264,7 @@ func (this *Krakenfutures) HandleErrorMessage(client any, message map[string]any
 		return ret__
 	}
 }
-func (this *Krakenfutures) HandleMessage(client any, message map[string]any) {
+func (this *Krakenfutures) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var event *string = this.SafeString(message, "event")
 	if event != nil && *event == "challenge" {
 		this.HandleAuthenticate(client, message)
@@ -2297,7 +2297,7 @@ func (this *Krakenfutures) HandleMessage(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Krakenfutures) HandleAuthenticate(client any, message map[string]any) map[string]any {
+func (this *Krakenfutures) HandleAuthenticate(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	/**
 	 * @ignore
 	 * @method

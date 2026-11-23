@@ -93,14 +93,14 @@ func (this *Deepcoin) Describe() map[string]any {
 		},
 	})
 }
-func (this *Deepcoin) Ping(client any) any {
+func (this *Deepcoin) Ping(client ccxt.ClientInterface) any {
 	var url string = client.(ccxt.ClientInterface).GetUrl()
 	if strings.Index(url, "private") >= 0 {
 		client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	}
 	return "ping"
 }
-func (this *Deepcoin) HandlePong(client any, message string) any {
+func (this *Deepcoin) HandlePong(client ccxt.ClientInterface, message string) any {
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	return message
 }
@@ -446,7 +446,7 @@ func (this *Deepcoin) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol s
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Deepcoin) HandleTicker(client any, message map[string]any) {
+func (this *Deepcoin) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     a: 'PO',
 	//     m: 'Success',
@@ -654,7 +654,7 @@ func (this *Deepcoin) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol s
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Deepcoin) HandleTrades(client any, message map[string]any) {
+func (this *Deepcoin) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "a": "PMT",
@@ -883,7 +883,7 @@ func (this *Deepcoin) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol st
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Deepcoin) HandleOHLCV(client any, message map[string]any) {
+func (this *Deepcoin) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "a": "PK",
@@ -1081,7 +1081,7 @@ func (this *Deepcoin) OrderBookSuffix(market map[string]any, methodName string, 
 	retStr := "_" + *aggregation
 	return &retStr, paramsAggregation
 }
-func (this *Deepcoin) HandleOrderBook(client any, message map[string]any) {
+func (this *Deepcoin) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "a": "PMO",
@@ -1128,7 +1128,7 @@ func (this *Deepcoin) HandleOrderBook(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	}
 }
-func (this *Deepcoin) HandleOrderBookSnapshot(client any, message map[string]any) {
+func (this *Deepcoin) HandleOrderBookSnapshot(client ccxt.ClientInterface, message map[string]any) {
 	var entries, _ = message["r"].([]any)
 	var first map[string]any
 	if 0 < len(entries) {
@@ -1171,7 +1171,7 @@ func (this *Deepcoin) HandleOrderBookSnapshot(client any, message map[string]any
 	var messageHash string = "orderbook" + "::" + *symbol
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Deepcoin) HandleOrderBookMessage(client any, message any, orderbook ccxt.OrderBookInterface) {
+func (this *Deepcoin) HandleOrderBookMessage(client ccxt.ClientInterface, message any, orderbook ccxt.OrderBookInterface) {
 	//     {
 	//         "a": "PMO",
 	//         "t": "i", // i - update, f - snapshot
@@ -1271,7 +1271,7 @@ func (this *Deepcoin) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], 
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Deepcoin) HandleMyTrade(client any, message map[string]any) {
+func (this *Deepcoin) HandleMyTrade(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "action": "PushTrade",
@@ -1391,7 +1391,7 @@ func (this *Deepcoin) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Deepcoin) HandleOrder(client any, message map[string]any) {
+func (this *Deepcoin) HandleOrder(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "action": "PushOrder",
@@ -1593,7 +1593,7 @@ func (this *Deepcoin) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positio
 	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.Positions, symbolsNormalized, since, limit, true))}
 	return nil
 }
-func (this *Deepcoin) HandlePosition(client any, message map[string]any) {
+func (this *Deepcoin) HandlePosition(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "action": "PushPosition",
@@ -1716,12 +1716,12 @@ func (this *Deepcoin) ParseWsMarginMode(marginMode *string) *string {
 	}
 	return this.SafeString(modes, marginMode, marginMode)
 }
-func (this *Deepcoin) HandleTextMessage(client any, message string) {
+func (this *Deepcoin) HandleTextMessage(client ccxt.ClientInterface, message string) {
 	if message == "pong" {
 		this.HandlePong(client, message)
 	}
 }
-func (this *Deepcoin) HandleMessage(client any, message map[string]any) {
+func (this *Deepcoin) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var m *string = this.SafeString(message, "m")
 	if (m != nil) && (m == nil || *m != "Success") {
 		this.HandleErrorMessage(client, message)
@@ -1745,7 +1745,7 @@ func (this *Deepcoin) HandleMessage(client any, message map[string]any) {
 		this.HandlePosition(client, message)
 	}
 }
-func (this *Deepcoin) HandleSubscriptionStatus(client any, message map[string]any) {
+func (this *Deepcoin) HandleSubscriptionStatus(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "a": "RecvTopicAction",
@@ -1783,13 +1783,13 @@ func (this *Deepcoin) HandleSubscriptionStatus(client any, message map[string]an
 		this.HandleUnSubscription(client, unsubsciption)
 	}
 }
-func (this *Deepcoin) HandleUnSubscription(client any, subscription map[string]any) {
+func (this *Deepcoin) HandleUnSubscription(client ccxt.ClientInterface, subscription map[string]any) {
 	var subHash *string = this.SafeString(subscription, "subHash")
 	var unsubHash *string = this.SafeString(subscription, "unsubHash")
 	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 	this.CleanCache(subscription)
 }
-func (this *Deepcoin) HandleErrorMessage(client any, message map[string]any) {
+func (this *Deepcoin) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "a": "RecvTopicAction",

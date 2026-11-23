@@ -912,8 +912,7 @@ func (this *Coinspot) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		var market map[string]any = this.SafeMarket(id)
 		if *this.SafeBool(market, "spot", false) {
 			var symbol string = *this.SafeString(market, "symbol", "")
-			var ticker any = prices[id]
-			result[symbol] = TickerToMap(this.ParseTicker(ticker, market))
+			result[symbol] = TickerToMap(this.ParseTicker(this.SafeDict(prices, id, map[string]any{}), market))
 		}
 	}
 
@@ -1282,7 +1281,7 @@ func (this *Coinspot) cancelOrderBody(ch chan AsyncResult[Order], id string, opt
 	})}
 	return nil
 }
-func (this *Coinspot) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Coinspot) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

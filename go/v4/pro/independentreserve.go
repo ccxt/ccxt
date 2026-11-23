@@ -100,7 +100,7 @@ func (this *Independentreserve) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limit, "timestamp", true))}
 	return nil
 }
-func (this *Independentreserve) HandleTrades(client any, message map[string]any) {
+func (this *Independentreserve) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "Channel": "ticker-btc-usd",
@@ -234,7 +234,7 @@ func (this *Independentreserve) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Independentreserve) HandleOrderBook(client any, message map[string]any) {
+func (this *Independentreserve) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//        "Channel": "orderbook/1/eth/aud",
@@ -354,16 +354,16 @@ func (this *Independentreserve) ValueToChecksum(value *float64) any {
 	var result *string = this.NumberToString(this.ParseNumber(digits))
 	return result
 }
-func (this *Independentreserve) HandleDelta(bookside any, delta any) {
+func (this *Independentreserve) HandleDelta(bookside ccxt.IOrderBookSide, delta any) {
 	var bidAsk []any = this.ParseOrderBookBidAsk(delta, "Price", "Volume")
-	bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
+	bookside.StoreArray(bidAsk)
 }
-func (this *Independentreserve) HandleDeltas(bookside any, deltas []any) {
+func (this *Independentreserve) HandleDeltas(bookside ccxt.IOrderBookSide, deltas []any) {
 	for i := 0; i < len(deltas); i++ {
 		this.HandleDelta(bookside, deltas[i])
 	}
 }
-func (this *Independentreserve) HandleHeartbeat(client any, message map[string]any) map[string]any {
+func (this *Independentreserve) HandleHeartbeat(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "Time": 1676156208182,
@@ -372,7 +372,7 @@ func (this *Independentreserve) HandleHeartbeat(client any, message map[string]a
 	//
 	return message
 }
-func (this *Independentreserve) HandleSubscriptions(client any, message map[string]any) map[string]any {
+func (this *Independentreserve) HandleSubscriptions(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//    {
 	//        "Data": [ "ticker-btc-sgd" ],
@@ -382,7 +382,7 @@ func (this *Independentreserve) HandleSubscriptions(client any, message map[stri
 	//
 	return message
 }
-func (this *Independentreserve) HandleMessage(client any, message map[string]any) {
+func (this *Independentreserve) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var event *string = this.SafeString(message, "Event")
 	var handlers map[string]any = map[string]any{
 		"Subscriptions":     this.HandleSubscriptions,

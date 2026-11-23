@@ -747,11 +747,9 @@ func (this *Extended) ParseMarket(market any) map[string]any {
 	var maxCost *float64 = this.SafeNumber(tradingConfig, "maxLimitOrderValue")
 	var created *int64 = this.SafeInteger(market, "createdAt")
 	var category *string = this.SafeStringLower(market, "category")
-	var takerFees any
+	var takerFees any = this.Fees
 	if category != nil && *category == "rwa" {
 		takerFees = this.SafeDict(this.Fees, "rwa", map[string]any{})
-	} else {
-		takerFees = this.Fees
 	}
 	var settleId *string = nil
 	var settle *string = nil
@@ -776,7 +774,7 @@ func (this *Extended) ParseMarket(market any) map[string]any {
 		linear = true
 		inverse = false
 	}
-	var literal58941 map[string]any = map[string]any{
+	var literal59241 map[string]any = map[string]any{
 		"id":             marketId,
 		"symbol":         symbol,
 		"base":           base,
@@ -828,12 +826,12 @@ func (this *Extended) ParseMarket(market any) map[string]any {
 		"info":    market,
 	}
 	if settle != nil {
-		literal58941["settle"] = *settle
+		literal59241["settle"] = *settle
 	}
 	if settleId != nil {
-		literal58941["settleId"] = *settleId
+		literal59241["settleId"] = *settleId
 	}
-	return this.SafeMarketStructure(literal58941)
+	return this.SafeMarketStructure(literal59241)
 }
 
 /**
@@ -1359,11 +1357,11 @@ func (this *Extended) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes100619 []any = r1.Value
-		if retRes100619 == nil {
+		var retRes100919 []any = r1.Value
+		if retRes100919 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes100619)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes100919)}
 		}
 		return nil
 	}
@@ -1471,11 +1469,11 @@ func (this *Extended) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes107519 []any = r1.Value
-		if retRes107519 == nil {
+		var retRes107819 []any = r1.Value
+		if retRes107819 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes107519)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes107819)}
 		}
 		return nil
 	}
@@ -1839,11 +1837,11 @@ func (this *Extended) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes134519 []any = r1.Value
-		if retRes134519 == nil {
+		var retRes134819 []any = r1.Value
+		if retRes134819 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes134519)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes134819)}
 		}
 		return nil
 	}
@@ -2300,11 +2298,11 @@ func (this *Extended) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes164919 []any = r1.Value
-		if retRes164919 == nil {
+		var retRes165219 []any = r1.Value
+		if retRes165219 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes164919)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes165219)}
 		}
 		return nil
 	}
@@ -2383,7 +2381,7 @@ func (this *Extended) ParseLedgerEntry(item map[string]any, optionalArgs ...any)
 			"cost":     this.ParseNumber(Precise.StringAbs(feeCost)),
 		}
 	}
-	var literal170637 map[string]any = map[string]any{
+	var literal170937 map[string]any = map[string]any{
 		"info":             item,
 		"id":               this.SafeString(item, "id"),
 		"timestamp":        timestamp,
@@ -2400,11 +2398,11 @@ func (this *Extended) ParseLedgerEntry(item map[string]any, optionalArgs ...any)
 		"fee":              fee,
 	}
 	if amountString == nil {
-		literal170637["amount"] = nil
+		literal170937["amount"] = nil
 	} else {
-		literal170637["amount"] = this.ParseNumber(Precise.StringAbs(amountString))
+		literal170937["amount"] = this.ParseNumber(Precise.StringAbs(amountString))
 	}
-	return this.SafeLedgerEntry(literal170637, ledgerCurrency)
+	return this.SafeLedgerEntry(literal170937, ledgerCurrency)
 }
 
 /**
@@ -2447,11 +2445,11 @@ func (this *Extended) fetchTransactionsBody(ch chan AsyncResult[[]Transaction], 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes174119 []any = r1.Value
-		if retRes174119 == nil {
+		var retRes174419 []any = r1.Value
+		if retRes174419 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes174119)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes174419)}
 		}
 		return nil
 	}
@@ -2549,11 +2547,11 @@ func (this *Extended) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes180215 []any = TransactionsToList(r.Value)
-	if retRes180215 == nil {
+	var retRes180515 []any = TransactionsToList(r.Value)
+	if retRes180515 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes180215)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes180515)}
 	}
 	return nil
 }
@@ -2593,11 +2591,11 @@ func (this *Extended) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes181815 []any = TransactionsToList(r.Value)
-	if retRes181815 == nil {
+	var retRes182115 []any = TransactionsToList(r.Value)
+	if retRes182115 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes181815)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes182115)}
 	}
 	return nil
 }
@@ -2616,12 +2614,12 @@ func (this *Extended) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
  * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 14 days + 60 seconds
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Extended) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Extended) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Extended) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
+func (this *Extended) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2740,11 +2738,11 @@ func (this *Extended) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes190719 []any = r1.Value
-		if retRes190719 == nil {
+		var retRes191019 []any = r1.Value
+		if retRes191019 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes190719)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes191019)}
 		}
 		return nil
 	}
@@ -2802,12 +2800,12 @@ func (this *Extended) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], o
  * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 21 days
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Extended) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Extended) TransferAsync(code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Extended) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
+func (this *Extended) transferBody(ch chan AsyncResult[TransferEntry], code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3460,11 +3458,11 @@ func (this *Extended) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position],
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes238819 []any = r1.Value
-		if retRes238819 == nil {
+		var retRes239119 []any = r1.Value
+		if retRes239119 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes238819)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes239119)}
 		}
 		return nil
 	}
@@ -3645,10 +3643,8 @@ func (this *Extended) CreateOrderSettlementData(isBuy bool, amountString *string
 	var syntheticResolution *int64 = this.SafeInteger(params, "syntheticResolution")
 	var collateralResolution *int64 = this.SafeInteger(params, "collateralResolution")
 	var quoteAmount *string = Precise.StringMul(amountString, priceString)
-	var baseRoundUp bool = isBuy
-	var quoteRoundUp bool = isBuy
-	var baseAmount any = this.GetExtendedStarkAmount(amountString, syntheticResolution, baseRoundUp)
-	var collateralAmount any = this.GetExtendedStarkAmount(quoteAmount, collateralResolution, quoteRoundUp)
+	var baseAmount any = this.GetExtendedStarkAmount(amountString, syntheticResolution, isBuy)
+	var collateralAmount any = this.GetExtendedStarkAmount(quoteAmount, collateralResolution, isBuy)
 	if isBuy {
 		collateralAmount = Precise.StringNeg(collateralAmount)
 	} else {
@@ -4658,11 +4654,11 @@ func (this *Extended) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes323119 []any = r1.Value
-		if retRes323119 == nil {
+		var retRes323219 []any = r1.Value
+		if retRes323219 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes323119)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes323219)}
 		}
 		return nil
 	}
@@ -4997,7 +4993,7 @@ func (this *Extended) GetExtendedTransferMsgHash(settlement map[string]any) stri
 	var transferHash any = this.ConvertToBigInt(this.ExtendedStarknetComputePoseidonHashOnElements([]any{transferTypeHash, this.ConvertToBigInt(this.SafeString(settlement, "senderPositionId", "0")), this.ConvertToBigInt(this.SafeString(settlement, "receiverPositionId", "0")), this.ConvertToBigInt(this.SafeString(settlement, "assetId", "0")), this.ConvertToBigInt(this.SafeString(settlement, "amount", "0")), this.ConvertToBigInt(this.SafeString(settlement, "expirationTimestamp", "0")), this.ConvertToBigInt(this.SafeString(settlement, "nonce", "0"))}))
 	return this.ExtendedStarknetComputePoseidonHashOnElements([]any{this.GetExtendedStringToFelt("StarkNet Message"), domainHash, senderPublicKey, transferHash})
 }
-func (this *Extended) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Extended) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -5052,16 +5048,16 @@ func (this *Extended) Sign(path string, optionalArgs ...any) map[string]any {
 	if queryMap, _ := query.(map[string]any); ((method == "GET") || (method == "DELETE") || queryPost) && (len(queryMap) > 0) {
 		url += "?" + this.UrlencodeWithArrayRepeat(query)
 	}
-	var literal361515 map[string]any = map[string]any{
+	var literal361615 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal361515["body"] = *requestBody
+		literal361615["body"] = *requestBody
 	}
-	return literal361515
+	return literal361615
 }
 
 func NewExtended(userConfig map[string]any) *Extended {

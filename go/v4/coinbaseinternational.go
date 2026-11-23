@@ -1266,7 +1266,7 @@ func (this *Coinbaseinternational) ParseOHLCV(ohlcv any, optionalArgs ...any) OH
 	_ = market
 	var isArray bool = IsArray(ohlcv)
 	if isArray {
-		return OHLCVFromList(ohlcv)
+		return OHLCVFromList([]any{this.SafeInteger(ohlcv, 0), this.SafeNumber(ohlcv, 1), this.SafeNumber(ohlcv, 2), this.SafeNumber(ohlcv, 3), this.SafeNumber(ohlcv, 4), this.SafeNumber(ohlcv, 5)})
 	}
 	return OHLCVFromList([]any{this.Parse8601(this.SafeString2(ohlcv, "start", "time")), this.SafeNumber(ohlcv, "open"), this.SafeNumber(ohlcv, "high"), this.SafeNumber(ohlcv, "low"), this.SafeNumber(ohlcv, "close"), this.SafeNumber(ohlcv, "volume")})
 }
@@ -2708,11 +2708,11 @@ func (this *Coinbaseinternational) fetchWithdrawalsBody(ch chan AsyncResult[[]Tr
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes203415 []any = TransactionsToList(r1.Value)
-	if retRes203415 == nil {
+	var retRes204115 []any = TransactionsToList(r1.Value)
+	if retRes204115 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes203415)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes204115)}
 	}
 	return nil
 }
@@ -2763,11 +2763,11 @@ func (this *Coinbaseinternational) fetchDepositsBody(ch chan AsyncResult[[]Trans
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes205715 []any = TransactionsToList(r1.Value)
-	if retRes205715 == nil {
+	var retRes206415 []any = TransactionsToList(r1.Value)
+	if retRes206415 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes205715)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes206415)}
 	}
 	return nil
 }
@@ -3981,7 +3981,7 @@ func (this *Coinbaseinternational) ParseTrade(trade any, optionalArgs ...any) Tr
 		}
 		takerOrMaker = this.SafeString(liquidities, this.SafeString(trade, "liquidity"))
 	}
-	var literal303131 map[string]any = map[string]any{
+	var literal303831 map[string]any = map[string]any{
 		"info":         trade,
 		"id":           this.SafeString(trade, "trade_id"),
 		"order":        this.SafeString(trade, "order_id"),
@@ -3997,9 +3997,9 @@ func (this *Coinbaseinternational) ParseTrade(trade any, optionalArgs ...any) Tr
 		"fee":          fee,
 	}
 	if takerOrMaker != nil {
-		literal303131["takerOrMaker"] = *takerOrMaker
+		literal303831["takerOrMaker"] = *takerOrMaker
 	}
-	return this.SafeTrade(literal303131, marketResolved)
+	return this.SafeTrade(literal303831, marketResolved)
 }
 
 /**
@@ -4515,7 +4515,7 @@ func (this *Coinbaseinternational) ResolveRoute(optionalArgs ...any) bool {
 	}
 	return (len(this.ApiKey) == 8) && (len(this.Secret) == 43)
 }
-func (this *Coinbaseinternational) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Coinbaseinternational) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	//
 	//     { "jsonrpc": "2.0", "id": 1, "error": { "code": 13004, "message": "invalid_credentials" } }
 	//

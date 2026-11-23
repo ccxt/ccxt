@@ -154,7 +154,7 @@ func (this *Dydx) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol strin
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Dydx) HandleTrades(client any, message map[string]any) {
+func (this *Dydx) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// {
 	//     "type": "subscribed",
@@ -333,7 +333,7 @@ func (this *Dydx) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol st
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Dydx) HandleOrderBook(client any, message map[string]any) {
+func (this *Dydx) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// {
 	//     "type": "subscribed",
@@ -383,14 +383,14 @@ func (this *Dydx) HandleOrderBook(client any, message map[string]any) {
 	this.Orderbooks[*symbol] = orderbook
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 }
-func (this *Dydx) HandleDelta(bookside any, delta any) {
+func (this *Dydx) HandleDelta(bookside ccxt.IOrderBookSide, delta any) {
 	if ccxt.IsArray(delta) {
 		var price *float64 = this.SafeFloat(delta, 0)
 		var amount *float64 = this.SafeFloat(delta, 1)
-		bookside.(ccxt.IOrderBookSide).Store(price, amount)
+		bookside.Store(price, amount)
 	} else {
 		var bidAsk []any = this.ParseOrderBookBidAsk(delta, "price", "size")
-		bookside.(ccxt.IOrderBookSide).StoreArray(bidAsk)
+		bookside.StoreArray(bidAsk)
 	}
 }
 
@@ -512,7 +512,7 @@ func (this *Dydx) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Dydx) HandleOHLCV(client any, message map[string]any) {
+func (this *Dydx) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// {
 	//     "type": "subscribed",
@@ -593,7 +593,7 @@ func (this *Dydx) HandleOHLCV(client any, message map[string]any) {
 	stored.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func (this *Dydx) HandleErrorMessage(client any, message map[string]any) bool {
+func (this *Dydx) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 
 	{
 		func(this *Dydx) (ret_ any) {
@@ -618,7 +618,7 @@ func (this *Dydx) HandleErrorMessage(client any, message map[string]any) bool {
 	}
 	return true
 }
-func (this *Dydx) HandleMessage(client any, message map[string]any) {
+func (this *Dydx) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var typeVar *string = this.SafeString(message, "type")
 	if typeVar != nil && *typeVar == "error" {
 		this.HandleErrorMessage(client, message)

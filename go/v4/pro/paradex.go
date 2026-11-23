@@ -544,12 +544,12 @@ func (this *Paradex) waitForPendingUnsubscribeBody(ch chan ccxt.AsyncResult[bool
 
 	return nil
 }
-func (this *Paradex) ExpirePendingUnsubscribeAsync(client any, unsubHash string, requestId any) <-chan ccxt.AsyncResult[bool] {
+func (this *Paradex) ExpirePendingUnsubscribeAsync(client ccxt.ClientInterface, unsubHash string, requestId any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.expirePendingUnsubscribeBody(ch, client, unsubHash, requestId)
 	return ch
 }
-func (this *Paradex) expirePendingUnsubscribeBody(ch chan ccxt.AsyncResult[bool], client any, unsubHash string, requestId any) any {
+func (this *Paradex) expirePendingUnsubscribeBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, unsubHash string, requestId any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var unsubscription map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(unsubHash)
@@ -617,7 +617,7 @@ func (this *Paradex) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 	ch <- ccxt.AsyncResult[*string]{Value: resolved}
 	return nil
 }
-func (this *Paradex) HandleAuthenticationMessage(client any, message any) {
+func (this *Paradex) HandleAuthenticationMessage(client ccxt.ClientInterface, message any) {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -631,7 +631,7 @@ func (this *Paradex) HandleAuthenticationMessage(client any, message any) {
 		future.Resolve(true)
 	}
 }
-func (this *Paradex) HandleRequestReply(client any, message any) {
+func (this *Paradex) HandleRequestReply(client ccxt.ClientInterface, message any) {
 	//
 	// auth
 	//
@@ -668,7 +668,7 @@ func (this *Paradex) HandleRequestReply(client any, message any) {
 		client.(ccxt.ClientInterface).Resolve(message, requestHash)
 	}
 }
-func (this *Paradex) HandleUnsubscribeReply(client any, requestId string) {
+func (this *Paradex) HandleUnsubscribeReply(client ccxt.ClientInterface, requestId string) {
 	//
 	// the reply to an unsubscribe, a modify_subscription with remove is acknowledged the same way
 	//
@@ -699,7 +699,7 @@ func (this *Paradex) HandleUnsubscribeReply(client any, requestId string) {
 		}
 	}
 }
-func (this *Paradex) CleanUnsubscribed(client any, unsubHash string, subscription map[string]any) {
+func (this *Paradex) CleanUnsubscribed(client ccxt.ClientInterface, unsubHash string, subscription map[string]any) {
 	var subscribeHashes []any = ccxt.SafeListTyped(subscription, "subscribeHashes")
 	for j := 0; j < len(subscribeHashes); j++ {
 		var subscribeHash string = *this.SafeString(subscribeHashes, j, "")
@@ -1053,7 +1053,7 @@ func (this *Paradex) ParseWsLiquidation(liquidation map[string]any, optionalArgs
 		"datetime":     this.Iso8601(timestamp),
 	}, marketResolved)
 }
-func (this *Paradex) HandleTrade(client any, message map[string]any) map[string]any {
+func (this *Paradex) HandleTrade(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -1351,7 +1351,7 @@ func (this *Paradex) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[boo
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Paradex) HandleOrderBook(client any, message map[string]any) {
+func (this *Paradex) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// a snapshot, the 15-level feed sends one every 100ms, the deltas feed sends a full-depth one on
 	// subscribe and on a resync
@@ -1496,12 +1496,12 @@ func (this *Paradex) HandleBookSideDeltas(bookside any, deltas []any) {
  * @param {string} messageHash the message hash the book watchers wait on
  * @returns {boolean} true once both requests are sent
  */
-func (this *Paradex) ResubscribeOrderBookAsync(client any, channel any, messageHash string) <-chan ccxt.AsyncResult[any] {
+func (this *Paradex) ResubscribeOrderBookAsync(client ccxt.ClientInterface, channel any, messageHash string) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.resubscribeOrderBookBody(ch, client, channel, messageHash)
 	return ch
 }
-func (this *Paradex) resubscribeOrderBookBody(ch chan ccxt.AsyncResult[any], client any, channel any, messageHash string) any {
+func (this *Paradex) resubscribeOrderBookBody(ch chan ccxt.AsyncResult[any], client ccxt.ClientInterface, channel any, messageHash string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// a subscribe alone is acknowledged without a snapshot, the feed is unsubscribed first. Both requests
@@ -2149,7 +2149,7 @@ func (this *Paradex) unWatchBidsAsksBody(ch chan ccxt.AsyncResult[bool], optiona
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Paradex) HandleBidAsk(client any, message map[string]any) {
+func (this *Paradex) HandleBidAsk(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -2284,7 +2284,7 @@ func (this *Paradex) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Paradex) HandleOrder(client any, message map[string]any) {
+func (this *Paradex) HandleOrder(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -2414,7 +2414,7 @@ func (this *Paradex) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Paradex) HandleMyTrade(client any, message map[string]any) {
+func (this *Paradex) HandleMyTrade(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -2547,7 +2547,7 @@ func (this *Paradex) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.Positions, symbolsNormalized, since, limit, true))}
 	return nil
 }
-func (this *Paradex) HandlePositions(client any, message map[string]any) {
+func (this *Paradex) HandlePositions(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -2657,7 +2657,7 @@ func (this *Paradex) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	ch <- ccxt.AsyncResult[ccxt.Balances]{Value: ccxt.BalancesFromMap(r2.Value)}
 	return nil
 }
-func (this *Paradex) HandleBalance(client any, message map[string]any) {
+func (this *Paradex) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -2729,7 +2729,7 @@ func (this *Paradex) ParseWsBalance(data map[string]any) any {
 	}
 	return this.SafeBalance(result)
 }
-func (this *Paradex) HandleTicker(client any, message map[string]any) map[string]any {
+func (this *Paradex) HandleTicker(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -2941,7 +2941,7 @@ func (this *Paradex) watchFundingRatesBody(ch chan ccxt.AsyncResult[map[string]c
 	ch <- ccxt.AsyncResult[map[string]ccxt.FundingRate]{Value: ccxt.FundingRateMapFromMap(this.FilterByArray(this.FundingRates, "symbol", symbolsNormalized))}
 	return nil
 }
-func (this *Paradex) HandleFundingRate(client any, message map[string]any) {
+func (this *Paradex) HandleFundingRate(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -3027,7 +3027,7 @@ func (this *Paradex) ParseFundingRateWs(contract map[string]any, optionalArgs ..
 		"interval":                 interval,
 	}
 }
-func (this *Paradex) ParseSbeMessage(client any, message any) any {
+func (this *Paradex) ParseSbeMessage(client ccxt.ClientInterface, message any) any {
 	//
 	// Paradex SBE schema 1:3 (https://docs.paradex.trade), little-endian. Every frame is an 8-byte
 	// header (blockLength, templateId, schemaId, version as uint16) followed by a fixed block of
@@ -3110,7 +3110,7 @@ func (this *Paradex) ParseSbeMessage(client any, message any) any {
 		},
 	}
 }
-func (this *Paradex) SbeReadUint(frameHex string, offset any, length any) any {
+func (this *Paradex) SbeReadUint(frameHex string, offset any, length int64) any {
 	// a little-endian unsigned integer of at most 4 bytes, so that it stays exact in every language
 	var digits string = "0123456789abcdef"
 	var result any = 0
@@ -3131,10 +3131,10 @@ func (this *Paradex) SbeReadUint(frameHex string, offset any, length any) any {
 	// an exact integer below 2^32, parseToInt keeps it and types the return as an integer
 	return this.ParseToInt(result)
 }
-func (this *Paradex) SbeReadInt64(frameHex string, offset any) any {
+func (this *Paradex) SbeReadInt64(frameHex string, offset int64) any {
 	// a signed int64 as a decimal string, undefined for INT64_MIN which the schema uses as null
 	var low int64 = this.ParseToInt(this.SbeReadUint(frameHex, offset, 4))
-	var high int64 = this.ParseToInt(this.SbeReadUint(frameHex, this.Sum(offset, 4), 4))
+	var high int64 = this.ParseToInt(this.SbeReadUint(frameHex, offset+4, 4))
 	if (high == 2147483648) && (low == 0) {
 		return nil
 	}
@@ -3147,7 +3147,7 @@ func (this *Paradex) SbeReadInt64(frameHex string, offset any) any {
 	}
 	return result
 }
-func (this *Paradex) SbeReadDecimal(frameHex string, offset any) any {
+func (this *Paradex) SbeReadDecimal(frameHex string, offset int64) any {
 	// prices, sizes and rates are int64 mantissas with a fixed exponent of -8
 	var mantissa any = this.SbeReadInt64(frameHex, offset)
 	if mantissa == nil {
@@ -3155,7 +3155,7 @@ func (this *Paradex) SbeReadDecimal(frameHex string, offset any) any {
 	}
 	return ccxt.Precise.StringDiv(mantissa, "100000000", 8)
 }
-func (this *Paradex) SbeReadTimestamp(frameHex string, offset any) any {
+func (this *Paradex) SbeReadTimestamp(frameHex string, offset int64) any {
 	// timestamps are microseconds, truncated to milliseconds with ccxt.Precise: a float
 	// quotient like 1791906071000.999 is rounded up when php converts it to an int
 	var microseconds any = this.SbeReadInt64(frameHex, offset)
@@ -3164,7 +3164,7 @@ func (this *Paradex) SbeReadTimestamp(frameHex string, offset any) any {
 	}
 	return this.ParseToInt(ccxt.Precise.StringDiv(microseconds, "1000", 0))
 }
-func (this *Paradex) SbeReadEnum(frameHex string, offset any, values map[string]any) *string {
+func (this *Paradex) SbeReadEnum(frameHex string, offset int64, values map[string]any) *string {
 	var value int64 = this.ParseToInt(this.SbeReadUint(frameHex, offset, 1))
 	return this.SafeString(values, this.NumberToString(value))
 }
@@ -3175,7 +3175,7 @@ func (this *Paradex) SbeReadString(frameHex string, offset int64, length int64) 
 	var end int64 = start + size*2
 	return this.BinaryToString(this.Base16ToBinary(frameHex[start+int64(len(frameHex))*min(max(-start, 0), 1) : min(end+int64(len(frameHex))*min(max(-end, 0), 1), int64(len(frameHex)))]))
 }
-func (this *Paradex) SbeReadAddress(frameHex string, offset any) string {
+func (this *Paradex) SbeReadAddress(frameHex string, offset int64) string {
 	// a 32-byte big-endian account address, printed without leading zeros like the JSON feed
 	var first int64 = this.ParseToInt(offset)
 	var rawStart int64 = first * 2
@@ -3191,7 +3191,7 @@ func (this *Paradex) SbeReadAddress(frameHex string, offset any) string {
 	}
 	return "0x" + ccxt.Slice(raw, start, 64)
 }
-func (this *Paradex) SbeReadVarStrings(frameHex string, offset any, count any, frameLength int64) []any {
+func (this *Paradex) SbeReadVarStrings(frameHex string, offset any, count int64, frameLength int64) []any {
 	// the var-data section: count strings, each prefixed with a uint8 length. Returns an empty list
 	// when the frame ends before all of them, and only the strings present when a trailing one is
 	// absent, which is how a field appended to var-data reads on a frame from before it.
@@ -3343,7 +3343,7 @@ func (this *Paradex) ParseSbeOrderBook(frameHex string, blockLength int64, frame
 	}
 	return result
 }
-func (this *Paradex) ParseSbeMarketSummary(client any, frameHex string, blockLength int64, frameLength int64) map[string]any {
+func (this *Paradex) ParseSbeMarketSummary(client ccxt.ClientInterface, frameHex string, blockLength int64, frameLength int64) map[string]any {
 	var blockSize int64 = this.ParseToInt(blockLength)
 	//
 	// MarketSummaryEvent (templateId 4), 248-byte block (240 before 1:3), of which the first
@@ -3495,7 +3495,7 @@ func (this *Paradex) ParseSbeOrder(frameHex string, blockLength int64, frameLeng
 	}
 	return order
 }
-func (this *Paradex) SbeReadFlags(frameHex string, offset any, names []any) []any {
+func (this *Paradex) SbeReadFlags(frameHex string, offset int64, names []any) []any {
 	// a uint8 bitset, names[bit] for each set bit, an empty name for a bit the schema leaves unused
 	var flags []any = []any{}
 	var bits int64 = this.ParseToInt(this.SbeReadUint(frameHex, offset, 1))
@@ -3664,7 +3664,7 @@ func (this *Paradex) ParseSbeAccount(frameHex string, blockLength int64, frameLe
 	}
 	return account
 }
-func (this *Paradex) HandleErrorMessage(client any, message any) bool {
+func (this *Paradex) HandleErrorMessage(client ccxt.ClientInterface, message any) bool {
 	//
 	//     {
 	//         "jsonrpc": "2.0",
@@ -3742,17 +3742,17 @@ func (this *Paradex) HandleErrorMessage(client any, message any) bool {
 	}
 	return false
 }
-func (this *Paradex) HandleBinaryMessage(client any, message any) {
+func (this *Paradex) HandleBinaryMessage(client ccxt.ClientInterface, message any) {
 	var parsedMessage any = this.ParseSbeMessage(client, message)
 	if parsedMessage == nil {
 		return
 	}
 	this.HandleStreamMessage(client, parsedMessage)
 }
-func (this *Paradex) HandleMessage(client any, message map[string]any) {
+func (this *Paradex) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	this.HandleStreamMessage(client, message)
 }
-func (this *Paradex) HandleStreamMessage(client any, message any) {
+func (this *Paradex) HandleStreamMessage(client ccxt.ClientInterface, message any) {
 	if this.HandleErrorMessage(client, message) != true {
 		return
 	}

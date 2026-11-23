@@ -733,7 +733,7 @@ func (this *Pacifica) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbo
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Pacifica) HandleOrderBook(client any, message map[string]any) {
+func (this *Pacifica) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// {
 	//   "channel": "book",
@@ -1105,7 +1105,7 @@ func (this *Pacifica) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], option
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Pacifica) HandleWsTickers(client any, message map[string]any) bool {
+func (this *Pacifica) HandleWsTickers(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	// {
 	//     "channel": "prices",
@@ -1133,7 +1133,7 @@ func (this *Pacifica) HandleWsTickers(client any, message map[string]any) bool {
 		var marketId *string = this.SafeString(info, "symbol")
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol string = *this.SafeString(market, "symbol", "")
-		var ticker map[string]any = this.ParseWsTicker(data[i], market)
+		var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(data[i], market))
 		this.Tickers[symbol] = ccxt.TickerFromMap(ticker)
 		parsedTickers = append(parsedTickers, ticker)
 	}
@@ -1141,12 +1141,7 @@ func (this *Pacifica) HandleWsTickers(client any, message map[string]any) bool {
 	client.(ccxt.ClientInterface).Resolve(tickers, "tickers")
 	return true
 }
-func (this *Pacifica) ParseWsTicker(rawTicker any, optionalArgs ...any) map[string]any {
-	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
-	_ = market
-	return ccxt.TickerToMap(this.ParseTicker(rawTicker, market))
-}
-func (this *Pacifica) HandleMyTrades(client any, message map[string]any) {
+func (this *Pacifica) HandleMyTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// {
 	//   "channel": "account_trades",
@@ -1345,7 +1340,7 @@ func (this *Pacifica) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol s
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Pacifica) HandleTrades(client any, message map[string]any) {
+func (this *Pacifica) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// {
 	//   "channel": "trades",
@@ -1628,7 +1623,7 @@ func (this *Pacifica) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol st
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Pacifica) HandleOHLCV(client any, message map[string]any) {
+func (this *Pacifica) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// {
 	//   "channel": "candle",
@@ -1834,7 +1829,7 @@ func (this *Pacifica) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool], optional
 	ch <- ccxt.AsyncResult[bool]{Value: resolved}
 	return nil
 }
-func (this *Pacifica) HandleOrder(client any, message map[string]any) {
+func (this *Pacifica) HandleOrder(client ccxt.ClientInterface, message map[string]any) {
 	// not snapshot, only updates
 	// {
 	//   "channel": "account_order_updates",
@@ -1897,7 +1892,7 @@ func (this *Pacifica) HandleOrder(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
-func (this *Pacifica) HandleErrorMessage(client any, message map[string]any) any {
+func (this *Pacifica) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) any {
 	//
 	// 'rl' key is present only when a rate-limited API key is used
 	// {"id":"64107e37-a999-4b90-a3cf-b4322ae110d9","type":"cancel_order","code":420,"err":"Failed to cancel order","t":1769474703073,"rl":{"r":1245,"q":1250,"t":56}}
@@ -1944,7 +1939,7 @@ func (this *Pacifica) HandleErrorMessage(client any, message map[string]any) any
 	}
 	return false
 }
-func (this *Pacifica) HandleOrderBookUnsubscription(client any, subscription map[string]any) {
+func (this *Pacifica) HandleOrderBookUnsubscription(client ccxt.ClientInterface, subscription map[string]any) {
 	var marketId *string = this.SafeString2(subscription, "symbol", "s")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
 	var symbol *string
@@ -1960,7 +1955,7 @@ func (this *Pacifica) HandleOrderBookUnsubscription(client any, subscription map
 		}
 	}
 }
-func (this *Pacifica) HandleTradesUnsubscription(client any, subscription any) {
+func (this *Pacifica) HandleTradesUnsubscription(client ccxt.ClientInterface, subscription any) {
 	var marketId *string = this.SafeString2(subscription, "symbol", "s")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
 	var symbol *string
@@ -1976,7 +1971,7 @@ func (this *Pacifica) HandleTradesUnsubscription(client any, subscription any) {
 		}
 	}
 }
-func (this *Pacifica) HandleTickersUnsubscription(client any, subscription any) {
+func (this *Pacifica) HandleTickersUnsubscription(client ccxt.ClientInterface, subscription any) {
 	var subMessageHash string = "tickers"
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
@@ -1985,7 +1980,7 @@ func (this *Pacifica) HandleTickersUnsubscription(client any, subscription any) 
 		delete(this.Tickers, symbols[i])
 	}
 }
-func (this *Pacifica) HandleOHLCVUnsubscription(client any, subscription any) {
+func (this *Pacifica) HandleOHLCVUnsubscription(client ccxt.ClientInterface, subscription any) {
 	var marketId *string = this.SafeString2(subscription, "symbol", "s")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
 	var symbol *string
@@ -2008,7 +2003,7 @@ func (this *Pacifica) HandleOHLCVUnsubscription(client any, subscription any) {
 		}
 	}
 }
-func (this *Pacifica) HandleOrderUnsubscription(client any, subscription any) {
+func (this *Pacifica) HandleOrderUnsubscription(client ccxt.ClientInterface, subscription any) {
 	var subHash string = "order"
 	var unSubHash string = "unsubscribe:" + subHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, true)
@@ -2017,7 +2012,7 @@ func (this *Pacifica) HandleOrderUnsubscription(client any, subscription any) {
 	}
 	this.CleanCache(topicStructure)
 }
-func (this *Pacifica) HandleMyTradesUnsubscription(client any, subscription any) {
+func (this *Pacifica) HandleMyTradesUnsubscription(client ccxt.ClientInterface, subscription any) {
 	var subHash string = "myTrades"
 	var unSubHash string = "unsubscribe:" + subHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, true)
@@ -2026,7 +2021,7 @@ func (this *Pacifica) HandleMyTradesUnsubscription(client any, subscription any)
 	}
 	this.CleanCache(topicStructure)
 }
-func (this *Pacifica) HandleSubscriptionResponse(client any, message map[string]any) {
+func (this *Pacifica) HandleSubscriptionResponse(client ccxt.ClientInterface, message map[string]any) {
 	//  {
 	//      "channel": "subscribe",
 	//      "data": {
@@ -2069,7 +2064,7 @@ func (this *Pacifica) HandleSubscriptionResponse(client any, message map[string]
 		}
 	}
 }
-func (this *Pacifica) HandleMessage(client any, message map[string]any) {
+func (this *Pacifica) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// {
 	//     "channel":"subscribe",
@@ -2125,12 +2120,12 @@ func (this *Pacifica) HandleMessage(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Pacifica) Ping(client any) any {
+func (this *Pacifica) Ping(client ccxt.ClientInterface) any {
 	return map[string]any{
 		"method": "ping",
 	}
 }
-func (this *Pacifica) HandlePong(client any, message map[string]any) map[string]any {
+func (this *Pacifica) HandlePong(client ccxt.ClientInterface, message map[string]any) map[string]any {
 	//
 	//   {
 	//       "channel": "pong"
@@ -2159,7 +2154,7 @@ func (this *Pacifica) WrapAsPostAction(operationType any, request any) map[strin
 	}
 	return payload
 }
-func (this *Pacifica) HandleWsPost(client any, message map[string]any) {
+func (this *Pacifica) HandleWsPost(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// market order
 	// {

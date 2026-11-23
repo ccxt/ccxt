@@ -3793,7 +3793,7 @@ func (this *Gate) fetchTransactionFeesBody(ch chan AsyncResult[map[string]any], 
 		if (codes != nil) && !this.InArray(code, codes) {
 			continue
 		}
-		var withdrawFixOnChains map[string]any = SafeMapTyped(entry, "withdraw_fix_on_chains")
+		var withdrawFixOnChains, _ = entry["withdraw_fix_on_chains"].(map[string]any)
 		if withdrawFixOnChains == nil {
 			if derefPtr := this.SafeNumber(entry, "withdraw_fix"); derefPtr != nil {
 				withdrawFees = *derefPtr
@@ -4349,7 +4349,7 @@ func (this *Gate) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 		panic(NullResponse(this.Id + " fetchTicker() returned empty response"))
 	}
 
-	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.Extend(map[string]any{}, ticker), market)}
 	return nil
 }
 func (this *Gate) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -6045,12 +6045,12 @@ func (this *Gate) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Gate) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Gate) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Gate) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
+func (this *Gate) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6875,12 +6875,12 @@ func (this *Gate) CreateOrderRequest(symbol *string, typeVar *string, side *stri
  * @param {bool} [params.unifiedAccount] set to true for creating a unified account order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Gate) CreateMarketBuyOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Gate) CreateMarketBuyOrderWithCostAsync(symbol string, cost float64, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Gate) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost any, optionalArgs ...any) any {
+func (this *Gate) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -8631,12 +8631,12 @@ func (this *Gate) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
  * @param {string} [params.symbol] Unified market symbol *required for type == margin*
  * @returns A [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Gate) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Gate) TransferAsync(code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Gate) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
+func (this *Gate) transferBody(ch chan AsyncResult[TransferEntry], code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -11991,7 +11991,7 @@ func (this *Gate) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], opt
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(responseList, symbols, paramsValue))}
 	return nil
 }
-func (this *Gate) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Gate) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		return nil
 	}

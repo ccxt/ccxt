@@ -114,7 +114,7 @@ func (this *Luno) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Luno) HandleTrades(client any, message map[string]any, subscription map[string]any) {
+func (this *Luno) HandleTrades(client ccxt.ClientInterface, message map[string]any, subscription map[string]any) {
 	//
 	//     {
 	//         "sequence": "110980825",
@@ -256,7 +256,7 @@ func (this *Luno) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Luno) HandleOrderBook(client any, message map[string]any, subscription map[string]any) {
+func (this *Luno) HandleOrderBook(client ccxt.ClientInterface, message map[string]any, subscription map[string]any) {
 	//
 	//     {
 	//         "sequence": "24352",
@@ -490,7 +490,7 @@ func (this *Luno) ReduceOrderVolume(orderSide any, orderId string, tradedAmount 
  * @param {string} symbol unified market symbol of the book
  * @returns {boolean} true if the delta can be applied to the stored book, false if it must be discarded
  */
-func (this *Luno) IsOrderBookDeltaInSequence(client any, message map[string]any, symbol string) bool {
+func (this *Luno) IsOrderBookDeltaInSequence(client ccxt.ClientInterface, message map[string]any, symbol string) bool {
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 	var storedNonce *int64 = this.SafeInteger(orderbook, "nonce")
 	if storedNonce == nil {
@@ -538,7 +538,7 @@ func (this *Luno) IsOrderBookDeltaInSequence(client any, message map[string]any,
 	}
 	return true
 }
-func (this *Luno) HandleMessage(client any, message map[string]any) {
+func (this *Luno) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var subscriptions []any = client.(ccxt.ClientInterface).SubscriptionValues()
 	var subscriptionsLength int = len(subscriptions)
 	if subscriptionsLength == 0 {

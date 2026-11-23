@@ -1262,7 +1262,7 @@ func (this *Bullish) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
-	var paramsSinceAndUntil any = this.HandleSinceAndUntil(since, paramsPaginate)
+	var paramsSinceAndUntil map[string]any = this.HandleSinceAndUntil(since, paramsPaginate)
 	if limit != nil {
 		request["_pageSize"] = this.GetClosestLimit(limit)
 	}
@@ -1373,7 +1373,7 @@ func (this *Bullish) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 			}
 			return nil
 		}
-		var paramsSinceAndUntil any = this.HandleSinceAndUntil(since, paramsPaginate)
+		var paramsSinceAndUntil map[string]any = this.HandleSinceAndUntil(since, paramsPaginate)
 		if limit != nil {
 			request["_pageSize"] = this.GetClosestLimit(limit)
 		}
@@ -1995,7 +1995,7 @@ func (this *Bullish) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 	if limit != nil {
 		request["_pageSize"] = this.GetClosestLimit(limit)
 	}
-	var paramsSinceAndUntil any = this.HandleSinceAndUntil(since, paramsPaginate, "updatedAtDatetime[gte]", "updatedAtDatetime[lte]")
+	var paramsSinceAndUntil map[string]any = this.HandleSinceAndUntil(since, paramsPaginate, "updatedAtDatetime[gte]", "updatedAtDatetime[lte]")
 
 	responseRecv := <-this.PublicGetV1HistoryMarketsSymbolFundingRate(this.Extend(request, paramsSinceAndUntil))
 	if responseRecv.Err != nil {
@@ -2106,7 +2106,7 @@ func (this *Bullish) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		market = this.Market(symbol)
 		request["symbol"] = market["id"]
 	}
-	var paramsSinceAndUntil any = this.HandleSinceAndUntil(since, params)
+	var paramsSinceAndUntil map[string]any = this.HandleSinceAndUntil(since, params)
 	if limit != nil {
 		request["_pageSize"] = this.GetClosestLimit(limit)
 	}
@@ -2185,7 +2185,7 @@ func (this *Bullish) HandlePaginationParams(method string, optionalArgs ...any) 
 	}
 	return paramsExtended
 }
-func (this *Bullish) HandleSinceAndUntil(optionalArgs ...any) any {
+func (this *Bullish) HandleSinceAndUntil(optionalArgs ...any) map[string]any {
 	var since *int64 = GetArgInt64Ptr(optionalArgs, 0, nil)
 	_ = since
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -3089,12 +3089,12 @@ func (this *Bullish) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transact
  * @param {string} params.network network for withdraw (mandatory)
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Bullish) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Bullish) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Bullish) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
+func (this *Bullish) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3843,7 +3843,7 @@ func (this *Bullish) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 			"until": this.Milliseconds(),
 		})
 	}
-	var paramsSinceAndUntil any = this.HandleSinceAndUntil(since, paramsUntil)
+	var paramsSinceAndUntil map[string]any = this.HandleSinceAndUntil(since, paramsUntil)
 	if limit != nil {
 		request["_pageSize"] = this.GetClosestLimit(limit)
 	}
@@ -3886,12 +3886,12 @@ func (this *Bullish) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Bullish) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Bullish) TransferAsync(code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Bullish) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
+func (this *Bullish) transferBody(ch chan AsyncResult[TransferEntry], code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4404,7 +4404,7 @@ func (this *Bullish) handleTokenBody(ch chan AsyncResult[*string], optionalArgs 
 		return nil
 	}
 }
-func (this *Bullish) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Bullish) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

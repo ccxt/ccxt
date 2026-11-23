@@ -754,7 +754,7 @@ func (this *Kraken) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	//         }
 	//     }
 	//
-	var markets map[string]any = SafeMapTyped(assetsResponse, "result")
+	var markets, _ = assetsResponse["result"].(map[string]any)
 	var cachedCurrencies, _ = this.Options["cachedCurrencies"].(map[string]any)
 	var keys []string = nil
 	if markets != nil {
@@ -1439,9 +1439,8 @@ func (this *Kraken) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 	}
 	var response map[string]any = r1.Value
 	var tickerResult, _ = response["result"].(map[string]any)
-	var ticker any = this.SafeValue(tickerResult, market["id"])
 
-	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(ticker, market)}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.SafeDict(tickerResult, market["id"], map[string]any{}), market)}
 	return nil
 }
 func (this *Kraken) ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV {
@@ -1505,11 +1504,11 @@ func (this *Kraken) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes122419 []any = r1.Value
-		if retRes122419 == nil {
+		var retRes122319 []any = r1.Value
+		if retRes122319 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes122419)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes122319)}
 		}
 		return nil
 	}
@@ -1586,9 +1585,7 @@ func (this *Kraken) ParseLedgerEntry(item map[string]any, optionalArgs ...any) L
 	_ = currency
 	var id *string = this.SafeString(item, "id")
 	var direction string
-	var account any = nil
 	var referenceId *string = this.SafeString(item, "refid")
-	var referenceAccount any = nil
 	var typeVar *string = this.ParseLedgerEntryType(this.SafeString(item, "type"))
 	var currencyId *string = this.SafeString(item, "asset")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
@@ -1605,9 +1602,9 @@ func (this *Kraken) ParseLedgerEntry(item map[string]any, optionalArgs ...any) L
 		"info":             item,
 		"id":               id,
 		"direction":        direction,
-		"account":          account,
+		"account":          nil,
 		"referenceId":      referenceId,
-		"referenceAccount": referenceAccount,
+		"referenceAccount": nil,
 		"type":             typeVar,
 		"currency":         code,
 		"amount":           this.ParseNumber(amount),
@@ -1963,7 +1960,7 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) Trade {
 	} else {
 		timestamp = this.Parse8601(datetime)
 	}
-	var literal155431 map[string]any = map[string]any{
+	var literal155131 map[string]any = map[string]any{
 		"id":           id,
 		"order":        nil,
 		"info":         trade,
@@ -1979,21 +1976,21 @@ func (this *Kraken) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"fee":          fee,
 	}
 	if orderId != nil {
-		literal155431["order"] = *orderId
+		literal155131["order"] = *orderId
 	}
 	if datetime != nil {
-		literal155431["datetime"] = *datetime
+		literal155131["datetime"] = *datetime
 	}
 	if symbol != nil {
-		literal155431["symbol"] = *symbol
+		literal155131["symbol"] = *symbol
 	}
 	if price != nil {
-		literal155431["price"] = *price
+		literal155131["price"] = *price
 	}
 	if amount != nil {
-		literal155431["amount"] = *amount
+		literal155131["amount"] = *amount
 	}
-	return this.SafeTrade(literal155431, marketResolved)
+	return this.SafeTrade(literal155131, marketResolved)
 }
 
 /**
@@ -2165,12 +2162,12 @@ func (this *Kraken) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kraken) CreateMarketOrderWithCostAsync(symbol string, side string, cost any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Kraken) CreateMarketOrderWithCostAsync(symbol string, side string, cost float64, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createMarketOrderWithCostBody(ch, symbol, side, cost, optionalArgs...)
 	return ch
 }
-func (this *Kraken) createMarketOrderWithCostBody(ch chan AsyncResult[Order], symbol string, side string, cost any, optionalArgs ...any) any {
+func (this *Kraken) createMarketOrderWithCostBody(ch chan AsyncResult[Order], symbol string, side string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2205,12 +2202,12 @@ func (this *Kraken) createMarketOrderWithCostBody(ch chan AsyncResult[Order], sy
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Kraken) CreateMarketBuyOrderWithCostAsync(symbol string, cost any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Kraken) CreateMarketBuyOrderWithCostAsync(symbol string, cost float64, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createMarketBuyOrderWithCostBody(ch, symbol, cost, optionalArgs...)
 	return ch
 }
-func (this *Kraken) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost any, optionalArgs ...any) any {
+func (this *Kraken) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order], symbol string, cost float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -2783,7 +2780,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
 	if amendId != nil {
 		isPostOnly = nil
 	}
-	var literal217931 map[string]any = map[string]any{
+	var literal217631 map[string]any = map[string]any{
 		"id":                  id,
 		"clientOrderId":       clientOrderId,
 		"info":                orderOmitted,
@@ -2811,24 +2808,24 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
 		"trades":              trades,
 	}
 	if symbol != nil {
-		literal217931["symbol"] = *symbol
+		literal217631["symbol"] = *symbol
 	}
 	if side != nil {
-		literal217931["side"] = *side
+		literal217631["side"] = *side
 	}
 	if takeProfitPrice != nil {
-		literal217931["takeProfitPrice"] = *takeProfitPrice
+		literal217631["takeProfitPrice"] = *takeProfitPrice
 	}
 	if stopLossPrice != nil {
-		literal217931["stopLossPrice"] = *stopLossPrice
+		literal217631["stopLossPrice"] = *stopLossPrice
 	}
 	if cost != nil {
-		literal217931["cost"] = *cost
+		literal217631["cost"] = *cost
 	}
 	if amount != nil {
-		literal217931["amount"] = *amount
+		literal217631["amount"] = *amount
 	}
-	return this.SafeOrder(literal217931, marketResolved)
+	return this.SafeOrder(literal217631, marketResolved)
 }
 func (this *Kraken) OrderRequest(method string, symbol *string, typeVar *string, request map[string]any, amount any, optionalArgs ...any) []any {
 	var price *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
@@ -4314,11 +4311,11 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes324019 []any = r1.Value
-		if retRes324019 == nil {
+		var retRes323719 []any = r1.Value
+		if retRes323719 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes324019)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes323719)}
 		}
 		return nil
 	}
@@ -4653,12 +4650,12 @@ func (this *Kraken) ParseDepositAddress(depositAddress any, optionalArgs ...any)
  * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-func (this *Kraken) WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
+func (this *Kraken) WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction] {
 	ch := make(chan AsyncResult[Transaction], 1)
 	go this.withdrawBody(ch, code, amount, address, optionalArgs...)
 	return ch
 }
-func (this *Kraken) withdrawBody(ch chan AsyncResult[Transaction], code string, amount any, address string, optionalArgs ...any) any {
+func (this *Kraken) withdrawBody(ch chan AsyncResult[Transaction], code string, amount float64, address string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4870,12 +4867,12 @@ func (this *Kraken) ParseAccountType(account string) *string {
  * @param {dict} [params] Exchange specific parameters
  * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Kraken) TransferOutAsync(code string, amount any, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Kraken) TransferOutAsync(code string, amount float64, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferOutBody(ch, code, amount, optionalArgs...)
 	return ch
 }
-func (this *Kraken) transferOutBody(ch chan AsyncResult[TransferEntry], code string, amount any, optionalArgs ...any) any {
+func (this *Kraken) transferOutBody(ch chan AsyncResult[TransferEntry], code string, amount float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4901,12 +4898,12 @@ func (this *Kraken) transferOutBody(ch chan AsyncResult[TransferEntry], code str
  * @param {object} [params] Exchange specific parameters
  * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
-func (this *Kraken) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Kraken) TransferAsync(code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Kraken) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
+func (this *Kraken) transferBody(ch chan AsyncResult[TransferEntry], code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -5070,7 +5067,7 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) map[string]any {
 func (this *Kraken) Nonce() int64 {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
-func (this *Kraken) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Kraken) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if code == 520 {
 		panic(ExchangeNotAvailable(this.Id + " " + strconv.FormatInt(code, 10) + " " + reason))
 	}
@@ -5084,7 +5081,7 @@ func (this *Kraken) HandleErrors(code int64, reason string, url string, method s
 			var numErrors int = len(errors)
 			if numErrors > 0 {
 				for i := 0; i < numErrors; i++ {
-					var error any = DerefScalar(errors[i])
+					var error *string = this.SafeString(errors, i)
 					this.ThrowExactlyMatchedException(this.Exceptions["exact"], error, message)
 					this.ThrowBroadlyMatchedException(this.Exceptions["broad"], error, message)
 				}

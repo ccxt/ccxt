@@ -294,7 +294,7 @@ func (this *Mudrex) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Mudrex) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {
+func (this *Mudrex) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody any) any {
 	if (response == nil) || !IsObject(response) {
 		return nil
 	}
@@ -583,7 +583,7 @@ func (this *Mudrex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	}
 	var resultTickers map[string]any = map[string]any{}
 	for i := 0; i < len(rows); i++ {
-		var t any = rows[i]
+		var t, _ = rows[i].(map[string]any)
 		var sym *string = this.SafeString(t, "symbol")
 		if sym == nil {
 			continue
@@ -593,7 +593,7 @@ func (this *Mudrex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 		if (symbols != nil) && !this.InArray(symbol, symbols) {
 			continue
 		}
-		resultTickers[symbol] = TickerToMap(this.ParseTicker(t, m))
+		resultTickers[symbol] = TickerToMap(this.ParseTicker(this.SafeDict(rows, i, map[string]any{}), m))
 	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(resultTickers, "symbol", symbols))}
@@ -2161,12 +2161,12 @@ func (this *Mudrex) ParseTrade(trade any, optionalArgs ...any) Trade {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
  */
-func (this *Mudrex) TransferAsync(code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
+func (this *Mudrex) TransferAsync(code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) <-chan AsyncResult[TransferEntry] {
 	ch := make(chan AsyncResult[TransferEntry], 1)
 	go this.transferBody(ch, code, amount, fromAccount, toAccount, optionalArgs...)
 	return ch
 }
-func (this *Mudrex) transferBody(ch chan AsyncResult[TransferEntry], code string, amount any, fromAccount string, toAccount string, optionalArgs ...any) any {
+func (this *Mudrex) transferBody(ch chan AsyncResult[TransferEntry], code string, amount float64, fromAccount string, toAccount string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
