@@ -8917,17 +8917,22 @@ export const JAVA_STRING_PARAM_POSITIONS = {
     'fetchOption': [0],
     'fetchOptionChain': [0],
     'fetchOptionOHLCV': [0],
+    'fetchOrder': [0],
+    'fetchOrderBook': [0],
     'fetchOrderBookWs': [0],
     'fetchOrderStatus': [0],
     'fetchOrderTrades': [0],
     'fetchOrderWs': [0],
+    'fetchPosition': [0],
     'fetchPositionADLRank': [0],
     'fetchPositionHistory': [0],
     'fetchPositionWs': [0],
+    'fetchPositionsForSymbol': [0],
     'fetchPositionsForSymbolWs': [0],
     'fetchPremiumIndexOHLCV': [0],
     'fetchPrivateTradingFee': [0],
     'fetchPublicTradingFee': [0],
+    'fetchRestOrderBookSafe': [0],
     'fetchSpotOHLCV': [0],
     'fetchSpotOrderTrades': [0],
     'fetchTicker': [0],
@@ -8993,6 +8998,7 @@ export const JAVA_STRING_PARAM_POSITIONS = {
     'unWatchFundingRate': [0],
     'unWatchMarkPrice': [0],
     'unWatchOHLCV': [0],
+    'unWatchOrderBook': [0],
     'unWatchTicker': [0],
     'unWatchTrades': [0],
     'updateSpotCurrencyCode': [0],
@@ -9062,8 +9068,8 @@ export function patchJavaParamTypes (transpiler) {
     const upstream = printer.printParameterType.bind (printer);
     printer.printParameterType = function (node) {
         const parent = node?.parent;
-        if (parent !== undefined
-            && (parent?.kind === ts.SyntaxKind.MethodDeclaration || parent?.kind === ts.SyntaxKind.FunctionDeclaration)) {
+        // class methods only: a free test function may share a name (test.sharedMethods fetchOrder)
+        if (parent !== undefined && parent?.kind === ts.SyntaxKind.MethodDeclaration) {
             const name = parent.name?.text;
             const positions = name === undefined ? undefined : JAVA_STRING_PARAM_POSITIONS[name];
             if (positions !== undefined && Array.isArray (parent.parameters) && positions.indexOf (parent.parameters.indexOf (node)) !== -1) {
