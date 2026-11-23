@@ -2257,7 +2257,11 @@ func (this *Htx) HandlePositions(client ccxt.ClientInterface, message map[string
 	var positionsByMarginMode map[string]any = map[string]any{}
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	for i := 0; i < len(rawPositions); i++ {
-		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(this.SafeDict(rawPositions, i, map[string]any{})))
+		rawPositionsDict180449, _ := rawPositions[i].(map[string]any)
+		if rawPositionsDict180449 == nil {
+			rawPositionsDict180449 = map[string]any{}
+		}
+		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPositionsDict180449))
 		position["timestamp"] = timestamp
 		position["datetime"] = this.Iso8601(timestamp)
 		var marginMode *string = this.SafeStringLower(position, "marginMode", defaultMarginMode)
@@ -2736,7 +2740,10 @@ func (this *Htx) HandleSubscriptionStatus(client ccxt.ClientInterface, message m
 		return
 	}
 	var subscriptionsById map[string]any = this.IndexBy(client.SubscriptionsSnapshot(), "id")
-	var subscription map[string]any = this.SafeDictMap(subscriptionsById, id)
+	var subscription map[string]any
+	if id != nil {
+		subscription, _ = subscriptionsById[*id].(map[string]any)
+	}
 	if subscription != nil {
 		var method any = this.SafeValue(subscription, "method")
 		if method != nil {
@@ -3052,7 +3059,10 @@ func (this *Htx) HandleErrorMessage(client ccxt.ClientInterface, message map[str
 			return false
 		}
 		var subscriptionsById map[string]any = this.IndexBy(client.SubscriptionsSnapshot(), "id")
-		var subscription map[string]any = ccxt.SafeMapTyped(subscriptionsById, id)
+		var subscription map[string]any
+		if id != nil {
+			subscription, _ = subscriptionsById[*id].(map[string]any)
+		}
 		if subscription != nil {
 			var errorCode *string = this.SafeString(message, "err-code")
 

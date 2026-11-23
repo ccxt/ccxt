@@ -1324,7 +1324,10 @@ func (this *Whitebit) ParseDepositWithdrawFees(response any, optionalArgs ...any
 		var feeInfo any = this.SafeDict(response, entry)
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (code != nil) && ((codesValue == nil) || (this.InArray(code, codesValue))) {
-			var depositWithdrawFee map[string]any = SafeMapTyped(depositWithdrawFees, code)
+			var depositWithdrawFee map[string]any
+			if code != nil {
+				depositWithdrawFee, _ = depositWithdrawFees[*code].(map[string]any)
+			}
 			if depositWithdrawFee == nil {
 				depositWithdrawFees[*code] = this.DepositWithdrawFee(map[string]any{})
 			}
@@ -5857,7 +5860,7 @@ func (this *Whitebit) fetchPositionBody(ch chan AsyncResult[Position], symbol st
 	ch <- AsyncResult[Position]{Value: this.ParsePosition(data, market)}
 	return nil
 }
-func (this *Whitebit) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Whitebit) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	// fetchPosition, fetchPositions
 	//
@@ -5905,8 +5908,8 @@ func (this *Whitebit) ParsePosition(position any, optionalArgs ...any) Position 
 	_ = market
 	var marketId *string = this.SafeString(position, "market")
 	var timestamp *int64 = this.SafeTimestamp(position, "openDate")
-	var tpsl map[string]any = SafeMapTyped(position, "tpsl")
-	var orderDetail map[string]any = SafeMapTyped(position, "orderDetail")
+	var tpsl, _ = position["tpsl"].(map[string]any)
+	var orderDetail, _ = position["orderDetail"].(map[string]any)
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "positionId"),

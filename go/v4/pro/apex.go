@@ -1245,7 +1245,11 @@ func (this *Apex) HandlePositions(client ccxt.ClientInterface, lists []any) {
 	var cache ccxt.WsArrayCache = this.Positions
 	var newPositions []any = []any{}
 	for i := 0; i < len(lists); i++ {
-		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(this.SafeDict(lists, i, map[string]any{})))
+		listsDict87649, _ := lists[i].(map[string]any)
+		if listsDict87649 == nil {
+			listsDict87649 = map[string]any{}
+		}
+		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(listsDict87649))
 		var side *string = this.SafeString(position, "side")
 		// hacky solution to handle closing positions
 		// without crashing, we should handle this properly later

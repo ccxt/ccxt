@@ -4795,7 +4795,7 @@ func (this *Kraken) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterByArrayPositions(results, "symbol", symbolsNormalized))}
 	return nil
 }
-func (this *Kraken) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Kraken) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	//             {
 	//                 "pair": "ETHUSDT",

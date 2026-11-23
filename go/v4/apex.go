@@ -2771,7 +2771,7 @@ func (this *Apex) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(positions, symbols))}
 	return nil
 }
-func (this *Apex) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Apex) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	// {
 	//     "symbol": "BTC-USDT",

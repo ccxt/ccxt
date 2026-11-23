@@ -9144,7 +9144,14 @@ func (this *Bybit) fetchPositionBody(ch chan AsyncResult[Position], symbol strin
 	var result, _ = response["result"].(map[string]any)
 	var positions []any = SafeList2Typed(result, "list", "dataList")
 	var timestamp *int64 = this.SafeInteger(response, "time")
-	var position map[string]any = PositionToMap(this.ParsePosition(this.SafeDict(positions, 0, map[string]any{}), market))
+	var positionsDict679245 map[string]any
+	if len(positions) > 0 {
+		positionsDict679245, _ = positions[0].(map[string]any)
+	}
+	if positionsDict679245 == nil {
+		positionsDict679245 = map[string]any{}
+	}
+	var position map[string]any = PositionToMap(this.ParsePosition(positionsDict679245, market))
 	position["timestamp"] = timestamp
 	position["datetime"] = this.Iso8601(timestamp)
 
@@ -9292,16 +9299,27 @@ func (this *Bybit) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalA
 		_, has2 := rawPosition["is_valid"]
 		if has1 && has2 {
 			// futures only
-			results = append(results, PositionToMap(this.ParsePosition(this.SafeDict(rawPosition, "data", map[string]any{}))))
+			var futuresData map[string]any
+			futuresData, _ = rawPosition["data"].(map[string]any)
+			if futuresData == nil {
+				futuresData = map[string]any{}
+			}
+			var futuresPosition map[string]any = PositionToMap(this.ParsePosition(futuresData))
+			results = append(results, futuresPosition)
 		} else {
-			results = append(results, PositionToMap(this.ParsePosition(this.SafeDict(positions, i, map[string]any{}))))
+			positionsDict690959, _ := positions[i].(map[string]any)
+			if positionsDict690959 == nil {
+				positionsDict690959 = map[string]any{}
+			}
+			var parsedPosition map[string]any = PositionToMap(this.ParsePosition(positionsDict690959))
+			results = append(results, parsedPosition)
 		}
 	}
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterByArrayPositions(results, "symbol", symbolsNormalized))}
 	return nil
 }
-func (this *Bybit) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Bybit) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	// linear swap
 	//
@@ -10165,11 +10183,11 @@ func (this *Bybit) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenIntere
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes757219 []any = r1.Value
-		if retRes757219 == nil {
+		var retRes757519 []any = r1.Value
+		if retRes757519 == nil {
 			ch <- AsyncResult[[]OpenInterest]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes757219)}
+			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes757519)}
 		}
 		return nil
 	}
@@ -10191,11 +10209,11 @@ func (this *Bybit) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenIntere
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes758415 []any = OpenInterestsToList(r2.Value)
-	if retRes758415 == nil {
+	var retRes758715 []any = OpenInterestsToList(r2.Value)
+	if retRes758715 == nil {
 		ch <- AsyncResult[[]OpenInterest]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes758415)}
+		ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes758715)}
 	}
 	return nil
 }
@@ -10682,11 +10700,11 @@ func (this *Bybit) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes790419 []any = r1.Value
-		if retRes790419 == nil {
+		var retRes790719 []any = r1.Value
+		if retRes790719 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes790419)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes790719)}
 		}
 		return nil
 	}
@@ -11038,12 +11056,12 @@ func (this *Bybit) fetchMarketLeverageTiersBody(ch chan AsyncResult[[]LeverageTi
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	retRes815715Recv, _ := LeverageTiersToList(r1.Value), r1.Value != nil
-	var retRes815715 []any = retRes815715Recv
-	if retRes815715 == nil {
+	retRes816015Recv, _ := LeverageTiersToList(r1.Value), r1.Value != nil
+	var retRes816015 []any = retRes816015Recv
+	if retRes816015 == nil {
 		ch <- AsyncResult[[]LeverageTier]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(retRes815715)}
+		ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(retRes816015)}
 	}
 	return nil
 }
@@ -11982,11 +12000,11 @@ func (this *Bybit) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation], o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes885319 []any = r1.Value
-		if retRes885319 == nil {
+		var retRes885619 []any = r1.Value
+		if retRes885619 == nil {
 			ch <- AsyncResult[[]Liquidation]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes885319)}
+			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes885619)}
 		}
 		return nil
 	}
@@ -12139,11 +12157,11 @@ func (this *Bybit) getLeverageTiersPaginatedBody(ch chan AsyncResult[[]LeverageT
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes897719 []any = r1.Value
-		if retRes897719 == nil {
+		var retRes898019 []any = r1.Value
+		if retRes898019 == nil {
 			ch <- AsyncResult[[]LeverageTier]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(retRes897719)}
+			ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(retRes898019)}
 		}
 		return nil
 	}
@@ -12215,11 +12233,11 @@ func (this *Bybit) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], op
 	}
 	var symbol *string = nil
 	if symbols != nil {
-		var symbolsElem902240 *string = nil
+		var symbolsElem902540 *string = nil
 		if 0 >= 0 && 0 < len(symbols) {
-			symbolsElem902240 = &symbols[0]
+			symbolsElem902540 = &symbols[0]
 		}
-		var market map[string]any = this.Market(symbolsElem902240)
+		var market map[string]any = this.Market(symbolsElem902540)
 		if *this.SafeBool(market, "spot", false) {
 			panic(NotSupported(this.Id + " fetchLeverageTiers() is not supported for spot market"))
 		}
@@ -12370,11 +12388,11 @@ func (this *Bybit) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory]
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes912119 []any = r1.Value
-		if retRes912119 == nil {
+		var retRes912419 []any = r1.Value
+		if retRes912419 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes912119)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes912419)}
 		}
 		return nil
 	}

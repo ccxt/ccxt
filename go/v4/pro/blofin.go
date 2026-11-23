@@ -1206,7 +1206,11 @@ func (this *Blofin) HandlePositions(client ccxt.ClientInterface, message map[str
 	data, _ = message["data"].([]any)
 	var newPositions []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(this.SafeDict(data, i, map[string]any{})))
+		dataDict76449, _ := data[i].(map[string]any)
+		if dataDict76449 == nil {
+			dataDict76449 = map[string]any{}
+		}
+		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(dataDict76449))
 		newPositions = append(newPositions, position)
 		cache.Append(position)
 		if channelName != nil {

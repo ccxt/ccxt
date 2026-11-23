@@ -2233,7 +2233,13 @@ func (this *Xt) HandleSubscriptionStatus(client ccxt.ClientInterface, message ma
 	var id *string = this.SafeString(message, "id")
 	var subscriptionsById map[string]any = this.IndexBy(client.SubscriptionsSnapshot(), "id")
 	if id != nil {
-		var subscription map[string]any = this.SafeDictMap(subscriptionsById, id, map[string]any{})
+		var subscription map[string]any
+		if id != nil {
+			subscription, _ = subscriptionsById[*id].(map[string]any)
+		}
+		if subscription == nil {
+			subscription = map[string]any{}
+		}
 		var unsubscribe *bool = this.SafeBool(subscription, "unsubscribe", false)
 		if unsubscribe != nil && *unsubscribe {
 			this.HandleUnSubscription(client, subscription)

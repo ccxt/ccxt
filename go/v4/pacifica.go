@@ -3797,13 +3797,18 @@ func (this *Pacifica) fetchPositionsBody(ch chan AsyncResult[[]Position], option
 	data, _ = response["data"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		result = append(result, PositionToMap(this.ParsePosition(this.SafeDict(data, i, map[string]any{}), nil)))
+		dataDict275055, _ := data[i].(map[string]any)
+		if dataDict275055 == nil {
+			dataDict275055 = map[string]any{}
+		}
+		var parsedPosition map[string]any = PositionToMap(this.ParsePosition(dataDict275055, nil))
+		result = append(result, parsedPosition)
 	}
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterByArrayPositions(result, "symbol", symbolsNormalized))}
 	return nil
 }
-func (this *Pacifica) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Pacifica) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	//     {
 	//       "symbol": "AAVE",
@@ -4372,11 +4377,11 @@ func (this *Pacifica) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes311119 []any = r1.Value
-		if retRes311119 == nil {
+		var retRes311219 []any = r1.Value
+		if retRes311219 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes311119)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes311219)}
 		}
 		return nil
 	}
@@ -4688,11 +4693,11 @@ func (this *Pacifica) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes332919 []any = r1.Value
-		if retRes332919 == nil {
+		var retRes333019 []any = r1.Value
+		if retRes333019 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes332919)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes333019)}
 		}
 		return nil
 	}
@@ -5254,16 +5259,16 @@ func (this *Pacifica) Sign(path string, optionalArgs ...any) map[string]any {
 	if this.HandleOption("sign", "apiKey") != nil {
 		headersValue["PF-API-KEY"] = this.Options["apiKey"]
 	}
-	var literal372415 map[string]any = map[string]any{
+	var literal372515 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": headersValue,
 	}
 	if requestBody != nil {
-		literal372415["body"] = *requestBody
+		literal372515["body"] = *requestBody
 	}
-	return literal372415
+	return literal372515
 }
 func (this *Pacifica) CalculateRateLimiterCost(api []string, method string, path string, params any, optionalArgs ...any) any {
 	var config map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

@@ -1369,14 +1369,29 @@ func (this *Phemex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		var typeVar *string = this.SafeStringLower(market, "type")
 		if (typeVar != nil && *typeVar == "perpetual") || (typeVar != nil && *typeVar == "perpetualv2") || (typeVar != nil && *typeVar == "perpetualpilot") {
 			var id *string = this.SafeString(market, "symbol")
-			var riskLimitValues map[string]any = this.SafeDictMap(riskLimitsById, id, map[string]any{})
+			var riskLimitValues map[string]any
+			if id != nil {
+				riskLimitValues, _ = riskLimitsById[*id].(map[string]any)
+			}
+			if riskLimitValues == nil {
+				riskLimitValues = map[string]any{}
+			}
 			market = this.Extend(market, riskLimitValues)
-			var v1ProductsValues map[string]any = this.SafeDictMap(v1ProductsById, id, map[string]any{})
+			var v1ProductsValues map[string]any
+			if id != nil {
+				v1ProductsValues, _ = v1ProductsById[*id].(map[string]any)
+			}
+			if v1ProductsValues == nil {
+				v1ProductsValues = map[string]any{}
+			}
 			market = this.Extend(market, v1ProductsValues)
 			market = this.ParseSwapMarket(market)
 		} else {
 			var baseCurrency *string = this.SafeString(market, "baseCurrency")
-			var currencyValues map[string]any = SafeMapTyped(currenciesByCode, baseCurrency)
+			var currencyValues map[string]any
+			if baseCurrency != nil {
+				currencyValues, _ = currenciesByCode[*baseCurrency].(map[string]any)
+			}
 			var valueScale *string = this.SafeString(currencyValues, "valueScale", "8")
 			market = this.Extend(market, map[string]any{
 				"valueScale": valueScale,
@@ -5161,7 +5176,7 @@ func (this *Phemex) fetchPositionHistoryBody(ch chan AsyncResult[[]Position], sy
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySymbolSinceLimit(positions, symbolValue, since, limit))}
 	return nil
 }
-func (this *Phemex) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Phemex) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	//    {
 	//        "userID": "811370",

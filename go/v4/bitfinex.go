@@ -4106,7 +4106,7 @@ func (this *Bitfinex) fetchPositionsBody(ch chan AsyncResult[[]Position], option
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(positionsList, symbolsNormalized))}
 	return nil
 }
-func (this *Bitfinex) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Bitfinex) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	//    [
 	//        "tBTCUSD",                    // SYMBOL
@@ -4260,7 +4260,10 @@ func (this *Bitfinex) HandleErrors(code int64, reason string, url string, method
 		this.ThrowExactlyMatchedException(this.Exceptions["exact"], errorText, feedback)
 		panic(ExchangeError(this.Id + " " + *errorText + " (#" + *errorCode + ")"))
 	}
-	return response
+	if response == nil {
+		return nil
+	}
+	return true
 }
 func (this *Bitfinex) ParseLedgerEntryType(typeVar *string) any {
 	if typeVar == nil {
@@ -4421,11 +4424,11 @@ func (this *Bitfinex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes322419 []any = r1.Value
-		if retRes322419 == nil {
+		var retRes322719 []any = r1.Value
+		if retRes322719 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes322419)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes322719)}
 		}
 		return nil
 	}
@@ -4604,11 +4607,11 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes334119 []any = r1.Value
-		if retRes334119 == nil {
+		var retRes334419 []any = r1.Value
+		if retRes334419 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes334119)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes334419)}
 		}
 		return nil
 	}
@@ -4966,11 +4969,11 @@ func (this *Bitfinex) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes361919 []any = r1.Value
-		if retRes361919 == nil {
+		var retRes362219 []any = r1.Value
+		if retRes362219 == nil {
 			ch <- AsyncResult[[]OpenInterest]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes361919)}
+			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes362219)}
 		}
 		return nil
 	}
@@ -5145,11 +5148,11 @@ func (this *Bitfinex) fetchLiquidationsBody(ch chan AsyncResult[[]Liquidation], 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes375719 []any = r1.Value
-		if retRes375719 == nil {
+		var retRes376019 []any = r1.Value
+		if retRes376019 == nil {
 			ch <- AsyncResult[[]Liquidation]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes375719)}
+			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes376019)}
 		}
 		return nil
 	}

@@ -4820,7 +4820,7 @@ func (this *Hashkey) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position]
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(response, []any{symbol}))}
 	return nil
 }
-func (this *Hashkey) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Hashkey) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")

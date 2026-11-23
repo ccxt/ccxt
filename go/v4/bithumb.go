@@ -2036,7 +2036,7 @@ func (this *Bithumb) createOrdersBody(ch chan AsyncResult[[]Order], orders []map
 		if side == nil {
 			panic(ArgumentsRequired(this.Id + " createOrders() requires each order to have a side"))
 		}
-		var amount any = this.SafeValue(rawOrder, "amount")
+		var amount *float64 = this.SafeNumber(rawOrder, "amount")
 		var price *float64 = this.SafeNumber(rawOrder, "price")
 		var orderParams map[string]any
 		orderParams, _ = rawOrder["params"].(map[string]any)

@@ -4166,7 +4166,7 @@ func (this *Hitbtc) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	}
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("fetchPositions", paramsMarketType)
 	var paramsOmitted map[string]any = this.OmitDict(paramsMarginMode, []any{"marginMode", "margin"})
-	var response []any = nil
+	var response []any = []any{}
 	if marginMode != nil {
 
 		responseRecv := <-this.PrivateGetMarginAccount(this.Extend(request, paramsOmitted))
@@ -4227,7 +4227,12 @@ func (this *Hitbtc) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	//
 	var result []any = []any{}
 	for i := 0; i < len(response); i++ {
-		result = append(result, PositionToMap(this.ParsePosition(this.SafeDict(response, i, map[string]any{}))))
+		responseDict311349, _ := response[i].(map[string]any)
+		if responseDict311349 == nil {
+			responseDict311349 = map[string]any{}
+		}
+		var position map[string]any = PositionToMap(this.ParsePosition(responseDict311349))
+		result = append(result, position)
 	}
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(result)}
@@ -4333,7 +4338,7 @@ func (this *Hitbtc) fetchPositionBody(ch chan AsyncResult[Position], symbol stri
 	ch <- AsyncResult[Position]{Value: this.ParsePosition(response, market)}
 	return nil
 }
-func (this *Hitbtc) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Hitbtc) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	//     [
 	//         {
@@ -5347,17 +5352,17 @@ func (this *Hitbtc) Sign(path string, optionalArgs ...any) map[string]any {
 		var secondPayload string = this.ApiKey + ":" + signature + ":" + *timestamp
 		headersValue["Authorization"] = "HS256 " + this.StringToBase64(secondPayload)
 	}
-	var literal394515 map[string]any = map[string]any{
+	var literal394615 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"headers": headersValue,
 	}
 	if method == "GET" {
-		literal394515["body"] = nil
+		literal394615["body"] = nil
 	} else {
-		literal394515["body"] = bodyString
+		literal394615["body"] = bodyString
 	}
-	return literal394515
+	return literal394615
 }
 
 func NewHitbtc(userConfig map[string]any) *Hitbtc {

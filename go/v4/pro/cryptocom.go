@@ -1622,7 +1622,11 @@ func (this *Cryptocom) HandleBalance(client ccxt.ClientInterface, message map[st
 	//     }
 	//
 	var messageHash *string = this.SafeString(message, "subscription")
-	var data any = this.SafeList(message, "data", []any{})
+	var data []any
+	data, _ = message["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 	var positionBalances []any = ccxt.SafeListTyped(this.SafeDict(data, 0), "position_balances")
 	this.Balance["info"] = data
 	for i := 0; i < len(positionBalances); i++ {

@@ -8798,7 +8798,12 @@ func (this *Okx) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArg
 	var positions []any = SafeListTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(positions); i++ {
-		result = append(result, PositionToMap(this.ParsePosition(this.SafeDict(positions, i, map[string]any{}))))
+		positionsDict642855, _ := positions[i].(map[string]any)
+		if positionsDict642855 == nil {
+			positionsDict642855 = map[string]any{}
+		}
+		var parsedPosition map[string]any = PositionToMap(this.ParsePosition(positionsDict642855))
+		result = append(result, parsedPosition)
 	}
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterByArrayPositions(result, "symbol", this.MarketSymbols(symbols)))}
@@ -8830,15 +8835,15 @@ func (this *Okx) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes644415 []any = PositionsToList(r.Value)
-	if retRes644415 == nil {
+	var retRes644515 []any = PositionsToList(r.Value)
+	if retRes644515 == nil {
 		ch <- AsyncResult[[]Position]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes644415)}
+		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes644515)}
 	}
 	return nil
 }
-func (this *Okx) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Okx) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	//     {
 	//        "adl": "3",
@@ -9201,7 +9206,7 @@ func (this *Okx) ParseTransfer(transfer map[string]any, optionalArgs ...any) Tra
 	if balanceChange != nil {
 		amount = this.ParseNumber(Precise.StringAbs(balanceChange))
 	}
-	var literal675815 map[string]any = map[string]any{
+	var literal675915 map[string]any = map[string]any{
 		"info":      transfer,
 		"id":        id,
 		"timestamp": timestamp,
@@ -9211,16 +9216,16 @@ func (this *Okx) ParseTransfer(transfer map[string]any, optionalArgs ...any) Tra
 		"status":    this.ParseTransferStatus(this.SafeString(transfer, "state")),
 	}
 	if fromAccountId == nil {
-		literal675815["fromAccount"] = nil
+		literal675915["fromAccount"] = nil
 	} else {
-		literal675815["fromAccount"] = this.SafeString(accountsById, fromAccountId)
+		literal675915["fromAccount"] = this.SafeString(accountsById, fromAccountId)
 	}
 	if toAccountId == nil {
-		literal675815["toAccount"] = nil
+		literal675915["toAccount"] = nil
 	} else {
-		literal675815["toAccount"] = this.SafeString(accountsById, toAccountId)
+		literal675915["toAccount"] = this.SafeString(accountsById, toAccountId)
 	}
-	return TransferEntryFromMap(literal675815)
+	return TransferEntryFromMap(literal675915)
 }
 func (this *Okx) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -10540,12 +10545,12 @@ func (this *Okx) modifyMarginHelperBody(ch chan AsyncResult[MarginModification],
 		entry = map[string]any{}
 	}
 	var errorCode *string = this.SafeString(response, "code")
-	var ternaryStr776022 string = "failed"
+	var ternaryStr776122 string = "failed"
 	if errorCode != nil && *errorCode == "0" {
-		ternaryStr776022 = "ok"
+		ternaryStr776122 = "ok"
 	}
 	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.Extend(this.ParseMarginModification(entry, market), map[string]any{
-		"status": ternaryStr776022,
+		"status": ternaryStr776122,
 	}))}
 	return nil
 }
@@ -11702,7 +11707,10 @@ func (this *Okx) ParseDepositWithdrawFees(response any, optionalArgs ...any) map
 		var currencyId *string = this.SafeString(feeInfo, "ccy")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (code != nil) && ((codesValue == nil) || (this.InArray(code, codesValue))) {
-			var depositWithdrawFee map[string]any = SafeMapTyped(depositWithdrawFees, code)
+			var depositWithdrawFee map[string]any
+			if code != nil {
+				depositWithdrawFee, _ = depositWithdrawFees[*code].(map[string]any)
+			}
 			if depositWithdrawFee == nil {
 				depositWithdrawFees[*code] = this.DepositWithdrawFee(map[string]any{})
 			}

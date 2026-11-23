@@ -4435,8 +4435,16 @@ func (this *Poloniex) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transac
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	var withdrawals []any = this.SafeListSlice(response, "withdrawals", []any{})
-	var deposits []any = this.SafeListSlice(response, "deposits", []any{})
+	var withdrawals []any
+	withdrawals, _ = response["withdrawals"].([]any)
+	if withdrawals == nil {
+		withdrawals = []any{}
+	}
+	var deposits []any
+	deposits, _ = response["deposits"].([]any)
+	if deposits == nil {
+		deposits = []any{}
+	}
 	var withdrawalTransactions []any = this.ParseTransactions(withdrawals, currency, since, limit)
 	var depositTransactions []any = this.ParseTransactions(deposits, currency, since, limit)
 	var transactions []any = this.ArrayConcat(depositTransactions, withdrawalTransactions)
@@ -4482,7 +4490,11 @@ func (this *Poloniex) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	var withdrawals []any = this.SafeListSlice(response, "withdrawals", []any{})
+	var withdrawals []any
+	withdrawals, _ = response["withdrawals"].([]any)
+	if withdrawals == nil {
+		withdrawals = []any{}
+	}
 	var transactions []any = this.ParseTransactions(withdrawals, currency, since, limit)
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.FilterByCurrencySinceLimit(transactions, code, since, limit))}
@@ -4719,7 +4731,11 @@ func (this *Poloniex) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 	if code != nil {
 		currency = this.Currency(code)
 	}
-	var deposits []any = this.SafeListSlice(response, "deposits", []any{})
+	var deposits []any
+	deposits, _ = response["deposits"].([]any)
+	if deposits == nil {
+		deposits = []any{}
+	}
 	var transactions []any = this.ParseTransactions(deposits, currency, since, limit)
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.FilterByCurrencySinceLimit(transactions, code, since, limit))}
@@ -5174,7 +5190,7 @@ func (this *Poloniex) fetchPositionsBody(ch chan AsyncResult[[]Position], option
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(positions, symbolsNormalized))}
 	return nil
 }
-func (this *Poloniex) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Poloniex) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	//            {
 	//                "symbol": "BTC_USDT_PERP",

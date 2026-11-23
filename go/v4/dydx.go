@@ -1420,7 +1420,7 @@ func (this *Dydx) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	}
 	return nil
 }
-func (this *Dydx) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Dydx) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	// {
 	//     "market": "BTC-USD",
@@ -1629,7 +1629,7 @@ func (this *Dydx) SignOnboardingAction() any {
 	return signature
 }
 func (this *Dydx) SignDydxTx(privateKey *string, message any, memo *string, chainId *string, account any, authenticators any, optionalArgs ...any) any {
-	fee := GetArg(optionalArgs, 0, nil)
+	var fee map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = fee
 	encodedTxsignDocVariable := this.EncodeDydxTxForSigning(message, memo, chainId, account, authenticators, fee)
 	encodedTx := GetValue(encodedTxsignDocVariable, 0)

@@ -2621,7 +2621,7 @@ func (this *Zebpay) ParseBalance(response map[string]any) map[string]any {
 	}
 	return this.SafeBalance(result).(map[string]any)
 }
-func (this *Zebpay) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Zebpay) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	// isolated
 	//    {

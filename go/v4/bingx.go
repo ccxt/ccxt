@@ -2511,7 +2511,8 @@ func (this *Bingx) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol
 	//
 	var data map[string]any = nil
 	if *this.SafeBool(market, "inverse", false) {
-		var dataList []any = SafeListTyped(response, "data")
+		var dataList []any
+		dataList, _ = response["data"].([]any)
 		data = this.SafeDictMap(dataList, 0, map[string]any{})
 	} else {
 		data = this.SafeDictMap(response, "data", map[string]any{})
@@ -2965,7 +2966,8 @@ func (this *Bingx) fetchOpenInterestBody(ch chan AsyncResult[OpenInterest], symb
 	//
 	var result any = map[string]any{}
 	if *this.SafeBool(market, "inverse", false) {
-		var data []any = SafeListTyped(response, "data")
+		var data []any
+		data, _ = response["data"].([]any)
 		result = this.SafeDict(data, 0, map[string]any{})
 	} else {
 		result = this.SafeDict(response, "data", map[string]any{})
@@ -4030,7 +4032,7 @@ func (this *Bingx) fetchPositionBody(ch chan AsyncResult[Position], symbol strin
 	ch <- AsyncResult[Position]{Value: this.ParsePosition(first, market)}
 	return nil
 }
-func (this *Bingx) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Bingx) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	// inverse swap
 	//
@@ -7717,7 +7719,7 @@ func (this *Bingx) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 				panic(r2.Err)
 			}
 			response = r2.Value
-			var data map[string]any = SafeMapTyped(response, "data")
+			var data, _ = response["data"].(map[string]any)
 			fills = this.SafeList(data, "fills", []any{})
 		} else {
 			var tradingUnit *string = this.SafeStringUpper(paramsUntil, "tradingUnit", "COIN")
@@ -7729,7 +7731,7 @@ func (this *Bingx) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 				panic(r3.Err)
 			}
 			response = r3.Value
-			var data map[string]any = SafeMapTyped(response, "data")
+			var data, _ = response["data"].(map[string]any)
 			fills = this.SafeList(data, "fill_orders", []any{})
 		}
 	}
@@ -8623,7 +8625,7 @@ func (this *Bingx) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface],
 			//         }
 			//     }
 			//
-			var data map[string]any = SafeMapTyped(response, "data")
+			var data, _ = response["data"].(map[string]any)
 			commission = this.SafeDict(data, "commission", map[string]any{})
 		}
 	}

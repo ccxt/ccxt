@@ -2867,7 +2867,7 @@ func (this *Lighter) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(allPositions, symbols))}
 	return nil
 }
-func (this *Lighter) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Lighter) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	//     {
 	//         "market_id": 0,

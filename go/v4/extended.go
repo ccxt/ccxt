@@ -3533,7 +3533,7 @@ func (this *Extended) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position],
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySinceLimit(positions, since, limit, "timestamp"))}
 	return nil
 }
-func (this *Extended) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Extended) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	//     {
 	//         "id": 1,

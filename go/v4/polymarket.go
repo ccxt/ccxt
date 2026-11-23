@@ -874,7 +874,13 @@ func (this *Polymarket) fetchTickersBody(ch chan AsyncResult[map[string]Ticker],
 	for i := 0; i < len(bbos); i++ {
 		var entry any = bbos[i]
 		var instrumentId *string = this.SafeString(entry, "instrument_id")
-		var previous map[string]any = this.SafeDictMap(merged, instrumentId, map[string]any{})
+		var previous map[string]any
+		if instrumentId != nil {
+			previous, _ = merged[*instrumentId].(map[string]any)
+		}
+		if previous == nil {
+			previous = map[string]any{}
+		}
 		// the tickers endpoint timestamp wins the merge below because most unified fields come from it - bbo rows carry a slightly newer sampling time
 		if instrumentId != nil {
 			merged[*instrumentId] = this.Extend(previous, entry)
@@ -885,7 +891,13 @@ func (this *Polymarket) fetchTickersBody(ch chan AsyncResult[map[string]Ticker],
 	for i := 0; i < len(tickers); i++ {
 		var entry any = tickers[i]
 		var instrumentId *string = this.SafeString(entry, "instrument_id")
-		var previous map[string]any = this.SafeDictMap(merged, instrumentId, map[string]any{})
+		var previous map[string]any
+		if instrumentId != nil {
+			previous, _ = merged[*instrumentId].(map[string]any)
+		}
+		if previous == nil {
+			previous = map[string]any{}
+		}
 		result = append(result, this.Extend(previous, entry))
 	}
 
@@ -2666,7 +2678,7 @@ func (this *Polymarket) fetchPositionBody(ch chan AsyncResult[Position], symbol 
 	ch <- AsyncResult[Position]{Value: position}
 	return nil
 }
-func (this *Polymarket) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Polymarket) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	//     {
 	//         "instrument_id": 6,

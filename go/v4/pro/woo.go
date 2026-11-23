@@ -2020,7 +2020,11 @@ func (this *Woo) HandlePositions(client ccxt.ClientInterface, message map[string
 	for i := 0; i < len(postitionsIds); i++ {
 		var marketId string = postitionsIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
-		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(this.SafeDict(rawPositions, marketId, map[string]any{}), market))
+		rawPositionsDict144649, _ := rawPositions[marketId].(map[string]any)
+		if rawPositionsDict144649 == nil {
+			rawPositionsDict144649 = map[string]any{}
+		}
+		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPositionsDict144649, market))
 		newPositions = append(newPositions, position)
 		cache.Append(position)
 		var marketSymbol string = *this.SafeString(market, "symbol", "")
@@ -2376,7 +2380,13 @@ func (this *Woo) HandleSubscribe(client ccxt.ClientInterface, message map[string
 	//
 	var id *string = this.SafeString(message, "id")
 	var subscriptionsById map[string]any = this.IndexBy(client.SubscriptionsSnapshot(), "id")
-	var subscription map[string]any = this.SafeDictMap(subscriptionsById, id, map[string]any{})
+	var subscription map[string]any
+	if id != nil {
+		subscription, _ = subscriptionsById[*id].(map[string]any)
+	}
+	if subscription == nil {
+		subscription = map[string]any{}
+	}
 	var method any = this.SafeValue(subscription, "method")
 	if method != nil {
 		this.HandleOrderBookSubscription(client, message, subscription)

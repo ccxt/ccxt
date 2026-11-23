@@ -6995,7 +6995,7 @@ func (this *Coinbase) CheckIntxPortfolioParam(methodName string, params any) {
 		panic(NotSupported(this.Id + " " + methodName + "() INTX perpetuals were removed from Coinbase Advanced Trade on 2026-10-01, use the coinbaseinternational exchange class for international perpetuals"))
 	}
 }
-func (this *Coinbase) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Coinbase) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	//     {
 	//         "product_id": "BIT-26APR24-CDE",

@@ -3682,7 +3682,7 @@ func (this *Deepcoin) fetchPositionsBody(ch chan AsyncResult[[]Position], option
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(data, symbolsNormalized))}
 	return nil
 }
-func (this *Deepcoin) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Deepcoin) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	//     {
 	//         "instType": "SWAP",

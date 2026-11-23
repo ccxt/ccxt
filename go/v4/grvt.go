@@ -3326,7 +3326,7 @@ func (this *Grvt) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(result, symbolsNormalized))}
 	return nil
 }
-func (this *Grvt) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Grvt) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	//            {
 	//                "event_time": "1765258069092857642",

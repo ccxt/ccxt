@@ -4075,7 +4075,7 @@ func (this *Toobit) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(response, symbols))}
 	return nil
 }
-func (this *Toobit) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Toobit) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "symbol")

@@ -2342,7 +2342,10 @@ func (this *Nado) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 		if assetCode == nil {
 			continue
 		}
-		var previous map[string]any = SafeMapTyped(assetsByCode, assetCode)
+		var previous map[string]any
+		if assetCode != nil {
+			previous, _ = assetsByCode[*assetCode].(map[string]any)
+		}
 		if previous == nil {
 			assetsByCode[*assetCode] = rawAsset
 		} else {
@@ -2359,8 +2362,20 @@ func (this *Nado) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 	for i := 0; i < len(symbols); i++ {
 		var market any = symbols[i]
 		var id *string = this.SafeString(market, "product_id")
-		var pair map[string]any = this.SafeDictMap(pairsById, id, map[string]any{})
-		var asset map[string]any = this.SafeDictMap(assetsById, id, map[string]any{})
+		var pair map[string]any
+		if id != nil {
+			pair, _ = pairsById[*id].(map[string]any)
+		}
+		if pair == nil {
+			pair = map[string]any{}
+		}
+		var asset map[string]any
+		if id != nil {
+			asset, _ = assetsById[*id].(map[string]any)
+		}
+		if asset == nil {
+			asset = map[string]any{}
+		}
 		var rawType *string = this.SafeString(market, "type")
 		var typeVar *string = rawType
 		if rawType != nil && *rawType == "perp" {
@@ -2380,7 +2395,10 @@ func (this *Nado) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], optio
 			continue
 		}
 		var baseAsset map[string]any = this.SafeDictMap(assetsByCode, base, asset)
-		var quoteAsset map[string]any = SafeMapTyped(assetsByCode, quote)
+		var quoteAsset map[string]any
+		if quote != nil {
+			quoteAsset, _ = assetsByCode[*quote].(map[string]any)
+		}
 		var baseId *string = this.SafeString(baseAsset, "product_id", rawBaseId)
 		var quoteId *string = this.SafeString(quoteAsset, "product_id", rawQuoteId)
 		var settleId *string
@@ -2506,7 +2524,10 @@ func (this *Nado) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optio
 		if code == nil {
 			continue
 		}
-		var previous map[string]any = SafeMapTyped(result, code)
+		var previous map[string]any
+		if code != nil {
+			previous, _ = result[*code].(map[string]any)
+		}
 		var canDeposit *bool = this.SafeBool(currency, "can_deposit", false)
 		var canWithdraw *bool = this.SafeBool(currency, "can_withdraw", false)
 		if previous == nil {
@@ -3631,7 +3652,7 @@ func (this *Nado) ParseTransaction(transaction map[string]any, optionalArgs ...a
 		"internal":    nil,
 	})
 }
-func (this *Nado) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Nado) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	//     {
 	//         "product_id": 2,
@@ -3653,9 +3674,9 @@ func (this *Nado) ParsePosition(position any, optionalArgs ...any) Position {
 	_ = market
 	var marketId *string = this.SafeString(position, "product_id")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var balance map[string]any = SafeMapTyped(position, "balance")
+	var balance, _ = position["balance"].(map[string]any)
 	var amountString *string = this.SafeString(balance, "amount")
-	var product map[string]any = SafeMapTyped(position, "product")
+	var product, _ = position["product"].(map[string]any)
 	var risk, _ = product["risk"].(map[string]any)
 	var markPriceX18 *string = this.SafeString2(risk, "price_x18", "oracle_price_x18")
 	var vQuoteBalance *string = this.SafeString(balance, "v_quote_balance")

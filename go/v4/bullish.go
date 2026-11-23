@@ -3695,7 +3695,7 @@ func (this *Bullish) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterByArrayPositions(this.ParsePositions(response, symbols), "symbol", symbols))}
 	return nil
 }
-func (this *Bullish) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Bullish) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	//     [
 	//         {

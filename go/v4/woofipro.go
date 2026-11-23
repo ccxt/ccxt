@@ -4859,7 +4859,7 @@ func (this *Woofipro) setLeverageBody(ch chan AsyncResult[map[string]any], lever
 	ch <- AsyncResult[map[string]any]{Value: r1.Value}
 	return nil
 }
-func (this *Woofipro) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Woofipro) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	// {
 	//     "IMR_withdraw_orders": 0.1,

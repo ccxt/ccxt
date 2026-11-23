@@ -5201,7 +5201,12 @@ func (this *Digifinex) fetchPositionsBody(ch chan AsyncResult[[]Position], optio
 	var positions []any = SafeListTyped(response, positionRequest)
 	var result []any = []any{}
 	for i := 0; i < len(positions); i++ {
-		result = append(result, PositionToMap(this.ParsePosition(this.SafeDict(positions, i, map[string]any{}), market)))
+		positionsDict388955, _ := positions[i].(map[string]any)
+		if positionsDict388955 == nil {
+			positionsDict388955 = map[string]any{}
+		}
+		var parsedPosition map[string]any = PositionToMap(this.ParsePosition(positionsDict388955, market))
+		result = append(result, parsedPosition)
 	}
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterByArrayPositions(result, "symbol", symbolsNormalized))}
@@ -5324,7 +5329,14 @@ func (this *Digifinex) fetchPositionBody(ch chan AsyncResult[Position], symbol s
 		dataRequest = "data"
 	}
 	var data []any = SafeListTyped(response, dataRequest)
-	var position map[string]any = PositionToMap(this.ParsePosition(this.SafeDict(data, 0, map[string]any{}), market))
+	var dataDict398745 map[string]any
+	if len(data) > 0 {
+		dataDict398745, _ = data[0].(map[string]any)
+	}
+	if dataDict398745 == nil {
+		dataDict398745 = map[string]any{}
+	}
+	var position map[string]any = PositionToMap(this.ParsePosition(dataDict398745, market))
 	if marketType != nil && *marketType == "swap" {
 
 		ch <- AsyncResult[Position]{Value: PositionFromMap(position)}
@@ -5337,7 +5349,7 @@ func (this *Digifinex) fetchPositionBody(ch chan AsyncResult[Position], symbol s
 		return nil
 	}
 }
-func (this *Digifinex) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Digifinex) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	// swap
 	//
@@ -6135,14 +6147,14 @@ func (this *Digifinex) ParseMarginModification(data any, optionalArgs ...any) ma
 	_ = market
 	var marketId *string = this.SafeString(data, "instrument_id")
 	var rawType *int64 = this.SafeInteger(data, "type")
-	var ternaryStr459020 string = "reduce"
+	var ternaryStr459120 string = "reduce"
 	if rawType != nil && *rawType == 1 {
-		ternaryStr459020 = "add"
+		ternaryStr459120 = "add"
 	}
 	return map[string]any{
 		"info":       data,
 		"symbol":     this.SafeSymbol(marketId, market, nil, "swap"),
-		"type":       ternaryStr459020,
+		"type":       ternaryStr459120,
 		"marginMode": "isolated",
 		"amount":     this.SafeNumber(data, "amount"),
 		"total":      nil,

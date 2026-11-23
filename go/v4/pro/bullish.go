@@ -1050,7 +1050,11 @@ func (this *Bullish) HandlePositions(client ccxt.ClientInterface, message map[st
 	var positions ccxt.WsArrayCache = this.Positions
 	var newPositions []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
-		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(this.SafeDict(rawPositions, i, map[string]any{})))
+		rawPositionsDict76649, _ := rawPositions[i].(map[string]any)
+		if rawPositionsDict76649 == nil {
+			rawPositionsDict76649 = map[string]any{}
+		}
+		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPositionsDict76649))
 		positions.Append(position)
 		newPositions = append(newPositions, position)
 	}

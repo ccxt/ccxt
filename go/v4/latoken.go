@@ -608,8 +608,14 @@ func (this *Latoken) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 		// the exchange shows them inverted
 		var baseId *string = this.SafeString(market, "baseCurrency")
 		var quoteId *string = this.SafeString(market, "quoteCurrency")
-		var baseCurrency map[string]any = SafeMapTyped(currenciesById, baseId)
-		var quoteCurrency map[string]any = SafeMapTyped(currenciesById, quoteId)
+		var baseCurrency map[string]any
+		if baseId != nil {
+			baseCurrency, _ = currenciesById[*baseId].(map[string]any)
+		}
+		var quoteCurrency map[string]any
+		if quoteId != nil {
+			quoteCurrency, _ = currenciesById[*quoteId].(map[string]any)
+		}
 		var baseCurrencyInfo, _ = baseCurrency["info"].(map[string]any)
 		var quoteCurrencyInfo, _ = quoteCurrency["info"].(map[string]any)
 		if (baseCurrencyInfo != nil) && (quoteCurrencyInfo != nil) {

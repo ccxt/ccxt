@@ -7920,8 +7920,16 @@ func (this *Htx) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[str
 			result = data
 		} else {
 			var batchData, _ = response["data"].(map[string]any)
-			var success []any = this.SafeListSlice(batchData, "success", []any{})
-			var errors []any = this.SafeListSlice(batchData, "errors", []any{})
+			var success []any
+			success, _ = batchData["success"].([]any)
+			if success == nil {
+				success = []any{}
+			}
+			var errors []any
+			errors, _ = batchData["errors"].([]any)
+			if errors == nil {
+				errors = []any{}
+			}
 			result = this.ArrayConcat(success, errors)
 		}
 	}
@@ -10777,7 +10785,7 @@ func (this *Htx) ParseIncome(income map[string]any, optionalArgs ...any) map[str
 		"amount":    amount,
 	}
 }
-func (this *Htx) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Htx) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	//    {
 	//        "symbol": "BTC",
@@ -11086,8 +11094,17 @@ func (this *Htx) fetchPositionBody(ch chan AsyncResult[Position], symbol string,
 	}
 	var data any = this.SafeValue(response, "data")
 	if *this.SafeBool(market, "linear", false) {
+		var positionRows []any
+		positionRows, _ = response["data"].([]any)
+		var positionRow map[string]any
+		if 0 < len(positionRows) {
+			positionRow, _ = positionRows[0].(map[string]any)
+		}
+		if positionRow == nil {
+			positionRow = map[string]any{}
+		}
 
-		ch <- AsyncResult[Position]{Value: this.ParsePosition(this.SafeDict(data, 0, map[string]any{}), market)}
+		ch <- AsyncResult[Position]{Value: this.ParsePosition(positionRow, market)}
 		return nil
 	}
 	var account any = nil
@@ -11223,11 +11240,11 @@ func (this *Htx) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes857919 []any = r1.Value
-		if retRes857919 == nil {
+		var retRes858119 []any = r1.Value
+		if retRes858119 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes857919)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes858119)}
 		}
 		return nil
 	}

@@ -1574,10 +1574,10 @@ func (this *Btse) fetchMarketLeverageTiersBody(ch chan AsyncResult[[]LeverageTie
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var result map[string]any = StructResultMap(r1.Value, LeverageTiersToMap)
-	var tiers []any = SafeListTyped(result, symbol)
+	var result LeverageTiers = r1.Value
+	var tiers []LeverageTier = result.Tiers[symbol]
 
-	ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(tiers)}
+	ch <- AsyncResult[[]LeverageTier]{Value: tiers}
 	return nil
 }
 
@@ -4354,7 +4354,7 @@ func (this *Btse) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position], s
 	}
 	return nil
 }
-func (this *Btse) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Btse) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	//     {
 	//         "marginType": 91,
@@ -4410,9 +4410,9 @@ func (this *Btse) ParsePosition(position any, optionalArgs ...any) Position {
 	var side *string = this.SafeStringLower2(position, "positionDirection", "side")
 	var positionMode *string = this.SafeString(position, "positionMode")
 	var hedged bool = (positionMode != nil && *positionMode == "HEDGE") || (positionMode != nil && *positionMode == "ISOLATED")
-	var takeProfitOrder map[string]any = SafeMapTyped(position, "takeProfitOrder")
+	var takeProfitOrder, _ = position["takeProfitOrder"].(map[string]any)
 	var takeProfitPrice *string = this.SafeString(takeProfitOrder, "triggerPrice")
-	var stopLossOrder map[string]any = SafeMapTyped(position, "stopLossOrder")
+	var stopLossOrder, _ = position["stopLossOrder"].(map[string]any)
 	var stopLossPrice *string = this.SafeString(stopLossOrder, "triggerPrice")
 	return this.SafePosition(map[string]any{
 		"info":                        position,

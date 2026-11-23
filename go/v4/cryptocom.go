@@ -4491,7 +4491,14 @@ func (this *Cryptocom) fetchPositionBody(ch chan AsyncResult[Position], symbol s
 	var data []any
 	data, _ = result["data"].([]any)
 
-	ch <- AsyncResult[Position]{Value: this.ParsePosition(this.SafeDict(data, 0, map[string]any{}), market)}
+	var dataDict329035 map[string]any
+	if len(data) > 0 {
+		dataDict329035, _ = data[0].(map[string]any)
+	}
+	if dataDict329035 == nil {
+		dataDict329035 = map[string]any{}
+	}
+	ch <- AsyncResult[Position]{Value: this.ParsePosition(dataDict329035, market)}
 	return nil
 }
 
@@ -4571,16 +4578,20 @@ func (this *Cryptocom) fetchPositionsBody(ch chan AsyncResult[[]Position], optio
 	positions, _ = responseResult["data"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(positions); i++ {
-		var entry, _ = positions[i].(map[string]any)
-		var marketId *string = this.SafeString(entry, "instrument_name")
+		var marketId *string = this.SafeString(positions[i], "instrument_name")
 		var marketInner map[string]any = this.SafeMarket(marketId, nil, nil, "contract")
-		result = append(result, PositionToMap(this.ParsePosition(positions[i], marketInner)))
+		positionsDict335049, _ := positions[i].(map[string]any)
+		if positionsDict335049 == nil {
+			positionsDict335049 = map[string]any{}
+		}
+		var position map[string]any = PositionToMap(this.ParsePosition(positionsDict335049, marketInner))
+		result = append(result, position)
 	}
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterByArrayPositions(result, "symbol", nil))}
 	return nil
 }
-func (this *Cryptocom) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Cryptocom) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	//     {
 	//         "account_id": "ce075bef-b600-4277-bd6e-ff9007251e63",

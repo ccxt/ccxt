@@ -4091,7 +4091,10 @@ func (this *Lbank) ParsePublicDepositWithdrawFees(response []any, optionalArgs .
 			if (code != nil) && ((codes == nil) || this.InArray(code, codes)) {
 				var withdrawFee *float64 = this.SafeNumber(fee, "fee")
 				if withdrawFee != nil {
-					var resultValue map[string]any = SafeMapTyped(result, code)
+					var resultValue map[string]any
+					if code != nil {
+						resultValue, _ = result[*code].(map[string]any)
+					}
 					if resultValue == nil {
 						result[*code] = this.DepositWithdrawFee([]any{fee})
 					} else {

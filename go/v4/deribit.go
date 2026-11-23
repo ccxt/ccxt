@@ -3785,7 +3785,7 @@ func (this *Deribit) ParseTransaction(transaction map[string]any, optionalArgs .
 		"fee":         fee,
 	})
 }
-func (this *Deribit) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Deribit) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	//     {
 	//         "jsonrpc": "2.0",

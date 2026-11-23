@@ -4297,7 +4297,7 @@ func (this *Krakenfutures) fetchPositionsHistoryBody(ch chan AsyncResult[[]Posit
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySinceLimit(positions, since, limit))}
 	return nil
 }
-func (this *Krakenfutures) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Krakenfutures) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	// cross
 	//    {
 	//        "side": "long",

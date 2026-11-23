@@ -704,7 +704,10 @@ func (this *Bittrade) HandleSubscriptionStatus(client ccxt.ClientInterface, mess
 		return message
 	}
 	var subscriptionsById map[string]any = this.IndexBy(client.SubscriptionsSnapshot(), "id")
-	var subscription map[string]any = this.SafeDictMap(subscriptionsById, id)
+	var subscription map[string]any
+	if id != nil {
+		subscription, _ = subscriptionsById[*id].(map[string]any)
+	}
 	if subscription != nil {
 		var method *string = this.SafeString(subscription, "method")
 		if method != nil && *method == "handleOrderBookSnapshot" {
@@ -815,7 +818,10 @@ func (this *Bittrade) HandleErrorMessage(client ccxt.ClientInterface, message ma
 			return false
 		}
 		var subscriptionsById map[string]any = this.IndexBy(client.SubscriptionsSnapshot(), "id")
-		var subscription map[string]any = ccxt.SafeMapTyped(subscriptionsById, id)
+		var subscription map[string]any
+		if id != nil {
+			subscription, _ = subscriptionsById[*id].(map[string]any)
+		}
 		if subscription != nil {
 			var errorCode *string = this.SafeString(message, "err-code")
 			var errorMessage *string = this.SafeString(message, "err-msg")

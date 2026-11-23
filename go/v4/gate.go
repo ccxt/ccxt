@@ -8846,7 +8846,7 @@ func (this *Gate) setLeverageBody(ch chan AsyncResult[map[string]any], leverage 
 	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil
 }
-func (this *Gate) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Gate) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	// swap and future
 	//

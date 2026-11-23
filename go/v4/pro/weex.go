@@ -2802,7 +2802,13 @@ func (this *Weex) HandleSubscriptionStatus(client ccxt.ClientInterface, message 
 	//
 	var id *string = this.SafeString(message, "id")
 	var subscriptionsById map[string]any = this.IndexBy(client.SubscriptionsSnapshot(), "id")
-	var subscription map[string]any = this.SafeDictMap(subscriptionsById, id, map[string]any{})
+	var subscription map[string]any
+	if id != nil {
+		subscription, _ = subscriptionsById[*id].(map[string]any)
+	}
+	if subscription == nil {
+		subscription = map[string]any{}
+	}
 	var unsubscribe *bool = this.SafeBool(subscription, "unsubscribe", false)
 	if unsubscribe != nil && *unsubscribe {
 		var subHashIsPrefix *bool = this.SafeBool(subscription, "subHashIsPrefix", false)

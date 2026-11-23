@@ -639,12 +639,15 @@ func (this *Extended) HandlePositions(client ccxt.ClientInterface, message map[s
 		return
 	}
 	for i := 0; i < len(rawPositions); i++ {
-		var rawPosition, _ = rawPositions[i].(map[string]any)
-		var marketId *string = this.SafeString(rawPosition, "market")
+		var marketId *string = this.SafeString(rawPositions[i], "market")
 		if marketId == nil {
 			continue
 		}
-		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPositions[i]))
+		rawPositionsDict44849, _ := rawPositions[i].(map[string]any)
+		if rawPositionsDict44849 == nil {
+			rawPositionsDict44849 = map[string]any{}
+		}
+		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPositionsDict44849))
 		newPositions = append(newPositions, position)
 		stored.Append(position)
 	}
@@ -779,8 +782,8 @@ func (this *Extended) watchFundingRateBody(ch chan ccxt.AsyncResult[ccxt.Funding
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	retRes55315 := r1.Value
-	ch <- ccxt.AsyncResult[ccxt.FundingRate]{Value: ccxt.FundingRateFromMap(retRes55315)}
+	retRes55215 := r1.Value
+	ch <- ccxt.AsyncResult[ccxt.FundingRate]{Value: ccxt.FundingRateFromMap(retRes55215)}
 	return nil
 }
 func (this *Extended) HandleFundingRate(client ccxt.ClientInterface, message map[string]any) {
@@ -880,8 +883,8 @@ func (this *Extended) watchMarkPriceBody(ch chan ccxt.AsyncResult[ccxt.Ticker], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	retRes62715 := r1.Value
-	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(retRes62715)}
+	retRes62615 := r1.Value
+	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(retRes62615)}
 	return nil
 }
 func (this *Extended) HandleMarkPrice(client ccxt.ClientInterface, message map[string]any) {

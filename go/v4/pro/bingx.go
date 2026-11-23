@@ -2506,7 +2506,13 @@ func (this *Bingx) HandleSubscriptionStatus(client ccxt.ClientInterface, message
 	//
 	var id *string = this.SafeString(message, "id")
 	var subscriptionsById map[string]any = this.IndexBy(client.SubscriptionsSnapshot(), "id")
-	var subscription map[string]any = this.SafeDictMap(subscriptionsById, id, map[string]any{})
+	var subscription map[string]any
+	if id != nil {
+		subscription, _ = subscriptionsById[*id].(map[string]any)
+	}
+	if subscription == nil {
+		subscription = map[string]any{}
+	}
 	var isUnSubMessage *bool = this.SafeBool(subscription, "unsubscribe", false)
 	if isUnSubMessage != nil && *isUnSubMessage {
 		this.HandleUnSubscription(client, subscription)

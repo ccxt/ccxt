@@ -1619,7 +1619,11 @@ func (this *Mudrex) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	for i := 0; i < len(rows); i++ {
 		var symRaw *string = this.SafeString(rows[i], "symbol")
 		var m map[string]any = this.SafeMarket(symRaw)
-		var pos map[string]any = PositionToMap(this.ParsePosition(this.SafeDict(rows, i, map[string]any{}), m))
+		rowsDict105244, _ := rows[i].(map[string]any)
+		if rowsDict105244 == nil {
+			rowsDict105244 = map[string]any{}
+		}
+		var pos map[string]any = PositionToMap(this.ParsePosition(rowsDict105244, m))
 		outPos = append(outPos, pos)
 	}
 
@@ -1704,7 +1708,7 @@ func (this *Mudrex) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], o
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySinceLimit(positions, since, limit))}
 	return nil
 }
-func (this *Mudrex) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Mudrex) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketResolved map[string]any = this.SafeMarket(nil, market)

@@ -2349,7 +2349,7 @@ func (this *Coinbaseinternational) fetchPositionBody(ch chan AsyncResult[Positio
 	ch <- AsyncResult[Position]{Value: this.ParsePosition(position, market)}
 	return nil
 }
-func (this *Coinbaseinternational) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Coinbaseinternational) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	//     {
 	//         "average_price": 0,

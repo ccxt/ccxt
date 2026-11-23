@@ -1349,7 +1349,10 @@ func (this *Xt) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], optiona
 		var entry map[string]any = currenciesData[i]
 		var currencyId *string = this.SafeString(entry, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
-		var networkEntry map[string]any = SafeMapTyped(chainsDataIndexed, currencyId)
+		var networkEntry map[string]any
+		if currencyId != nil {
+			networkEntry, _ = chainsDataIndexed[*currencyId].(map[string]any)
+		}
 		var rawNetworks []map[string]any = this.SafeListMapsTyped(networkEntry, "supportChains")
 		var networks map[string]any = map[string]any{}
 		for j := 0; j < len(rawNetworks); j++ {
@@ -7496,7 +7499,7 @@ func (this *Xt) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], optio
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySinceLimit(positions, since, limit))}
 	return nil
 }
-func (this *Xt) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Xt) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	// position/list
 	//

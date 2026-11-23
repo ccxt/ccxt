@@ -2444,7 +2444,10 @@ func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) m
 		var code *string = this.SafeCurrencyCode(currencyId)
 		if (code != nil) && ((codes == nil) || this.InArray(code, codes)) {
 			var withdrawFee *float64 = this.ParseNumber(withdrawalResponse[currencyId])
-			var resultValue map[string]any = SafeMapTyped(result, code)
+			var resultValue map[string]any
+			if code != nil {
+				resultValue, _ = result[*code].(map[string]any)
+			}
 			if resultValue == nil {
 				var newInfo map[string]any = map[string]any{}
 				if ptrValue := this.ParseNumber(withdrawalResponse[currencyId]); ptrValue != nil {

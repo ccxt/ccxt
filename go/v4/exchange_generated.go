@@ -1425,7 +1425,7 @@ func (this *BaseExchange) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTie
 	_ = params
 	panic(NotSupported(this.Id + " fetchLeverageTiers() is not supported yet"))
 }
-func (this *BaseExchange) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *BaseExchange) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parsePosition() is not supported yet"))
@@ -4614,7 +4614,11 @@ func (this *BaseExchange) ParsePositions(positions any, optionalArgs ...any) []a
 	var positionsArray []any = this.ToArray(positions)
 	var result []any = []any{}
 	for i := 0; i < len(positionsArray); i++ {
-		var position map[string]any = this.Extend(PositionToMap(this.DerivedExchange.ParsePosition(this.SafeDict(positionsArray, i, map[string]any{}))), params)
+		positionsArrayDict652562, _ := positionsArray[i].(map[string]any)
+		if positionsArrayDict652562 == nil {
+			positionsArrayDict652562 = map[string]any{}
+		}
+		var position map[string]any = this.Extend(PositionToMap(this.DerivedExchange.ParsePosition(positionsArrayDict652562)), params)
 		result = append(result, position)
 	}
 	return this.FilterByArrayPositions(result, "symbol", symbolsNormalized)
@@ -4627,7 +4631,7 @@ func (this *BaseExchange) ParseADLRank(info any, optionalArgs ...any) map[string
 	}
 	panic(NotSupported(this.Id + " parseADLRank() is not supported yet"))
 }
-func (this *BaseExchange) ParseADLRanks(ranks any, optionalArgs ...any) []any {
+func (this *BaseExchange) ParseADLRanks(ranks []any, optionalArgs ...any) []any {
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
@@ -5740,12 +5744,9 @@ func (this *BaseExchange) fetchDepositWithdrawFeeBody(ch chan AsyncResult[Deposi
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var fees any = nil
-	if !StructAbsent(r.Value) {
-		fees = StructBox(r.Value, DepositWithdrawFeeMapToMap)
-	}
+	var fees map[string]DepositWithdrawFee = r.Value
 
-	ch <- AsyncResult[DepositWithdrawFee]{Value: DepositWithdrawFeeFromMap(this.SafeDictMap(fees, code))}
+	ch <- AsyncResult[DepositWithdrawFee]{Value: fees[code]}
 	return nil
 }
 func (this *BaseExchange) GetSupportedMapping(key any, optionalArgs ...any) string {
@@ -6897,13 +6898,10 @@ func (this *BaseExchange) fetchMarketLeverageTiersBody(ch chan AsyncResult[[]Lev
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var tiers any = nil
-		if !StructAbsent(r.Value) {
-			tiers = StructBox(r.Value, LeverageTiersToMap)
-		}
-		var marketTiers []any = SafeListTyped(tiers, symbol)
+		var tiers LeverageTiers = r.Value
+		var marketTiers []LeverageTier = tiers.Tiers[symbol]
 
-		ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(marketTiers)}
+		ch <- AsyncResult[[]LeverageTier]{Value: marketTiers}
 		return nil
 	} else {
 		panic(NotSupported(this.Id + " fetchMarketLeverageTiers() is not supported yet"))

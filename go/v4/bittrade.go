@@ -2750,7 +2750,10 @@ func (this *Bittrade) ParseDepositAddress(depositAddress map[string]any, optiona
 	var networkId *string = this.SafeString(depositAddress, "chain")
 	var networks map[string]any = this.SafeDictMap(currencyResolved, "networks", map[string]any{})
 	var networksById map[string]any = this.IndexBy(networks, "id")
-	var networkEntry map[string]any = SafeMapTyped(networksById, networkId)
+	var networkEntry map[string]any
+	if networkId != nil {
+		networkEntry, _ = networksById[*networkId].(map[string]any)
+	}
 	var network *string = this.SafeString(networkEntry, "network")
 	this.CheckAddress(address)
 	return DepositAddressFromMap(map[string]any{

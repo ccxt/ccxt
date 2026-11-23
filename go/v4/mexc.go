@@ -7024,7 +7024,7 @@ func (this *Mexc) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalAr
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(data, symbols))}
 	return nil
 }
-func (this *Mexc) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Mexc) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	// fetchPositions
 	//

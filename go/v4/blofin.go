@@ -4180,7 +4180,7 @@ func (this *Blofin) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], o
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterBySinceLimit(positions, since, limit))}
 	return nil
 }
-func (this *Blofin) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Blofin) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	// response similar for REST & WS
 	//

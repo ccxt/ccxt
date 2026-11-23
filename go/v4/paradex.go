@@ -4188,7 +4188,7 @@ func (this *Paradex) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(openPositions, symbolsNormalized))}
 	return nil
 }
-func (this *Paradex) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Paradex) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	//     {
 	//         "id": "0x49ddd7a564c978f6e4089ff8355b56a42b7e2d48ba282cb5aad60f04bea0ec3-BTC-USD-PERP",

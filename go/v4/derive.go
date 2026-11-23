@@ -4166,7 +4166,7 @@ func (this *Derive) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(positions, symbols))}
 	return nil
 }
-func (this *Derive) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Derive) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	// {
 	//     "instrument_type": "perp",

@@ -903,7 +903,10 @@ func (this *Backpack) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 			continue
 		}
 		var baseId *string = this.SafeString(rawMarket, "baseSymbol")
-		var security map[string]any = SafeMapTyped(securityById, baseId)
+		var security map[string]any
+		if baseId != nil {
+			security, _ = securityById[*baseId].(map[string]any)
+		}
 		var market map[string]any = this.ParseMarket(func() any {
 			if security == nil {
 				return rawMarket
@@ -4422,7 +4425,7 @@ func (this *Backpack) fetchPositionsBody(ch chan AsyncResult[[]Position], option
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(response, symbolsNormalized))}
 	return nil
 }
-func (this *Backpack) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Backpack) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	// fetchPositions
 	//     {

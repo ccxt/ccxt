@@ -2267,7 +2267,7 @@ func (this *Delta) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalA
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(result, symbols))}
 	return nil
 }
-func (this *Delta) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Delta) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	// fetchPosition
 	//
@@ -4521,7 +4521,12 @@ func (this *Delta) closeAllPositionsBody(ch chan AsyncResult[[]Position], option
 	//
 	// {"result":{},"success":true}
 	//
-	var position map[string]any = PositionToMap(this.ParsePosition(this.SafeDict(response, "result", map[string]any{})))
+	var positionRow map[string]any
+	positionRow, _ = response["result"].(map[string]any)
+	if positionRow == nil {
+		positionRow = map[string]any{}
+	}
+	var position map[string]any = PositionToMap(this.ParsePosition(positionRow))
 
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList([]any{position})}
 	return nil

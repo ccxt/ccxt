@@ -2357,7 +2357,7 @@ func (this *Hibachi) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(data, symbolsNormalized))}
 	return nil
 }
-func (this *Hibachi) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Hibachi) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	// {
 	//     "direction": "Short",

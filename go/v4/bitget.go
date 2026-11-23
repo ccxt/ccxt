@@ -12479,7 +12479,6 @@ func (this *Bitget) fetchPositionBody(ch chan AsyncResult[Position], symbol stri
 		"symbol": market["id"],
 	}
 	var response map[string]any = nil
-	var result []any = nil
 	argStr := "fetchPosition"
 	utaparamsUTAPair := <-this.HandleUTAAndParamsAsync(paramsProductType, &argStr, false)
 	if utaparamsUTAPair.Err != nil {
@@ -12534,7 +12533,18 @@ func (this *Bitget) fetchPositionBody(ch chan AsyncResult[Position], symbol stri
 		//     }
 		//
 		var data, _ = response["data"].(map[string]any)
-		result = this.SafeListSlice(data, "list", []any{})
+		var utaPositionRows []any
+		utaPositionRows, _ = data["list"].([]any)
+
+		var utaPositionRowsDict900439 map[string]any
+		if len(utaPositionRows) > 0 {
+			utaPositionRowsDict900439, _ = utaPositionRows[0].(map[string]any)
+		}
+		if utaPositionRowsDict900439 == nil {
+			utaPositionRowsDict900439 = map[string]any{}
+		}
+		ch <- AsyncResult[Position]{Value: this.ParsePosition(utaPositionRowsDict900439, market)}
+		return nil
 	} else {
 		request["marginCoin"] = market["settleId"]
 		request["productType"] = productType
@@ -12574,11 +12584,19 @@ func (this *Bitget) fetchPositionBody(ch chan AsyncResult[Position], symbol stri
 		//         ]
 		//     }
 		//
-		result = this.SafeListSlice(response, "data", []any{})
-	}
+		var singlePositionRows []any
+		singlePositionRows, _ = response["data"].([]any)
 
-	ch <- AsyncResult[Position]{Value: this.ParsePosition(this.SafeDict(result, 0, map[string]any{}), market)}
-	return nil
+		var singlePositionRowsDict904039 map[string]any
+		if len(singlePositionRows) > 0 {
+			singlePositionRowsDict904039, _ = singlePositionRows[0].(map[string]any)
+		}
+		if singlePositionRowsDict904039 == nil {
+			singlePositionRowsDict904039 = map[string]any{}
+		}
+		ch <- AsyncResult[Position]{Value: this.ParsePosition(singlePositionRowsDict904039, market)}
+		return nil
+	}
 }
 
 /**
@@ -12829,7 +12847,11 @@ func (this *Bitget) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	}
 	var result []any = []any{}
 	for i := 0; i < len(position); i++ {
-		var parsedPosition map[string]any = PositionToMap(this.ParsePosition(this.SafeDict(position, i, map[string]any{}), market))
+		positionDict923455, _ := position[i].(map[string]any)
+		if positionDict923455 == nil {
+			positionDict923455 = map[string]any{}
+		}
+		var parsedPosition map[string]any = PositionToMap(this.ParsePosition(positionDict923455, market))
 		result = append(result, parsedPosition)
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
@@ -12837,7 +12859,7 @@ func (this *Bitget) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.FilterByArrayPositions(result, "symbol", symbolsNormalized))}
 	return nil
 }
-func (this *Bitget) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Bitget) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	// fetchPosition
 	//

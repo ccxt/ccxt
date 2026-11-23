@@ -250,7 +250,11 @@ func (this *Blockchaincom) HandleOHLCV(client ccxt.ClientInterface, message map[
 		var request map[string]any = client.SubscriptionDict(messageHash)
 		var timeframeId *string = this.SafeString(request, "granularity")
 		var timeframe *string = this.FindTimeframe(timeframeId)
-		var ohlcv any = this.SafeList(message, "price", []any{})
+		var ohlcv []any
+		ohlcv, _ = message["price"].([]any)
+		if ohlcv == nil {
+			ohlcv = []any{}
+		}
 		if symbol != nil && this.Ohlcvs[*symbol] == nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}

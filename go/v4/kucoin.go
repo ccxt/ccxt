@@ -2345,7 +2345,10 @@ func (this *Kucoin) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 			continue
 		}
 		// const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
-		var ticker map[string]any = SafeMapTyped(tickersById, id)
+		var ticker map[string]any
+		if id != nil {
+			ticker, _ = tickersById[*id].(map[string]any)
+		}
 		var makerFeeRate *string = this.SafeString(ticker, "makerFeeRate")
 		var takerFeeRate *string = this.SafeString(ticker, "takerFeeRate")
 		var makerCoefficient *string = this.SafeString(ticker, "makerCoefficient")
@@ -3102,7 +3105,10 @@ func (this *Kucoin) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalAr
 			panic(r2.Err)
 		}
 		response = r2.Value
-		data = ArrayTyped(this.SafeList(response, "data", []any{}))
+		data, _ = response["data"].([]any)
+		if data == nil {
+			data = []any{}
+		}
 	}
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
@@ -3948,8 +3954,9 @@ func (this *Kucoin) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 		//         }
 		//     }
 		//
-		var data map[string]any = SafeMapTyped(response, "data")
-		var resultList []any = SafeListTyped(data, "list")
+		var data, _ = response["data"].(map[string]any)
+		var resultList []any
+		resultList, _ = data["list"].([]any)
 		result = this.SafeDictMap(resultList, 0, map[string]any{})
 	} else if *this.SafeBool(market, "contract", false) {
 
@@ -3976,7 +3983,11 @@ func (this *Kucoin) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 		//        }
 		//    }
 		//
-		var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+		var data map[string]any
+		data, _ = response["data"].(map[string]any)
+		if data == nil {
+			data = map[string]any{}
+		}
 
 		ch <- AsyncResult[Ticker]{Value: this.ParseTicker(data, market)}
 		return nil
@@ -6668,8 +6679,9 @@ func (this *Kucoin) cancelSpotOrderBody(ch chan AsyncResult[Order], id string, o
 					panic(r1.Err)
 				}
 				response = r1.Value
-				var data map[string]any = SafeMapTyped(response, "data")
-				var orderIds []any = SafeListTyped(data, "cancelledOrderIds")
+				var data, _ = response["data"].(map[string]any)
+				var orderIds []any
+				orderIds, _ = data["cancelledOrderIds"].([]any)
 				var orderId *string = this.SafeString(orderIds, 0)
 
 				ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
@@ -6790,9 +6802,10 @@ func (this *Kucoin) cancelSpotOrderBody(ch chan AsyncResult[Order], id string, o
 			}
 			response = r12.Value
 		}
-		var data map[string]any = SafeMapTyped(response, "data")
+		var data, _ = response["data"].(map[string]any)
 		var orderId *string = this.SafeString(data, "orderId")
-		var orderIds []any = SafeListTyped(data, "cancelledOrderIds")
+		var orderIds []any
+		orderIds, _ = data["cancelledOrderIds"].([]any)
 		orderId = this.SafeString(orderIds, 0, orderId)
 
 		ch <- AsyncResult[Order]{Value: this.SafeOrder(map[string]any{
@@ -9436,7 +9449,11 @@ func (this *Kucoin) fetchMySpotTradesBody(ch chan AsyncResult[[]Trade], optional
 	//         ]
 	//     }
 	//
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	// v1 (historical) returns the trade list directly under 'data', v2 nests it under 'items'
 	var trades any = nil
 	if parseResponseData {
@@ -9791,7 +9808,7 @@ func (this *Kucoin) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		//         }
 		//     }
 		//
-		var data map[string]any = SafeMapTyped(response, "data")
+		var data, _ = response["data"].(map[string]any)
 		trades = this.SafeListSlice(data, "list", []any{})
 	} else if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
 
@@ -10269,8 +10286,9 @@ func (this *Kucoin) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface]
 		//         }
 		//     }
 		//
-		var data map[string]any = SafeMapTyped(response, "data")
-		var dataList []any = SafeListTyped(data, "list")
+		var data, _ = response["data"].(map[string]any)
+		var dataList []any
+		dataList, _ = data["list"].([]any)
 		entry = this.SafeDictMap(dataList, 0)
 	} else if *this.SafeBool(market, "spot", false) {
 		request["symbols"] = market["id"]
@@ -10292,7 +10310,8 @@ func (this *Kucoin) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface]
 		//         ]
 		//     }
 		//
-		var data []any = SafeListTyped(response, "data")
+		var data []any
+		data, _ = response["data"].([]any)
 		entry = this.SafeDictMap(data, 0)
 	} else {
 		request["symbol"] = market["id"]
@@ -14309,7 +14328,6 @@ func (this *Kucoin) fetchPositionBody(ch chan AsyncResult[Position], symbol stri
 	var uta bool = r1.Value
 	utaOption, paramsUta := this.HandleOptionBoolAndParamsNullable(params, "fetchPosition", "uta", uta)
 	var response map[string]any = nil
-	var position any = map[string]any{}
 	if utaOption != nil && *utaOption {
 		request["accountMode"] = "unified"
 
@@ -14342,8 +14360,18 @@ func (this *Kucoin) fetchPositionBody(ch chan AsyncResult[Position], symbol stri
 		//         ]
 		//     }
 		//
-		var data []any = SafeListTyped(response, "data")
-		position = this.SafeDict(data, 0, map[string]any{})
+		var data []any
+		data, _ = response["data"].([]any)
+
+		var dataDict1060939 map[string]any
+		if len(data) > 0 {
+			dataDict1060939, _ = data[0].(map[string]any)
+		}
+		if dataDict1060939 == nil {
+			dataDict1060939 = map[string]any{}
+		}
+		ch <- AsyncResult[Position]{Value: this.ParsePosition(dataDict1060939, market)}
+		return nil
 	} else {
 
 		r3 := <-this.FuturesPrivateGetPosition(this.Extend(request, paramsUta))
@@ -14395,11 +14423,15 @@ func (this *Kucoin) fetchPositionBody(ch chan AsyncResult[Position], symbol stri
 		//        }
 		//    }
 		//
-		position = this.SafeDict(response, "data", map[string]any{})
-	}
+		var position map[string]any
+		position, _ = response["data"].(map[string]any)
+		if position == nil {
+			position = map[string]any{}
+		}
 
-	ch <- AsyncResult[Position]{Value: this.ParsePosition(position, market)}
-	return nil
+		ch <- AsyncResult[Position]{Value: this.ParsePosition(position, market)}
+		return nil
+	}
 }
 
 /**
@@ -14639,7 +14671,7 @@ func (this *Kucoin) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], o
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(items, symbolsNormalized))}
 	return nil
 }
-func (this *Kucoin) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Kucoin) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	//    {
 	//        "code": "200000",
@@ -15159,7 +15191,7 @@ func (this *Kucoin) reduceMarginBody(ch chan AsyncResult[MarginModification], sy
 	var currencyId *string = this.SafeString(market, "settle")
 	var responseCode *string = this.SafeString(response, "code")
 
-	var literal1127915 map[string]any = map[string]any{
+	var literal1127815 map[string]any = map[string]any{
 		"info":       responseReply.Raw,
 		"symbol":     market["symbol"],
 		"type":       "reduce",
@@ -15171,11 +15203,11 @@ func (this *Kucoin) reduceMarginBody(ch chan AsyncResult[MarginModification], sy
 		"datetime":   nil,
 	}
 	if responseCode != nil && *responseCode == "200000" {
-		literal1127915["status"] = "ok"
+		literal1127815["status"] = "ok"
 	} else {
-		literal1127915["status"] = nil
+		literal1127815["status"] = nil
 	}
-	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(literal1127915)}
+	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(literal1127815)}
 	return nil
 }
 func (this *Kucoin) ParseMarginModification(info any, optionalArgs ...any) map[string]any {
@@ -15778,9 +15810,9 @@ func (this *Kucoin) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], o
 			if _, ok := result[*symbol]; !ok {
 				result[*symbol] = []any{}
 			}
-			var retRes1170216, _ = result[*symbol].([]any)
-			retRes1170216 = append(retRes1170216, tier)
-			result[*symbol] = retRes1170216
+			var retRes1170116, _ = result[*symbol].([]any)
+			retRes1170116 = append(retRes1170116, tier)
+			result[*symbol] = retRes1170116
 		}
 	}
 
@@ -15942,11 +15974,11 @@ func (this *Kucoin) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInter
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1181119 []any = r1.Value
-		if retRes1181119 == nil {
+		var retRes1181019 []any = r1.Value
+		if retRes1181019 == nil {
 			ch <- AsyncResult[[]OpenInterest]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes1181119)}
+			ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(retRes1181019)}
 		}
 		return nil
 	}
@@ -16131,16 +16163,16 @@ func (this *Kucoin) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 		headersResult = headersSigned
 	}
-	var literal1195815 map[string]any = map[string]any{
+	var literal1195715 map[string]any = map[string]any{
 		"url":     *apiUrl + endpoint,
 		"method":  method,
 		"body":    nil,
 		"headers": headersResult,
 	}
 	if bodyJson != nil {
-		literal1195815["body"] = *bodyJson
+		literal1195715["body"] = *bodyJson
 	}
-	return literal1195815
+	return literal1195715
 }
 func (this *Kucoin) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
 	if response == nil {
@@ -16207,11 +16239,11 @@ func (this *Kucoin) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes1200219 []any = r1.Value
-		if retRes1200219 == nil {
+		var retRes1200119 []any = r1.Value
+		if retRes1200119 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes1200219)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes1200119)}
 		}
 		return nil
 	}

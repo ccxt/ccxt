@@ -5122,7 +5122,7 @@ func (this *Weex) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position], s
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(response, []any{market.Symbol}))}
 	return nil
 }
-func (this *Weex) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Weex) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	//     {
 	//         "id": 737191855967437160,

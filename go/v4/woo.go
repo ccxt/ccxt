@@ -1653,7 +1653,10 @@ func (this *Woo) ParseCurrency(rawCurrency any) map[string]any {
 		if tokenEntry == nil {
 			tokenEntry = map[string]any{}
 		}
-		var networkEntry map[string]any = this.SafeDictMap(chainsByNetworkId, networkId, map[string]any{})
+		var networkEntry, _ = chainsByNetworkId[networkId].(map[string]any)
+		if networkEntry == nil {
+			networkEntry = map[string]any{}
+		}
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		var specialNetworkId *string = this.SafeString(tokenEntry, "token")
 		if networkCode != nil {
@@ -5705,7 +5708,7 @@ func (this *Woo) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArg
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(positions, symbolsNormalized))}
 	return nil
 }
-func (this *Woo) ParsePosition(position any, optionalArgs ...any) Position {
+func (this *Woo) ParsePosition(position map[string]any, optionalArgs ...any) Position {
 	//
 	// v1PrivateGetPositionSymbol
 	//     {
