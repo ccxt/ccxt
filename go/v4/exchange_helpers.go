@@ -1538,6 +1538,24 @@ func Int64Arg(v any) int64 {
 	panic(ArgumentsRequired(fmt.Sprintf("expected an integer argument, got %T: %v", v, v)))
 }
 
+// Float64Arg converts a dynamically passed required number argument; nil or any other type
+// panics (ArgumentsRequired) instead of coercing
+func Float64Arg(v any) float64 {
+	switch value := derefScalar(v).(type) {
+	case float64:
+		return value
+	case float32:
+		return float64(value)
+	case int:
+		return float64(value)
+	case int32:
+		return float64(value)
+	case int64:
+		return float64(value)
+	}
+	panic(ArgumentsRequired(fmt.Sprintf("expected a number argument, got %T: %v", v, v)))
+}
+
 func ToString(v any) string {
 	v = derefScalar(v)
 	switch v := v.(type) {
@@ -3103,6 +3121,13 @@ func CallInternalMethod(methods map[string]any, itf any, name2 string, args ...a
 					arg = args[k]
 				}
 				in = append(in, reflect.ValueOf(Int64Arg(arg)).Convert(paramType))
+			} else if paramType.Kind() == reflect.Float64 {
+				// a required number parameter: nil or a non-number panics
+				var arg any = nil
+				if k < len(args) {
+					arg = args[k]
+				}
+				in = append(in, reflect.ValueOf(Float64Arg(arg)).Convert(paramType))
 			} else if k < len(args) && args[k] != nil {
 				argValue := reflect.ValueOf(args[k])
 				if paramType.Kind() == reflect.Slice && argValue.Kind() == reflect.Slice && argValue.Type() != paramType && argValue.Type().Elem().Kind() == reflect.Interface {

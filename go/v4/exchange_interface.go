@@ -399,7 +399,7 @@ type ICoreExchange interface {
 	ConvertToSafeDictionary(data any) any
 	CreateSafeDictionary(isWs ...bool) map[string]any
 	SetOptions(options any)
-	WithdrawAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction]
+	WithdrawAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction]
 	// WS methods
 	FetchBalanceWsAsync(optionalArgs ...any) <-chan AsyncResult[Balances]
 	// FetchCurrenciesWs(optionalArgs ...any) <-chan AsyncResult[any]
@@ -429,7 +429,7 @@ type ICoreExchange interface {
 	WatchMyLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
 	WatchOHLCVForSymbolsAsync(symbolsAndTimeframes [][]any, optionalArgs ...any) <-chan AsyncResult[map[string]map[string][]OHLCV]
 	WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OrderBookInterface]
-	WithdrawWsAsync(code string, amount any, address string, optionalArgs ...any) <-chan AsyncResult[Transaction]
+	WithdrawWsAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction]
 	Close(cleanInstanceCache ...any) []error
 	CleanWsData()
 	CleanRestData()

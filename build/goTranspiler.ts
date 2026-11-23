@@ -7364,6 +7364,10 @@ const GO_UNIFIED_INT64_PARAMS: { [method: string]: number[] } = {
     'setLeverage': [ 0 ], 'cancelAllOrdersAfter': [ 0 ],
     'createAuthToken': [ 0 ],
 };
+// required `amount: number` params whose public typed wrapper already takes float64: body and Async print `float64`
+const GO_UNIFIED_FLOAT64_PARAMS: { [method: string]: number[] } = {
+    'withdraw': [ 1 ], 'withdrawWs': [ 1 ], 'transfer': [ 1 ], 'transferIn': [ 1 ], 'transferOut': [ 1 ],
+};
 
 for (const [method, indexes] of Object.entries (GO_UNIFIED_REQUIRED_ID_PARAMS)) {
     GO_UNIFIED_STRING_PARAMS[method] = [ ...new Set ([ ...(GO_UNIFIED_STRING_PARAMS[method] ?? []), ...indexes ]) ].sort ((x, y) => x - y);
@@ -13335,6 +13339,7 @@ class NewTranspiler {
                 // base, every override and go/v4/exchange_interface.go (audit: no override nil-compares them)
                 "unifiedStringParams": GO_UNIFIED_STRING_PARAMS,
                 "unifiedInt64Params": GO_UNIFIED_INT64_PARAMS,
+                "unifiedFloat64Params": GO_UNIFIED_FLOAT64_PARAMS,
                 // ===== RF-go-6-D =====
                 // the ws order book: checker class names, the exchange's constructors and cache readers, and the
                 // port's own interface / unboxer / side accessors (go/v4/exchange_orderbook.go)
