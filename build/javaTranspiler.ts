@@ -1540,12 +1540,32 @@ function javaPrintedExpressionType (printer: any, emittedStringLocals: WeakSet<a
 // mentions it, whether the hand-written Java above the transpile delimiters calls it, and the argument nodes of
 // every `this.name (..)` call outside the declaring file. Installed in the main thread and in every worker.
 let javaRepoMethodIndex: any;
+// an unannotated async method whose returns (outside nested functions) carry no value
+function javaIsAsyncVoidMethod (n: any): boolean {
+    if (!ts.isMethodDeclaration (n) || n.body === undefined || n.type !== undefined || !(n.modifiers ?? []).some ((m: any) => m.kind === ts.SyntaxKind.AsyncKeyword)) {
+        return false;
+    }
+    let valued = false;
+    const visit = (c: any) => {
+        if (valued || ts.isFunctionLike (c)) {
+            return;
+        }
+        if (ts.isReturnStatement (c) && c.expression !== undefined) {
+            valued = true;
+            return;
+        }
+        c.forEachChild (visit);
+    };
+    n.body.forEachChild (visit);
+    return !valued;
+}
 function javaRepoMethodUsesIndex (): any {
     if (javaRepoMethodIndex !== undefined) {
         return javaRepoMethodIndex;
     }
     const declared = new Map<string, number> ();
     const mentioned = new Set<string> ();
+    const asyncVoid = new Map<string, boolean> ();
     const calls = new Map<string, { file: string, args: any[] }[]> ();
     const key = (file: string) => path.resolve (file).replace (/\.nooverloads\.\d+(\.ts)$/, '$1');
     const visitDir = (dir: string) => {
@@ -1565,9 +1585,13 @@ function javaRepoMethodUsesIndex (): any {
                 continue;
             }
             const source: any = ts.createSourceFile (full, text);
+            const inBase = /[\\/]ts[\\/]src[\\/]base[\\/]/.test (full); // the base tier prints its own returns
             const visit = (n: any) => {
                 if ((ts.isMethodDeclaration (n) || ts.isPropertyDeclaration (n) || ts.isPropertyAssignment (n)) && n.name !== undefined && ts.isIdentifier (n.name)) {
                     declared.set (n.name.text, (declared.get (n.name.text) ?? 0) + 1);
+                }
+                if (ts.isMethodDeclaration (n) && n.name !== undefined && ts.isIdentifier (n.name)) {
+                    asyncVoid.set (n.name.text, (asyncVoid.get (n.name.text) ?? true) && !inBase && javaIsAsyncVoidMethod (n));
                 }
                 if (ts.isPropertyAccessExpression (n)) {
                     const thisCall = n.expression.kind === ts.SyntaxKind.ThisKeyword && ts.isCallExpression (n.parent) && n.parent.expression === n;
@@ -1596,7 +1620,7 @@ function javaRepoMethodUsesIndex (): any {
     } catch (e) {
         handWritten = undefined; // no Java tree to consult: the proof stays withheld
     }
-    javaRepoMethodIndex = { declared, mentioned, calls, handWritten, key };
+    javaRepoMethodIndex = { declared, mentioned, asyncVoid, calls, handWritten, key };
     return javaRepoMethodIndex;
 }
 
@@ -1616,6 +1640,7 @@ export function installJavaRepoMethodUses (transpiler: any): void {
             declared: index.declared.get (name) ?? 0,
             mentions: index.mentioned.has (name) ? 1 : 0,
             handWritten: new RegExp (`\\b${name}\\s*\\(`).test (index.handWritten),
+            asyncVoid: index.asyncVoid.get (name) === true,
             calls: (index.calls.get (name) ?? []).filter ((call: any) => call.file !== own).map ((call: any) => call.args),
         };
     };
