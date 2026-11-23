@@ -11029,6 +11029,20 @@ export class RustTranspilerBuilder {
      * Only triggers when the outer call's receiver is `self` AND an
      * arg contains a `self.<X>(…)` sub-call.
      */
+    /** Brackets balance and never close below depth 0 (string literals skipped). */
+    rustBalancedArgs(text: string): boolean {
+        let depth = 0, inStr = false, esc = false;
+        for (const c of text) {
+            if (esc) { esc = false; continue; }
+            if (c === '\\' && inStr) { esc = true; continue; }
+            if (c === '"') { inStr = !inStr; continue; }
+            if (inStr) continue;
+            depth += c === '(' || c === '[' || c === '{' ? 1 : (c === ')' || c === ']' || c === '}' ? -1 : 0);
+            if (depth < 0) return false;
+        }
+        return depth === 0 && !inStr;
+    }
+
     hoistSelfArgFromMutCall(content: string): string {
         const lines = content.split('\n');
         let counter = 0;
@@ -11145,8 +11159,12 @@ export class RustTranspilerBuilder {
             const indent = m[1];
             // Emit hoists in source-order.
             const ordered = [...hoists].sort((a, b) => a.start - b.start);
+            // the runtime `extend` builds a map on every input: a ticker row handed to a lent `impl Into<Value>` slot (the trait `parse_ticker`, a venue `parse_ws_ticker`) takes the typed twin
+            const tickerSlot = /(?:self\.|DerivedExchange>::)(parse_ticker|parse_ws_ticker)\($/.exec(combined.slice(0, absOpenIdx + 1));
+            const lentSlot = tickerSlot !== null && !new RegExp('fn ' + tickerSlot[1] + '\\(&self, (?:mut )?\\w+: Value').test(content) && (tickerSlot[1] === 'parse_ticker' ? tickerSlot[0].startsWith('DerivedExchange') : new RegExp('fn parse_ws_ticker\\(&self, \\w+: impl Into<crate::Value>').test(content));
             for (const h of ordered) {
-                const expr = args.slice(h.start, h.end);
+                let expr = args.slice(h.start, h.end);
+                if (lentSlot && expr.startsWith('self.extend(') && this.rustBalancedArgs(expr.slice('self.extend('.length, -1)) && new RegExp('^(?:self, )?' + h.tmp + ',').test(newArgs)) expr = 'self.extend_t(' + expr.slice('self.extend('.length);
                 out.push(`${indent}let ${h.tmp} = ${expr};`);
             }
             out.push(combined.slice(0, absOpenIdx + 1) + newArgs + combined.slice(j));
