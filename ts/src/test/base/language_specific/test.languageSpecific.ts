@@ -15,6 +15,7 @@ import testPrecisionFromStringZero from './test.precisionFromString.js';
 import testBingxTestOrder from './test.bingxTestOrder.js';
 import testFetchTradesDiagnostics from './test.fetchTradesDiagnostics.js';
 import testOptionTypes from './test.optionTypes.js';
+import testValidateServerSsl from './test.validateServerSsl.js';
 // todo: import testConfig from './test.config.js';
 // import './test.time.js' :todo
 
@@ -30,6 +31,7 @@ async function testLanguageSpecific () {
     testPrecisionFromStringZero ();
     await testBingxTestOrder ();
     await testFetchTradesDiagnostics ();
+    await testValidateServerSsl ();
     // testConfig ();
 }
 

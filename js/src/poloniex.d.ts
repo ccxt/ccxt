@@ -1,5 +1,5 @@
 import Exchange from './abstract/poloniex.js';
-import type { TransferEntry, Int, Leverage, OrderSide, OrderType, OrderRequest, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict, DepositWithdrawFees, PositionModeInfo } from './base/types.js';
+import type { TransferEntry, Int, Leverage, OrderSide, OrderType, OrderRequest, OHLCV, Trade, OrderBook, Order, Balances, Str, MarginModification, Transaction, Ticker, Tickers, Market, Strings, Currency, CurrencyInterface, Num, Currencies, TradingFees, Dict, int, DepositAddress, Position, NullableDict, DepositWithdrawFees, PositionModeInfo, FundingRate } from './base/types.js';
 /**
  * @class poloniex
  * @augments Exchange
@@ -172,7 +172,7 @@ export default class poloniex extends Exchange {
      * @param {string} [params.posSide] *swap only* 'LONG', 'SHORT' or 'BOTH', defaults to 'BOTH', the batch endpoint requires it explicitly
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
+    createOrders(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
     orderRequest(symbol: string, type: OrderType, side: OrderSide, amount: Num, request: Dict, price?: Num, params?: Dict): [Dict, Dict];
     /**
      * @method
@@ -205,7 +205,7 @@ export default class poloniex extends Exchange {
      * @param {string[]} [params.clientOrderIds] alternative to ids, cancel by client order ids
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    cancelOrders(ids: string[], symbol?: Str, params?: {}): Promise<Order[]>;
+    cancelOrders(ids: string[], symbol?: Str, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name poloniex#cancelAllOrders
@@ -273,11 +273,23 @@ export default class poloniex extends Exchange {
      * @see https://api-docs.poloniex.com/spot/api/public/market-data#order-book
      * @see https://api-docs.poloniex.com/v3/futures/api/market/get-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {int} [limit] the maximum amount of order book entries to return, rounded up to one of 5, 10, 20, 50, 100, 150
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     fetchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
+    /**
+     * @method
+     * @name poloniex#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-current-funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
+    parseFundingRate(contract: NullableDict, market?: Market): FundingRate;
+    parseFundingInterval(interval: Str): Str;
     /**
      * @method
      * @name poloniex#createDepositAddress

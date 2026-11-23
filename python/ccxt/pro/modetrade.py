@@ -72,7 +72,7 @@ class modetrade(ccxt.async_support.modetrade):
             },
         })
 
-    def request_id(self, url: str) -> float:
+    def request_id(self, url: str) -> int:
         options = self.safe_dict(self.options, 'requestId', {})
         previousValue = self.safe_integer(options, url, 0)
         newValue = self.sum(previousValue, 1)
@@ -610,12 +610,11 @@ class modetrade(ccxt.async_support.modetrade):
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             ts = str(self.nonce())
-            auth = ts
             secret = self.secret
             if self.secret.find('ed25519:') >= 0:
                 parts = self.secret.split('ed25519:')
                 secret = parts[1]
-            signature = self.eddsa(self.encode(auth), self.base58_to_binary(secret), 'ed25519')
+            signature = self.eddsa(self.encode(ts), self.base58_to_binary(secret), 'ed25519')
             request = {
                 'event': event,
                 'params': {

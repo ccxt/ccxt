@@ -232,7 +232,7 @@ public partial class BaseExchange
                         CleanupClients(c, error);
                     }
                 },
-                this.verbose, keepAlive, decompressBinary);
+                this.verbose, keepAlive, decompressBinary, this.validateServerSsl);
 
             var wsHeaders = this.safeValue(wsOptions, "headers", new Dictionary<string, object>() { });
             // iterate through headers
@@ -316,8 +316,10 @@ public partial class BaseExchange
     public async Task<object> watchMultiple(object url2, object messageHashes2, object message = null, object subscribeHashes2 = null, object subscription = null)
     {
         var url = url2.ToString();
-        var messageHashes = (messageHashes2 as List<object>).Select(obj => obj.ToString()).ToList();
-        var subscribeHashes = (subscribeHashes2 as List<object>).Select(obj => obj.ToString()).ToList();
+        // the hashes can arrive as List<object> or as a typed List<string>
+        var messageHashes = (messageHashes2 as System.Collections.IEnumerable).Cast<object>().Select(obj => obj.ToString()).ToList();
+        // subscribeHashes is optional (e.g. the subscribe messages were already sent by the caller)
+        var subscribeHashes = (subscribeHashes2 as System.Collections.IEnumerable)?.Cast<object>().Select(obj => obj.ToString()).ToList();
 
         var client = this.client(url);
 
@@ -363,7 +365,7 @@ public partial class BaseExchange
 
 public partial class Exchange
 {
-    public async virtual Task loadOrderBook(WebSocketClient client, object messageHash, object symbol, object limit = null, object parameters = null)
+    public async virtual Task loadOrderBook(WebSocketClient client, object messageHash, object symbol, object limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (!isTrue((inOp(this.orderbooks, symbol))))

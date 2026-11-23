@@ -1750,7 +1750,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             'datetime': self.iso8601(ts),
             'lastTradeTimestamp': None,
             'status': status,
-            'outcome': mkt['outcome'],
+            'outcome': self.safe_string(mkt, 'outcome'),
             'outcomeId': self.safe_string(mkt, 'outcomeId'),
             'label': self.safe_string(mkt, 'label'),
             'market': self.safe_string(mkt, 'market'),
@@ -2302,7 +2302,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 elif rawEventSlug is not None:
                     detailedEvent = await self.gammaPublicGetEventsSlugSlug({'slug': rawEventSlug})
                 if detailedEvent is not None:
-                    eventForParsing = self.safe_value(detailedEvent, 'event', detailedEvent)
+                    eventForParsing = self.safe_dict(detailedEvent, 'event', detailedEvent)
                     ccxtMarkets = self.parse_event_to_markets(eventForParsing)
             for mi in range(0, len(ccxtMarkets)):
                 m = ccxtMarkets[mi]
@@ -2946,16 +2946,16 @@ class polymarket(PredictionExchange, ImplicitAPI):
         if bids is not None:
             bidsLength = len(bids)
         if (bids is not None) and (bidsLength > 0):
-            bestBid = bids[0][0]
-            bestBidVolume = bids[0][1]
+            bestBid = self.safe_number(bids[0], 0)
+            bestBidVolume = self.safe_number(bids[0], 1)
         bestAsk = None
         bestAskVolume = None
         asksLength = 0
         if asks is not None:
             asksLength = len(asks)
         if (asks is not None) and (asksLength > 0):
-            bestAsk = asks[0][0]
-            bestAskVolume = asks[0][1]
+            bestAsk = self.safe_number(asks[0], 0)
+            bestAskVolume = self.safe_number(asks[0], 1)
         mid = None
         if (bestBid is not None) and (bestAsk is not None):
             sum = Precise.string_add(self.number_to_string(bestBid), self.number_to_string(bestAsk))

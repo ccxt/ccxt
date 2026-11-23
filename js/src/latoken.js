@@ -456,7 +456,7 @@ export default class latoken extends Exchange {
         const result = [];
         const rawMarkets = this.toArray(response);
         for (let i = 0; i < rawMarkets.length; i++) {
-            const market = this.safeValue(rawMarkets, i);
+            const market = this.safeDict(rawMarkets, i);
             const id = this.safeString(market, 'id');
             // the exchange shows them inverted
             const baseId = this.safeString(market, 'baseCurrency');
@@ -597,7 +597,7 @@ export default class latoken extends Exchange {
         const rawCurrencies = this.toArray(response);
         const merged = [];
         for (let i = 0; i < rawCurrencies.length; i++) {
-            const rawCurrency = this.safeValue(rawCurrencies, i);
+            const rawCurrency = this.safeDict(rawCurrencies, i);
             const bindingEntry = this.safeDict(bindingsById, this.safeString(rawCurrency, 'id'));
             const bindings = this.safeList(bindingEntry, 'bindings');
             let mergedCurrency = rawCurrency;
@@ -850,6 +850,16 @@ export default class latoken extends Exchange {
         }
         const last = this.safeString(ticker, 'lastPrice');
         const timestamp = this.safeIntegerOmitZero(ticker, 'updateTimestamp'); // sometimes latoken provided '0' ts from /ticker endpoint
+        // during venue incidents a deleted level leaks a signed aggregate into the
+        // best sizes - the quoted prices stay usable, so only negatives are dropped
+        let bidVolume = this.safeString(ticker, 'bestBidQuantity');
+        if ((bidVolume !== undefined) && Precise.stringLt(bidVolume, '0')) {
+            bidVolume = undefined;
+        }
+        let askVolume = this.safeString(ticker, 'bestAskQuantity');
+        if ((askVolume !== undefined) && Precise.stringLt(askVolume, '0')) {
+            askVolume = undefined;
+        }
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -857,9 +867,9 @@ export default class latoken extends Exchange {
             'low': undefined,
             'high': undefined,
             'bid': this.safeString(ticker, 'bestBid'),
-            'bidVolume': this.safeString(ticker, 'bestBidQuantity'),
+            'bidVolume': bidVolume,
             'ask': this.safeString(ticker, 'bestAsk'),
-            'askVolume': this.safeString(ticker, 'bestAskQuantity'),
+            'askVolume': askVolume,
             'vwap': undefined,
             'open': undefined,
             'close': last,

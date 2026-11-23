@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::coinbase::CoinbaseCore;
+use super::coinbase::Coinbase;
 use crate::exchange::ExchangeRuntime;
 
-impl CoinbaseCore {
+impl Coinbase {
     /// Auto-generated wrapper for the `v2PublicGetCurrencies` implicit endpoint.
     pub async fn v2_public_get_currencies(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v2_public_get_currencies".into()), optional_args).await

@@ -405,6 +405,7 @@ class binance(Exchange, ImplicitAPI):
                         'sub-account/universalTransfer': {'cost': 0.1},
                         'sub-account/apiRestrictions/ipRestriction/thirdPartyList': {'cost': 1},
                         'sub-account/transaction-statistics': {'cost': 0.40002},  # Weight(UID): 60 => cost = 0.006667 * 60 = 0.40002
+                        'sub-account/subAccountApi': {'cost': 20.001},  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'sub-account/subAccountApi/ipRestriction': {'cost': 20.001},  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'managed-subaccount/asset': {'cost': 0.1},
                         'managed-subaccount/accountSnapshot': {'cost': 240},
@@ -608,6 +609,8 @@ class binance(Exchange, ImplicitAPI):
                         'margin/max-leverage': {'cost': 300},  # Weight(IP): 3000 => cost = 0.1 * 3000 = 300
                         'bnbBurn': {'cost': 0.1},
                         'sub-account/virtualSubAccount': {'cost': 0.1},
+                        'sub-account/subAccountApi': {'cost': 20.001},
+                        'sub-account/subAccountApiPermission': {'cost': 20.001},
                         'sub-account/margin/transfer': {'cost': 4.0002},  # Weight(UID): 600 => cost =  0.006667 * 600 = 4.0002
                         'sub-account/margin/enable': {'cost': 0.1},
                         'sub-account/futures/enable': {'cost': 0.1},
@@ -748,6 +751,7 @@ class binance(Exchange, ImplicitAPI):
                         'broker/subAccountApi/ipRestriction/ipList': {'cost': 1},
                         'algo/spot/order': {'cost': 0.1},
                         'algo/futures/order': {'cost': 0.1},
+                        'sub-account/subAccountApi': {'cost': 20.001},  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'sub-account/subAccountApi/ipRestriction/ipList': {'cost': 20.001},  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                     },
                 },
@@ -767,6 +771,7 @@ class binance(Exchange, ImplicitAPI):
                     },
                     'post': {
                         'eth-staking/eth/stake': {'cost': 15},  # Weight(IP): 150 => cost = 0.1 * 150 = 15
+                        'sub-account/subAccountApi': {'cost': 20.001},  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'sub-account/subAccountApi/ipRestriction': {'cost': 20.001},  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'loan/flexible/borrow': {'cost': 40.002},  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
                         'loan/flexible/repay': {'cost': 40.002},  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40.002
@@ -3188,7 +3193,7 @@ class binance(Exchange, ImplicitAPI):
         responseCurrencies = self.safe_value(results, 0)
         marginablesById = None
         if fetchMargins:
-            responseMarginables = self.safe_value(results, 1)
+            responseMarginables = self.safe_list(results, 1)
             marginablesById = self.index_by(responseMarginables, 'assetName')
         return self.parse_currencies_custom(responseCurrencies, marginablesById)
 
@@ -4843,7 +4848,7 @@ class binance(Exchange, ImplicitAPI):
     def parse_tickers_for_rolling(self, response: object, symbols: Strings) -> Tickers:
         results = []
         for i in range(0, len(response)):
-            marketId = self.safe_string(self.safe_value(response, i), 'symbol')
+            marketId = self.safe_string(self.safe_dict(response, i), 'symbol')
             tickerMarket = self.safe_market(marketId, None, None, 'spot')
             parsedTicker = self.parse_ticker(self.safe_value(response, i))
             parsedTicker['symbol'] = tickerMarket['symbol']
@@ -6566,7 +6571,14 @@ class binance(Exchange, ImplicitAPI):
         marketResolved = self.safe_market(marketId, market, None, marketType)
         symbol = marketResolved['symbol']
         filled = self.safe_string_n(order, ['executedQty', 'filledQty', 'actualQty'], '0')  # actualQty: algo orders
-        timestamp = self.safe_integer_n(order, ['time', 'createTime', 'workingTime', 'transactTime', 'updateTime', 'createdAt'])  # order of the keys matters here
+        timestamp = self.safe_integer_2(order, 'time', 'createTime')  # order of the keys matters here
+        if timestamp is None:
+            # spot conditional orders (STOP_LOSS, TAKE_PROFIT, trailing) report workingTime as -1 until they are triggered
+            workingTime = self.safe_integer(order, 'workingTime')
+            if (workingTime is not None) and (workingTime > 0):
+                timestamp = workingTime
+            else:
+                timestamp = self.safe_integer_n(order, ['transactTime', 'updateTime', 'createdAt'])
         lastTradeTimestamp = None
         if ('transactTime' in order) or ('updateTime' in order) or ('updatedAt' in order):
             timestampValue = self.safe_integer_n(order, ['updateTime', 'transactTime', 'updatedAt'])
@@ -7558,7 +7570,8 @@ class binance(Exchange, ImplicitAPI):
                     request['isIsolated'] = True
                 response = self.sapiGetMarginAllOrders(self.extend(request, paramsPaginate))
             elif stock:
-                response = self.sapiGetEquityOrderHistory(self.extend(request, paramsPaginate))
+                equityResponse = self.sapiGetEquityOrderHistory(self.extend(request, paramsPaginate))
+                response = self.safe_list(equityResponse, 'rows', [])
             else:
                 response = self.privateGetAllOrders(self.extend(request, paramsPaginate))
         #
@@ -7767,9 +7780,6 @@ class binance(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        if stock:
-            result = self.safe_list(response, 'rows', [])
-            return self.parse_orders(result, market, since, limitResolved)
         return self.parse_orders(response, market, since, limitResolved)
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
@@ -10366,8 +10376,8 @@ class binance(Exchange, ImplicitAPI):
             linearFees = {}
             feeTier = self.safe_integer(response, 'feeTier')
             feeTiers = self.safe_value(self.safe_value(self.safe_value(self.fees, 'linear'), 'trading'), 'tiers')
-            maker = self.safe_value(self.safe_value(self.safe_value(feeTiers, 'maker'), feeTier), 1)
-            taker = self.safe_value(self.safe_value(self.safe_value(feeTiers, 'taker'), feeTier), 1)
+            maker = self.safe_number(self.safe_value(self.safe_value(feeTiers, 'maker'), feeTier), 1)
+            taker = self.safe_number(self.safe_value(self.safe_value(feeTiers, 'taker'), feeTier), 1)
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
                 market = markets[symbol]
@@ -10398,8 +10408,8 @@ class binance(Exchange, ImplicitAPI):
             inverseFees = {}
             feeTier = self.safe_integer(response, 'feeTier')
             feeTiers = self.safe_value(self.safe_value(self.safe_value(self.fees, 'inverse'), 'trading'), 'tiers')
-            maker = self.safe_value(self.safe_value(self.safe_value(feeTiers, 'maker'), feeTier), 1)
-            taker = self.safe_value(self.safe_value(self.safe_value(feeTiers, 'taker'), feeTier), 1)
+            maker = self.safe_number(self.safe_value(self.safe_value(feeTiers, 'maker'), feeTier), 1)
+            taker = self.safe_number(self.safe_value(self.safe_value(feeTiers, 'taker'), feeTier), 1)
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
                 market = markets[symbol]
@@ -10507,7 +10517,7 @@ class binance(Exchange, ImplicitAPI):
         request = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate)
+            return self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 1000)
         defaultType = self.safe_string_2(self.options, 'fetchFundingRateHistory', 'defaultType', 'swap')
         type = self.safe_string(paramsPaginate, 'type', defaultType)
         market = None
@@ -10577,7 +10587,7 @@ class binance(Exchange, ImplicitAPI):
         type = self.safe_string(params, 'type', defaultType)
         subType, paramsSubType = self.handle_sub_type_and_params('fetchFundingRates', None, params, 'linear')
         query = self.omit(paramsSubType, 'type')
-        response = None
+        response: List
         if self.is_linear(type, subType):
             response = self.fapiPublicGetPremiumIndex(query)
         elif self.is_inverse(type, subType):
@@ -10586,7 +10596,7 @@ class binance(Exchange, ImplicitAPI):
             raise NotSupported(self.id + ' fetchFundingRates() supports linear and inverse contracts only')
         return self.parse_funding_rates(response, symbolsNormalized)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         # ensure it matches with https://www.binance.com/en/futures/funding-history/0
         #
         # fetchFundingRate, fetchFundingRates
@@ -10803,7 +10813,7 @@ class binance(Exchange, ImplicitAPI):
         maintenanceMarginPercentageString = None
         for i in range(0, len(leverageBracket)):
             bracket = leverageBracket[i]
-            if Precise.string_lt(notionalStringAbs, self.safe_value(bracket, 0)):
+            if Precise.string_lt(notionalStringAbs, self.safe_string(bracket, 0)):
                 break
             maintenanceMarginPercentageString = self.safe_string(bracket, 1)
         maintenanceMarginPercentage = self.parse_number(maintenanceMarginPercentageString)
@@ -11017,7 +11027,7 @@ class binance(Exchange, ImplicitAPI):
         maintenanceMarginPercentageString = None
         for i in range(0, len(leverageBracket)):
             bracket = leverageBracket[i]
-            if Precise.string_lt(notionalStringAbs, self.safe_value(bracket, 0)):
+            if Precise.string_lt(notionalStringAbs, self.safe_string(bracket, 0)):
                 break
             maintenanceMarginPercentageString = self.safe_string(bracket, 1)
         notional = self.parse_number(notionalStringAbs)
@@ -13191,7 +13201,7 @@ class binance(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        rows = self.safe_list(response, 'rows')
+        rows = self.safe_list(response, 'rows', [])
         interest = self.parse_borrow_interests(rows, market)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
@@ -14690,7 +14700,7 @@ class binance(Exchange, ImplicitAPI):
             market = self.market(symbolsNormalized[0])
         type = 'swap'
         subType, paramsSubType = self.handle_sub_type_and_params('fetchFundingIntervals', market, params, 'linear')
-        response = None
+        response: List
         if self.is_linear(type, subType):
             response = self.fapiPublicGetFundingInfo(paramsSubType)
         elif self.is_inverse(type, subType):

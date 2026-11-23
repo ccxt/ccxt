@@ -154,10 +154,10 @@ class Client {
         $this->connected = new Future();
     }
 
-    public function set_ws_connector($proxy_address = null, $proxy_conenctor = null) {
+    public function set_ws_connector($proxy_address = null, $proxy_conenctor = null, $socket_connector_options = array()) {
         // set default connector
         if (!$proxy_address) {
-            $react_default_connector = new React\Socket\Connector();
+            $react_default_connector = new React\Socket\Connector($socket_connector_options);
             if ($this->noOriginHeader) {
                 $this->connector = new NoOriginHeaderConnector(Loop::get(), $react_default_connector);
             } else {

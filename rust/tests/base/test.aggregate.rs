@@ -14,14 +14,14 @@ pub fn testAggregate() {
             m.insert("id".to_string(), Value::Str("sampleexchange".into()));
         m
     }));
-    assert!(ccxt::runtime::is_true(&((exchange.milliseconds().as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
+    assert!(ccxt::runtime::is_true(&((Value::Int(exchange.milliseconds()).as_f64().unwrap_or(f64::NAN) > Value::Int(0).as_f64().unwrap_or(f64::NAN)))));
     // @SKIP_START_GO
     let mut bids: Value = Value::from(vec![Value::from(vec![Value::Float(789.1), Value::Float(111.05)]), Value::from(vec![Value::Float(789.1), Value::Float(111.05)]), Value::from(vec![Value::Float(123.3), Value::Float(456.2)]), Value::from(vec![Value::Float(784.2), Value::Float(111.05)]), Value::from(vec![Value::Float(789.1), Value::Float(111.05)])]);
     let mut expectedBids: Value = Value::from(vec![Value::from(vec![Value::Float(123.3), Value::Float(456.2)]), Value::from(vec![Value::Float(784.2), Value::Float(111.05)]), Value::from(vec![Value::Float(789.1), Value::Float(333.15)])]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("aggregate".into()).clone(), exchange.aggregate(exchange.sort_by(bids.clone(), Value::Int(0), &[])).clone(), expectedBids.clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("aggregate".into()).clone(), exchange.aggregate(exchange.sort_by(bids, Value::Int(0), &[])).clone(), expectedBids.clone()]);
     let mut asks: Value = Value::from(vec![Value::from(vec![Value::Float(123.2), Value::Float(456.2)]), Value::from(vec![Value::Float(784.2), Value::Float(222.44)]), Value::from(vec![Value::Float(789.1), Value::Float(111.01)])]);
     let mut expectedAsks: Value = Value::from(vec![Value::from(vec![Value::Float(123.2), Value::Float(456.2)]), Value::from(vec![Value::Float(784.2), Value::Float(222.44)]), Value::from(vec![Value::Float(789.1), Value::Float(111.01)])]);
-    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("aggregate".into()).clone(), exchange.aggregate(exchange.sort_by(asks.clone(), Value::Int(0), &[])).clone(), expectedAsks.clone()]);
+    crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("aggregate".into()).clone(), exchange.aggregate(exchange.sort_by(asks, Value::Int(0), &[])).clone(), expectedAsks.clone()]);
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("aggregate".into()).clone(), exchange.aggregate(Value::from(vec![])).clone(), Value::from(vec![]).clone()]);
     // Test 1: Simple aggregation - same price combined
     let mut result1: Value = exchange.aggregate(Value::from(vec![Value::from(vec![Value::Float(100.2), Value::Float(1.01)]), Value::from(vec![Value::Float(101.5), Value::Float(2.01)]), Value::from(vec![Value::Float(100.2), Value::Float(0.5)])]));
@@ -54,5 +54,5 @@ pub fn testAggregate() {
     let mut result10: Value = exchange.aggregate(Value::from(vec![Value::from(vec![Value::Float(100.2), Value::Float(1.04)]), Value::from(vec![Value::Float(100.2), Value::Int(0)]), Value::from(vec![Value::Float(100.2), Value::Float(2.04)])]));
     crate::tests_support::shared::assert_deep_equal(&exchange.clone_self(), &[Value::Null.clone(), Value::Str("testAggregate".into()).clone(), result10.clone(), Value::from(vec![Value::from(vec![Value::Float(100.2), Value::Float(3.08)])]).clone()]);
     // @SKIP_END_GO
-    exchange.uuid(&[]); // placeholder for astt
+    Value::from(exchange.uuid(&[])); // placeholder for astt
 }

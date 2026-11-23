@@ -6,7 +6,6 @@ import ccxt "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 import "strconv"
-
 import "strings"
 
 type Derive struct {
@@ -63,8 +62,8 @@ func (this *Derive) Describe() map[string]any {
 }
 func (this *Derive) RequestId(url *string) int64 {
 	var options map[string]any = ccxt.SafeMapTyped(this.Options, "requestId")
-	var previousValue *int64 = this.SafeInteger(options, url, 0)
-	var newValue int64 = this.Sum(previousValue, 1).(int64)
+	var previousValue int64 = *this.SafeInteger(options, url, 0)
+	var newValue int64 = previousValue + 1
 	ccxt.AddElementToObject(this.Options["requestId"], url, newValue)
 	return newValue
 }
@@ -123,12 +122,12 @@ func (this *Derive) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookIn
 			panic(r.Err)
 		}
 	}
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 10
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 10
+	} else {
+		limitResolved = *limit
+	}
 	var market map[string]any = this.Market(symbol)
 	var marketId string = *this.SafeString(market, "id", "")
 	var topic *string = ccxt.SafeStringPtr(ccxt.Add("orderbook."+marketId+".10.", this.NumberToString(limitResolved)))
@@ -451,12 +450,12 @@ func (this *Derive) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol 
 		}
 	}
 	var limitRaw *int64 = this.SafeInteger(params, "limit")
-	var limit int64 = func() int64 {
-		if limitRaw == nil {
-			return 10
-		}
-		return *limitRaw
-	}()
+	var limit int64
+	if limitRaw == nil {
+		limit = 10
+	} else {
+		limit = *limitRaw
+	}
 	var market map[string]any = this.Market(symbol)
 	var marketId string = *this.SafeString(market, "id", "")
 	var topic string = "orderbook." + marketId + ".10." + strconv.FormatInt(limit, 10)
@@ -747,20 +746,20 @@ func (this *Derive) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
-	if authenticated == nil {
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash) != nil
+	if !authenticated {
 		var requestId int64 = this.RequestId(url)
 		var now *string = this.NumberToString(this.Nonce())
 		var signature any = this.SignMessage(now, this.PrivateKey)
 		var configuredWalletAddress *string = this.SafeString(this.Options, "deriveWalletAddress")
 		// v3: the owner wallet is the user's own EOA
-		var deriveWalletAddress any = func() any {
-			if (configuredWalletAddress == nil) || (configuredWalletAddress != nil && *configuredWalletAddress == "") {
-				return this.WalletAddress
-			}
-			return configuredWalletAddress
-		}()
+		var deriveWalletAddress string
+		if (configuredWalletAddress == nil) || (configuredWalletAddress != nil && *configuredWalletAddress == "") {
+			deriveWalletAddress = this.WalletAddress
+		} else {
+			deriveWalletAddress = *configuredWalletAddress
+		}
 		var request map[string]any = map[string]any{
 			"id":     requestId,
 			"method": "public/login",
@@ -779,7 +778,7 @@ func (this *Derive) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 		this.Watch(url, messageHash, message, messageHash, message)
 	}
 
-	r := <-future.(*ccxt.Future).Await()
+	r := <-future.Await()
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -954,12 +953,12 @@ func (this *Derive) HandleOrder(client any, message map[string]any) {
 			}
 			var cachedOrders ccxt.WsArrayCache = this.Orders
 			var orders map[string]any = ccxt.SafeMapTyped(cachedOrders.(*ccxt.ArrayCache).Hashmap, symbol)
-			var order any = func() any {
-				if orderId == nil {
-					return nil
-				}
-				return this.SafeDict(orders, orderId)
-			}()
+			var order map[string]any
+			if orderId == nil {
+				order = nil
+			} else {
+				order = this.SafeDictMap(orders, orderId)
+			}
 			if order != nil {
 				var fee map[string]any = this.SafeDictMap(order, "fee")
 				if fee != nil {
@@ -1306,16 +1305,16 @@ func (this *Derive) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 	subaccountIdparamsDeriveSubaccountIdVariable := this.HandleDeriveSubaccountId("watchPositions", paramsSnapshot)
 	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
 	var paramsDeriveSubaccountId map[string]any = subaccountIdparamsDeriveSubaccountIdVariable[1].(map[string]any)
-	if this.Positions == nil {
-		var emptyCaches map[string]any = map[string]any{}
-		this.Positions = emptyCaches
+	if this.IsEmpty(this.PositionsByType) {
 		var emptySnapshots map[string]any = map[string]any{}
 		this.Options["loadedPositionsSnapshots"] = emptySnapshots
 	}
 	// the cache and the snapshot are tracked per subaccount, so subaccounts holding the same instrument and side do not overwrite each other
 	var subaccountIdKey *string = this.NumberToString(subaccountId)
-	if !(ccxt.InOp(this.Positions, subaccountIdKey)) {
-		ccxt.AddElementToObject(this.Positions, subaccountIdKey, ccxt.NewArrayCacheBySymbolBySide())
+	if !(subaccountIdKey != nil && this.PositionsByType[*subaccountIdKey] != nil) {
+		if subaccountIdKey != nil {
+			this.PositionsByType[*subaccountIdKey] = ccxt.NewArrayCacheBySymbolBySide()
+		}
 	}
 	var loadedSnapshots map[string]any = this.SafeDictMap(this.Options, "loadedPositionsSnapshots", map[string]any{})
 	var subaccountIdKeyKnown bool
@@ -1333,10 +1332,10 @@ func (this *Derive) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 			panic(r1.Err)
 		}
 		var positionsSnapshot []any = ccxt.PositionsToList(r1.Value)
-		var cache any = this.SafeValue(this.Positions, subaccountIdKey)
+		var cache ccxt.WsArrayCache = this.PositionsByType[*subaccountIdKey]
 		for i := 0; i < len(positionsSnapshot); i++ {
-			var snapshotPosition any = this.SafeValue(positionsSnapshot, i)
-			cache.(ccxt.Appender).Append(snapshotPosition)
+			var snapshotPosition any = this.SafeDict(positionsSnapshot, i)
+			cache.Append(snapshotPosition)
 		}
 		if subaccountIdKey != nil {
 			loadedSnapshots[*subaccountIdKey] = true
@@ -1379,7 +1378,7 @@ func (this *Derive) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.SafeValue(this.Positions, subaccountIdKey), symbolsResolved, since, limit, true))}
+	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.PositionsByType[*subaccountIdKey], symbolsResolved, since, limit, true))}
 	return nil
 }
 func (this *Derive) HandlePositionDelta(subaccountIdKey string, entry map[string]any) any {
@@ -1388,29 +1387,29 @@ func (this *Derive) HandlePositionDelta(subaccountIdKey string, entry map[string
 	var symbol *string = this.SafeString(market, "symbol", "")
 	var newSize *string = this.SafeString(entry, "new_balance", "0")
 	var isShort bool = ccxt.Precise.StringLt(newSize, "0")
-	var side string = func() string {
-		if isShort {
-			return "short"
-		}
-		return "long"
-	}()
+	var side string
+	if isShort {
+		side = "short"
+	} else {
+		side = "long"
+	}
 	var contracts *string = ccxt.Precise.StringAbs(newSize)
-	var cache any = this.SafeValue(this.Positions, subaccountIdKey)
+	var cache ccxt.WsArrayCache = this.PositionsByType[subaccountIdKey]
 	var symbolPositions map[string]any = ccxt.SafeMapTyped(cache.(*ccxt.ArrayCache).Hashmap, symbol)
 	// a fill through zero flattens the opposite side first
-	var oppositeSide string = func() string {
-		if isShort {
-			return "long"
-		}
-		return "short"
-	}()
+	var oppositeSide string
+	if isShort {
+		oppositeSide = "long"
+	} else {
+		oppositeSide = "short"
+	}
 	var opposite map[string]any = this.SafeDictMap(symbolPositions, oppositeSide)
 	if opposite != nil {
 		var oppositeContracts *string = this.SafeString(opposite, "contracts")
 		if (oppositeContracts != nil) && (oppositeContracts == nil || *oppositeContracts != "0") {
 			ccxt.AddElementToObject(opposite, "contracts", this.ParseNumber("0"))
 			ccxt.AddElementToObject(opposite, "lastUpdateTimestamp", this.Milliseconds())
-			cache.(ccxt.Appender).Append(opposite)
+			cache.Append(opposite)
 		}
 	}
 	var position any = this.SafeDict(symbolPositions, side)
@@ -1429,7 +1428,7 @@ func (this *Derive) HandlePositionDelta(subaccountIdKey string, entry map[string
 	ccxt.AddElementToObject(position, "side", side)
 	ccxt.AddElementToObject(position, "lastUpdateTimestamp", this.Milliseconds())
 	ccxt.AddElementToObject(position, "info", entry)
-	cache.(ccxt.Appender).Append(position)
+	cache.Append(position)
 	return position
 }
 func (this *Derive) HandleBalance(client any, message map[string]any) {
@@ -1465,7 +1464,7 @@ func (this *Derive) HandleBalance(client any, message map[string]any) {
 		var name string = *this.SafeString(entry, "name", "")
 		if strings.Index(name, "-") >= 0 {
 			// position deltas carry instrument names and do not belong into the balance structure
-			if (this.Positions != nil) && (ccxt.InOp(this.Positions, subaccountIdKey)) {
+			if subaccountIdKey != nil && this.PositionsByType[*subaccountIdKey] != nil {
 				var position any = this.HandlePositionDelta(*subaccountIdKey, entry)
 				positionUpdates = append(positionUpdates, position)
 			}
@@ -1623,8 +1622,8 @@ func (this *Derive) HandleAuth(client any, message map[string]any) {
 	var idsLength int = len(ids)
 	if idsLength > 0 {
 		// client.resolve (message, messageHash)
-		var future any = client.(ccxt.ClientInterface).FutureGet("authenticated")
-		future.(*ccxt.Future).Resolve(true)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
+		future.Resolve(true)
 	} else {
 		error := ccxt.AuthenticationError(this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)

@@ -60,7 +60,7 @@ func (this *Poloniex) Describe() map[string]any {
 			"fetchFundingHistory":            false,
 			"fetchFundingInterval":           false,
 			"fetchFundingIntervals":          false,
-			"fetchFundingRate":               false,
+			"fetchFundingRate":               true,
 			"fetchFundingRateHistory":        false,
 			"fetchFundingRates":              nil,
 			"fetchGreeks":                    false,
@@ -657,6 +657,7 @@ func (this *Poloniex) Describe() map[string]any {
 		"precisionMode": TICK_SIZE,
 		"exceptions": map[string]any{
 			"exact": map[string]any{
+				"401":    PermissionDenied,
 				"500":    ExchangeNotAvailable,
 				"603":    RequestTimeout,
 				"601":    BadRequest,
@@ -798,7 +799,11 @@ func (this *Poloniex) Describe() map[string]any {
 				"12004":  PermissionDenied,
 				"21001":  OperationRejected,
 			},
-			"broad": map[string]any{},
+			"broad": map[string]any{
+				"Invalid Apikey or Signature": AuthenticationError,
+				"ApiKey not exist":            AuthenticationError,
+				"Illegal of ip":               PermissionDenied,
+			},
 		},
 	})
 }
@@ -892,11 +897,11 @@ func (this *Poloniex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes69219 []any = r1.Value
-		if retRes69219 == nil {
+		var retRes69719 []any = r1.Value
+		if retRes69719 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes69219)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes69719)}
 		}
 		return nil
 	}
@@ -926,8 +931,8 @@ func (this *Poloniex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		// so end the window at the start of the limit-th candle from the first one at or after since
 		var duration int64 = this.ParseTimeframe(timeframe) * 1000
 		var firstCandle int64 = this.ParseToInt(math.Ceil(float64(*since)/float64(duration))) * duration
-		var endTimeByLimit any = this.Sum(firstCandle, duration*(*limit-1))
-		AddElementToObject(requestUntil, keyEnd, mathMin(endTimeByLimit, this.Milliseconds()))
+		var endTimeByLimit int64 = firstCandle + duration*(*limit-1)
+		AddElementToObject(requestUntil, keyEnd, min(endTimeByLimit, this.Milliseconds()))
 	}
 	if *this.SafeBool(market, "contract", false) {
 
@@ -1147,7 +1152,7 @@ func (this *Poloniex) fetchSwapMarketsBody(ch chan AsyncResult[[]MarketInterface
 	//                "limitMaxQty": "1000000"
 	//            },
 	//
-	var markets []any = SafeListTyped(response, "data")
+	var markets []any = SafeListTypedDefault(response, "data", []any{})
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(markets))}
 	return nil
@@ -1620,11 +1625,10 @@ func (this *Poloniex) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 	return nil
 }
 func (this *Poloniex) ParseCurrency(currency any) map[string]any {
-	var entry any = currency
-	var id *string = this.SafeString(entry, "coin")
+	var id *string = this.SafeString(currency, "coin")
 	var code *string = this.SafeCurrencyCode(id)
 	var networks map[string]any = map[string]any{}
-	var chains []any = SafeListTyped(entry, "networkList")
+	var chains []any = SafeListTyped(currency, "networkList")
 	var chainsLength int = len(chains)
 	for j := 0; j < chainsLength; j++ {
 		var chain map[string]any = SafeMapTyped(chains, j)
@@ -1656,18 +1660,18 @@ func (this *Poloniex) ParseCurrency(currency any) map[string]any {
 	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
-		"name":      this.SafeString(entry, "name"),
+		"name":      this.SafeString(currency, "name"),
 		"code":      code,
 		"type":      nil,
 		"precision": nil,
-		"info":      entry,
+		"info":      currency,
 		"networks":  networks,
 		"deposit":   nil,
 		"withdraw":  nil,
 		"active":    nil,
 		"fee":       nil,
 		"limits":    nil,
-		"margin":    this.SafeBool(entry, "supportBorrow"),
+		"margin":    this.SafeBool(currency, "supportBorrow"),
 	})
 }
 
@@ -2010,11 +2014,11 @@ func (this *Poloniex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes158619 []any = r1.Value
-		if retRes158619 == nil {
+		var retRes159019 []any = r1.Value
+		if retRes159019 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes158619)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes159019)}
 		}
 		return nil
 	}
@@ -2385,9 +2389,9 @@ func (this *Poloniex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 	if limit != nil {
 		if marketType != nil && *marketType == "spot" {
-			request["limit"] = mathMax(limit, 2000)
+			request["limit"] = max(*limit, 2000)
 		} else {
-			request["limit"] = mathMax(limit, 100)
+			request["limit"] = max(*limit, 100)
 		}
 	}
 	var isTrigger *bool = this.SafeBool2(paramsMarketType, "trigger", "stop")
@@ -2530,7 +2534,7 @@ func (this *Poloniex) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 		panic(NotSupported(this.Id + " fetchClosedOrders() is not supported for spot markets yet"))
 	}
 	if limit != nil {
-		request["limit"] = mathMin(200, limit)
+		request["limit"] = min(200, *limit)
 	}
 	if since != nil {
 		request["sTime"] = since
@@ -2848,13 +2852,13 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
 	if isMarket {
 		if IsEqual(side, "buy") {
 			var quoteAmount any = nil
-			var createMarketBuyOrderRequiresPrice any = true
+			var createMarketBuyOrderRequiresPrice bool = true
 			createMarketBuyOrderRequiresPrice, queryOmitted = this.HandleOptionBoolAndParams(queryOmitted, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			var cost *float64 = this.SafeNumber(queryOmitted, "cost")
 			queryOmitted = this.Omit(queryOmitted, "cost")
 			if cost != nil {
 				quoteAmount = this.CostToPrecision(symbol, cost)
-			} else if (createMarketBuyOrderRequiresPrice == true) && (*this.SafeBool(market, "spot", false)) {
+			} else if createMarketBuyOrderRequiresPrice && (*this.SafeBool(market, "spot", false)) {
 				if price == nil {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument"))
 				} else {
@@ -2981,12 +2985,12 @@ func (this *Poloniex) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
-func (this *Poloniex) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Poloniex) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Poloniex) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	//
@@ -3039,12 +3043,12 @@ func (this *Poloniex) cancelOrderBody(ch chan AsyncResult[Order], id any, option
 		return nil
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
-	var idValue any = func() any {
-		if clientOrderId != nil {
-			return clientOrderId
-		}
-		return id
-	}()
+	var idValue string
+	if clientOrderId != nil {
+		idValue = *clientOrderId
+	} else {
+		idValue = id
+	}
 	request["id"] = idValue
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "trigger", "stop"})
@@ -3090,12 +3094,12 @@ func (this *Poloniex) cancelOrderBody(ch chan AsyncResult[Order], id any, option
  * @param {string[]} [params.clientOrderIds] alternative to ids, cancel by client order ids
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Poloniex) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Poloniex) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Poloniex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Poloniex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3115,7 +3119,7 @@ func (this *Poloniex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, op
 	var clientOrderIds any = this.SafeList2(paramsMarketType, "clientOrderIds", "clOrdIds")
 	var query map[string]any = this.OmitDict(paramsMarketType, []any{"clientOrderIds", "clOrdIds"})
 	var request map[string]any = map[string]any{}
-	var idsLength int = GetArrayLength(ids)
+	var idsLength int = len(ids)
 	if marketType == nil || *marketType != "spot" {
 		if market == nil {
 			panic(ArgumentsRequired(this.Id + " cancelOrders() requires a symbol argument for " + *marketType + " markets"))
@@ -3393,12 +3397,12 @@ func (this *Poloniex) fetchOrderStatusBody(ch chan AsyncResult[*string], id stri
 		"true":  "open",
 		"false": "closed",
 	}
-	var found string = func() string {
-		if func() bool { _, ok := indexed[id]; return ok }() {
-			return "true"
-		}
-		return "false"
-	}()
+	var found string
+	if func() bool { _, ok := indexed[id]; return ok }() {
+		found = "true"
+	} else {
+		found = "false"
+	}
 
 	ch <- AsyncResult[*string]{Value: this.SafeString(statuses, found)}
 	return nil
@@ -3681,7 +3685,7 @@ func (this *Poloniex) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradin
  * @see https://api-docs.poloniex.com/spot/api/public/market-data#order-book
  * @see https://api-docs.poloniex.com/v3/futures/api/market/get-order-book
  * @param {string} symbol unified symbol of the market to fetch the order book for
- * @param {int} [limit] the maximum amount of order book entries to return
+ * @param {int} [limit] the maximum amount of order book entries to return, rounded up to one of 5, 10, 20, 50, 100, 150
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
@@ -3707,10 +3711,8 @@ func (this *Poloniex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
-		if *this.SafeBool(market, "contract", false) {
-			request["limit"] = this.FindNearestCeiling([]any{5, 10, 20, 100, 150}, limit)
-		}
+		// both hosts accept only these depths, anything else is rejected with 24104
+		request["limit"] = this.FindNearestCeiling([]any{5, 10, 20, 50, 100, 150}, limit)
 	}
 	if *this.SafeBool(market, "contract", false) {
 
@@ -3781,6 +3783,111 @@ func (this *Poloniex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 		"nonce":     nil,
 	})}
 	return nil
+}
+
+/**
+ * @method
+ * @name poloniex#fetchFundingRate
+ * @description fetch the current funding rate
+ * @see https://api-docs.poloniex.com/v3/futures/api/market/get-current-funding-rate
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+ */
+func (this *Poloniex) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[FundingRate] {
+	ch := make(chan AsyncResult[FundingRate], 1)
+	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Poloniex) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var market map[string]any = this.Market(symbol)
+	if !(*this.SafeBool(market, "swap", false)) {
+		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
+	}
+	var request map[string]any = map[string]any{
+		"symbol": market["id"],
+	}
+
+	r1 := <-this.SwapPublicGetV3MarketFundingRate(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
+	//
+	//    {
+	//        "code": 200,
+	//        "msg": "Success",
+	//        "data": {
+	//            "s": "BTC_USDT_PERP",
+	//            "fR": "0.0001",
+	//            "fT": "1795276800000",
+	//            "nFR": "0.0001",
+	//            "nFT": "1795305600000"
+	//        }
+	//    }
+	//
+	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+
+	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(data, market)}
+	return nil
+}
+func (this *Poloniex) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+	//
+	//    {
+	//        "s": "BTC_USDT_PERP",
+	//        "fR": "0.0001",
+	//        "fT": "1795276800000",
+	//        "nFR": "0.0001",
+	//        "nFT": "1795305600000"
+	//    }
+	//
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = market
+	var marketId *string = this.SafeString(contract, "s")
+	// fR and fT are the funding that already settled, nFR and nFT the one about to be applied
+	var previousFundingTimestamp *int64 = this.SafeInteger(contract, "fT")
+	var fundingTimestamp *int64 = this.SafeInteger(contract, "nFT")
+	var intervalMilliseconds *string = Precise.StringSub(this.SafeString(contract, "nFT"), this.SafeString(contract, "fT"))
+	return FundingRateFromMap(map[string]any{
+		"info":                     contract,
+		"symbol":                   this.SafeSymbol(marketId, market),
+		"markPrice":                nil,
+		"indexPrice":               nil,
+		"interestRate":             nil,
+		"estimatedSettlePrice":     nil,
+		"timestamp":                nil,
+		"datetime":                 nil,
+		"fundingRate":              this.SafeNumber(contract, "nFR"),
+		"fundingTimestamp":         fundingTimestamp,
+		"fundingDatetime":          this.Iso8601(fundingTimestamp),
+		"nextFundingRate":          nil,
+		"nextFundingTimestamp":     nil,
+		"nextFundingDatetime":      nil,
+		"previousFundingRate":      this.SafeNumber(contract, "fR"),
+		"previousFundingTimestamp": previousFundingTimestamp,
+		"previousFundingDatetime":  this.Iso8601(previousFundingTimestamp),
+		"interval":                 this.ParseFundingInterval(intervalMilliseconds),
+	})
+}
+func (this *Poloniex) ParseFundingInterval(interval *string) *string {
+	var intervals map[string]any = map[string]any{
+		"3600000":  "1h",
+		"7200000":  "2h",
+		"14400000": "4h",
+		"28800000": "8h",
+		"57600000": "16h",
+		"86400000": "24h",
+	}
+	return this.SafeString(intervals, interval, interval)
 }
 
 /**
@@ -3893,7 +4000,7 @@ func (this *Poloniex) PrepareRequestForDepositAddress(code string, optionalArgs 
 	}
 	var currency map[string]any = this.Currency(code)
 	var networkCode any = nil
-	var query any = nil
+	var query map[string]any = nil
 	var networkCodePtr *string = nil
 	networkCodePtr, query = this.HandleNetworkCodeAndParams(params)
 	if networkCodePtr != nil {
@@ -3902,7 +4009,7 @@ func (this *Poloniex) PrepareRequestForDepositAddress(code string, optionalArgs 
 	if networkCode == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress requires a network parameter for " + code + "."))
 	}
-	var exchangeNetworkId any = nil
+	var exchangeNetworkId *string = nil
 	networkCode = DerefScalar(this.NetworkIdToCode(networkCode, code))
 	var networkEntry any = func() any {
 		if networkCode == nil {
@@ -3911,11 +4018,7 @@ func (this *Poloniex) PrepareRequestForDepositAddress(code string, optionalArgs 
 		return this.SafeDict(currency["networks"], networkCode)
 	}()
 	if networkEntry != nil {
-		if derefPtr := this.SafeString(networkEntry, "id"); derefPtr != nil {
-			exchangeNetworkId = *derefPtr
-		} else {
-			exchangeNetworkId = nil
-		}
+		exchangeNetworkId = this.SafeString(networkEntry, "id")
 	} else {
 		exchangeNetworkId = this.NetworkCodeToId(networkCode, code)
 	}
@@ -3978,7 +4081,7 @@ func (this *Poloniex) transferBody(ch chan AsyncResult[TransferEntry], code stri
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	var fromId *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toId *string = this.SafeString(accountsByType, toAccount, toAccount)
-	var amountToPrecision any = this.CurrencyToPrecision(code, amount)
+	var amountToPrecision *string = this.CurrencyToPrecision(code, amount)
 	var request map[string]any = map[string]any{
 		"amount":      amountToPrecision,
 		"currency":    currency["id"],
@@ -4681,7 +4784,7 @@ func (this *Poloniex) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.FilterByCurrencySinceLimit(transactions, code, since, limit))}
 	return nil
 }
-func (this *Poloniex) ParseTransactionStatus(status any) *string {
+func (this *Poloniex) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"COMPLETE":          "ok",
 		"COMPLETED":         "ok",
@@ -4740,8 +4843,8 @@ func (this *Poloniex) ParseTransaction(transaction any, optionalArgs ...any) Tra
 	var timestamp *int64 = this.SafeTimestamp(transactionValue, "timestamp")
 	var currencyId *string = this.SafeString(transactionValue, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var status any = (*this.SafeString(transactionValue, "status", "pending"))
-	status = this.ParseTransactionStatus(status)
+	var rawStatus *string = this.SafeString(transactionValue, "status", "pending")
+	var status *string = this.ParseTransactionStatus(rawStatus)
 	var txid *string = this.SafeString(transactionValue, "txid")
 	var typeVar string = "deposit"
 	if this.SafeString(transactionValue, "withdrawalRequestsId") != nil {
@@ -5162,7 +5265,7 @@ func (this *Poloniex) ParsePosition(position any, optionalArgs ...any) Position 
 	var leverage *string = this.SafeString(position, "lever")
 	var initialMargin *string = this.SafeString(position, "im")
 	var notional *string = Precise.StringMul(leverage, initialMargin)
-	var positionMargin any = nil
+	var positionMargin *string = nil
 	var collateral any = nil
 	if marginMode != nil && *marginMode == "isolated" {
 		positionMargin = this.OmitZero(this.SafeString(position, "mgn"))
@@ -5265,12 +5368,12 @@ func (this *Poloniex) ParseMarginModification(data any, optionalArgs ...any) map
 	var marketId *string = this.SafeString(data, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var rawType *string = this.SafeString(data, "type")
-	var typeVar string = func() string {
-		if rawType != nil && *rawType == "ADD" {
-			return "add"
-		}
-		return "reduce"
-	}()
+	var typeVar string
+	if rawType != nil && *rawType == "ADD" {
+		typeVar = "add"
+	} else {
+		typeVar = "reduce"
+	}
 	return map[string]any{
 		"info":       data,
 		"symbol":     marketResolved["symbol"],
@@ -5424,8 +5527,8 @@ func (this *Poloniex) HandleErrors(code int64, reason string, url string, method
 	if (responseCode != nil) && (responseCode == nil || *responseCode != "200") {
 		var message *string = this.SafeString2(response, "message", "msg")
 		var feedback string = this.Id + " " + body
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], responseCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], responseCode, feedback)
 		panic(ExchangeError(feedback))
 	}
 	return nil
@@ -5979,7 +6082,7 @@ func (this *Poloniex) FetchTradingFees(params ...any) (TradingFees, error) {
  * @see https://api-docs.poloniex.com/spot/api/public/market-data#order-book
  * @see https://api-docs.poloniex.com/v3/futures/api/market/get-order-book
  * @param {string} symbol unified symbol of the market to fetch the order book for
- * @param {int} [limit] the maximum amount of order book entries to return
+ * @param {int} [limit] the maximum amount of order book entries to return, rounded up to one of 5, 10, 20, 50, 100, 150
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
@@ -5995,6 +6098,30 @@ func (this *Poloniex) FetchOrderBook(symbol string, options ...FetchOrderBookOpt
 		return OrderBook{}, r.Err
 	}
 	var res OrderBook = r.Value
+	return res, nil
+}
+
+/**
+ * @method
+ * @name poloniex#fetchFundingRate
+ * @description fetch the current funding rate
+ * @see https://api-docs.poloniex.com/v3/futures/api/market/get-current-funding-rate
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+ */
+func (this *Poloniex) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
+
+	opts := FetchFundingRateOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.FetchFundingRateAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return FundingRate{}, r.Err
+	}
+	var res FundingRate = r.Value
 	return res, nil
 }
 

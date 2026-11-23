@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official myokx API documentation:** [my.okx.com](https://my.okx.com/docs-v5/en/#overview)
 
-> 471 implicit endpoints across 2 access groups.
+> 473 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -212,6 +212,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetAssetDepositHistory` | GET | `asset/deposit-history` | 1.6666666666666667 |
 | `privateGetAssetWithdrawalHistory` | GET | `asset/withdrawal-history` | 1.6666666666666667 |
 | `privateGetAssetDepositWithdrawStatus` | GET | `asset/deposit-withdraw-status` | 20 |
+| `privateGetAssetTravelRuleGetLocked` | GET | `asset/travel-rule/get-locked` | 3.3333333333333335 |
 | `privateGetAssetMonthlyStatement` | GET | `asset/monthly-statement` | 2 |
 | `privateGetAssetConvertCurrencies` | GET | `asset/convert/currencies` | 1.6666666666666667 |
 | `privateGetAssetConvertCurrencyPair` | GET | `asset/convert/currency-pair` | 1.6666666666666667 |
@@ -405,6 +406,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostAssetWithdrawal` | POST | `asset/withdrawal` | 1.6666666666666667 |
 | `privatePostAssetWithdrawalLightning` | POST | `asset/withdrawal-lightning` | 5 |
 | `privatePostAssetCancelWithdrawal` | POST | `asset/cancel-withdrawal` | 1.6666666666666667 |
+| `privatePostAssetTravelRuleUnlock` | POST | `asset/travel-rule/unlock` | 3.3333333333333335 |
 | `privatePostAssetConvertDustAssets` | POST | `asset/convert-dust-assets` | 10 |
 | `privatePostAssetMonthlyStatement` | POST | `asset/monthly-statement` | 1296000 |
 | `privatePostAssetConvertEstimateQuote` | POST | `asset/convert/estimate-quote` | 50 |

@@ -1781,7 +1781,7 @@ class aster(Exchange, ImplicitAPI):
         #
         return self.parse_tickers(response, symbolsNormalized)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         # fundingRate
         #
@@ -1896,7 +1896,7 @@ class aster(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_funding_rates(response, symbolsNormalized)
+        return self.parse_funding_rates(self.to_array(response), symbolsNormalized)
 
     def fetch_funding_intervals(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
         """
@@ -2237,7 +2237,6 @@ class aster(Exchange, ImplicitAPI):
         #            "orderListId": "-1"
         #        }
         #
-        info = order
         positionSide = self.safe_string(order, 'positionSide')
         defaultType = 'spot'
         if positionSide is not None:
@@ -2251,7 +2250,7 @@ class aster(Exchange, ImplicitAPI):
         stopPriceString = self.safe_string(order, 'stopPrice')
         triggerPrice = self.parse_number(self.omit_zero(stopPriceString))
         return self.safe_order({
-            'info': info,
+            'info': order,
             'id': self.safe_string(order, 'orderId'),
             'clientOrderId': self.safe_string(order, 'clientOrderId'),
             'symbol': self.safe_symbol(marketId, marketResolved),
@@ -2425,7 +2424,7 @@ class aster(Exchange, ImplicitAPI):
         if since is not None:
             request['startTime'] = since
         requestUntil, paramsUntil = self.handle_until_option('endTime', request, params)
-        response: dict
+        response: List
         if self.safe_bool(market, 'swap', False):
             response = self.fapiPrivateGetV3AllOrders(self.extend(requestUntil, paramsUntil))
         else:
@@ -2896,8 +2895,12 @@ class aster(Exchange, ImplicitAPI):
         if clientOrderIdList is not None:
             request['origClientOrderIdList'] = clientOrderIdList
         else:
-            request['orderIdList'] = ids
-        response: dict
+            # the api takes LONG[] order ids
+            orderIdList = []
+            for i in range(0, len(ids)):
+                orderIdList.append(self.parse_to_numeric(ids[i]))
+            request['orderIdList'] = orderIdList
+        response: List
         if self.safe_bool(market, 'swap', False):
             response = self.fapiPrivateDeleteV3BatchOrders(self.extend(request, params))
             #

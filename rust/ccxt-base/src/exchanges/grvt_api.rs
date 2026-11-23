@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::grvt::GrvtCore;
+use super::grvt::Grvt;
 use crate::exchange::ExchangeRuntime;
 
-impl GrvtCore {
+impl Grvt {
     /// Auto-generated wrapper for the `privateEdgeGetApiV1DepositAddresses` implicit endpoint.
     pub async fn private_edge_get_api_v1_deposit_addresses(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_edge_get_api_v1_deposit_addresses".into()), optional_args).await

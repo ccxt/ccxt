@@ -3,10 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "build": "next build",
+    "build": "npm run og-images && next build",
     "dev": "next dev",
     "start": "next start",
     "start:static": "serve out",
+    "og-images": "node scripts/generate-og-images.mjs",
     "types:check": "fumadocs-mdx && next typegen && tsc --noEmit",
     "postinstall": "fumadocs-mdx"
   },
@@ -25,7 +26,7 @@
     "fumadocs-ui": "16.11.5",
     "hast-util-to-jsx-runtime": "^2.3.6",
     "lucide-react": "^1.16.0",
-    "next": "16.4.4",
+    "next": "16.4.5",
     "postcss": "^8.5.23",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",

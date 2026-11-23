@@ -859,7 +859,7 @@ class bitstamp(Exchange, ImplicitAPI):
         #
         return self.parse_currencies(response)
 
-    def parse_currencies(self, rawCurrencies: object) -> Currencies:
+    def parse_currencies(self, rawCurrencies: list) -> Currencies:
         # each market row yields two currencies so the accumulation happens
         # in a local dictionary here instead of a temp key inside this.options
         # because the shared scratch key raced between concurrent
@@ -1767,7 +1767,7 @@ class bitstamp(Exchange, ImplicitAPI):
     async def fetch_order_status(self, id: str, symbol: Str = None, params: dict = {}):
         if self.markets is None:
             await self.load_markets()
-        clientOrderId = self.safe_value_2(params, 'client_order_id', 'clientOrderId')
+        clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
         request = {}
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
@@ -1793,7 +1793,7 @@ class bitstamp(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        clientOrderId = self.safe_value_2(params, 'client_order_id', 'clientOrderId')
+        clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
         request = {}
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
@@ -2387,7 +2387,7 @@ class bitstamp(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate(response, market)
 
-    def parse_funding_rate(self, fundingRate: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, fundingRate: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "funding_rate": "0.0024",

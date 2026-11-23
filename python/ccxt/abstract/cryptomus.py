@@ -4,11 +4,9 @@ _Dict = dict[str, object]
 
 class ImplicitAPI:
     public_get_v2_user_api_exchange_markets = publicGetV2UserApiExchangeMarkets = Entry[_Dict]('v2/user-api/exchange/markets', ['public'], 'GET', {'cost': 1})
-    public_get_v2_user_api_exchange_market_price = publicGetV2UserApiExchangeMarketPrice = Entry[_Dict]('v2/user-api/exchange/market/price', ['public'], 'GET', {'cost': 1})
     public_get_v2_user_api_exchange_markets_price = publicGetV2UserApiExchangeMarketsPrice = Entry[_Dict]('v2/user-api/exchange/markets/price', ['public'], 'GET', {'cost': 1})
     public_get_v1_exchange_market_assets = publicGetV1ExchangeMarketAssets = Entry[_Dict]('v1/exchange/market/assets', ['public'], 'GET', {'cost': 1})
     public_get_v1_exchange_market_order_book_currencypair = publicGetV1ExchangeMarketOrderBookCurrencyPair = Entry[_Dict]('v1/exchange/market/order-book/{currencyPair}', ['public'], 'GET', {'cost': 1})
-    public_get_v1_exchange_market_tickers = publicGetV1ExchangeMarketTickers = Entry[_Dict]('v1/exchange/market/tickers', ['public'], 'GET', {'cost': 1})
     public_get_v1_exchange_market_trades_currencypair = publicGetV1ExchangeMarketTradesCurrencyPair = Entry[_Dict]('v1/exchange/market/trades/{currencyPair}', ['public'], 'GET', {'cost': 1})
     private_get_v2_user_api_exchange_orders = privateGetV2UserApiExchangeOrders = Entry[_Dict]('v2/user-api/exchange/orders', ['private'], 'GET', {'cost': 1})
     private_get_v2_user_api_exchange_orders_history = privateGetV2UserApiExchangeOrdersHistory = Entry[_Dict]('v2/user-api/exchange/orders/history', ['private'], 'GET', {'cost': 1})

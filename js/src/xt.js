@@ -4023,10 +4023,20 @@ export default class xt extends Exchange {
         const marketResolved = this.safeMarket(marketId, market, undefined, marketType);
         const symbol = this.safeSymbol(marketId, marketResolved, undefined, marketType);
         const timestamp = this.safeInteger2(order, 'time', 'createdTime');
-        const quantity = this.safeNumber(order, 'origQty');
-        const amount = (marketType === 'spot') ? quantity : Precise.stringMul(this.numberToString(quantity), this.numberToString(marketResolved['contractSize']));
-        const filledQuantity = this.safeNumber(order, 'executedQty');
-        const filled = (marketType === 'spot') ? filledQuantity : Precise.stringMul(this.numberToString(filledQuantity), this.numberToString(marketResolved['contractSize']));
+        const contractSize = this.safeString(marketResolved, 'contractSize');
+        const quantity = this.safeString(order, 'origQty');
+        // on spot market buy orders executedQty is denominated in the quote
+        // currency, so the filled base amount is only correct in tradeBase
+        const filledQuantity = this.safeString2(order, 'tradeBase', 'executedQty');
+        const amount = (marketType === 'spot') ? quantity : Precise.stringMul(quantity, contractSize);
+        const filled = (marketType === 'spot') ? filledQuantity : Precise.stringMul(filledQuantity, contractSize);
+        // leavingQty follows executedQty and is quote-denominated on the same
+        // spot market buy shape, so it is only read when the order carries a
+        // base-denominated origQty - otherwise safeOrder derives it from filled
+        let remaining = undefined;
+        if (quantity !== undefined) {
+            remaining = this.safeString(order, 'leavingQty');
+        }
         const lastUpdatedTimestamp = this.safeInteger(order, 'updatedTime');
         let timeInForce = this.safeString(order, 'timeInForce');
         let postOnly = undefined;
@@ -4062,7 +4072,7 @@ export default class xt extends Exchange {
             'lastTradeTimestamp': lastUpdatedTimestamp,
             'lastUpdateTimestamp': lastUpdatedTimestamp,
             'symbol': symbol,
-            'type': this.safeStringLower2(order, 'type', 'orderType'),
+            'type': this.parseOrderType(this.safeStringLowerN(order, ['type', 'orderType', 'entrustType'])),
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': side,
@@ -4072,8 +4082,8 @@ export default class xt extends Exchange {
             'takeProfitPrice': this.safeNumber(order, 'triggerProfitPrice'),
             'amount': amount,
             'filled': filled,
-            'remaining': this.safeNumber(order, 'leavingQty'),
-            'cost': undefined,
+            'remaining': remaining,
+            'cost': this.safeString(order, 'tradeQuote'),
             'average': this.safeNumber(order, 'avgPrice'),
             'status': this.parseOrderStatus(this.safeString(order, 'state')),
             'fee': {
@@ -4082,6 +4092,16 @@ export default class xt extends Exchange {
             },
             'trades': undefined,
         }, marketResolved);
+    }
+    parseOrderType(type) {
+        const types = {
+            'stop': 'limit',
+            'stop_market': 'market',
+            'take_profit': 'limit',
+            'take_profit_market': 'market',
+            'trailing_stop_market': 'market',
+        };
+        return this.safeString(types, type, type);
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -4402,6 +4422,7 @@ export default class xt extends Exchange {
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
      * @param {object} params extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
      */
     async withdraw(code, amount, address, params = {}) {
@@ -4913,7 +4934,6 @@ export default class xt extends Exchange {
      * @see https://doc.xt.com/docs/futures/MarketData/get-funding-rate-information
      * @param {string} symbol unified market symbol
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
     async fetchFundingInterval(symbol, params = {}) {
@@ -5146,7 +5166,7 @@ export default class xt extends Exchange {
         return result;
     }
     parseTradingFee(fee, market = undefined) {
-        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        const symbol = this.safeString(market, 'symbol');
         return {
             'info': fee,
             'symbol': symbol,
@@ -5951,8 +5971,9 @@ export default class xt extends Exchange {
             const jsonBody = this.json(query);
             signedBody = isUndefinedBody ? undefined : jsonBody;
             let payloadString = '';
+            const timestampPart = '&xt-validate-t' + 'imestamp=' + timestamp; // we can't glue timestamp, breaks in php
             if ((endpoint === 'spot') || (endpoint === 'user')) {
-                const spotPrefix = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + '&xt-validate-t' + 'imestamp=' + timestamp;
+                const spotPrefix = 'xt-validate-algorithms=HmacSHA256&xt-validate-appkey=' + this.apiKey + '&xt-validate-recvwindow=' + recvWindow + timestampPart;
                 if (isUndefinedBody) {
                     if (urlencoded !== '') {
                         url = apiUrl + payload + '?' + urlencoded;
@@ -5969,7 +5990,7 @@ export default class xt extends Exchange {
                 headersValue['xt-validate-recvwindow'] = recvWindow;
             }
             else {
-                const futurePrefix = 'xt-validate-appkey=' + this.apiKey + '&xt-validate-t' + 'imestamp=' + timestamp; // we can't glue timestamp, breaks in php
+                const futurePrefix = 'xt-validate-appkey=' + this.apiKey + timestampPart;
                 if (method === 'GET') {
                     if (urlencoded !== '') {
                         url = apiUrl + payload + '?' + urlencoded;

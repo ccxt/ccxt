@@ -360,6 +360,7 @@ export default class okx extends Exchange {
                         'asset/deposit-history': { 'cost': 5 / 3 } as Endpoint<Dict>,
                         'asset/withdrawal-history': { 'cost': 5 / 3 } as Endpoint<Dict>,
                         'asset/deposit-withdraw-status': { 'cost': 20 } as Endpoint<Dict>,
+                        'asset/travel-rule/get-locked': { 'cost': 10 / 3 } as Endpoint<Dict>,
                         'asset/monthly-statement': { 'cost': 2 } as Endpoint<Dict>,
                         'asset/convert/currencies': { 'cost': 5 / 3 } as Endpoint<Dict>,
                         'asset/convert/currency-pair': { 'cost': 5 / 3 } as Endpoint<Dict>,
@@ -571,6 +572,7 @@ export default class okx extends Exchange {
                         'asset/withdrawal': { 'cost': 5 / 3 } as Endpoint<Dict>,
                         'asset/withdrawal-lightning': { 'cost': 5 } as Endpoint<Dict>, // not documented
                         'asset/cancel-withdrawal': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        'asset/travel-rule/unlock': { 'cost': 10 / 3 } as Endpoint<Dict>,
                         'asset/convert-dust-assets': { 'cost': 10 } as Endpoint<Dict>,
                         'asset/monthly-statement': { 'cost': 1296000 } as Endpoint<Dict>, // 20 req/month, 10/20*30*24*60*60 = 1296000
                         'asset/convert/estimate-quote': { 'cost': 50 } as Endpoint<Dict>,
@@ -1045,6 +1047,11 @@ export default class okx extends Exchange {
                     '58229': InsufficientFunds, // Insufficient funding account balance to pay fees {fee} USDT
                     '58300': ExchangeError, // Deposit-address count exceeds the limit
                     '58350': InsufficientFunds, // Insufficient balance
+                    '58385': BadRequest, // Travel Rule questionnaire response format is invalid
+                    '58386': BadRequest, // Missing required field in the Travel Rule questionnaire response
+                    '58387': BadRequest, // Invalid enum value, country, or date in the Travel Rule questionnaire response
+                    '58388': ManualInteractionNeeded, // Control test required, please complete it in App/Web
+                    '58389': OperationRejected, // Unlocking unsuccessful, reach out to CS for further details
                     // Account error codes 59000-59999
                     '59000': ExchangeError, // Your settings failed as you have positions or open orders
                     '59001': ExchangeError, // Switching unavailable as you have borrowings
@@ -1722,7 +1729,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const data = this.safeList (response, 'data', []) as List;
+        const data: Dict[] = this.safeList (response, 'data', []) as List;
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
             const account = data[i];
@@ -2013,7 +2020,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const dataResponse = this.safeList (response, 'data', []) as List;
+        const dataResponse: Dict[] = this.safeList (response, 'data', []) as List;
         const marketsWithoutTest: List = [];
         for (let i = 0; i < dataResponse.length; i++) {
             const data = dataResponse[i];
@@ -2105,16 +2112,15 @@ export default class okx extends Exchange {
     }
 
     override parseCurrency (currency: Dict): CurrencyInterface {
-        const chains = currency;
         // currencies are grouped by chain entries, so there is at least one entry
-        const firstChain = this.safeDict (chains, 0, {});
+        const firstChain = this.safeDict (currency, 0, {});
         const currencyId = this.safeString (firstChain, 'ccy');
         const code = this.safeCurrencyCode (currencyId);
         const networks: Dict = {};
         let type = 'crypto';
-        const chainsLength = (chains as List).length;
+        const chainsLength = (currency as List).length;
         for (let j = 0; j < chainsLength; j++) {
-            const chain = this.safeDict (chains, j);
+            const chain = this.safeDict (currency, j);
             // allow empty string for rare fiat-currencies, e.g. TRY
             const networkId = this.safeString (chain, 'chain', ''); // USDT-BEP20, USDT-Avalance-C, etc
             if (networkId === '') {
@@ -2145,7 +2151,7 @@ export default class okx extends Exchange {
             }
         }
         return this.safeCurrencyStructure ({
-            'info': chains,
+            'info': currency,
             'code': code,
             'id': currencyId,
             'name': this.safeString (firstChain, 'name'),
@@ -2713,11 +2719,12 @@ export default class okx extends Exchange {
         }
         const market = this.market (symbol);
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
-        if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 200) as OHLCV[];
-        }
         const priceType = this.safeString (paramsPaginate, 'price');
         const isMarkOrIndex = this.inArray (priceType, [ 'mark', 'index' ]);
+        if (paginate) {
+            const maxEntriesPerRequest = (isMarkOrIndex) ? 100 : 200;
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxEntriesPerRequest) as OHLCV[];
+        }
         const paramsPrice: Dict = this.omit (paramsPaginate, 'price');
         const options = this.safeDict (this.options, 'fetchOHLCV', {});
         const timezone = this.safeString (options, 'timezone', 'UTC');
@@ -2757,7 +2764,10 @@ export default class okx extends Exchange {
         }
         const until = this.safeInteger (paramsPrice, 'until');
         if (until !== undefined) {
-            request['after'] = until;
+            const afterSince = this.safeInteger (request, 'after');
+            if ((afterSince === undefined) || (until < afterSince)) {
+                request['after'] = until;
+            }
         }
         const paramsUntil: Dict = (until !== undefined) ? this.omit (paramsPrice, 'until') : paramsPrice;
         defaultType = this.safeString (options, 'type', defaultType); // Candles or HistoryCandles
@@ -2814,6 +2824,7 @@ export default class okx extends Exchange {
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
@@ -2826,7 +2837,7 @@ export default class okx extends Exchange {
         }
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, 100) as FundingRateHistory[];
+            return await this.fetchPaginatedCallDynamic ('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 400) as FundingRateHistory[];
         }
         const market = this.market (symbol);
         const request: Dict = {
@@ -2838,7 +2849,12 @@ export default class okx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetPublicFundingRateHistory (this.extend (request, paramsPaginate));
+        const until = this.safeInteger (paramsPaginate, 'until');
+        if (until !== undefined) {
+            request['after'] = until;
+        }
+        const paramsUntil: Dict = (until !== undefined) ? this.omit (paramsPaginate, 'until') : paramsPaginate;
+        const response = await this.publicGetPublicFundingRateHistory (this.extend (request, paramsUntil));
         //
         //     {
         //         "code":"0",
@@ -2862,7 +2878,7 @@ export default class okx extends Exchange {
         //     }
         //
         const rates: List = [];
-        const data = this.safeList (response, 'data', []) as List;
+        const data: Dict[] = this.safeList (response, 'data', []) as List;
         for (let i = 0; i < data.length; i++) {
             const rate = data[i];
             const timestamp = this.safeInteger (rate, 'fundingTime');
@@ -3198,8 +3214,8 @@ export default class okx extends Exchange {
             throw new ArgumentsRequired (this.id + ' requires a side argument');
         }
         const market = this.market (symbol);
-        const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
-        const stopLossPrice = this.safeValue2 (params, 'stopLossPrice', 'slTriggerPx');
+        const takeProfitPrice = this.safeString2 (params, 'takeProfitPrice', 'tpTriggerPx');
+        const stopLossPrice = this.safeString2 (params, 'stopLossPrice', 'slTriggerPx');
         const conditional = (stopLossPrice !== undefined) || (takeProfitPrice !== undefined) || (type === 'conditional');
         const request: Dict = {
             'instId': market['id'],
@@ -4454,7 +4470,7 @@ export default class okx extends Exchange {
         let stopLossPrice: Num = this.safeNumber2 (order, 'slTriggerPx', 'slOrdPx');
         let takeProfitPrice: Num = this.safeNumber2 (order, 'tpTriggerPx', 'tpOrdPx');
         // regular orders carry attached sl/tp inside attachAlgoOrds
-        const attachAlgoOrds = this.safeList (order, 'attachAlgoOrds', []);
+        const attachAlgoOrds: Dict[] = this.safeList (order, 'attachAlgoOrds', []);
         for (let i = 0; i < attachAlgoOrds.length; i++) {
             const attached = attachAlgoOrds[i];
             if (stopLossPrice === undefined) {
@@ -6924,7 +6940,7 @@ export default class okx extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         //    {
         //        "fundingRate": "0.00027815",
@@ -8339,7 +8355,7 @@ export default class okx extends Exchange {
      */
     handleTradingStatisticsWindow (request: Dict, period: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Dict[] {
         const maxLimit = 100;
-        let effectiveLimit = this.parseToInt (100);
+        let effectiveLimit = 100;
         if ((limit !== undefined) && (100 > limit)) {
             effectiveLimit = this.parseToInt (limit);
         }

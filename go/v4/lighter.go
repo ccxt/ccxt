@@ -493,12 +493,12 @@ func (this *Lighter) Describe() map[string]any {
 		},
 	})
 }
-func (this *Lighter) LoadAccountAsync(chainId any, privateKey any, apiKeyIndex any, accountIndex any, optionalArgs ...any) <-chan AsyncResult[any] {
+func (this *Lighter) LoadAccountAsync(chainId any, privateKey *string, apiKeyIndex any, accountIndex any, optionalArgs ...any) <-chan AsyncResult[any] {
 	ch := make(chan AsyncResult[any], 1)
 	go this.loadAccountBody(ch, chainId, privateKey, apiKeyIndex, accountIndex, optionalArgs...)
 	return ch
 }
-func (this *Lighter) loadAccountBody(ch chan AsyncResult[any], chainId any, privateKey any, apiKeyIndex any, accountIndex any, optionalArgs ...any) any {
+func (this *Lighter) loadAccountBody(ch chan AsyncResult[any], chainId any, privateKey *string, apiKeyIndex any, accountIndex any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -512,7 +512,7 @@ func (this *Lighter) loadAccountBody(ch chan AsyncResult[any], chainId any, priv
 		return nil
 	}
 	libraryPath, _ := this.HandleOptionStringAndParams(params, "loadAccount", "libraryPath")
-	var lighterPrivateKeyIsSet bool = (!IsEqual(privateKey, nil)) && (!IsEqual(privateKey, ""))
+	var lighterPrivateKeyIsSet bool = (privateKey != nil) && (privateKey == nil || *privateKey != "")
 	if lighterPrivateKeyIsSet && (libraryPath != nil) && (!IsEqual(apiKeyIndex, nil)) && (!IsEqual(accountIndex, nil)) {
 		// load lighter library, and create lighter client
 
@@ -810,7 +810,12 @@ func (this *Lighter) CreateAuth(optionalArgs ...any) any {
 		"api_key_index": this.ParseToInt(apiKeyIndex),
 		"account_index": this.ParseToInt(accountIndex),
 	}
-	var token any = this.LighterCreateAuthToken(this.SafeValue(cachedAuth, "signer"), request)
+	var signer any = this.SafeValue(cachedAuth, "signer")
+	if signer == nil {
+		this.CheckRequiredCredentials()
+		panic(AuthenticationError(this.Id + " could not load the signer, set options[\"libraryPath\"] to the lighter signing library. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt"))
+	}
+	var token any = this.LighterCreateAuthToken(signer, request)
 	this.SetAuthEntry(accountIndex, apiKeyIndex, map[string]any{
 		"deadline": deadline,
 		"token":    token,
@@ -1177,7 +1182,7 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	var isMarketOrder bool = (orderType == "MARKET")
 	var timeInForce string = *this.SafeStringLower(paramsOrderExpiry, "timeInForce", "gtt")
 	var postOnly bool = this.IsPostOnly(isMarketOrder, nil, paramsOrderExpiry)
-	var paramsOmitted any = this.Omit(paramsOrderExpiry, []any{"stopLoss", "takeProfit", "timeInForce"})
+	var paramsOmitted map[string]any = this.OmitDict(paramsOrderExpiry, []any{"stopLoss", "takeProfit", "timeInForce"})
 	var orderTypeNum int
 	var timeInForceNum any = nil
 	if isMarketOrder {
@@ -1213,7 +1218,7 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	var triggerPriceStr any = "0"                       // default is 0
 	var defaultClientOrderId int64 = this.RandNumber(9) // c# only support int32 2147483647.
 	var clientOrderId *int64 = this.SafeInteger2(paramsOmitted, "client_order_index", "clientOrderId", defaultClientOrderId)
-	var paramsRequest any = this.Omit(paramsOmitted, []any{"reduceOnly", "reduce_only", "timeInForce", "postOnly", "nonce", "apiKeyIndex", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "client_order_index", "clientOrderId"})
+	var paramsRequest map[string]any = this.OmitDict(paramsOmitted, []any{"reduceOnly", "reduce_only", "timeInForce", "postOnly", "nonce", "apiKeyIndex", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "client_order_index", "clientOrderId"})
 	if isConditional {
 		amountStr = this.NumberToString(amount)
 		if stopLossPrice != nil {
@@ -2074,7 +2079,7 @@ func (this *Lighter) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 		"limit":     100,
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 250)
+		request["limit"] = min(*limit, 250)
 	}
 
 	r1 := <-this.PublicGetOrderBookOrders(this.Extend(request, params))
@@ -3229,7 +3234,7 @@ func (this *Lighter) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
 		"limit":         100,
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 100)
+		request["limit"] = min(*limit, 100)
 	}
 
 	r3 := <-this.PrivateGetAccountInactiveOrders(this.Extend(request, paramsApiKeyIndex))
@@ -3373,12 +3378,12 @@ func (this *Lighter) ParseOrder(order any, optionalArgs ...any) Order {
 	}
 	// Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
 	var tifAsInteger *int64 = this.SafeInteger(order, "time_in_force")
-	var tif *string = func() *string {
-		if tifAsInteger != nil {
-			return this.ParseOrderTimeInForceInteger(tifAsInteger)
-		}
-		return this.SafeString(order, "time_in_force")
-	}()
+	var tif *string
+	if tifAsInteger != nil {
+		tif = this.ParseOrderTimeInForceInteger(tifAsInteger)
+	} else {
+		tif = this.SafeString(order, "time_in_force")
+	}
 	var reduceOnlyAsBool *bool = this.SafeBool(order, "reduce_only")
 	var reduceOnlyAsInteger *int64 = this.SafeInteger(order, "reduce_only")
 	var reduceOnly any = reduceOnlyAsBool
@@ -3466,7 +3471,7 @@ func (this *Lighter) ParseOrderTypeInteger(typeInteger *int64) *string {
 	}
 	return this.SafeString(types, strconv.FormatInt(*typeInteger, 10))
 }
-func (this *Lighter) ParseOrderTimeInForce(tif any) *string {
+func (this *Lighter) ParseOrderTimeInForce(tif *string) *string {
 	var timeInForces map[string]any = map[string]any{
 		"immediate-or-cancel": "IOC",
 		"good-till-time":      "GTC",
@@ -3543,12 +3548,12 @@ func (this *Lighter) transferBody(ch chan AsyncResult[TransferEntry], code strin
 	if (currencyCode == nil || *currencyCode != "USDC") && (currencyCode == nil || *currencyCode != "ETH") {
 		panic(ExchangeError(this.Id + " transfer() only supports USDC and ETH transfers"))
 	}
-	var amountDecimals string = func() string {
-		if currencyCode != nil && *currencyCode == "USDC" {
-			return "6"
-		}
-		return "8"
-	}()
+	var amountDecimals string
+	if currencyCode != nil && *currencyCode == "USDC" {
+		amountDecimals = "6"
+	} else {
+		amountDecimals = "8"
+	}
 	var amountScaled int64 = this.ParseToInt(Precise.StringMul(this.Pow("10", amountDecimals), this.CurrencyToPrecision(code, amount)))
 	var fromRouteType int = func() int {
 		if fromAccount == "perp" {
@@ -3643,11 +3648,11 @@ func (this *Lighter) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], op
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes260919 []any = r1.Value
-		if retRes260919 == nil {
+		var retRes261419 []any = r1.Value
+		if retRes261419 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes260919)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes261419)}
 		}
 		return nil
 	}
@@ -3797,11 +3802,11 @@ func (this *Lighter) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes271219 []any = r1.Value
-		if retRes271219 == nil {
+		var retRes271719 []any = r1.Value
+		if retRes271719 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes271219)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes271719)}
 		}
 		return nil
 	}
@@ -3905,11 +3910,11 @@ func (this *Lighter) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes277419 []any = r.Value
-		if retRes277419 == nil {
+		var retRes277919 []any = r.Value
+		if retRes277919 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes277419)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes277919)}
 		}
 		return nil
 	}
@@ -4099,12 +4104,12 @@ func (this *Lighter) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	if (currencyCode == nil || *currencyCode != "USDC") && (currencyCode == nil || *currencyCode != "ETH") {
 		panic(ExchangeError(this.Id + " withdraw() only supports USDC and ETH transfers"))
 	}
-	var amountDecimals string = func() string {
-		if currencyCode != nil && *currencyCode == "USDC" {
-			return "6"
-		}
-		return "8"
-	}()
+	var amountDecimals string
+	if currencyCode != nil && *currencyCode == "USDC" {
+		amountDecimals = "6"
+	} else {
+		amountDecimals = "8"
+	}
 	var amountScaled int64 = this.ParseToInt(Precise.StringMul(this.Pow("10", amountDecimals), this.CurrencyToPrecision(code, amount)))
 	var routeType *int64 = this.SafeInteger(paramsAccountIndex, "routeType", 0) // 0: perp, 1: spot
 	var paramsOmitted any = this.Omit(paramsAccountIndex, "routeType")
@@ -4178,7 +4183,7 @@ func (this *Lighter) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		"limit":     100,
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 100)
+		request["limit"] = min(*limit, 100)
 	}
 
 	r1 := <-this.PublicGetRecentTrades(this.Extend(request, params))
@@ -4257,11 +4262,11 @@ func (this *Lighter) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes300219 []any = r1.Value
-		if retRes300219 == nil {
+		var retRes300719 []any = r1.Value
+		if retRes300719 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes300219)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes300719)}
 		}
 		return nil
 	}
@@ -4289,7 +4294,7 @@ func (this *Lighter) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		"account_index": accountIndex,
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 100)
+		request["limit"] = min(*limit, 100)
 	}
 	var untilparamsUntilVariable []any = this.HandleOptionIntegerAndParams2Nullable(paramsApiKeyIndex, "fetchMyTrades", "until", "from")
 	var until *int64 = nil
@@ -4413,14 +4418,14 @@ func (this *Lighter) ParseTrade(trade any, optionalArgs ...any) Trade {
 	}
 	var takerOrMaker *string = nil
 	if (side != nil) && (isMakerAsk != nil) {
-		var isMaker any = func() any {
-			if side != nil && *side == "sell" {
-				return (isMakerAsk != nil && *isMakerAsk == true)
-			}
-			return (isMakerAsk != nil && *isMakerAsk == false)
-		}()
+		var isMaker bool
+		if side != nil && *side == "sell" {
+			isMaker = (isMakerAsk != nil && *isMakerAsk == true)
+		} else {
+			isMaker = (isMakerAsk != nil && *isMakerAsk == false)
+		}
 		takerOrMaker = SafeStringPtr(func() string {
-			if isMaker == true {
+			if isMaker {
 				return "maker"
 			}
 			return "taker"
@@ -4479,11 +4484,11 @@ func (this *Lighter) setLeverageBody(ch chan AsyncResult[map[string]any], levera
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes316115 map[string]any = r.Value
-	if retRes316115 == nil {
+	var retRes316615 map[string]any = r.Value
+	if retRes316615 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes316115}
+		ch <- AsyncResult[map[string]any]{Value: retRes316615}
 	}
 	return nil
 }
@@ -4526,11 +4531,11 @@ func (this *Lighter) setMarginModeBody(ch chan AsyncResult[map[string]any], marg
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes318415 map[string]any = r.Value
-	if retRes318415 == nil {
+	var retRes318915 map[string]any = r.Value
+	if retRes318915 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes318415}
+		ch <- AsyncResult[map[string]any]{Value: retRes318915}
 	}
 	return nil
 }
@@ -4695,12 +4700,12 @@ func (this *Lighter) signAndCancelOrderBody(ch chan AsyncResult[[]map[string]any
  * @param {string} [params.apiKeyIndex] api key index
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Lighter) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Lighter) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Lighter) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Lighter) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)

@@ -1215,7 +1215,7 @@ func (this *Hashkey) ParseMarket(market any) map[string]any {
 	var priceFilter map[string]any = SafeMapTyped(filters, "PRICE_FILTER")
 	var amountFilter map[string]any = SafeMapTyped(filters, "LOT_SIZE")
 	var costFilter map[string]any = SafeMapTyped(filters, "MIN_NOTIONAL")
-	var minCostString any = this.OmitZero(this.SafeString(costFilter, "min_notional"))
+	var minCostString *string = this.OmitZero(this.SafeString(costFilter, "min_notional"))
 	var contractSizeString *string = this.SafeString(market, "contractMultiplier")
 	var amountPrecisionString *string = this.SafeString(amountFilter, "stepSize")
 	var amountMinLimitString *string = this.SafeString(amountFilter, "minQty")
@@ -1336,7 +1336,7 @@ func (this *Hashkey) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], op
 		panic(r.Err)
 	}
 	var response map[string]any = r.Value
-	var coins []any = SafeListTyped(response, "coins")
+	var coins []any = SafeListTypedDefault(response, "coins", []any{})
 
 	//
 	//     {
@@ -3191,7 +3191,7 @@ func (this *Hashkey) createSpotOrderBody(ch chan AsyncResult[Order], symbol stri
 	if (!isMarketBuy) && (cost != nil) {
 		panic(NotSupported(this.Id + " createOrder() supports cost parameter for spot market buy orders only"))
 	}
-	var request map[string]any = this.CreateSpotOrderRequest(SafeStringPtr(symbol), typeVar, side, amount, price, params)
+	var request map[string]any = this.CreateSpotOrderRequest(&symbol, typeVar, side, amount, price, params)
 	var response any = map[string]any{}
 	var test *bool = this.SafeBool(params, "test", false)
 	if test != nil && *test {
@@ -3411,7 +3411,7 @@ func (this *Hashkey) createSwapOrderBody(ch chan AsyncResult[Order], symbol stri
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var request map[string]any = this.CreateSwapOrderRequest(SafeStringPtr(symbol), typeVar, side, amount, price, params)
+	var request map[string]any = this.CreateSwapOrderRequest(&symbol, typeVar, side, amount, price, params)
 
 	r1 := <-this.PrivatePostApiV1FuturesOrder(this.Extend(request, params))
 	if r1.Err != nil {
@@ -3539,12 +3539,12 @@ func (this *Hashkey) createOrdersBody(ch chan AsyncResult[[]Order], orders []any
  * @param {bool} [params.stop] *swap markets only* an alternative for trigger param
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hashkey) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Hashkey) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Hashkey) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3683,12 +3683,12 @@ func (this *Hashkey) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
  * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hashkey) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Hashkey) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Hashkey) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3704,7 +3704,7 @@ func (this *Hashkey) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, opt
 		}
 	}
 	var request map[string]any = map[string]any{}
-	var orderIds string = Join(ids, ",")
+	var orderIds string = strings.Join(ids, ",")
 	request["ids"] = orderIds
 	var market map[string]any = nil
 	if symbol != nil {
@@ -4180,8 +4180,7 @@ func (this *Hashkey) CheckTypeParam(methodName string, params any) {
 func (this *Hashkey) HandleTriggerOptionAndParams(params any, methodName any, optionalArgs ...any) []any {
 	var defaultValue *bool = GetArgBoolPtr(optionalArgs, 0, nil)
 	_ = defaultValue
-	var isTrigger *bool = defaultValue
-	var isTriggerStopparamsStopVariable []any = this.HandleOptionBoolAndParams2Nullable(params, methodName, "stop", "trigger", isTrigger)
+	var isTriggerStopparamsStopVariable []any = this.HandleOptionBoolAndParams2Nullable(params, methodName, "stop", "trigger", defaultValue)
 	isTriggerStop := func() any {
 		if p, _ := isTriggerStopparamsStopVariable[0].(*bool); p != nil {
 			return *p
@@ -4315,7 +4314,7 @@ func (this *Hashkey) ParseOrder(order any, optionalArgs ...any) Order {
 	if priceType != nil && *priceType == "MARKET" {
 		typeVar = "market"
 	}
-	var price any = this.OmitZero(this.SafeString(order, "price"))
+	var price *string = this.OmitZero(this.SafeString(order, "price"))
 	if typeVar == "STOP" {
 		if price == nil {
 			typeVar = "market"
@@ -4329,7 +4328,7 @@ func (this *Hashkey) ParseOrder(order any, optionalArgs ...any) Order {
 	typeVar = GetValue(typeVartimeInForcepostOnlyVariable, 0)
 	timeInForce = GetValue(typeVartimeInForcepostOnlyVariable, 1)
 	postOnly = typeVartimeInForcepostOnlyVariable[2]
-	var average any = this.OmitZero(this.SafeString(order, "avgPrice"))
+	var average *string = this.OmitZero(this.SafeString(order, "avgPrice"))
 	if price == nil {
 		price = average
 	}
@@ -4624,7 +4623,7 @@ func (this *Hashkey) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRa
 	var rates []any = []any{}
 	var rows []any = this.ToArray(response)
 	for i := 0; i < len(rows); i++ {
-		var entry any = DerefScalar(rows[i])
+		var entry any = rows[i]
 		var timestamp *int64 = this.SafeInteger(entry, "settleTime")
 		rates = append(rates, map[string]any{
 			"info":        entry,
@@ -4691,11 +4690,11 @@ func (this *Hashkey) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes401915 []any = PositionsToList(r1.Value)
-	if retRes401915 == nil {
+	var retRes401815 []any = PositionsToList(r1.Value)
+	if retRes401815 == nil {
 		ch <- AsyncResult[[]Position]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes401915)}
+		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes401815)}
 	}
 	return nil
 }
@@ -4959,12 +4958,12 @@ func (this *Hashkey) setMarginModeBody(ch chan AsyncResult[map[string]any], marg
 		}
 	}
 	var marginModeUpper string = strings.ToUpper(marginMode)
-	var marginModeValue string = func() string {
-		if marginModeUpper == "CROSSED" {
-			return "CROSS"
-		}
-		return marginModeUpper
-	}()
+	var marginModeValue string
+	if marginModeUpper == "CROSSED" {
+		marginModeValue = "CROSS"
+	} else {
+		marginModeValue = marginModeUpper
+	}
 	if (marginModeValue != "CROSS") && (marginModeValue != "ISOLATED") {
 		panic(ArgumentsRequired(this.Id + " setMarginMode() marginMode must be either cross or isolated"))
 	}

@@ -88,12 +88,13 @@ class paradex extends \ccxt\async\paradex {
     }
 
     public function get_ws_url(): string {
-        $url = $this->urls['api']['ws'];
+        $url = $this->safe_string($this->urls['api'], 'ws', '');
         if (!$this->safe_bool($this->options, 'sbe', true)) {
             return $url;
+        } else {
+            $schemaVersion = $this->safe_string($this->options, 'sbeSchemaVersion', '3');
+            return $url . '?sbeSchemaId=1&sbeSchemaVersion=' . $schemaVersion;
         }
-        $schemaVersion = $this->safe_string($this->options, 'sbeSchemaVersion', '3');
-        return $url . '?sbeSchemaId=1&sbeSchemaVersion=' . $schemaVersion;
     }
 
     public function get_order_book_channel(?string $marketId, bool $deltas = false): string {
@@ -107,7 +108,7 @@ class paradex extends \ccxt\async\paradex {
         return 'order_book.' . $marketId . '.snapshot@15@100ms';
     }
 
-    public function request_id(): float {
+    public function request_id(): int {
         $requestId = $this->sum($this->safe_integer($this->options, 'requestId', 0), 1);
         $this->options['requestId'] = $requestId;
         return $requestId;
@@ -533,11 +534,11 @@ class paradex extends \ccxt\async\paradex {
         $client->resolve(true, $unsubHash);
     }
 
-    public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
+    public function watch_trades(?string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
     }
 
-    private function do_watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
+    private function do_watch_trades(?string $symbol, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          * get the list of most recent $trades for a particular $symbol
          *
@@ -2366,7 +2367,7 @@ class paradex extends \ccxt\async\paradex {
             }
             $entryLength = $this->parse_to_int($this->sbe_read_uint($frameHex, $position, 2));
             $numInGroup = $this->parse_to_int($this->sbe_read_uint($frameHex, $position + 2, 2));
-            $position = $this->parse_to_int($position + 4);
+            $position = $position + 4;
             if (($entryLength < 16) || ($this->parse_to_int($this->sum($position, $numInGroup * $entryLength)) > $frameEnd)) {
                 return null;
             }

@@ -982,8 +982,7 @@ class hitbtc extends hitbtc$1["default"] {
     parseCurrency(currency) {
         const currencyId = this.safeString(currency, '_coin_id');
         const code = this.safeCurrencyCode(currencyId);
-        const entry = currency;
-        const rawNetworks = this.safeList(entry, 'networks', []);
+        const rawNetworks = this.safeList(currency, 'networks', []);
         const networks = {};
         for (let j = 0; j < rawNetworks.length; j++) {
             const rawNetwork = rawNetworks[j];
@@ -1017,14 +1016,14 @@ class hitbtc extends hitbtc$1["default"] {
             }
         }
         return this.safeCurrencyStructure({
-            'info': entry,
+            'info': currency,
             'code': code,
             'id': currencyId,
-            'precision': this.safeNumber(entry, 'precision_transfer'),
-            'name': this.safeString(entry, 'full_name'),
-            'active': !this.safeBool(entry, 'delisted', false),
-            'deposit': this.safeBool(entry, 'payin_enabled'),
-            'withdraw': this.safeBool(entry, 'payout_enabled'),
+            'precision': this.safeNumber(currency, 'precision_transfer'),
+            'name': this.safeString(currency, 'full_name'),
+            'active': !this.safeBool(currency, 'delisted', false),
+            'deposit': this.safeBool(currency, 'payin_enabled'),
+            'withdraw': this.safeBool(currency, 'payout_enabled'),
             'networks': networks,
             'fee': undefined,
             'limits': {
@@ -2981,7 +2980,7 @@ class hitbtc extends hitbtc$1["default"] {
         }
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, 1000);
+            return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 1000);
         }
         let market = undefined;
         const request = {
@@ -2989,11 +2988,11 @@ class hitbtc extends hitbtc$1["default"] {
         // 'symbols': Comma separated list of symbol codes,
         // 'sort': 'DESC' or 'ASC'
         // 'from': 'Datetime or Number',
-        // 'until': 'Datetime or Number',
+        // 'till': 'Datetime or Number',
         // 'limit': 100,
         // 'offset': 0,
         };
-        const [requestUntil, paramsUntil] = this.handleUntilOption('until', request, paramsPaginate);
+        const [requestUntil, paramsUntil] = this.handleUntilOption('till', request, paramsPaginate);
         if (symbol !== undefined) {
             market = this.market(symbol);
             requestUntil['symbols'] = market['id'];

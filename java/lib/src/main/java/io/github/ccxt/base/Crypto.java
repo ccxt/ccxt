@@ -61,13 +61,7 @@ public final class Crypto {
     private static byte[] toUtf8(Object o) { return toString(o).getBytes(StandardCharsets.UTF_8); }
 
     public static String binaryToHex(byte[] data) {
-        StringBuilder sb = new StringBuilder(data.length * 2);
-        for (byte b : data) sb.append(String.format("%02x", b));
-        return sb.toString();
-    }
-
-    public static String BinaryToBase64(byte[] buff) {
-        return Base64.getEncoder().encodeToString(buff);
+        return java.util.HexFormat.of().formatHex(data);
     }
 
     public static String Base64ToBase64Url(String base64, boolean stripPadding) {
@@ -77,12 +71,12 @@ public final class Crypto {
 
     public static String Base64urlEncode(Object value) {
         final String b64 = (value instanceof byte[])
-                ? BinaryToBase64((byte[]) value)
-                : BinaryToBase64(toUtf8(value));
+                ? Encode.BinaryToBase64((byte[]) value)
+                : Encode.BinaryToBase64(toUtf8(value));
         return Base64ToBase64Url(b64, true);
     }
 
-    private static final ObjectMapper M = new ObjectMapper();
+    private static final ObjectMapper M = JsonHelper.mapper();
     private static String json(Object o) {
         if (o == null) return null;
         if (o instanceof Throwable t) {
@@ -118,7 +112,7 @@ public final class Crypto {
             case "md5":    sig = hmac("HmacMD5",    request, secret); break;
             default:       throw new IllegalArgumentException("Unsupported HMAC algo: " + algo);
         }
-        return "hex".equals(digest) ? binaryToHex(sig) : BinaryToBase64(sig);
+        return "hex".equals(digest) ? binaryToHex(sig) : Encode.BinaryToBase64(sig);
     }
 
     private static byte[] hmac(String jceName, byte[] data, byte[] key) {
@@ -160,7 +154,7 @@ public final class Crypto {
         }
 
         if ("binary".equals(digest)) return signature;
-        return "hex".equals(digest) ? binaryToHex(signature) : BinaryToBase64(signature);
+        return "hex".equals(digest) ? binaryToHex(signature) : Encode.BinaryToBase64(signature);
     }
 
     private static byte[] digestBytes(String algo, byte[] data) {
@@ -172,7 +166,7 @@ public final class Crypto {
         }
     }
 
-    private static byte[] keccakDigest(byte[] data) {
+    public static byte[] keccakDigest(byte[] data) {
         Keccak.Digest256 k = new Keccak.Digest256();
         k.update(data, 0, data.length);
         return k.digest();
@@ -214,12 +208,12 @@ public final class Crypto {
             // RSxxx with private key PEM
             String pem = (secret instanceof byte[] bytes) ? new String(bytes, StandardCharsets.UTF_8) : toString(secret);
             byte[] sig = rsaSign(token, pem, algorithm, "pkcs1");
-            signatureB64Url = Base64ToBase64Url(BinaryToBase64(sig), true);
+            signatureB64Url = Base64ToBase64Url(Encode.BinaryToBase64(sig), true);
         } else if ("ES".equals(algoType)) {
             // ES256: sign over P-256 -> r||s then base64url
             String pem = (secret instanceof byte[] bytes) ? new String(bytes, StandardCharsets.UTF_8) : toString(secret);
             byte[] rs = es256Sign(token, pem);
-            signatureB64Url = Base64ToBase64Url(BinaryToBase64(rs), true);
+            signatureB64Url = Base64ToBase64Url(Encode.BinaryToBase64(rs), true);
         } else if ("Ed".equals(algoType)) {
             // Ed25519
             String base64Sig = toString(Eddsa(token, secret, ed25519()));
@@ -227,7 +221,7 @@ public final class Crypto {
         } else {
             // HMAC HS256/384/512
             byte[] sig = hmacRaw(alg, token, secret);
-            signatureB64Url = Base64ToBase64Url(BinaryToBase64(sig), true);
+            signatureB64Url = Base64ToBase64Url(Encode.BinaryToBase64(sig), true);
         }
 
         return token + "." + signatureB64Url;
@@ -254,7 +248,7 @@ public final class Crypto {
 
     public static String Rsa(Object data, Object publicKeyPem, Object hash, Object padding) {
         byte[] sig = rsaSign(toString(data), toString(publicKeyPem), (hash == null ? "md5" : toString(hash)), (padding == null ? "pkcs1" : toString(padding)));
-        return BinaryToBase64(sig);
+        return Encode.BinaryToBase64(sig);
     }
 
     private static byte[] rsaSign(String data, String pemPrivateKey, String hashAlgo, String padding) {
@@ -294,6 +288,22 @@ public final class Crypto {
         }
     }
 
+
+    // RSA PKCS#1 v1.5 decryption of a base64-encoded ciphertext with a PEM RSA private key (PKCS#1 or PKCS#8),
+    // same as node's crypto.privateDecrypt ({ key, padding: RSA_PKCS1_PADDING }, base64.decode (secret))
+    public static byte[] decryptPrivateKey(Object encryptionPrivKey, Object encryptionSecret) {
+        try {
+            PrivateKey key = readRSAPrivateKeyFromPem((String) encryptionPrivKey);
+            javax.crypto.Cipher cipher = javax.crypto.Cipher.getInstance("RSA/ECB/PKCS1Padding");
+            cipher.init(javax.crypto.Cipher.DECRYPT_MODE, key);
+            byte[] cipherText = Base64.getMimeDecoder().decode((String) encryptionSecret);
+            return cipher.doFinal(cipherText);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new IllegalArgumentException("decryptPrivateKey() failed: " + e.getMessage(), e);
+        }
+    }
 
     private static PrivateKey readRSAPrivateKeyFromPem(String pem) throws Exception {
         if (pem == null) throw new IllegalArgumentException("pem is null");

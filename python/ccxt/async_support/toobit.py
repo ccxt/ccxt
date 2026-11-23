@@ -1248,6 +1248,10 @@ class toobit(Exchange, ImplicitAPI):
                 request['to'] = self.sum(since, duration * 2000 * 1000)  # exchange default limit
             else:
                 request['to'] = self.sum(since, duration * limit * 1000)
+        elif (since is not None) and (limit is not None):
+            # without an end time the exchange returns the latest candles, not the ones starting at since
+            duration = self.parse_timeframe(timeframe) * 1000
+            request['endTime'] = min(self.sum(since, duration * limit) - 1, self.milliseconds())
         if limit is not None:
             request['limit'] = limit
         response = []
@@ -1556,7 +1560,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rates(response, symbolsNormalized)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         marketId = self.safe_string(contract, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         nextFundingRate = self.safe_number(contract, 'rate')
@@ -2288,7 +2292,7 @@ class toobit(Exchange, ImplicitAPI):
         marketType = self.handle_market_type_and_params('fetchClosedOrders', market, paramsUntil)[0]
         response = []
         if marketType == 'spot':
-            raise NotSupported(self.id + ' fetchOrders() is not supported for ' + marketType + ' markets')
+            raise NotSupported(self.id + ' fetchClosedOrders() is not supported for ' + marketType + ' markets')
         else:
             response = await self.privateGetApiV1FuturesHistoryOrders(requestUntil)
             #
@@ -2579,9 +2583,8 @@ class toobit(Exchange, ImplicitAPI):
         # }
         #
         result = {}
-        entry = response
-        marketResolved = self.safe_market(self.safe_string(entry, 'symbol'), market)
-        fee = self.parse_trading_fee(entry, marketResolved)
+        marketResolved = self.safe_market(self.safe_string(response, 'symbol'), market)
+        fee = self.parse_trading_fee(response, marketResolved)
         result[marketResolved['symbol']] = fee
         return result
 

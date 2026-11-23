@@ -374,7 +374,7 @@ export default class mexc extends Exchange {
     parseOrderStatus(status: Str): Str;
     parseOrderTimeInForce(status: Str): Str;
     getTifFromRawOrderType(orderType?: Str): Str;
-    fetchAccountHelper(type: Str, params: Dict): Promise<Dict | undefined>;
+    fetchAccountHelper(type: Str, params: Dict): Promise<NullableDict>;
     /**
      * @method
      * @name mexc#fetchAccounts
@@ -483,7 +483,7 @@ export default class mexc extends Exchange {
      * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
-    parseFundingRate(contract: any, market?: Market): FundingRate;
+    parseFundingRate(contract: NullableDict, market?: Market): FundingRate;
     /**
      * @method
      * @name mexc#fetchFundingInterval

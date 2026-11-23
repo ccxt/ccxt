@@ -32,6 +32,7 @@ func baseTestsInitBody(ch chan ccxt.AsyncResult[any]) any {
 	TestDecimalToPrecision()
 	TestCapitalize()
 	TestIncrementingNonce()
+	TestArraySlice()
 	TestIsDictionary()
 	TestNumberToString()
 	TestPrecise()
@@ -90,7 +91,9 @@ func baseTestsInitBody(ch chan ccxt.AsyncResult[any]) any {
 	TestIo()
 	TestIsJsonEncodedObject()
 	TestEncodeDecode()
+	TestModPow()
 
+	// testParseMarkets ();
 	ch <- ccxt.AsyncResult[any]{Value: true}
 	return nil
 }

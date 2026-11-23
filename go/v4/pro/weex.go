@@ -90,9 +90,9 @@ func (this *Weex) Describe() map[string]any {
 		"streaming": map[string]any{},
 	})
 }
-func (this *Weex) RequestId() *string {
+func (this *Weex) RequestId() int64 {
 	var requestId int64 = this.NextRequestId("requestId")
-	return this.NumberToString(requestId)
+	return requestId
 }
 func (this *Weex) SubscribePublicAsync(messageHashes any, channels any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
@@ -108,7 +108,7 @@ func (this *Weex) subscribePublicBody(ch chan ccxt.AsyncResult[any], messageHash
 	_ = params
 	var subscription map[string]any = ccxt.GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = subscription
-	var id *string = this.RequestId()
+	var id int64 = this.RequestId()
 	var method string = "SUBSCRIBE"
 	var unsubscribe *bool = this.SafeBool(subscription, "unsubscribe", false)
 	if unsubscribe != nil && *unsubscribe {
@@ -120,7 +120,7 @@ func (this *Weex) subscribePublicBody(ch chan ccxt.AsyncResult[any], messageHash
 		"params": channels,
 	}
 	var subscriptionExtended map[string]any = this.Extend(subscription, map[string]any{
-		"id": id,
+		"id": strconv.FormatInt(id, 10),
 	})
 	var typeVar string = "spot"
 	if isContract == true {
@@ -160,14 +160,14 @@ func (this *Weex) subscribePrivateBody(ch chan ccxt.AsyncResult[any], messageHas
 	if unsubscribe != nil && *unsubscribe {
 		method = "UNSUBSCRIBE"
 	}
-	var id *string = this.RequestId()
+	var id int64 = this.RequestId()
 	var message map[string]any = map[string]any{
 		"id":     id,
 		"method": method,
 		"params": []any{channel},
 	}
 	var subscriptionExtended map[string]any = this.Extend(subscription, map[string]any{
-		"id": id,
+		"id": strconv.FormatInt(id, 10),
 	})
 
 	r := <-this.Watch(url, messageHash, this.DeepExtend(message, params), subscribeHash, subscriptionExtended)
@@ -1111,9 +1111,9 @@ func (this *Weex) HandleOHLCV(client any, message map[string]any) {
 	var firstEntry map[string]any = ccxt.SafeMapTyped(data, 0)
 	var interval *string = this.SafeString(firstEntry, "i")
 	var timeframe *string = this.FindTimeframe(interval)
-	var stored any
+	var stored ccxt.WsArrayCache
 	if timeframe != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
+		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1127,7 +1127,7 @@ func (this *Weex) HandleOHLCV(client any, message map[string]any) {
 	for i := 0; i < len(data); i++ {
 		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		var parsed any = this.ParseWsOHLCV(entry)
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 	}
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv::"+*symbol+"::", timeframe))
 	var resolveData []any = []any{symbol, timeframe, stored}
@@ -1569,7 +1569,7 @@ func (this *Weex) HandleBidAsk(client any, message map[string]any) {
 	if market == nil {
 		return
 	}
-	var ticker any = this.ParseWsBidAsk(message, market)
+	var ticker map[string]any = this.ParseWsBidAsk(message, market)
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	if symbol != nil {
 		this.Bidsasks[*symbol] = ccxt.TickerFromMap(ticker)
@@ -1577,7 +1577,7 @@ func (this *Weex) HandleBidAsk(client any, message map[string]any) {
 	var messageHash string = "bidask::" + *symbol
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
-func (this *Weex) ParseWsBidAsk(message map[string]any, optionalArgs ...any) any {
+func (this *Weex) ParseWsBidAsk(message map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(message, "E")
@@ -1783,7 +1783,7 @@ func (this *Weex) HandleMyTrades(client any, message map[string]any) {
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
 		var trade map[string]any = this.SafeDictMap(data, i, map[string]any{})
-		var parsed any = this.ParseWsMyTrade(trade)
+		var parsed map[string]any = this.ParseWsMyTrade(trade)
 		var symbol *string = this.SafeString(parsed, "symbol")
 		if symbol != nil {
 			symbols[*symbol] = true
@@ -1809,7 +1809,7 @@ func (this *Weex) HandleMyTrades(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 }
-func (this *Weex) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) any {
+func (this *Weex) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// spot
 	//     {
@@ -2199,9 +2199,9 @@ func (this *Weex) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	}
 	var rawStatus *string = this.SafeStringLower(order, "status")
 	var rawType *string = this.SafeString(order, "type")
-	var triggerPrice any = this.OmitZero(this.SafeString(order, "triggerPrice"))
-	var stopLossPrice any = nil
-	var takeProfitPrice any = nil
+	var triggerPrice *string = this.OmitZero(this.SafeString(order, "triggerPrice"))
+	var stopLossPrice *string = nil
+	var takeProfitPrice *string = nil
 	if (rawType != nil && *rawType == "TAKE_PROFIT_MARKET") || (rawType != nil && *rawType == "TAKE_PROFIT") {
 		takeProfitPrice = triggerPrice
 	} else if (rawType != nil && *rawType == "STOP_LOSS") || (rawType != nil && *rawType == "STOP") || (rawType != nil && *rawType == "STOP_MARKET") {
@@ -2333,8 +2333,8 @@ func (this *Weex) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client
 	this.Balance[typeVar] = this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{}))
 	// don't remove the future from the .futures cache
 	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
-		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
-		future.(*ccxt.Future).Resolve()
+		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+		future.Resolve()
 		client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], typeVar+":balance")
 	}
 	return nil
@@ -2477,8 +2477,8 @@ func (this *Weex) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 	}
 	var channel string = "positions"
 	this.SetPositionsCache(client, params)
-	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
-	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
+	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true) == true
+	var awaitPositionsSnapshot bool = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true) == true
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (this.Positions == nil) {
 
 		r1 := <-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot")
@@ -2518,7 +2518,7 @@ func (this *Weex) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 func (this *Weex) SetPositionsCache(client any, optionalArgs ...any) {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
+	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false) == true
 	if fetchPositionsSnapshot == true {
 		var messageHash string = "fetchPositionsSnapshot"
 		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
@@ -2544,14 +2544,14 @@ func (this *Weex) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 	}
 	var positions []any = ccxt.PositionsToList(r.Value)
 	this.Positions = ccxt.NewArrayCacheBySymbolById()
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	for i := 0; i < len(positions); i++ {
 		var position any = positions[i]
-		cache.(ccxt.Appender).Append(position)
+		cache.Append(position)
 	}
 	// don't remove the future from the .futures cache
-	var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
-	future.(*ccxt.Future).Resolve(cache)
+	var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+	future.Resolve(cache)
 	client.(ccxt.ClientInterface).Resolve(cache, "positions")
 	return nil
 }
@@ -2652,13 +2652,13 @@ func (this *Weex) HandlePositions(client any, message map[string]any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolById()
 	}
-	var cache any = this.Positions
+	var cache ccxt.WsArrayCache = this.Positions
 	var newPositions []any = []any{}
 	var data []any = ccxt.SafeListTyped(message, "d")
 	for i := 0; i < len(data); i++ {
 		var rawPosition map[string]any = this.SafeDictMap(data, i, map[string]any{})
-		var position any = this.ParseWsPosition(rawPosition)
-		cache.(ccxt.Appender).Append(position)
+		var position map[string]any = this.ParseWsPosition(rawPosition)
+		cache.Append(position)
 		newPositions = append(newPositions, position)
 	}
 	var messageHashes []any = ccxt.ArrayTyped(this.FindMessageHashes(ccxt.AsClient(client), "positions::"))
@@ -2679,7 +2679,7 @@ func (this *Weex) HandlePositions(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
 }
-func (this *Weex) ParseWsPosition(position map[string]any, optionalArgs ...any) any {
+func (this *Weex) ParseWsPosition(position map[string]any, optionalArgs ...any) map[string]any {
 	// same as REST api
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market

@@ -660,6 +660,17 @@ public class OkxApi extends Exchange
     }
 
     /**
+     * Calls the publicGetPublicCorporateActions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  publicGetPublicCorporateActions (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetPublicCorporateActions", optionalArgs);
+    }
+
+    /**
      * Calls the publicGetRubikStatTradingDataSupportCoin endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1614,6 +1625,17 @@ public class OkxApi extends Exchange
     public CompletableFuture<Map<String, Object>>  privateGetAssetDepositWithdrawStatus (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAssetDepositWithdrawStatus", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetAssetTravelRuleGetLocked endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privateGetAssetTravelRuleGetLocked (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAssetTravelRuleGetLocked", optionalArgs);
     }
 
     /**
@@ -3737,6 +3759,17 @@ public class OkxApi extends Exchange
     public CompletableFuture<Map<String, Object>>  privatePostAssetCancelWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAssetCancelWithdrawal", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostAssetTravelRuleUnlock endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public CompletableFuture<Map<String, Object>>  privatePostAssetTravelRuleUnlock (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAssetTravelRuleUnlock", optionalArgs);
     }
 
     /**

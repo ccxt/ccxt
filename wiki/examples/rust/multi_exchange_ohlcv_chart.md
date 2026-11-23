@@ -1,6 +1,6 @@
 ```rust
 use ccxt::types::OHLCV;
-use ccxt::{from_id, Params, TypedExchange, TypedExchangeExt};
+use ccxt::{ExchangeVisitor, Params, TypedExchange};
 
 
 // to run it cargo run --manifest-path examples/rust/Cargo.toml --bin multi_exchange_ohlcv_chart
@@ -18,14 +18,28 @@ struct Series {
     closes: Vec<f64>,
 }
 
+struct FetchSeries<'a> {
+    id: &'a str,
+    symbol: &'a str,
+    marker: char,
+}
+
+impl ExchangeVisitor for FetchSeries<'_> {
+    type Output = Option<Series>;
+    async fn visit<E: TypedExchange + 'static>(self, mut exchange: E) -> Option<Series> {
+        series_of(&mut exchange, self.id, self.symbol, self.marker).await
+    }
+}
+
 async fn fetch_series(id: &str, symbol: &str, marker: char) -> Option<Series> {
-    let mut exchange: Box<dyn TypedExchange> = match from_id(id, None) {
-        Some(e) => e,
-        None => {
-            println!("{id:<18} unknown exchange id");
-            return None;
-        }
-    };
+    let found = ccxt::exchanges::with_exchange(id, None, FetchSeries { id, symbol, marker }).await;
+    if found.is_none() {
+        println!("{id:<18} unknown exchange id");
+    }
+    found.flatten()
+}
+
+async fn series_of<E: TypedExchange>(exchange: &mut E, id: &str, symbol: &str, marker: char) -> Option<Series> {
     let started = std::time::Instant::now();
     let candles: Vec<OHLCV> = match exchange
         .fetch_ohlcv(symbol, Some(TIMEFRAME), None, Some(LIMIT), Params::none())

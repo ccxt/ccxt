@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::krakenfutures::KrakenfuturesCore;
+use super::krakenfutures::Krakenfutures;
 use crate::exchange::ExchangeRuntime;
 
-impl KrakenfuturesCore {
+impl Krakenfutures {
     /// Auto-generated wrapper for the `publicGetFeeschedules` implicit endpoint.
     pub async fn public_get_feeschedules(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_feeschedules".into()), optional_args).await

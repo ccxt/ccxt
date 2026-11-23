@@ -25,6 +25,7 @@ export default class tokocrypto extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchMarkets(params?: Dict): Promise<Market[]>;
+    parseMarket(market: Dict): Market;
     /**
      * @method
      * @name tokocrypto#fetchOrderBook

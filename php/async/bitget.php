@@ -2425,17 +2425,17 @@ class bitget extends Exchange {
             $contract = true;
             $inverse = ($base === $settle);
             $linear = !$inverse;
-            $priceDecimals = $this->safe_integer($market, 'pricePlace');
-            $amountDecimals = $this->safe_integer($market, 'volumePlace');
-            $priceStep = $this->safe_string($market, 'priceEndStep');
-            $amountStep = $this->safe_string($market, 'sizeMultiplier');
-            $precise = new Precise($priceStep);
-            $precise->decimals = max($precise->decimals, $priceDecimals);
+            $pricePlaces = $this->safe_integer($market, 'pricePlace');
+            $volumePlaces = $this->safe_integer($market, 'volumePlace');
+            $priceEndStep = $this->safe_string($market, 'priceEndStep');
+            $sizeMultiplier = $this->safe_string($market, 'sizeMultiplier');
+            $precise = new Precise($priceEndStep);
+            $precise->decimals = max($precise->decimals, $pricePlaces);
             $precise->reduce();
             $priceString = (string) $precise;
             $pricePrecision = $this->parse_number($priceString);
-            $preciseAmount = new Precise($amountStep);
-            $preciseAmount->decimals = max($preciseAmount->decimals, $amountDecimals);
+            $preciseAmount = new Precise($sizeMultiplier);
+            $preciseAmount->decimals = max($preciseAmount->decimals, $volumePlaces);
             $preciseAmount->reduce();
             $amountString = (string) $preciseAmount;
             $amountPrecision = $this->parse_number($amountString);
@@ -2847,13 +2847,9 @@ class bitget extends Exchange {
         $code = $this->safe_currency_code($id);
         $chains = $this->safe_list($entry, 'chains', array());
         $networks = array();
-        $withdraw = null;
-        $deposit = null;
+        $withdraw = false;
+        $deposit = false;
         $chainsLength = count($chains);
-        if ($chainsLength === 0) {
-            $withdraw = false;
-            $deposit = false;
-        }
         for ($j = 0; $j < $chainsLength; $j++) {
             $chain = $this->safe_dict($chains, $j);
             $networkId = $this->safe_string($chain, 'chain');
@@ -2866,8 +2862,8 @@ class bitget extends Exchange {
             $rechargeableString = $this->safe_string($chain, 'rechargeable');
             $withdrawable = ($withdrawableString === 'true');
             $rechargeable = ($rechargeableString === 'true');
-            $withdraw = ($withdraw === null) ? $withdrawable : ($withdraw || $withdrawable);
-            $deposit = ($deposit === null) ? $rechargeable : ($deposit || $rechargeable);
+            $withdraw = $withdraw || $withdrawable;
+            $deposit = $deposit || $rechargeable;
             $withdrawMinScale = $this->safe_string($chain, 'withdrawMinScale');
             $precision = $this->parse_precision($withdrawMinScale);
             $networks[$network] = array(
@@ -3113,7 +3109,7 @@ class bitget extends Exchange {
         $tiers = array();
         $minNotional = 0;
         for ($i = 0; $i < count($info); $i++) {
-            $item = $this->safe_value($info, $i);
+            $item = $this->safe_dict($info, $i, array());
             $minimumNotional = $this->safe_number_2($item, 'startUnit', 'minTierValue');
             if ($minimumNotional !== null) {
                 $minNotional = $minimumNotional;
@@ -9966,7 +9962,7 @@ class bitget extends Exchange {
         return Async\await($this->fetch_funding_rates($symbols, $paramsExtended));
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         // fetchFundingRate: publicMixGetV2MixMarketCurrentFundRate, publicUtaGetV3MarketCurrentFundRate
         //

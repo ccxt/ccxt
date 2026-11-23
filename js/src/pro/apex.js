@@ -65,8 +65,8 @@ export default class apex extends apexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
-        return this.watchTradesForSymbols([symbol], since, limit, params);
+    async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+        return await this.watchTradesForSymbols([symbol], since, limit, params);
     }
     /**
      * @method
@@ -198,8 +198,8 @@ export default class apex extends apexRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol, limit = undefined, params = {}) {
-        return this.watchOrderBookForSymbols([symbol], limit, params);
+    async watchOrderBook(symbol, limit = undefined, params = {}) {
+        return await this.watchOrderBookForSymbols([symbol], limit, params);
     }
     /**
      * @method
@@ -892,19 +892,18 @@ export default class apex extends apexRest {
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             // auth sign
-            const request = {
-                'type': 'login',
-                'topics': ['ws_zk_accounts_v3'],
-                'httpMethod': http_method,
-                'requestPath': request_path,
-                'apiKey': this.apiKey,
-                'passphrase': this.password,
-                'timestamp': timestamp,
-                'signature': signature,
-            };
             const message = {
                 'op': 'login',
-                'args': [JSON.stringify(request)],
+                'args': [JSON.stringify({
+                        'type': 'login',
+                        'topics': ['ws_zk_accounts_v3'],
+                        'httpMethod': http_method,
+                        'requestPath': request_path,
+                        'apiKey': this.apiKey,
+                        'passphrase': this.password,
+                        'timestamp': timestamp,
+                        'signature': signature,
+                    })],
             };
             this.watch(url, messageHash, message, messageHash);
         }

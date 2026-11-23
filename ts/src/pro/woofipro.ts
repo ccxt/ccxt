@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, NotSupported } from '../base/er
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { eddsa } from '../base/functions/crypto.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, FeeString, Market } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, FeeString, Market, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -71,7 +71,7 @@ export default class woofipro extends woofiproRest {
         });
     }
 
-    requestId (url: string): number {
+    requestId (url: string): int {
         const options = this.safeDict (this.options, 'requestId', {});
         const previousValue = this.safeInteger (options, url, 0);
         const newValue = this.sum (previousValue, 1);
@@ -638,13 +638,12 @@ export default class woofipro extends woofiproRest {
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const ts = this.nonce ().toString ();
-            const auth = ts;
             let secret = this.secret;
             if (this.secret.indexOf ('ed25519:') >= 0) {
                 const parts = this.secret.split ('ed25519:');
                 secret = parts[1];
             }
-            const signature = eddsa (this.encode (auth), this.base58ToBinary (secret), ed25519);
+            const signature = eddsa (this.encode (ts), this.base58ToBinary (secret), ed25519);
             const request: Dict = {
                 'event': event,
                 'params': {
@@ -1087,7 +1086,7 @@ export default class woofipro extends woofiproRest {
     async loadPositionsSnapshot (client: Client, messageHash: string) {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeString (position, 'contracts', '0');
@@ -1141,7 +1140,7 @@ export default class woofipro extends woofiproRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         const newPositions: Position[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];

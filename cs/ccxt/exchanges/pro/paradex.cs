@@ -69,13 +69,15 @@ public partial class paradex : ccxt.paradex
 
     public virtual string? getWsUrl()
     {
-        object url = (this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null);
+        string url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "");
         if (!(this.safeBool(this.options, "sbe", true) == true))
         {
-            return ((string?)((object)(url)));
+            return url;
+        } else
+        {
+            string? schemaVersion = this.safeString(this.options, "sbeSchemaVersion", "3");
+            return ((url + "?sbeSchemaId=1&sbeSchemaVersion=") + schemaVersion);
         }
-        string? schemaVersion = this.safeString(this.options, "sbeSchemaVersion", "3");
-        return ((string?)((object)(add(add(url, "?sbeSchemaId=1&sbeSchemaVersion="), schemaVersion))));
     }
 
     public virtual string? getOrderBookChannel(object marketId, bool? deltas = null)
@@ -214,7 +216,7 @@ public partial class paradex : ccxt.paradex
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(channels); i++)
         {
-            if (!((client.subscriptions != null && getValue(channels, i) is string inOpKey3 && client.subscriptions.ContainsKey(inOpKey3))))
+            if (!((client.subscriptions != null && getValue(channels, i) is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0))))
             {
                 result.Add(i);
             }
@@ -234,7 +236,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters merged into the request
      * @returns {boolean} true once the reply is in
      */
-    public async virtual Task<object> sendUnsubscribe(object url, object unsubHash, object request, IDictionary<string, object> subscription, object parameters = null)
+    public async virtual Task<object> sendUnsubscribe(object url, object unsubHash, object request, IDictionary<string, object> subscription, IDictionary<string, object> parameters = null)
     {
         // an error reply rejects the unwatch only, the watchers keep their subscription
         parameters ??= new Dictionary<string, object>();
@@ -262,7 +264,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters merged into each unsubscribe request
      * @returns {boolean} true once every channel is unsubscribed
      */
-    public async virtual Task<object> unsubscribeChannels(object url, string topic, object channels, object subMessageHashes, object symbols, object parameters = null)
+    public async virtual Task<object> unsubscribeChannels(object url, string topic, object channels, object subMessageHashes, object symbols, IDictionary<string, object> parameters = null)
     {
         // a channel the server refuses (not subscribed) does not stop the others, its error is thrown once they are sent
         parameters ??= new Dictionary<string, object>();
@@ -294,10 +296,10 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters merged into each unsubscribe request
      * @returns {int} the number of channels refused
      */
-    public async virtual Task<object> unsubscribeChannelsFrom(object url, object topic, object channels, object subMessageHashes, object symbols, object start, object parameters = null)
+    public async virtual Task<object> unsubscribeChannelsFrom(object url, object topic, object channels, object subMessageHashes, object symbols, object start, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object refused = 0;
+        Int64? refused = 0;
         for (int i = 0; i < getArrayLength(channels); i++)
         {
             if (isGreaterThanOrEqual(i, start))
@@ -307,7 +309,7 @@ public partial class paradex : ccxt.paradex
                     await this.unsubscribeChannelAt(url, topic, channels, subMessageHashes, symbols, i, parameters);
                 } catch(Exception e)
                 {
-                    refused = add(refused, 1);
+                    refused = (refused + 1);
                 }
             }
         }
@@ -328,7 +330,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters merged into the unsubscribe request
      * @returns {boolean} true once unsubscribed
      */
-    public async virtual Task<object> unsubscribeChannelAt(object url, object topic, object channels, object subMessageHashes, object symbols, object index, object parameters = null)
+    public async virtual Task<object> unsubscribeChannelAt(object url, object topic, object channels, object subMessageHashes, object symbols, object index, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object channel = getValue(channels, index);
@@ -573,7 +575,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -613,7 +615,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTradesForSymbols(IList<object> symbols, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -654,7 +656,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true once unsubscribed
      */
-    public async override Task<object> unWatchTrades(string? symbol, object parameters = null)
+    public async override Task<object> unWatchTrades(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol != null))
@@ -674,7 +676,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true once unsubscribed
      */
-    public async override Task<object> unWatchTradesForSymbols(IList<object> symbols, object parameters = null)
+    public async override Task<object> unWatchTradesForSymbols(IList<object> symbols, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -703,7 +705,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] exchange specific parameters
      * @returns {object[]} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
-    public async override Task<List<ccxt.Liquidation>> WatchLiquidations(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Liquidation>> WatchLiquidations(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -825,7 +827,7 @@ public partial class paradex : ccxt.paradex
      * @param {boolean} [params.deltas] true for the full-depth deltas feed, default false (the 15-level snapshots)
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.WatchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
@@ -842,7 +844,7 @@ public partial class paradex : ccxt.paradex
      * @param {boolean} [params.deltas] true for the full-depth deltas feed, default false (the 15-level snapshots)
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(IList<object> symbols, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -875,17 +877,17 @@ public partial class paradex : ccxt.paradex
         for (int i = 0; i < symbolsLength; i++)
         {
             Dictionary<string, object> market = this.market((symbolsNormalized != null && i < symbolsNormalized.Count ? symbolsNormalized[i] : null));
-            object deltasChannel = this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null), true);
+            string deltasChannel = this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null), true);
             string? snapshotChannel = this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null), false);
             // one feed per market on a connection: both send BookEvent frames, which do not name their channel,
             // and the 15-level snapshots would cut a full-depth book down. The deltas feed is a superset, it stays
             // the market stays on the deltas feed from the first call that asks for it, a call made while the
             // snapshot feed is being unsubscribed included
-            object deltasHash = (deltasChannel == null ? null : deltasChannel + ":requested");
-            bool isDeltas = deltas || ((client.subscriptions != null && deltasHash is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0)));
+            string deltasHash = (deltasChannel + ":requested");
+            bool isDeltas = deltas || ((client.subscriptions != null && deltasHash != null && client.subscriptions.ContainsKey(deltasHash)));
             if (isDeltas)
             {
-                ((IDictionary<string,object>)client.subscriptions)[(string)deltasHash] = true;
+                ((IDictionary<string,object>)client.subscriptions)[deltasHash] = true;
             }
             if (isDeltas && (((snapshotChannel != null) && (client.subscriptions != null && snapshotChannel != null && client.subscriptions.ContainsKey(snapshotChannel)))))
             {
@@ -895,11 +897,11 @@ public partial class paradex : ccxt.paradex
                 ((IDictionary<string,object>)client.subscriptions).Remove(snapshotChannel);
                 await this.sendRequest(url, unsubscribe);
             }
-            object channel = isDeltas ? deltasChannel : snapshotChannel;
+            string? channel = isDeltas ? deltasChannel : snapshotChannel;
             channels.Add(channel);
             messageHashes.Add(("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
         }
-        object orderbook = await this.subscribeChannels(url, messageHashes, channels, paramsDeltas);
+        ccxt.pro.IOrderBook orderbook = ((ccxt.pro.IOrderBook)await this.subscribeChannels(url, messageHashes, channels, paramsDeltas));
         return (orderbook as IOrderBook).limit().Copy();
     }
 
@@ -913,7 +915,7 @@ public partial class paradex : ccxt.paradex
      * @param {boolean} [params.deltas] the feed to unsubscribe from when the market is not watched on this connection, true for the full-depth deltas, default false
      * @returns {boolean} true once unsubscribed
      */
-    public async override Task<object> unWatchOrderBook(object symbol, object parameters = null)
+    public async override Task<object> unWatchOrderBook(object symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.unWatchOrderBookForSymbols(new List<object>() {symbol}, parameters);
@@ -929,7 +931,7 @@ public partial class paradex : ccxt.paradex
      * @param {boolean} [params.deltas] the feed to unsubscribe from when a market is not watched on this connection, true for the full-depth deltas, default false
      * @returns {boolean} true once unsubscribed
      */
-    public async override Task<object> unWatchOrderBookForSymbols(IList<object> symbols, object parameters = null)
+    public async override Task<object> unWatchOrderBookForSymbols(IList<object> symbols, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -948,12 +950,12 @@ public partial class paradex : ccxt.paradex
         {
             Dictionary<string, object> market = this.market(symbolsNormalized[i]);
             // the feed the market is on, a market is on one of them at a time
-            object deltasChannel = this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null), true);
+            string deltasChannel = this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null), true);
             string? snapshotChannel = this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null), false);
-            object channel = ((deltasOption is true)) ? deltasChannel : snapshotChannel;
+            string? channel = ((deltasOption is true)) ? deltasChannel : snapshotChannel;
             // a market switching to the deltas feed is on neither feed until its snapshot unsubscribe is acknowledged
-            object requestedHash = (deltasChannel == null ? null : deltasChannel + ":requested");
-            if (((client.subscriptions != null && deltasChannel is string inOpKey1 && client.subscriptions.ContainsKey(inOpKey1))) || ((client.subscriptions != null && requestedHash is string inOpKey2 && client.subscriptions.ContainsKey(inOpKey2))))
+            string requestedHash = (deltasChannel + ":requested");
+            if (((client.subscriptions != null && deltasChannel != null && client.subscriptions.ContainsKey(deltasChannel))) || ((client.subscriptions != null && requestedHash != null && client.subscriptions.ContainsKey(requestedHash))))
             {
                 channel = deltasChannel;
             } else if (((snapshotChannel != null) && (client.subscriptions != null && snapshotChannel != null && client.subscriptions.ContainsKey(snapshotChannel))))
@@ -1123,11 +1125,11 @@ public partial class paradex : ccxt.paradex
         // a subscribe alone is acknowledged without a snapshot, the feed is unsubscribed first. Both requests
         // keep their ids in the subscriptions, so that an error reply reaches neither an unrelated watcher nor
         // the whole connection
-        object unsubscribe = this.unsubscribeRequest(channel);
+        Dictionary<string, object> unsubscribe = ((Dictionary<string, object>)this.unsubscribeRequest(channel));
         Dictionary<string, object> subscribe = this.subscribeRequest(channel);
         string unsubscribeHash = ("request:" + this.safeString(unsubscribe, "id"));
         ((IDictionary<string,object>)client.subscriptions)[unsubscribeHash] = new Dictionary<string, object>() {
-            { "id", getValue(unsubscribe, "id") },
+            { "id", (unsubscribe != null && unsubscribe.ContainsKey("id") ? unsubscribe["id"] : null) },
             { "messageHashes", new List<object>() {} },
         };
         ((IDictionary<string,object>)client.subscriptions)[(string)channel] = new Dictionary<string, object>() {
@@ -1148,7 +1150,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1242,7 +1244,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true once unsubscribed
      */
-    public async override Task<object> unWatchTicker(string? symbol, object parameters = null)
+    public async override Task<object> unWatchTicker(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.unWatchTickers(new List<object>() {symbol}, parameters);
@@ -1257,7 +1259,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true once unsubscribed
      */
-    public async override Task<object> unWatchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<object> unWatchTickers(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1428,7 +1430,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> WatchMarkPrice(string symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchMarkPrice(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.WatchTicker(symbol, parameters);
@@ -1443,7 +1445,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> WatchMarkPrices(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> WatchMarkPrices(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.WatchTickers(symbols, parameters);
@@ -1506,7 +1508,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true once unsubscribed
      */
-    public async override Task<object> unWatchBidsAsks(IList<object> symbols = null, object parameters = null)
+    public async override Task<object> unWatchBidsAsks(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1597,7 +1599,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1607,12 +1609,12 @@ public partial class paradex : ccxt.paradex
         await this.authenticate();
         string messageHash = "orders";
         string channel = "orders.ALL";
-        object symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;
+        string? symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
             channel = ("orders." + ((market.ContainsKey("id") ? market["id"] : null)));
-            messageHash = ("orders:" + (symbolResolved));
+            messageHash = ("orders:" + symbolResolved);
         }
         string? url = this.getWsUrl();
         Dictionary<string, object> request = this.subscribeRequest(channel);
@@ -1688,7 +1690,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1698,12 +1700,12 @@ public partial class paradex : ccxt.paradex
         await this.authenticate();
         string messageHash = "myTrades";
         string channel = "fills.ALL";
-        object symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;
+        string? symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
             channel = ("fills." + ((market.ContainsKey("id") ? market["id"] : null)));
-            messageHash = ("myTrades:" + (symbolResolved));
+            messageHash = ("myTrades:" + symbolResolved);
         }
         string? url = this.getWsUrl();
         Dictionary<string, object> request = this.subscribeRequest(channel);
@@ -1776,7 +1778,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1887,7 +1889,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> WatchBalance(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2032,7 +2034,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public async override Task<ccxt.FundingRate> WatchFundingRate(string symbol, object parameters = null)
+    public async override Task<ccxt.FundingRate> WatchFundingRate(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2057,7 +2059,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {boolean} true once unsubscribed
      */
-    public async override Task<object> unWatchFundingRate(string? symbol, object parameters = null)
+    public async override Task<object> unWatchFundingRate(string? symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2079,7 +2081,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
      */
-    public async override Task<ccxt.FundingRates> WatchFundingRates(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.FundingRates> WatchFundingRates(IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2214,8 +2216,8 @@ public partial class paradex : ccxt.paradex
         // Returns undefined for frames that carry nothing to route: heartbeats, binary acks, template
         // ids this decoder does not know (the schema says to skip them), and malformed frames.
         //
-        object frameHex = this.binaryToBase16(message);
-        Int64? frameLength = this.parseToInt(((double)((string)frameHex).Length / 2));
+        string frameHex = this.binaryToBase16(message);
+        Int64? frameLength = this.parseToInt(((double)frameHex.Length / 2));
         if (((frameLength == null || frameLength < 8)))
         {
             return null;
@@ -2299,8 +2301,8 @@ public partial class paradex : ccxt.paradex
     {
         // a little-endian unsigned integer of at most 4 bytes, so that it stays exact in every language
         string digits = "0123456789abcdef";
-        object result = 0;
-        object factor = 1;
+        Int64? result = 0;
+        Int64? factor = 1;
         Int64? count = this.parseToInt(length);
         Int64? start = this.parseToInt(offset);
         Int64? position = (start * 2);
@@ -2311,8 +2313,8 @@ public partial class paradex : ccxt.paradex
             Int64? next = (position + 2);
             int high = digits.IndexOf(((string)slice(frameHex, position, middle)), StringComparison.Ordinal);
             int low = digits.IndexOf(((string)slice(frameHex, middle, next)), StringComparison.Ordinal);
-            result = this.parseToInt(this.sum(result, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))((high * 16L), factor), ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(low, factor)));
-            factor = this.parseToInt(((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(factor, 256));
+            result = this.parseToInt(this.sum(result, ((high * 16L) * factor), (low * factor)));
+            factor = this.parseToInt((factor * 256));
             position = this.parseToInt(next);
         }
         // an exact integer below 2^32, parseToInt keeps it and types the return as an integer
@@ -2529,7 +2531,7 @@ public partial class paradex : ccxt.paradex
             }
             Int64? entryLength = this.parseToInt(this.sbeReadUint(frameHex, position, 2));
             Int64? numInGroup = this.parseToInt(this.sbeReadUint(frameHex, (position + 2), 2));
-            position = this.parseToInt((position + 4));
+            position = (position + 4);
             if ((((entryLength == null || entryLength < 16))) || (isGreaterThan(this.parseToInt(this.sum(position, (numInGroup * entryLength))), frameEnd)))
             {
                 return ((Dictionary<string, object>)((object)(null)));
@@ -2841,7 +2843,7 @@ public partial class paradex : ccxt.paradex
             { "2", "CLOSED" },
         };
         string? side = this.sbeReadEnum(frameHex, 24, sides);
-        object account = this.sbeReadAddress(frameHex, 89);
+        string account = this.sbeReadAddress(frameHex, 89);
         // the frame carries the size unsigned, the JSON channel signs it negative for a short
         string? size = this.sbeReadDecimal(frameHex, 25);
         if ((side == "SHORT") && (size != "0"))
@@ -2855,7 +2857,7 @@ public partial class paradex : ccxt.paradex
             { "cached_funding_index", this.sbeReadDecimal(frameHex, 145) },
             { "cost", this.sbeReadDecimal(frameHex, 129) },
             { "cost_usd", this.sbeReadDecimal(frameHex, 137) },
-            { "id", ((object)(account == null ? null : account + "-" + this.safeString(strings, 0, ""))) },
+            { "id", ((account + "-") + this.safeString(strings, 0, "")) },
             { "last_fill_id", this.safeString(strings, 1) },
             { "last_updated_at", this.sbeReadTimestamp(frameHex, 81) },
             { "leverage", this.sbeReadDecimal(frameHex, 73) },

@@ -3296,20 +3296,20 @@ class bitrue extends bitrue$1["default"] {
             this.checkRequiredCredentials();
             const recvWindow = this.safeInteger(this.options, 'recvWindow', 5000);
             if (type === 'spot' || type === 'open') {
-                let query = this.urlencode(this.extend({
+                const unsignedQuery = this.urlencode(this.extend({
                     'timestamp': this.nonce(),
                     'recvWindow': recvWindow,
                 }, paramsOmitted));
-                const signature = this.hmac(this.encode(query), this.encode(this.secret), sha2_js.sha256);
-                query += '&' + 'signature=' + signature;
+                const signature = this.hmac(this.encode(unsignedQuery), this.encode(this.secret), sha2_js.sha256);
+                const signedQuery = unsignedQuery + '&' + 'signature=' + signature;
                 if ((method === 'GET') || (method === 'DELETE')) {
-                    url += '?' + query;
+                    url += '?' + signedQuery;
                     requestHeaders = {
                         'X-MBX-APIKEY': this.apiKey,
                     };
                 }
                 else {
-                    requestBody = query;
+                    requestBody = signedQuery;
                     requestHeaders = {
                         'X-MBX-APIKEY': this.apiKey,
                         'Content-Type': 'application/x-www-form-urlencoded',

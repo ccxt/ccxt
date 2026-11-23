@@ -473,12 +473,12 @@ func (this *Revolutx) ParseCurrency(currency any) map[string]any {
 	var status *string = this.SafeString(currency, "status")
 	var active bool = (status != nil && *status == "active")
 	var assetType *string = this.SafeString(currency, "asset_type")
-	var typeVar string = func() string {
-		if assetType != nil && *assetType == "crypto" {
-			return "crypto"
-		}
-		return "fiat"
-	}()
+	var typeVar string
+	if assetType != nil && *assetType == "crypto" {
+		typeVar = "crypto"
+	} else {
+		typeVar = "fiat"
+	}
 	var precision any = func() any {
 		if scale != nil {
 			return math.Pow(10, float64((-*scale)))
@@ -902,19 +902,19 @@ func (this *Revolutx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		request["since"] = since
 	}
 	var defaultLimit int = 1000 // default max limit if not specified
-	var limitValue int64 = func() int64 {
-		if limit != nil {
-			return *limit
-		}
-		return int64(defaultLimit)
-	}()
+	var limitValue int64
+	if limit != nil {
+		limitValue = *limit
+	} else {
+		limitValue = int64(defaultLimit)
+	}
 	var duration int64 = this.ParseTimeframe(timeframe) * 1000
 	var until *int64 = this.SafeInteger2(params, "until", "until")
 	if until != nil {
 		request["until"] = until
 	}
 	if (since != nil) && (until == nil) {
-		request["until"] = this.Sum(since, (limitValue * duration))
+		request["until"] = this.Sum(since, limitValue*duration)
 	} else if (since == nil) && (until != nil) {
 		request["since"] = (*until - (limitValue * duration))
 	}
@@ -1035,7 +1035,7 @@ func (this *Revolutx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, 
 		request["end_date"] = this.Milliseconds()
 	}
 	if limit != nil {
-		request["limit"] = mathMin(limit, 100)
+		request["limit"] = min(*limit, 100)
 	}
 	var cursor *string = this.SafeString(params, "cursor")
 	if cursor != nil {
@@ -1487,12 +1487,12 @@ func (this *Revolutx) CreateTriggerLegRequest(symbol string, typeVar string, pri
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Revolutx) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Revolutx) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Revolutx) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Revolutx) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -1674,17 +1674,17 @@ func (this *Revolutx) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	if cursor != nil {
 		request["cursor"] = cursor
 	}
-	var orderStates any = this.SafeList2(params, "orderStates", "order_states")
+	var orderStates []string = this.SafeList2Strings(params, "orderStates", "order_states")
 	if orderStates != nil {
-		request["order_states"] = Join(orderStates, ",")
+		request["order_states"] = strings.Join(orderStates, ",")
 	}
 	var trigger *bool = this.SafeBool(params, "trigger", false)
-	var orderTypes any = this.SafeList2(params, "orderTypes", "order_types")
+	var orderTypes []string = this.SafeList2Strings(params, "orderTypes", "order_types")
 	if (orderTypes == nil) && (trigger != nil && *trigger) {
-		orderTypes = []any{"conditional", "tpsl"}
+		orderTypes = []string{"conditional", "tpsl"}
 	}
 	if orderTypes != nil {
-		request["order_types"] = Join(orderTypes, ",")
+		request["order_types"] = strings.Join(orderTypes, ",")
 	}
 	var side *string = this.SafeString(params, "side")
 	if side != nil {
@@ -1783,17 +1783,17 @@ func (this *Revolutx) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	if cursor != nil {
 		request["cursor"] = cursor
 	}
-	var orderStates any = this.SafeList2(params, "orderStates", "order_states")
+	var orderStates []string = this.SafeList2Strings(params, "orderStates", "order_states")
 	if orderStates != nil {
-		request["order_states"] = Join(orderStates, ",")
+		request["order_states"] = strings.Join(orderStates, ",")
 	}
 	var trigger *bool = this.SafeBool(params, "trigger", false)
-	var orderTypes any = this.SafeList2(params, "orderTypes", "order_types")
+	var orderTypes []string = this.SafeList2Strings(params, "orderTypes", "order_types")
 	if (orderTypes == nil) && (trigger != nil && *trigger) {
-		orderTypes = []any{"conditional", "tpsl"}
+		orderTypes = []string{"conditional", "tpsl"}
 	}
 	if orderTypes != nil {
-		request["order_types"] = Join(orderTypes, ",")
+		request["order_types"] = strings.Join(orderTypes, ",")
 	}
 
 	r1 := <-this.PrivateGet10OrdersHistorical(this.Extend(request, this.Omit(params, []any{"until", "cursor", "orderStates", "order_states", "orderTypes", "order_types", "trigger"})))
@@ -1878,12 +1878,12 @@ func (this *Revolutx) ParseMyTrade(trade map[string]any, optionalArgs ...any) an
 	var side *string = this.SafeStringLower(trade, "s")
 	var timestamp *int64 = this.SafeInteger2(trade, "tdt", "pdt")
 	var isMaker *bool = this.SafeBool(trade, "im", false)
-	var takerOrMaker string = func() string {
-		if isMaker != nil && *isMaker {
-			return "maker"
-		}
-		return "taker"
-	}()
+	var takerOrMaker string
+	if isMaker != nil && *isMaker {
+		takerOrMaker = "maker"
+	} else {
+		takerOrMaker = "taker"
+	}
 	var cost *float64 = nil
 	if (priceString != nil) && (amountString != nil) {
 		cost = this.ParseNumber(Precise.StringMul(priceString, amountString))
@@ -2106,13 +2106,9 @@ func (this *Revolutx) HandleErrors(code int64, reason string, url string, method
 			return nil
 		}
 		var feedback string = this.Id + " " + body
-		var errorMessage any = nil
+		var errorMessage *string = nil
 		if IsObject(response) {
-			if derefPtr := this.SafeString2(response, "message", "error"); derefPtr != nil {
-				errorMessage = *derefPtr
-			} else {
-				errorMessage = nil
-			}
+			errorMessage = this.SafeString2(response, "message", "error")
 		}
 		if errorMessage != nil {
 			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], errorMessage, feedback)
