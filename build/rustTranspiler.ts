@@ -9054,6 +9054,7 @@ const RUST_TYPED_DICT_PRODUCERS: Array<[string, 'dict' | 'opt' | 'built']> = [
     ['get_system_config', 'built'],
     ['fetch_extended_account', 'built'],
     ['prepare_ws_stock_params', 'built'],
+    ['parse_option', 'built'],
 ];
 function rustTypedDictProducers (content: string): string {
     const parseOrder = '<Self as crate::exchange::DerivedExchange>::parse_order(', boxOrder = '.map_or(Value::Null, Value::Dict)';
@@ -9062,7 +9063,7 @@ function rustTypedDictProducers (content: string): string {
     for (const [fn, rowKind] of [ ...RUST_TYPED_DICT_PRODUCERS ].reverse ()) {
         const kind = rowKind === 'built' ? 'dict' : rowKind;
         if (kind !== 'dict' && rustPrinterTypedDict (content, fn)) continue;
-        const decl = new RegExp ('\\n    pub (?:async )?fn ' + fn + '\\([^\\n]*\\) -> Value \\{\\n', 'g');
+        const decl = new RegExp ('\\n    (?:pub )?(?:async )?fn ' + fn + '\\([^\\n]*\\) -> Value \\{\\n', 'g');
         const tail = '\n\n    Value::Null\n}';
         let d: RegExpExecArray | null;
         while ((d = decl.exec (content)) !== null) {
@@ -9070,6 +9071,12 @@ function rustTypedDictProducers (content: string): string {
             if (end < 0) throw new Error (fn + ': declaration without the Value::Null tail');
             let body = content.slice (open, end);
             const rets = body.match (/^ *return\b[^\n]*$/gm) ?? [];
+            // a base default that only throws (`NotSupported`) returns the declared type too
+            if (rowKind === 'built' && rets.length === 0 && /^\s*(?:let [^\n]*\n\s*)*panic!\([^\n]*\);$/.test (body)) {
+                content = content.slice (0, d.index) + d[0].replace (') -> Value {', ') -> crate::value::Dict {') + body + '\n\n    Default::default()\n}' + content.slice (end + tail.length);
+                decl.lastIndex = d.index + d[0].length;
+                continue;
+            }
             if (rowKind === 'built') body = h30R02DictReturns (body);
             if (rowKind === 'built') {
                 body = rustBuiltDictReturns (fn, body);
