@@ -431,7 +431,7 @@ export default class aster extends Exchange {
      */
     fetchMarginAdjustmentHistory(symbol?: Str, type?: Str, since?: Int, limit?: Int, params?: Dict): Promise<MarginModification[]>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
-    modifyMarginHelper(symbol: string, amount: any, addOrReduce: number, params?: Dict): Promise<MarginModification>;
+    modifyMarginHelper(symbol: string, amount: number, addOrReduce: number, params?: Dict): Promise<MarginModification>;
     /**
      * @method
      * @name aster#reduceMargin

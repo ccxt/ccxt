@@ -1324,13 +1324,13 @@ class phemex extends phemex$1["default"] {
         if ((amount === undefined) || (market === undefined)) {
             return amount;
         }
-        return this.toEn(amount, this.safeInteger(market, 'valueScale'));
+        return this.toEn(amount, this.safeInteger(this.safeDict(market, 'info'), 'valueScale'));
     }
     toEp(price, market = undefined) {
         if ((price === undefined) || (market === undefined)) {
             return price;
         }
-        return this.toEn(price, this.safeInteger(market, 'priceScale'));
+        return this.toEn(price, this.safeInteger(this.safeDict(market, 'info'), 'priceScale'));
     }
     fromEn(en, scale) {
         if (en === undefined || scale === undefined) {
@@ -1345,19 +1345,19 @@ class phemex extends phemex$1["default"] {
         if ((ep === undefined) || (market === undefined)) {
             return ep;
         }
-        return this.fromEn(ep, this.safeInteger(market, 'priceScale'));
+        return this.fromEn(ep, this.safeInteger(this.safeDict(market, 'info'), 'priceScale'));
     }
     fromEv(ev, market = undefined) {
         if ((ev === undefined) || (market === undefined)) {
             return ev;
         }
-        return this.fromEn(ev, this.safeInteger(market, 'valueScale'));
+        return this.fromEn(ev, this.safeInteger(this.safeDict(market, 'info'), 'valueScale'));
     }
     fromEr(er, market = undefined) {
         if ((er === undefined) || (market === undefined)) {
             return er;
         }
-        return this.fromEn(er, this.safeInteger(market, 'ratioScale'));
+        return this.fromEn(er, this.safeInteger(this.safeDict(market, 'info'), 'ratioScale'));
     }
     parseOHLCV(ohlcv, market = undefined) {
         //

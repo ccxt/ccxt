@@ -3360,7 +3360,7 @@ export default class deribit extends Exchange {
         const rates = [];
         const result = this.safeList(response, 'result', []);
         for (let i = 0; i < result.length; i++) {
-            const fr = this.safeDict(result, i);
+            const fr = this.safeDict(result, i, {});
             const rate = this.parseFundingRate(fr, market);
             rates.push(rate);
         }

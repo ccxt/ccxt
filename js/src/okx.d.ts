@@ -792,7 +792,7 @@ export default class okx extends Exchange {
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
     fetchBorrowRateHistory(code: string, since?: Int, limit?: Int, params?: Dict): Promise<Dict[]>;
-    modifyMarginHelper(symbol: string, amount: any, type: any, params?: Dict): Promise<MarginModification>;
+    modifyMarginHelper(symbol: string, amount: number, type: any, params?: Dict): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     /**
      * @method

@@ -11400,7 +11400,7 @@ class binance extends binance$1["default"] {
         //         "time": "1621252344001"
         //     }
         //
-        return this.parseFundingRate(response, market);
+        return this.parseFundingRate(this.extend({}, response), market);
     }
     /**
      * @method

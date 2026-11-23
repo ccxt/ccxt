@@ -546,7 +546,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
     async watchFundingRate(symbol, params = {}) {
         const paramsResolved = this.handleRouteAndParams('watchFundingRate', params);
         const ticker = await this.watchTicker(symbol, paramsResolved);
-        return this.parseFundingRate(ticker['info'], this.market(symbol));
+        return this.parseFundingRate(this.extend({}, ticker['info']), this.market(symbol));
     }
     /**
      * @method
@@ -574,7 +574,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         for (let i = 0; i < tickerSymbolsLength; i++) {
             const symbol = tickerSymbols[i];
             const ticker = tickers[symbol];
-            result[symbol] = this.parseFundingRate(ticker['info'], this.market(symbol));
+            result[symbol] = this.parseFundingRate(this.extend({}, ticker['info']), this.market(symbol));
         }
         return result;
     }

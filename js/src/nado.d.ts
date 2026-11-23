@@ -450,15 +450,7 @@ export default class nado extends Exchange {
     parseOHLCV(ohlcv: any, market?: Market): OHLCV;
     parseTrade(trade: Dict, market?: Market): Trade;
     parseFundingRate(contract: NullableDict, market?: Market): FundingRate;
-    parseFundingHistory(funding: Dict, market?: Market): {
-        info: Dict;
-        symbol: string;
-        code: Str;
-        timestamp: Int;
-        datetime: string | undefined;
-        id: Str;
-        amount: Num;
-    };
+    parseFundingHistory(funding: Dict, market?: Market): Dict;
     parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     parseCurrency(rawCurrency: Dict): Currency;

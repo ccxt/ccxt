@@ -495,8 +495,8 @@ export declare class BaseExchange {
     watchMultiple(url: Str, messageHashes: string[], message?: any, subscribeHashes?: Strings, subscription?: any): FutureInterface;
     watch(url: Str, messageHash: Str, message?: any, subscribeHash?: any, subscription?: any): any;
     onConnected(client: any, message?: any): void;
-    onError(client: any, error: any): void;
-    onClose(client: any, error: any): void;
+    onError(client: Client, error: any): void;
+    onClose(client: Client, error: any): void;
     close(cleanInstanceCache?: boolean): Promise<void>;
     convertToBigInt(value: string): bigint;
     stringToCharsArray(value: string): string[];

@@ -2961,7 +2961,7 @@ export default class hitbtc extends Exchange {
             if (marketId === undefined) {
                 continue;
             }
-            const rawFundingRate = this.safeDict(response, marketId);
+            const rawFundingRate = this.safeDict(response, marketId, {});
             const marketInner = this.market(marketId);
             const symbol = this.safeSymbol(marketId, marketInner);
             const fundingRate = this.parseFundingRate(rawFundingRate, marketInner);

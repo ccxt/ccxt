@@ -5902,7 +5902,7 @@ export class BaseExchange {
         const ranksArray = this.toArray(ranks);
         const result = [];
         for (let i = 0; i < ranksArray.length; i++) {
-            const rank = this.extend(this.parseADLRank(ranksArray[i]), params);
+            const rank = this.extend(this.parseADLRank(this.extend({}, ranksArray[i])), params);
             result.push(rank);
         }
         return this.filterByArrayPositions(result, 'symbol', symbolsNormalized);
@@ -5911,7 +5911,7 @@ export class BaseExchange {
         const accountsArray = this.toArray(accounts);
         const result = [];
         for (let i = 0; i < accountsArray.length; i++) {
-            const account = this.extend(this.parseAccount(accountsArray[i]), params);
+            const account = this.extend(this.parseAccount(this.extend({}, accountsArray[i])), params);
             result.push(account);
         }
         return result;
@@ -7296,7 +7296,7 @@ export class BaseExchange {
     parseLastPricesList(pricesData, symbols = undefined, params = {}) {
         const results = [];
         for (let i = 0; i < pricesData.length; i++) {
-            results.push(this.extend(this.parseLastPrice(pricesData[i]), params));
+            results.push(this.extend(this.parseLastPrice(this.extend({}, pricesData[i])), params));
         }
         return this.indexBy(this.filterByArray(results, 'symbol', this.marketSymbols(symbols), false), 'symbol');
     }
@@ -7422,7 +7422,7 @@ export class BaseExchange {
     parseFundingRates(response, symbols = undefined) {
         const fundingRates = {};
         for (let i = 0; i < response.length; i++) {
-            const parsed = this.parseFundingRate(response[i]);
+            const parsed = this.parseFundingRate(this.safeDict(response, i, {}));
             const symbol = this.safeString(parsed, 'symbol');
             if (symbol !== undefined) {
                 fundingRates[symbol] = parsed;
@@ -7436,7 +7436,7 @@ export class BaseExchange {
     parseLongShortRatioHistory(response, market = undefined, since = undefined, limit = undefined) {
         const rates = [];
         for (let i = 0; i < response.length; i++) {
-            rates.push(this.parseLongShortRatio(response[i], market));
+            rates.push(this.parseLongShortRatio(this.extend({}, response[i]), market));
         }
         const sorted = this.sortBy(rates, 'timestamp');
         const symbol = (market === undefined) ? undefined : market['symbol'];
@@ -7892,7 +7892,7 @@ export class BaseExchange {
          */
         const result = [];
         for (let i = 0; i < incomes.length; i++) {
-            result.push(this.parseIncome(incomes[i], market));
+            result.push(this.parseIncome(this.extend({}, incomes[i]), market));
         }
         const sorted = this.sortBy(result, 'timestamp');
         const symbol = this.safeString(market, 'symbol');
@@ -8486,7 +8486,7 @@ export class BaseExchange {
             const marketId = (symbolKey === undefined) ? undefined : this.safeString(info, symbolKey);
             const market = this.safeMarket(marketId, undefined, undefined, marketTypeResolved);
             if ((symbols === undefined) || this.inArray(market['symbol'], symbols)) {
-                leverageStructures[market['symbol']] = this.parseLeverage(info, market);
+                leverageStructures[market['symbol']] = this.parseLeverage(this.extend({}, info), market);
             }
         }
         return leverageStructures;

@@ -99,7 +99,7 @@ export default class extended extends Exchange {
      * @returns {FundingHistory[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
-    parseFundingHistory(history: Dict, market?: Market): FundingHistory;
+    parseFundingHistory(history: Dict, market?: Market): Dict;
     parseFundingHistories(histories: Dict[], market?: Market, since?: Int, limit?: Int): FundingHistory[];
     parseTrade(trade: Dict, market?: Market): Trade;
     /**

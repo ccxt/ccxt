@@ -1907,7 +1907,7 @@ class aster extends aster$1["default"] {
         //         "time": 1750146970000
         //     }
         //
-        return this.parseFundingRate(response, market);
+        return this.parseFundingRate(this.extend({}, response), market);
     }
     /**
      * @method

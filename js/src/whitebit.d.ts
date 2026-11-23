@@ -517,15 +517,7 @@ export default class whitebit extends Exchange {
      * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
-    parseFundingHistory(contract: NullableDict, market?: Market): {
-        info: NullableDict;
-        symbol: string;
-        code: undefined;
-        timestamp: Int;
-        datetime: string | undefined;
-        id: undefined;
-        amount: Num;
-    };
+    parseFundingHistory(contract: NullableDict, market?: Market): Dict;
     parseFundingHistories(contracts: Dict[], market?: Market, since?: Int, limit?: Int): FundingHistory[];
     /**
      * @method

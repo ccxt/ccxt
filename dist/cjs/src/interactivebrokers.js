@@ -1490,7 +1490,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         const results = await Promise.all(promises);
         const neededSecTypes = ['CRYPTO']; // CFD, OPT - they should already be fetched in other calls
         for (let i = 0; i < results.length; i++) {
-            const result = results[i];
+            const result = this.safeList(results, i, []);
             for (let j = 0; j < result.length; j++) {
                 const entry = result[j];
                 const sections = this.safeList(entry, 'sections', []);
@@ -1667,7 +1667,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         }
         const responses = await Promise.all(promises);
         for (let i = 0; i < responses.length; i++) {
-            const cfds = responses[i];
+            const cfds = this.safeList(responses, i, []);
             for (let j = 0; j < cfds.length; j++) {
                 const cfd = cfds[j];
                 const conid = this.safeString(cfd, 'conid');
@@ -1740,7 +1740,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         const filterPartsLength = filterParts.length;
         const contractPromises = [];
         for (let i = 0; i < searchResults.length; i++) {
-            const searchResult = searchResults[i];
+            const searchResult = this.safeList(searchResults, i, []);
             for (let j = 0; j < searchResult.length; j++) {
                 const issuers = this.safeList(searchResult[j], 'issuers', []);
                 for (let k = 0; k < issuers.length; k++) {
@@ -1779,7 +1779,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         //     ]
         //
         for (let i = 0; i < contractResults.length; i++) {
-            const contracts = contractResults[i];
+            const contracts = this.safeList(contractResults, i, []);
             for (let j = 0; j < contracts.length; j++) {
                 const contract = contracts[j];
                 const conid = this.safeString(contract, 'conid');

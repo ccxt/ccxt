@@ -3456,7 +3456,6 @@ export default class mexc extends Exchange {
             if (errorMsg !== 'success') {
                 throw new InvalidOrder(this.id + ' cancelOrder() the order with id ' + id + ' cannot be cancelled: ' + errorMsg);
             }
-            return this.parseOrder(this.safeDict(data, 0, {}), market);
         }
         return this.parseOrder(data, market);
     }

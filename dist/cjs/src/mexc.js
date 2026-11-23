@@ -3454,7 +3454,6 @@ class mexc extends mexc$1["default"] {
             if (errorMsg !== 'success') {
                 throw new errors.InvalidOrder(this.id + ' cancelOrder() the order with id ' + id + ' cannot be cancelled: ' + errorMsg);
             }
-            return this.parseOrder(this.safeDict(data, 0, {}), market);
         }
         return this.parseOrder(data, market);
     }

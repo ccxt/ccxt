@@ -9819,7 +9819,7 @@ export default class bitget extends Exchange {
             }
         }
         const data = this.safeList(response, 'data', []);
-        return this.parseFundingRate(data[0], market);
+        return this.parseFundingRate(this.safeDict(data, 0, {}), market);
     }
     /**
      * @method

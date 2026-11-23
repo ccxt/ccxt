@@ -57,24 +57,6 @@ class phemex extends phemex$1["default"] {
         precise.reduce();
         return precise.toString();
     }
-    fromEp(ep, market = undefined) {
-        if ((ep === undefined) || (market === undefined)) {
-            return ep;
-        }
-        return this.fromEn(ep, this.safeInteger(market, 'priceScale'));
-    }
-    fromEv(ev, market = undefined) {
-        if ((ev === undefined) || (market === undefined)) {
-            return ev;
-        }
-        return this.fromEn(ev, this.safeInteger(market, 'valueScale'));
-    }
-    fromEr(er, market = undefined) {
-        if ((er === undefined) || (market === undefined)) {
-            return er;
-        }
-        return this.fromEn(er, this.safeInteger(market, 'ratioScale'));
-    }
     requestId() {
         this.lockId();
         const requestId = this.sum(this.safeInteger(this.options, 'requestId', 0), 1);

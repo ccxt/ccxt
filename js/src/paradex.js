@@ -3433,7 +3433,7 @@ export default class paradex extends Exchange {
         // }
         //
         const configs = this.safeList(response, 'configs');
-        return this.parseLeverage(this.safeDict(configs, 0), market);
+        return this.parseLeverage(this.safeDict(configs, 0, {}), market);
     }
     parseLeverage(leverage, market = undefined) {
         const marketId = this.safeString(leverage, 'market');

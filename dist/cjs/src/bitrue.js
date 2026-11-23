@@ -2191,7 +2191,7 @@ class bitrue extends bitrue$1["default"] {
         //         }
         //     }
         //
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend({}, data), market);
     }
     /**
      * @method
@@ -2290,7 +2290,7 @@ class bitrue extends bitrue$1["default"] {
         //         }
         //     }
         //
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend({}, data), market);
     }
     /**
      * @method
@@ -2515,7 +2515,7 @@ class bitrue extends bitrue$1["default"] {
         //         }
         //     }
         //
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend({}, data), market);
     }
     /**
      * @method

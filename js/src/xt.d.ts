@@ -426,7 +426,7 @@ export default class xt extends Exchange {
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
     reduceMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
-    modifyMarginHelper(symbol: string, amount: any, addOrReduce: string, params?: Dict): Promise<MarginModification>;
+    modifyMarginHelper(symbol: string, amount: number, addOrReduce: string, params?: Dict): Promise<MarginModification>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
     /**
      * @method
@@ -528,15 +528,7 @@ export default class xt extends Exchange {
      * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingHistory[]>;
-    parseFundingHistory(contract: NullableDict, market?: Market): {
-        info: NullableDict;
-        symbol: string;
-        code: Str;
-        timestamp: Int;
-        datetime: string | undefined;
-        id: Str;
-        amount: Num;
-    };
+    parseFundingHistory(contract: NullableDict, market?: Market): Dict;
     /**
      * @ignore
      * @method

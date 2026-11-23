@@ -9818,7 +9818,7 @@ class bitget extends bitget$1["default"] {
             }
         }
         const data = this.safeList(response, 'data', []);
-        return this.parseFundingRate(data[0], market);
+        return this.parseFundingRate(this.safeDict(data, 0, {}), market);
     }
     /**
      * @method
