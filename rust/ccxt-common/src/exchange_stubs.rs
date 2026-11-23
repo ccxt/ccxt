@@ -2377,6 +2377,10 @@ impl Exchange {
             obj
         }
     }
+    /// Typed twin of `keysort`: the sorted map, else the empty map (what `.into_dict()` answered for a pass-through).
+    pub fn keysort_t(&self, obj: Value, optional_args: &[Value]) -> crate::value::Dict {
+        if let Value::Dict(m) = self.keysort(obj, optional_args) { m } else { crate::value::Dict::default() }
+    }
 
     /// `aggregate(bidasks)` — groups `[price, volume]` rows by price,
     /// summing volume and dropping zero-volume rows. Preserves the
