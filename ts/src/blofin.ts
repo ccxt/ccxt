@@ -2404,17 +2404,19 @@ export default class blofin extends Exchange {
      * @param {string} id withdrawal id
      * @param {string} [code] unified currency code
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.clientId] look up by the client-supplied id instead, with id set to undefined
+     * @param {string} [params.clientId] look up by the client-supplied id instead, with id set to undefined or ''
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
      */
-    async fetchWithdrawal (id: Str, code: Str = undefined, params: Dict = {}): Promise<Transaction> {
+    async fetchWithdrawal (id: string, code: Str = undefined, params: Dict = {}): Promise<Transaction> {
         const clientId = this.safeString (params, 'clientId');
-        if ((id === undefined) && (clientId === undefined)) {
+        // an undefined or empty id looks the withdrawal up by params['clientId']
+        const hasId = (id !== undefined) && (id !== '');
+        if (!hasId && (clientId === undefined)) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawal() requires an id argument or a params["clientId"]');
         }
         await this.loadMarkets ();
         const request: Dict = {};
-        if (id !== undefined) {
+        if (hasId) {
             request['withdrawId'] = id;
         }
         let currency: Currency = undefined;
@@ -2430,7 +2432,7 @@ export default class blofin extends Exchange {
         for (let i = 0; i < dataLength; i++) {
             const entry = this.safeDict (data, i, {});
             let matches = false;
-            if (id !== undefined) {
+            if (hasId) {
                 matches = (this.safeString (entry, 'withdrawId') === id);
             } else {
                 matches = (this.safeString (entry, 'clientId') === clientId);
@@ -2439,7 +2441,7 @@ export default class blofin extends Exchange {
                 return this.parseTransaction (entry, currency);
             }
         }
-        const reference = (id !== undefined) ? id : clientId;
+        const reference = hasId ? id : clientId;
         throw new ExchangeError (this.id + ' fetchWithdrawal() could not find withdrawal ' + reference);
     }
 

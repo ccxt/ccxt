@@ -7363,7 +7363,8 @@ const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
     'urlEncoderForProxyUrl': [ 0 ],
     // prediction `fetchEvent (id: string)`: base and every override; the only callers are the typed FetchEvent(id string) wrappers
     'fetchEvent': [ 0 ],
-    // required `id` / `code` / `symbol: string` declared by every override (blofin fetchWithdrawal takes `Str`)
+    // required `id` / `code` / `symbol: string` declared by every override
+    'fetchWithdrawal': [ 0 ],
     'fetchDeposit': [ 0 ], 'verifyGiftCode': [ 0 ], 'fetchDepositMethodId': [ 0 ], 'fetchCurrency': [ 0 ],
     'fetchMarket': [ 0 ], 'fetchTicker2': [ 0 ],
 };
