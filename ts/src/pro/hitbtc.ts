@@ -518,7 +518,7 @@ export default class hitbtc extends hitbtcRest {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
             const symbol = this.safeSymbol (marketId, market);
-            const ticker = this.parseWsTicker (data[marketId], market);
+            const ticker = this.parseWsTicker (this.safeDict (data, marketId, {}), market);
             this.tickers[symbol] = ticker;
             result.push (ticker);
             const messageHash = topic + '::' + symbol;

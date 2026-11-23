@@ -450,7 +450,7 @@ export default class coinbase extends coinbaseRest {
             const tickersObj = this.safeDict (events, i);
             const tickers: Dict[] = this.safeList (tickersObj, 'tickers', []);
             for (let j = 0; j < tickers.length; j++) {
-                const ticker = tickers[j];
+                const ticker = this.safeDict (tickers, j, {});
                 const wsMarketId = this.safeString (ticker, 'product_id');
                 if (wsMarketId === undefined) {
                     continue;

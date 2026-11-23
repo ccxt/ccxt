@@ -187,7 +187,7 @@ export default class mexc extends mexcRest {
         let ticker: Ticker;
         if (this.safeBool (market, 'spot', false)) {
             this.handleBidAsk (client, message); // the bids-asks channel is spot only
-            ticker = this.parseWsTicker (rawTicker as Dict, market);
+            ticker = this.parseWsTicker (this.safeDictN (message, [ 'd', 'data', 'publicAggreBookTicker' ], {}), market);
             ticker['timestamp'] = timestamp;
             ticker['datetime'] = this.iso8601 (timestamp);
         } else if (rawTicker !== undefined) {
@@ -345,7 +345,7 @@ export default class mexc extends mexcRest {
         const topic = messageHashPrefix + 'ticker';
         const result: List = [];
         for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
+            const entry = this.safeDict (data, i, {});
             let ticker: Ticker;
             if (isSpot === true) {
                 ticker = this.parseWsTicker (entry, market);
