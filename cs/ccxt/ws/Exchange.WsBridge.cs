@@ -392,7 +392,7 @@ public partial class Exchange
             while (tries < maxTries)
             {
                 var cache = stored.cache;
-                object orderBook = ccxt.BaseExchange.FromOrderBook(await this.FetchRestOrderBookSafe(symbol, limit, parameters));
+                Dictionary<string, object> orderBook = ccxt.BaseExchange.FromOrderBook(await this.FetchRestOrderBookSafe(symbol, limit, parameters));
                 object indexValue = this.getCacheIndex(orderBook, cache);
                 Int64 index = indexValue == null ? -1 : Convert.ToInt64(indexValue);
                 if (index >= 0)
