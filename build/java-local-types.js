@@ -23981,6 +23981,8 @@ const R92J3_LONG_FIXED_PARAMS = {
     'unsubscribeChannelsFrom': [ 5 ],
     'unsubscribeChannelAt': [ 5 ],
     'padHex': [ 1 ],
+    'ibkrPeriod': [ 0, 1 ],
+    'ibkrWsPeriod': [ 0, 1 ],
 };
 
 // venue-scoped rows (`<file>#<method>`) for names other venues declare with other param types
@@ -24043,6 +24045,15 @@ function r92j3LongArgumentIsTyped (printer, arg) {
     return false;
 }
 
+// a local the printer declares `int` (a parseTimeframe result) widens to long before it boxes to Long
+function r92j3PrintedIntLocal (printer, arg) {
+    if (arg === undefined || !ts.isIdentifier (arg)) {
+        return false;
+    }
+    const declaration = printer.javaDeclarationOfIdentifier (arg);
+    return declaration !== undefined && String (printer.javaDeclaredTypeOfDeclaration?.(declaration) ?? '').replace (/^final\s+/, '').trim () === 'int';
+}
+
 export function installJavaR92j3LongFixedParams (transpiler) {
     const printer = transpiler?.javaTranspiler;
     if (!printer || typeof printer.javaNativeParameterType !== 'function' || printer._javaR92j3LongFixedParamsPatched) {
@@ -24083,8 +24094,8 @@ export function installJavaR92j3LongFixedParams (transpiler) {
     // an int loop counter handed to such a slot widens to long, which boxes to the Long parameter
     const upstreamCheckcast = printer.javaCheckcastArgument.bind (printer);
     printer.javaCheckcastArgument = function (arg, printed, type) {
-        return type === 'Long' && printer.javaPrintedIntCounter (unwrapParens (arg)) && printed === unwrapParens (arg).text
-            ? `((long) ${printed})` : upstreamCheckcast (arg, printed, type);
+        return type === 'Long' && (printer.javaPrintedIntCounter (unwrapParens (arg)) || r92j3PrintedIntLocal (printer, unwrapParens (arg)))
+            && printed === unwrapParens (arg).text ? `((long) ${printed})` : upstreamCheckcast (arg, printed, type);
     };
     const upstreamMethod = printer.printMethodDeclaration.bind (printer);
     printer.printMethodDeclaration = function (node, identation) {
