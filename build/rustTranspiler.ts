@@ -4652,6 +4652,48 @@ function rustTypedParseOrderBook (content: string): string {
     return content;
 }
 
+// `sign` builds a request map on every path in every venue: the base returns `Dict`, an override `Some(..)` through the
+// `DerivedExchange` slot (`None` = not overridden). `.as_map()` copies unwrap, any other use boxes it.
+function rustTypedSign (content: string): string {
+    const sig = /\n    (pub )?fn sign\(&mut self, path: &str, optional_args: &\[Value\]\) -> Value \{\n/g;
+    const probe = '{ let __v = crate::exchange::DerivedExchange::sign(self, path, optional_args); if !matches!(__v, crate::Value::Null) { return __v; } }';
+    let m: RegExpExecArray | null;
+    const decls: number[] = [];
+    while ((m = sig.exec (content)) !== null) decls.push (m.index);
+    for (const at of decls.reverse ()) {
+        const open = content.indexOf ('{\n', at) + 1;
+        const end = balancedCloseIndex (content, open);
+        const derived = content.startsWith ('\nimpl crate::exchange::DerivedExchange for ', content.lastIndexOf ('\nimpl ', at));
+        const tail = '\n\n    Value::Null\n';
+        let body = content.slice (open, end);
+        if (!body.endsWith (tail)) throw new Error ('sign: declaration without the Value::Null tail');
+        body = body.slice (0, -tail.length).replace (probe, 'if let Some(__v) = crate::exchange::DerivedExchange::sign(self, path, optional_args) { return __v; }');
+        let out = '', last = 0;
+        const ret = /\breturn ([^;\n]*)/g;
+        while ((m = ret.exec (body)) !== null) {
+            if (m[1].startsWith ('__v')) continue;
+            if (!m[1].startsWith ('Value::Map(')) throw new Error ('sign: unproven return ' + m[1].slice (0, 80));
+            const close = balancedCloseIndex (body, m.index + 'return Value::Map('.length);
+            out += body.slice (last, m.index) + `return ${derived ? 'Some(' : ''}std::sync::Arc::new(${body.slice (m.index + 'return Value::Map('.length, close)})${derived ? ')' : ''}`;
+            last = ret.lastIndex = close + 1;
+        }
+        body = out + body.slice (last) + (derived ? '\n\n    None\n' : '\n\n    Default::default()\n');
+        content = content.slice (0, at) + content.slice (at, open).replace ('-> Value {', derived ? '-> Option<crate::value::Dict> {' : '-> crate::value::Dict {') + body + content.slice (end);
+    }
+    const call = /(?<![\w.])(?:self\.|<Self as crate::exchange_generated::ExchangeBase>::)sign\(/g;
+    const starts: number[] = [];
+    while ((m = call.exec (content)) !== null) starts.push (m.index);
+    const copy = '.as_map().cloned().unwrap_or_default()';
+    for (const s of starts.reverse ()) {
+        const close = balancedCloseIndex (content, content.indexOf ('(', s) + 1);
+        if (close >= content.length) continue;
+        const after = content.slice (close + 1);
+        if (after.startsWith (copy)) content = content.slice (0, s) + 'std::sync::Arc::unwrap_or_clone(' + content.slice (s, close + 1) + ')' + after.slice (copy.length);
+        else content = content.slice (0, s) + 'Value::Dict(' + content.slice (s, close + 1) + ')' + after;
+    }
+    return content;
+}
+
 // `safeOrder` ends in `this.extend (orderDict, {..})`, a map on every input, so it returns `Dict` (`extend_t`). A venue
 // `parseWsOrder` whose every return is `this.safeOrder (..)` returns `Dict` too; `.into_dict()` drops, any other use boxes it.
 function rustTypedSafeOrder (content: string): string {
@@ -15268,6 +15310,7 @@ impl std::ops::DerefMut for ${coreName} {
             }
 
             rustContent = rustTypedParseOrderBook(rustContent);
+            rustContent = rustTypedSign(rustContent);
             rustContent = rustTypedParseOrder(rustContent);
             rustContent = rustTypedParseTrade(rustContent);
             rustContent = rustTypedParseTicker(rustContent);
@@ -16068,6 +16111,7 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = rustTypedListAndOmitBranches(finalFile);
         finalFile = rustTypedIndexBy(finalFile);
         finalFile = rustTypedParseOrderBook(finalFile);
+        finalFile = rustTypedSign(finalFile);
         finalFile = rustTypedSafeOrder(finalFile);
         finalFile = rustTypedParseOrder(finalFile);
         finalFile = rustTypedParseTicker(finalFile);

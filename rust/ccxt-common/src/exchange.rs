@@ -277,7 +277,7 @@ pub trait DerivedExchange {
     /// parent's inherent one. Binance spot then signs its ws-api subscribe with
     /// a seconds timestamp and the venue answers -1130.
     fn nonce(&self) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::nonce(p)) }
-    fn sign(&mut self, path: &str, optional_args: &[Value]) -> Value { self.derived_parent_mut().map_or(Value::Null, |p| DerivedExchange::sign(p, path, optional_args)) }
+    fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> { self.derived_parent_mut().and_then(|p| DerivedExchange::sign(p, path, optional_args)) }
     fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: Value, body: &str, response: Value, request_headers: Value, request_body: Value) -> Value { self.derived_parent_mut().map_or(Value::Null, |p| DerivedExchange::handle_errors(p, code, reason, url, method, headers, body, response, request_headers, request_body)) }
 }
 
@@ -1871,7 +1871,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
             path,
             &[api_arg, Value::Str(verb.to_string().into()), params.clone(), Value::Null, Value::Null],
         );
-        if let Value::Dict(m) = &signed {
+        if let Some(m) = &signed {
             let url = match m.get("url") { Some(Value::Str(s)) => s.to_string(), _ => String::new().into() };
             let method = match m.get("method") { Some(Value::Str(s)) => s.to_string(), _ => verb.to_string().into() };
             let body = match m.get("body") { Some(Value::Str(s)) => Some(s.to_string()), _ => None };
