@@ -6,7 +6,7 @@ import { AuthenticationError, NotSupported, ExchangeError } from '../base/errors
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { eddsa } from '../base/functions/crypto.js';
-import type { Balances, Bool, Dict, Int, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, Market, NullableDict } from '../base/types.js';
+import type { Balances, Bool, Dict, Int, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, Market, NullableDict, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -71,7 +71,7 @@ export default class modetrade extends modetradeRest {
         });
     }
 
-    requestId (url: string): number {
+    requestId (url: string): int {
         const options = this.safeDict (this.options, 'requestId', {});
         const previousValue = this.safeInteger (options, url, 0);
         const newValue = this.sum (previousValue, 1);
@@ -650,13 +650,12 @@ export default class modetrade extends modetradeRest {
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const ts = this.nonce ().toString ();
-            const auth = ts;
             let secret = this.secret;
             if (this.secret.indexOf ('ed25519:') >= 0) {
                 const parts = this.secret.split ('ed25519:');
                 secret = parts[1];
             }
-            const signature = eddsa (this.encode (auth), this.base58ToBinary (secret), ed25519);
+            const signature = eddsa (this.encode (ts), this.base58ToBinary (secret), ed25519);
             const request: Dict = {
                 'event': event,
                 'params': {
@@ -946,7 +945,7 @@ export default class modetrade extends modetradeRest {
         const dataIsArray = Array.isArray (data);
         if (dataIsArray) {
             // algoexecutionreport
-            const dataList = this.safeList (message, 'data', []);
+            const dataList: Dict[] = this.safeList (message, 'data', []);
             const dataListLength = dataList.length;
             for (let i = 0; i < dataListLength; i++) {
                 const order = dataList[i];
@@ -1112,7 +1111,7 @@ export default class modetrade extends modetradeRest {
     async loadPositionsSnapshot (client: Client, messageHash: string) {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeString (position, 'contracts', '0');
@@ -1166,7 +1165,7 @@ export default class modetrade extends modetradeRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         const newPositions: Position[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = this.safeDict (rawPositions, i);

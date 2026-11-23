@@ -2,6 +2,52 @@
     "exchange": "poloniex",
     "skipKeys": [],
     "methods": {
+        "fetchFundingRate": [
+            {
+                "description": "swap funding rate",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": 200,
+                    "msg": "Success",
+                    "data": {
+                        "s": "BTC_USDT_PERP",
+                        "fR": "0.0001",
+                        "fT": "1795276800000",
+                        "nFR": "0.00015",
+                        "nFT": "1795305600000"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "s": "BTC_USDT_PERP",
+                        "fR": "0.0001",
+                        "fT": "1795276800000",
+                        "nFR": "0.00015",
+                        "nFT": "1795305600000"
+                    },
+                    "symbol": "BTC/USDT:USDT",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": 0.00015,
+                    "fundingTimestamp": 1795305600000,
+                    "fundingDatetime": "2026-11-22T00:00:00.000Z",
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": 0.0001,
+                    "previousFundingTimestamp": 1795276800000,
+                    "previousFundingDatetime": "2026-11-21T16:00:00.000Z",
+                    "interval": "8h"
+                }
+            }
+        ],
         "transfer": [
             {
                 "description": "transfer with exchange-specific toAccount",

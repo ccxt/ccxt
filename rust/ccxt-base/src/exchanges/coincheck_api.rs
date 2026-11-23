@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::coincheck::CoincheckCore;
+use super::coincheck::Coincheck;
 use crate::exchange::ExchangeRuntime;
 
-impl CoincheckCore {
+impl Coincheck {
     /// Auto-generated wrapper for the `publicGetExchangeOrdersRate` implicit endpoint.
     pub async fn public_get_exchange_orders_rate(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_exchange_orders_rate".into()), optional_args).await

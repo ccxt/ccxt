@@ -68,9 +68,14 @@ public partial class BaseExchange
             case "sha384":
                 signature = SignHMACSHA384(request, secretBytes);
                 break;
+            case "sha1":
+                signature = SignHMACSHA1(request, secretBytes);
+                break;
             case "md5":
                 signature = SignHMACMD5(request, secretBytes);
                 break;
+            default:
+                throw new ArgumentException("Unsupported HMAC algorithm: " + algorithm);
         }
 
         return digest == "hex" ? binaryToHex(signature) : Exchange.BinaryToBase64(signature);
@@ -283,6 +288,18 @@ public partial class BaseExchange
         return resultBytes;
     }
 
+    public static byte[] SignHMACSHA1(string data, byte[] secret)
+    {
+        return SignHMACSHA1(Encoding.UTF8.GetBytes(data), secret);
+    }
+
+    public static byte[] SignHMACSHA1(byte[] data, byte[] secret)
+    {
+        using var encryptor = new HMACSHA1(secret);
+        var resultBytes = encryptor.ComputeHash(data);
+        return resultBytes;
+    }
+
     public static byte[] SignHMACMD5(string data, byte[] secret)
     {
         return SignHMACMD5(Encoding.UTF8.GetBytes(data), secret);
@@ -296,6 +313,36 @@ public partial class BaseExchange
     }
 
     public string rsa(object request, object secret, Delegate alg = null, object padding = null) => Rsa(request, secret, alg, padding);
+
+    // RSA PKCS#1 v1.5 decryption of a base64-encoded ciphertext with a PEM RSA private key,
+    // same as node's crypto.privateDecrypt ({ key, padding: RSA_PKCS1_PADDING }, base64.decode (secret))
+    public byte[] decryptPrivateKey(object encryptionPrivKey, object encryptionSecret)
+    {
+        var pem = encryptionPrivKey as string;
+        if (string.IsNullOrEmpty(pem))
+        {
+            throw new ArgumentException(this.id + " decryptPrivateKey() requires a PEM private key");
+        }
+        // same PEM handling as Rsa (): drop the header/footer and blank lines, keep the base64 body
+        var b64Lines = pem.Split(new[] { "\n" }, StringSplitOptions.None).Select(l => l.Trim()).Where(l => l.Length > 0 && !l.StartsWith("-----"));
+        var der = Convert.FromBase64String(string.Join("", b64Lines));
+        RSACryptoServiceProvider rsa = DecodeRSAPrivateKey(der);
+        if (rsa == null)
+        {
+            // "BEGIN PRIVATE KEY" (PKCS#8, the openssl 3 default) wraps the PKCS#1 key in an OCTET STRING
+            var pkcs1 = UnwrapPkcs8RsaPrivateKey(der);
+            if (pkcs1 != null)
+            {
+                rsa = DecodeRSAPrivateKey(pkcs1);
+            }
+        }
+        if (rsa == null)
+        {
+            throw new ArgumentException(this.id + " decryptPrivateKey() could not read an RSA private key from the PEM");
+        }
+        var cipherText = Convert.FromBase64String(encryptionSecret as string);
+        return rsa.Decrypt(cipherText, false); // false = PKCS#1 v1.5 padding
+    }
 
     public static string Rsa(object data, object publicKey, Delegate hash = null, object padding = null)
     {
@@ -480,27 +527,96 @@ public partial class BaseExchange
         return crc;
     }
 
+    // https://gist.github.com/martin31821/6a4736521043233bf7cdc05aa785149d
+    private static readonly uint[] m_checksumTable = Enumerable.Range(0, 256).Select(i =>
+    {
+        var tableEntry = (uint)i;
+        for (var j = 0; j < 8; ++j)
+        {
+            tableEntry = ((tableEntry & 1) != 0)
+                ? (0xEDB88320 ^ (tableEntry >> 1))
+                : (tableEntry >> 1);
+        }
+        return tableEntry;
+    }).ToArray();
+
     public static Int64 CalculateCrc32(string data, bool signed, int? bound = null)
     {
-        // https://gist.github.com/martin31821/6a4736521043233bf7cdc05aa785149d
-        var s_generator = 0xEDB88320;
-        var m_checksumTable = Enumerable.Range(0, 256).Select(i =>
-        {
-            var tableEntry = (uint)i;
-            for (var j = 0; j < 8; ++j)
-            {
-                tableEntry = ((tableEntry & 1) != 0)
-                    ? (s_generator ^ (tableEntry >> 1))
-                    : (tableEntry >> 1);
-            }
-            return tableEntry;
-        }).ToArray();
-
-
         var arrayOfBytes = Encoding.ASCII.GetBytes(data);
         var result = ~arrayOfBytes.Aggregate(0xFFFFFFFF, (checksumRegister, currentByte) =>
                       (m_checksumTable[(checksumRegister & 0xFF) ^ Convert.ToByte(currentByte)] ^ (checksumRegister >> 8)));
         return (!signed) ? Convert.ToInt64(result) : Convert.ToInt64((int)result);
+    }
+
+    // reads the length of a DER element at pos (after its tag), advances pos, returns -1 when malformed
+    private static int ReadDerLength(byte[] der, ref int pos)
+    {
+        if (pos >= der.Length)
+        {
+            return -1;
+        }
+        int first = der[pos++];
+        if (first < 0x80)
+        {
+            return first;
+        }
+        int count = first & 0x7F;
+        if (count == 0 || count > 4 || pos + count > der.Length)
+        {
+            return -1;
+        }
+        int length = 0;
+        for (int i = 0; i < count; i++)
+        {
+            length = (length << 8) | der[pos++];
+        }
+        return length;
+    }
+
+    // PKCS#8 PrivateKeyInfo: SEQUENCE { INTEGER version, SEQUENCE algorithm, OCTET STRING privateKey (PKCS#1) }
+    // returns the inner PKCS#1 key, or null when the DER is not a PKCS#8 key
+    private static byte[] UnwrapPkcs8RsaPrivateKey(byte[] der)
+    {
+        int pos = 0;
+        if (der == null || der.Length < 2 || der[pos++] != 0x30 || ReadDerLength(der, ref pos) < 0)
+        {
+            return null;
+        }
+        // version
+        if (pos >= der.Length || der[pos++] != 0x02)
+        {
+            return null;
+        }
+        int versionLength = ReadDerLength(der, ref pos);
+        if (versionLength < 0)
+        {
+            return null;
+        }
+        pos += versionLength;
+        // algorithm identifier
+        if (pos >= der.Length || der[pos++] != 0x30)
+        {
+            return null;
+        }
+        int algorithmLength = ReadDerLength(der, ref pos);
+        if (algorithmLength < 0)
+        {
+            return null;
+        }
+        pos += algorithmLength;
+        // private key
+        if (pos >= der.Length || der[pos++] != 0x04)
+        {
+            return null;
+        }
+        int keyLength = ReadDerLength(der, ref pos);
+        if (keyLength < 0 || pos + keyLength > der.Length)
+        {
+            return null;
+        }
+        var key = new byte[keyLength];
+        Array.Copy(der, pos, key, 0, keyLength);
+        return key;
     }
 
     private static RSACryptoServiceProvider DecodeRSAPrivateKey(byte[] privkey)

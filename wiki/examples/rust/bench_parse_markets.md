@@ -6,7 +6,7 @@
 //   cargo run --release --bin bench_parse_markets -- /tmp/markets.json
 //
 // This is the typed-layer analog of the old raw `parse_markets` micro-bench:
-// it measures the `Value -> ccxt::types::Market` decode the typed wrappers do
+// it measures the `Value -> ccxt::types::Market` decode the typed exchange methods do
 // on every `fetch_markets()` call.
 use ccxt::types::Market;
 use ccxt::Value;

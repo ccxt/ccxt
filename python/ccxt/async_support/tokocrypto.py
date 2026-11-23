@@ -797,114 +797,113 @@ class tokocrypto(Exchange, ImplicitAPI):
             await self.load_time_difference()
         data = self.safe_dict(response, 'data', {})
         list = self.safe_list(data, 'list', [])
-        result = []
-        for i in range(0, len(list)):
-            market = list[i]
-            baseId = self.safe_string(market, 'baseAsset')
-            quoteId = self.safe_string(market, 'quoteAsset')
-            id = self.safe_string(market, 'symbol')
-            lowercaseId = self.safe_string_lower(market, 'symbol')
-            settleId = self.safe_string(market, 'marginAsset')
-            base = self.safe_currency_code(baseId)
-            quote = self.safe_currency_code(quoteId)
-            if (base is None) or (quote is None):
-                continue
-            settle = self.safe_currency_code(settleId)
-            symbol = base + '/' + quote
-            filters = self.safe_list(market, 'filters', [])
-            filtersByType = self.index_by(filters, 'filterType')
-            status = self.safe_string(market, 'spotTradingEnable')
-            active = (status == '1')
-            permissions = self.safe_list(market, 'permissions', [])
-            for j in range(0, len(permissions)):
-                if self.safe_string(permissions, j) == 'TRD_GRP_003':
-                    active = False
-                    break
-            marginTradingEnable = self.safe_string(market, 'marginTradingEnable')
-            costMin = None
-            precision = {
-                'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision'))),
-                'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision'))),
-                'base': self.parse_number(self.parse_precision(self.safe_string(market, 'basePrecision'))),
-                'quote': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
+        return self.parse_markets(list)
+
+    def parse_market(self, market: dict) -> Market:
+        baseId = self.safe_string(market, 'baseAsset')
+        quoteId = self.safe_string(market, 'quoteAsset')
+        id = self.safe_string(market, 'symbol')
+        lowercaseId = self.safe_string_lower(market, 'symbol')
+        settleId = self.safe_string(market, 'marginAsset')
+        base = self.safe_currency_code(baseId)
+        quote = self.safe_currency_code(quoteId)
+        if (base is None) or (quote is None):
+            return None
+        settle = self.safe_currency_code(settleId)
+        symbol = base + '/' + quote
+        filters = self.safe_list(market, 'filters', [])
+        filtersByType = self.index_by(filters, 'filterType')
+        status = self.safe_string(market, 'spotTradingEnable')
+        active = (status == '1')
+        permissions = self.safe_list(market, 'permissions', [])
+        for j in range(0, len(permissions)):
+            if self.safe_string(permissions, j) == 'TRD_GRP_003':
+                active = False
+                break
+        marginTradingEnable = self.safe_string(market, 'marginTradingEnable')
+        costMin = None
+        precision = {
+            'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantityPrecision'))),
+            'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision'))),
+            'base': self.parse_number(self.parse_precision(self.safe_string(market, 'basePrecision'))),
+            'quote': self.parse_number(self.parse_precision(self.safe_string(market, 'quotePrecision'))),
+        }
+        limits = {
+            'leverage': {
+                'min': None,
+                'max': None,
+            },
+            'amount': {
+                'min': None,
+                'max': None,
+            },
+            'price': {
+                'min': None,
+                'max': None,
+            },
+            'cost': {
+                'min': costMin,
+                'max': None,
+            },
+        }
+        if 'PRICE_FILTER' in filtersByType:
+            filter = self.safe_dict(filtersByType, 'PRICE_FILTER', {})
+            # PRICE_FILTER reports zero values for maxPrice
+            # since they updated filter types in November 2018
+            # https://github.com/ccxt/ccxt/issues/4286
+            # therefore limits['price']['max'] doesn't have any meaningful value except undefined
+            limits['price'] = {
+                'min': self.safe_number(filter, 'minPrice'),
+                'max': self.safe_number(filter, 'maxPrice'),
             }
-            limits = {
-                'leverage': {
-                    'min': None,
-                    'max': None,
-                },
-                'amount': {
-                    'min': None,
-                    'max': None,
-                },
-                'price': {
-                    'min': None,
-                    'max': None,
-                },
-                'cost': {
-                    'min': costMin,
-                    'max': None,
-                },
+            precision['price'] = filter['tickSize']
+        if 'LOT_SIZE' in filtersByType:
+            filter = self.safe_dict(filtersByType, 'LOT_SIZE', {})
+            precision['amount'] = self.safe_number(filter, 'stepSize')
+            limits['amount'] = {
+                'min': self.safe_number(filter, 'minQty'),
+                'max': self.safe_number(filter, 'maxQty'),
             }
-            if 'PRICE_FILTER' in filtersByType:
-                filter = self.safe_dict(filtersByType, 'PRICE_FILTER', {})
-                # PRICE_FILTER reports zero values for maxPrice
-                # since they updated filter types in November 2018
-                # https://github.com/ccxt/ccxt/issues/4286
-                # therefore limits['price']['max'] doesn't have any meaningful value except undefined
-                limits['price'] = {
-                    'min': self.safe_number(filter, 'minPrice'),
-                    'max': self.safe_number(filter, 'maxPrice'),
-                }
-                precision['price'] = filter['tickSize']
-            if 'LOT_SIZE' in filtersByType:
-                filter = self.safe_dict(filtersByType, 'LOT_SIZE', {})
-                precision['amount'] = self.safe_number(filter, 'stepSize')
-                limits['amount'] = {
-                    'min': self.safe_number(filter, 'minQty'),
-                    'max': self.safe_number(filter, 'maxQty'),
-                }
-            if 'MARKET_LOT_SIZE' in filtersByType:
-                filter = self.safe_dict(filtersByType, 'MARKET_LOT_SIZE', {})
-                limits['market'] = {
-                    'min': self.safe_number(filter, 'minQty'),
-                    'max': self.safe_number(filter, 'maxQty'),
-                }
-            entry = {
-                'id': id,
-                'lowercaseId': lowercaseId,
-                'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': settle,
-                'baseId': baseId,
-                'quoteId': quoteId,
-                'settleId': settleId,
-                'type': 'spot',
-                'spot': True,
-                'margin': (marginTradingEnable == '1'),
-                'swap': False,
-                'future': False,
-                'option': False,
-                'active': active,
-                'contract': False,
-                'linear': None,
-                'inverse': None,
-                'contractSize': None,
-                'expiry': None,
-                'expiryDatetime': None,
-                'strike': None,
-                'optionType': None,
-                'precision': precision,
-                'limits': limits,
-                'created': None,
-                'info': market,
+        if 'MARKET_LOT_SIZE' in filtersByType:
+            filter = self.safe_dict(filtersByType, 'MARKET_LOT_SIZE', {})
+            limits['market'] = {
+                'min': self.safe_number(filter, 'minQty'),
+                'max': self.safe_number(filter, 'maxQty'),
             }
-            if 'MIN_NOTIONAL' in filtersByType:
-                filter = self.safe_dict(filtersByType, 'MIN_NOTIONAL', {})
-                costMin = self.safe_number_2(filter, 'minNotional', 'notional')
-            result.append(entry)
-        return result
+        entry = {
+            'id': id,
+            'lowercaseId': lowercaseId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
+            'type': 'spot',
+            'spot': True,
+            'margin': (marginTradingEnable == '1'),
+            'swap': False,
+            'future': False,
+            'option': False,
+            'active': active,
+            'contract': False,
+            'linear': None,
+            'inverse': None,
+            'contractSize': None,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
+            'precision': precision,
+            'limits': limits,
+            'created': None,
+            'info': market,
+        }
+        if 'MIN_NOTIONAL' in filtersByType:
+            filter = self.safe_dict(filtersByType, 'MIN_NOTIONAL', {})
+            costMin = self.safe_number_2(filter, 'minNotional', 'notional')
+        return entry
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """

@@ -114,6 +114,7 @@ declare abstract class Exchange extends _Exchange {
     sapiGetSubAccountUniversalTransfer(params?: {}): Promise<Dict>;
     sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList(params?: {}): Promise<Dict>;
     sapiGetSubAccountTransactionStatistics(params?: {}): Promise<Dict>;
+    sapiGetSubAccountSubAccountApi(params?: {}): Promise<Dict>;
     sapiGetSubAccountSubAccountApiIpRestriction(params?: {}): Promise<Dict>;
     sapiGetManagedSubaccountAsset(params?: {}): Promise<List>;
     sapiGetManagedSubaccountAccountSnapshot(params?: {}): Promise<Dict>;
@@ -295,6 +296,8 @@ declare abstract class Exchange extends _Exchange {
     sapiPostMarginMaxLeverage(params?: {}): Promise<Dict>;
     sapiPostBnbBurn(params?: {}): Promise<Dict>;
     sapiPostSubAccountVirtualSubAccount(params?: {}): Promise<Dict>;
+    sapiPostSubAccountSubAccountApi(params?: {}): Promise<Dict>;
+    sapiPostSubAccountSubAccountApiPermission(params?: {}): Promise<Dict>;
     sapiPostSubAccountMarginTransfer(params?: {}): Promise<Dict>;
     sapiPostSubAccountMarginEnable(params?: {}): Promise<Dict>;
     sapiPostSubAccountFuturesEnable(params?: {}): Promise<Dict>;
@@ -417,6 +420,7 @@ declare abstract class Exchange extends _Exchange {
     sapiDeleteBrokerSubAccountApiIpRestrictionIpList(params?: {}): Promise<Dict>;
     sapiDeleteAlgoSpotOrder(params?: {}): Promise<Dict>;
     sapiDeleteAlgoFuturesOrder(params?: {}): Promise<Dict>;
+    sapiDeleteSubAccountSubAccountApi(params?: {}): Promise<Dict>;
     sapiDeleteSubAccountSubAccountApiIpRestrictionIpList(params?: {}): Promise<Dict>;
     sapiV2GetEthStakingAccount(params?: {}): Promise<Dict>;
     sapiV2GetSubAccountFuturesAccount(params?: {}): Promise<Dict>;
@@ -430,6 +434,7 @@ declare abstract class Exchange extends _Exchange {
     sapiV2GetLoanFlexibleCollateralData(params?: {}): Promise<Dict>;
     sapiV2GetPortfolioAccount(params?: {}): Promise<Dict>;
     sapiV2PostEthStakingEthStake(params?: {}): Promise<Dict>;
+    sapiV2PostSubAccountSubAccountApi(params?: {}): Promise<Dict>;
     sapiV2PostSubAccountSubAccountApiIpRestriction(params?: {}): Promise<Dict>;
     sapiV2PostLoanFlexibleBorrow(params?: {}): Promise<Dict>;
     sapiV2PostLoanFlexibleRepay(params?: {}): Promise<Dict>;

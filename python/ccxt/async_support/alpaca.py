@@ -1043,8 +1043,7 @@ class alpaca(Exchange, ImplicitAPI):
         parts = uuid.split('-')
         random_id = ''.join(parts)
         defaultClientId = self.implode_params(clientOrderIdprefix, {'id': random_id})
-        clientOrderId = self.safe_string(params, 'clientOrderId', defaultClientId)
-        return clientOrderId
+        return self.safe_string(params, 'clientOrderId', defaultClientId)
 
     async def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params: dict = {}) -> Order:
         """
@@ -1701,10 +1700,9 @@ class alpaca(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         currency = self.currency(code)
-        addressValue = address
         tagSuffix = self.safe_string(params, 'tag', '')
-        if tagSuffix != '':
-            addressValue = address + ':' + tagSuffix
+        taggedAddress = address + ':' + tagSuffix
+        addressValue = taggedAddress if (tagSuffix != '') else address
         request = {
             'asset': currency['id'],
             'address': addressValue,

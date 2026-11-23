@@ -96,7 +96,7 @@ export default class pacifica extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     fetchFundingRates(symbols?: Strings, params?: Dict): Promise<FundingRates>;
-    parseFundingRate(info: any, market?: Market): FundingRate;
+    parseFundingRate(info: NullableDict, market?: Market): FundingRate;
     /**
      * @method
      * @name pacifica#fetchOHLCV

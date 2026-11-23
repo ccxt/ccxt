@@ -193,6 +193,8 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.generation | <code>int</code> | No | if you want to use the API generation 1 or 2, default is 2 |
+| params.until | <code>int</code> | No | generation 2 only, timestamp in ms of the latest candle to fetch |
+| params.paginate | <code>boolean</code> | No | generation 2 only, default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
 ```javascript

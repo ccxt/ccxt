@@ -1332,10 +1332,12 @@ export default class coinbase extends Exchange {
             priceString = v3Price;
         }
         if ((priceString !== undefined) && (amountString !== undefined)) {
-            cost = Precise.stringMul (priceString, amountString);
+            const baseCost = Precise.stringMul (priceString, amountString);
             const contractSize = this.safeString (marketResolved, 'contractSize');
             if (contractSize !== undefined) {
-                cost = Precise.stringMul (cost, contractSize);
+                cost = Precise.stringMul (baseCost, contractSize);
+            } else {
+                cost = baseCost;
             }
         } else {
             cost = costString;
@@ -1441,8 +1443,8 @@ export default class coinbase extends Exchange {
                         'type': 'spot',
                         'spot': true,
                         'margin': false,
-                        'swap': true,
-                        'future': true,
+                        'swap': false,
+                        'future': false,
                         'option': false,
                         'active': undefined,
                         'contract': false,
@@ -1583,8 +1585,6 @@ export default class coinbase extends Exchange {
         const fees = this.safeDict (promises, 1, {});
         const expiringFutures = this.safeDict (contractPromises, 0, {});
         const perpetualFutures = this.safeDict (contractPromises, 1, {});
-        const expiringFees = this.safeDict (contractPromises, 0, {});
-        const perpetualFees = this.safeDict (contractPromises, 1, {});
         //
         //     {
         //         "total_volume": 0,
@@ -1605,10 +1605,8 @@ export default class coinbase extends Exchange {
         //     }
         //
         const feeTier = this.safeDict (fees, 'fee_tier', {});
-        const expiringFeeTier = this.safeDict (expiringFees, 'fee_tier', {}); // fee tier null?
-        const perpetualFeeTier = this.safeDict (perpetualFees, 'fee_tier', {}); // fee tier null?
         const data: Dict[] = this.safeList (spot, 'products', []);
-        const result: List = [];
+        const result: Dict[] = [];
         for (let i = 0; i < data.length; i++) {
             const spotMarket = this.parseSpotMarket (data[i], feeTier);
             if (spotMarket !== undefined) {
@@ -1617,14 +1615,14 @@ export default class coinbase extends Exchange {
         }
         const futureData: Dict[] = this.safeList (expiringFutures, 'products', []);
         for (let i = 0; i < futureData.length; i++) {
-            const futureMarket = this.parseContractMarket (futureData[i], expiringFeeTier);
+            const futureMarket = this.parseContractMarket (futureData[i]);
             if (futureMarket !== undefined) {
                 result.push (futureMarket);
             }
         }
         const perpetualData: Dict[] = this.safeList (perpetualFutures, 'products', []);
         for (let i = 0; i < perpetualData.length; i++) {
-            const perpetualMarket = this.parseContractMarket (perpetualData[i], perpetualFeeTier);
+            const perpetualMarket = this.parseContractMarket (perpetualData[i]);
             if (perpetualMarket !== undefined) {
                 result.push (perpetualMarket);
             }
@@ -1744,7 +1742,7 @@ export default class coinbase extends Exchange {
         });
     }
 
-    parseContractMarket (market: Dict, feeTier: Dict): Market {
+    parseContractMarket (market: Dict, feeTier: NullableDict = undefined): Market {
         // expiring
         //
         //        {
@@ -1897,8 +1895,9 @@ export default class coinbase extends Exchange {
         }
         const takerFeeRate = this.safeNumber (feeTier, 'taker_fee_rate');
         const makerFeeRate = this.safeNumber (feeTier, 'maker_fee_rate');
-        const taker = (takerFeeRate !== undefined && takerFeeRate !== null && takerFeeRate !== 0) ? takerFeeRate : this.parseNumber ('0.06');
-        const maker = (makerFeeRate !== undefined && makerFeeRate !== null && makerFeeRate !== 0) ? makerFeeRate : this.parseNumber ('0.04');
+        // CDE charges a fixed USD fee per side per contract, not a rate; 0.0002 approximates it for nano contracts
+        const taker = (takerFeeRate !== undefined && takerFeeRate !== null && takerFeeRate !== 0) ? takerFeeRate : this.parseNumber ('0.0002');
+        const maker = (makerFeeRate !== undefined && makerFeeRate !== null && makerFeeRate !== 0) ? makerFeeRate : this.parseNumber ('0.0002');
         return this.safeMarketStructure ({
             'id': id,
             'symbol': symbol,
@@ -2048,7 +2047,7 @@ export default class coinbase extends Exchange {
         const ratesData = this.safeDict (ratesResponse, 'data', {});
         const rates = this.safeDict (ratesData, 'rates', {});
         const ratesIds = Object.keys (rates);
-        const currencies = this.arrayConcat (fiatData, cryptoData);
+        const currencies: Dict[] = this.arrayConcat (fiatData, cryptoData);
         const result: Dict = {};
         const networks: Dict = {};
         const networksById: Dict = {};
@@ -2481,14 +2480,14 @@ export default class coinbase extends Exchange {
         const totalUsdBalance = this.safeString (totalUsdBalanceData, 'value');
         const futuresBuyingPower = this.safeString (futuresBuyingPowerData, 'value');
         if ((totalUsdBalance !== undefined) || (futuresBuyingPower !== undefined)) {
-            const total = (totalUsdBalance !== undefined) ? totalUsdBalance : futuresBuyingPower;
-            const free = (futuresBuyingPower !== undefined) ? futuresBuyingPower : total;
-            const used = Precise.stringSub (total, free);
+            const usdTotal = (totalUsdBalance !== undefined) ? totalUsdBalance : futuresBuyingPower;
+            const usdFree = (futuresBuyingPower !== undefined) ? futuresBuyingPower : usdTotal;
+            const usdUsed = Precise.stringSub (usdTotal, usdFree);
             const balanceResult: Dict = { 'info': response };
             balanceResult['USD'] = {
-                'free': free,
-                'used': used,
-                'total': total,
+                'free': usdFree,
+                'used': usdUsed,
+                'total': usdTotal,
             };
             return this.safeBalance (balanceResult);
         }
@@ -2525,17 +2524,17 @@ export default class coinbase extends Exchange {
                 if (available !== undefined && hold !== undefined) {
                     const currencyId = this.safeString (available, 'currency');
                     const code = this.safeCurrencyCode (currencyId);
-                    const used = this.safeString (hold, 'value');
-                    const free = this.safeString (available, 'value');
-                    const total = Precise.stringAdd (used, free);
+                    const v3Used = this.safeString (hold, 'value');
+                    const v3Free = this.safeString (available, 'value');
+                    const v3Total = Precise.stringAdd (v3Used, v3Free);
                     let account = this.safeDict (result, code);
                     if (account === undefined) {
-                        account = this.extend (this.account (), { 'free': free, 'used': used, 'total': total });
+                        account = this.extend (this.account (), { 'free': v3Free, 'used': v3Used, 'total': v3Total });
                     } else {
                         account = this.extend (account, {
-                            'free': Precise.stringAdd (this.safeString (account, 'free'), free),
-                            'used': Precise.stringAdd (this.safeString (account, 'used'), used),
-                            'total': Precise.stringAdd (this.safeString (account, 'total'), total),
+                            'free': Precise.stringAdd (this.safeString (account, 'free'), v3Free),
+                            'used': Precise.stringAdd (this.safeString (account, 'used'), v3Used),
+                            'total': Precise.stringAdd (this.safeString (account, 'total'), v3Total),
                         });
                     }
                     if (code !== undefined) {
@@ -5202,7 +5201,7 @@ export default class coinbase extends Exchange {
         const portfolioInfo = this.safeDict (breakdown, 'portfolio', {});
         const portfolioName = this.safeString (portfolioInfo, 'name', 'Unknown');
         const portfolioUuid = this.safeString (portfolioInfo, 'uuid', '');
-        const spotPositions = this.safeList (breakdown, 'spot_positions', []);
+        const spotPositions: Dict[] = this.safeList (breakdown, 'spot_positions', []);
         const parsedPositions: Dict[] = [];
         for (let i = 0; i < spotPositions.length; i++) {
             const position: Dict = spotPositions[i];

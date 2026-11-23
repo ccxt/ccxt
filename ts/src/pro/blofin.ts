@@ -166,7 +166,7 @@ export default class blofin extends blofinRest {
             return;
         }
         for (let i = 0; i < data.length; i++) {
-            const rawTrade = this.safeValue (data, i);
+            const rawTrade = this.safeDict (data, i, {});
             const trade = this.parseWsTrade (rawTrade);
             const symbol = this.safeString (trade, 'symbol', '');
             let stored = this.safeValue (this.trades, symbol);
@@ -336,7 +336,7 @@ export default class blofin extends blofinRest {
         const channelName = this.safeString (arg, 'channel');
         const data = this.safeList (message, 'data') as List;
         for (let i = 0; i < data.length; i++) {
-            const ticker = this.parseWsTicker (this.safeValue (data, i));
+            const ticker = this.parseWsTicker (this.safeDict (data, i, {}));
             const symbol = this.safeString (ticker, 'symbol', '');
             this.tickers[(symbol as string)] = ticker;
             if (channelName !== undefined) {
@@ -363,8 +363,7 @@ export default class blofin extends blofinRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const symbolsNormalized = this.marketSymbols (symbols, undefined, false);
-        const symbolsList = symbolsNormalized as string[];
+        const symbolsList: string[] = this.marketSymbols (symbols, undefined, false);
         const firstMarket = this.market (symbolsList[0]);
         const channel = 'tickers';
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBidsAsks', firstMarket, params);
@@ -390,13 +389,13 @@ export default class blofin extends blofinRest {
             }
             return tickers;
         }
-        return this.filterByArray (this.bidsasks, 'symbol', symbolsNormalized);
+        return this.filterByArray (this.bidsasks, 'symbol', symbolsList);
     }
 
     handleBidAsk (client: Client, message: Dict) {
         const data = this.safeList (message, 'data') as List;
         for (let i = 0; i < data.length; i++) {
-            const ticker = this.parseWsBidAsk (this.safeValue (data, i));
+            const ticker = this.parseWsBidAsk (this.safeDict (data, i, {}));
             const symbol = this.safeString (ticker, 'symbol', '');
             const messageHash = 'bidask:' + symbol;
             this.bidsasks[(symbol as string)] = ticker;
@@ -532,7 +531,7 @@ export default class blofin extends blofinRest {
             this.ohlcvs[symbol][unifiedTimeframe as IndexType] = stored;
         }
         for (let i = 0; i < data.length; i++) {
-            const candle = this.safeValue (data, i);
+            const candle = this.safeList (data, i);
             const parsed = this.parseOHLCV (candle, market);
             stored.append (parsed);
         }
@@ -620,7 +619,10 @@ export default class blofin extends blofinRest {
      */
     override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         params['callerMethodName'] = 'watchOrders';
-        const symbolsArray = (symbol !== undefined) ? [ symbol ] : [];
+        const symbolsArray: string[] = [];
+        if (symbol !== undefined) {
+            symbolsArray.push (symbol);
+        }
         return await this.watchOrdersForSymbols (symbolsArray, since, limit, params);
     }
 
@@ -649,13 +651,39 @@ export default class blofin extends blofinRest {
             channel = 'orders-algo';
         }
         const orders = await this.watchMultipleWrapper (false, channel, 'watchOrdersForSymbols', symbols, paramsOmitted);
-        const first = this.safeDict (orders, 0);
-        const tradeSymbol = this.safeString (first, 'symbol');
+        // every symbol shares one orders cache, so filter by the requested symbols and count
+        // per symbol only when exactly one is requested
+        let requestedSymbols: Strings = undefined;
+        let countSymbol: Str = undefined;
+        const unifiedSymbols = this.marketSymbols (symbols, undefined, true);
+        if (unifiedSymbols !== undefined) {
+            const symbolsLength = unifiedSymbols.length;
+            if (symbolsLength > 0) {
+                requestedSymbols = unifiedSymbols;
+            }
+            if (symbolsLength === 1) {
+                countSymbol = unifiedSymbols[0];
+            }
+        }
+        let newest = orders;
         let limitResolved = limit;
         if (this.newUpdates) {
-            limitResolved = orders.getLimit (tradeSymbol, limit);
+            if (countSymbol !== undefined) {
+                limitResolved = orders.getLimit (countSymbol, limit);
+            } else {
+                // updated orders move to the end of the shared cache, so the newest entries across all
+                // symbols are exactly this read's updates; take them before filtering by symbol
+                const newCount = orders.getLimit (undefined, undefined);
+                if (newCount === 0) {
+                    // another watcher already took the count, and a limit of 0 would return the whole cache
+                    newest = [];
+                } else {
+                    newest = this.filterBySinceLimit (orders, undefined, newCount, 'timestamp', true);
+                }
+            }
         }
-        return this.filterBySinceLimit (orders, since, limitResolved, 'timestamp', true);
+        const requested = this.filterByArray (newest, 'symbol', requestedSymbols, false);
+        return this.filterBySinceLimit (requested, since, limitResolved, 'timestamp', true);
     }
 
     handleOrders (client: Client, message: Dict) {
@@ -676,11 +704,16 @@ export default class blofin extends blofinRest {
         const arg = this.safeDict (message, 'arg');
         const channelName = this.safeString (arg, 'channel');
         const data = this.safeList (message, 'data') as List;
+        const symbols: string[] = [];
         for (let i = 0; i < data.length; i++) {
-            const order = this.parseWsOrder (this.safeValue (data, i));
+            const order = this.parseWsOrder (this.safeDict (data, i, {}));
             orders.append (order);
+            symbols.push (this.safeString (order, 'symbol', ''));
+        }
+        // resolve only after the whole frame is stored, so a consumer that runs concurrently (go) never sees it half applied
+        for (let i = 0; i < symbols.length; i++) {
             if (channelName !== undefined) {
-                client.resolve (orders, channelName + ':' + this.safeString (order, 'symbol', ''));
+                client.resolve (orders, channelName + ':' + symbols[i]);
             }
             client.resolve (orders, channelName);
         }
@@ -725,13 +758,13 @@ export default class blofin extends blofinRest {
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache: ArrayCacheBySymbolBySide = this.positions;
+        const cache = this.positions;
         const arg = this.safeDict (message, 'arg');
         const channelName = this.safeString (arg, 'channel');
         const data = this.safeList (message, 'data') as List;
         const newPositions: List = [];
         for (let i = 0; i < data.length; i++) {
-            const position = this.parseWsPosition (this.safeValue (data, i));
+            const position = this.parseWsPosition (this.safeDict (data, i, {}));
             newPositions.push (position);
             cache.append (position);
             if (channelName !== undefined) {
@@ -816,14 +849,15 @@ export default class blofin extends blofinRest {
         }
         let rawSubscriptions: List = [];
         const messageHashes: List = [];
-        if ((symbols !== undefined) && (symbols.length > 0)) {
+        const symbolsLength = (symbols === undefined) ? 0 : symbols.length;
+        if (symbolsLength > 0) {
             for (let i = 0; i < symbols.length; i++) {
                 const current = symbols[i];
                 let market: Market = undefined;
                 let channel = channelName;
                 if (isOHLCV) {
                     market = this.market (current);
-                    const tf = this.safeString (this.safeValue (symbolsArray, i), 1);
+                    const tf = this.safeString (this.safeList (symbolsArray, i), 1);
                     const interval = this.safeString (this.timeframes, tf, tf);
                     channel = channel + interval;
                 } else {
@@ -878,10 +912,9 @@ export default class blofin extends blofinRest {
             const market = this.market (this.safeString (symbols, i));
             let channel = channelName;
             if (isOHLCV) {
-                const tfArray = symbolsArray[i];
-                const tf = tfArray[1];
+                const tf = this.safeString (this.safeList (symbolsArray, i), 1);
                 const interval = this.safeString (this.timeframes, tf, tf);
-                channel += interval;
+                channel = channel + interval;
             }
             const topic: Dict = {
                 'channel': channel,
@@ -993,27 +1026,33 @@ export default class blofin extends blofinRest {
 
     async authenticate (params: Dict = {}) {
         this.checkRequiredCredentials ();
-        const milliseconds = this.milliseconds ();
         const messageHash = 'authenticate_hash';
-        const timestamp = milliseconds.toString ();
-        const nonce = 'n_' + timestamp;
-        const auth = '/users/self/verify' + 'GET' + timestamp + '' + nonce;
-        const signature = this.stringToBase64 (this.hmac (this.encode (auth), this.encode (this.secret), sha256));
-        const request: Dict = {
-            'op': 'login',
-            'args': [
-                {
-                    'apiKey': this.apiKey,
-                    'passphrase': this.password,
-                    'timestamp': timestamp,
-                    'nonce': nonce,
-                    'sign': signature,
-                },
-            ],
-        };
         const marketType = 'swap'; // for now
         const typeUrls: Dict = this.safeDict (this.urls['api']['ws'], marketType, {});
         const url = this.safeString (typeUrls, 'private');
-        await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        const client = this.client (url);
+        const future = client.reusableFuture (messageHash);
+        const authenticated = this.safeValue (client.subscriptions, messageHash);
+        if (authenticated === undefined) {
+            const milliseconds = this.milliseconds ();
+            const timestamp = milliseconds.toString ();
+            const nonce = 'n_' + timestamp;
+            const auth = '/users/self/verify' + 'GET' + timestamp + '' + nonce;
+            const signature = this.stringToBase64 (this.hmac (this.encode (auth), this.encode (this.secret), sha256));
+            const request: Dict = {
+                'op': 'login',
+                'args': [
+                    {
+                        'apiKey': this.apiKey,
+                        'passphrase': this.password,
+                        'timestamp': timestamp,
+                        'nonce': nonce,
+                        'sign': signature,
+                    },
+                ],
+            };
+            this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        }
+        return await future;
     }
 }

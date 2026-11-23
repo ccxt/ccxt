@@ -926,7 +926,7 @@ class bitopro(Exchange, ImplicitAPI):
         copyFrom = firstCandle
         timestamp = None
         if since is None:
-            timestamp = self.safe_value(firstCandle, 0)
+            timestamp = self.safe_integer(firstCandle, 0)
         else:
             timestamp = since
         i = 0
@@ -943,7 +943,7 @@ class bitopro(Exchange, ImplicitAPI):
                 result.append([timestamp, closeValue, closeValue, closeValue, closeValue, self.parse_number('0')])
             timestamp = self.sum(timestamp, distanceInMs)
             resultLength = len(result)
-            copyFrom = self.safe_value(result, resultLength - 1)
+            copyFrom = self.safe_list(result, resultLength - 1)
         return result
 
     def parse_balance_list(self, response: list[dict]) -> Balances:

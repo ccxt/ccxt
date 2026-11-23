@@ -357,9 +357,9 @@ class delta(Exchange, ImplicitAPI):
         optionParts = symbol.split('-')
         symbolBase = symbol.split('/')
         hasSlash = symbol.find('/') > -1
-        partSource = symbolBase if hasSlash else optionParts
-        baseIndex = 0 if hasSlash else 1
-        base = self.safe_string(partSource, baseIndex, '')
+        base = self.safe_string(optionParts, 1, '')
+        if hasSlash:
+            base = self.safe_string(symbolBase, 0, '')
         optionType = self.safe_string(optionParts, 3 if hasSlash else 0, '')
         rawExpiry = self.safe_string(optionParts, 1 if hasSlash else 3, '')
         expiry = rawExpiry[4:] + rawExpiry[2:4] + rawExpiry[0:2]
@@ -1916,7 +1916,7 @@ class delta(Exchange, ImplicitAPI):
                 timestamp = self.safe_integer_product(order, 'created_at', 0.001)
         marketId = self.safe_string(order, 'product_id')
         marketsByNumericId = self.safe_dict(self.options, 'marketsByNumericId', {})
-        marketValue = self.safe_value(marketsByNumericId, marketId, market)
+        marketValue = self.safe_dict(marketsByNumericId, marketId, market)
         symbol = None
         if marketValue is None:
             symbol = marketId
@@ -2717,7 +2717,7 @@ class delta(Exchange, ImplicitAPI):
         rates = self.safe_list(response, 'result', [])
         return self.parse_funding_rates(rates, symbolsNormalized)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "close": 30600.5,

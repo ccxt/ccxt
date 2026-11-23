@@ -2,7 +2,7 @@
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from './abstract/lighter.js';
-import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, NotSupported, RateLimitExceeded } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, ExchangeError, InvalidOrder, NotSupported, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import Precise from './base/Precise.js';
 import type { Dict, FundingRate, FundingRates, Int, List, int, Market, OHLCV, OrderBook, Strings, Ticker, Tickers, OrderType, OrderSide, Num, Order, Balances, Position, Str, Bool, TransferEntry, Currency, CurrencyInterface, Currencies, Transaction, Trade, Account, MarginModification, NullableDict, Status, Endpoint } from './base/types.js';
@@ -589,7 +589,12 @@ export default class lighter extends Exchange {
             'api_key_index': this.parseToInt (apiKeyIndex),
             'account_index': this.parseToInt (accountIndex),
         };
-        const token = this.lighterCreateAuthToken (this.safeValue (cachedAuth, 'signer'), request);
+        const signer = this.safeValue (cachedAuth, 'signer');
+        if (signer === undefined) {
+            this.checkRequiredCredentials ();
+            throw new AuthenticationError (this.id + ' could not load the signer, set options["libraryPath"] to the lighter signing library. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt');
+        }
+        const token = this.lighterCreateAuthToken (signer, request);
         this.setAuthEntry ((accountIndex as string), (apiKeyIndex as string), { 'deadline': deadline, 'token': token });
         return token;
     }
@@ -1249,7 +1254,7 @@ export default class lighter extends Exchange {
         //
         const spotMarkets = this.safeList (response, 'spot_order_book_details', []);
         const swapMarkets = this.safeList (response, 'order_book_details', []);
-        const markets = this.arrayConcat (spotMarkets, swapMarkets);
+        const markets: Dict[] = this.arrayConcat (spotMarkets, swapMarkets);
         const result: List = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -1764,7 +1769,7 @@ export default class lighter extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    override parseFundingRate (contract: any, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "market_id": 0,
@@ -2645,7 +2650,7 @@ export default class lighter extends Exchange {
         //         "cursor": "eyJpbmRleCI6MzA4NDkxNX0="
         //     }
         //
-        const rows = this.safeList (response, 'transfers', []);
+        const rows: Dict[] = this.safeList (response, 'transfers', []);
         const cursor = this.safeString (response, 'cursor');
         const first = this.safeDict (rows, 0);
         if ((first !== undefined) && (cursor !== undefined)) {
@@ -2747,7 +2752,7 @@ export default class lighter extends Exchange {
         //         "cursor": "eyJpbmRleCI6MjkwMTg0MH0="
         //     }
         //
-        const data = this.safeList (response, 'deposits', []);
+        const data: Dict[] = this.safeList (response, 'deposits', []);
         const cursor = this.safeString (response, 'cursor');
         const first = this.safeDict (data, 0);
         if ((first !== undefined) && (cursor !== undefined)) {
@@ -2808,7 +2813,7 @@ export default class lighter extends Exchange {
         //         "cursor": "string"
         //     }
         //
-        const data = this.safeList (response, 'withdraws', []);
+        const data: Dict[] = this.safeList (response, 'withdraws', []);
         const cursor = this.safeString (response, 'cursor');
         const first = this.safeDict (data, 0);
         if ((first !== undefined) && (cursor !== undefined)) {
@@ -3056,7 +3061,7 @@ export default class lighter extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'trades', []);
+        const data: Dict[] = this.safeList (response, 'trades', []);
         for (let i = 0; i < data.length; i++) {
             data[i]['account_index'] = accountIndex;
         }

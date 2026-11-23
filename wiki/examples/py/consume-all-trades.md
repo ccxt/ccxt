@@ -21,8 +21,8 @@ async def consume_all_trades(exchange, symbol):
     await exchange.close()
 
 
-exchange = ccxt.pro.bitmex()
-symbol = 'BTC/USD'
+exchange = ccxt.pro.binance()
+symbol = 'BTC/USDT'
 run(consume_all_trades(exchange, symbol))
 
 ```

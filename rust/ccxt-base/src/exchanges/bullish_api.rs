@@ -8,10 +8,10 @@
 #![allow(non_snake_case, unused, dead_code, clippy::all)]
 
 use crate::Value;
-use super::bullish::BullishCore;
+use super::bullish::Bullish;
 use crate::exchange::ExchangeRuntime;
 
-impl BullishCore {
+impl Bullish {
     /// Auto-generated wrapper for the `publicGetV1Nonce` implicit endpoint.
     pub async fn public_get_v1_nonce(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_v1_nonce".into()), optional_args).await

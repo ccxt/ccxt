@@ -1033,6 +1033,13 @@ public partial class myokx : okx
         return await this.callAsync<Dictionary<string, object>> ("privateGetAssetDepositWithdrawStatus",parameters);
     }
 
+    /// <summary>Calls the privateGetAssetTravelRuleGetLocked endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAssetTravelRuleGetLocked (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAssetTravelRuleGetLocked",parameters);
+    }
+
     /// <summary>Calls the privateGetAssetMonthlyStatement endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetAssetMonthlyStatement (object parameters = null)
@@ -2382,6 +2389,13 @@ public partial class myokx : okx
     public async Task<Dictionary<string, object>> privatePostAssetCancelWithdrawal (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostAssetCancelWithdrawal",parameters);
+    }
+
+    /// <summary>Calls the privatePostAssetTravelRuleUnlock endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAssetTravelRuleUnlock (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAssetTravelRuleUnlock",parameters);
     }
 
     /// <summary>Calls the privatePostAssetConvertDustAssets endpoint.</summary>

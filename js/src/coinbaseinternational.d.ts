@@ -77,8 +77,8 @@ export default class coinbaseinternational extends Exchange {
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
     parseFundingRateHistory(info: any, market?: Market): FundingRateHistory;
-    parseFundingRate(contract: any, market?: Market): {
-        info: any;
+    parseFundingRate(contract: NullableDict, market?: Market): {
+        info: NullableDict;
         symbol: string;
         markPrice: undefined;
         indexPrice: Num;

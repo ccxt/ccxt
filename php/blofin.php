@@ -657,7 +657,6 @@ class blofin extends Exchange {
         $maxLeverage = $this->safe_string($market, 'maxLeverage', '100');
         $maxLeverage = Precise::string_max($maxLeverage, '1');
         $isActive = ($this->safe_string($market, 'state') === 'live');
-        $isMargin = $spot && (Precise::string_gt($maxLeverage, '1'));
         $contractType = $this->safe_string($market, 'contractType');
         $maxLimitAmount = $this->safe_number($market, 'maxLimitSize');
         $maxSpotCost = $this->safe_number($market, 'maxMarketSize'); // for spot, market-buy size is denominated in the quote currency, i.e. cost
@@ -673,7 +672,7 @@ class blofin extends Exchange {
             'type' => $type,
             'spot' => $spot,
             'option' => $option,
-            'margin' => $isMargin,
+            'margin' => ($spot && Precise::string_gt($maxLeverage, '1')),
             'swap' => $swap,
             'future' => $future,
             'active' => $isActive,
@@ -1159,7 +1158,7 @@ class blofin extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
-    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
         //
         //    {
         //        "fundingRate": "0.00027815",
@@ -1528,6 +1527,9 @@ class blofin extends Exchange {
         $symbol = $this->safe_symbol($marketId, $marketResolved, '-');
         $filled = $this->safe_string($order, 'filledSize');
         $price = $this->safe_string_n($order, array( 'px', 'price', 'orderPrice' ));
+        if ($price === '-1') {
+            $price = null; // trigger orders send orderPrice -1 for market execution
+        }
         $average = $this->safe_string($order, 'averagePrice');
         $status = $this->parse_order_status($this->safe_string($order, 'state'));
         $feeCostString = $this->safe_string($order, 'fee');
@@ -1575,6 +1577,7 @@ class blofin extends Exchange {
             'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
+            'triggerPrice' => $this->safe_number($order, 'triggerPrice'),
             'stopLossPrice' => $stopLossPrice,
             'takeProfitPrice' => $takeProfitPrice,
             'average' => $average,
@@ -2155,8 +2158,7 @@ class blofin extends Exchange {
         return $this->parse_currencies($currencies);
     }
 
-    public function parse_currency(array $currency): array {
-        $chains = $currency;
+    public function parse_currency(array $chains): array {
         $firstChain = $this->safe_dict($chains, 0, array());
         $currencyId = $this->safe_string($firstChain, 'currency');
         $code = $this->safe_currency_code($currencyId);
@@ -2369,7 +2371,7 @@ class blofin extends Exchange {
         // venue ignores the filter and returns the latest records instead
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
-            $entry = $this->safe_value($data, $i);
+            $entry = $this->safe_dict($data, $i, array());
             if ($this->safe_string($entry, 'depositId') === $id) {
                 return $this->parse_transaction($entry, $currency);
             }
@@ -2409,7 +2411,7 @@ class blofin extends Exchange {
         // case the venue ignores the filter and returns the latest records
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
-            $entry = $this->safe_value($data, $i);
+            $entry = $this->safe_dict($data, $i, array());
             $matches = false;
             if ($id !== null) {
                 $matches = ($this->safe_string($entry, 'withdrawId') === $id);
@@ -3033,14 +3035,14 @@ class blofin extends Exchange {
         $entryPriceString = $this->safe_string_2($position, 'averagePrice', 'openAveragePrice');
         $unrealizedPnlString = $this->safe_string($position, 'unrealizedPnl');
         $leverageString = $this->safe_string($position, 'leverage');
-        $initialMarginPercentage = null;
+        $initialMarginPercentageString = null;
         $collateralString = null;
         $marginString = null;
         if ($marginMode === 'cross') {
             $initialMarginString = $this->safe_string($position, 'initialMargin');
             $collateralString = ($unrealizedPnlString !== null) ? Precise::string_add($initialMarginString, $unrealizedPnlString) : $initialMarginString;
         } elseif ($marginMode === 'isolated') {
-            $initialMarginPercentage = Precise::string_div('1', $leverageString);
+            $initialMarginPercentageString = Precise::string_div('1', $leverageString);
             $isolatedMarginString = $this->omit_zero($this->safe_string_2($position, 'margin', 'initialMargin'));
             if ($isolatedMarginString !== null) {
                 $initialMarginString = $isolatedMarginString;
@@ -3051,10 +3053,9 @@ class blofin extends Exchange {
         $maintenanceMarginString = $this->safe_string($position, 'maintenanceMargin');
         $maintenanceMargin = $this->parse_number($maintenanceMarginString);
         $maintenanceMarginPercentageString = Precise::string_div($maintenanceMarginString, $notionalString);
-        if ($initialMarginPercentage === null) {
-            $initialMarginPercentage = $this->parse_number(Precise::string_div($initialMarginString, $notionalString, 4));
+        if ($initialMarginPercentageString === null) {
+            $initialMarginPercentageString = Precise::string_div($initialMarginString, $notionalString, 4);
         } elseif ($initialMarginString === null) {
-            $initialMarginPercentageString = $this->number_to_string($initialMarginPercentage);
             $initialMarginString = Precise::string_mul($initialMarginPercentageString, $notionalString);
         }
         $rounder = '0.00005'; // round to closest 0.01%
@@ -3102,7 +3103,7 @@ class blofin extends Exchange {
             'positionMargin' => $this->parse_number($marginString),
             'collateral' => $this->parse_number($collateralString),
             'initialMargin' => $this->parse_number($initialMarginString),
-            'initialMarginPercentage' => $this->parse_number($initialMarginPercentage),
+            'initialMarginPercentage' => $this->parse_number($initialMarginPercentageString),
             'leverage' => $this->parse_number($leverageString),
             'marginRatio' => $marginRatio,
             'stopLossPrice' => null,

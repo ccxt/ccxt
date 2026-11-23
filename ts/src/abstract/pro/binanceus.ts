@@ -461,6 +461,10 @@ abstract class binance extends _binance {
         return this.request ('sub-account/transaction-statistics', [ 'sapi' ], 'GET', params, { 'cost': 0.40002 });
     }
 
+    override sapiGetSubAccountSubAccountApi (params = {}): Promise<Dict> {
+        return this.request ('sub-account/subAccountApi', [ 'sapi' ], 'GET', params, { 'cost': 20.001 });
+    }
+
     override sapiGetSubAccountSubAccountApiIpRestriction (params = {}): Promise<Dict> {
         return this.request ('sub-account/subAccountApi/ipRestriction', [ 'sapi' ], 'GET', params, { 'cost': 20.001 });
     }
@@ -1309,6 +1313,14 @@ abstract class binance extends _binance {
         return this.request ('sub-account/virtualSubAccount', [ 'sapi' ], 'POST', params, { 'cost': 0.1 });
     }
 
+    override sapiPostSubAccountSubAccountApi (params = {}): Promise<Dict> {
+        return this.request ('sub-account/subAccountApi', [ 'sapi' ], 'POST', params, { 'cost': 20.001 });
+    }
+
+    override sapiPostSubAccountSubAccountApiPermission (params = {}): Promise<Dict> {
+        return this.request ('sub-account/subAccountApiPermission', [ 'sapi' ], 'POST', params, { 'cost': 20.001 });
+    }
+
     override sapiPostSubAccountMarginTransfer (params = {}): Promise<Dict> {
         return this.request ('sub-account/margin/transfer', [ 'sapi' ], 'POST', params, { 'cost': 4.0002 });
     }
@@ -1841,6 +1853,10 @@ abstract class binance extends _binance {
         return this.request ('algo/futures/order', [ 'sapi' ], 'DELETE', params, { 'cost': 0.1 });
     }
 
+    override sapiDeleteSubAccountSubAccountApi (params = {}): Promise<Dict> {
+        return this.request ('sub-account/subAccountApi', [ 'sapi' ], 'DELETE', params, { 'cost': 20.001 });
+    }
+
     override sapiDeleteSubAccountSubAccountApiIpRestrictionIpList (params = {}): Promise<Dict> {
         return this.request ('sub-account/subAccountApi/ipRestriction/ipList', [ 'sapi' ], 'DELETE', params, { 'cost': 20.001 });
     }
@@ -1911,6 +1927,10 @@ abstract class binance extends _binance {
 
     override sapiV2PostEthStakingEthStake (params = {}): Promise<Dict> {
         return this.request ('eth-staking/eth/stake', [ 'sapiV2' ], 'POST', params, { 'cost': 15 });
+    }
+
+    override sapiV2PostSubAccountSubAccountApi (params = {}): Promise<Dict> {
+        return this.request ('sub-account/subAccountApi', [ 'sapiV2' ], 'POST', params, { 'cost': 20.001 });
     }
 
     override sapiV2PostSubAccountSubAccountApiIpRestriction (params = {}): Promise<Dict> {

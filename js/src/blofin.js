@@ -662,7 +662,6 @@ export default class blofin extends Exchange {
         let maxLeverage = this.safeString(market, 'maxLeverage', '100');
         maxLeverage = Precise.stringMax(maxLeverage, '1');
         const isActive = (this.safeString(market, 'state') === 'live');
-        const isMargin = spot && (Precise.stringGt(maxLeverage, '1'));
         const contractType = this.safeString(market, 'contractType');
         const maxLimitAmount = this.safeNumber(market, 'maxLimitSize');
         const maxSpotCost = this.safeNumber(market, 'maxMarketSize'); // for spot, market-buy size is denominated in the quote currency, i.e. cost
@@ -678,7 +677,7 @@ export default class blofin extends Exchange {
             'type': type,
             'spot': spot,
             'option': option,
-            'margin': isMargin,
+            'margin': (spot && Precise.stringGt(maxLeverage, '1')),
             'swap': swap,
             'future': future,
             'active': isActive,
@@ -1523,7 +1522,10 @@ export default class blofin extends Exchange {
         const marketResolved = this.safeMarket(marketId, market);
         const symbol = this.safeSymbol(marketId, marketResolved, '-');
         const filled = this.safeString(order, 'filledSize');
-        const price = this.safeStringN(order, ['px', 'price', 'orderPrice']);
+        let price = this.safeStringN(order, ['px', 'price', 'orderPrice']);
+        if (price === '-1') {
+            price = undefined; // trigger orders send orderPrice -1 for market execution
+        }
         const average = this.safeString(order, 'averagePrice');
         const status = this.parseOrderStatus(this.safeString(order, 'state'));
         const feeCostString = this.safeString(order, 'fee');
@@ -1571,6 +1573,7 @@ export default class blofin extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
+            'triggerPrice': this.safeNumber(order, 'triggerPrice'),
             'stopLossPrice': stopLossPrice,
             'takeProfitPrice': takeProfitPrice,
             'average': average,
@@ -2152,8 +2155,7 @@ export default class blofin extends Exchange {
         const currencies = Object.values(dataByCurrencyId);
         return this.parseCurrencies(currencies);
     }
-    parseCurrency(currency) {
-        const chains = currency;
+    parseCurrency(chains) {
         const firstChain = this.safeDict(chains, 0, {});
         const currencyId = this.safeString(firstChain, 'currency');
         const code = this.safeCurrencyCode(currencyId);
@@ -2362,7 +2364,7 @@ export default class blofin extends Exchange {
         // venue ignores the filter and returns the latest records instead
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            const entry = this.safeValue(data, i);
+            const entry = this.safeDict(data, i, {});
             if (this.safeString(entry, 'depositId') === id) {
                 return this.parseTransaction(entry, currency);
             }
@@ -2401,7 +2403,7 @@ export default class blofin extends Exchange {
         // case the venue ignores the filter and returns the latest records
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
-            const entry = this.safeValue(data, i);
+            const entry = this.safeDict(data, i, {});
             let matches = false;
             if (id !== undefined) {
                 matches = (this.safeString(entry, 'withdrawId') === id);
@@ -3022,7 +3024,7 @@ export default class blofin extends Exchange {
         const entryPriceString = this.safeString2(position, 'averagePrice', 'openAveragePrice');
         const unrealizedPnlString = this.safeString(position, 'unrealizedPnl');
         const leverageString = this.safeString(position, 'leverage');
-        let initialMarginPercentage = undefined;
+        let initialMarginPercentageString = undefined;
         let collateralString = undefined;
         let marginString = undefined;
         if (marginMode === 'cross') {
@@ -3030,7 +3032,7 @@ export default class blofin extends Exchange {
             collateralString = (unrealizedPnlString !== undefined) ? Precise.stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
         }
         else if (marginMode === 'isolated') {
-            initialMarginPercentage = Precise.stringDiv('1', leverageString);
+            initialMarginPercentageString = Precise.stringDiv('1', leverageString);
             const isolatedMarginString = this.omitZero(this.safeString2(position, 'margin', 'initialMargin'));
             if (isolatedMarginString !== undefined) {
                 initialMarginString = isolatedMarginString;
@@ -3041,11 +3043,10 @@ export default class blofin extends Exchange {
         const maintenanceMarginString = this.safeString(position, 'maintenanceMargin');
         const maintenanceMargin = this.parseNumber(maintenanceMarginString);
         const maintenanceMarginPercentageString = Precise.stringDiv(maintenanceMarginString, notionalString);
-        if (initialMarginPercentage === undefined) {
-            initialMarginPercentage = this.parseNumber(Precise.stringDiv(initialMarginString, notionalString, 4));
+        if (initialMarginPercentageString === undefined) {
+            initialMarginPercentageString = Precise.stringDiv(initialMarginString, notionalString, 4);
         }
         else if (initialMarginString === undefined) {
-            const initialMarginPercentageString = this.numberToString(initialMarginPercentage);
             initialMarginString = Precise.stringMul(initialMarginPercentageString, notionalString);
         }
         const rounder = '0.00005'; // round to closest 0.01%
@@ -3093,7 +3094,7 @@ export default class blofin extends Exchange {
             'positionMargin': this.parseNumber(marginString),
             'collateral': this.parseNumber(collateralString),
             'initialMargin': this.parseNumber(initialMarginString),
-            'initialMarginPercentage': this.parseNumber(initialMarginPercentage),
+            'initialMarginPercentage': this.parseNumber(initialMarginPercentageString),
             'leverage': this.parseNumber(leverageString),
             'marginRatio': marginRatio,
             'stopLossPrice': undefined,

@@ -338,8 +338,12 @@ func CallMethod(testFiles2 any, methodName2 any, exchange any, skippedProperties
 			args = []any{}
 		}
 
-		// Retrieve the function from testFiles
+		// Retrieve the function from testFiles; prediction venues use the outcome-keyed
+		// shims (test.prediction.go) since their typed methods don't satisfy ccxt.IFetch*
 		method, exists := testFiles[methodName]
+		if predictionMethod, isPredictionMethod := PredictionFunctionsMap[methodName]; isPredictionMethod && exists && isPredictionExchange(exchange) {
+			method = predictionMethod
+		}
 		if !exists {
 			ch <- ccxt.AsyncResult[any]{Err: fmt.Errorf("panic:method %s not found in testFiles", methodName)}
 			return

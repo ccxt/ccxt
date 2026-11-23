@@ -113,136 +113,136 @@ class Exchange extends _Exchange {
         return this.request('xp/transfer/{transfer_id}', ['public'], 'GET', params, { 'cost': 1 });
     }
     privateGetAccount(params = {}) {
-        return this.request('account', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('account', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetAccountCompliance(params = {}) {
-        return this.request('account/compliance', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('account/compliance', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetAccountHistory(params = {}) {
-        return this.request('account/history', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('account/history', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetAccountInfo(params = {}) {
-        return this.request('account/info', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('account/info', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetAccountMargin(params = {}) {
-        return this.request('account/margin', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('account/margin', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetAccountProfile(params = {}) {
-        return this.request('account/profile', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('account/profile', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetAccountSettings(params = {}) {
-        return this.request('account/settings', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('account/settings', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetAccountSubaccounts(params = {}) {
-        return this.request('account/subaccounts', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('account/subaccounts', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetAccountSummary(params = {}) {
-        return this.request('account/summary', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('account/summary', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetBalance(params = {}) {
-        return this.request('balance', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('balance', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetFills(params = {}) {
-        return this.request('fills', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('fills', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetFundingPayments(params = {}) {
-        return this.request('funding/payments', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('funding/payments', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetPositions(params = {}) {
-        return this.request('positions', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('positions', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetTradebusts(params = {}) {
-        return this.request('tradebusts', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('tradebusts', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetTransactions(params = {}) {
-        return this.request('transactions', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('transactions', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetAccountKeysSubkeys(params = {}) {
-        return this.request('account/keys/subkeys', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('account/keys/subkeys', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetAccountKeysSubkeysPublicKey(params = {}) {
-        return this.request('account/keys/subkeys/{public_key}', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('account/keys/subkeys/{public_key}', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetAccountTokens(params = {}) {
-        return this.request('account/tokens', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('account/tokens', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetAlgoOrders(params = {}) {
-        return this.request('algo/orders', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('algo/orders', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetAlgoOrdersHistory(params = {}) {
-        return this.request('algo/orders-history', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('algo/orders-history', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetAlgoOrdersAlgoId(params = {}) {
-        return this.request('algo/orders/{algo_id}', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('algo/orders/{algo_id}', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetBlockTrades(params = {}) {
-        return this.request('block-trades', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('block-trades', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetBlockTradesBlockTradeId(params = {}) {
-        return this.request('block-trades/{block_trade_id}', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('block-trades/{block_trade_id}', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetBlockTradesBlockTradeIdOffers(params = {}) {
-        return this.request('block-trades/{block_trade_id}/offers', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('block-trades/{block_trade_id}/offers', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetBlockTradesBlockTradeIdOffersOfferId(params = {}) {
-        return this.request('block-trades/{block_trade_id}/offers/{offer_id}', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('block-trades/{block_trade_id}/offers/{offer_id}', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetLiquidations(params = {}) {
-        return this.request('liquidations', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('liquidations', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetOrders(params = {}) {
-        return this.request('orders', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('orders', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetOrdersHistory(params = {}) {
-        return this.request('orders-history', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('orders-history', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetOrdersByClientIdClientId(params = {}) {
-        return this.request('orders/by_client_id/{client_id}', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('orders/by_client_id/{client_id}', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetOrdersOrderId(params = {}) {
-        return this.request('orders/{order_id}', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('orders/{order_id}', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetReferralsQrCode(params = {}) {
-        return this.request('referrals/qr-code', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('referrals/qr-code', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetReferralsSummary(params = {}) {
-        return this.request('referrals/summary', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('referrals/summary', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetRfqs(params = {}) {
-        return this.request('rfqs', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('rfqs', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetRfqsDrafts(params = {}) {
-        return this.request('rfqs/drafts', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('rfqs/drafts', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetRfqsMarkets(params = {}) {
-        return this.request('rfqs/markets', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('rfqs/markets', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetRfqsRfqIdBbo(params = {}) {
-        return this.request('rfqs/{rfq_id}/bbo', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('rfqs/{rfq_id}/bbo', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetStakingBalanceHistory(params = {}) {
-        return this.request('staking/balance/history', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('staking/balance/history', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetStakingHistory(params = {}) {
-        return this.request('staking/history', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('staking/history', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetStakingSummary(params = {}) {
-        return this.request('staking/summary', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('staking/summary', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetTransfers(params = {}) {
-        return this.request('transfers', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('transfers', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetVaultsAccountSummary(params = {}) {
-        return this.request('vaults/account-summary', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('vaults/account-summary', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetVaultsMine(params = {}) {
-        return this.request('vaults/mine', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('vaults/mine', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetXpAccountBalance(params = {}) {
-        return this.request('xp/account-balance', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('xp/account-balance', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privateGetXpTransfers(params = {}) {
-        return this.request('xp/transfers', ['private'], 'GET', params, { 'cost': 1 });
+        return this.request('xp/transfers', ['private'], 'GET', params, { 'cost': 2.5 });
     }
     privatePostAccountCompliance(params = {}) {
         return this.request('account/compliance', ['private'], 'POST', params, { 'cost': 1 });
@@ -296,7 +296,7 @@ class Exchange extends _Exchange {
         return this.request('algo/orders', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostAuth(params = {}) {
-        return this.request('auth', ['private'], 'POST', params, { 'cost': 1 });
+        return this.request('auth', ['private'], 'POST', params, { 'cost': 2.5 });
     }
     privatePostBlockTrades(params = {}) {
         return this.request('block-trades', ['private'], 'POST', params, { 'cost': 1 });
@@ -311,7 +311,7 @@ class Exchange extends _Exchange {
         return this.request('block-trades/{block_trade_id}/offers/{offer_id}/execute', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostOnboarding(params = {}) {
-        return this.request('onboarding', ['private'], 'POST', params, { 'cost': 1 });
+        return this.request('onboarding', ['private'], 'POST', params, { 'cost': 2.5 });
     }
     privatePostOrders(params = {}) {
         return this.request('orders', ['private'], 'POST', params, { 'cost': 1 });
@@ -329,10 +329,10 @@ class Exchange extends _Exchange {
         return this.request('rfqs/{rfq_id}/execute', ['private'], 'POST', params, { 'cost': 1 });
     }
     privatePostV2Auth(params = {}) {
-        return this.request('v2/auth', ['private'], 'POST', params, { 'cost': 1 });
+        return this.request('v2/auth', ['private'], 'POST', params, { 'cost': 2.5 });
     }
     privatePostV2Onboarding(params = {}) {
-        return this.request('v2/onboarding', ['private'], 'POST', params, { 'cost': 1 });
+        return this.request('v2/onboarding', ['private'], 'POST', params, { 'cost': 2.5 });
     }
     privatePostVaults(params = {}) {
         return this.request('vaults', ['private'], 'POST', params, { 'cost': 1 });

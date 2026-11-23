@@ -1,13 +1,13 @@
 import phemexRest from '../phemex.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers, Market, List } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, Strings, Tickers, Market, List, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class phemex extends phemexRest {
     describe(): Dict;
     fromEn(en: any, scale: any): Str;
-    fromEp(ep: any, market?: Market): Str;
-    fromEv(ev: any, market?: Market): Str;
-    fromEr(er: any, market?: Market): Str;
-    requestId(): number;
+    fromEp(ep: Str, market?: Market): Str;
+    fromEv(ev: Str, market?: Market): Str;
+    fromEr(er: Str, market?: Market): Str;
+    requestId(): int;
     parseSwapTicker(ticker: Dict, market?: Market): Ticker;
     parsePerpetualTicker(ticker: any[], market?: Market): Ticker;
     handleTicker(client: Client, message: Dict): void;

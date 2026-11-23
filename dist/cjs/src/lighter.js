@@ -580,7 +580,12 @@ class lighter extends lighter$1["default"] {
             'api_key_index': this.parseToInt(apiKeyIndex),
             'account_index': this.parseToInt(accountIndex),
         };
-        const token = this.lighterCreateAuthToken(this.safeValue(cachedAuth, 'signer'), request);
+        const signer = this.safeValue(cachedAuth, 'signer');
+        if (signer === undefined) {
+            this.checkRequiredCredentials();
+            throw new errors.AuthenticationError(this.id + ' could not load the signer, set options["libraryPath"] to the lighter signing library. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt');
+        }
+        const token = this.lighterCreateAuthToken(signer, request);
         this.setAuthEntry(accountIndex, apiKeyIndex, { 'deadline': deadline, 'token': token });
         return token;
     }

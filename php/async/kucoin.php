@@ -1653,7 +1653,7 @@ class kucoin extends Exchange {
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array[]} an array of objects representing $market data
          */
-        $fetchTickersFees = null;
+        $fetchTickersFees = true;
         $paramsRequest = null;
         list($fetchTickersFees, $paramsRequest) = $this->handle_option_bool_and_params($params, 'fetchMarkets', 'fetchTickersFees', true);
         $uta = false;
@@ -4968,8 +4968,7 @@ class kucoin extends Exchange {
         //           },
         // }
         //
-        $data = $this->safe_dict($response, 'data', array());
-        $data = $this->safe_list($data, 'data', array());
+        $data = $this->safe_list($this->safe_dict($response, 'data', array()), 'data', array());
         return $this->parse_orders($data);
     }
 
@@ -10580,7 +10579,7 @@ class kucoin extends Exchange {
         return $this->parse_funding_rates($rates, $symbolsNormalized);
     }
 
-    public function parse_funding_rate(mixed $data, ?array $market = null): array {
+    public function parse_funding_rate(?array $data, ?array $market = null): array {
         // uta
         //     {
         //         "symbol": ".ETHUSDTMFPI8H",
@@ -11438,9 +11437,8 @@ class kucoin extends Exchange {
                 'clientOid' => $this->safe_string($clientOrderIds, $i),
             );
         }
-        $idsList = $this->to_array($ids);
-        for ($i = 0; $i < count($idsList); $i++) {
-            $orderId = $this->safe_string($idsList, $i);
+        for ($i = 0; $i < count($ids); $i++) {
+            $orderId = $this->safe_string($ids, $i);
             if ($uta) {
                 $ordersRequests[] = array(
                     'orderId' => $orderId,
@@ -12310,7 +12308,7 @@ class kucoin extends Exchange {
             $partner = $this->safe_dict($this->options, 'partner', array());
             $isUtaFuturePrivate = $isUtaPrivate && ($tradeType === 'FUTURES');
             $isFuturePartner = $isFuturePrivate || $isUtaFuturePrivate;
-            $partner = $isFuturePartner ? $this->safe_value($partner, 'future', $partner) : $this->safe_value($partner, 'spot', $partner);
+            $partner = $isFuturePartner ? $this->safe_dict($partner, 'future', $partner) : $this->safe_dict($partner, 'spot', $partner);
             $partnerId = $this->safe_string($partner, 'id');
             $partnerSecret = $this->safe_string_2($partner, 'secret', 'key');
             if (($partnerId !== null) && ($partnerSecret !== null)) {

@@ -39,7 +39,11 @@ function isStatusEntry(value: unknown): value is StatusEntry {
 
 export async function readExchangeStatus(): Promise<StatusEntry[]> {
   try {
-    const parsed: unknown = JSON.parse(await readFile(STATUS_FILE, 'utf8'));
+    // turbopackIgnore: STATUS_FILE is only known at runtime (env override), so output
+    // tracing can't scope it and would copy the whole project into .next/standalone
+    // (content/, src/, public/, ...). The file is written at runtime by the monitor and
+    // never belongs in the bundle, so exclude this read from tracing.
+    const parsed: unknown = JSON.parse(await readFile(/* turbopackIgnore: true */ STATUS_FILE, 'utf8'));
     // The monitor may rewrite the file mid-read or crash mid-write; a malformed or
     // partial snapshot must degrade to the previous known-good fallback, never throw
     // into the page/API.

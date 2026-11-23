@@ -3388,7 +3388,7 @@ class predictfun extends Exchange {
         return $base . '?apiKey=' . $this->apiKey;
     }
 
-    public function request_id(): float {
+    public function request_id(): int {
         /**
          * @ignore
          * a monotonic id the venue echoes back so a subscription reply can be matched to its request
@@ -3402,7 +3402,7 @@ class predictfun extends Exchange {
         return $next;
     }
 
-    public function outcome_for_token(?string $tokenId, mixed $market = null): mixed {
+    public function outcome_for_token(?string $tokenId, ?array $market = null): mixed {
         /**
          * @ignore
          * resolves the outcome a row belongs to from its own token id, taking the caller's outcome only when it names that same token
@@ -3959,8 +3959,6 @@ class predictfun extends Exchange {
                 $url .= '?' . $this->urlencode($query);
             }
         }
-        $existingHeaders = array();
-        $headersValue = $existingHeaders;
         $authHeaders = array();
         if (($apiKey !== null) && (!$sandboxMode)) {
             // the php transpiler prefixes every standalone 'api' with a $, string literals included,
@@ -4003,7 +4001,7 @@ class predictfun extends Exchange {
             $authHeaders['Content-Type'] = 'application/json';
             $bodyValue = $this->json($params);
         }
-        $headersExtended = $this->extend($headersValue, $authHeaders);
+        $headersExtended = $this->extend(array(), $authHeaders);
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyValue, 'headers' => $headersExtended );
     }
 }

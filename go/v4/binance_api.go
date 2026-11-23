@@ -572,6 +572,11 @@ func (this *Binance) SapiGetSubAccountTransactionStatistics(args ...any) <-chan 
 	return EndpointTyped[map[string]any](this.callEndpointAsync("sapiGetSubAccountTransactionStatistics", args...))
 }
 
+// SapiGetSubAccountSubAccountApi returns a channel that yields a JSON object.
+func (this *Binance) SapiGetSubAccountSubAccountApi(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("sapiGetSubAccountSubAccountApi", args...))
+}
+
 // SapiGetSubAccountSubAccountApiIpRestriction returns a channel that yields a JSON object.
 func (this *Binance) SapiGetSubAccountSubAccountApiIpRestriction(args ...any) <-chan EndpointResult[map[string]any] {
 	return EndpointTyped[map[string]any](this.callEndpointAsync("sapiGetSubAccountSubAccountApiIpRestriction", args...))
@@ -1477,6 +1482,16 @@ func (this *Binance) SapiPostSubAccountVirtualSubAccount(args ...any) <-chan End
 	return EndpointTyped[map[string]any](this.callEndpointAsync("sapiPostSubAccountVirtualSubAccount", args...))
 }
 
+// SapiPostSubAccountSubAccountApi returns a channel that yields a JSON object.
+func (this *Binance) SapiPostSubAccountSubAccountApi(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("sapiPostSubAccountSubAccountApi", args...))
+}
+
+// SapiPostSubAccountSubAccountApiPermission returns a channel that yields a JSON object.
+func (this *Binance) SapiPostSubAccountSubAccountApiPermission(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("sapiPostSubAccountSubAccountApiPermission", args...))
+}
+
 // SapiPostSubAccountMarginTransfer returns a channel that yields a JSON object.
 func (this *Binance) SapiPostSubAccountMarginTransfer(args ...any) <-chan EndpointResult[map[string]any] {
 	return EndpointTyped[map[string]any](this.callEndpointAsync("sapiPostSubAccountMarginTransfer", args...))
@@ -2087,6 +2102,11 @@ func (this *Binance) SapiDeleteAlgoFuturesOrder(args ...any) <-chan EndpointResu
 	return EndpointTyped[map[string]any](this.callEndpointAsync("sapiDeleteAlgoFuturesOrder", args...))
 }
 
+// SapiDeleteSubAccountSubAccountApi returns a channel that yields a JSON object.
+func (this *Binance) SapiDeleteSubAccountSubAccountApi(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("sapiDeleteSubAccountSubAccountApi", args...))
+}
+
 // SapiDeleteSubAccountSubAccountApiIpRestrictionIpList returns a channel that yields a JSON object.
 func (this *Binance) SapiDeleteSubAccountSubAccountApiIpRestrictionIpList(args ...any) <-chan EndpointResult[map[string]any] {
 	return EndpointTyped[map[string]any](this.callEndpointAsync("sapiDeleteSubAccountSubAccountApiIpRestrictionIpList", args...))
@@ -2150,6 +2170,11 @@ func (this *Binance) SapiV2GetPortfolioAccount(args ...any) <-chan EndpointResul
 // SapiV2PostEthStakingEthStake returns a channel that yields a JSON object.
 func (this *Binance) SapiV2PostEthStakingEthStake(args ...any) <-chan EndpointResult[map[string]any] {
 	return Fetch2Result[map[string]any](this, "eth-staking/eth/stake", []string{"sapiV2"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(15)})
+}
+
+// SapiV2PostSubAccountSubAccountApi returns a channel that yields a JSON object.
+func (this *Binance) SapiV2PostSubAccountSubAccountApi(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("sapiV2PostSubAccountSubAccountApi", args...))
 }
 
 // SapiV2PostSubAccountSubAccountApiIpRestriction returns a channel that yields a JSON object.

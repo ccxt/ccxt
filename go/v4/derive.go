@@ -1083,7 +1083,7 @@ func (this *Derive) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface],
 	}
 	var instruments any = nil
 	if r.Value != nil {
-		instruments = MarketInterfacesToList(r.Value)
+		instruments = MapSliceToList(r.Value)
 	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(instruments))}
@@ -1110,7 +1110,7 @@ func (this *Derive) fetchSwapMarketsBody(ch chan AsyncResult[[]MarketInterface],
 	}
 	var instruments any = nil
 	if r.Value != nil {
-		instruments = MarketInterfacesToList(r.Value)
+		instruments = MapSliceToList(r.Value)
 	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(instruments))}
@@ -1137,7 +1137,7 @@ func (this *Derive) fetchOptionMarketsBody(ch chan AsyncResult[[]MarketInterface
 	}
 	var instruments any = nil
 	if r.Value != nil {
-		instruments = MarketInterfacesToList(r.Value)
+		instruments = MapSliceToList(r.Value)
 	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(instruments))}
@@ -1153,12 +1153,12 @@ func (this *Derive) fetchOptionMarketsBody(ch chan AsyncResult[[]MarketInterface
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of raw instrument entries
  */
-func (this *Derive) GetMarketsPaginatedAsync(request map[string]any, optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
-	ch := make(chan AsyncResult[[]MarketInterface], 1)
+func (this *Derive) GetMarketsPaginatedAsync(request map[string]any, optionalArgs ...any) <-chan AsyncResult[[]map[string]any] {
+	ch := make(chan AsyncResult[[]map[string]any], 1)
 	go this.getMarketsPaginatedBody(ch, request, optionalArgs...)
 	return ch
 }
-func (this *Derive) getMarketsPaginatedBody(ch chan AsyncResult[[]MarketInterface], request map[string]any, optionalArgs ...any) any {
+func (this *Derive) getMarketsPaginatedBody(ch chan AsyncResult[[]map[string]any], request map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1167,9 +1167,8 @@ func (this *Derive) getMarketsPaginatedBody(ch chan AsyncResult[[]MarketInterfac
 	maxPages, paramsMaxPages := this.HandleOptionIntegerAndParams(params, "getMarketsPaginated", "maxMarketPages", 25)
 	pageSize, paramsOmitted := this.HandleOptionIntegerAndParams(paramsMaxPages, "getMarketsPaginated", "maxMarketsPerPage", 1000)
 	for i := 0; int64(i) < maxPages; i++ {
-		var page int = i + 1
 		var requestExtension map[string]any = map[string]any{
-			"page":      page,
+			"page":      i + 1,
 			"page_size": pageSize,
 		}
 		var requestExtended map[string]any = this.Extend(this.Extend(request, requestExtension), paramsOmitted) // nested because the csharp base defines extend with two arguments only
@@ -1190,7 +1189,7 @@ func (this *Derive) getMarketsPaginatedBody(ch chan AsyncResult[[]MarketInterfac
 		}
 	}
 
-	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(allInstruments)}
+	ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList(allInstruments)}
 	return nil
 }
 func (this *Derive) ParseMarket(market any) map[string]any {
@@ -1972,11 +1971,11 @@ func (this *Derive) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes141919 []any = r1.Value
-		if retRes141919 == nil {
+		var retRes141819 []any = r1.Value
+		if retRes141819 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes141919)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes141819)}
 		}
 		return nil
 	}
@@ -1993,12 +1992,12 @@ func (this *Derive) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	}
 	if limit != nil {
 		// the venue lists every match twice (a maker row and a taker row) and parseTrades drops the maker duplicates, so twice the limit is requested to return close to the asked amount
-		var pageSize any = func() any {
-			if limit != nil && *limit > 500 {
-				return 1000
-			}
-			return *limit * 2
-		}() // default 100, max 1000
+		var pageSize int64
+		if limit != nil && *limit > 500 {
+			pageSize = 1000
+		} else {
+			pageSize = *limit * 2
+		} // default 100, max 1000
 		request["page_size"] = pageSize
 	}
 	if since != nil {
@@ -2134,7 +2133,7 @@ func (this *Derive) ParseTrades(trades any, optionalArgs ...any) []any {
 	var tradesArray []any = this.ToArray(trades)
 	var result []any = []any{}
 	for i := 0; i < len(tradesArray); i++ {
-		var rawTrade any = DerefScalar(tradesArray[i])
+		var rawTrade any = tradesArray[i]
 		var isFetchTrades bool = !(InOp(rawTrade, "order_id"))
 		var liquidityRole *string = this.SafeString(rawTrade, "liquidity_role")
 		if isFetchTrades && (liquidityRole != nil && *liquidityRole == "maker") {
@@ -2195,11 +2194,11 @@ func (this *Derive) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes159419 []any = r1.Value
-		if retRes159419 == nil {
+		var retRes159319 []any = r1.Value
+		if retRes159319 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes159419)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes159319)}
 		}
 		return nil
 	}
@@ -2226,10 +2225,10 @@ func (this *Derive) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		limitResolved = this.ParseToInt(limit)
 	}
 	if limitResolved > 5000 {
-		limitResolved = this.ParseToInt(5000)
+		limitResolved = 5000
 	}
 	var span int64 = this.ParseToInt(limitResolved * duration)
-	var windowStart int64 = this.ParseToInt(untilSeconds - span)
+	var windowStart int64 = untilSeconds - span
 	var start int64 = windowStart
 	var end any = untilSeconds
 	if since != nil {
@@ -2434,10 +2433,10 @@ func (this *Derive) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	//     }
 	//
 	var result map[string]any = SafeMapTyped(response, "result")
-	var data []any = SafeListTyped(result, "funding_rate_history")
+	var data []map[string]any = this.SafeListMapsTyped(result, "funding_rate_history")
 	var rates []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var entry any = data[i]
+		var entry map[string]any = data[i]
 		var timestamp *int64 = this.SafeInteger(entry, "timestamp")
 		rates = append(rates, map[string]any{
 			"info":        entry,
@@ -2709,12 +2708,12 @@ func (this *Derive) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		panic(InvalidOrder(this.Id + " createOrder() accepts only one of triggerPrice, stopLossPrice or takeProfitPrice"))
 	}
 	var triggerPriceType *string = this.SafeString(paramsDeriveWalletAddress, "trigger_price_type", "mark")
-	var stopPrice *string = func() *string {
-		if triggerPrice != nil {
-			return triggerPrice
-		}
-		return stopLossPrice
-	}()
+	var stopPrice *string
+	if triggerPrice != nil {
+		stopPrice = triggerPrice
+	} else {
+		stopPrice = stopLossPrice
+	}
 	if stopPrice != nil {
 		request["trigger_price"] = stopPrice
 		request["trigger_type"] = "stoploss"
@@ -3001,12 +3000,12 @@ func (this *Derive) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
  * @param {string} [params.subaccount_id] *required* the subaccount id
  * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Derive) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Derive) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Derive) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Derive) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -3670,12 +3669,12 @@ func (this *Derive) ParseOrder(rawOrder any, optionalArgs ...any) Order {
 	var timestamp *int64 = this.SafeInteger(rawOrder, "creation_timestamp") // the nonce is no longer a usable fallback: v3 nonces are nanosecond-scale values with a random suffix
 	var orderId *string = this.SafeString(order, "order_id")
 	var marketId *string = this.SafeString(order, "instrument_name")
-	var marketResolved any = func() any {
-		if marketId != nil {
-			return this.SafeMarket(marketId, market)
-		}
-		return market
-	}()
+	var marketResolved map[string]any
+	if marketId != nil {
+		marketResolved = this.SafeMarket(marketId, market)
+	} else {
+		marketResolved = market
+	}
 	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var price *string = this.SafeString(order, "limit_price")
 	var average *string = this.SafeString(order, "average_price")
@@ -3889,11 +3888,11 @@ func (this *Derive) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes296919 []any = r1.Value
-		if retRes296919 == nil {
+		var retRes296819 []any = r1.Value
+		if retRes296819 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes296919)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes296819)}
 		}
 		return nil
 	}
@@ -4213,11 +4212,11 @@ func (this *Derive) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes322719 []any = r1.Value
-		if retRes322719 == nil {
+		var retRes322619 []any = r1.Value
+		if retRes322619 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes322719)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes322619)}
 		}
 		return nil
 	}
@@ -5156,12 +5155,12 @@ func (this *Derive) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
 	var paramsDeriveSubaccountId map[string]any = subaccountIdparamsDeriveSubaccountIdVariable[1].(map[string]any)
 	var forceBatch *bool = this.SafeBool2(paramsDeriveSubaccountId, "force_batch", "forceBatch", false)
-	var defaultMaxFee string = func() string {
-		if forceBatch != nil && *forceBatch {
-			return "10"
-		}
-		return "1"
-	}()
+	var defaultMaxFee string
+	if forceBatch != nil && *forceBatch {
+		defaultMaxFee = "10"
+	} else {
+		defaultMaxFee = "1"
+	}
 	var maxFeeUsd *string = this.SafeString2(paramsDeriveSubaccountId, "max_fee_usd", "maxFeeUsd", defaultMaxFee)
 	var paramsOmitted map[string]any = this.OmitDict(paramsDeriveSubaccountId, []any{"max_fee_usd", "maxFeeUsd", "force_batch", "forceBatch"})
 	// excess decimals are truncated away: a fractional scaled amount cannot be encoded, and the signature must commit to the exact wire amount
@@ -5546,12 +5545,12 @@ func (this *Derive) Sign(path string, optionalArgs ...any) map[string]any {
 			var signature string = this.SignMessage(now, this.PrivateKey)
 			var configuredWalletAddress *string = this.SafeString(this.Options, "deriveWalletAddress")
 			// v3: the owner wallet is the user's own EOA
-			var deriveWalletAddress any = func() any {
-				if (configuredWalletAddress == nil) || (configuredWalletAddress != nil && *configuredWalletAddress == "") {
-					return this.WalletAddress
-				}
-				return configuredWalletAddress
-			}()
+			var deriveWalletAddress string
+			if (configuredWalletAddress == nil) || (configuredWalletAddress != nil && *configuredWalletAddress == "") {
+				deriveWalletAddress = this.WalletAddress
+			} else {
+				deriveWalletAddress = *configuredWalletAddress
+			}
 			postHeaders["X-DeriveWallet"] = deriveWalletAddress
 			postHeaders["X-DeriveTimestamp"] = now
 			postHeaders["X-DeriveSignature"] = signature

@@ -100,7 +100,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = this.safeString(this.safeDict(this.urls.get("api"), "ws", (Object) null), "crypto");
+            String url = this.safeString(this.safeDict(this.urls.get("api"), "ws", null), "crypto");
             (this.authenticate((String) (url), new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -197,7 +197,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = this.safeString(this.safeDict(this.urls.get("api"), "ws", (Object) null), "crypto");
+            String url = this.safeString(this.safeDict(this.urls.get("api"), "ws", null), "crypto");
             (this.authenticate((String) (url), new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -239,15 +239,16 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         //
         String marketId = this.safeString(message, "S");
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
-        Object stored = this.safeValue(this.ohlcvs, symbol);
+        this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, null), "1m");
         if (java.util.Objects.equals(stored, null))
         {
             Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
-            this.ohlcvs.put(symbol, stored);
+            Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), "1m", stored);
         }
         List<Object> parsed = (List<Object>) this.parseOHLCV(message, (Map<String, Object>) null);
-        ((io.github.ccxt.ws.ArrayCache) stored).append(parsed);
+        stored.append(parsed);
         String messageHash = ("ohlcv:" + symbol);
         client.resolve(stored, messageHash);
     }
@@ -267,7 +268,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = this.safeString(this.safeDict(this.urls.get("api"), "ws", (Object) null), "crypto");
+            String url = this.safeString(this.safeDict(this.urls.get("api"), "ws", null), "crypto");
             (this.authenticate((String) (url), new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -325,8 +326,8 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             orderbook.reset(snapshot);
         } else
         {
-            List<Object> asks = (List<Object>) this.safeList(message, "a", new ArrayList<Object>(Arrays.asList()));
-            List<Object> bids = (List<Object>) this.safeList(message, "b", new ArrayList<Object>(Arrays.asList()));
+            List<Object> asks = this.safeList(message, "a", new ArrayList<Object>(Arrays.asList()));
+            List<Object> bids = this.safeList(message, "b", new ArrayList<Object>(Arrays.asList()));
             this.handleDeltas((orderbook == null ? null : orderbook.get("asks")), asks);
             this.handleDeltas((orderbook == null ? null : orderbook.get("bids")), bids);
             orderbook.put("timestamp", timestamp);
@@ -359,7 +360,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = this.safeString(this.safeDict(this.urls.get("api"), "ws", (Object) null), "crypto");
+            String url = this.safeString(this.safeDict(this.urls.get("api"), "ws", null), "crypto");
             (this.authenticate((String) (url), new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -428,7 +429,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = this.safeString(this.safeDict(this.urls.get("api"), "ws", (Object) null), "trading");
+            String url = this.safeString(this.safeDict(this.urls.get("api"), "ws", null), "trading");
             (this.authenticate((String) (url), new HashMap<String, Object>() {{}})).join();
             String messageHash = "myTrades";
             if (java.util.Objects.equals(this.markets, null))
@@ -475,7 +476,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
 
         return BaseExchange.supplyAsync(() -> {
 
-            String url = this.safeString(this.safeDict(this.urls.get("api"), "ws", (Object) null), "trading");
+            String url = this.safeString(this.safeDict(this.urls.get("api"), "ws", null), "trading");
             (this.authenticate((String) (url), new HashMap<String, Object>() {{}})).join();
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -560,8 +561,8 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         //        }
         //      }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(data, "order", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> rawOrder = this.safeDict(data, "order", new HashMap<String, Object>() {{}});
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -624,13 +625,13 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         //        }
         //      }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String eventVar = this.safeString(data, "event");
         if (!java.util.Objects.equals(eventVar, "fill") && !java.util.Objects.equals(eventVar, "partial_fill"))
         {
             return;
         }
-        Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(data, "order", new HashMap<String, Object>() {{}});
+        Map<String, Object> rawOrder = this.safeDict(data, "order", new HashMap<String, Object>() {{}});
         io.github.ccxt.ws.ArrayCache myTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         if (java.util.Objects.equals(myTrades, null))
         {
@@ -727,15 +728,15 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             String messageHash = "authenticated";
             Client client = this.client(url);
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
-            Object authenticated = this.safeValue(client.subscriptions, messageHash);
-            if (java.util.Objects.equals(authenticated, null))
+            boolean authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+            if (!authenticated)
             {
                 Object request = new HashMap<String, Object>() {{
                     put( "action", "auth" );
                     put( "key", Alpaca.this.apiKey );
                     put( "secret", Alpaca.this.secret );
                 }};
-                if (java.util.Objects.equals(url, this.safeString(this.safeDict(this.urls.get("api"), "ws", (Object) null), "trading")))
+                if (java.util.Objects.equals(url, this.safeString(this.safeDict(this.urls.get("api"), "ws", null), "trading")))
                 {
                     // this auth request is being deprecated in test environment
                     request = ((Object)new HashMap<String, Object>() {{
@@ -886,7 +887,7 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
         //    }
         //
         String T = this.safeString(message, "T");
-        Map<String, Object> data = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String status = this.safeString(data, "status");
         if (java.util.Objects.equals(T, "success") || java.util.Objects.equals(status, "authorized"))
         {

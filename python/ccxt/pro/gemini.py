@@ -239,7 +239,7 @@ class gemini(ccxt.async_support.gemini):
         tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
         storesForSymbols = {}
         for i in range(0, len(trades)):
-            rawTrade = self.safe_value(trades, i)
+            rawTrade = self.safe_dict(trades, i, {})
             marketId = self.safe_string(rawTrade, 'symbol', '').lower()
             market = self.safe_market(marketId)
             symbol = self.safe_string(market, 'symbol', '')
@@ -255,9 +255,9 @@ class gemini(ccxt.async_support.gemini):
         symbols = list(storesForSymbols.keys())
         for i in range(0, len(symbols)):
             symbol = symbols[i]
-            stored = storesForSymbols[symbol]
+            symbolStore = storesForSymbols[symbol]
             messageHash = 'trades:' + symbol
-            client.resolve(stored, messageHash)
+            client.resolve(symbolStore, messageHash)
 
     async def watch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
@@ -333,8 +333,7 @@ class gemini(ccxt.async_support.gemini):
         symbol = self.safe_symbol(marketId, market)
         changes = self.safe_list(message, 'changes', [])
         timeframe = self.find_timeframe(timeframeId)
-        ohlcvsBySymbol = self.safe_dict(self.ohlcvs, symbol)
-        if ohlcvsBySymbol is None:
+        if not (symbol in self.ohlcvs):
             self.ohlcvs[symbol] = {}
         stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
         if stored is None:
@@ -345,8 +344,7 @@ class gemini(ccxt.async_support.gemini):
         changesLength = len(changes)
         # reverse order of array to store candles in ascending order
         for i in range(0, changesLength):
-            index = changesLength - i - 1
-            parsed = self.parse_ohlcv(self.safe_value(changes, index), market)
+            parsed = self.parse_ohlcv(self.safe_value(changes, changesLength - i - 1), market)
             stored.append(parsed)
         messageHash = 'ohlcv:' + symbol + ':' + timeframeId
         client.resolve(stored, messageHash)
@@ -442,7 +440,7 @@ class gemini(ccxt.async_support.gemini):
         orderbook = await self.helper_for_watch_multiple_construct('orderbook', symbols, params)
         return orderbook.limit()
 
-    def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
+    async def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         watches best bid & ask for symbols
 
@@ -452,7 +450,7 @@ class gemini(ccxt.async_support.gemini):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return self.helper_for_watch_multiple_construct('bidsasks', symbols, params)
+        return await self.helper_for_watch_multiple_construct('bidsasks', symbols, params)
 
     def handle_bids_asks_for_multidata(self, client: Client, rawBidAskChanges: list[object], timestamp: Int, nonce: Int):
         #
@@ -880,7 +878,7 @@ class gemini(ccxt.async_support.gemini):
             collectedEventsOfTrades = []
             eventsLength = len(events)
             for i in range(0, len(events)):
-                event = self.safe_value(events, i)
+                event = self.safe_dict(events, i, {})
                 eventType = self.safe_string(event, 'type')
                 side = self.safe_string(event, 'side')
                 isOrderBook = (eventType == 'change') and (side is not None) and self.in_array(side, ['ask', 'bid'])

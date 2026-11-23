@@ -64,9 +64,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
 | `gatewayPublicGetSymbols` | GET | `symbols` | 2 |
-| `gatewayPublicGetQuery` | GET | `query` | 1 |
+| `gatewayPublicGetQuery` | GET | `query` | 2 |
 | `gatewayPublicGetEdgeQuery` | GET | `edge/query` | 1 |
-| `gatewayPublicPostQuery` | POST | `query` | 1 |
+| `gatewayPublicPostQuery` | POST | `query` | 2 |
 | `gatewayPublicPostEdgeQuery` | POST | `edge/query` | 1 |
 | `gatewayPrivatePostExecute` | POST | `execute` | 1 |
 
@@ -77,7 +77,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
 | `gatewayV2PublicGetAssets` | GET | `assets` | 2 |
-| `gatewayV2PublicGetPairs` | GET | `pairs` | 1 |
+| `gatewayV2PublicGetPairs` | GET | `pairs` | 2 |
 | `gatewayV2PublicGetOrderbook` | GET | `orderbook` | 1 |
 
 ## archive
@@ -86,7 +86,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `archivePost` | POST | `` | 1 |
+| `archivePost` | POST | `` | 2 |
 
 ## archiveV2
 
@@ -94,10 +94,10 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
-| `archiveV2PublicGetTickers` | GET | `tickers` | 1 |
-| `archiveV2PublicGetContracts` | GET | `contracts` | 1 |
-| `archiveV2PublicGetTrades` | GET | `trades` | 1 |
-| `archiveV2PublicGetSymbols` | GET | `symbols` | 1 |
+| `archiveV2PublicGetTickers` | GET | `tickers` | 2 |
+| `archiveV2PublicGetContracts` | GET | `contracts` | 2 |
+| `archiveV2PublicGetTrades` | GET | `trades` | 4 |
+| `archiveV2PublicGetSymbols` | GET | `symbols` | 2 |
 
 ## trigger
 

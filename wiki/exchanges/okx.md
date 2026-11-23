@@ -100,6 +100,8 @@
 * [watchTickers](#watchtickers)
 * [watchMarkPrice](#watchmarkprice)
 * [watchMarkPrices](#watchmarkprices)
+* [unWatchMarkPrice](#unwatchmarkprice)
+* [unWatchMarkPrices](#unwatchmarkprices)
 * [unWatchTickers](#unwatchtickers)
 * [watchBidsAsks](#watchbidsasks)
 * [watchLiquidationsForSymbols](#watchliquidationsforsymbols)
@@ -418,6 +420,7 @@ fetches historical funding rate prices
 | since | <code>int</code> | No | timestamp in ms of the earliest funding rate to fetch |
 | limit | <code>int</code> | No | the maximum amount of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-history-structure) to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.until | <code>int</code> | No | timestamp in ms of the latest funding rate |
 | params.paginate | <code>boolean</code> | No | default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params) |
 
 
@@ -2410,6 +2413,50 @@ watches mark prices
 
 ```javascript
 okx.watchMarkPrices (symbols?, params?)
+```
+
+
+<a name="unWatchMarkPrice" id="unwatchmarkprice"></a>
+
+### unWatchMarkPrice{docsify-ignore}
+unWatches a mark price
+
+**Kind**: instance method of [<code>okx</code>](#okx)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to stop watching the mark price for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.channel | <code>string</code> | No | the channel to unsubscribe from, mark-price by default |
+
+
+```javascript
+okx.unWatchMarkPrice (symbol, params?)
+```
+
+
+<a name="unWatchMarkPrices" id="unwatchmarkprices"></a>
+
+### unWatchMarkPrices{docsify-ignore}
+unWatches mark prices
+
+**Kind**: instance method of [<code>okx</code>](#okx)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to stop watching the mark price for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.channel | <code>string</code> | No | the channel to unsubscribe from, mark-price by default |
+
+
+```javascript
+okx.unWatchMarkPrices (symbols?, params?)
 ```
 
 

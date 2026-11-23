@@ -38,6 +38,7 @@ const debugKeys = {
     '--warnings': false,
     '--info': false,
     '--show-timer': false,
+    '--noskip': false,
 }
 
 const exchangeSpecificFlags = {
@@ -91,6 +92,7 @@ if (maxConcurrency === undefined) {
 }
 
 const wsFlag = exchangeSpecificFlags['--ws'] ? 'WS': '';
+const disableSkip = debugKeys['--noskip'];
 
 const timeoutSeconds = wsFlag ? (langKeys['--java'] ? 180 : 120) : 250;
 
@@ -355,9 +357,9 @@ const testExchange = async (exchange) => {
     if (
         skipSettings[exchange] && 
         (
-            (skipSettings[exchange].skip && !wsFlag)
+            (skipSettings[exchange].skip && !wsFlag && !disableSkip)
                 ||
-            (skipSettings[exchange].skipWs && wsFlag)
+            (skipSettings[exchange].skipWs && wsFlag && !disableSkip)
         ) 
     ) {
         if (!('until' in skipSettings[exchange]) || new Date(skipSettings[exchange].until) > new Date()) {

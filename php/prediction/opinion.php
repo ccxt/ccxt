@@ -773,8 +773,8 @@ class opinion extends Exchange {
         for ($i = 0; $i < $outcomesLength; $i++) {
             $outcomeObj = $this->outcome($outcomes[$i]);
             $priceIndex = $i * 2;
-            $priceResponse = $this->safe_value($responses, $priceIndex);
-            $bookResponse = $this->safe_value($responses, $this->sum($priceIndex, 1));
+            $priceResponse = $this->safe_dict($responses, $priceIndex);
+            $bookResponse = $this->safe_dict($responses, $this->sum($priceIndex, 1));
             $response = array( 'price' => $priceResponse, 'book' => $bookResponse );
             $ticker = $this->parse_prediction_ticker($response, $outcomeObj);
             $symbolKey = $this->safe_string($ticker, 'outcome');

@@ -198,11 +198,11 @@ public class TestSafeMethods extends BaseTest
                 put( "a", 1 );
             }};
             // safeDict
-            Object dictObject = exchange.safeDict(inputDict, "dict", (Object) null);
+            Object dictObject = exchange.safeDict(inputDict, "dict", null);
             Assert(equals(dictObject, compareDict));
-            Object listObject = exchange.safeDict(inputDict, "list", (Object) null);
+            Object listObject = exchange.safeDict(inputDict, "list", null);
             Assert(java.util.Objects.equals(listObject, null));
-            Assert(java.util.Objects.equals(exchange.safeDict(inputList, 1, (Object) null), null));
+            Assert(java.util.Objects.equals(exchange.safeDict(inputList, 1, null), null));
             // safeDict2
             dictObject = exchange.safeDict2(inputDict, "a", "dict", (Object) null);
             Assert(equals(dictObject, compareDict));
@@ -225,9 +225,9 @@ public class TestSafeMethods extends BaseTest
             Object inputDict = helperDefaultInputDict();
             List<Object> inputList = new ArrayList<Object>(Arrays.asList("Hi", 2));
             // safeList
-            Assert(java.util.Objects.equals(exchange.safeList(inputDict, "dict", (Object) null), null));
-            Assert(java.util.Objects.equals(exchange.safeList(inputList, 1, (Object) null), null));
-            Object arrayOfDicts = exchange.safeList(inputDict, "listOfDicts", (Object) null);
+            Assert(java.util.Objects.equals(exchange.safeList(inputDict, "dict", null), null));
+            Assert(java.util.Objects.equals(exchange.safeList(inputList, 1, null), null));
+            Object arrayOfDicts = exchange.safeList(inputDict, "listOfDicts", null);
             Assert(equals(Helpers.GetValue((List<Object>)(arrayOfDicts), 0), new HashMap<String, Object>() {{
                 put( "a", 1 );
             }}));

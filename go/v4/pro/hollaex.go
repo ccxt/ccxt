@@ -232,7 +232,7 @@ func (this *Hollaex) HandleTrades(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTypedDefault(message, "data", []any{})
 	var parsedTrades []any = this.ParseTrades(data, market)
 	for i := 0; i < len(parsedTrades); i++ {
-		stored.Append(this.SafeValue(parsedTrades, i))
+		stored.Append(this.SafeDict(parsedTrades, i))
 	}
 	if channel != nil {
 		var messageHash string = *channel + ":" + marketIdValue
@@ -491,12 +491,12 @@ func (this *Hollaex) HandleOrder(client any, message map[string]any, optionalArg
 	_ = subscription
 	var channel *string = this.SafeString(message, "topic")
 	var dataDict map[string]any = ccxt.SafeMapTyped(message, "data")
-	var rawOrders any = this.SafeList(message, "data", []any{})
+	var rawOrders []any = ccxt.SafeListTyped(message, "data")
 	if dataDict != nil {
 		rawOrders = []any{dataDict}
 	}
 	// usually the first message is an empty array
-	if ccxt.GetArrayLength(rawOrders) == 0 {
+	if len(rawOrders) == 0 {
 		return
 	}
 	if this.Orders == nil {
@@ -505,8 +505,8 @@ func (this *Hollaex) HandleOrder(client any, message map[string]any, optionalArg
 	}
 	var stored ccxt.WsArrayCache = this.Orders
 	var marketIds map[string]any = map[string]any{}
-	for i := 0; i < ccxt.GetArrayLength(rawOrders); i++ {
-		var order any = this.SafeValue(rawOrders, i)
+	for i := 0; i < len(rawOrders); i++ {
+		var order map[string]any = this.SafeDictMap(rawOrders, i, map[string]any{})
 		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(order))
 		stored.Append(parsed)
 		var symbol *string = this.SafeString(order, "symbol")
@@ -603,12 +603,12 @@ func (this *Hollaex) HandleBalance(client any, message map[string]any) {
 			}
 		}
 		var second *string = this.SafeString(parts, 1)
-		var freeOrTotal string = func() string {
-			if second != nil && *second == "available" {
-				return "free"
-			}
-			return "total"
-		}()
+		var freeOrTotal string
+		if second != nil && *second == "available" {
+			freeOrTotal = "free"
+		} else {
+			freeOrTotal = "total"
+		}
 		ccxt.AddElementToObject(account, freeOrTotal, this.SafeString(data, key))
 		if code != nil {
 			this.Balance[*code] = account
@@ -656,7 +656,7 @@ func (this *Hollaex) watchPrivateBody(ch chan ccxt.AsyncResult[any], messageHash
 	if expires != nil && *expires == "" {
 		var timeoutMs int64 = this.ParseToInt(this.Timeout)
 		var timeout int64 = this.ParseToInt(float64(timeoutMs) / 1000)
-		expires = this.NumberToString(this.ParseToInt(this.Sum(this.Seconds(), timeout)))
+		expires = this.NumberToString(this.ParseToInt(this.Seconds() + timeout))
 		// we need to memoize these values to avoid generating a new url on each method execution
 		// that would trigger a new connection on each received message
 		this.Options["ws-expires"] = ccxt.DerefScalar(expires)

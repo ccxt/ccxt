@@ -655,6 +655,7 @@ class bingx(Exchange, ImplicitAPI):
                     '100490': BadSymbol,  # spot trading pair is offline
                     '101481': DuplicateOrderId,
                     '109201': DuplicateOrderId,
+                    '104414': BadRequest,  # {"code":104414,"msg":"Invalid parameter","retryable":0}
                     '109400': BadRequest,  # {"code":109400,"msg":"Invalid parameters, err:startTs: ... field is required","data":{}}
                     '109418': BadSymbol,  # trading pair is offline and cannot be ordered through the api
                     '109421': OrderNotFound,
@@ -1780,7 +1781,7 @@ class bingx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_funding_rates(data, symbolsNormalized)
 
-    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
         #
         #     {
         #         "symbol": "BTC-USDT",
@@ -3880,7 +3881,6 @@ class bingx(Exchange, ImplicitAPI):
         #         "workingType": ""
         #     }
         #
-        info = order
         newOrder = self.safe_dict_2(order, 'newOrderResponse', 'orderOpenResponse')
         orderData = newOrder if (newOrder is not None) else order
         positionSide = self.safe_string_2(orderData, 'positionSide', 'ps')
@@ -3939,7 +3939,7 @@ class bingx(Exchange, ImplicitAPI):
                 takeProfitPrice = stopPrice
                 triggerPrice = None
         return self.safe_order({
-            'info': info,
+            'info': order,
             'id': self.safe_string_n(orderData, ['orderId', 'i', 'mainOrderId']),
             'clientOrderId': self.safe_string_n(orderData, ['clientOrderID', 'clientOrderId', 'origClientOrderId', 'c']),
             'symbol': self.safe_symbol(marketId, marketResolved, '-', marketType),
@@ -5015,6 +5015,15 @@ class bingx(Exchange, ImplicitAPI):
         else:
             isTwapOrder = self.safe_bool(paramsStandard, 'twap', False)
             paramsOmitted = self.omit(paramsStandard, 'twap')
+            if not isTwapOrder:
+                if limit is not None:
+                    request['limit'] = min(limit, 1000)
+                if since is not None:
+                    request['startTime'] = since
+                until = self.safe_integer(paramsOmitted, 'until')
+                if until is not None:
+                    request['endTime'] = until
+                    paramsOmitted = self.omit(paramsOmitted, 'until')
             if isTwapOrder:
                 request['pageIndex'] = 1
                 request['pageSize'] = 100 if (limit is None) else limit
@@ -5327,7 +5336,7 @@ class bingx(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_list(self.safe_dict(response, 'data'), 'data')
+        data = self.safe_list(self.safe_dict(response, 'data'), 'data', [])
         parsed = self.parse_deposit_addresses(data, [currency['code']], False)
         return self.index_by(parsed, 'network')
 
@@ -5651,12 +5660,36 @@ class bingx(Exchange, ImplicitAPI):
             return await self.swapV2PrivatePostTradeMarginType(self.extend(request, paramsSubType))
 
     async def add_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
+        """
+        add margin
+
+        https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+        https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
+
+        :param str symbol: unified market symbol
+        :param float amount: amount of margin to add
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.positionSide]: "LONG" or "SHORT", required for Coin-M
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
+        """
         request = {
             'type': 1,
         }
         return await self.set_margin(symbol, amount, self.extend(request, params))
 
     async def reduce_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
+        """
+        remove margin from a position
+
+        https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+        https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
+
+        :param str symbol: unified market symbol
+        :param float amount: the amount of margin to remove
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.positionSide]: "LONG" or "SHORT", required for Coin-M
+        :returns dict: a `margin structure <https://docs.ccxt.com/?id=margin-structure>`
+        """
         request = {
             'type': 2,
         }
@@ -6794,7 +6827,7 @@ class bingx(Exchange, ImplicitAPI):
             'symbol': symbol,
             'maker': self.safe_number(fee, 'makerCommissionRate'),
             'taker': self.safe_number(fee, 'takerCommissionRate'),
-            'percentage': False,
+            'percentage': True,
             'tierBased': False,
         }
 
@@ -6957,9 +6990,7 @@ class bingx(Exchange, ImplicitAPI):
             else:
                 query = self.urlencode(parsedParams, True)
                 url += '?' + query + '&' + 'signature=' + signature
-        bodyResult = requestBody
-        headersResult = requestHeaders
-        return {'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult}
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
 
     def nonce(self) -> int:
         return self.milliseconds()

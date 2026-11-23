@@ -59,8 +59,6 @@ node path/to/example.js # substitute for actual filename here
 
 - [Bitfinex Fetch Trades](./examples/js/bitfinex-fetch-trades.md)
 
-- [Bitmex Browser Cors Proxy](./examples/js/bitmex-browser-cors-proxy.md)
-
 - [Bitpanda FetchMyTrades Reduce](./examples/js/bitpanda-fetchMyTrades-reduce.md)
 
 - [Bitrue Fetch Balance](./examples/js/bitrue-fetch-balance.md)
@@ -214,6 +212,12 @@ node path/to/example.js # substitute for actual filename here
 - [HybridESMExample](./examples/js/hybridESMExample.md)
 
 - [Hyperliquid Load Hip3 Dexes](./examples/js/hyperliquid-load-hip3-dexes.md)
+
+- [Ibkr Trade Bonds](./examples/js/ibkr-trade-bonds.md)
+
+- [Ibkr Trade Crypto](./examples/js/ibkr-trade-crypto.md)
+
+- [Ibkr Trade Stocks](./examples/js/ibkr-trade-stocks.md)
 
 - [Instantiate All At Once](./examples/js/instantiate-all-at-once.md)
 

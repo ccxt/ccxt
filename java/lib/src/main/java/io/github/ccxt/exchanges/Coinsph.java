@@ -796,9 +796,9 @@ public class Coinsph extends CoinsphApi
         String id = this.safeString(rawCurrency, "coin");
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         Boolean isFiat = (Boolean) this.safeBool(rawCurrency, "isLegalMoney", false);
-        List<Object> networkList = (List<Object>) this.safeList(rawCurrency, "networkList", new ArrayList<Object>(Arrays.asList()));
+        List<Object> networkList = this.safeList(rawCurrency, "networkList", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        for (var j = 0; j < ((List<?>)networkList).size(); j++)
+        for (var j = 0; j < networkList.size(); j++)
         {
             Object networkItem = (networkList == null || j < 0 || j >= networkList.size() ? null : networkList.get(j));
             String network = this.safeString(networkItem, "network");
@@ -857,10 +857,10 @@ public class Coinsph extends CoinsphApi
             return config.get("noSymbolAndNoSymbols");
         } else if ((config.containsKey("byNumberOfSymbols")) && Boolean.TRUE.equals(hasSymbolsParam))
         {
-            List<Object> symbols = (List<Object>) this.safeList(parameters, "symbols", new ArrayList<Object>(Arrays.asList()));
-            Integer symbolsAmount = ((List<?>)symbols).size();
-            List<Object> byNumberOfSymbols = (List<Object>) this.safeList(config, "byNumberOfSymbols", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)byNumberOfSymbols).size(); i++)
+            List<Object> symbols = this.safeList(parameters, "symbols", new ArrayList<Object>(Arrays.asList()));
+            Integer symbolsAmount = symbols.size();
+            List<Object> byNumberOfSymbols = this.safeList(config, "byNumberOfSymbols", new ArrayList<Object>(Arrays.asList()));
+            for (var i = 0; i < byNumberOfSymbols.size(); i++)
             {
                 Object entry = (byNumberOfSymbols == null || i < 0 || i >= byNumberOfSymbols.size() ? null : byNumberOfSymbols.get(i));
                 Long threshold = this.safeInteger(entry, 0);
@@ -871,8 +871,8 @@ public class Coinsph extends CoinsphApi
             }
         } else if ((config.containsKey("byLimit")) && (!java.util.Objects.equals(limit, null)))
         {
-            List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)byLimit).size(); i++)
+            List<Object> byLimit = this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
+            for (var i = 0; i < byLimit.size(); i++)
             {
                 Object entry = (byLimit == null || i < 0 || i >= byLimit.size() ? null : byLimit.get(i));
                 Long threshold = this.safeInteger(entry, 0);
@@ -928,7 +928,7 @@ public class Coinsph extends CoinsphApi
             //     {"serverTime":1677705408268}
             //
             return this.safeInteger(response, "serverTime");
-        }).thenApply(res -> (res instanceof Number n) ? n.longValue() : null);
+        });
 
     }
 
@@ -1005,9 +1005,9 @@ public class Coinsph extends CoinsphApi
             //         ]
             //     }
             //
-            List<Object> markets = (List<Object>) this.safeList(response, "symbols", new ArrayList<Object>(Arrays.asList()));
+            List<Object> markets = this.safeList(response, "symbols", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)markets).size(); i++)
+            for (var i = 0; i < markets.size(); i++)
             {
                 Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String id = this.safeString(market, "symbol");
@@ -1020,9 +1020,9 @@ public class Coinsph extends CoinsphApi
                     continue;
                 }
                 Map<String,Object> limits = this.indexBy(this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList())), "filterType");
-                Map<String, Object> amountLimits = (Map<String, Object>) this.safeDict(limits, "LOT_SIZE", new HashMap<String, Object>() {{}});
-                Map<String, Object> priceLimits = (Map<String, Object>) this.safeDict(limits, "PRICE_FILTER", new HashMap<String, Object>() {{}});
-                Map<String, Object> costLimits = (Map<String, Object>) this.safeDict(limits, "NOTIONAL", new HashMap<String, Object>() {{}});
+                Map<String, Object> amountLimits = this.safeDict(limits, "LOT_SIZE", new HashMap<String, Object>() {{}});
+                Map<String, Object> priceLimits = this.safeDict(limits, "PRICE_FILTER", new HashMap<String, Object>() {{}});
+                Map<String, Object> costLimits = this.safeDict(limits, "NOTIONAL", new HashMap<String, Object>() {{}});
                 HashMap<String, Object> j39v5 = new HashMap<String, Object>();
                 j39v5.put("id", id);
                 j39v5.put("symbol", ((base + "/") + quote));
@@ -1104,17 +1104,17 @@ public class Coinsph extends CoinsphApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbols, null))
             {
-                List<Object> ids = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; i < ((List<?>)symbols).size(); i++)
+                List<String> ids = new ArrayList<String>(Arrays.asList());
+                for (var i = 0; i < symbols.size(); i++)
                 {
                     Map<String, Object> market = this.market((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
                     String id = (String) market.get("id");
-                    ((List<Object>)ids).add(id);
+                    ids.add(id);
                 }
                 request.put("symbols", ids);
             }
             String defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
-            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchTickers", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = this.safeDict(this.options, "fetchTickers", new HashMap<String, Object>() {{}});
             String method = this.safeString(options, "method", defaultMethod);
             Object tickers = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(method, "publicGetOpenapiQuoteV1TickerPrice"))
@@ -1157,7 +1157,7 @@ public class Coinsph extends CoinsphApi
                 put( "symbol", market.get("id") );
             }};
             String defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
-            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchTicker", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = this.safeDict(this.options, "fetchTicker", new HashMap<String, Object>() {{}});
             String method = this.safeString(options, "method", defaultMethod);
             Object ticker = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(method, "publicGetOpenapiQuoteV1TickerPrice"))
@@ -1332,7 +1332,7 @@ public class Coinsph extends CoinsphApi
                 put( "symbol", market.get("id") );
                 put( "interval", interval );
             }};
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 1000L : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 1000 : limit;
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("startTime", since);
@@ -1342,7 +1342,7 @@ public class Coinsph extends CoinsphApi
                     request.put("endTime", until);
                 } else
                 {
-                    Object endTimeByLimit = this.sum(since, ((((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L) * (limitResolved - 1L)));
+                    Object endTimeByLimit = this.sum(since, ((((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L) * ((limitResolved - 1L))));
                     Long now = this.milliseconds();
                     request.put("endTime", (now == null ? null : (((Number) endTimeByLimit).doubleValue() < ((Number) now).doubleValue() ? (Object) (endTimeByLimit) : (Object) (now))));
                 }
@@ -1350,7 +1350,7 @@ public class Coinsph extends CoinsphApi
             {
                 request.put("endTime", until);
                 // since work properly only when it is "younger" than last "limit" candle
-                request.put("startTime", (until - ((((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L) * (limitResolved - 1L))));
+                request.put("startTime", (until - (((((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L) * ((limitResolved - 1L))))));
             }
             request.put("limit", limitResolved);
             Map<String, Object> paramsOmitted = this.omit(parameters, "until");
@@ -1649,15 +1649,15 @@ public class Coinsph extends CoinsphApi
 
     public Balances parseBalance(Map<String, Object> response)
     {
-        List<Object> balances = (List<Object>) this.safeList(response, "balances", new ArrayList<Object>(Arrays.asList()));
+        List<Object> balances = this.safeList(response, "balances", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        for (var i = 0; i < ((List<?>)balances).size(); i++)
+        for (var i = 0; i < balances.size(); i++)
         {
-            Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
+            Map<String, Object> balance = this.safeDict(balances, i, null);
             String currencyId = this.safeString(balance, "asset");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> account = this.account();
@@ -1702,14 +1702,14 @@ public class Coinsph extends CoinsphApi
             String orderType = this.safeString(paramsOmitted, "type", type);
             orderType = this.encodeOrderType(orderType);
             Map<String, Object> paramsType = this.omit(paramsOmitted, "type");
-            Object paramsQuote = null;
+            Object paramsQuote = paramsType;
             String orderSide = this.encodeOrderSide((String) (side));
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("symbol", market.get("id"));
             request.put("type", orderType);
             request.put("side", orderSide);
-            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "createOrder", new HashMap<String, Object>() {{}});
-            Object newOrderRespTypes = this.safeValue(options, "newOrderRespType", new HashMap<String, Object>() {{}});
+            Map<String, Object> options = this.safeDict(this.options, "createOrder", new HashMap<String, Object>() {{}});
+            Map<String, Object> newOrderRespTypes = this.safeDict(options, "newOrderRespType", new HashMap<String, Object>() {{}});
             String newOrderRespType = "FULL";
             // if limit order
             if (java.util.Objects.equals(orderType, "LIMIT") || java.util.Objects.equals(orderType, "STOP_LOSS_LIMIT") || java.util.Objects.equals(orderType, "TAKE_PROFIT_LIMIT") || java.util.Objects.equals(orderType, "LIMIT_MAKER"))
@@ -1771,8 +1771,7 @@ public class Coinsph extends CoinsphApi
                 request.put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
             }
             request.put("newOrderRespType", newOrderRespType);
-            Object paramsBase = (((!java.util.Objects.equals(paramsQuote, null)))) ? paramsQuote : paramsType;
-            Object paramsRequest = this.omit(paramsBase, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty");
+            Object paramsRequest = this.omit(paramsQuote, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty");
             Map<String, Object> response = new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals(testOrder))
             {
@@ -2068,7 +2067,7 @@ public class Coinsph extends CoinsphApi
         String marketId = this.safeString(order, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         Long timestamp = (Long) this.safeInteger2(order, "time", "transactTime");
-        List<Object> trades = (List<Object>) this.safeList(order, "fills", (Object) null);
+        List<Object> trades = this.safeList(order, "fills", null);
         String triggerPrice = this.safeString(order, "stopPrice");
         if (Precise.stringEq(triggerPrice, "0"))
         {
@@ -2218,7 +2217,7 @@ public class Coinsph extends CoinsphApi
             //       }
             //     ]
             //
-            Map<String, Object> tradingFee = (Map<String, Object>) this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            Map<String, Object> tradingFee = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
             return this.parseTradingFee(tradingFee, market);
         }).thenApply(TradingFeeInterface::new);
 
@@ -2258,7 +2257,7 @@ public class Coinsph extends CoinsphApi
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<Object> fees = this.toArray(response);
-            for (var i = 0; i < ((List<?>)fees).size(); i++)
+            for (var i = 0; i < fees.size(); i++)
             {
                 Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) ((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))), (Map<String, Object>) null);
                 String symbol = (String) fee.get("symbol");
@@ -2314,14 +2313,14 @@ public class Coinsph extends CoinsphApi
             List<Object> tagparamsWithdrawTagVariable = (List<Object>) this.handleParamString(parameters, "tag", (String) null);
             String tag = (String) ((List<Object>) tagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagparamsWithdrawTagVariable).get(1);
-            Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "withdraw", (Object) null);
+            Map<String, Object> options = this.safeDict(this.options, "withdraw", null);
             Boolean warning = (Boolean) this.safeBool(options, "warning", true);
             if (Boolean.TRUE.equals(warning))
             {
                 throw new InvalidAddress((this.id + " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")) ;
             }
             String networkCode = this.safeString(paramsWithdrawTag, "network");
-            Object networkId = (((java.util.Objects.equals(networkCode, null)))) ? null : this.networkCodeToId(networkCode, code);
+            String networkId = (((java.util.Objects.equals(networkCode, null)))) ? null : this.networkCodeToId(networkCode, code);
             if (java.util.Objects.equals(networkId, null))
             {
                 throw new BadRequest((this.id + " withdraw() require network parameter")) ;
@@ -2629,7 +2628,7 @@ public class Coinsph extends CoinsphApi
         return BaseExchange.supplyAsync(() -> {
 
             String networkCode = this.safeString(parameters, "network");
-            Object networkId = (((java.util.Objects.equals(networkCode, null)))) ? null : this.networkCodeToId(networkCode, code);
+            String networkId = (((java.util.Objects.equals(networkCode, null)))) ? null : this.networkCodeToId(networkCode, code);
             if (java.util.Objects.equals(networkId, null))
             {
                 throw new BadRequest((this.id + " fetchDepositAddress() require network parameter")) ;
@@ -2681,7 +2680,7 @@ public class Coinsph extends CoinsphApi
         String encodedArrayParams = "";
         Map<String, Object> remainingQuery = query;
         List<String> keys = new ArrayList<String>(query.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (((query == null || key == null ? null : query.get(key)) instanceof List))
