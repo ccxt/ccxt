@@ -17754,7 +17754,11 @@ function javaMapLocalValue (printer, node, declaration, depth = 0) {
         const declared = String (syncCoreCallType (printer, value) ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '');
         return { cast: declared !== 'Map<String,Object>' };
     }
-    return undefined;
+    // a sync callee whose every declaration prints `public Map<String, Object>` from its own annotation (safeOutcome)
+    if (depth > 0 || isAsyncMethodCall (printer, value)) {
+        return undefined;
+    }
+    return venueCallJavaType (printer, value) === JAVA_MAP_TYPE ? { cast: false } : undefined;
 }
 
 // ral-84j5: `this.urls['api']` (optionally `as Dict`): the base field `urls` is typed `{ api: Dict, .. }` in
