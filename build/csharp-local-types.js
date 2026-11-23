@@ -1102,6 +1102,10 @@ Object.assign (CSHARP_COLLECTION_RETURN_METHODS, {
     'handlePaginationParams': 'Dictionary<string, object>', // bullish only: both returns are this.extend / paramsExtended
     // single base declaration, no override: parseBorrowRate rows -> sortBy<T> -> filterByCurrencySinceLimit<T>
     'parseBorrowRateHistory': 'List<Dictionary<string, object>>',
+    // every declaration returns safeTrade / safePredictionTrade / a dict literal, or null
+    'parseMyTrade': 'Dictionary<string, object>',
+    // every declaration returns filterBySinceLimit / filterBySymbolSinceLimit of a List<object>
+    'parseFundingHistories': 'IList<object>',
 });
 
 // subscribeRequest / unsubscribeRequest: declared only in pro/paradex, each single return a dict literal,
@@ -16586,6 +16590,8 @@ export const CSHARP_NUMERIC_RETURN_TYPES = {
     'parseWsTimestamp': 'Int64?',
     'parseX18': 'double?',
     'timeInForceToInt': 'Int64?',
+    // getCacheIndex: every declaration returns -1, an int counter, (i + 1) or a list length
+    'getCacheIndex': 'Int64',
 };
 
 // the mapped C# return type for a method declaration, or undefined to leave the
@@ -16648,6 +16654,23 @@ function needsUnboxingWrap (csharp, expression, mapped) {
     }
     if (callReturnIsMapped (csharp, expression, mapped)) {
         return false;
+    }
+    // an int-typed value (an int counter, `(x?.Count ?? 0)`) reaches Int64 / Int64? through the
+    // implicit widening; the box + unbox would throw on its Int32 box
+    if (mapped === 'Int64' || mapped === 'Int64?') {
+        const printed = csharp.printNode (expression, 0).trim ();
+        if (/^\(\w+\?\.Count \?\? 0\)$/.test (printed)) {
+            return false;
+        }
+        try {
+            const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (expression) : enclosingFunction (expression);
+            const type = csharpTypeOfValue (csharp, expression, { scope, stack: new Set (), depth: 0 });
+            if (type === 'int' || type === 'Int64') {
+                return false;
+            }
+        } catch (e) {
+            // keep the wrap on any doubt
+        }
     }
     return true;
 }
