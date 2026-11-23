@@ -3988,7 +3988,6 @@ function typedBaseDictFields(content: string): string {
     // `tickers` holds only dicts too (init and `create_safe_dictionary` are empty maps; keys are symbols, never tags).
     content = content
         .replace(/\{ let __t = self\.create_safe_dictionary\(&\[[^\]]*\]\); self\.tickers = __t; \}/g, 'self.tickers = crate::value::Dict::default();')
-        .replace(/add_element_to_object\(&mut self\.tickers, (&crate::value::KeyRead::key_read\(&&\w+, "\w+"\)), (Value::from\(&\w+\))\);/g, 'std::sync::Arc::make_mut(&mut self.tickers).insert(crate::runtime::stringify_param($1), $2);')
         .replace(/matches!\(\(&self\.tickers, ([^()]*(?:\([^()]*\))?)\), \(Value::Dict\(__d\), /g, 'matches!((&self.tickers, $1), (__d, ')
         .replace(/matches!\(&self\.tickers, Value::Dict\(__d\) if __d\.contains_key\(([\w.]+\(\))\)\)/g, 'self.tickers.contains_key($1)')
         .replace(/if let \(Value::Dict\(__d\), (Some\(__k\)|Value::Str\(__k\))\) = \(&mut self\.tickers/g, 'if let (__d, $1) = (&mut self.tickers')
@@ -4080,7 +4079,6 @@ function typedBalanceField(content: string): string {
         .replace(/let __t = self\.(extend|deep_extend)\(([^;]*)\); self\.balance = __t;/g, 'let __t = self.$1_t($2); self.balance = __t;')
         .replace(/let __t = ((?!self\.(?:safe_balance|extend_t|deep_extend_t)\()[^;]*); self\.balance = __t;/g, 'let __t = $1; self.balance = if let Value::Dict(__m) = __t { __m } else { Default::default() };')
         .replace(/self\.balance = (\w+)\.clone\(\);/g, 'self.balance = if let Value::Dict(__m) = $1.clone() { __m } else { Default::default() };')
-        .replace(/get_value_mut\(unsafe \{ crate::runtime::coerce_value_to_mut\(&self\.balance\) \}, &(\w+)\)/g, 'std::sync::Arc::make_mut(&mut self.balance).entry(crate::runtime::stringify_param(&$1)).or_insert(Value::Null)')
         .replace(/unsafe \{ crate::runtime::coerce_value_to_mut\(&self\.balance\) \}/g, '&mut self.balance')
         .replace(/matches!\(&self\.balance, Value::Dict\(__d\) if __d\.contains_key\(([\w.()]+)\)\)/g, 'self.balance.contains_key($1)');
     const sig = content.indexOf('fn safe_balance(&self, balance: impl');
@@ -8964,12 +8962,8 @@ function typedPromiseAllResults(content: string): string {
     }
     return out + content.slice(last);
 }
-// `(match x.get(k) { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list()` reads
-// the list arm directly; `if (matches!(&x, Value::Arr(_))) { y = x.into_list();` binds the list in the guard (same Arc moved).
+// `if (matches!(&x, Value::Arr(_))) { y = x.into_list();` binds the list in the guard (same Arc moved).
 function rustTypedListReads(content: string): string {
-    content = content.replace(
-        /\(match ([\w.]+\.get\("\w+"\)) \{ Some\(__v\) if matches!\(__v, Value::Arr\(_\)\) => __v\.clone\(\), _ => Value::from\(vec!\[\]\) \}\)\.into_list\(\)/g,
-        '(match $1 { Some(Value::Arr(__a)) => __a.clone(), _ => Default::default() })');
     return content.replace(
         /\bif \(matches!\(&(\w+), Value::Arr\(_\)\)\) \{(\n[ \t]*)(\w+) = \1\.into_list\(\);/g,
         'if let Value::Arr(__a) = $1 {$2$3 = __a;');
