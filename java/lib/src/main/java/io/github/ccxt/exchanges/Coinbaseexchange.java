@@ -1445,7 +1445,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         {
             throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a symbol argument")) ;
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -1615,7 +1615,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -1922,7 +1922,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOpenOrders", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -2741,7 +2741,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
 
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> requestHeaders = null;
@@ -2821,15 +2821,15 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         return null;
     }
 
-    public CompletableFuture<Object> request(String path, Object api, Object method, Object parameters, Map<String, Object> config)
+    public CompletableFuture<Object> request(String path, List<String> api, Object method, Object parameters, Map<String, Object> config)
     {
         return BaseExchange.supplyAsync(() -> this.requestCore(path, api, method, parameters, config));
     }
 
-    private Object requestCore(String path, Object api, Object method, Object parameters, Map<String, Object> config)
+    private Object requestCore(String path, List<String> api, Object method, Object parameters, Map<String, Object> config)
     {
 
-        Object response = (this.fetch2(path, api, java.util.Objects.requireNonNullElse(method, "GET"), parameters, config)).join();
+        Object response = (this.fetch2(path, api, java.util.Objects.toString(java.util.Objects.requireNonNullElse(method, "GET"), null), parameters, config)).join();
         String message = this.safeString(response, "message");
         if (!java.util.Objects.equals(message, null))
         {

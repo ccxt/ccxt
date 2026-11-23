@@ -676,12 +676,12 @@ public class Bittrade extends BittradeApi
 
     }
 
-    public CompletableFuture<Object> fetchTradingLimits(List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchTradingLimits(List<String> symbols, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchTradingLimitsCore(symbols, parameters));
     }
 
-    private Object fetchTradingLimitsCore(List<String> symbols, Map<String, Object> parameters)
+    private Map<String, Object> fetchTradingLimitsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
         // this method should not be called directly, use loadTradingLimits () instead
@@ -2668,7 +2668,7 @@ public class Bittrade extends BittradeApi
 
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> requestHeaders = null;

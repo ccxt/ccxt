@@ -594,7 +594,7 @@ public class Nado extends NadoApi
         {
             amountX18 = Precise.stringMul(amountX18, "-1");
         }
-        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "subaccount", "default");
+        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "createOrder", "subaccount", "default");
         String subaccount = subaccountparamsSubaccountVariable.first();
         Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
         Pair<String, Map<String, Object>> expirationparamsExpirationVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsSubaccount), "createOrder", "expiration", "4294967295");
@@ -805,7 +805,7 @@ public class Nado extends NadoApi
             amountX18 = Precise.stringMul(amountX18, "-1");
         }
         Map<String, Object> editOrderOptions = this.safeDict(this.options, "editOrder", new HashMap<String, Object>() {{}});
-        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "editOrder", "subaccount", "default");
+        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "editOrder", "subaccount", "default");
         String subaccount = subaccountparamsSubaccountVariable.first();
         Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
         Pair<String, Map<String, Object>> expirationparamsExpirationVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsSubaccount), "editOrder", "expiration", "4294967295");
@@ -976,7 +976,7 @@ public class Nado extends NadoApi
             Map<String, Object> market = this.market(symbol);
             ((List<Object>)productIds).add(this.parseToInt(market.get("id")));
         }
-        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "cancelAllOrders", "subaccount", "default");
+        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "cancelAllOrders", "subaccount", "default");
         String subaccount = subaccountparamsSubaccountVariable.first();
         Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
         String sender = this.createSubaccount((String) (this.walletAddress), subaccount);
@@ -1087,7 +1087,7 @@ public class Nado extends NadoApi
 
         Map<String, Object> market = this.market(symbol);
         Long productId = this.parseToInt(market.get("id"));
-        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "cancelOrders", "subaccount", "default");
+        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "cancelOrders", "subaccount", "default");
         String subaccount = subaccountparamsSubaccountVariable.first();
         Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
         String sender = this.createSubaccount((String) (this.walletAddress), subaccount);
@@ -1223,7 +1223,7 @@ public class Nado extends NadoApi
             market = this.market(symbol);
             ((List<Object>)productIds).add(this.parseToInt(this.safeString(market, "id")));
         }
-        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchOrders", "subaccount", "default");
+        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "fetchOrders", "subaccount", "default");
         String subaccount = subaccountparamsSubaccountVariable.first();
         Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
         String sender = this.createSubaccount((String) (this.walletAddress), subaccount);
@@ -1317,7 +1317,7 @@ public class Nado extends NadoApi
             throw new ArgumentsRequired((this.id + " fetchOpenOrders() requires walletAddress")) ;
         }
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchOpenOrders", "subaccount", "default");
+        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "fetchOpenOrders", "subaccount", "default");
         String subaccount = subaccountparamsSubaccountVariable.first();
         Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
         String sender = this.createSubaccount((String) (this.walletAddress), subaccount);
@@ -1407,7 +1407,7 @@ public class Nado extends NadoApi
         {
             market = this.market(symbol);
         }
-        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchClosedOrders", "subaccount", "default");
+        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "fetchClosedOrders", "subaccount", "default");
         String subaccount = subaccountparamsSubaccountVariable.first();
         Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
         String sender = this.createSubaccount((String) (this.walletAddress), subaccount);
@@ -1554,7 +1554,7 @@ public class Nado extends NadoApi
         {
             market = this.market(symbol);
         }
-        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "subaccount", "default");
+        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "fetchMyTrades", "subaccount", "default");
         String subaccount = subaccountparamsSubaccountVariable.first();
         Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
         Map<String, Object> matchesRequest = new HashMap<String, Object>() {{
@@ -1640,7 +1640,7 @@ public class Nado extends NadoApi
             throw new ArgumentsRequired((this.id + " fetchBalance() requires walletAddress")) ;
         }
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchBalance", "subaccount", "default");
+        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "fetchBalance", "subaccount", "default");
         String subaccount = subaccountparamsSubaccountVariable.first();
         Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1740,7 +1740,7 @@ public class Nado extends NadoApi
         {
             currency = this.currency((String) (code));
         }
-        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), (String) (methodName), "subaccount", "default");
+        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, (String) (methodName), "subaccount", "default");
         String subaccount = subaccountparamsSubaccountVariable.first();
         Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
         Map<String, Object> limitRequest = new HashMap<String, Object>() {{
@@ -1848,7 +1848,7 @@ public class Nado extends NadoApi
         }
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchPositions", "subaccount", "default");
+        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "fetchPositions", "subaccount", "default");
         String subaccount = subaccountparamsSubaccountVariable.first();
         Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2376,7 +2376,7 @@ public class Nado extends NadoApi
         {
             throw new BadSymbol((this.id + " fetchFundingHistory() supports swap contracts only")) ;
         }
-        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchFundingHistory", "subaccount", "default");
+        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "fetchFundingHistory", "subaccount", "default");
         String subaccount = subaccountparamsSubaccountVariable.first();
         Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
         Map<String, Object> fundingRequest = new HashMap<String, Object>() {{
@@ -2940,7 +2940,7 @@ public class Nado extends NadoApi
         }};
     }
 
-    public Object parseFundingHistory(Map<String, Object> funding, Map<String, Object> market)
+    public Map<String, Object> parseFundingHistory(Map<String, Object> funding, Map<String, Object> market)
     {
         //
         //     {
@@ -3770,7 +3770,7 @@ public class Nado extends NadoApi
         return marketId;
     }
 
-    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
+    public Object calculateRateLimiterCost(Object api, String method, String path, Object parameters, Map<String, Object> config)
     {
         // the gateway weighs a query by its 'type' param, the archive by the query key of the
         // body, and every archive weight grows with the number of rows requested
@@ -3826,7 +3826,7 @@ public class Nado extends NadoApi
         return this.safeValue(config, "cost", 1);
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String requestBody = null;
         String endpoint = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));

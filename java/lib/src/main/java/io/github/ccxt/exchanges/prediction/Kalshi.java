@@ -1297,12 +1297,12 @@ public class Kalshi extends KalshiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    public CompletableFuture<PredictionTickers> fetchTickers(Object outcomes, Map<String, Object> parameters)
+    public CompletableFuture<PredictionTickers> fetchTickers(List<String> outcomes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchTickersCore(outcomes, parameters)).thenApply(PredictionTickers::new);
     }
 
-    private Object fetchTickersCore(Object outcomes, Map<String, Object> parameters)
+    private Object fetchTickersCore(List<String> outcomes, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(outcomes, null))
@@ -1314,9 +1314,9 @@ public class Kalshi extends KalshiApi
         // group requested outcomes by their market ticker, yes and no outcomes share one market
         Map<String, Object> outcomesByTicker = new HashMap<String, Object>() {{}};
         List<String> tickers = new ArrayList<String>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)outcomes).size(); i++)
+        for (var i = 0; i < outcomes.size(); i++)
         {
-            Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
+            Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i))));
             String ticker = this.safeString(outcomeObj.get("info"), "ticker");
             if (java.util.Objects.equals(ticker, null))
             {
@@ -1707,7 +1707,7 @@ public class Kalshi extends KalshiApi
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public Object parsePredictionTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parsePredictionTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         String id = this.safeString(trade, "trade_id");
         Long ts = this.parse8601(this.safeString(trade, "created_time"));
@@ -1971,18 +1971,18 @@ public class Kalshi extends KalshiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public CompletableFuture<List<PredictionPosition>> fetchPositions(Object outcomes, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionPosition>> fetchPositions(List<String> outcomes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchPositionsCore(outcomes, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
     }
 
-    private Object fetchPositionsCore(Object outcomes, Map<String, Object> parameters)
+    private Object fetchPositionsCore(List<String> outcomes, Map<String, Object> parameters)
     {
 
         Integer outcomesLength = 0;
         if (!java.util.Objects.equals(outcomes, null))
         {
-            outcomesLength = ((List<?>)outcomes).size();
+            outcomesLength = outcomes.size();
         }
         if ((outcomesLength != null && outcomesLength > 0))
         {
@@ -2004,9 +2004,9 @@ public class Kalshi extends KalshiApi
         {
             throw new ExchangeError((this.id + " fetchPositions() missing outcomes")) ;
         }
-        for (var i = 0; i < ((List<?>)outcomes).size(); i++)
+        for (var i = 0; i < outcomes.size(); i++)
         {
-            Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
+            Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i))));
             Map<String, Object> outcomeInfo = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String marketTicker = this.safeString(outcomeInfo, "ticker");
             if (!java.util.Objects.equals(marketTicker, null))
@@ -3324,7 +3324,7 @@ public class Kalshi extends KalshiApi
      * @param {object} [params] request parameters
      * @returns {object} a dictionary with url, method, body and headers
      */
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String access = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));

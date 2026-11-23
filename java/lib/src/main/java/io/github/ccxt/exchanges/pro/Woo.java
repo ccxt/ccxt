@@ -201,7 +201,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "method", "orderbook");
+        Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "method", "orderbook");
         String method = methodparamsMethodVariable.first();
         Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
         Map<String, Object> market = this.market(symbol);
@@ -257,7 +257,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "method", "orderbook");
+        Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "method", "orderbook");
         String method = methodparamsMethodVariable.first();
         Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
         Map<String, Object> market = this.market(symbol);
@@ -436,8 +436,8 @@ public class Woo extends io.github.ccxt.exchanges.Woo
     public Object handleOrderBookMessage(Client client, Map<String, Object> message, io.github.ccxt.ws.WsOrderBook orderbook)
     {
         Map<String, Object> data = this.safeDict(message, "data", null);
-        this.handleDeltas((orderbook == null ? null : orderbook.asks), this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList())));
-        this.handleDeltas((orderbook == null ? null : orderbook.bids), this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas((orderbook == null ? null : orderbook.asks), (List<Object>) (this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()))));
+        this.handleDeltas((orderbook == null ? null : orderbook.bids), (List<Object>) (this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()))));
         Long timestamp = this.safeInteger(message, "ts");
         orderbook.put("timestamp", timestamp);
         orderbook.put("datetime", this.iso8601(timestamp));
@@ -448,14 +448,14 @@ public class Woo extends io.github.ccxt.exchanges.Woo
     {
         Double price = this.safeFloat2(delta, "price", 0);
         Double amount = this.safeFloat2(delta, "quantity", 1);
-        ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
+        bookside.store(price, amount);
     }
 
-    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, Object deltas)
+    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, List<Object> deltas)
     {
-        for (var i = 0; i < ((List<?>)deltas).size(); i++)
+        for (var i = 0; i < deltas.size(); i++)
         {
-            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= deltas.size() ? null : deltas.get(i)));
         }
     }
 
@@ -512,7 +512,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTicker", "method", "ticker");
+        Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams(parameters, "watchTicker", "method", "ticker");
         String method = methodparamsMethodVariable.first();
         Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
         Map<String, Object> market = this.market(symbol);

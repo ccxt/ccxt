@@ -2160,10 +2160,10 @@ public class Gate extends GateApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
@@ -2201,12 +2201,12 @@ public class Gate extends GateApi
 
     }
 
-    public CompletableFuture<Object> fetchSpotMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchSpotMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchSpotMarketsCore(parameters));
     }
 
-    private Object fetchSpotMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchSpotMarketsCore(Map<String, Object> parameters)
     {
 
         Object marginPromise = this.publicMarginGetCurrencyPairs(parameters);
@@ -2340,12 +2340,12 @@ public class Gate extends GateApi
 
     }
 
-    public CompletableFuture<Object> fetchSwapMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchSwapMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchSwapMarketsCore(parameters));
     }
 
-    private Object fetchSwapMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchSwapMarketsCore(Map<String, Object> parameters)
     {
 
         List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -2617,12 +2617,12 @@ public class Gate extends GateApi
         }
     }
 
-    public CompletableFuture<Object> fetchOptionMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchOptionMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOptionMarketsCore(parameters));
     }
 
-    private Object fetchOptionMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchOptionMarketsCore(Map<String, Object> parameters)
     {
 
         List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -2856,7 +2856,7 @@ public class Gate extends GateApi
          * @param {object} [params] request parameters
          * @returns the api request object, and the new params object with non-needed parameters removed
          */
-        var marginModequeryVariable = this.getMarginMode((Boolean) (java.util.Objects.requireNonNullElse(trigger, false)), (Map<String, Object>) (parameters));
+        var marginModequeryVariable = this.getMarginMode((Boolean) (java.util.Objects.requireNonNullElse(trigger, false)), parameters);
         String marginMode = (String) ((List<Object>) marginModequeryVariable).get(0);
         Map<String, Object> query = (Map<String, Object>) ((List<Object>) marginModequeryVariable).get(1);
         Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -2884,7 +2884,7 @@ public class Gate extends GateApi
          * @param {object} [params] request parameters
          * @returns the api request object, and the new params object with non-needed parameters removed
          */
-        var marginModequeryVariable = this.getMarginMode((Boolean) (java.util.Objects.requireNonNullElse(trigger, false)), (Map<String, Object>) (parameters));
+        var marginModequeryVariable = this.getMarginMode((Boolean) (java.util.Objects.requireNonNullElse(trigger, false)), parameters);
         String marginMode = (String) ((List<Object>) marginModequeryVariable).get(0);
         Map<String, Object> query = (Map<String, Object>) ((List<Object>) marginModequeryVariable).get(1);
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3432,7 +3432,7 @@ public class Gate extends GateApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
+        List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
         String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
         Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
         Map<String, Object> chainsIndexedByIdRaw = (this.fetchDepositAddressesByNetwork(code, paramsNetworkCode)).join();
@@ -3622,12 +3622,12 @@ public class Gate extends GateApi
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     @Deprecated
-    public CompletableFuture<Object> fetchTransactionFees(List<String> codes, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchTransactionFees(List<String> codes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchTransactionFeesCore(codes, parameters));
     }
 
-    private Object fetchTransactionFeesCore(List<String> codes, Map<String, Object> parameters)
+    private Map<String, Object> fetchTransactionFeesCore(List<String> codes, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -4683,7 +4683,7 @@ public class Gate extends GateApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -4816,7 +4816,7 @@ public class Gate extends GateApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -4933,7 +4933,7 @@ public class Gate extends GateApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTrades", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -5133,7 +5133,7 @@ public class Gate extends GateApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         (this.loadUnifiedStatus(new HashMap<String, Object>() {{}})).join();
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -5476,7 +5476,7 @@ public class Gate extends GateApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchDeposits", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -5533,7 +5533,7 @@ public class Gate extends GateApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchWithdrawals", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -6407,7 +6407,7 @@ public class Gate extends GateApi
         Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("editOrder", market, parameters, (String) null);
         String marketType = marketTypeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-        Object accountParsed = null;
+        String accountParsed = null;
         if (!java.util.Objects.equals(marketType, null))
         {
             accountParsed = this.convertTypeToAccount(marketType);
@@ -6415,7 +6415,7 @@ public class Gate extends GateApi
         Pair<Boolean, Map<String, Object>> isUnifiedAccountparamsUnifiedAccountVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsMarketType), "editOrder", "unifiedAccount", false);
         Boolean isUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable.first();
         Map<String, Object> paramsUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable.second();
-        Object account = ((Boolean.TRUE.equals(isUnifiedAccount))) ? "unified" : accountParsed;
+        String account = ((Boolean.TRUE.equals(isUnifiedAccount))) ? "unified" : accountParsed;
         Boolean isLimitOrder = (java.util.Objects.equals(type, "limit"));
         if (java.util.Objects.equals(account, "spot"))
         {
@@ -7121,7 +7121,7 @@ public class Gate extends GateApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         (this.loadUnifiedStatus(new HashMap<String, Object>() {{}})).join();
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchClosedOrders", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -7443,7 +7443,7 @@ public class Gate extends GateApi
             {
                 Map<String, Object> responseEntry = this.safeDict(response, i, new HashMap<String, Object>() {{}});
                 Object ordersInner = this.safeValue(responseEntry, "orders");
-                spotResult = (List<Object>) this.arrayConcat(spotResult, ordersInner);
+                spotResult = this.arrayConcat(spotResult, ordersInner);
             }
             result = spotResult;
         }
@@ -7701,12 +7701,12 @@ public class Gate extends GateApi
      * @param {bool} [params.unifiedAccount] set to true for canceling unified account orders
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrdersForSymbols(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrdersForSymbols(List<?> orders, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersForSymbolsCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersForSymbolsCore(Object orders, Map<String, Object> parameters)
+    private Object cancelOrdersForSymbolsCore(List<?> orders, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -7715,7 +7715,7 @@ public class Gate extends GateApi
         }
         (this.loadUnifiedStatus(new HashMap<String, Object>() {{}})).join();
         List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             Map<String, Object> order = this.safeDict(orders, i, null);
             String symbol = this.safeString(order, "symbol");
@@ -7879,8 +7879,8 @@ public class Gate extends GateApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> currency = this.currency((String) (code));
-        Object fromId = this.convertTypeToAccount(fromAccount);
-        Object toId = this.convertTypeToAccount(toAccount);
+        String fromId = this.convertTypeToAccount(fromAccount);
+        String toId = this.convertTypeToAccount(toAccount);
         String truncated = (String) this.currencyToPrecision((String) (code), amount, (String) null);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "currency", currency.get("id") );
@@ -8691,12 +8691,12 @@ public class Gate extends GateApi
      * @param {string} [params.id] '34267567' loan id, extra parameter required for isolated margin
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public CompletableFuture<MarginLoan> repayIsolatedMargin(String symbol, String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginLoan> repayIsolatedMargin(String symbol, String code, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.repayIsolatedMarginCore(symbol, code, amount, parameters)).thenApply(MarginLoan::new);
     }
 
-    private Object repayIsolatedMarginCore(String symbol, String code, Object amount, Map<String, Object> parameters)
+    private Object repayIsolatedMarginCore(String symbol, String code, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -8733,12 +8733,12 @@ public class Gate extends GateApi
      * @param {boolean} [params.unifiedAccount] set to true for repaying in the unified account
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public CompletableFuture<MarginLoan> repayCrossMargin(String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginLoan> repayCrossMargin(String code, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.repayCrossMarginCore(code, amount, parameters)).thenApply(MarginLoan::new);
     }
 
-    private Object repayCrossMarginCore(String code, Object amount, Map<String, Object> parameters)
+    private Object repayCrossMarginCore(String code, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -8752,7 +8752,7 @@ public class Gate extends GateApi
             put( "currency", currencyId.toUpperCase() );
             put( "amount", Gate.this.currencyToPrecision((String) (code), amount, (String) null) );
         }};
-        Pair<Boolean, Map<String, Object>> isUnifiedAccountparamsUnifiedAccountVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "repayCrossMargin", "unifiedAccount", false);
+        Pair<Boolean, Map<String, Object>> isUnifiedAccountparamsUnifiedAccountVariable = this.handleOptionBoolAndParams(parameters, "repayCrossMargin", "unifiedAccount", false);
         Boolean isUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable.first();
         Map<String, Object> paramsUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable.second();
         Object response = null;
@@ -8782,12 +8782,12 @@ public class Gate extends GateApi
      * @param {string} [params.rate] '0.0002' or '0.002' extra parameter required for isolated margin
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public CompletableFuture<MarginLoan> borrowIsolatedMargin(String symbol, String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginLoan> borrowIsolatedMargin(String symbol, String code, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.borrowIsolatedMarginCore(symbol, code, amount, parameters)).thenApply(MarginLoan::new);
     }
 
-    private Object borrowIsolatedMarginCore(String symbol, String code, Object amount, Map<String, Object> parameters)
+    private Object borrowIsolatedMarginCore(String symbol, String code, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -8839,12 +8839,12 @@ public class Gate extends GateApi
      * @param {boolean} [params.unifiedAccount] default true (set to false to use deprecated privateMarginPostCrossLoans method)
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public CompletableFuture<MarginLoan> borrowCrossMargin(String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginLoan> borrowCrossMargin(String code, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.borrowCrossMarginCore(code, amount, parameters)).thenApply(MarginLoan::new);
     }
 
-    private Object borrowCrossMarginCore(String code, Object amount, Map<String, Object> parameters)
+    private Object borrowCrossMarginCore(String code, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -8858,7 +8858,7 @@ public class Gate extends GateApi
             put( "currency", currencyId.toUpperCase() );
             put( "amount", Gate.this.currencyToPrecision((String) (code), amount, (String) null) );
         }};
-        Pair<Boolean, Map<String, Object>> isUnifiedAccountparamsUnifiedAccountVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "borrowCrossMargin", "unifiedAccount", false);
+        Pair<Boolean, Map<String, Object>> isUnifiedAccountparamsUnifiedAccountVariable = this.handleOptionBoolAndParams(parameters, "borrowCrossMargin", "unifiedAccount", false);
         Boolean isUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable.first();
         Map<String, Object> paramsUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable.second();
         Map<String, Object> response = null;
@@ -8962,7 +8962,7 @@ public class Gate extends GateApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         (this.loadUnifiedStatus(new HashMap<String, Object>() {{}})).join();
-        Pair<Boolean, Map<String, Object>> isUnifiedAccountparamsUnifiedAccountVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchBorrowInterest", "unifiedAccount", false);
+        Pair<Boolean, Map<String, Object>> isUnifiedAccountparamsUnifiedAccountVariable = this.handleOptionBoolAndParams(parameters, "fetchBorrowInterest", "unifiedAccount", false);
         Boolean isUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable.first();
         Map<String, Object> paramsUnifiedAccount = isUnifiedAccountparamsUnifiedAccountVariable.second();
         Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -9047,7 +9047,7 @@ public class Gate extends GateApi
         return (this.milliseconds() - timeDifference);
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String authentication = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)); // public, private
         String type = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1)); // spot, margin, future, delivery
@@ -9183,12 +9183,12 @@ public class Gate extends GateApi
         }
     }
 
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.modifyMarginHelperCore(symbol, amount, parameters));
     }
 
-    private Object modifyMarginHelperCore(String symbol, Object amount, Map<String, Object> parameters)
+    private Object modifyMarginHelperCore(String symbol, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -9332,7 +9332,7 @@ public class Gate extends GateApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOpenInterestHistory", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOpenInterestHistory", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -9425,9 +9425,9 @@ public class Gate extends GateApi
      * @param {object} [params] exchange specific params
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    public CompletableFuture<Object> fetchSettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchSettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchSettlementHistoryCore(symbol, since, limit, parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchSettlementHistoryCore(symbol, since, limit, parameters)).thenApply(res -> (List<Object>) res);
     }
 
     private Object fetchSettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
@@ -9493,9 +9493,9 @@ public class Gate extends GateApi
      * @param {object} [params] exchange specific params
      * @returns {object[]} a list of [settlement history objects]
      */
-    public CompletableFuture<Object> fetchMySettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMySettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMySettlementHistoryCore(symbol, since, limit, parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchMySettlementHistoryCore(symbol, since, limit, parameters)).thenApply(res -> (List<Object>) res);
     }
 
     private Object fetchMySettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
@@ -9711,7 +9711,7 @@ public class Gate extends GateApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchLedger", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -10097,7 +10097,7 @@ public class Gate extends GateApi
         {
             request.put("limit", limit);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", request, (Map<String, Object>) (parameters), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", request, parameters, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         List<Object> response = (this.publicFuturesGetSettleLiqOrders(this.extend(requestUntil, paramsUntil))).join();
@@ -10370,7 +10370,7 @@ public class Gate extends GateApi
 
     }
 
-    public Object parseGreeks(Map<String, Object> greeks, Map<String, Object> market)
+    public Map<String, Object> parseGreeks(Map<String, Object> greeks, Map<String, Object> market)
     {
         //
         //     {
@@ -10703,7 +10703,7 @@ public class Gate extends GateApi
 
     }
 
-    public Object parseOption(Map<String, Object> chain, Map<String, Object> currency, Map<String, Object> market)
+    public Map<String, Object> parseOption(Map<String, Object> chain, Map<String, Object> currency, Map<String, Object> market)
     {
         //
         //     {

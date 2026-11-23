@@ -213,7 +213,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
     {
 
         Object current = this.safeValue(this.clients, client.url);
-        if (!Helpers.isEqual(current, client))
+        if ((current != client))
         {
             return null;  // the connection was closed or replaced
         }
@@ -701,7 +701,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             Long historyLimit = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             Map<String, Object> historyRequest = new HashMap<String, Object>();
             historyRequest.put("exchange", this.safeString(options, "exchange", "SMART"));
-            historyRequest.put("period", this.ibkrWsPeriod(duration, historyLimit));
+            historyRequest.put("period", this.ibkrWsPeriod(((long) duration), historyLimit));
             historyRequest.put("bar", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
             historyRequest.put("outsideRth", this.safeBool(options, "outsideRth", false));
             historyRequest.put("source", this.safeString(options, "source", "trades"));
@@ -865,35 +865,35 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      * @param {int} limit the number of bars
      * @returns {string} the period, e.g. '2h'
      */
-    public String ibkrWsPeriod(Object duration, Object limit)
+    public String ibkrWsPeriod(Long duration, Long limit)
     {
-        Object total = Helpers.multiply(duration, limit);
-        Long minutes = this.parseToInt(((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply((((Object) (switch ((Object) (total)) { case null -> (Object) null; case Long hx4J40v7 -> (Object) (hx4J40v7 + 59L); case Integer hx4J40v7 -> (Object) (hx4J40v7.longValue() + 59L); case Double hx4J40v7 -> (Object) (hx4J40v7 + ((double) 59L)); case String hx4J40v7 -> (Object) (hx4J40v7 + "59"); default -> (Object) null; }))), 60));
+        Long total = (duration * limit);
+        Long minutes = this.parseToInt((((double) ((total + 59L))) / ((double) 60)));
         if ((minutes == null || minutes <= 30))
         {
             return (this.numberToString(Math.max(minutes, 1)) + "min");
         }
-        Long hours = this.parseToInt(((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply((((Object) (switch ((Object) (total)) { case null -> (Object) null; case Long hx4J40v6 -> (Object) (hx4J40v6 + 3599L); case Integer hx4J40v6 -> (Object) (hx4J40v6.longValue() + 3599L); case Double hx4J40v6 -> (Object) (hx4J40v6 + ((double) 3599L)); case String hx4J40v6 -> (Object) (hx4J40v6 + "3599"); default -> (Object) null; }))), 3600));
+        Long hours = this.parseToInt((((double) ((total + 3599L))) / ((double) 3600)));
         if ((hours == null || hours <= 8))
         {
             return (this.numberToString(hours) + "h");
         }
-        Long days = this.parseToInt(((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply((((Object) (switch ((Object) (total)) { case null -> (Object) null; case Long hx4J40v5 -> (Object) (hx4J40v5 + 86399L); case Integer hx4J40v5 -> (Object) (hx4J40v5.longValue() + 86399L); case Double hx4J40v5 -> (Object) (hx4J40v5 + ((double) 86399L)); case String hx4J40v5 -> (Object) (hx4J40v5 + "86399"); default -> (Object) null; }))), 86400));
+        Long days = this.parseToInt((((double) ((total + 86399L))) / ((double) 86400)));
         if ((days == null || days <= 1000))
         {
             return (this.numberToString(days) + "d");
         }
-        Long weeks = this.parseToInt(((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply((((Object) (switch ((Object) (total)) { case null -> (Object) null; case Long hx4J40v4 -> (Object) (hx4J40v4 + 604799L); case Integer hx4J40v4 -> (Object) (hx4J40v4.longValue() + 604799L); case Double hx4J40v4 -> (Object) (hx4J40v4 + ((double) 604799L)); case String hx4J40v4 -> (Object) (hx4J40v4 + "604799"); default -> (Object) null; }))), 604800));
+        Long weeks = this.parseToInt((((double) ((total + 604799L))) / ((double) 604800)));
         if ((weeks == null || weeks <= 792))
         {
             return (this.numberToString(weeks) + "w");
         }
-        Long months = this.parseToInt(((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply((((Object) (switch ((Object) (total)) { case null -> (Object) null; case Long hx4J40v3 -> (Object) (hx4J40v3 + 2591999L); case Integer hx4J40v3 -> (Object) (hx4J40v3.longValue() + 2591999L); case Double hx4J40v3 -> (Object) (hx4J40v3 + ((double) 2591999L)); case String hx4J40v3 -> (Object) (hx4J40v3 + "2591999"); default -> (Object) null; }))), 2592000));
+        Long months = this.parseToInt((((double) ((total + 2591999L))) / ((double) 2592000)));
         if ((months == null || months <= 182))
         {
             return (this.numberToString(months) + "m");
         }
-        Long years = this.parseToInt(((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply((((Object) (switch ((Object) (total)) { case null -> (Object) null; case Long hx4J40v2 -> (Object) (hx4J40v2 + 31535999L); case Integer hx4J40v2 -> (Object) (hx4J40v2.longValue() + 31535999L); case Double hx4J40v2 -> (Object) (hx4J40v2 + ((double) 31535999L)); case String hx4J40v2 -> (Object) (hx4J40v2 + "31535999"); default -> (Object) null; }))), 31536000));
+        Long years = this.parseToInt((((double) ((total + 31535999L))) / ((double) 31536000)));
         return (this.numberToString(Math.min(years, 15)) + "y");
     }
 
@@ -930,7 +930,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      */
     public void ibkrUpdateOHLCVs(Client client, String symbol, Map<String, Object> delta)
     {
-        Object lastString = this.ibkrParseValue(this.safeString(delta, "31"));
+        String lastString = this.ibkrParseValue(this.safeString(delta, "31"));
         if (java.util.Objects.equals(lastString, null))
         {
             return;
@@ -941,7 +941,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             return;
         }
         Double price = this.parseNumber(lastString);
-        Object sizeString = this.ibkrParseValue(this.safeString(delta, "7059"));
+        String sizeString = this.ibkrParseValue(this.safeString(delta, "7059"));
         Object size = 0;
         if (!java.util.Objects.equals(sizeString, null))
         {
@@ -1149,13 +1149,13 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
                 List<String> priceWords = new ArrayList<String>(Arrays.asList(pricePart.split(java.util.regex.Pattern.quote(" "))));
                 rawPrice = String.join("", priceWords);
             }
-            Object price = this.ibkrParseValue((String) (rawPrice));
+            String price = this.ibkrParseValue((String) (rawPrice));
             if (java.util.Objects.equals(price, null))
             {
                 continue;
             }
-            Object bid = this.ibkrParseValue(this.safeString(row, "bid"));
-            Object ask = this.ibkrParseValue(this.safeString(row, "ask"));
+            String bid = this.ibkrParseValue(this.safeString(row, "bid"));
+            String ask = this.ibkrParseValue(this.safeString(row, "ask"));
             if (!java.util.Objects.equals(bid, null))
             {
                 ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(price, bid)));
@@ -1751,7 +1751,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         return "tic";
     }
 
-    public void handleTextMessage(Client client, Object message)
+    public void handleTextMessage(Client client, String message)
     {
         // plain text frames carry no data, but like every message they prove the connection is alive
         client.lastPong = ((Number)this.milliseconds()).longValue();

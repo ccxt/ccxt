@@ -2280,12 +2280,12 @@ public class Bitstamp extends BitstampApi
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     @Deprecated
-    public CompletableFuture<Object> fetchTransactionFees(List<String> codes, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchTransactionFees(List<String> codes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchTransactionFeesCore(codes, parameters));
     }
 
-    private Object fetchTransactionFeesCore(List<String> codes, Map<String, Object> parameters)
+    private Map<String, Object> fetchTransactionFeesCore(List<String> codes, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2794,7 +2794,7 @@ public class Bitstamp extends BitstampApi
     private Object fetchFundingRateHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -3568,7 +3568,7 @@ public class Bitstamp extends BitstampApi
         }
         // the per-currency implicit methods (privatePostBtcAddress etc.) all route
         // through request(), called here directly to avoid dynamic dispatch
-        Object response = (this.request((this.getCurrencyName((String) (code)) + "_address/"), new ArrayList<Object>(Arrays.asList("private")), "POST", parameters, new HashMap<String, Object>() {{}})).join();
+        Object response = (this.request((this.getCurrencyName((String) (code)) + "_address/"), new ArrayList<String>(Arrays.asList("private")), "POST", parameters, new HashMap<String, Object>() {{}})).join();
         String address = this.safeString(response, "address");
         String tag = this.safeString2(response, "memo_id", "destination_tag");
         this.checkAddress(address, (String) null, (String) null);
@@ -3636,7 +3636,7 @@ public class Bitstamp extends BitstampApi
             request.put("address", address);
             // the per-currency implicit methods (privatePostBtcWithdrawal etc.) all
             // route through request(), called here directly to avoid dynamic dispatch
-            response = (this.request((this.getCurrencyName((String) (code)) + "_withdrawal/"), new ArrayList<Object>(Arrays.asList("private")), "POST", this.extend(request, paramsWithdrawTag), new HashMap<String, Object>() {{}})).join();
+            response = (this.request((this.getCurrencyName((String) (code)) + "_withdrawal/"), new ArrayList<String>(Arrays.asList("private")), "POST", this.extend(request, paramsWithdrawTag), new HashMap<String, Object>() {{}})).join();
         } else
         {
             currency = this.currency((String) (code));
@@ -3739,7 +3739,7 @@ public class Bitstamp extends BitstampApi
         return this.milliseconds();
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
@@ -3844,7 +3844,7 @@ public class Bitstamp extends BitstampApi
                     Object value = this.safeValue(error, key);
                     if ((value instanceof List))
                     {
-                        errors = (List<Object>) this.arrayConcat(errors, value);
+                        errors = this.arrayConcat(errors, value);
                     } else
                     {
                         ((List<Object>)errors).add(value);

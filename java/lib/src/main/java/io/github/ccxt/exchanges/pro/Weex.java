@@ -532,7 +532,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             messageHashes.add(messageHash);
             channels.add(channelName);
         }
-        List<Object> trades = (List<Object>) (this.subscribePublic(messageHashes, channels, isContract, parameters, new HashMap<String, Object>() {{}})).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.subscribePublic(messageHashes, channels, isContract, parameters, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> first = this.safeDict(trades, 0, null);
         String tradeSymbol = this.safeString(first, "symbol");
         Long limitResolved = limit;
@@ -1210,7 +1210,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
     public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, 0, 1, 2);
-        ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
+        bookside.storeArray(bidAsk);
     }
 
     /**
@@ -1415,7 +1415,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             messageHash = (messageHash + ("::" + symbolResolved));
         }
         String channel = "fill";
-        List<Object> trades = (List<Object>) (this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, paramsMarketType, new HashMap<String, Object>() {{}})).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, paramsMarketType, new HashMap<String, Object>() {{}})).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -1667,7 +1667,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             messageHash = (messageHash + ("::" + symbolResolved));
         }
         String channel = "orders";
-        List<Object> orders = (List<Object>) (this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, paramsMarketType, new HashMap<String, Object>() {{}})).join();
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.subscribePrivate(messageHash, subscriptionHash, channel, isContract, paramsMarketType, new HashMap<String, Object>() {{}})).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -2212,7 +2212,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             if (!(client.futures.containsKey(messageHash)))
             {
                 client.future(messageHash);
-                this.loadPositionsSnapshot(client, messageHash, (Map<String, Object>) (parameters));
+                this.loadPositionsSnapshot(client, messageHash, parameters);
             }
         } else
         {

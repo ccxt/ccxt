@@ -465,7 +465,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         String symbolValue = this.safeString(market, "symbol", "");
         String messageHash = ("ticker:" + symbolValue);
         String url = (this.getUrlByMarketType(symbolValue, false, "watchTicker", parameters)).join();
-        Map<String, Object> paramsValue = this.cleanParams((Map<String, Object>) (parameters));
+        Map<String, Object> paramsValue = this.cleanParams(parameters);
         Map<String, Object> options = this.safeDict(this.options, "watchTicker", new HashMap<String, Object>() {{}});
         String topic = this.safeString(options, "name", "tickers");
         if ((!Boolean.TRUE.equals(this.safeBool(market, "spot", false))) && !java.util.Objects.equals(topic, "tickers"))
@@ -502,7 +502,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         List<String> symbolsValue = this.marketSymbols(symbols, (Object) null, false, false, false);
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
         String url = (this.getUrlByMarketType(java.util.Objects.toString((symbolsValue == null || 0 >= ((List<?>)symbolsValue).size() ? null : ((List<?>)symbolsValue).get(0)), null), false, "watchTickers", parameters)).join();
-        Map<String, Object> paramsValue = this.cleanParams((Map<String, Object>) (parameters));
+        Map<String, Object> paramsValue = this.cleanParams(parameters);
         Map<String, Object> options = this.safeDict(this.options, "watchTickers", new HashMap<String, Object>() {{}});
         String topic = this.safeString(options, "name", "tickers");
         List<String> marketIds = this.marketIds(symbolsValue);
@@ -776,7 +776,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         List<String> symbolsValue = this.marketSymbols(symbols, (Object) null, false, false, false);
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
         String url = (this.getUrlByMarketType(java.util.Objects.toString((symbolsValue == null || 0 >= ((List<?>)symbolsValue).size() ? null : ((List<?>)symbolsValue).get(0)), null), false, "watchBidsAsks", parameters)).join();
-        Map<String, Object> paramsValue = this.cleanParams((Map<String, Object>) (parameters));
+        Map<String, Object> paramsValue = this.cleanParams(parameters);
         List<String> marketIds = this.marketIds(symbolsValue);
         List<String> topics = new ArrayList<String>(Arrays.asList());
         for (var i = 0; i < marketIds.size(); i++)
@@ -1148,7 +1148,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
         String url = (this.getUrlByMarketType(java.util.Objects.toString((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)), null), false, "watchOrderBook", parameters)).join();
-        Map<String, Object> paramsValue = this.cleanParams((Map<String, Object>) (parameters));
+        Map<String, Object> paramsValue = this.cleanParams(parameters);
         Map<String, Object> market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
         if (!java.util.Objects.equals(limit, null))
         {
@@ -1344,14 +1344,14 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
     public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, 0, 1, 2);
-        ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
+        bookside.storeArray(bidAsk);
     }
 
-    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, Object deltas)
+    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, List<Object> deltas)
     {
-        for (var i = 0; i < ((List<?>)deltas).size(); i++)
+        for (var i = 0; i < deltas.size(); i++)
         {
-            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= deltas.size() ? null : deltas.get(i)));
         }
     }
 
@@ -1407,7 +1407,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         {
             throw new ArgumentsRequired((this.id + " watchTradesForSymbols() requires a non-empty array of symbols")) ;
         }
-        Map<String, Object> paramsValue = this.cleanParams((Map<String, Object>) (parameters));
+        Map<String, Object> paramsValue = this.cleanParams(parameters);
         String url = (this.getUrlByMarketType(java.util.Objects.toString((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)), null), false, "watchTrades", paramsValue)).join();
         List<String> topics = new ArrayList<String>(Arrays.asList());
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
@@ -1421,7 +1421,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             String messageHash = ("trade:" + symbol);
             messageHashes.add(messageHash);
         }
-        List<Object> trades = (List<Object>) (this.watchTopics(url, messageHashes, topics, paramsValue)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.watchTopics(url, messageHashes, topics, paramsValue)).join();
         Map<String, Object> first = this.safeDict(trades, 0, null);
         String tradeSymbol = this.safeString(first, "symbol");
         Long limitResolved = limit;
@@ -1687,14 +1687,14 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         {
             topic = "user.openapi.perp.trade";
         }
-        Pair<Boolean, Map<String, Object>> executionFastparamsExecutionFastVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchMyTrades", "executionFast", false);
+        Pair<Boolean, Map<String, Object>> executionFastparamsExecutionFastVariable = this.handleOptionBoolAndParams(parameters, "watchMyTrades", "executionFast", false);
         Boolean executionFast = executionFastparamsExecutionFastVariable.first();
         Map<String, Object> paramsExecutionFast = executionFastparamsExecutionFastVariable.second();
         if (Boolean.TRUE.equals(executionFast))
         {
             topic = "execution.fast";
         }
-        List<Object> trades = (List<Object>) (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(topic)), paramsExecutionFast)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(topic)), paramsExecutionFast)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -1746,7 +1746,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         {
             topic = "user.openapi.perp.trade";
         }
-        Pair<Boolean, Map<String, Object>> executionFastparamsExecutionFastVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchMyTrades", "executionFast", false);
+        Pair<Boolean, Map<String, Object>> executionFastparamsExecutionFastVariable = this.handleOptionBoolAndParams(parameters, "watchMyTrades", "executionFast", false);
         Boolean executionFast = executionFastparamsExecutionFastVariable.first();
         Map<String, Object> paramsExecutionFast = executionFastparamsExecutionFastVariable.second();
         if (Boolean.TRUE.equals(executionFast))
@@ -2177,7 +2177,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         Map<String, Object> market = this.market(symbol);
         String symbolValue = this.safeString(market, "symbol", "");
         String url = (this.getUrlByMarketType(symbolValue, false, "watchLiquidations", parameters)).join();
-        Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (this.cleanParams((Map<String, Object>) (parameters))), "watchLiquidations", "method", "allLiquidation");
+        Pair<String, Map<String, Object>> methodparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (this.cleanParams(parameters)), "watchLiquidations", "method", "allLiquidation");
         String method = methodparamsMethodVariable.first();
         Map<String, Object> paramsMethod = methodparamsMethodVariable.second();
         String messageHash = ("liquidations::" + symbolValue);
@@ -2355,7 +2355,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 topics.add("stopOrder");
             }
         }
-        List<Object> orders = (List<Object>) (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, parameters)).join();
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.watchTopics(url, new ArrayList<Object>(Arrays.asList(messageHash)), topics, parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -2802,7 +2802,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             for (var i = 0; i < data.size(); i++)
             {
                 List<Object> B = this.safeList((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "B", new ArrayList<Object>(Arrays.asList()));
-                rawBalances = (List<Object>) this.arrayConcat(rawBalances, B);
+                rawBalances = this.arrayConcat(rawBalances, B);
             }
             info = rawBalances;
         }
@@ -2813,7 +2813,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             {
                 Map<String, Object> result = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
                 account = this.safeStringLower(result, "accountType");
-                rawBalances = (List<Object>) this.arrayConcat(rawBalances, this.safeList(result, "coin", new ArrayList<Object>(Arrays.asList())));
+                rawBalances = this.arrayConcat(rawBalances, this.safeList(result, "coin", new ArrayList<Object>(Arrays.asList())));
             }
             info = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         }

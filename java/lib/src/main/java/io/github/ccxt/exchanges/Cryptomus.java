@@ -1383,7 +1383,7 @@ public class Cryptomus extends CryptomusApi
         }};
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String endpoint = (String) this.implodeParams(path, parameters);
         Object paramsOmitted = this.omit(parameters, this.extractParams(path));

@@ -2399,12 +2399,12 @@ public class Htx extends HtxApi
 
     }
 
-    public CompletableFuture<Object> fetchTradingLimits(List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchTradingLimits(List<String> symbols, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchTradingLimitsCore(symbols, parameters));
     }
 
-    private Object fetchTradingLimitsCore(List<String> symbols, Map<String, Object> parameters)
+    private Map<String, Object> fetchTradingLimitsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
         // this method should not be called directly, use loadTradingLimits () instead
@@ -2561,7 +2561,7 @@ public class Htx extends HtxApi
         List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         for (var i = 0; i < responses.size(); i++)
         {
-            allMarkets = (List<Object>) this.arrayConcat(allMarkets, (responses == null || i < 0 || i >= responses.size() ? null : responses.get(i)));
+            allMarkets = this.arrayConcat(allMarkets, (responses == null || i < 0 || i >= responses.size() ? null : responses.get(i)));
         }
         return allMarkets;
 
@@ -2581,12 +2581,12 @@ public class Htx extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchMarketsByTypeAndSubType(String type, String subType, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarketsByTypeAndSubType(String type, String subType, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchMarketsByTypeAndSubTypeCore(type, subType, parameters));
     }
 
-    private Object fetchMarketsByTypeAndSubTypeCore(String type, String subType, Map<String, Object> parameters)
+    private List<Object> fetchMarketsByTypeAndSubTypeCore(String type, String subType, Map<String, Object> parameters)
     {
 
         String typeStr = type;
@@ -3407,7 +3407,7 @@ public class Htx extends HtxApi
 
     }
 
-    public Object parseLastPrice(Map<String, Object> entry, Map<String, Object> market)
+    public Map<String, Object> parseLastPrice(Map<String, Object> entry, Map<String, Object> market)
     {
         // example responses are documented in fetchLastPrices
         String marketId = this.safeString2(entry, "symbol", "contract_code");
@@ -3816,7 +3816,7 @@ public class Htx extends HtxApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -4148,7 +4148,7 @@ public class Htx extends HtxApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -4670,7 +4670,7 @@ public class Htx extends HtxApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> isUnifiedAccountparamsUnifiedVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (parameters), "fetchBalance", "unified", "uta", false);
+        Pair<Boolean, Map<String, Object>> isUnifiedAccountparamsUnifiedVariable = this.handleOptionBoolAndParams2(parameters, "fetchBalance", "unified", "uta", false);
         Boolean isUnifiedAccount = isUnifiedAccountparamsUnifiedVariable.first();
         Map<String, Object> paramsUnified = isUnifiedAccountparamsUnifiedVariable.second();
         if (Boolean.TRUE.equals(isUnifiedAccount))
@@ -5252,7 +5252,7 @@ public class Htx extends HtxApi
             request.put("start-time", since); // a window of 48 hours within 180 days
             request.put("end-time", this.sum(since, (((48L * 60L) * 60L) * 1000L)));
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end-time", request, (Map<String, Object>) (parameters), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end-time", request, parameters, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         if (!java.util.Objects.equals(limit, null))
@@ -5566,7 +5566,7 @@ public class Htx extends HtxApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchCanceledOrders", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchCanceledOrders", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -5645,7 +5645,7 @@ public class Htx extends HtxApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchClosedOrders", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -7362,7 +7362,7 @@ public class Htx extends HtxApi
                 Map<String, Object> batchData = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 List<Object> success = this.safeList(batchData, "success", new ArrayList<Object>(Arrays.asList()));
                 List<Object> errors = this.safeList(batchData, "errors", new ArrayList<Object>(Arrays.asList()));
-                result = (List<Object>) this.arrayConcat(success, errors);
+                result = this.arrayConcat(success, errors);
             }
         }
         return this.parseOrders(result, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
@@ -8153,7 +8153,7 @@ public class Htx extends HtxApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> currency = this.currency((String) (code));
-        List<Object> networkCodeparamsOmitedVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
+        List<Object> networkCodeparamsOmitedVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
         String networkCode = (String) ((List<Object>) networkCodeparamsOmitedVariable).get(0);
         Map<String, Object> paramsOmited = (Map<String, Object>) ((List<Object>) networkCodeparamsOmitedVariable).get(1);
         Map<String, Object> indexedAddresses = (this.fetchDepositAddressesByNetwork(code, paramsOmited)).join();
@@ -8688,10 +8688,10 @@ public class Htx extends HtxApi
         Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("transfer", (Map<String, Object>) null, parameters, (Object) null);
         String subType = (String) ((List<Object>) subTypeparamsSubTypeVariable).get(0);
         Map<String, Object> paramsSubType = subTypeparamsSubTypeVariable.second();
-        Object fromAccountId = this.convertTypeToAccount(fromAccount);
-        Object toAccountId = this.convertTypeToAccount(toAccount);
-        Object fromAccountIdStr = fromAccountId;
-        Object toAccountIdStr = toAccountId;
+        String fromAccountId = this.convertTypeToAccount(fromAccount);
+        String toAccountId = this.convertTypeToAccount(toAccount);
+        String fromAccountIdStr = fromAccountId;
+        String toAccountIdStr = toAccountId;
         Boolean toCross = java.util.Objects.equals(toAccountIdStr, "cross");
         Boolean fromCross = java.util.Objects.equals(fromAccountIdStr, "cross");
         Boolean toIsolated = ((!java.util.Objects.equals(this.ids, null)) && this.inArray(toAccountIdStr, this.ids));
@@ -8975,7 +8975,7 @@ public class Htx extends HtxApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -9208,7 +9208,7 @@ public class Htx extends HtxApi
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
         String defaultSubType = "linear";
-        Pair<String, Map<String, Object>> subTypeOptionparamsSubTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchFundingRates", "subType", defaultSubType);
+        Pair<String, Map<String, Object>> subTypeOptionparamsSubTypeVariable = this.handleOptionStringAndParams(parameters, "fetchFundingRates", "subType", defaultSubType);
         String subTypeOption = subTypeOptionparamsSubTypeVariable.first();
         Map<String, Object> paramsSubType = subTypeOptionparamsSubTypeVariable.second();
         String subType = subTypeOption;
@@ -9410,7 +9410,7 @@ public class Htx extends HtxApi
         return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         Map<String, Object> signedHeaders = null;
         String signedBody = null;
@@ -9422,7 +9422,7 @@ public class Htx extends HtxApi
         {
             query = this.omit(parameters, this.extractParams(path));
         }
-        Integer apiLength = ((List<?>)api).size();
+        Integer apiLength = api.size();
         if (java.util.Objects.equals(apiLength, 1))
         {
             // signing implementation for the old endpoints
@@ -10298,7 +10298,7 @@ public class Htx extends HtxApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchLedger", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -10838,12 +10838,12 @@ public class Htx extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public CompletableFuture<MarginLoan> borrowIsolatedMargin(String symbol, String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginLoan> borrowIsolatedMargin(String symbol, String code, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.borrowIsolatedMarginCore(symbol, code, amount, parameters)).thenApply(MarginLoan::new);
     }
 
-    private Object borrowIsolatedMarginCore(String symbol, String code, Object amount, Map<String, Object> parameters)
+    private Object borrowIsolatedMarginCore(String symbol, String code, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -10884,12 +10884,12 @@ public class Htx extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public CompletableFuture<MarginLoan> borrowCrossMargin(String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginLoan> borrowCrossMargin(String code, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.borrowCrossMarginCore(code, amount, parameters)).thenApply(MarginLoan::new);
     }
 
-    private Object borrowCrossMarginCore(String code, Object amount, Map<String, Object> parameters)
+    private Object borrowCrossMarginCore(String code, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -10928,12 +10928,12 @@ public class Htx extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public CompletableFuture<MarginLoan> repayIsolatedMargin(String symbol, String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginLoan> repayIsolatedMargin(String symbol, String code, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.repayIsolatedMarginCore(symbol, code, amount, parameters)).thenApply(MarginLoan::new);
     }
 
-    private Object repayIsolatedMarginCore(String symbol, String code, Object amount, Map<String, Object> parameters)
+    private Object repayIsolatedMarginCore(String symbol, String code, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -10979,12 +10979,12 @@ public class Htx extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public CompletableFuture<MarginLoan> repayCrossMargin(String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginLoan> repayCrossMargin(String code, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.repayCrossMarginCore(code, amount, parameters)).thenApply(MarginLoan::new);
     }
 
-    private Object repayCrossMarginCore(String code, Object amount, Map<String, Object> parameters)
+    private Object repayCrossMarginCore(String code, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -11070,9 +11070,9 @@ public class Htx extends HtxApi
      * @param {int} [params.code] unified currency code, can be used when symbol is undefined
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    public CompletableFuture<Object> fetchSettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchSettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchSettlementHistoryCore(symbol, since, limit, parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchSettlementHistoryCore(symbol, since, limit, parameters)).thenApply(res -> (List<Object>) res);
     }
 
     private Object fetchSettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
@@ -11105,7 +11105,7 @@ public class Htx extends HtxApi
         {
             request.put("start_time", since);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", request, (Map<String, Object>) (parameters), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", request, parameters, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = null;
@@ -11820,7 +11820,7 @@ public class Htx extends HtxApi
 
     }
 
-    public Object parseADLRank(Map<String, Object> info, Map<String, Object> market)
+    public Map<String, Object> parseADLRank(Map<String, Object> info, Map<String, Object> market)
     {
         //
         // fetchPositionADLRank linear

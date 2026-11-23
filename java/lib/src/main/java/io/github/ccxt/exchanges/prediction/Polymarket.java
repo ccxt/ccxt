@@ -1462,12 +1462,12 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    public CompletableFuture<PredictionTickers> fetchTickers(Object outcomes, Map<String, Object> parameters)
+    public CompletableFuture<PredictionTickers> fetchTickers(List<String> outcomes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchTickersCore(outcomes, parameters)).thenApply(PredictionTickers::new);
     }
 
-    private Object fetchTickersCore(Object outcomes, Map<String, Object> parameters)
+    private Object fetchTickersCore(List<String> outcomes, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(outcomes, null))
@@ -1476,10 +1476,10 @@ public class Polymarket extends PolymarketApi
         }
         // batch-resolve the uncached outcomes (one gamma request per 50 token ids)
         (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
-        List<Object> targets = new ArrayList<Object>(Arrays.asList());
-        for (var oi = 0; oi < ((List<?>)outcomes).size(); oi++)
+        List<String> targets = new ArrayList<String>(Arrays.asList());
+        for (var oi = 0; oi < outcomes.size(); oi++)
         {
-            ((List<Object>)targets).add((outcomes == null || oi < 0 || oi >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(oi)));
+            targets.add((outcomes == null || oi < 0 || oi >= outcomes.size() ? null : outcomes.get(oi)));
         }
         Map<String, Object> outcomesByTokenId = new HashMap<String, Object>() {{}};
         List<String> tokenIds = new ArrayList<String>(Arrays.asList());
@@ -1622,7 +1622,7 @@ public class Polymarket extends PolymarketApi
         {
             last = mid;
         }
-        Object outcome = this.safeOutcomeSymbol((String) (null), market);
+        String outcome = this.safeOutcomeSymbol((String) (null), market);
         Long timestamp = this.safeInteger(bookData, "timestamp");
         Double quoteVolume = null;
         if (!java.util.Objects.equals(market, null))
@@ -2171,7 +2171,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public Object parsePredictionTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parsePredictionTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         // public data-api trades use 'asset'/'orderId'/'transactionHash'/'timestamp';
         // the private CLOB /data/trades use 'asset_id'/'taker_order_id'/'transaction_hash'/'match_time'
@@ -2198,7 +2198,7 @@ public class Polymarket extends PolymarketApi
         {
             mkt = this.safeOutcome((String) (assetId), (Map<String, Object>) null);
         }
-        Object outcome = this.safeOutcomeSymbol((String) (null), mkt);
+        String outcome = this.safeOutcomeSymbol((String) (null), mkt);
         String rawTakerOrMaker = this.safeStringLower(trade, "trader_side");
         String takerOrMaker = null;
         if (java.util.Objects.equals(rawTakerOrMaker, "taker") || java.util.Objects.equals(rawTakerOrMaker, "maker"))
@@ -2303,18 +2303,18 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public CompletableFuture<List<PredictionPosition>> fetchPositions(Object outcomes, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionPosition>> fetchPositions(List<String> outcomes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchPositionsCore(outcomes, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
     }
 
-    private Object fetchPositionsCore(Object outcomes, Map<String, Object> parameters)
+    private Object fetchPositionsCore(List<String> outcomes, Map<String, Object> parameters)
     {
 
         Integer outcomesLength = 0;
         if (!java.util.Objects.equals(outcomes, null))
         {
-            outcomesLength = ((List<?>)outcomes).size();
+            outcomesLength = outcomes.size();
             (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
         }
         // no bulk warm-up on the unfiltered path: the positions request is self-contained and
@@ -2340,9 +2340,9 @@ public class Polymarket extends PolymarketApi
         {
             throw new ExchangeError((this.id + " fetchPositions() missing outcomes")) ;
         }
-        for (var i = 0; i < ((List<?>)outcomes).size(); i++)
+        for (var i = 0; i < outcomes.size(); i++)
         {
-            Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
+            Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i))));
             String outcomeId = this.safeString(outcomeObj, "outcomeId", "");
             wantedIds.put(outcomeId, true);
         }
@@ -2378,7 +2378,7 @@ public class Polymarket extends PolymarketApi
     private Object fetchPositionCore(String outcome, Map<String, Object> parameters)
     {
 
-        List<PredictionPosition> positions = (this.fetchPositions(new ArrayList<Object>(Arrays.asList(outcome)), parameters)).join();
+        List<PredictionPosition> positions = (this.fetchPositions(new ArrayList<String>(Arrays.asList(outcome)), parameters)).join();
         return this.safeDict(positions, 0, null);
 
     }
@@ -3556,7 +3556,7 @@ public class Polymarket extends PolymarketApi
      * @param {object} params the request parameters
      * @returns {object} a dict with url, method, body and headers
      */
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String access = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
@@ -3925,7 +3925,7 @@ public class Polymarket extends PolymarketApi
         return "PING";
     }
 
-    public void handleTextMessage(Client client, Object message)
+    public void handleTextMessage(Client client, String message)
     {
         // Polymarket keeps the ws alive with text PING/PONG (not protocol ping-pong frames), so the
         // client's onPong never fires; refresh client.lastPong here on the "PONG" reply, otherwise the
@@ -3956,19 +3956,19 @@ public class Polymarket extends PolymarketApi
         String eventType = this.safeString(eventVar, "event_type");
         if (java.util.Objects.equals(eventType, "book"))
         {
-            this.handleOrderBookSnapshot(client, (Map<String, Object>) (eventVar));
+            this.handleOrderBookSnapshot(client, eventVar);
         } else if (java.util.Objects.equals(eventType, "price_change"))
         {
-            this.handleOrderBookDelta(client, (Map<String, Object>) (eventVar));
+            this.handleOrderBookDelta(client, eventVar);
         } else if (java.util.Objects.equals(eventType, "last_trade_price"))
         {
-            this.handleTrade(client, (Map<String, Object>) (eventVar));
+            this.handleTrade(client, eventVar);
         } else if (java.util.Objects.equals(eventType, "order"))
         {
-            this.handleOrder(client, (Map<String, Object>) (eventVar));
+            this.handleOrder(client, eventVar);
         } else if (java.util.Objects.equals(eventType, "trade"))
         {
-            this.handleMyTrade(client, (Map<String, Object>) (eventVar));
+            this.handleMyTrade(client, eventVar);
         }
     }
 
@@ -4388,7 +4388,7 @@ public class Polymarket extends PolymarketApi
             this.orders = new ArrayCache.ArrayCacheByOutcomeById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
-        Map<String, Object> parsed = this.parsePredictionOrder((Map<String, Object>) (eventVar), (Map<String, Object>) null);
+        Map<String, Object> parsed = this.parsePredictionOrder(eventVar, (Map<String, Object>) null);
         stored.append(parsed);
         client.resolve(stored, "orders");
         String outcome = this.safeString(parsed, "outcome");
@@ -4406,7 +4406,7 @@ public class Polymarket extends PolymarketApi
             this.myTrades = new ArrayCache.ArrayCacheByOutcomeById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.myTrades;
-        Object parsed = this.parsePredictionTrade((Map<String, Object>) (eventVar), (Map<String, Object>) null);
+        Map<String, Object> parsed = this.parsePredictionTrade(eventVar, (Map<String, Object>) null);
         stored.append(parsed);
         client.resolve(stored, "myTrades");
         String outcome = this.safeString(parsed, "outcome");

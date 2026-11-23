@@ -983,7 +983,7 @@ public class Btcbox extends BtcboxApi
         return this.milliseconds();
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), "rest");
@@ -1053,19 +1053,19 @@ public class Btcbox extends BtcboxApi
         }
         String codeError = this.safeString(response, "code");
         String feedback = ((this.id + " ") + body);
-        this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions), codeError, feedback);
+        this.throwExactlyMatchedException(this.exceptions, codeError, feedback);
         throw new ExchangeError(feedback) ;
     }
 
-    public CompletableFuture<Object> request(String path, Object api, Object method, Object parameters, Map<String, Object> config)
+    public CompletableFuture<Object> request(String path, List<String> api, Object method, Object parameters, Map<String, Object> config)
     {
         return BaseExchange.supplyAsync(() -> this.requestCore(path, api, method, parameters, config));
     }
 
-    private Object requestCore(String path, Object api, Object method, Object parameters, Map<String, Object> config)
+    private Object requestCore(String path, List<String> api, Object method, Object parameters, Map<String, Object> config)
     {
 
-        Object response = (this.fetch2(path, api, java.util.Objects.requireNonNullElse(method, "GET"), parameters, config)).join();
+        Object response = (this.fetch2(path, api, java.util.Objects.toString(java.util.Objects.requireNonNullElse(method, "GET"), null), parameters, config)).join();
         if ((response instanceof String))
         {
             // sometimes the exchange returns whitespace prepended to json

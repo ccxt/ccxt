@@ -2282,7 +2282,7 @@ public class Bigone extends BigoneApi
         return ((Long) (switch ((Object) (this.sum((this.microseconds() * 1000L), exchangeTimeCorrection))) { case null -> (Long) null; case Long hx4J40v1 -> hx4J40v1; case Number hx4J40v1 -> Long.valueOf(hx4J40v1.longValue()); case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v1.getClass().getName()); }));
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String bodySigned = null;
@@ -2361,7 +2361,7 @@ public class Bigone extends BigoneApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "asset_symbol", currency.get("id") );
         }};
-        List<Object> networkCodeparamsOmittedVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
+        List<Object> networkCodeparamsOmittedVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
         String networkCode = (String) ((List<Object>) networkCodeparamsOmittedVariable).get(0);
         Map<String, Object> paramsOmitted = (Map<String, Object>) ((List<Object>) networkCodeparamsOmittedVariable).get(1);
         Map<String, Object> response = (this.privateGetAssetsAssetSymbolAddress(this.extend(request, paramsOmitted))).join();

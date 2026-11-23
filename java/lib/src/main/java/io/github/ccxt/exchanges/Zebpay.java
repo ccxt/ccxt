@@ -473,10 +473,10 @@ public class Zebpay extends ZebpayApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         List<CompletableFuture<?>> promisesUnresolved = new ArrayList<CompletableFuture<?>>();
@@ -2063,12 +2063,12 @@ public class Zebpay extends ZebpayApi
 
     }
 
-    public CompletableFuture<Object> fetchSpotMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchSpotMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchSpotMarketsCore(parameters));
     }
 
-    private Object fetchSpotMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchSpotMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.publicSpotGetV2ExExchangeInfo(parameters)).join();
@@ -2150,12 +2150,12 @@ public class Zebpay extends ZebpayApi
 
     }
 
-    public CompletableFuture<Object> fetchSwapMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchSwapMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchSwapMarketsCore(parameters));
     }
 
-    private Object fetchSwapMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchSwapMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.publicSwapGetV1MarketMarkets(parameters)).join();
@@ -2420,7 +2420,7 @@ public class Zebpay extends ZebpayApi
         }};
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String bodySigned = null;
         Map<String, Object> headersSigned = null;

@@ -659,7 +659,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         }
         String symbolValue = this.symbol(symbol);
         String name = "candles";
-        List<Object> ohlcv = (List<Object>) (this.subscribe(name, false, symbolValue, parameters)).join();
+        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) (this.subscribe(name, false, symbolValue, parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -748,7 +748,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         }
         String symbolValue = this.symbol(symbol);
         String name = "market_trades";
-        List<Object> trades = (List<Object>) (this.subscribe(name, false, symbolValue, parameters)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.subscribe(name, false, symbolValue, parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -808,7 +808,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         String name = "market_trades";
-        List<Object> trades = (List<Object>) (this.subscribeMultiple(name, false, symbols, parameters)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.subscribeMultiple(name, false, symbols, parameters)).join();
         Map<String, Object> first = this.safeDict(trades, 0, null);
         String tradeSymbol = this.safeString(first, "symbol");
         Long limitResolved = limit;
@@ -870,7 +870,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         String name = "user";
-        List<Object> orders = (List<Object>) (this.subscribe(name, true, symbol, parameters)).join();
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.subscribe(name, true, symbol, parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {

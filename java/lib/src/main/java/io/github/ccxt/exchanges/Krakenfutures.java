@@ -1120,7 +1120,7 @@ public class Krakenfutures extends KrakenfuturesApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -1225,7 +1225,7 @@ public class Krakenfutures extends KrakenfuturesApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTrades", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -1713,7 +1713,7 @@ public class Krakenfutures extends KrakenfuturesApi
         Map<String, Object> sendStatus = this.safeDict(response, "sendStatus", null);
         String status = this.safeString(sendStatus, "status");
         this.verifyOrderActionSuccess(status, "createOrder", new ArrayList<Object>(Arrays.asList("filled")));
-        return this.parseOrder((Map<String, Object>) (sendStatus), market);
+        return this.parseOrder(sendStatus, market);
 
     }
 
@@ -4498,7 +4498,7 @@ public class Krakenfutures extends KrakenfuturesApi
         throw new ExchangeError(feedback) ;
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> apiVersions = this.safeDict(this.options.get("versions"), apiName, new HashMap<String, Object>() {{}});

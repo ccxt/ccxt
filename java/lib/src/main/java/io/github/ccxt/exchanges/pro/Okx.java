@@ -284,7 +284,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-        String channel = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTrades", "channel", "trades")).get(0);
+        String channel = (String) ((List<Object>)this.handleOptionStringAndParams(parameters, "watchTrades", "channel", "trades")).get(0);
         List<Object> topics = new ArrayList<Object>(Arrays.asList());
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
         for (var i = 0; i < symbolsNormalized.size(); i++)
@@ -344,7 +344,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-        String channel = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTrades", "channel", "trades")).get(0);
+        String channel = (String) ((List<Object>)this.handleOptionStringAndParams(parameters, "watchTrades", "channel", "trades")).get(0);
         List<Object> topics = new ArrayList<Object>(Arrays.asList());
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
         for (var i = 0; i < symbolsNormalized.size(); i++)
@@ -595,7 +595,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTicker", "channel", "tickers");
+        Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchTicker", "channel", "tickers");
         String channel = channelparamsChannelVariable.first();
         Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
         Map<String, Object> market = this.market(symbol);
@@ -652,7 +652,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-        Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTickers", "channel", "tickers");
+        Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchTickers", "channel", "tickers");
         var channel = ((List<Object>) channelparamsChannelVariable).get(0);
         Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
         Object newTickers = (this.subscribeMultiple("public", (String) (channel), symbolsNormalized, paramsChannel)).join();
@@ -686,7 +686,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchMarkPrice", "channel", "mark-price");
+        Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchMarkPrice", "channel", "mark-price");
         String channel = channelparamsChannelVariable.first();
         Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
         Map<String, Object> market = this.market(symbol);
@@ -721,7 +721,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-        Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchMarkPrices", "channel", "mark-price");
+        Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchMarkPrices", "channel", "mark-price");
         var channel = ((List<Object>) channelparamsChannelVariable).get(0);
         Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
         Object newTickers = (this.subscribeMultiple("public", (String) (channel), symbolsNormalized, paramsChannel)).join();
@@ -778,7 +778,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-        String channel = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchMarkPrices", "channel", "mark-price")).get(0);
+        String channel = (String) ((List<Object>)this.handleOptionStringAndParams(parameters, "watchMarkPrices", "channel", "mark-price")).get(0);
         List<Object> topics = new ArrayList<Object>(Arrays.asList());
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
         for (var i = 0; i < symbolsNormalized.size(); i++)
@@ -824,7 +824,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-        String channel = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTickers", "channel", "tickers")).get(0);
+        String channel = (String) ((List<Object>)this.handleOptionStringAndParams(parameters, "watchTickers", "channel", "tickers")).get(0);
         List<Object> topics = new ArrayList<Object>(Arrays.asList());
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
         for (var i = 0; i < symbolsNormalized.size(); i++)
@@ -924,7 +924,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-        Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchBidsAsks", "channel", "bbo-tbt");
+        Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchBidsAsks", "channel", "bbo-tbt");
         String channel = channelparamsChannelVariable.first();
         Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
         String url = this.getUrl(channel, "public");
@@ -1660,7 +1660,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-        String depthOption = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "depth", "books")).get(0);
+        String depthOption = (String) ((List<Object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "depth", "books")).get(0);
         String depth = depthOption;
         if (!java.util.Objects.equals(limit, null))
         {
@@ -1756,7 +1756,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
         Long limit = this.safeInteger(parameters, "limit");
-        String depthOption = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "depth", "books")).get(0);
+        String depthOption = (String) ((List<Object>)this.handleOptionStringAndParams(parameters, "watchOrderBook", "depth", "books")).get(0);
         String depth = depthOption;
         if (!java.util.Objects.equals(limit, null))
         {
@@ -1832,14 +1832,14 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         //
         Double price = this.safeFloat(delta, 0);
         Double amount = this.safeFloat(delta, 1);
-        ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
+        bookside.store(price, amount);
     }
 
-    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, Object deltas)
+    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, List<Object> deltas)
     {
-        for (var i = 0; i < ((List<?>)deltas).size(); i++)
+        for (var i = 0; i < deltas.size(); i++)
         {
-            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= deltas.size() ? null : deltas.get(i)));
         }
     }
 
@@ -2310,7 +2310,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     {
 
         // By default, receive order updates from any instrument type
-        Pair<String, Map<String, Object>> typeOptionparamsTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchMyTrades", "type", "ANY");
+        Pair<String, Map<String, Object>> typeOptionparamsTypeVariable = this.handleOptionStringAndParams(parameters, "watchMyTrades", "type", "ANY");
         String typeOption = typeOptionparamsTypeVariable.first();
         Map<String, Object> paramsType = typeOptionparamsTypeVariable.second();
         Boolean isTrigger = (Boolean) this.safeBool2(paramsType, "trigger", "stop", false);
@@ -2561,7 +2561,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     {
 
         // By default, receive order updates from any instrument type
-        Pair<String, Map<String, Object>> typeOptionparamsTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrders", "type", "ANY");
+        Pair<String, Map<String, Object>> typeOptionparamsTypeVariable = this.handleOptionStringAndParams(parameters, "watchOrders", "type", "ANY");
         String typeOption = typeOptionparamsTypeVariable.first();
         Map<String, Object> paramsType = typeOptionparamsTypeVariable.second();
         Boolean isTrigger = (Boolean) this.safeBool2(paramsType, "stop", "trigger", false);
@@ -2860,7 +2860,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         (this.authenticate(new HashMap<String, Object>() {{}})).join();
         String url = this.getUrl("private", "private");
         String messageHash = String.valueOf(this.requestId());
-        Pair<String, Map<String, Object>> opparamsOpVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrderWs", "op", "batch-orders");
+        Pair<String, Map<String, Object>> opparamsOpVariable = this.handleOptionStringAndParams(parameters, "createOrderWs", "op", "batch-orders");
         String op = opparamsOpVariable.first();
         Map<String, Object> paramsOp = opparamsOpVariable.second();
         Map<String, Object> args = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsOp);
@@ -2954,7 +2954,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         (this.authenticate(new HashMap<String, Object>() {{}})).join();
         String url = this.getUrl("private", "private");
         String messageHash = String.valueOf(this.requestId());
-        Pair<String, Map<String, Object>> opparamsOpVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "editOrderWs", "op", "amend-order");
+        Pair<String, Map<String, Object>> opparamsOpVariable = this.handleOptionStringAndParams(parameters, "editOrderWs", "op", "amend-order");
         String op = opparamsOpVariable.first();
         Map<String, Object> paramsOp = opparamsOpVariable.second();
         Map<String, Object> args = this.editOrderRequest((String) (id), (String) (symbol), (String) (type), (String) (side), amount, price, paramsOp);
@@ -3279,7 +3279,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         return true;
     }
 
-    public void handleTextMessage(Client client, Object message)
+    public void handleTextMessage(Client client, String message)
     {
         if (java.util.Objects.equals(message, "pong"))
         {

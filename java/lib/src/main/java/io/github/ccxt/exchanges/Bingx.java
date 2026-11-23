@@ -1434,12 +1434,12 @@ public class Bingx extends BingxApi
         }});
     }
 
-    public CompletableFuture<Object> fetchSpotMarkets(Object parameters)
+    public CompletableFuture<List<Object>> fetchSpotMarkets(Object parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchSpotMarketsCore(parameters));
     }
 
-    private Object fetchSpotMarketsCore(Object parameters)
+    private List<Object> fetchSpotMarketsCore(Object parameters)
     {
 
         Map<String, Object> response = (this.spotV1PublicGetCommonSymbols(parameters)).join();
@@ -1476,12 +1476,12 @@ public class Bingx extends BingxApi
 
     }
 
-    public CompletableFuture<Object> fetchSwapMarkets(Object parameters)
+    public CompletableFuture<List<Object>> fetchSwapMarkets(Object parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchSwapMarketsCore(parameters));
     }
 
-    private Object fetchSwapMarketsCore(Object parameters)
+    private List<Object> fetchSwapMarketsCore(Object parameters)
     {
 
         Map<String, Object> response = (this.swapV2PublicGetQuoteContracts(parameters)).join();
@@ -1521,12 +1521,12 @@ public class Bingx extends BingxApi
 
     }
 
-    public CompletableFuture<Object> fetchInverseSwapMarkets(Object parameters)
+    public CompletableFuture<List<Object>> fetchInverseSwapMarkets(Object parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchInverseSwapMarketsCore(parameters));
     }
 
-    private Object fetchInverseSwapMarketsCore(Object parameters)
+    private List<Object> fetchInverseSwapMarketsCore(Object parameters)
     {
 
         Map<String, Object> response = (this.cswapV1PublicGetMarketContracts(parameters)).join();
@@ -1694,10 +1694,10 @@ public class Bingx extends BingxApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         List<CompletableFuture<?>> requests = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.fetchSwapMarkets(parameters)));
@@ -1711,7 +1711,7 @@ public class Bingx extends BingxApi
         List<Object> linearSwapMarkets = this.safeList(promises, 0, new ArrayList<Object>(Arrays.asList()));
         List<Object> inverseSwapMarkets = this.safeList(promises, 1, new ArrayList<Object>(Arrays.asList()));
         List<Object> spotMarkets = this.safeList(promises, 2, new ArrayList<Object>(Arrays.asList()));
-        List<Object> swapMarkets = (List<Object>) this.arrayConcat(linearSwapMarkets, inverseSwapMarkets);
+        List<Object> swapMarkets = this.arrayConcat(linearSwapMarkets, inverseSwapMarkets);
         return this.arrayConcat(spotMarkets, swapMarkets);
 
     }
@@ -1747,7 +1747,7 @@ public class Bingx extends BingxApi
         }
         Map<String, Object> market = this.market(symbol);
         Integer maxLimit = ((Boolean.TRUE.equals((this.safeBool(market, "inverse", false))))) ? 1000 : 1440;
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -2507,7 +2507,7 @@ public class Bingx extends BingxApi
         {
             throw new NotSupported((this.id + " fetchFundingRateHistory() is not supported for inverse swap markets")) ;
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -3306,7 +3306,7 @@ public class Bingx extends BingxApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> response = null;
-        Pair<Boolean, Map<String, Object>> standardparamsStandardVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchBalance", "standard", false);
+        Pair<Boolean, Map<String, Object>> standardparamsStandardVariable = this.handleOptionBoolAndParams(parameters, "fetchBalance", "standard", false);
         Boolean standard = standardparamsStandardVariable.first();
         Map<String, Object> paramsStandard = standardparamsStandardVariable.second();
         Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchBalance", (Map<String, Object>) null, paramsStandard, (Object) null);
@@ -3501,7 +3501,7 @@ public class Bingx extends BingxApi
         {
             request.put("startTs", since);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTs", request, (Map<String, Object>) (parameters), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTs", request, parameters, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = null;
@@ -3572,7 +3572,7 @@ public class Bingx extends BingxApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-        Pair<Boolean, Map<String, Object>> standardparamsStandardVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchPositions", "standard", false);
+        Pair<Boolean, Map<String, Object>> standardparamsStandardVariable = this.handleOptionBoolAndParams(parameters, "fetchPositions", "standard", false);
         Boolean standard = standardparamsStandardVariable.first();
         Map<String, Object> paramsStandard = standardparamsStandardVariable.second();
         Map<String, Object> response = null;
@@ -6044,7 +6044,7 @@ public class Bingx extends BingxApi
             request.put("toAccount", toId);
         }
         Long maxLimit = 100L;
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTransfers", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -6295,7 +6295,7 @@ public class Bingx extends BingxApi
         {
             request.put("limit", Math.min(limit, 1000)); // api maximum 1000
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, parameters, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         List<Object> response = (this.spotV3PrivateGetCapitalDepositHisrec(this.extend(requestUntil, paramsUntil))).join();
@@ -6359,7 +6359,7 @@ public class Bingx extends BingxApi
         {
             request.put("limit", Math.min(limit, 1000)); // api maximum 1000
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, parameters, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         List<Object> response = (this.spotV3PrivateGetCapitalWithdrawHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -6654,12 +6654,12 @@ public class Bingx extends BingxApi
      * @param {string} [params.positionSide] "LONG" or "SHORT", required for Coin-M
      * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public CompletableFuture<MarginModification> setMargin(String symbol, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginModification> setMargin(String symbol, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setMarginCore(symbol, amount, parameters)).thenApply(MarginModification::new);
     }
 
-    private Object setMarginCore(String symbol, Object amount, Map<String, Object> parameters)
+    private Object setMarginCore(String symbol, Double amount, Map<String, Object> parameters)
     {
 
         Long type = this.safeInteger(parameters, "type"); // 1 increase margin 2 decrease margin
@@ -7200,7 +7200,7 @@ public class Bingx extends BingxApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "autoCloseType", "LIQUIDATION" );
         }};
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, parameters, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> market = null;
@@ -7916,7 +7916,7 @@ public class Bingx extends BingxApi
         return tiers;
     }
 
-    public Map<String, Object> sign(String path, Object section, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> section, String method, Object parameters)
     {
         String type = (String) (section == null || 0 >= ((List<?>)section).size() ? null : ((List<?>)section).get(0));
         Object version = (section == null || 1 >= ((List<?>)section).size() ? null : ((List<?>)section).get(1));

@@ -1204,7 +1204,7 @@ public class Bullish extends BullishApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Long maxLimit = 100L;
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTrades", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -1283,7 +1283,7 @@ public class Bullish extends BullishApi
             response = (this.privateGetV1TradesClientOrderIdClientOrderId(this.extend(request, parameters))).join();
         } else
         {
-            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -1677,7 +1677,7 @@ public class Bullish extends BullishApi
         }
         Map<String, Object> market = this.market(symbol);
         Long maxLimit = 100L;
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -1768,7 +1768,7 @@ public class Bullish extends BullishApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Long maxLimit = 100L;
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -2558,7 +2558,7 @@ public class Bullish extends BullishApi
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         (this.handleToken(new HashMap<String, Object>() {{}})).join();
         Map<String, Object> request = new HashMap<String, Object>() {{}};
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("createdAtDatetime[lte]", request, (Map<String, Object>) (parameters), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("createdAtDatetime[lte]", request, parameters, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Long until = this.safeInteger(requestUntil, "createdAtDatetime[lte]");
@@ -2650,7 +2650,7 @@ public class Bullish extends BullishApi
                 put( "quantity", Bullish.this.currencyToPrecision((String) (code), amount, (String) null) );
             }} );
         }};
-        List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
+        List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
         String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
         Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
         if (!java.util.Objects.equals(networkCode, null))
@@ -2780,7 +2780,7 @@ public class Bullish extends BullishApi
     private String loadAccountCore(Map<String, Object> parameters)
     {
 
-        Pair<String, Map<String, Object>> tradingAccountIdOptionparamsTradingAccountIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "loadAccount", "tradingAccountId", (String) null);
+        Pair<String, Map<String, Object>> tradingAccountIdOptionparamsTradingAccountIdVariable = this.handleOptionStringAndParams(parameters, "loadAccount", "tradingAccountId", (String) null);
         String tradingAccountIdOption = tradingAccountIdOptionparamsTradingAccountIdVariable.first();
         Map<String, Object> paramsTradingAccountId = tradingAccountIdOptionparamsTradingAccountIdVariable.second();
         String tradingAccountId = tradingAccountIdOption;
@@ -2957,7 +2957,7 @@ public class Bullish extends BullishApi
         List<Object> safeResponse = this.toArray(response);
         Integer length = safeResponse.size();
         Map<String, Object> data = this.safeDict(safeResponse, 0, new HashMap<String, Object>() {{}});
-        List<Object> networkAndParams = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
+        List<Object> networkAndParams = (List<Object>) this.handleNetworkCodeAndParams(parameters);
         String networkParam = (String) ((List<Object>)networkAndParams).get(0);
         Boolean networkDefinedByUser = !java.util.Objects.equals(networkParam, null);
         String network = networkParam;
@@ -3239,7 +3239,7 @@ public class Bullish extends BullishApi
         (this.handleToken(new HashMap<String, Object>() {{}})).join();
         String tradingAccountId = (this.loadAccount(parameters)).join();
         Long maxLimit = 100L;
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTransfers", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -3413,9 +3413,9 @@ public class Bullish extends BullishApi
      * @param {string} params.tradingAccountId the trading account id
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    public CompletableFuture<Object> fetchBorrowRateHistory(String code, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchBorrowRateHistory(String code, Long since, Long limit, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchBorrowRateHistoryCore(code, since, limit, parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchBorrowRateHistoryCore(code, since, limit, parameters)).thenApply(res -> (List<Object>) res);
     }
 
     private Object fetchBorrowRateHistoryCore(String code, Long since, Long limit, Map<String, Object> parameters)
@@ -3431,7 +3431,7 @@ public class Bullish extends BullishApi
         }};
         Long now = this.milliseconds();
         Long startTimestamp = since;
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("createdAtDatetime[lte]", request, (Map<String, Object>) (parameters), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("createdAtDatetime[lte]", request, parameters, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Long until = this.safeInteger(requestUntil, "createdAtDatetime[lte]");
@@ -3463,7 +3463,7 @@ public class Bullish extends BullishApi
 
     }
 
-    public Object parseBorrowRate(Object info, Map<String, Object> currency)
+    public Map<String, Object> parseBorrowRate(Object info, Map<String, Object> currency)
     {
         //
         //     {
@@ -3613,7 +3613,7 @@ public class Bullish extends BullishApi
         }}, market);
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> requestHeaders = null;

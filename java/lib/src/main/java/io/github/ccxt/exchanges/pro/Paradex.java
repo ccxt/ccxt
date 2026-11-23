@@ -734,7 +734,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         }
         String url = this.getWsUrl();
         // handleTrade resolves the channel of each market
-        List<Object> trades = (List<Object>) (this.subscribeChannels(url, channels, channels, parameters)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.subscribeChannels(url, channels, channels, parameters)).join();
         Map<String, Object> first = this.safeDict(trades, 0, null);
         String tradeSymbol = this.safeString(first, "symbol");
         Long limitResolved = limit;
@@ -834,7 +834,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         String channel = ("trades." + marketId);
         String messageHash = ("liquidations:" + market.get("symbol"));
         String url = this.getWsUrl();
-        List<Object> liquidations = (List<Object>) (this.subscribeChannels(url, new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(channel)), parameters)).join();
+        io.github.ccxt.ws.ArrayCache liquidations = (io.github.ccxt.ws.ArrayCache) (this.subscribeChannels(url, new ArrayList<Object>(Arrays.asList(messageHash)), new ArrayList<Object>(Arrays.asList(channel)), parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -990,7 +990,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         {
             throw new ArgumentsRequired((this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
         }
-        Pair<Boolean, Map<String, Object>> deltasOptionparamsDeltasVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchOrderBook", "deltas", false);
+        Pair<Boolean, Map<String, Object>> deltasOptionparamsDeltasVariable = this.handleOptionBoolAndParams(parameters, "watchOrderBook", "deltas", false);
         Boolean deltasOption = deltasOptionparamsDeltasVariable.first();
         Map<String, Object> paramsDeltas = deltasOptionparamsDeltasVariable.second();
         Boolean deltas = (java.util.Objects.equals(deltasOption, true)) || ((!java.util.Objects.equals(limit, null)) && ((limit > 15)));
@@ -1084,7 +1084,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-        Pair<Boolean, Map<String, Object>> deltasOptionparamsDeltasVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchOrderBook", "deltas", false);
+        Pair<Boolean, Map<String, Object>> deltasOptionparamsDeltasVariable = this.handleOptionBoolAndParams(parameters, "watchOrderBook", "deltas", false);
         Boolean deltasOption = deltasOptionparamsDeltasVariable.first();
         Map<String, Object> paramsDeltas = deltasOptionparamsDeltasVariable.second();
         String url = this.getWsUrl();
@@ -2806,7 +2806,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }
             Long entryLength = this.parseToInt(this.sbeReadUint(frameHex, position, 2));
             Long numInGroup = this.parseToInt(this.sbeReadUint(frameHex, (position + 2L), 2));
-            position = (Long) (position + 4L);
+            position = (position + 4L);
             if ((((entryLength == null || entryLength < 16))) || (((frameEnd == null || this.parseToInt(this.sum(position, (numInGroup * entryLength))) > frameEnd))))
             {
                 return null;

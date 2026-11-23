@@ -161,8 +161,8 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             client.reject(error, messageHash);
             return;
         }
-        this.handleDeltas((orderbook == null ? null : orderbook.bids), this.safeList(data, "b", new ArrayList<Object>(Arrays.asList())));
-        this.handleDeltas((orderbook == null ? null : orderbook.asks), this.safeList(data, "a", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas((orderbook == null ? null : orderbook.bids), (List<Object>) (this.safeList(data, "b", new ArrayList<Object>(Arrays.asList()))));
+        this.handleDeltas((orderbook == null ? null : orderbook.asks), (List<Object>) (this.safeList(data, "a", new ArrayList<Object>(Arrays.asList()))));
         orderbook.put("timestamp", timestamp);
         orderbook.put("datetime", this.iso8601(timestamp));
         orderbook.put("nonce", nonce);
@@ -173,14 +173,14 @@ public class Extended extends io.github.ccxt.exchanges.Extended
     {
         Double price = this.safeFloat(delta, "p");
         Double amount = this.safeFloat2(delta, "c", "q");
-        ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
+        bookside.store(price, amount);
     }
 
-    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, Object deltas)
+    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, List<Object> deltas)
     {
-        for (var i = 0; i < ((List<?>)deltas).size(); i++)
+        for (var i = 0; i < deltas.size(); i++)
         {
-            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= deltas.size() ? null : deltas.get(i)));
         }
     }
 
@@ -254,7 +254,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("symbol", symbolResolved);
         mapLiteral1.put("limit", limit);
-        List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, mapLiteral1)).join();
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.watchPrivate(messageHash, mapLiteral1)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -394,7 +394,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
         mapLiteral2.put("symbol", symbolResolved);
         mapLiteral2.put("limit", limit);
-        List<Object> trades = (List<Object>) (this.watchPrivate(messageHash, mapLiteral2)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.watchPrivate(messageHash, mapLiteral2)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {

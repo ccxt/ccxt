@@ -101,7 +101,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     private Map<String, Object> prepareWsStockParamsCore(String methodName, Map<String, Object> parameters)
     {
 
-        Pair<Boolean, Map<String, Object>> stockqueryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), (String) (methodName), "stock", (Object) null);
+        Pair<Boolean, Map<String, Object>> stockqueryVariable = this.handleOptionBoolAndParams(parameters, (String) (methodName), "stock", (Object) null);
         Boolean stock = stockqueryVariable.first();
         Map<String, Object> query = stockqueryVariable.second();
         if (java.util.Objects.equals(this.markets, null))
@@ -134,7 +134,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         {
             throw new BadSymbol((((this.id + " ") + methodName) + "() requires a market")) ;
         }
-        this.handleStockParams(methodName, (Map<String, Object>) (parameters), market);
+        this.handleStockParams(methodName, parameters, market);
         String source = this.safeString(parameters, "source", "Venue");
         if ((java.util.Objects.equals(source, "External")) || (java.util.Objects.equals(this.safeString(market, "executionModel"), "rfq")) || (java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ")))
         {
@@ -167,7 +167,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     private Object subscribeWsTickersCore(String methodName, List<String> symbols, Map<String, Object> parameters, Object bidAsk, Object unwatch)
     {
 
-        Map<String, Object> query = (this.prepareWsStockParams(methodName, (Map<String, Object>) (parameters))).join();
+        Map<String, Object> query = (this.prepareWsStockParams(methodName, parameters)).join();
         Boolean stock = (Boolean) this.safeBool(query, "stock", false);
         String explicitSource = this.safeString(query, "source");
         String channel = this.safeString(query, "channel");
@@ -870,7 +870,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     private Object watchOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        Map<String, Object> query = (this.prepareWsStockParams("watchOHLCV", (Map<String, Object>) (parameters))).join();
+        Map<String, Object> query = (this.prepareWsStockParams("watchOHLCV", parameters)).join();
         Map<String, Object> result = (Map<String, Object>) (this.watchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), since, limit, query)).join();
         Map<String, Object> bySymbol = (Map<String, Object>) ((result == null || symbol == null ? null : result.get(symbol)));
         return (bySymbol == null || java.util.Objects.requireNonNullElse(timeframe, "1m") == null ? null : bySymbol.get(java.util.Objects.requireNonNullElse(timeframe, "1m")));
@@ -897,7 +897,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     private Object unWatchOHLCVCore(String symbol, String timeframe, Map<String, Object> parameters)
     {
 
-        Map<String, Object> query = (this.prepareWsStockParams("watchOHLCV", (Map<String, Object>) (parameters))).join();
+        Map<String, Object> query = (this.prepareWsStockParams("watchOHLCV", parameters)).join();
         return (this.unWatchOHLCVForSymbols(new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbol, java.util.Objects.requireNonNullElse(timeframe, "1m"))))), query)).join();
 
     }
@@ -923,7 +923,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     private Object watchOHLCVForSymbolsCore(List<?> symbolsAndTimeframes, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        Map<String, Object> query = (this.prepareWsStockParams("watchOHLCVForSymbols", (Map<String, Object>) (parameters))).join();
+        Map<String, Object> query = (this.prepareWsStockParams("watchOHLCVForSymbols", parameters)).join();
         Integer symbolsLength = symbolsAndTimeframes.size();
         if (java.util.Objects.equals(symbolsLength, 0) || !((symbolsAndTimeframes == null || 0 >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(0)) instanceof List))
         {
@@ -978,7 +978,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     private Object unWatchOHLCVForSymbolsCore(List<?> symbolsAndTimeframes, Map<String, Object> parameters)
     {
 
-        Map<String, Object> query = (this.prepareWsStockParams("watchOHLCVForSymbols", (Map<String, Object>) (parameters))).join();
+        Map<String, Object> query = (this.prepareWsStockParams("watchOHLCVForSymbols", parameters)).join();
         Integer symbolsLength = symbolsAndTimeframes.size();
         if (java.util.Objects.equals(symbolsLength, 0) || !((symbolsAndTimeframes == null || 0 >= ((List<?>)symbolsAndTimeframes).size() ? null : ((List<?>)symbolsAndTimeframes).get(0)) instanceof List))
         {
@@ -1091,7 +1091,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     private Object watchTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        Map<String, Object> query = (this.prepareWsStockParams("watchTrades", (Map<String, Object>) (parameters))).join();
+        Map<String, Object> query = (this.prepareWsStockParams("watchTrades", parameters)).join();
         return (this.watchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), since, limit, query)).join();
 
     }
@@ -1115,7 +1115,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     private Object unWatchTradesCore(String symbol, Map<String, Object> parameters)
     {
 
-        Map<String, Object> query = (this.prepareWsStockParams("watchTrades", (Map<String, Object>) (parameters))).join();
+        Map<String, Object> query = (this.prepareWsStockParams("watchTrades", parameters)).join();
         return (this.unWatchTradesForSymbols(new ArrayList<String>(Arrays.asList(symbol)), query)).join();
 
     }
@@ -1141,7 +1141,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     private Object watchTradesForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        Map<String, Object> query = (this.prepareWsStockParams("watchTradesForSymbols", (Map<String, Object>) (parameters))).join();
+        Map<String, Object> query = (this.prepareWsStockParams("watchTradesForSymbols", parameters)).join();
         if (java.util.Objects.equals(this.markets, null))
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1194,7 +1194,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     private Object unWatchTradesForSymbolsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
-        Map<String, Object> query = (this.prepareWsStockParams("watchTradesForSymbols", (Map<String, Object>) (parameters))).join();
+        Map<String, Object> query = (this.prepareWsStockParams("watchTradesForSymbols", parameters)).join();
         if (java.util.Objects.equals(this.markets, null))
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1341,7 +1341,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     private Object watchOrderBookCore(String symbol, Long limit, Map<String, Object> parameters)
     {
 
-        Map<String, Object> query = (this.prepareWsStockParams("watchOrderBook", (Map<String, Object>) (parameters))).join();
+        Map<String, Object> query = (this.prepareWsStockParams("watchOrderBook", parameters)).join();
         return (this.watchOrderBookForSymbols(new ArrayList<String>(Arrays.asList(symbol)), limit, query)).join();
 
     }
@@ -1367,7 +1367,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     private Object watchOrderBookForSymbolsCore(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
 
-        Map<String, Object> query = (this.prepareWsStockParams("watchOrderBookForSymbols", (Map<String, Object>) (parameters))).join();
+        Map<String, Object> query = (this.prepareWsStockParams("watchOrderBookForSymbols", parameters)).join();
         if (java.util.Objects.equals(this.markets, null))
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1410,7 +1410,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     private Object unWatchOrderBookCore(String symbol, Map<String, Object> parameters)
     {
 
-        Map<String, Object> query = (this.prepareWsStockParams("watchOrderBook", (Map<String, Object>) (parameters))).join();
+        Map<String, Object> query = (this.prepareWsStockParams("watchOrderBook", parameters)).join();
         return (this.unWatchOrderBookForSymbols(new ArrayList<String>(Arrays.asList(symbol)), query)).join();
 
     }
@@ -1434,7 +1434,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     private Object unWatchOrderBookForSymbolsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
-        Map<String, Object> query = (this.prepareWsStockParams("watchOrderBookForSymbols", (Map<String, Object>) (parameters))).join();
+        Map<String, Object> query = (this.prepareWsStockParams("watchOrderBookForSymbols", parameters)).join();
         if (java.util.Objects.equals(this.markets, null))
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1590,7 +1590,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     private Object watchOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        Map<String, Object> query = (this.prepareWsStockParams("watchOrders", (Map<String, Object>) (parameters))).join();
+        Map<String, Object> query = (this.prepareWsStockParams("watchOrders", parameters)).join();
         if (java.util.Objects.equals(this.markets, null))
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1651,7 +1651,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     private Object unWatchOrdersCore(String symbol, Map<String, Object> parameters)
     {
 
-        Map<String, Object> query = (this.prepareWsStockParams("watchOrders", (Map<String, Object>) (parameters))).join();
+        Map<String, Object> query = (this.prepareWsStockParams("watchOrders", parameters)).join();
         if (java.util.Objects.equals(this.markets, null))
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -1796,7 +1796,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     private Object watchBalanceCore(Map<String, Object> parameters)
     {
 
-        Map<String, Object> query = (this.prepareWsStockParams("watchBalance", (Map<String, Object>) (parameters))).join();
+        Map<String, Object> query = (this.prepareWsStockParams("watchBalance", parameters)).join();
         Boolean stock = (Boolean) this.safeBool(query, "stock", false);
         if (Boolean.TRUE.equals(stock) && (java.util.Objects.equals(this.safeList(this.options, "securities", null), null)))
         {
@@ -1851,7 +1851,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
     private Object unWatchBalanceCore(Map<String, Object> parameters)
     {
 
-        Map<String, Object> query = (this.prepareWsStockParams("watchBalance", (Map<String, Object>) (parameters))).join();
+        Map<String, Object> query = (this.prepareWsStockParams("watchBalance", parameters)).join();
         return (this.watchPrivate(new ArrayList<Object>(Arrays.asList("account.balanceUpdate")), new ArrayList<Object>(Arrays.asList("unsubscribe:balance")), this.omit(query, "stock"), true)).join();
 
     }

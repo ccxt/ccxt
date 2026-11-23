@@ -995,7 +995,7 @@ public class Sxbet extends SxbetApi
         {
             throw new BadRequest((this.id + " approve() could not resolve the base token address from /metadata/obv3")) ;
         }
-        Pair<String, Map<String, Object>> spenderparamsSpenderVariable = this.handleOptionStringAndParams2((Map<String, Object>) (parameters), "approve", "spender", "transferToProxySpender", executorAddress);
+        Pair<String, Map<String, Object>> spenderparamsSpenderVariable = this.handleOptionStringAndParams2(parameters, "approve", "spender", "transferToProxySpender", executorAddress);
         String spender = spenderparamsSpenderVariable.first();
         Map<String, Object> paramsSpender = spenderparamsSpenderVariable.second();
         if (java.util.Objects.equals(spender, null))
@@ -1153,7 +1153,7 @@ public class Sxbet extends SxbetApi
         {
             defaultTif = "GTC";
         }
-        Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "timeInForce", defaultTif);
+        Pair<String, Map<String, Object>> timeInForceparamsTimeInForceVariable = this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce", defaultTif);
         String timeInForce = timeInForceparamsTimeInForceVariable.first();
         Map<String, Object> paramsTimeInForce = timeInForceparamsTimeInForceVariable.second();
         // an explicit IOC/FOK on a 'limit' order is honored verbatim - the venue executes exactly
@@ -1448,7 +1448,7 @@ public class Sxbet extends SxbetApi
                 put( "orders", orderItems );
             }};
             Map<String, Object> response = (this.sxbetPrivateDeleteOrdersV3(this.extend(request, parameters))).join();
-            result = (List<Object>) this.arrayConcat(result, this.parseSxbetCancelResponse(response));
+            result = this.arrayConcat(result, this.parseSxbetCancelResponse(response));
         }
         return result;
 
@@ -1490,7 +1490,7 @@ public class Sxbet extends SxbetApi
             response = (this.sxbetPrivateDeleteOrdersV3All(rest)).join();
         }
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        result = (List<Object>) this.arrayConcat(result, this.parseSxbetCancelResponse(response));
+        result = this.arrayConcat(result, this.parseSxbetCancelResponse(response));
         // both paths paginate their async submission - keep going on the SAME route while more remain
         Boolean hasMore = (Boolean) this.safeBool(this.safeDict(response, "data", new HashMap<String, Object>() {{}}), "hasMore", false);
         for (var guard = 0; guard < 50; guard++)
@@ -1509,7 +1509,7 @@ public class Sxbet extends SxbetApi
             {
                 nextResponse = (this.sxbetPrivateDeleteOrdersV3All(rest)).join();
             }
-            result = (List<Object>) this.arrayConcat(result, this.parseSxbetCancelResponse(nextResponse));
+            result = this.arrayConcat(result, this.parseSxbetCancelResponse(nextResponse));
             hasMore = (Boolean) this.safeBool(this.safeDict(nextResponse, "data", new HashMap<String, Object>() {{}}), "hasMore", false);
         }
         return result;
@@ -1971,17 +1971,17 @@ public class Sxbet extends SxbetApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public CompletableFuture<List<PredictionPosition>> fetchPositions(Object outcomes, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionPosition>> fetchPositions(List<String> outcomes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchPositionsCore(outcomes, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
     }
 
-    private Object fetchPositionsCore(Object outcomes, Map<String, Object> parameters)
+    private Object fetchPositionsCore(List<String> outcomes, Map<String, Object> parameters)
     {
 
         this.checkRequiredCredentials(true);
         // copy to a plain list so the transpilers and the strict null checks see one shape
-        List<Object> outcomesList = (List<Object>) ((((java.util.Objects.equals(outcomes, null)))) ? new ArrayList<Object>(Arrays.asList()) : outcomes);
+        List<String> outcomesList = (((java.util.Objects.equals(outcomes, null)))) ? new ArrayList<String>(Arrays.asList()) : outcomes;
         Integer outcomesLength = outcomesList.size();
         Map<String, Object> wantedMarkets = new HashMap<String, Object>() {{}};
         if ((outcomesLength != null && outcomesLength > 0))
@@ -2344,19 +2344,19 @@ public class Sxbet extends SxbetApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    public CompletableFuture<PredictionTickers> fetchTickers(Object outcomes, Map<String, Object> parameters)
+    public CompletableFuture<PredictionTickers> fetchTickers(List<String> outcomes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchTickersCore(outcomes, parameters)).thenApply(PredictionTickers::new);
     }
 
-    private Object fetchTickersCore(Object outcomes, Map<String, Object> parameters)
+    private Object fetchTickersCore(List<String> outcomes, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(outcomes, null))
         {
             throw new ArgumentsRequired((this.id + " fetchTickers() requires an outcomes argument - sx.bet has thousands of markets and serves best odds per market list")) ;
         }
-        List<Object> outcomesList = (List<Object>) ((((java.util.Objects.equals(outcomes, null)))) ? new ArrayList<Object>(Arrays.asList()) : outcomes);
+        List<String> outcomesList = (((java.util.Objects.equals(outcomes, null)))) ? new ArrayList<String>(Arrays.asList()) : outcomes;
         Integer outcomesLength = outcomesList.size();
         List<String> hashesOrder = new ArrayList<String>(Arrays.asList());
         Map<String, Object> seenHashes = new HashMap<String, Object>() {{}};
@@ -2427,13 +2427,13 @@ public class Sxbet extends SxbetApi
      * @param {object} rowsByHash best-odds rows indexed by market hash
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    public Map<String, Object> parseSxbetTickersByHash(List<Object> outcomesList, Map<String, Object> rowsByHash)
+    public Map<String, Object> parseSxbetTickersByHash(Object outcomesList, Map<String, Object> rowsByHash)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        Integer outcomesLength = outcomesList.size();
+        Integer outcomesLength = ((List<?>)outcomesList).size();
         for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
         {
-            Map<String, Object> outcomeObj = this.outcome((String) ((outcomesList == null || i < 0 || i >= outcomesList.size() ? null : outcomesList.get(i))));
+            Map<String, Object> outcomeObj = this.outcome((String) ((outcomesList == null || i < 0 || i >= ((List<?>)outcomesList).size() ? null : ((List<?>)outcomesList).get(i))));
             String marketHash = this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketHash", "");
             Map<String, Object> raw = this.safeDict(rowsByHash, marketHash, null);
             if (java.util.Objects.equals(raw, null))
@@ -2771,7 +2771,7 @@ public class Sxbet extends SxbetApi
 
     }
 
-    public void handleTextMessage(Client client, Object message)
+    public void handleTextMessage(Client client, String message)
     {
         List<Object> lines = new ArrayList<Object>(Arrays.asList(((String)message).split(java.util.regex.Pattern.quote("\n"))));
         Integer linesLength = lines.size();
@@ -3428,7 +3428,7 @@ public class Sxbet extends SxbetApi
      * @param {object} params the request parameters
      * @returns {object} a dict with url, method, body and headers
      */
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String accessLevel = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));

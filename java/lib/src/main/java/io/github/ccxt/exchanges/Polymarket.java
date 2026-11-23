@@ -3057,12 +3057,12 @@ public class Polymarket extends PolymarketApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
      */
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, String type, Map<String, Object> parameters)
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Double amount, String type, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.modifyMarginHelperCore(symbol, amount, type, parameters));
     }
 
-    private Object modifyMarginHelperCore(String symbol, Object amount, String type, Map<String, Object> parameters)
+    private Object modifyMarginHelperCore(String symbol, Double amount, String type, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -3413,7 +3413,7 @@ public class Polymarket extends PolymarketApi
         return result;
     }
 
-    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
+    public Object calculateRateLimiterCost(Object api, String method, String path, Object parameters, Map<String, Object> config)
     {
         if (java.util.Objects.equals(path, "account/orders"))
         {
@@ -3455,7 +3455,7 @@ public class Polymarket extends PolymarketApi
         return this.safeValue(config, "cost", 1);
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiType = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String baseUrl = this.safeString(this.urls.get("api"), apiType, "");

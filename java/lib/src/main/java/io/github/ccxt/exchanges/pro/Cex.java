@@ -198,7 +198,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         String messageHash = "trades";
         String subscriptionHash = ("old:" + symbolValue);
         Client client = (Client)this.safeValue(this.clients, url);
-        if (!java.util.Objects.equals(client, null))
+        if ((client != null))
         {
             List<String> subscriptionKeys = new ArrayList<String>(client.subscriptions.keySet());
             for (var i = 0; i < subscriptionKeys.size(); i++)
@@ -1288,14 +1288,14 @@ public class Cex extends io.github.ccxt.exchanges.Cex
     public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, 0, 1, 2);
-        ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
+        bookside.storeArray(bidAsk);
     }
 
-    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, Object deltas)
+    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, List<Object> deltas)
     {
-        for (var i = 0; i < ((List<?>)deltas).size(); i++)
+        for (var i = 0; i < deltas.size(); i++)
         {
-            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= deltas.size() ? null : deltas.get(i)));
         }
     }
 

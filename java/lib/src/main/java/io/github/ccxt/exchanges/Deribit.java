@@ -1198,7 +1198,7 @@ public class Deribit extends DeribitApi
         List<Object> instrumentsResponses = new ArrayList<Object>(Arrays.asList());
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         Map<String, Object> parsedMarkets = new HashMap<String, Object>() {{}};
-        Pair<Boolean, Map<String, Object>> fetchAllMarketsparamsFetchAllMarketsVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMarkets", "fetchAllMarkets", true);
+        Pair<Boolean, Map<String, Object>> fetchAllMarketsparamsFetchAllMarketsVariable = this.handleOptionBoolAndParams(parameters, "fetchMarkets", "fetchAllMarkets", true);
         Boolean fetchAllMarkets = fetchAllMarketsparamsFetchAllMarketsVariable.first();
         Map<String, Object> paramsFetchAllMarkets = fetchAllMarketsparamsFetchAllMarketsVariable.second();
         if (Boolean.TRUE.equals(fetchAllMarkets))
@@ -1952,7 +1952,7 @@ public class Deribit extends DeribitApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -4076,7 +4076,7 @@ public class Deribit extends DeribitApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         Long maxEntriesPerRequest = 744L; // seems exchange returns max 744 items per request
@@ -4145,7 +4145,7 @@ public class Deribit extends DeribitApi
         List<Object> result = this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < result.size(); i++)
         {
-            Map<String, Object> fr = this.safeDict(result, i, null);
+            Map<String, Object> fr = this.safeDict(result, i, new HashMap<String, Object>() {{}});
             Map<String, Object> rate = (Map<String, Object>) this.parseFundingRate(fr, market);
             ((List<Object>)rates).add(rate);
         }
@@ -4222,7 +4222,7 @@ public class Deribit extends DeribitApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchLiquidations", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchLiquidations", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -4477,7 +4477,7 @@ public class Deribit extends DeribitApi
 
     }
 
-    public Object parseGreeks(Map<String, Object> greeks, Map<String, Object> market)
+    public Map<String, Object> parseGreeks(Map<String, Object> greeks, Map<String, Object> market)
     {
         //
         //     {
@@ -4673,7 +4673,7 @@ public class Deribit extends DeribitApi
 
     }
 
-    public Object parseOption(Map<String, Object> chain, Map<String, Object> currency, Map<String, Object> market)
+    public Map<String, Object> parseOption(Map<String, Object> chain, Map<String, Object> currency, Map<String, Object> market)
     {
         //
         //     {
@@ -4845,7 +4845,7 @@ public class Deribit extends DeribitApi
         return this.milliseconds();
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String request = (((((("/" + "api/") + this.version) + "/") + apiName) + "/") + path);
@@ -4927,7 +4927,7 @@ public class Deribit extends DeribitApi
         {
             String errorCode = this.safeString(error, "code");
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

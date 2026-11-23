@@ -726,7 +726,7 @@ public class Backpack extends BackpackApi
     private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
-        Pair<Boolean, Map<String, Object>> stockqueryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchCurrencies", "stock", false);
+        Pair<Boolean, Map<String, Object>> stockqueryVariable = this.handleOptionBoolAndParams(parameters, "fetchCurrencies", "stock", false);
         Boolean stock = stockqueryVariable.first();
         Map<String, Object> query = stockqueryVariable.second();
         List<Object> response = (this.publicGetApiV1Assets(query)).join();
@@ -864,7 +864,7 @@ public class Backpack extends BackpackApi
         {
             (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> stockqueryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMarkets", "stock", false);
+        Pair<Boolean, Map<String, Object>> stockqueryVariable = this.handleOptionBoolAndParams(parameters, "fetchMarkets", "stock", false);
         Boolean stock = stockqueryVariable.first();
         Map<String, Object> query = stockqueryVariable.second();
         String marketType = this.safeString(query, "marketType");
@@ -1257,7 +1257,7 @@ public class Backpack extends BackpackApi
     public Pair<Boolean, Map<String, Object>> handleStockParams(String methodName, Map<String, Object> parameters, Map<String, Object> market)
     {
         Boolean defaultStock = (Boolean) this.safeBool(market, "stock", false);
-        Pair<Boolean, Map<String, Object>> stockqueryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), (String) (methodName), "stock", defaultStock);
+        Pair<Boolean, Map<String, Object>> stockqueryVariable = this.handleOptionBoolAndParams(parameters, (String) (methodName), "stock", defaultStock);
         Boolean stock = stockqueryVariable.first();
         Map<String, Object> query = stockqueryVariable.second();
         if ((!java.util.Objects.equals(market, null)) && Boolean.TRUE.equals(stock) && !Boolean.TRUE.equals(this.safeBool(market, "stock", false)))
@@ -1317,7 +1317,7 @@ public class Backpack extends BackpackApi
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
-        Pair<Boolean, Map<String, Object>> queryVariable = this.handleStockParams("fetchStockIndicativeQuote", (Map<String, Object>) (parameters), market);
+        Pair<Boolean, Map<String, Object>> queryVariable = this.handleStockParams("fetchStockIndicativeQuote", parameters, market);
         Map<String, Object> query = queryVariable.second();
         if (!java.util.Objects.equals(market.get("stock"), true))
         {
@@ -1425,12 +1425,12 @@ public class Backpack extends BackpackApi
      * @param {float} [params.price] optional limit price when converting quote currency to stock
      * @returns {object} indicative conversion estimate; the price is a bound and is not guaranteed
      */
-    public CompletableFuture<Conversion> fetchConvertQuote(String fromCode, String toCode, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Conversion> fetchConvertQuote(String fromCode, String toCode, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchConvertQuoteCore(fromCode, toCode, amount, parameters)).thenApply(Conversion::new);
     }
 
-    private Object fetchConvertQuoteCore(String fromCode, String toCode, Object amount, Map<String, Object> parameters)
+    private Object fetchConvertQuoteCore(String fromCode, String toCode, Double amount, Map<String, Object> parameters)
     {
 
         String amountString = this.numberToString(amount);
@@ -1545,17 +1545,17 @@ public class Backpack extends BackpackApi
      * @param {int} [params.clientOrderId] requester client identifier for a newly submitted RFQ
      * @returns {object} conversion result; RFQ submission may remain open and is not necessarily a fill
      */
-    public CompletableFuture<Conversion> createConvertTrade(String id, String fromCode, String toCode, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Conversion> createConvertTrade(String id, String fromCode, String toCode, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createConvertTradeCore(id, fromCode, toCode, amount, parameters)).thenApply(Conversion::new);
     }
 
-    private Object createConvertTradeCore(String id, String fromCode, String toCode, Object amount, Map<String, Object> parameters)
+    private Object createConvertTradeCore(String id, String fromCode, String toCode, Double amount, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.rfqConversionMarket((String) (fromCode), (String) (toCode));
-        Pair<Boolean, Map<String, Object>> queryVariable = this.handleStockParams("createConvertTrade", (Map<String, Object>) (parameters), market);
+        Pair<Boolean, Map<String, Object>> queryVariable = this.handleStockParams("createConvertTrade", parameters, market);
         Map<String, Object> query = queryVariable.second();
         String quoteId = this.safeString(query, "quoteId");
         if (!java.util.Objects.equals(quoteId, null))
@@ -1672,7 +1672,7 @@ public class Backpack extends BackpackApi
      */
     public Map<String, Object> stockDataRequest(String methodName, Map<String, Object> parameters, Map<String, Object> market)
     {
-        Pair<Boolean, Map<String, Object>> stockValuequeryVariable = this.handleStockParams(methodName, (Map<String, Object>) (parameters), market);
+        Pair<Boolean, Map<String, Object>> stockValuequeryVariable = this.handleStockParams(methodName, parameters, market);
         Boolean stockValue = stockValuequeryVariable.first();
         Map<String, Object> query = stockValuequeryVariable.second();
         Boolean stock = (java.util.Objects.equals(stockValue, true));
@@ -1787,7 +1787,7 @@ public class Backpack extends BackpackApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> stockOnlyqueryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTickers", "stock", false);
+        Pair<Boolean, Map<String, Object>> stockOnlyqueryVariable = this.handleOptionBoolAndParams(parameters, "fetchTickers", "stock", false);
         Boolean stockOnly = stockOnlyqueryVariable.first();
         Map<String, Object> query = stockOnlyqueryVariable.second();
         String source = this.safeString(query, "source", "Venue");
@@ -1897,7 +1897,7 @@ public class Backpack extends BackpackApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        Map<String, Object> request = this.stockDataRequest("fetchTicker", (Map<String, Object>) (parameters), market);
+        Map<String, Object> request = this.stockDataRequest("fetchTicker", parameters, market);
         Map<String, Object> response = (this.publicGetApiV1Ticker(request)).join();
         return this.parseTicker(response, market);
 
@@ -1922,7 +1922,7 @@ public class Backpack extends BackpackApi
         //     }, ...
         //
         String marketId = this.safeString(ticker, "symbol");
-        Object marketResolved = (((java.util.Objects.equals(market, null)))) ? this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null) : market;
+        Map<String, Object> marketResolved = (((java.util.Objects.equals(market, null)))) ? this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null) : market;
         String open = this.safeString(ticker, "firstPrice");
         String last = this.safeString(ticker, "lastPrice");
         String high = this.safeString(ticker, "high");
@@ -1960,7 +1960,7 @@ public class Backpack extends BackpackApi
         mapLiteral8.put("markPrice", null);
         mapLiteral8.put("indexPrice", null);
         mapLiteral8.put("info", ticker);
-        Ticker parsedTicker = this.safeTicker(mapLiteral8, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
+        Ticker parsedTicker = this.safeTicker(mapLiteral8, marketResolved);
         return (Ticker) parsedTicker;
     }
 
@@ -1989,7 +1989,7 @@ public class Backpack extends BackpackApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        Pair<Boolean, Map<String, Object>> queryVariable = this.handleStockParams("fetchOrderBook", (Map<String, Object>) (parameters), market);
+        Pair<Boolean, Map<String, Object>> queryVariable = this.handleStockParams("fetchOrderBook", parameters, market);
         Map<String, Object> query = queryVariable.second();
         String source = this.safeString(query, "source", "Venue");
         if ((!java.util.Objects.equals(source, "Venue")) || (java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ")))
@@ -2065,7 +2065,7 @@ public class Backpack extends BackpackApi
         Map<String, Object> market = this.market(symbol);
         String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
         Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
-        Map<String, Object> dataRequest = this.stockDataRequest("fetchOHLCV", (Map<String, Object>) (parameters), market);
+        Map<String, Object> dataRequest = this.stockDataRequest("fetchOHLCV", parameters, market);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", Backpack.this.safeString(dataRequest, "symbol") );
             put( "interval", interval );
@@ -2358,7 +2358,7 @@ public class Backpack extends BackpackApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        Pair<Boolean, Map<String, Object>> queryVariable = this.handleStockParams("fetchTrades", (Map<String, Object>) (parameters), market);
+        Pair<Boolean, Map<String, Object>> queryVariable = this.handleStockParams("fetchTrades", parameters, market);
         Map<String, Object> query = queryVariable.second();
         if ((!java.util.Objects.equals(this.safeString(query, "source", "Venue"), "Venue")) || (java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ")))
         {
@@ -2423,7 +2423,7 @@ public class Backpack extends BackpackApi
             market = this.market(symbol);
             request.put("symbol", this.safeString(market, "id"));
         }
-        Pair<Boolean, Map<String, Object>> stockValuequeryVariable = this.handleStockParams("fetchMyTrades", (Map<String, Object>) (parameters), market);
+        Pair<Boolean, Map<String, Object>> stockValuequeryVariable = this.handleStockParams("fetchMyTrades", parameters, market);
         Boolean stockValue = stockValuequeryVariable.first();
         Map<String, Object> query = stockValuequeryVariable.second();
         Boolean stock = (java.util.Objects.equals(stockValue, true));
@@ -2456,7 +2456,7 @@ public class Backpack extends BackpackApi
                     put( "stock", false );
                 }});
                 List<Trade> venueTrades = (this.fetchMyTrades((String) null, since, limit, venueParams)).join();
-                rfqTrades = (List<Object>) this.arrayConcat(rfqTrades, venueTrades);
+                rfqTrades = this.arrayConcat(rfqTrades, venueTrades);
             }
             if (Boolean.TRUE.equals(stock))
             {
@@ -2676,7 +2676,7 @@ public class Backpack extends BackpackApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> stockqueryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchBalance", "stock", false);
+        Pair<Boolean, Map<String, Object>> stockqueryVariable = this.handleOptionBoolAndParams(parameters, "fetchBalance", "stock", false);
         Boolean stock = stockqueryVariable.first();
         Map<String, Object> query = stockqueryVariable.second();
         Map<String, Object> response = (this.privateGetApiV1Capital(query)).join();
@@ -3049,7 +3049,7 @@ public class Backpack extends BackpackApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
+        List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
         String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
         Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
         if (java.util.Objects.equals(networkCode, null))
@@ -3130,7 +3130,7 @@ public class Backpack extends BackpackApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        Pair<Boolean, Map<String, Object>> stockqueryVariable = this.handleStockParams("createOrder", (Map<String, Object>) (parameters), market);
+        Pair<Boolean, Map<String, Object>> stockqueryVariable = this.handleStockParams("createOrder", parameters, market);
         Boolean stock = stockqueryVariable.first();
         Map<String, Object> query = stockqueryVariable.second();
         Map<String, Object> orderParams = this.extend(query, new HashMap<String, Object>() {{
@@ -3177,7 +3177,7 @@ public class Backpack extends BackpackApi
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
-        Pair<Boolean, Map<String, Object>> rfqParamsVariable = this.handleStockParams("createRfqOrder", (Map<String, Object>) (parameters), market);
+        Pair<Boolean, Map<String, Object>> rfqParamsVariable = this.handleStockParams("createRfqOrder", parameters, market);
         Map<String, Object> rfqParams = rfqParamsVariable.second();
         Map<String, Object> paramsResolved = rfqParams;
         if (!java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ"))
@@ -3308,7 +3308,7 @@ public class Backpack extends BackpackApi
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
-        Pair<Boolean, Map<String, Object>> queryVariable = this.handleStockParams("acceptRfqQuote", (Map<String, Object>) (parameters), market);
+        Pair<Boolean, Map<String, Object>> queryVariable = this.handleStockParams("acceptRfqQuote", parameters, market);
         Map<String, Object> query = queryVariable.second();
         if (!java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ"))
         {
@@ -3341,7 +3341,7 @@ public class Backpack extends BackpackApi
     private Object createOrdersCore(List<?> orders, Map<String, Object> parameters)
     {
 
-        Pair<Boolean, Map<String, Object>> stockqueryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "createOrders", "stock", false);
+        Pair<Boolean, Map<String, Object>> stockqueryVariable = this.handleOptionBoolAndParams(parameters, "createOrders", "stock", false);
         Boolean stock = stockqueryVariable.first();
         Map<String, Object> query = stockqueryVariable.second();
         if (java.util.Objects.equals(this.markets, null))
@@ -3397,7 +3397,7 @@ public class Backpack extends BackpackApi
             throw new ArgumentsRequired((this.id + " requires a side argument")) ;
         }
         Map<String, Object> market = this.market(symbol);
-        Pair<Boolean, Map<String, Object>> queryVariable = this.handleStockParams("createOrder", (Map<String, Object>) (parameters), market);
+        Pair<Boolean, Map<String, Object>> queryVariable = this.handleStockParams("createOrder", parameters, market);
         Map<String, Object> query = queryVariable.second();
         if (java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ"))
         {
@@ -3543,7 +3543,7 @@ public class Backpack extends BackpackApi
             market = this.market(symbol);
             request.put("symbol", this.safeString(market, "id"));
         }
-        Pair<Boolean, Map<String, Object>> stockValuequeryVariable = this.handleStockParams("fetchOpenOrders", (Map<String, Object>) (parameters), market);
+        Pair<Boolean, Map<String, Object>> stockValuequeryVariable = this.handleStockParams("fetchOpenOrders", parameters, market);
         Boolean stockValue = stockValuequeryVariable.first();
         Map<String, Object> query = stockValuequeryVariable.second();
         Boolean stock = (java.util.Objects.equals(stockValue, true));
@@ -3562,7 +3562,7 @@ public class Backpack extends BackpackApi
         if (Boolean.TRUE.equals(rfq) || (Boolean.TRUE.equals(stock) && (java.util.Objects.equals(market, null))))
         {
             List<Object> rfqResponse = (this.privateGetApiV1Rfqs(this.extend(request, this.omit(accountParams, "marketType")))).join();
-            response = (List<Object>) this.arrayConcat(response, rfqResponse);
+            response = this.arrayConcat(response, rfqResponse);
         }
         List<Object> orders = this.parseOrders(response, market, since, (Long) null, new HashMap<String, Object>() {{}});
         if (Boolean.TRUE.equals(stock))
@@ -3602,7 +3602,7 @@ public class Backpack extends BackpackApi
             throw new ArgumentsRequired((this.id + " fetchOpenOrder() requires a symbol argument")) ;
         }
         Map<String, Object> market = this.market(symbol);
-        Pair<Boolean, Map<String, Object>> queryVariable = this.handleStockParams("fetchOpenOrder", (Map<String, Object>) (parameters), market);
+        Pair<Boolean, Map<String, Object>> queryVariable = this.handleStockParams("fetchOpenOrder", parameters, market);
         Map<String, Object> query = queryVariable.second();
         if (java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ"))
         {
@@ -3656,7 +3656,7 @@ public class Backpack extends BackpackApi
         }
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
-        Pair<Boolean, Map<String, Object>> stockSelectedqueryVariable = this.handleStockParams("fetchOrder", (Map<String, Object>) (parameters), market);
+        Pair<Boolean, Map<String, Object>> stockSelectedqueryVariable = this.handleStockParams("fetchOrder", parameters, market);
         Boolean stockSelected = stockSelectedqueryVariable.first();
         Map<String, Object> query = stockSelectedqueryVariable.second();
         Boolean rfq = java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ");
@@ -3723,7 +3723,7 @@ public class Backpack extends BackpackApi
             throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
         }
         Map<String, Object> market = this.market(symbol);
-        Pair<Boolean, Map<String, Object>> queryVariable = this.handleStockParams("cancelOrder", (Map<String, Object>) (parameters), market);
+        Pair<Boolean, Map<String, Object>> queryVariable = this.handleStockParams("cancelOrder", parameters, market);
         Map<String, Object> query = queryVariable.second();
         if (java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ"))
         {
@@ -3776,7 +3776,7 @@ public class Backpack extends BackpackApi
             throw new ArgumentsRequired((this.id + " cancelAllOrders() requires a symbol argument")) ;
         }
         Map<String, Object> market = this.market(symbol);
-        Pair<Boolean, Map<String, Object>> queryVariable = this.handleStockParams("cancelAllOrders", (Map<String, Object>) (parameters), market);
+        Pair<Boolean, Map<String, Object>> queryVariable = this.handleStockParams("cancelAllOrders", parameters, market);
         Map<String, Object> query = queryVariable.second();
         if (java.util.Objects.equals(this.safeString(market.get("info"), "marketType"), "RFQ"))
         {
@@ -3830,7 +3830,7 @@ public class Backpack extends BackpackApi
         {
             request.put("limit", limit);
         }
-        Pair<Boolean, Map<String, Object>> stockValuequeryVariable = this.handleStockParams("fetchOrders", (Map<String, Object>) (parameters), market);
+        Pair<Boolean, Map<String, Object>> stockValuequeryVariable = this.handleStockParams("fetchOrders", parameters, market);
         Boolean stockValue = stockValuequeryVariable.first();
         Map<String, Object> query = stockValuequeryVariable.second();
         Boolean stock = (java.util.Objects.equals(stockValue, true));
@@ -3849,7 +3849,7 @@ public class Backpack extends BackpackApi
         if (Boolean.TRUE.equals(rfq) || (Boolean.TRUE.equals(stock) && (java.util.Objects.equals(market, null))))
         {
             List<Object> rfqResponse = (this.privateGetWapiV1HistoryRfq(this.extend(request, this.omit(accountParams, "marketType")))).join();
-            response = (List<Object>) this.arrayConcat(response, rfqResponse);
+            response = this.arrayConcat(response, rfqResponse);
         }
         List<Object> orders = this.parseOrders(response, market, since, (Long) null, new HashMap<String, Object>() {{}});
         if (Boolean.TRUE.equals(stock))
@@ -4240,7 +4240,7 @@ public class Backpack extends BackpackApi
         return (this.milliseconds() - timeDifference);
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String endpoint = ("/" + path);

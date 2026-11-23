@@ -467,7 +467,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
     {
         Double price = this.safeNumber(delta, 0, (Object) null);
         Double amount = this.safeNumber(delta, 1, (Object) null);
-        ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
+        bookside.store(price, amount);
     }
 
     /**
@@ -1294,7 +1294,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         }
     }
 
-    public Object parseWsOrderTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsOrderTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //    {
@@ -1380,7 +1380,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         List<Object> trades = null;
         if (!java.util.Objects.equals(tradeId, null))
         {
-            Object trade = this.parseWsOrderTrade(order, marketResolved);
+            Trade trade = this.parseWsOrderTrade(order, marketResolved);
             trades = new ArrayList<Object>(Arrays.asList(trade));
         }
         String rawStatus = this.safeString(order, "status");

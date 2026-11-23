@@ -889,7 +889,7 @@ public class Digifinex extends DigifinexApi
         //
         List<Object> spotData = this.safeList(spotMarkets, "symbol_list", new ArrayList<Object>(Arrays.asList()));
         List<Object> swapData = this.safeList(swapMarkets, "data", new ArrayList<Object>(Arrays.asList()));
-        List<Object> response = (List<Object>) this.arrayConcat(spotData, swapData);
+        List<Object> response = this.arrayConcat(spotData, swapData);
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < response.size(); i++)
         {
@@ -2661,12 +2661,12 @@ public class Digifinex extends DigifinexApi
      * @param {string} [params.type] 'spot' or 'margin' for spot markets, defaults to 'spot'
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrdersForSymbols(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrdersForSymbols(List<?> orders, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersForSymbolsCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersForSymbolsCore(Object orders, Map<String, Object> parameters)
+    private Object cancelOrdersForSymbolsCore(List<?> orders, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2677,14 +2677,14 @@ public class Digifinex extends DigifinexApi
         List<Object> symbols = new ArrayList<Object>(Arrays.asList());
         Map<String, Object> symbolsById = new HashMap<String, Object>() {{}};
         String marketType = null;
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
-            String id = this.safeString((orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i)), "id");
+            String id = this.safeString((orders == null || i < 0 || i >= orders.size() ? null : orders.get(i)), "id");
             if (java.util.Objects.equals(id, null))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrdersForSymbols() requires an id for each order")) ;
             }
-            String symbol = this.safeString((orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i)), "symbol");
+            String symbol = this.safeString((orders == null || i < 0 || i >= orders.size() ? null : orders.get(i)), "symbol");
             if (java.util.Objects.equals(symbol, null))
             {
                 throw new ArgumentsRequired((this.id + " cancelOrdersForSymbols() requires a symbol for each order")) ;
@@ -4291,7 +4291,7 @@ public class Digifinex extends DigifinexApi
 
     }
 
-    public Object parseBorrowRate(Object info, Map<String, Object> currency)
+    public Map<String, Object> parseBorrowRate(Object info, Map<String, Object> currency)
     {
         //
         //     {
@@ -5366,7 +5366,7 @@ public class Digifinex extends DigifinexApi
 
     }
 
-    public Object parseDepositWithdrawFees(Object response, List<String> codes, String currencyIdKey)
+    public Map<String, Object> parseDepositWithdrawFees(Object response, List<String> codes, String currencyIdKey)
     {
         //
         //     [
@@ -5500,12 +5500,12 @@ public class Digifinex extends DigifinexApi
 
     }
 
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type, Map<String, Object> parameters)
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Double amount, Object type, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.modifyMarginHelperCore(symbol, amount, type, parameters));
     }
 
-    private Object modifyMarginHelperCore(String symbol, Object amount, Object type, Map<String, Object> parameters)
+    private Object modifyMarginHelperCore(String symbol, Double amount, Object type, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -5598,7 +5598,7 @@ public class Digifinex extends DigifinexApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> request = new HashMap<String, Object>() {{}};
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_timestamp", request, (Map<String, Object>) (parameters), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_timestamp", request, parameters, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> market = null;
@@ -5695,7 +5695,7 @@ public class Digifinex extends DigifinexApi
 
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         Boolean signed = java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "private");
         String endpoint = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));

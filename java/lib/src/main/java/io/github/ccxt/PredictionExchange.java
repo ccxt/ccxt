@@ -605,7 +605,7 @@ public Map<String, Object> describe()
         return outcomeObjValue;
     }
 
-    public Object safeOutcomeSymbol(String outcomeIdOrSymbol, Object outcomeObj)
+    public String safeOutcomeSymbol(String outcomeIdOrSymbol, Object outcomeObj)
     {
         // outcomeObj may be any outcome-shaped dict, not only a market: read it here instead of
         // handing it to safeOutcome (whose fallback slot is a Market)
@@ -614,7 +614,7 @@ public Map<String, Object> describe()
             return this.safeString(outcomeObj, "outcome");
         }
         Map<String, Object> outcomeObjValue = this.safeOutcome((String) (outcomeIdOrSymbol), (Map<String, Object>) null);
-        return outcomeObjValue.get("outcome");
+        return (String) outcomeObjValue.get("outcome");
     }
 
     public String shortenSlug(String slug)
@@ -879,12 +879,12 @@ public Map<String, Object> describe()
         this.populateOutcomes();
     }
 
-    public CompletableFuture<Object> loadOutcomes(Object outcomes, Boolean reload, Map<String, Object> parameters)
+    public CompletableFuture<Object> loadOutcomes(List<String> outcomes, Boolean reload, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.loadOutcomesCore(outcomes, reload, parameters));
     }
 
-    private Object loadOutcomesCore(Object outcomes, Boolean reload, Map<String, Object> parameters)
+    private Object loadOutcomesCore(List<String> outcomes, Boolean reload, Map<String, Object> parameters)
     {
 
         // outcome-addressed methods call this first, mirroring loadMarkets(). two modes:
@@ -899,11 +899,11 @@ public Map<String, Object> describe()
         if (!java.util.Objects.equals(outcomes, null))
         {
             List<Object> missing = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)outcomes).size(); i++)
+            for (var i = 0; i < outcomes.size(); i++)
             {
-                if (java.util.Objects.requireNonNullElse(reload, false) || !this.hasOutcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)))))
+                if (java.util.Objects.requireNonNullElse(reload, false) || !this.hasOutcome((String) ((outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i)))))
                 {
-                    ((List<Object>)missing).add((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)));
+                    ((List<Object>)missing).add((outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i)));
                 }
             }
             Integer missingLength = missing.size();
@@ -913,7 +913,7 @@ public Map<String, Object> describe()
             {
                 // same trade-off as loadOutcome: on venues where the whole universe is one cheap
                 // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
-                (this.loadOutcomes((Object) null, false, new HashMap<String, Object>() {{}})).join();
+                (this.loadOutcomes((List<String>) null, false, new HashMap<String, Object>() {{}})).join();
                 List<Object> stillMissing = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; (missingLength != null && i < missingLength); i++)
                 {
@@ -1009,7 +1009,7 @@ public Map<String, Object> describe()
                 // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
                 // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
                 // the whole listing (which would mask typos and clobber offline-injected markets)
-                (this.loadOutcomes((Object) null, false, new HashMap<String, Object>() {{}})).join();
+                (this.loadOutcomes((List<String>) null, false, new HashMap<String, Object>() {{}})).join();
                 if (this.hasOutcome((String) (outcomeSymbol)))
                 {
                     return this.safeOutcome((String) (outcomeSymbol), (Map<String, Object>) null);
@@ -1143,7 +1143,7 @@ public Map<String, Object> describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure) indexed by outcome
      */
-    public CompletableFuture<PredictionTickers> fetchTickers(Object outcomes, Map<String, Object> parameters)
+    public CompletableFuture<PredictionTickers> fetchTickers(List<String> outcomes, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchTickers() is not supported yet"))).thenApply(PredictionTickers::new);
@@ -1398,7 +1398,7 @@ public Map<String, Object> describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public CompletableFuture<List<PredictionPosition>> fetchPositions(Object outcomes, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionPosition>> fetchPositions(List<String> outcomes, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchPositions() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
@@ -1526,7 +1526,7 @@ public Map<String, Object> describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public CompletableFuture<PredictionTickers> watchTickers(Object outcomes, Map<String, Object> parameters)
+    public CompletableFuture<PredictionTickers> watchTickers(List<String> outcomes, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " watchTickers() is not supported yet"))).thenApply(PredictionTickers::new);
@@ -1577,7 +1577,7 @@ public Map<String, Object> describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public CompletableFuture<List<PredictionPosition>> watchPositions(Object outcomes, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionPosition>> watchPositions(List<String> outcomes, Long since, Long limit, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " watchPositions() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
@@ -1911,7 +1911,7 @@ public Map<String, Object> describe()
         throw new NotSupported((this.id + " parsePredictionOrder() is not supported yet")) ;
     }
 
-    public Object parsePredictionTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parsePredictionTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         throw new NotSupported((this.id + " parsePredictionTrade() is not supported yet")) ;
     }

@@ -344,7 +344,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         if (Boolean.TRUE.equals(isMarketBuy))
         {
             String quoteAmount = null;
-            Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
             Boolean createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.first();
             Map<String, Object> paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.second();
             Double cost = this.safeNumber(paramsRequiresPrice, "cost", (Object) null);
@@ -781,7 +781,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         }
         Map<String, Object> watchOrderBookOptions = this.safeDict(this.options, "watchOrderBook", null);
         String name = this.safeString(watchOrderBookOptions, "name", "book_lv2");
-        Pair<String, Map<String, Object>> nameOptionparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "name", name);
+        Pair<String, Map<String, Object>> nameOptionparamsNameVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "name", name);
         var nameOption = ((List<Object>) nameOptionparamsNameVariable).get(0);
         Map<String, Object> paramsName = nameOptionparamsNameVariable.second();
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribe((String) (nameOption), (String) (nameOption), false, new ArrayList<String>(Arrays.asList(symbol)), paramsName)).join();
@@ -1171,7 +1171,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseWsOrderTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsOrderTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //    {
@@ -1408,7 +1408,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         if (!Precise.stringEq(filledAmount, "0"))
         {
             trades = new ArrayList<Object>(Arrays.asList());
-            Object trade = this.parseWsOrderTrade(order, (Map<String, Object>) null);
+            Trade trade = this.parseWsOrderTrade(order, (Map<String, Object>) null);
             ((List<Object>)trades).add(trade);
         }
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();

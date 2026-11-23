@@ -988,7 +988,7 @@ public class Hibachi extends HibachiApi
 
     }
 
-    public Object orderMessage(Map<String, Object> market, Object nonce, Object feeRate, String type, String side, Object amount, Object price)
+    public Object orderMessage(Map<String, Object> market, Object nonce, Double feeRate, String type, String side, Object amount, Object price)
     {
         Integer sideInternal = 0;
         if (java.util.Objects.equals(side, "sell"))
@@ -1281,12 +1281,12 @@ public class Hibachi extends HibachiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> editOrders(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> editOrders(List<?> orders, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.editOrdersCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object editOrdersCore(Object orders, Map<String, Object> parameters)
+    private Object editOrdersCore(List<?> orders, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1296,7 +1296,7 @@ public class Hibachi extends HibachiApi
         Long nonceValue = this.incrementingNonce();
         Long nonce = this.parseToInt(nonceValue);
         List<Object> requestOrders = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             Map<String, Object> rawOrder = this.safeDict(orders, i, null);
             String id = this.safeString(rawOrder, "id");
@@ -1474,7 +1474,7 @@ public class Hibachi extends HibachiApi
 
     }
 
-    public Object encodeWithdrawMessage(Object amount, Object maxFees, String address)
+    public Object encodeWithdrawMessage(Double amount, Double maxFees, String address)
     {
         // Converting them to internal representation:
         // - Quantity: Internal = External * (10^6)
@@ -2141,7 +2141,7 @@ public class Hibachi extends HibachiApi
         }});
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String endpoint = ("/" + this.implodeParams(path, parameters));
@@ -2415,7 +2415,7 @@ public class Hibachi extends HibachiApi
         // }
         //
         List<Object> rowsTradingHistory = this.safeList(responseTradingHistory, "tradingHistory", new ArrayList<Object>(Arrays.asList()));
-        List<Object> rows = (List<Object>) this.arrayConcat(rowsCapitalHistory, rowsTradingHistory);
+        List<Object> rows = this.arrayConcat(rowsCapitalHistory, rowsTradingHistory);
         return this.parseLedger(rows, currency, since, limit, parameters);
 
     }
@@ -2647,9 +2647,9 @@ public class Hibachi extends HibachiApi
      * @param {int} [params.until] timestamp in ms of the latest settlement
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
      */
-    public CompletableFuture<Object> fetchMySettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMySettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMySettlementHistoryCore(symbol, since, limit, parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchMySettlementHistoryCore(symbol, since, limit, parameters)).thenApply(res -> (List<Object>) res);
     }
 
     private Object fetchMySettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)

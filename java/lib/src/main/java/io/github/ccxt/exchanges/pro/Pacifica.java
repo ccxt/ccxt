@@ -878,7 +878,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
     private Object watchMyTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("watchMyTrades", (Map<String, Object>) (parameters));
+        List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("watchMyTrades", parameters);
         String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
         Map<String, Object> paramsOriginAndSingleAddress = (Map<String, Object>) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
         if (java.util.Objects.equals(this.markets, null))
@@ -949,7 +949,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             throw new NotSupported((this.id + " unWatchMyTrades does not support a symbol argument, unWatch from all markets only")) ;
         }
-        List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("unWatchMyTrades", (Map<String, Object>) (parameters));
+        List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("unWatchMyTrades", parameters);
         String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
         Map<String, Object> paramsOriginAndSingleAddress = (Map<String, Object>) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
         String messageHash = "unsubscribe:myTrades";
@@ -1497,7 +1497,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("watchOrders", (Map<String, Object>) (parameters));
+        List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("watchOrders", parameters);
         String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
         Map<String, Object> paramsOriginAndSingleAddress = (Map<String, Object>) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
         Map<String, Object> market = null;
@@ -1580,7 +1580,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         {
             throw new ExchangeError((this.id + " has no websocket url for this endpoint")) ;
         }
-        List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("unWatchOrders", (Map<String, Object>) (parameters));
+        List<Object> userAddressparamsOriginAndSingleAddressVariable = (List<Object>) this.handleOriginAndSingleAddress("unWatchOrders", parameters);
         String userAddress = (String) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(0);
         Map<String, Object> paramsOriginAndSingleAddress = (Map<String, Object>) ((List<Object>) userAddressparamsOriginAndSingleAddressVariable).get(1);
         Map<String, Object> request = new HashMap<String, Object>() {{

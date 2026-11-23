@@ -1535,7 +1535,7 @@ public class Hitbtc extends HitbtcApi
             Map<String, Object> marketInner = this.market(marketId);
             List<Object> rawTrades = this.safeList(response, marketId, new ArrayList<Object>(Arrays.asList()));
             List<Object> parsed = this.parseTrades(rawTrades, marketInner, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-            trades = (List<Object>) this.arrayConcat(trades, parsed);
+            trades = this.arrayConcat(trades, parsed);
         }
         return trades;
 
@@ -2206,7 +2206,7 @@ public class Hitbtc extends HitbtcApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -3317,12 +3317,12 @@ public class Hitbtc extends HitbtcApi
         }};
     }
 
-    public CompletableFuture<Map<String, Object>> convertCurrencyNetwork(String code, Object amount, String fromNetwork, String toNetwork, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> convertCurrencyNetwork(String code, Double amount, String fromNetwork, String toNetwork, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.convertCurrencyNetworkCore(code, amount, fromNetwork, toNetwork, parameters));
     }
 
-    private Map<String, Object> convertCurrencyNetworkCore(String code, Object amount, String fromNetwork, String toNetwork, Map<String, Object> parameters)
+    private Map<String, Object> convertCurrencyNetworkCore(String code, Double amount, String fromNetwork, String toNetwork, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3499,7 +3499,7 @@ public class Hitbtc extends HitbtcApi
             {
                 continue;
             }
-            Map<String, Object> rawFundingRate = this.safeDict(response, marketId, null);
+            Map<String, Object> rawFundingRate = this.safeDict(response, marketId, new HashMap<String, Object>() {{}});
             Map<String, Object> marketInner = this.market(marketId);
             String symbol = this.safeSymbol(marketId, marketInner, (String) null, (String) null);
             Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(rawFundingRate, marketInner);
@@ -3534,7 +3534,7 @@ public class Hitbtc extends HitbtcApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -4103,12 +4103,12 @@ public class Hitbtc extends HitbtcApi
         }};
     }
 
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, String type, Map<String, Object> parameters)
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Double amount, String type, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.modifyMarginHelperCore(symbol, amount, type, parameters));
     }
 
-    private Object modifyMarginHelperCore(String symbol, Object amount, String type, Map<String, Object> parameters)
+    private Object modifyMarginHelperCore(String symbol, Double amount, String type, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -4639,7 +4639,7 @@ public class Hitbtc extends HitbtcApi
         return null;
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object query = this.omit(parameters, this.extractParams(path));

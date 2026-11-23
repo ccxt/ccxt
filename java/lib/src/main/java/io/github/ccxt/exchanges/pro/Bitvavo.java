@@ -338,7 +338,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         String symbolValue = this.symbol(symbol);
-        List<Object> trades = (List<Object>) (this.watchPublic("trades", (String) (symbolValue), parameters)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.watchPublic("trades", (String) (symbolValue), parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -923,14 +923,14 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
     {
         Double price = this.safeFloat(delta, 0);
         Double amount = this.safeFloat(delta, 1);
-        ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
+        bookside.store(price, amount);
     }
 
-    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, Object deltas)
+    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, List<Object> deltas)
     {
-        for (var i = 0; i < ((List<?>)deltas).size(); i++)
+        for (var i = 0; i < deltas.size(); i++)
         {
-            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= deltas.size() ? null : deltas.get(i)));
         }
     }
 
@@ -953,8 +953,8 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         Long currentNonce = this.safeInteger(orderbook, "nonce");
         if ((!java.util.Objects.equals(nonce, null)) && (!java.util.Objects.equals(currentNonce, null)) && ((nonce != null && (currentNonce == null || nonce > currentNonce))))
         {
-            this.handleDeltas((orderbook == null ? null : orderbook.asks), this.safeList(message, "asks", new ArrayList<Object>(Arrays.asList())));
-            this.handleDeltas((orderbook == null ? null : orderbook.bids), this.safeList(message, "bids", new ArrayList<Object>(Arrays.asList())));
+            this.handleDeltas((orderbook == null ? null : orderbook.asks), (List<Object>) (this.safeList(message, "asks", new ArrayList<Object>(Arrays.asList()))));
+            this.handleDeltas((orderbook == null ? null : orderbook.bids), (List<Object>) (this.safeList(message, "bids", new ArrayList<Object>(Arrays.asList()))));
             orderbook.put("nonce", nonce);
         }
         return orderbook;
@@ -1697,7 +1697,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         (this.authenticate(new HashMap<String, Object>() {{}})).join();
-        Map<String, Object> request = (Map<String, Object>) this.withdrawRequest((String) (code), amount, (String) (address), tagWithdrawTag, paramsWithdrawTag);
+        Map<String, Object> request = (Map<String, Object>) this.withdrawRequest((String) (code), (Double) (amount), (String) (address), tagWithdrawTag, paramsWithdrawTag);
         return (this.watchRequest("privateWithdrawAssets", request)).join();
 
     }
@@ -1886,7 +1886,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         (this.authenticate(new HashMap<String, Object>() {{}})).join();
-        return (this.watchRequest("privateGetAccount", (Map<String, Object>) (parameters))).join();
+        return (this.watchRequest("privateGetAccount", parameters)).join();
 
     }
 
@@ -1906,7 +1906,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
     private Object fetchMarketsWsCore(Map<String, Object> parameters)
     {
 
-        return (this.watchRequest("getMarkets", (Map<String, Object>) (parameters))).join();
+        return (this.watchRequest("getMarkets", parameters)).join();
 
     }
 
@@ -1930,7 +1930,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        return (this.watchRequest("getAssets", (Map<String, Object>) (parameters))).join();
+        return (this.watchRequest("getAssets", parameters)).join();
 
     }
 
@@ -2003,7 +2003,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         (this.authenticate(new HashMap<String, Object>() {{}})).join();
-        return (this.watchRequest("privateGetBalance", (Map<String, Object>) (parameters))).join();
+        return (this.watchRequest("privateGetBalance", parameters)).join();
 
     }
 

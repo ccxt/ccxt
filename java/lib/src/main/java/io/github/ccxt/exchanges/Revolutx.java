@@ -257,7 +257,7 @@ public class Revolutx extends RevolutxApi
         }});
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         Map<String, Object> requestHeaders = null;
         String implodedPath = (String) this.implodeParams(path, parameters);

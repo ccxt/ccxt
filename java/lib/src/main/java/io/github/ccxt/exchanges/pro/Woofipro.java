@@ -503,7 +503,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             put( "topic", topic );
         }};
         Map<String, Object> message = this.extend(request, parameters);
-        List<Object> ohlcv = (List<Object>) (this.watchPublic(topic, message)).join();
+        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) (this.watchPublic(topic, message)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -588,7 +588,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             put( "topic", topic );
         }};
         Map<String, Object> message = this.extend(request, parameters);
-        List<Object> trades = (List<Object>) (this.watchPublic(topic, message)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.watchPublic(topic, message)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -866,7 +866,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         request.put("event", "subscribe");
         request.put("topic", topic);
         Map<String, Object> message = this.extend(request, paramsOmitted);
-        List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, message, new HashMap<String, Object>() {{}})).join();
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.watchPrivate(messageHash, message, new HashMap<String, Object>() {{}})).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -923,7 +923,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         request.put("event", "subscribe");
         request.put("topic", topic);
         Map<String, Object> message = this.extend(request, paramsOmitted);
-        List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, message, new HashMap<String, Object>() {{}})).join();
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.watchPrivate(messageHash, message, new HashMap<String, Object>() {{}})).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {

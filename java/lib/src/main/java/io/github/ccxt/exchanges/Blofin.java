@@ -1090,7 +1090,7 @@ public class Blofin extends BlofinApi
         Map<String, Object> response = (this.publicGetMarketTickers(this.extend(request, parameters))).join();
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-        return this.parseTicker((Map<String, Object>) (first), market);
+        return this.parseTicker(first, market);
 
     }
 
@@ -1123,7 +1123,7 @@ public class Blofin extends BlofinApi
         Map<String, Object> response = (this.publicGetMarketMarkPrice(this.extend(request, parameters))).join();
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-        return this.parseTicker((Map<String, Object>) (first), market);
+        return this.parseTicker(first, market);
 
     }
 
@@ -1368,7 +1368,7 @@ public class Blofin extends BlofinApi
         Map<String, Object> market = this.market(symbol);
         Boolean paginate = false;
         Map<String, Object> query = null;
-        Pair<Boolean, Map<String, Object>> paginatequeryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginatequeryVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         paginate = paginatequeryVariable.first();
         query = paginatequeryVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -1430,7 +1430,7 @@ public class Blofin extends BlofinApi
         }
         Boolean paginate = false;
         Map<String, Object> query = null;
-        Pair<Boolean, Map<String, Object>> paginatequeryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginatequeryVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         paginate = paginatequeryVariable.first();
         query = paginatequeryVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -1717,7 +1717,7 @@ public class Blofin extends BlofinApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<String, Map<String, Object>> accountTypeparamsAccountTypeVariable = this.handleOptionStringAndParams2((Map<String, Object>) (parameters), "fetchBalance", "accountType", "type", (String) null);
+        Pair<String, Map<String, Object>> accountTypeparamsAccountTypeVariable = this.handleOptionStringAndParams2(parameters, "fetchBalance", "accountType", "type", (String) null);
         String accountType = accountTypeparamsAccountTypeVariable.first();
         Map<String, Object> paramsAccountType = accountTypeparamsAccountTypeVariable.second();
         Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -2025,7 +2025,7 @@ public class Blofin extends BlofinApi
         Boolean isStopLossPriceDefined = !java.util.Objects.equals(this.safeString(parameters, "stopLossPrice"), null);
         Boolean isTakeProfitPriceDefined = !java.util.Objects.equals(this.safeString(parameters, "takeProfitPrice"), null);
         Boolean isTriggerOrder = !java.util.Objects.equals(this.safeString(parameters, "triggerPrice"), null);
-        Pair<Boolean, Map<String, Object>> isTpslEndpointparamsTpslVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "createOrder", "tpsl", false);
+        Pair<Boolean, Map<String, Object>> isTpslEndpointparamsTpslVariable = this.handleOptionBoolAndParams(parameters, "createOrder", "tpsl", false);
         Boolean isTpslEndpoint = isTpslEndpointparamsTpslVariable.first();
         Map<String, Object> paramsTpsl = isTpslEndpointparamsTpslVariable.second();
         Boolean isCombinedSlTp = (Boolean.TRUE.equals(isStopLossPriceDefined) && Boolean.TRUE.equals(isTakeProfitPriceDefined)) || Boolean.TRUE.equals(isTpslEndpoint);
@@ -2052,11 +2052,11 @@ public class Blofin extends BlofinApi
         if (Boolean.TRUE.equals(isCombinedSlTp) || Boolean.TRUE.equals(isSlOrTp) || Boolean.TRUE.equals(isTriggerOrder))
         {
             Map<String, Object> dataDict = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder((Map<String, Object>) (dataDict), market);
+            return this.parseOrder(dataDict, market);
         }
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> first = this.safeDict(data, 0, null);
-        Map<String, Object> order = (Map<String, Object>) this.parseOrder((Map<String, Object>) (first), market);
+        Map<String, Object> order = (Map<String, Object>) this.parseOrder(first, market);
         order.put("type", type);
         order.put("side", side);
         return order;
@@ -2197,12 +2197,12 @@ public class Blofin extends BlofinApi
         {
             Map<String, Object> triggerResponse = (this.privatePostTradeCancelAlgo(this.extend(request, query))).join();
             Map<String, Object> triggerData = this.safeDict(triggerResponse, "data", null);
-            return this.parseOrder((Map<String, Object>) (triggerData), market);
+            return this.parseOrder(triggerData, market);
         }
         Map<String, Object> response = (this.privatePostTradeCancelOrder(this.extend(request, query))).join();
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> order = this.safeDict(data, 0, null);
-        return this.parseOrder((Map<String, Object>) (order), market);
+        return this.parseOrder(order, market);
 
     }
 
@@ -2337,7 +2337,7 @@ public class Blofin extends BlofinApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOpenOrders", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -2405,7 +2405,7 @@ public class Blofin extends BlofinApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -2494,7 +2494,7 @@ public class Blofin extends BlofinApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchDeposits", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -2550,7 +2550,7 @@ public class Blofin extends BlofinApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchWithdrawals", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -3169,7 +3169,7 @@ public class Blofin extends BlofinApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchLedger", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -3508,7 +3508,7 @@ public class Blofin extends BlofinApi
         }};
         Map<String, Object> response = (this.privatePostAssetTransfer(this.extend(request, parameters))).join();
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.parseTransfer((Map<String, Object>) (data), currency);
+        return this.parseTransfer(data, currency);
 
     }
 
@@ -3640,7 +3640,7 @@ public class Blofin extends BlofinApi
         {
             request.put("begin", since);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", request, (Map<String, Object>) (parameters), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", request, parameters, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = (this.privateGetAccountPositionsHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -3967,7 +3967,7 @@ public class Blofin extends BlofinApi
         //     }
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.parseLeverage((Map<String, Object>) (data), market);
+        return this.parseLeverage(data, market);
 
     }
 
@@ -4109,7 +4109,7 @@ public class Blofin extends BlofinApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchClosedOrders", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -4182,7 +4182,7 @@ public class Blofin extends BlofinApi
         //     }
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.parseMarginMode((Map<String, Object>) (data), market);
+        return this.parseMarginMode(data, market);
 
     }
 
@@ -4237,7 +4237,7 @@ public class Blofin extends BlofinApi
         //     }
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.parseMarginMode((Map<String, Object>) (data), market);  // Dict, not MarginMode: this override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
+        return this.parseMarginMode(data, market);  // Dict, not MarginMode: this override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
 
     }
 
@@ -4370,7 +4370,7 @@ public class Blofin extends BlofinApi
 
     }
 
-    public Object parseADLRank(Map<String, Object> info, Map<String, Object> market)
+    public Map<String, Object> parseADLRank(Map<String, Object> info, Map<String, Object> market)
     {
         //
         // fetchPositionsADLRank
@@ -4450,7 +4450,7 @@ public class Blofin extends BlofinApi
         return null;
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String request = ((("/api/" + this.version) + "/") + this.implodeParams(path, parameters));

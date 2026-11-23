@@ -534,7 +534,7 @@ public class Lighter extends LighterApi
         {
             return signer;
         }
-        String libraryPath = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (parameters), "loadAccount", "libraryPath", (String) null)).get(0);
+        String libraryPath = (String) ((List<Object>)this.handleOptionStringAndParams(parameters, "loadAccount", "libraryPath", (String) null)).get(0);
         Boolean lighterPrivateKeyIsSet = (!java.util.Objects.equals(privateKey, null)) && (!java.util.Objects.equals(privateKey, ""));
         if (Boolean.TRUE.equals(lighterPrivateKeyIsSet) && (!java.util.Objects.equals(libraryPath, null)) && (!java.util.Objects.equals(apiKeyIndex, null)) && (!java.util.Objects.equals(accountIndex, null)))
         {
@@ -719,12 +719,12 @@ public class Lighter extends LighterApi
 
     }
 
-    public CompletableFuture<Object> createSubAccount(Object name, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> createSubAccount(Object name, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createSubAccountCore(name, parameters));
     }
 
-    private Object createSubAccountCore(Object name, Map<String, Object> parameters)
+    private Map<String, Object> createSubAccountCore(Object name, Map<String, Object> parameters)
     {
 
         List<Object> apiKeyIndexparamsApiKeyIndexVariable = (List<Object>) this.handleApiKeyIndex(parameters, "createSubAccount", "apiKeyIndex", "api_key_index", (Object) null);
@@ -1253,7 +1253,7 @@ public class Lighter extends LighterApi
             return this.parseToInt(nonceInOptions);
         }
         // avoid skipNonce for l1 operations
-        Boolean skipNonce = (Boolean) ((List<Object>)this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchNonce", "skipNonce", true)).get(0);
+        Boolean skipNonce = (Boolean) ((List<Object>)this.handleOptionBoolAndParams(parameters, "fetchNonce", "skipNonce", true)).get(0);
         if (Boolean.TRUE.equals(skipNonce))
         {
             return this.milliseconds();
@@ -1652,7 +1652,7 @@ public class Lighter extends LighterApi
         //
         List<Object> spotMarkets = this.safeList(response, "spot_order_book_details", new ArrayList<Object>(Arrays.asList()));
         List<Object> swapMarkets = this.safeList(response, "order_book_details", new ArrayList<Object>(Arrays.asList()));
-        List<Object> markets = (List<Object>) this.arrayConcat(spotMarkets, swapMarkets);
+        List<Object> markets = this.arrayConcat(spotMarkets, swapMarkets);
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < markets.size(); i++)
         {
@@ -2070,7 +2070,7 @@ public class Lighter extends LighterApi
         //
         List<Object> spotTickers = this.safeList(response, "spot_order_book_details", new ArrayList<Object>(Arrays.asList()));
         List<Object> swapTickers = this.safeList(response, "order_book_details", new ArrayList<Object>(Arrays.asList()));
-        List<Object> tickers = (List<Object>) this.arrayConcat(spotTickers, swapTickers);
+        List<Object> tickers = this.arrayConcat(spotTickers, swapTickers);
         return this.parseTicker(this.safeDict(tickers, 0, new HashMap<String, Object>() {{}}), market);
 
     }
@@ -2100,7 +2100,7 @@ public class Lighter extends LighterApi
         Map<String, Object> response = (this.publicGetOrderBookDetails(parameters)).join();
         List<Object> spotTickers = this.safeList(response, "spot_order_book_details", new ArrayList<Object>(Arrays.asList()));
         List<Object> swapTickers = this.safeList(response, "order_book_details", new ArrayList<Object>(Arrays.asList()));
-        List<Object> tickers = (List<Object>) this.arrayConcat(spotTickers, swapTickers);
+        List<Object> tickers = this.arrayConcat(spotTickers, swapTickers);
         return this.parseTickers(tickers, symbolsNormalized, new HashMap<String, Object>() {{}});
 
     }
@@ -3207,7 +3207,7 @@ public class Lighter extends LighterApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTransfers", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -3329,7 +3329,7 @@ public class Lighter extends LighterApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchDeposits", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -3410,7 +3410,7 @@ public class Lighter extends LighterApi
     private Object fetchWithdrawalsCore(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchWithdrawals", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -3689,7 +3689,7 @@ public class Lighter extends LighterApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -3875,7 +3875,7 @@ public class Lighter extends LighterApi
         {
             throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
         }
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleOptionStringAndParams2((Map<String, Object>) (parameters), "setLeverage", "marginMode", "margin_mode", (String) null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleOptionStringAndParams2(parameters, "setLeverage", "marginMode", "margin_mode", (String) null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         if (java.util.Objects.equals(marginMode, null))
@@ -4249,12 +4249,12 @@ public class Lighter extends LighterApi
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
-    public CompletableFuture<MarginModification> setMargin(String symbol, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginModification> setMargin(String symbol, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setMarginCore(symbol, amount, parameters)).thenApply(MarginModification::new);
     }
 
-    private Object setMarginCore(String symbol, Object amount, Map<String, Object> parameters)
+    private Object setMarginCore(String symbol, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -4321,7 +4321,7 @@ public class Lighter extends LighterApi
         }};
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String url = null;

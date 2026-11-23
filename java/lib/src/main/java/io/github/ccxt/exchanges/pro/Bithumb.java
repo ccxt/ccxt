@@ -1246,7 +1246,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         return this.safeOrder(mapLiteral7, market);
     }
 
-    public void handleTextMessage(Client client, Object message)
+    public void handleTextMessage(Client client, String message)
     {
         String content = ((String)message).toLowerCase();
         if (java.util.Objects.equals(content, "pong"))

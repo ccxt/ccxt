@@ -789,8 +789,8 @@ public class Grvt extends GrvtApi
         {
             throw new PermissionDenied("Private key is required for this operation. If you used joined GRVT through email registration instead of Web3 wallet, then read: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-grvt-exchange-in-ccxt") ;
         }
-        (this.signInWithPrivateKey(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })))).join();
-        (this.initializeClient(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })))).join();
+        (this.signInWithPrivateKey(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })))).join();
+        (this.initializeClient(((Map<String, Object>) (switch ((Object) (parameters)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
         (this.loadAccountInfos()).join();
         return true;
 
@@ -1544,7 +1544,7 @@ public class Grvt extends GrvtApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -1647,7 +1647,7 @@ public class Grvt extends GrvtApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -1745,7 +1745,7 @@ public class Grvt extends GrvtApi
 
         (this.loadMarketsAndSignIn()).join();
         Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (parameters)) );
+            put( "sub_account_id", Grvt.this.getSubAccountId(parameters) );
         }};
         Map<String, Object> response = (this.privateTradingPostFullV1AccountSummary(this.extend(request, parameters))).join();
         //
@@ -2173,7 +2173,7 @@ public class Grvt extends GrvtApi
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         Map<String, Object> currency = this.currency((String) (code));
         Long maxLimit = 1000L;
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTransfers", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -2282,7 +2282,7 @@ public class Grvt extends GrvtApi
         Map<String, Object> paramsFundingAccountId = parameters;
         if (Boolean.TRUE.equals(isInternal))
         {
-            Pair<String, Map<String, Object>> tradingAccountIdparamsTradingAccountIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "transfer", "tradingAccountId", (String) null);
+            Pair<String, Map<String, Object>> tradingAccountIdparamsTradingAccountIdVariable = this.handleOptionStringAndParams(parameters, "transfer", "tradingAccountId", (String) null);
             String tradingAccountId = tradingAccountIdparamsTradingAccountIdVariable.first();
             Map<String, Object> paramsTradingAccountId = tradingAccountIdparamsTradingAccountIdVariable.second();
             Pair<String, Map<String, Object>> fundingAccountIdparamsFundingVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsTradingAccountId), "transfer", "fundingAccountId", (String) null);
@@ -2491,7 +2491,7 @@ public class Grvt extends GrvtApi
         (this.loadMarketsAndSignIn()).join();
         String defaultFromAccountId = this.safeString(this.options, "userMainAccountId");
         Map<String, Object> currency = this.currency((String) (code));
-        List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
+        List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
         String networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
         Map<String, Object> query = (Map<String, Object>) ((List<Object>) networkCodequeryVariable).get(1);
         String networkId = this.networkCodeToId(networkCode, code);
@@ -2857,7 +2857,7 @@ public class Grvt extends GrvtApi
     {
 
         (this.loadMarketsAndSignIn()).join();
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -2941,7 +2941,7 @@ public class Grvt extends GrvtApi
 
         (this.loadMarketsAndSignIn()).join();
         Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (parameters)) );
+            put( "sub_account_id", Grvt.this.getSubAccountId(parameters) );
         }};
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
         if (!java.util.Objects.equals(symbolsNormalized, null))
@@ -3083,7 +3083,7 @@ public class Grvt extends GrvtApi
 
         (this.loadMarketsAndSignIn()).join();
         Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (parameters)) );
+            put( "sub_account_id", Grvt.this.getSubAccountId(parameters) );
         }};
         Map<String, Object> response = (this.privateTradingPostFullV1GetAllInitialLeverage(this.extend(request, parameters))).join();
         //
@@ -3127,7 +3127,7 @@ public class Grvt extends GrvtApi
         (this.loadMarketsAndSignIn()).join();
         Map<String, Object> market = this.market(symbol);
         Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (parameters)) );
+            put( "sub_account_id", Grvt.this.getSubAccountId(parameters) );
             put( "instrument", market.get("id") );
             put( "leverage", Grvt.this.numberToString(leverage) );
         }};
@@ -3191,7 +3191,7 @@ public class Grvt extends GrvtApi
 
         (this.loadMarketsAndSignIn()).join();
         Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (parameters)) );
+            put( "sub_account_id", Grvt.this.getSubAccountId(parameters) );
         }};
         Map<String, Object> response = (this.privateTradingPostFullV1GetAllInitialLeverage(this.extend(request, parameters))).join();
         //
@@ -3253,7 +3253,7 @@ public class Grvt extends GrvtApi
     {
 
         (this.loadMarketsAndSignIn()).join();
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingHistory", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -3350,7 +3350,7 @@ public class Grvt extends GrvtApi
     {
 
         (this.loadMarketsAndSignIn()).join();
-        String subAccountId = this.getSubAccountId((Map<String, Object>) (parameters));
+        String subAccountId = this.getSubAccountId(parameters);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "sub_account_id", subAccountId );
         }};
@@ -3461,7 +3461,7 @@ public class Grvt extends GrvtApi
 
         (this.loadMarketsAndSignIn()).join();
         Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (parameters)) );
+            put( "sub_account_id", Grvt.this.getSubAccountId(parameters) );
         }};
         Map<String, Object> response = (this.privateTradingPostFullV1OpenOrders(this.extend(request, parameters))).join();
         //
@@ -3549,7 +3549,7 @@ public class Grvt extends GrvtApi
     {
 
         (this.loadMarketsAndSignIn()).join();
-        String subAccountId = this.getSubAccountId((Map<String, Object>) (parameters));
+        String subAccountId = this.getSubAccountId(parameters);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "sub_account_id", subAccountId );
         }};
@@ -3724,7 +3724,7 @@ public class Grvt extends GrvtApi
         Integer primaryOrderIndex = 0;
         Map<String, Object> firstLeg = this.safeDict(legs, primaryOrderIndex, null);
         String legMarketId = this.safeString(firstLeg, "instrument");
-        Object marketResolved = (((!java.util.Objects.equals(firstLeg, null)))) ? this.safeMarket(legMarketId, market, (String) null, (String) null) : market;
+        Map<String, Object> marketResolved = (((!java.util.Objects.equals(firstLeg, null)))) ? this.safeMarket(legMarketId, market, (String) null, (String) null) : market;
         if (!java.util.Objects.equals(firstLeg, null))
         {
             size = this.safeString(firstLeg, "size");
@@ -3760,7 +3760,7 @@ public class Grvt extends GrvtApi
         mapLiteral6.put("fees", null);
         mapLiteral6.put("reduceOnly", isReduceOnly);
         mapLiteral6.put("info", order);
-        return this.safeOrder(mapLiteral6, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
+        return this.safeOrder(mapLiteral6, marketResolved);
     }
 
     public String parseTimeInForce(String type)
@@ -3818,7 +3818,7 @@ public class Grvt extends GrvtApi
 
         (this.loadMarketsAndSignIn()).join();
         Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "sub_account_id", Grvt.this.getSubAccountId((Map<String, Object>) (parameters)) );
+            put( "sub_account_id", Grvt.this.getSubAccountId(parameters) );
         }};
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -3859,7 +3859,7 @@ public class Grvt extends GrvtApi
     {
 
         (this.loadMarketsAndSignIn()).join();
-        String subAccoubntId = this.getSubAccountId((Map<String, Object>) (parameters));
+        String subAccoubntId = this.getSubAccountId(parameters);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "sub_account_id", subAccoubntId );
         }};
@@ -4038,7 +4038,7 @@ public class Grvt extends GrvtApi
         return requestId;
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         Map<String, Object> requestHeaders = null;
         String requestBody = null;

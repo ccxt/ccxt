@@ -147,7 +147,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<Object> trades = (List<Object>) (this.watchMultipleWrapper(true, "trades", "watchTradesForSymbols", symbols, parameters)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.watchMultipleWrapper(true, "trades", "watchTradesForSymbols", symbols, parameters)).join();
         Map<String, Object> firstMarket = this.safeDict(trades, 0, null);
         String firstSymbol = this.safeString(firstMarket, "symbol");
         Long limitResolved = limit;
@@ -1257,7 +1257,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         }};
     }
 
-    public void handleTextMessage(Client client, Object message)
+    public void handleTextMessage(Client client, String message)
     {
         if (java.util.Objects.equals(message, "pong"))
         {

@@ -131,7 +131,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
     private Object watchTradesForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        List<Object> trades = (List<Object>) (this.helperForWatchMultipleConstruct("trades", symbols, parameters)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.helperForWatchMultipleConstruct("trades", symbols, parameters)).join();
         Map<String, Object> first = this.safeDict(trades, 0, null);
         String tradeSymbol = this.safeString(first, "symbol");
         Long limitResolved = limit;

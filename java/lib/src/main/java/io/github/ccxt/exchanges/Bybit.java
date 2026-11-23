@@ -2373,7 +2373,7 @@ public class Bybit extends BybitApi
         {
             this.urls.put("apiBackupDemoTrading", this.urls.get("api"));
             this.urls.put("api", this.urls.get("demotrading"));
-        } else if (((Map<?, ?>)this.urls).containsKey("apiBackupDemoTrading"))
+        } else if (this.urls.containsKey("apiBackupDemoTrading"))
         {
             this.urls.put("api", this.urls.get("apiBackupDemoTrading"));
             Map<String, Object> newUrls = this.omit(this.urls, "apiBackupDemoTrading");
@@ -2989,7 +2989,7 @@ public class Bybit extends BybitApi
         for (var i = 0; i < promises.size(); i++)
         {
             Object parsedMarket = (promises == null || i < 0 || i >= promises.size() ? null : promises.get(i));
-            result = (List<Object>) this.arrayConcat(result, parsedMarket);
+            result = this.arrayConcat(result, parsedMarket);
         }
         // const spotMarkets = this.safeList (promises, 0, []);
         // const linearMarkets = this.safeList (promises, 1, []);
@@ -3006,12 +3006,12 @@ public class Bybit extends BybitApi
 
     }
 
-    public CompletableFuture<Object> fetchSpotMarkets(Object parameters)
+    public CompletableFuture<List<Object>> fetchSpotMarkets(Object parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchSpotMarketsCore(parameters));
     }
 
-    private Object fetchSpotMarketsCore(Object parameters)
+    private List<Object> fetchSpotMarketsCore(Object parameters)
     {
 
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3184,7 +3184,7 @@ public class Bybit extends BybitApi
                 {
                     break;
                 }
-                markets = (List<Object>) this.arrayConcat(rawMarkets, markets);
+                markets = this.arrayConcat(rawMarkets, markets);
                 paginationCursor = this.safeString(dataNew, "nextPageCursor");
             }
         }
@@ -3234,7 +3234,7 @@ public class Bybit extends BybitApi
         //
         Map<String, Object> preLaunchData = this.safeDict(preLaunchMarkets, "result", new HashMap<String, Object>() {{}});
         List<Object> preLaunchMarketsList = this.safeList(preLaunchData, "list", new ArrayList<Object>(Arrays.asList()));
-        markets = (List<Object>) this.arrayConcat(markets, preLaunchMarketsList);
+        markets = this.arrayConcat(markets, preLaunchMarketsList);
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         String category = this.safeString(data, "category");
         for (var i = 0; i < markets.size(); i++)
@@ -3367,12 +3367,12 @@ public class Bybit extends BybitApi
 
     }
 
-    public CompletableFuture<Object> fetchOptionMarkets(Object parameters)
+    public CompletableFuture<List<Object>> fetchOptionMarkets(Object parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOptionMarketsCore(parameters));
     }
 
-    private Object fetchOptionMarketsCore(Object parameters)
+    private List<Object> fetchOptionMarketsCore(Object parameters)
     {
 
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3414,7 +3414,7 @@ public class Bybit extends BybitApi
                     {
                         break;
                     }
-                    markets = (List<Object>) this.arrayConcat(rawMarkets, markets);
+                    markets = this.arrayConcat(rawMarkets, markets);
                     paginationCursor = this.safeString(dataNew, "nextPageCursor");
                 }
             }
@@ -3969,7 +3969,7 @@ public class Bybit extends BybitApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -4279,7 +4279,7 @@ public class Bybit extends BybitApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -5598,7 +5598,7 @@ public class Bybit extends BybitApi
         {
             defaultMethod = "privatePostV5OrderCreate";
         }
-        String method = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "method", defaultMethod)).get(0);
+        String method = (String) ((List<Object>)this.handleOptionStringAndParams(parameters, "createOrder", "method", defaultMethod)).get(0);
         Map<String, Object> response = null;
         if (java.util.Objects.equals(method, "privatePostV5PositionTradingStop"))
         {
@@ -5669,7 +5669,7 @@ public class Bybit extends BybitApi
         }
         String method = null;
         Map<String, Object> query = null;
-        Pair<String, Map<String, Object>> methodqueryVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "method", defaultMethod);
+        Pair<String, Map<String, Object>> methodqueryVariable = this.handleOptionStringAndParams(parameters, "createOrder", "method", defaultMethod);
         method = methodqueryVariable.first();
         query = methodqueryVariable.second();
         Boolean endpointIsTradingStop = java.util.Objects.equals(method, "privatePostV5PositionTradingStop");
@@ -6256,12 +6256,12 @@ public class Bybit extends BybitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> editOrders(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> editOrders(List<?> orders, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.editOrdersCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object editOrdersCore(Object orders, Map<String, Object> parameters)
+    private Object editOrdersCore(List<?> orders, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -6270,7 +6270,7 @@ public class Bybit extends BybitApi
         }
         List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
         List<String> orderSymbols = new ArrayList<String>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             Map<String, Object> rawOrder = this.safeDict(orders, i, null);
             String symbol = this.safeString(rawOrder, "symbol");
@@ -6586,12 +6586,12 @@ public class Bybit extends BybitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrdersForSymbols(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrdersForSymbols(List<?> orders, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersForSymbolsCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersForSymbolsCore(Object orders, Map<String, Object> parameters)
+    private Object cancelOrdersForSymbolsCore(List<?> orders, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -6608,7 +6608,7 @@ public class Bybit extends BybitApi
         String category = null;
         // getBybitType consumes its options from the params threaded through every order
         Map<String, Object> query = parameters;
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             Map<String, Object> order = this.safeDict(orders, i, null);
             String symbol = this.safeString(order, "symbol");
@@ -6868,7 +6868,7 @@ public class Bybit extends BybitApi
         {
             return (this.fetchOrderClassic((String) (id), symbol, parameters)).join();
         }
-        Pair<Boolean, Map<String, Object>> acknowledgeparamsAcknowledgedVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrder", "acknowledged", false);
+        Pair<Boolean, Map<String, Object>> acknowledgeparamsAcknowledgedVariable = this.handleOptionBoolAndParams(parameters, "fetchOrder", "acknowledged", false);
         Boolean acknowledge = acknowledgeparamsAcknowledgedVariable.first();
         Map<String, Object> paramsAcknowledged = acknowledgeparamsAcknowledgedVariable.second();
         if (!Boolean.TRUE.equals(acknowledge))
@@ -6990,7 +6990,7 @@ public class Bybit extends BybitApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrdersClassic", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOrdersClassic", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -7216,7 +7216,7 @@ public class Bybit extends BybitApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchCanceledAndClosedOrders", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchCanceledAndClosedOrders", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -7431,7 +7431,7 @@ public class Bybit extends BybitApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOpenOrders", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -7600,7 +7600,7 @@ public class Bybit extends BybitApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -7726,7 +7726,7 @@ public class Bybit extends BybitApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "coin", currency.get("id") );
         }};
-        List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
+        List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
         String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
         Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
         if (!java.util.Objects.equals(networkCode, null))
@@ -7786,7 +7786,7 @@ public class Bybit extends BybitApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> currency = this.currency((String) (code));
-        List<Object> networkCodeparamsOmitedVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
+        List<Object> networkCodeparamsOmitedVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
         String networkCode = (String) ((List<Object>) networkCodeparamsOmitedVariable).get(0);
         Map<String, Object> paramsOmited = (Map<String, Object>) ((List<Object>) networkCodeparamsOmitedVariable).get(1);
         Map<String, Object> indexedAddresses = (this.fetchDepositAddressesByNetwork(code, paramsOmited)).join();
@@ -7822,7 +7822,7 @@ public class Bybit extends BybitApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchDeposits", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchDeposits", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -7905,7 +7905,7 @@ public class Bybit extends BybitApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchWithdrawals", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -8112,7 +8112,7 @@ public class Bybit extends BybitApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchLedger", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -8575,7 +8575,7 @@ public class Bybit extends BybitApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchPositions", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchPositions", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -9011,7 +9011,7 @@ public class Bybit extends BybitApi
         }
         Map<String, Object> market = this.market(symbol);
         Position position = (this.fetchPosition(symbol, parameters)).join();
-        return this.parseLeverage((Map<String, Object>) (position), market);
+        return this.parseLeverage(this.extend(new HashMap<String, Object>() {{}}, position), market);
 
     }
 
@@ -9583,7 +9583,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public Object parseBorrowRate(Object info, Map<String, Object> currency)
+    public Map<String, Object> parseBorrowRate(Object info, Map<String, Object> currency)
     {
         //
         // fetchCrossBorrowRate
@@ -9692,9 +9692,9 @@ public class Bybit extends BybitApi
      * @param {int} [params.until] the latest time in ms to fetch entries for
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    public CompletableFuture<Object> fetchBorrowRateHistory(String code, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchBorrowRateHistory(String code, Long since, Long limit, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchBorrowRateHistoryCore(code, since, limit, parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchBorrowRateHistoryCore(code, since, limit, parameters)).thenApply(res -> (List<Object>) res);
     }
 
     private Object fetchBorrowRateHistoryCore(String code, Long since, Long limit, Map<String, Object> parameters)
@@ -9859,7 +9859,7 @@ public class Bybit extends BybitApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTransfers", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTransfers", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -9922,12 +9922,12 @@ public class Bybit extends BybitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public CompletableFuture<MarginLoan> borrowCrossMargin(String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginLoan> borrowCrossMargin(String code, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.borrowCrossMarginCore(code, amount, parameters)).thenApply(MarginLoan::new);
     }
 
-    private Object borrowCrossMarginCore(String code, Object amount, Map<String, Object> parameters)
+    private Object borrowCrossMarginCore(String code, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -9967,12 +9967,12 @@ public class Bybit extends BybitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public CompletableFuture<MarginLoan> repayCrossMargin(String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginLoan> repayCrossMargin(String code, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.repayCrossMarginCore(code, amount, parameters)).thenApply(MarginLoan::new);
     }
 
-    private Object repayCrossMarginCore(String code, Object amount, Map<String, Object> parameters)
+    private Object repayCrossMarginCore(String code, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -10269,7 +10269,7 @@ public class Bybit extends BybitApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<String, Map<String, Object>> typeparamsTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchTradingFees", "type", "future");
+        Pair<String, Map<String, Object>> typeparamsTypeVariable = this.handleOptionStringAndParams(parameters, "fetchTradingFees", "type", "future");
         String type = typeparamsTypeVariable.first();
         Map<String, Object> paramsType = typeparamsTypeVariable.second();
         if (java.util.Objects.equals(type, "spot"))
@@ -10453,9 +10453,9 @@ public class Bybit extends BybitApi
      * @param {string} [params.subType] market subType, ['linear', 'inverse']
      * @returns {object[]} a list of [settlement history objects]
      */
-    public CompletableFuture<Object> fetchSettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchSettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchSettlementHistoryCore(symbol, since, limit, parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchSettlementHistoryCore(symbol, since, limit, parameters)).thenApply(res -> (List<Object>) res);
     }
 
     private Object fetchSettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
@@ -10526,9 +10526,9 @@ public class Bybit extends BybitApi
      * @param {string} [params.subType] market subType, ['linear', 'inverse']
      * @returns {object[]} a list of [settlement history objects]
      */
-    public CompletableFuture<Object> fetchMySettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMySettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMySettlementHistoryCore(symbol, since, limit, parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchMySettlementHistoryCore(symbol, since, limit, parameters)).thenApply(res -> (List<Object>) res);
     }
 
     private Object fetchMySettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
@@ -10803,7 +10803,7 @@ public class Bybit extends BybitApi
         Long timestamp = this.safeInteger(response, "time");
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         List<Object> data = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-        Map<String, Object> greeks = (Map<String, Object>) this.parseGreeks(this.safeDict(data, 0, new HashMap<String, Object>() {{}}), market);
+        Map<String, Object> greeks = this.parseGreeks(this.safeDict(data, 0, new HashMap<String, Object>() {{}}), market);
         return this.extend(greeks, new HashMap<String, Object>() {{
             put( "timestamp", timestamp );
             put( "datetime", Bybit.this.iso8601(timestamp) );
@@ -10895,7 +10895,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public Object parseGreeks(Map<String, Object> greeks, Map<String, Object> market)
+    public Map<String, Object> parseGreeks(Map<String, Object> greeks, Map<String, Object> market)
     {
         //
         //     {
@@ -10977,7 +10977,7 @@ public class Bybit extends BybitApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyLiquidations", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyLiquidations", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -11122,7 +11122,7 @@ public class Bybit extends BybitApi
         {
             market = this.market(symbol);
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "getLeverageTiersPaginated", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "getLeverageTiersPaginated", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -11301,7 +11301,7 @@ public class Bybit extends BybitApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingHistory", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingHistory", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -11551,7 +11551,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public Object parseOption(Map<String, Object> chain, Map<String, Object> currency, Map<String, Object> market)
+    public Map<String, Object> parseOption(Map<String, Object> chain, Map<String, Object> currency, Map<String, Object> market)
     {
         //
         //     {
@@ -11740,7 +11740,7 @@ public class Bybit extends BybitApi
         {
             accountTypeDefault = "eb_convert_uta";
         }
-        Pair<String, Map<String, Object>> accountTypeparamsAccountTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchConvertCurrencies", "accountType", accountTypeDefault);
+        Pair<String, Map<String, Object>> accountTypeparamsAccountTypeVariable = this.handleOptionStringAndParams(parameters, "fetchConvertCurrencies", "accountType", accountTypeDefault);
         String accountType = accountTypeparamsAccountTypeVariable.first();
         Map<String, Object> paramsAccountType = accountTypeparamsAccountTypeVariable.second();
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -11839,12 +11839,12 @@ public class Bybit extends BybitApi
      * @param {string} [params.accountType] eb_convert_uta, eb_convert_spot, eb_convert_funding, eb_convert_inverse, or eb_convert_contract
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public CompletableFuture<Conversion> fetchConvertQuote(String fromCode, String toCode, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Conversion> fetchConvertQuote(String fromCode, String toCode, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchConvertQuoteCore(fromCode, toCode, amount, parameters)).thenApply(Conversion::new);
     }
 
-    private Object fetchConvertQuoteCore(String fromCode, String toCode, Object amount, Map<String, Object> parameters)
+    private Object fetchConvertQuoteCore(String fromCode, String toCode, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -11860,7 +11860,7 @@ public class Bybit extends BybitApi
         {
             accountTypeDefault = "eb_convert_uta";
         }
-        Pair<String, Map<String, Object>> accountTypeparamsAccountTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchConvertQuote", "accountType", accountTypeDefault);
+        Pair<String, Map<String, Object>> accountTypeparamsAccountTypeVariable = this.handleOptionStringAndParams(parameters, "fetchConvertQuote", "accountType", accountTypeDefault);
         String accountType = accountTypeparamsAccountTypeVariable.first();
         Map<String, Object> paramsAccountType = accountTypeparamsAccountTypeVariable.second();
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -11912,12 +11912,12 @@ public class Bybit extends BybitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public CompletableFuture<Conversion> createConvertTrade(String id, String fromCode, String toCode, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Conversion> createConvertTrade(String id, String fromCode, String toCode, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createConvertTradeCore(id, fromCode, toCode, amount, parameters)).thenApply(Conversion::new);
     }
 
-    private Object createConvertTradeCore(String id, String fromCode, String toCode, Object amount, Map<String, Object> parameters)
+    private Object createConvertTradeCore(String id, String fromCode, String toCode, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -11977,7 +11977,7 @@ public class Bybit extends BybitApi
         {
             accountTypeDefault = "eb_convert_uta";
         }
-        Pair<String, Map<String, Object>> accountTypeparamsAccountTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchConvertTrade", "accountType", accountTypeDefault);
+        Pair<String, Map<String, Object>> accountTypeparamsAccountTypeVariable = this.handleOptionStringAndParams(parameters, "fetchConvertTrade", "accountType", accountTypeDefault);
         String accountType = accountTypeparamsAccountTypeVariable.first();
         Map<String, Object> paramsAccountType = accountTypeparamsAccountTypeVariable.second();
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -12336,7 +12336,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public Object parseADLRank(Map<String, Object> info, Map<String, Object> market)
+    public Map<String, Object> parseADLRank(Map<String, Object> info, Map<String, Object> market)
     {
         //
         // fetchPositionsADLRank
@@ -12456,7 +12456,7 @@ public class Bybit extends BybitApi
         return this.safeString(marginModes, marginMode, marginMode);
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String requestBody = null;

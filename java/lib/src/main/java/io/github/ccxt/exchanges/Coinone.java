@@ -1277,7 +1277,7 @@ public class Coinone extends CoinoneApi
         {
             symbol = ((base + "/") + quote);
         }
-        Object marketResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.safeMarket(symbol, market, "/", (String) null) : market;
+        Map<String, Object> marketResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.safeMarket(symbol, market, "/", (String) null) : market;
         Long timestamp = this.safeTimestamp2(order, "timestamp", "updatedAt");
         if (java.util.Objects.equals(timestamp, null))
         {
@@ -1350,7 +1350,7 @@ public class Coinone extends CoinoneApi
         mapLiteral4.put("status", status);
         mapLiteral4.put("fee", fee);
         mapLiteral4.put("trades", null);
-        return this.safeOrder(mapLiteral4, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
+        return this.safeOrder(mapLiteral4, marketResolved);
     }
 
     /**
@@ -1586,7 +1586,7 @@ public class Coinone extends CoinoneApi
 
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String request = (String) this.implodeParams(path, parameters);
@@ -1684,7 +1684,7 @@ public class Coinone extends CoinoneApi
         if (!java.util.Objects.equals(errorCode, null) && !java.util.Objects.equals(errorCode, "0"))
         {
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions), errorCode, feedback);
+            this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

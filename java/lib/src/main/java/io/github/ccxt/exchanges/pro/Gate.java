@@ -305,7 +305,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", (Object) null);
         String messageType = this.getTypeByMarket(market);
         String channel = (messageType + ".order_cancel_cp");
-        Pair<String, Map<String, Object>> channelOptionparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "cancelAllOrdersWs", "channel", channel);
+        Pair<String, Map<String, Object>> channelOptionparamsChannelVariable = this.handleOptionStringAndParams(parameters, "cancelAllOrdersWs", "channel", channel);
         var channelOption = ((List<Object>) channelOptionparamsChannelVariable).get(0);
         Map<String, Object> paramsChannel = channelOptionparamsChannelVariable.second();
         String url = this.getUrlByMarket(market);
@@ -594,7 +594,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         {
             intervalDefault = "50";
         }
-        Pair<String, Map<String, Object>> intervalqueryVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "interval", intervalDefault);
+        Pair<String, Map<String, Object>> intervalqueryVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "interval", intervalDefault);
         String interval = intervalqueryVariable.first();
         Map<String, Object> query = intervalqueryVariable.second();
         String messageType = this.getTypeByMarket(market);
@@ -677,7 +677,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             intervalDefault = "50";
         }
         String interval = intervalDefault;
-        Pair<String, Map<String, Object>> intervalOptionparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "interval", interval);
+        Pair<String, Map<String, Object>> intervalOptionparamsIntervalVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "interval", interval);
         String intervalOption = intervalOptionparamsIntervalVariable.first();
         Map<String, Object> paramsInterval = intervalOptionparamsIntervalVariable.second();
         String messageType = this.getTypeByMarket(market);
@@ -1265,7 +1265,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             messageHashes.add(("trades:" + symbol));
         }
         String url = this.getUrlByMarket(market);
-        List<Object> trades = (List<Object>) (this.subscribePublicMultiple(url, messageHashes, marketIds, channel, parameters)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.subscribePublicMultiple(url, messageHashes, marketIds, channel, parameters)).join();
         Map<String, Object> first = this.safeDict(trades, 0, null);
         String tradeSymbol = this.safeString(first, "symbol");
         Long limitResolved = limit;
@@ -1419,7 +1419,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         String messageHash = ((("candles:" + interval) + ":") + market.get("symbol"));
         String url = this.getUrlByMarket(market);
         List<String> payload = new ArrayList<String>(Arrays.asList(interval, marketId));
-        List<Object> ohlcv = (List<Object>) (this.subscribePublic(url, messageHash, payload, channel, parameters, (Object) null)).join();
+        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) (this.subscribePublic(url, messageHash, payload, channel, parameters, (Object) null)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -1629,7 +1629,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         List<String> payload = new ArrayList<String>(Arrays.asList(marketId));
         // uid required for non spot markets
         Boolean requiresUid = (!java.util.Objects.equals(type, "spot"));
-        List<Object> trades = (List<Object>) (this.subscribePrivate(url, messageHash, payload, channel, (Map<String, Object>) (paramsSubType), requiresUid)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.subscribePrivate(url, messageHash, payload, channel, (Map<String, Object>) (paramsSubType), requiresUid)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -2157,7 +2157,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         String url = this.getUrlByMarketType(type, isInverse);
         // uid required for non spot markets
         Boolean requiresUid = (!java.util.Objects.equals(type, "spot"));
-        List<Object> orders = (List<Object>) (this.subscribePrivate(url, messageHash, payload, channel, (Map<String, Object>) (query), requiresUid)).join();
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.subscribePrivate(url, messageHash, payload, channel, (Map<String, Object>) (query), requiresUid)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -3124,7 +3124,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         }
         List<Object> idArray = new ArrayList<Object>(Arrays.asList(this.uid));
         Boolean noPayload = (java.util.Objects.equals(payload, null));
-        List<Object> payloadWithUid = (List<Object>) (((Boolean.TRUE.equals(noPayload))) ? idArray : this.arrayConcat(idArray, payload));
+        List<Object> payloadWithUid = ((Boolean.TRUE.equals(noPayload))) ? idArray : this.arrayConcat(idArray, payload);
         Long time = this.seconds();
         String eventVar = "subscribe";
         String signaturePayload = ((((((("channel=" + channel) + "&") + "event=") + eventVar) + "&") + "time=") + String.valueOf(time));

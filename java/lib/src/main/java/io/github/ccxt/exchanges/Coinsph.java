@@ -846,7 +846,7 @@ public class Coinsph extends CoinsphApi
         }});
     }
 
-    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
+    public Object calculateRateLimiterCost(Object api, String method, String path, Object parameters, Map<String, Object> config)
     {
         Boolean hasSymbolParam = (!java.util.Objects.equals(this.safeString(parameters, "symbol"), null));
         Boolean hasSymbolsParam = (((Map<?, ?>)parameters).containsKey("symbols"));
@@ -2762,7 +2762,7 @@ public class Coinsph extends CoinsphApi
         return urlEncodedParam;
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);

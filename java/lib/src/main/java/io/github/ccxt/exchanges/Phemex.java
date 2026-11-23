@@ -1385,10 +1385,10 @@ public class Phemex extends PhemexApi
         Map<String, Object> v2ProductsData = this.safeDict(v2Products, "data", new HashMap<String, Object>() {{}});
         List<Object> products = this.safeList(v2ProductsData, "products", new ArrayList<Object>(Arrays.asList()));
         List<Object> perpetualProductsV2 = this.safeList(v2ProductsData, "perpProductsV2", new ArrayList<Object>(Arrays.asList()));
-        products = (List<Object>) this.arrayConcat(products, perpetualProductsV2);
+        products = this.arrayConcat(products, perpetualProductsV2);
         List<Object> riskLimitsV1 = this.safeList(v2ProductsData, "riskLimits", new ArrayList<Object>(Arrays.asList()));
         List<Object> riskLimitsV2 = this.safeList(v2ProductsData, "riskLimitsV2", new ArrayList<Object>(Arrays.asList()));
-        List<Object> riskLimits = (List<Object>) this.arrayConcat(riskLimitsV1, riskLimitsV2);
+        List<Object> riskLimits = this.arrayConcat(riskLimitsV1, riskLimitsV2);
         List<Object> currencies = this.safeList(v2ProductsData, "currencies", new ArrayList<Object>(Arrays.asList()));
         Map<String,Object> riskLimitsById = this.indexBy(riskLimits, "symbol");
         Map<String,Object> v1ProductsById = this.indexBy(v1ProductsData, "symbol");
@@ -1641,7 +1641,7 @@ public class Phemex extends PhemexApi
         {
             return amount;
         }
-        return this.toEn(amount, this.safeInteger(market, "valueScale"));
+        return this.toEn(amount, this.safeInteger(this.safeDict(market, "info", null), "valueScale"));
     }
 
     public Object toEp(Object price, Map<String, Object> market)
@@ -1650,7 +1650,7 @@ public class Phemex extends PhemexApi
         {
             return price;
         }
-        return this.toEn(price, this.safeInteger(market, "priceScale"));
+        return this.toEn(price, this.safeInteger(this.safeDict(market, "info", null), "priceScale"));
     }
 
     public String fromEn(String en, Object scale)
@@ -1671,7 +1671,7 @@ public class Phemex extends PhemexApi
         {
             return ep;
         }
-        return this.fromEn((String) (ep), this.safeInteger(market, "priceScale"));
+        return this.fromEn((String) (ep), this.safeInteger(this.safeDict(market, "info", null), "priceScale"));
     }
 
     public String fromEv(String ev, Map<String, Object> market)
@@ -1680,7 +1680,7 @@ public class Phemex extends PhemexApi
         {
             return ev;
         }
-        return this.fromEn((String) (ev), this.safeInteger(market, "valueScale"));
+        return this.fromEn((String) (ev), this.safeInteger(this.safeDict(market, "info", null), "valueScale"));
     }
 
     public String fromEr(String er, Map<String, Object> market)
@@ -1689,7 +1689,7 @@ public class Phemex extends PhemexApi
         {
             return er;
         }
-        return this.fromEn((String) (er), this.safeInteger(market, "ratioScale"));
+        return this.fromEn((String) (er), this.safeInteger(this.safeDict(market, "info", null), "ratioScale"));
     }
 
     public List<Object> parseOHLCV(Object ohlcv, Map<String, Object> market)
@@ -5236,12 +5236,12 @@ public class Phemex extends PhemexApi
      * @param {object} [params] parameters specific to the exchange API endpoint
      * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public CompletableFuture<MarginModification> setMargin(String symbol, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginModification> setMargin(String symbol, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setMarginCore(symbol, amount, parameters)).thenApply(MarginModification::new);
     }
 
-    private Object setMarginCore(String symbol, Object amount, Map<String, Object> parameters)
+    private Object setMarginCore(String symbol, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -5563,7 +5563,7 @@ public class Phemex extends PhemexApi
         return tiers;
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object query = this.omit(parameters, this.extractParams(path));
@@ -5979,7 +5979,7 @@ public class Phemex extends PhemexApi
         {
             throw new BadRequest((this.id + " fetchFundingRateHistory() supports swap contracts only")) ;
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -6247,12 +6247,12 @@ public class Phemex extends PhemexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public CompletableFuture<Conversion> fetchConvertQuote(String fromCode, String toCode, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Conversion> fetchConvertQuote(String fromCode, String toCode, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchConvertQuoteCore(fromCode, toCode, amount, parameters)).thenApply(Conversion::new);
     }
 
-    private Object fetchConvertQuoteCore(String fromCode, String toCode, Object amount, Map<String, Object> parameters)
+    private Object fetchConvertQuoteCore(String fromCode, String toCode, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -6303,12 +6303,12 @@ public class Phemex extends PhemexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public CompletableFuture<Conversion> createConvertTrade(String id, String fromCode, String toCode, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Conversion> createConvertTrade(String id, String fromCode, String toCode, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createConvertTradeCore(id, fromCode, toCode, amount, parameters)).thenApply(Conversion::new);
     }
 
-    private Object createConvertTradeCore(String id, String fromCode, String toCode, Object amount, Map<String, Object> parameters)
+    private Object createConvertTradeCore(String id, String fromCode, String toCode, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -6391,7 +6391,7 @@ public class Phemex extends PhemexApi
         {
             request.put("limit", limit);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, parameters, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = (this.privateGetAssetsConvert(this.extend(requestUntil, paramsUntil))).join();
@@ -6591,7 +6591,7 @@ public class Phemex extends PhemexApi
 
     }
 
-    public Object parseADLRank(Map<String, Object> info, Map<String, Object> market)
+    public Map<String, Object> parseADLRank(Map<String, Object> info, Map<String, Object> market)
     {
         //
         // fetchPositionADLRank: linear

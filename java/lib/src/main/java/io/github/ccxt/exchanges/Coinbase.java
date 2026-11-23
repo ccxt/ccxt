@@ -762,7 +762,7 @@ public class Coinbase extends CoinbaseApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchAccounts", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchAccounts", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -845,7 +845,7 @@ public class Coinbase extends CoinbaseApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchAccounts", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchAccounts", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -1212,7 +1212,7 @@ public class Coinbase extends CoinbaseApi
     private Object fetchWithdrawalsCore(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        Pair<String, Map<String, Object>> currencyTypeparamsCurrencyTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchWithdrawals", "currencyType", (String) null);
+        Pair<String, Map<String, Object>> currencyTypeparamsCurrencyTypeVariable = this.handleOptionStringAndParams(parameters, "fetchWithdrawals", "currencyType", (String) null);
         String currencyType = currencyTypeparamsCurrencyTypeVariable.first();
         Map<String, Object> paramsCurrencyType = currencyTypeparamsCurrencyTypeVariable.second();
         if (java.util.Objects.equals(currencyType, "crypto"))
@@ -1245,7 +1245,7 @@ public class Coinbase extends CoinbaseApi
     private Object fetchDepositsCore(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        Pair<String, Map<String, Object>> currencyTypeparamsCurrencyTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchDeposits", "currencyType", (String) null);
+        Pair<String, Map<String, Object>> currencyTypeparamsCurrencyTypeVariable = this.handleOptionStringAndParams(parameters, "fetchDeposits", "currencyType", (String) null);
         String currencyType = currencyTypeparamsCurrencyTypeVariable.first();
         Map<String, Object> paramsCurrencyType = currencyTypeparamsCurrencyTypeVariable.second();
         if (java.util.Objects.equals(currencyType, "crypto"))
@@ -1825,7 +1825,7 @@ public class Coinbase extends CoinbaseApi
     private Object fetchMarketsV3Core(Map<String, Object> parameters)
     {
 
-        Pair<Boolean, Map<String, Object>> usePrivateparamsUsePrivateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMarkets", "usePrivate", false);
+        Pair<Boolean, Map<String, Object>> usePrivateparamsUsePrivateVariable = this.handleOptionBoolAndParams(parameters, "fetchMarkets", "usePrivate", false);
         Boolean usePrivate = usePrivateparamsUsePrivateVariable.first();
         Map<String, Object> paramsUsePrivate = usePrivateparamsUsePrivateVariable.second();
         List<CompletableFuture<?>> spotUnresolvedPromises = new ArrayList<CompletableFuture<?>>();
@@ -2422,7 +2422,7 @@ public class Coinbase extends CoinbaseApi
         Map<String, Object> ratesData = this.safeDict(ratesResponse, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> rates = this.safeDict(ratesData, "rates", new HashMap<String, Object>() {{}});
         List<String> ratesIds = new ArrayList<String>(rates.keySet());
-        List<Object> currencies = (List<Object>) this.arrayConcat(fiatData, cryptoData);
+        List<Object> currencies = this.arrayConcat(fiatData, cryptoData);
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Map<String, Object> networksById = new HashMap<String, Object>() {{}};
@@ -2603,7 +2603,7 @@ public class Coinbase extends CoinbaseApi
         {
             request.put("product_ids", this.marketIds(symbolsNormalized));
         }
-        Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTickers", ((Map<String, Object>) (switch ((Object) (this.getMarketFromSymbols(symbolsNormalized))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })), parameters, "default");
+        Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchTickers", ((Map<String, Object>) (switch ((Object) (this.getMarketFromSymbols(symbolsNormalized))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })), parameters, "default");
         String marketType = marketTypeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
         if (!java.util.Objects.equals(marketType, null) && !java.util.Objects.equals(marketType, "default"))
@@ -2758,7 +2758,7 @@ public class Coinbase extends CoinbaseApi
             put( "product_id", market.get("id") );
             put( "limit", 1 );
         }};
-        Pair<Boolean, Map<String, Object>> usePrivateparamsUsePrivateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTicker", "usePrivate", false);
+        Pair<Boolean, Map<String, Object>> usePrivateparamsUsePrivateVariable = this.handleOptionBoolAndParams(parameters, "fetchTicker", "usePrivate", false);
         Boolean usePrivate = usePrivateparamsUsePrivateVariable.first();
         Map<String, Object> paramsUsePrivate = usePrivateparamsUsePrivateVariable.second();
         Map<String, Object> response = null;
@@ -3078,7 +3078,7 @@ public class Coinbase extends CoinbaseApi
                 {
                     request.put("cursor", cursor);
                     page = (this.v3PrivateGetBrokerageAccounts(this.extend(request, paramsMarketType))).join();
-                    accounts = (List<Object>) this.arrayConcat(accounts, this.safeList(page, "accounts", new ArrayList<Object>(Arrays.asList())));
+                    accounts = this.arrayConcat(accounts, this.safeList(page, "accounts", new ArrayList<Object>(Arrays.asList())));
                     String nextCursor = this.safeString(page, "cursor");
                     if (java.util.Objects.equals(nextCursor, cursor))
                     {
@@ -3198,7 +3198,7 @@ public class Coinbase extends CoinbaseApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchLedger", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchLedger", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -3868,7 +3868,7 @@ public class Coinbase extends CoinbaseApi
             if (Boolean.TRUE.equals((this.safeBool(market, "spot", false))) && (java.util.Objects.equals(side, "buy")))
             {
                 String total = null;
-                Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 Boolean createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.first();
                 Map<String, Object> paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.second();
                 Double cost = this.safeNumber(paramsRequiresPrice, "cost", (Object) null);
@@ -4050,7 +4050,7 @@ public class Coinbase extends CoinbaseApi
         //
         String marketId = this.safeString(order, "product_id");
         String symbol = this.safeSymbol(marketId, market, "-", (String) null);
-        Object marketResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.safeMarket(symbol, market, (String) null, (String) null) : market;
+        Map<String, Object> marketResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.safeMarket(symbol, market, (String) null, (String) null) : market;
         Map<String, Object> orderConfiguration = this.safeDict(order, "order_configuration", new HashMap<String, Object>() {{}});
         Map<String, Object> limitGTC = this.safeDict(orderConfiguration, "limit_limit_gtc", null);
         Map<String, Object> limitGTD = this.safeDict(orderConfiguration, "limit_limit_gtd", null);
@@ -4130,7 +4130,7 @@ public class Coinbase extends CoinbaseApi
         mapLiteral33.put("currency", currencyFee);
         mapLiteral32.put("fee", mapLiteral33);
         mapLiteral32.put("trades", null);
-        return this.safeOrder(mapLiteral32, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
+        return this.safeOrder(mapLiteral32, marketResolved);
     }
 
     public String parseOrderStatus(String status)
@@ -4313,7 +4313,7 @@ public class Coinbase extends CoinbaseApi
         //         }
         //     }
         //
-        return this.parseOrder((Map<String, Object>) (response), market);
+        return this.parseOrder(response, market);
 
     }
 
@@ -4417,7 +4417,7 @@ public class Coinbase extends CoinbaseApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrders", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -4623,7 +4623,7 @@ public class Coinbase extends CoinbaseApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOpenOrders", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -4659,7 +4659,7 @@ public class Coinbase extends CoinbaseApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchClosedOrders", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchClosedOrders", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -4727,7 +4727,7 @@ public class Coinbase extends CoinbaseApi
         {
             limitValue = this.parseToInt(limit);
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -4918,7 +4918,7 @@ public class Coinbase extends CoinbaseApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -5020,7 +5020,7 @@ public class Coinbase extends CoinbaseApi
             request.put("limit", limit);
         }
         Map<String, Object> response = null;
-        Pair<Boolean, Map<String, Object>> usePrivateparamsUsePrivateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrderBook", "usePrivate", false);
+        Pair<Boolean, Map<String, Object>> usePrivateparamsUsePrivateVariable = this.handleOptionBoolAndParams(parameters, "fetchOrderBook", "usePrivate", false);
         Boolean usePrivate = usePrivateparamsUsePrivateVariable.first();
         Map<String, Object> paramsUsePrivate = usePrivateparamsUsePrivateVariable.second();
         if (Boolean.TRUE.equals(usePrivate))
@@ -5700,12 +5700,12 @@ public class Coinbase extends CoinbaseApi
      * @param {string} [params.trade_incentive_metadata.code_val] the code value of the incentive
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public CompletableFuture<Conversion> fetchConvertQuote(String fromCode, String toCode, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Conversion> fetchConvertQuote(String fromCode, String toCode, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchConvertQuoteCore(fromCode, toCode, amount, parameters)).thenApply(Conversion::new);
     }
 
-    private Object fetchConvertQuoteCore(String fromCode, String toCode, Object amount, Map<String, Object> parameters)
+    private Object fetchConvertQuoteCore(String fromCode, String toCode, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -5735,12 +5735,12 @@ public class Coinbase extends CoinbaseApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public CompletableFuture<Conversion> createConvertTrade(String id, String fromCode, String toCode, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Conversion> createConvertTrade(String id, String fromCode, String toCode, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createConvertTradeCore(id, fromCode, toCode, amount, parameters)).thenApply(Conversion::new);
     }
 
-    private Object createConvertTradeCore(String id, String fromCode, String toCode, Object amount, Map<String, Object> parameters)
+    private Object createConvertTradeCore(String id, String fromCode, String toCode, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -5948,7 +5948,7 @@ public class Coinbase extends CoinbaseApi
     private Object fetchPositionsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
-        this.checkIntxPortfolioParam("fetchPositions", (Map<String, Object>) (parameters));
+        this.checkIntxPortfolioParam("fetchPositions", parameters);
         if (java.util.Objects.equals(this.markets, null))
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -5993,7 +5993,7 @@ public class Coinbase extends CoinbaseApi
     private Object fetchPositionCore(String symbol, Map<String, Object> parameters)
     {
 
-        this.checkIntxPortfolioParam("fetchPosition", (Map<String, Object>) (parameters));
+        this.checkIntxPortfolioParam("fetchPosition", parameters);
         if (java.util.Objects.equals(this.markets, null))
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -6334,7 +6334,7 @@ public class Coinbase extends CoinbaseApi
         return (this.milliseconds() - timeDifference);
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String requestBody = null;
         Map<String, Object> requestHeaders = null;

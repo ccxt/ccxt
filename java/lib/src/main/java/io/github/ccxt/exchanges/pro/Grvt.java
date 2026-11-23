@@ -243,7 +243,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         {
             throw new ArgumentsRequired((this.id + " watchTickers requires a symbols argument")) ;
         }
-        Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTickers", "channel", "v1.ticker.s");
+        Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchTickers", "channel", "v1.ticker.s");
         String channel = channelparamsChannelVariable.first();
         Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
         List<Object> intervalOptionparamsIntervalVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsChannel, "watchTickers", "interval", 500L);
@@ -689,7 +689,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "channel", "v1.book.d");
+        Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "channel", "v1.book.d");
         String channel = channelparamsChannelVariable.first();
         Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
         Boolean isSnapshot = java.util.Objects.equals(channel, "v1.book.s");
@@ -869,7 +869,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         (this.authenticate(new HashMap<String, Object>() {{}})).join();
-        String subAccountId = this.getSubAccountId((Map<String, Object>) (parameters));
+        String subAccountId = this.getSubAccountId(parameters);
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
         List<String> rawHashes = new ArrayList<String>(Arrays.asList());
         if (!java.util.Objects.equals(symbol, null))
@@ -974,7 +974,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        String subAccountId = this.getSubAccountId((Map<String, Object>) (parameters));
+        String subAccountId = this.getSubAccountId(parameters);
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
         List<String> rawHashes = new ArrayList<String>(Arrays.asList());
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
@@ -1072,7 +1072,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         (this.authenticate(new HashMap<String, Object>() {{}})).join();
-        String subAccountId = this.getSubAccountId((Map<String, Object>) (parameters));
+        String subAccountId = this.getSubAccountId(parameters);
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
         List<String> rawHashes = new ArrayList<String>(Arrays.asList());
         if (java.util.Objects.equals(symbol, null))

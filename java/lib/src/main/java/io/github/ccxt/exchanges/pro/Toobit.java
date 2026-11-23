@@ -347,7 +347,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
         List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        List<Object> parsedTrades = (List<Object>) this.arrayConcat(this.parseWsTrades(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}}), new ArrayList<Object>(Arrays.asList()));
+        List<Object> parsedTrades = this.arrayConcat(this.parseWsTrades(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}}), new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < parsedTrades.size(); i++)
         {
             stored.append((parsedTrades == null || i < 0 || i >= parsedTrades.size() ? null : parsedTrades.get(i)));
@@ -726,7 +726,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-        Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBookForSymbols", "channel", "depth");
+        Pair<String, Map<String, Object>> channelparamsChannelVariable = this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "channel", "depth");
         String channel = channelparamsChannelVariable.first();
         Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
@@ -804,7 +804,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
     public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, 0, 1, 2);
-        ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
+        bookside.storeArray(bidAsk);
     }
 
     public void handleOrderBookPartialSnapshot(Client client, Map<String, Object> message)

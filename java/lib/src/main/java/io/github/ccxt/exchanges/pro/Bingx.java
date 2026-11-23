@@ -766,7 +766,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
     {
         Double price = this.safeFloat2(delta, 0, "p");
         Double amount = this.safeFloat2(delta, 1, "a");
-        ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
+        bookside.store(price, amount);
     }
 
     public void handleOrderBook(Client client, Map<String, Object> message)
@@ -1452,7 +1452,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         {
             return;
         }
-        Pair<Boolean, Map<String, Object>> fetchBalanceSnapshotVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchBalance", "fetchBalanceSnapshot", true);
+        Pair<Boolean, Map<String, Object>> fetchBalanceSnapshotVariable = this.handleOptionBoolAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
         Boolean fetchBalanceSnapshot = fetchBalanceSnapshotVariable.first();
         if (Boolean.TRUE.equals(fetchBalanceSnapshot))
         {
@@ -2220,7 +2220,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
     }
 
     // plain-text frames: only the swap 'Ping' needs an answer, the dict handlers never see them
-    public void handleTextMessage(Client client, Object message)
+    public void handleTextMessage(Client client, String message)
     {
         if (java.util.Objects.equals(message, "Ping"))
         {

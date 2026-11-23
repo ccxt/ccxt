@@ -2703,7 +2703,7 @@ public class Bitteam extends BitteamApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Object request = this.omit(parameters, this.extractParams(path));

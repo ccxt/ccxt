@@ -1032,13 +1032,13 @@ public class Zaif extends ZaifApi
         }
     }
 
-    public Object customNonce()
+    public String customNonce()
     {
         Double nonce = (((double) this.milliseconds()) / ((double) 1000));
         return toFixed(nonce, 8);
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String baseApiUrl = this.safeString(this.urls.get("api"), "rest");
@@ -1067,7 +1067,7 @@ public class Zaif extends ZaifApi
             {
                 url = (url + "tapi");
             }
-            Object nonce = this.customNonce();
+            String nonce = this.customNonce();
             String bodyEncoded = this.urlencode(this.extend(new HashMap<String, Object>() {{
                 put( "method", path );
                 put( "nonce", nonce );

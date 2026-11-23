@@ -1105,7 +1105,7 @@ public class Indodax extends IndodaxApi
             Object marketOrders = (ordersDict == null || marketId == null ? null : ordersDict.get(marketId));
             market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             List<Object> parsedOrders = this.parseOrders(marketOrders, market, since, limit, new HashMap<String, Object>() {{}});
-            exchangeOrders = (List<Object>) this.arrayConcat(exchangeOrders, parsedOrders);
+            exchangeOrders = this.arrayConcat(exchangeOrders, parsedOrders);
         }
         return exchangeOrders;
 
@@ -1303,7 +1303,7 @@ public class Indodax extends IndodaxApi
         //    }
         //
         Map<String, Object> data = this.safeDict(response, "return", null);
-        return this.parseOrder((Map<String, Object>) (data), (Map<String, Object>) null);
+        return this.parseOrder(data, (Map<String, Object>) null);
 
     }
 
@@ -1499,20 +1499,20 @@ public class Indodax extends IndodaxApi
             for (var i = 0; i < withdrawKeys.size(); i++)
             {
                 String key = (withdrawKeys == null || i < 0 || i >= withdrawKeys.size() ? null : withdrawKeys.get(i));
-                transactions = (List<Object>) this.arrayConcat(transactions, (withdraw == null || key == null ? null : withdraw.get(key)));
+                transactions = this.arrayConcat(transactions, (withdraw == null || key == null ? null : withdraw.get(key)));
             }
             List<String> depositKeys = new ArrayList<String>(deposit.keySet());
             for (var i = 0; i < depositKeys.size(); i++)
             {
                 String key = (depositKeys == null || i < 0 || i >= depositKeys.size() ? null : depositKeys.get(i));
-                transactions = (List<Object>) this.arrayConcat(transactions, (deposit == null || key == null ? null : deposit.get(key)));
+                transactions = this.arrayConcat(transactions, (deposit == null || key == null ? null : deposit.get(key)));
             }
         } else
         {
             currency = this.currency((String) (code));
             List<Object> withdraws = this.safeList(withdraw, currency.get("id"), new ArrayList<Object>(Arrays.asList()));
             List<Object> deposits = this.safeList(deposit, currency.get("id"), new ArrayList<Object>(Arrays.asList()));
-            transactions = (List<Object>) this.arrayConcat(withdraws, deposits);
+            transactions = this.arrayConcat(withdraws, deposits);
         }
         return this.parseTransactions(transactions, currency, since, limit, new HashMap<String, Object>() {{}});
 
@@ -1796,7 +1796,7 @@ public class Indodax extends IndodaxApi
 
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);

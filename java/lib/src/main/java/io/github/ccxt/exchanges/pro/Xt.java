@@ -1566,7 +1566,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         }
     }
 
-    public Object parseWsOrderTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsOrderTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         //
         //    {
@@ -1893,7 +1893,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         client.resolve(stored, ("trade::" + tradeType));
     }
 
-    public void handleTextMessage(Client client, Object message)
+    public void handleTextMessage(Client client, String message)
     {
         if (java.util.Objects.equals(message, "pong"))
         {

@@ -822,7 +822,7 @@ public class Mercado extends MercadoApi
         //
         Map<String, Object> responseData = this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
         Map<String, Object> order = this.safeDict(responseData, "order", new HashMap<String, Object>() {{}});
-        return this.parseOrder((Map<String, Object>) (order), market);
+        return this.parseOrder(order, market);
 
     }
 
@@ -944,7 +944,7 @@ public class Mercado extends MercadoApi
         Map<String, Object> response = (this.privatePostGetOrder(this.extend(request, parameters))).join();
         Map<String, Object> responseData = this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
         Map<String, Object> order = this.safeDict(responseData, "order", null);
-        return this.parseOrder((Map<String, Object>) (order), market);
+        return this.parseOrder(order, market);
 
     }
 
@@ -1031,7 +1031,7 @@ public class Mercado extends MercadoApi
         //
         Map<String, Object> responseData = this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
         Map<String, Object> withdrawal = this.safeDict(responseData, "withdrawal", null);
-        return this.parseTransaction((Map<String, Object>) (withdrawal), currency);
+        return this.parseTransaction(withdrawal, currency);
 
     }
 
@@ -1262,7 +1262,7 @@ public class Mercado extends MercadoApi
         return this.milliseconds();
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);

@@ -426,7 +426,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             String marketId = this.safeString(market, "id", "");
             messageHash = ("myTrade:" + marketId);
         }
-        List<Object> trades = (List<Object>) (this.subscribePrivate(messageHash)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.subscribePrivate(messageHash)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -1332,7 +1332,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             String marketId = this.safeString(market, "id", "");
             messageHash = ("orders:" + marketId);
         }
-        List<Object> orders = (List<Object>) (this.subscribePrivate(messageHash)).join();
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.subscribePrivate(messageHash)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {

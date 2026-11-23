@@ -1532,7 +1532,7 @@ public class Bithumb extends BithumbApi
         Object data = new ArrayList<Object>(Arrays.asList());
         if ((generation != null && generation == 2))
         {
-            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+            Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
@@ -2618,7 +2618,7 @@ public class Bithumb extends BithumbApi
             symbol = ((base + "/") + quote);
         }
         String marketId = this.safeString(order, "market");
-        Object marketResolved = (((java.util.Objects.equals(symbol, null)))) ? this.safeMarket(marketId, market, (String) null, (String) null) : market;
+        Map<String, Object> marketResolved = (((java.util.Objects.equals(symbol, null)))) ? this.safeMarket(marketId, market, (String) null, (String) null) : market;
         if (java.util.Objects.equals(symbol, null))
         {
             symbol = this.safeString(marketResolved, "symbol");
@@ -2671,7 +2671,7 @@ public class Bithumb extends BithumbApi
         mapLiteral4.put("status", status);
         mapLiteral4.put("fee", fee);
         mapLiteral4.put("trades", rawTrades);
-        return this.safeOrder(mapLiteral4, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
+        return this.safeOrder(mapLiteral4, marketResolved);
     }
 
     /**
@@ -3907,7 +3907,7 @@ public class Bithumb extends BithumbApi
         return result;
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> requestHeaders = new HashMap<String, Object>() {{}};
@@ -4018,11 +4018,11 @@ public class Bithumb extends BithumbApi
             String feedback = ((this.id + " ") + message);
             if (!java.util.Objects.equals(errorName, null))
             {
-                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions), errorName, (String) (feedback));
+                this.throwExactlyMatchedException(this.exceptions, errorName, (String) (feedback));
             }
             if (!java.util.Objects.equals(message, null))
             {
-                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions), message, (String) (feedback));
+                this.throwExactlyMatchedException(this.exceptions, message, (String) (feedback));
             }
             throw new ExchangeError((String)feedback) ;
         }
@@ -4043,8 +4043,8 @@ public class Bithumb extends BithumbApi
                 return null;  // no error
             }
             String feedback = ((this.id + " ") + message);
-            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions), status, (String) (feedback));
-            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions), message, (String) (feedback));
+            this.throwExactlyMatchedException(this.exceptions, status, (String) (feedback));
+            this.throwExactlyMatchedException(this.exceptions, message, (String) (feedback));
             throw new ExchangeError((String)feedback) ;
         }
         return null;

@@ -389,7 +389,7 @@ public class Limitless extends LimitlessApi
             request.put("limit", pageSize);
             Map<String, Object> firstPageResponse = (this.limitlessPublicGetMarketsActive(this.extend(request, rest))).join();
             List<Object> firstData = this.safeList(firstPageResponse, "data", new ArrayList<Object>(Arrays.asList()));
-            allRaw = (List<Object>) this.arrayConcat(allRaw, firstData);
+            allRaw = this.arrayConcat(allRaw, firstData);
             List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
             Double cappedPages = Math.ceil(Double.parseDouble(String.valueOf((((double) maxMarkets) / ((double) pageSize)))));
             Long knownTotal = this.safeInteger(firstPageResponse, "totalMarketsCount", 0);
@@ -410,7 +410,7 @@ public class Limitless extends LimitlessApi
             {
                 Map<String, Object> response = this.safeDict(responses, j, null);
                 List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-                allRaw = (List<Object>) this.arrayConcat(allRaw, data);
+                allRaw = this.arrayConcat(allRaw, data);
             }
             Map<String, Object> lastPageResponse = this.safeDict(responses, (((long) length) - 1L), null);
             List<Object> lastPageData = this.safeList(lastPageResponse, "data", new ArrayList<Object>(Arrays.asList()));
@@ -1334,7 +1334,7 @@ public class Limitless extends LimitlessApi
         {
             askSizeStr = Precise.stringDiv(askSizeStr, "1000000");
         }
-        Object outcomeSymbol = this.safeOutcomeSymbol((String) (null), market);
+        String outcomeSymbol = this.safeOutcomeSymbol((String) (null), market);
         HashMap<String, Object> j39v1 = new HashMap<String, Object>();
         j39v1.put("outcome", outcomeSymbol);
         j39v1.put("outcomeId", this.safeString(market, "outcomeId"));
@@ -1372,12 +1372,12 @@ public class Limitless extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    public CompletableFuture<PredictionTickers> fetchTickers(Object outcomes, Map<String, Object> parameters)
+    public CompletableFuture<PredictionTickers> fetchTickers(List<String> outcomes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchTickersCore(outcomes, parameters)).thenApply(PredictionTickers::new);
     }
 
-    private Object fetchTickersCore(Object outcomes, Map<String, Object> parameters)
+    private Object fetchTickersCore(List<String> outcomes, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(outcomes, null))
@@ -1390,9 +1390,9 @@ public class Limitless extends LimitlessApi
         (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> outcomesBySlug = new HashMap<String, Object>() {{}};
         List<String> slugs = new ArrayList<String>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)outcomes).size(); i++)
+        for (var i = 0; i < outcomes.size(); i++)
         {
-            Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
+            Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i))));
             String slug = this.safeString(outcomeObj.get("info"), "slug");
             if (java.util.Objects.equals(slug, null))
             {
@@ -2992,7 +2992,7 @@ public class Limitless extends LimitlessApi
             outcomeSymbol = this.safeString(outcomeObj, "outcome");
         }
         Long maxLimit = 100L;
-        Pair<Boolean, Map<String, Object>> paginateparamsValueVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsValueVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         Boolean paginate = paginateparamsValueVariable.first();
         Map<String, Object> paramsValue = paginateparamsValueVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -3100,7 +3100,7 @@ public class Limitless extends LimitlessApi
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public Object parsePredictionTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parsePredictionTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         String matchedSize = this.safeString(trade, "matchedSize");
         if (!java.util.Objects.equals(matchedSize, null))
@@ -3123,7 +3123,7 @@ public class Limitless extends LimitlessApi
             {
                 costStr = Precise.stringMul(priceStr, amountStr);
             }
-            Object feedOutcome = this.safeOutcomeSymbol((String) (null), market);
+            String feedOutcome = this.safeOutcomeSymbol((String) (null), market);
             HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
             mapLiteral8.put("id", this.safeString(trade, "txHash"));
             mapLiteral8.put("info", trade);
@@ -3264,18 +3264,18 @@ public class Limitless extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public CompletableFuture<List<PredictionPosition>> fetchPositions(Object outcomes, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionPosition>> fetchPositions(List<String> outcomes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchPositionsCore(outcomes, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
     }
 
-    private Object fetchPositionsCore(Object outcomes, Map<String, Object> parameters)
+    private Object fetchPositionsCore(List<String> outcomes, Map<String, Object> parameters)
     {
 
         Integer symbolsLength = 0;
         if (!java.util.Objects.equals(outcomes, null))
         {
-            symbolsLength = ((List<?>)outcomes).size();
+            symbolsLength = outcomes.size();
         }
         if ((symbolsLength != null && symbolsLength > 0))
         {
@@ -3776,7 +3776,7 @@ public class Limitless extends LimitlessApi
      * @param {object} [params] request parameters
      * @returns {object} a dictionary with url, method, body and headers
      */
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String baseUrl = this.safeString(this.urls.get("api"), apiGroup, this.safeString(this.urls.get("api"), "limitless", ""));

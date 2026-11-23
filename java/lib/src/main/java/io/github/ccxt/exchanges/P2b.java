@@ -1470,7 +1470,7 @@ public class P2b extends P2bApi
             String marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object marketOrders = (result == null || marketId == null ? null : result.get(marketId));
             List<Object> parsedOrders = this.parseOrders(marketOrders, market, sinceResolved, limit, new HashMap<String, Object>() {{}});
-            orders = (List<Object>) this.arrayConcat(orders, parsedOrders);
+            orders = this.arrayConcat(orders, parsedOrders);
         }
         return orders;
 
@@ -1546,7 +1546,7 @@ public class P2b extends P2bApi
         }}, marketResolved);
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String baseApiUrl = this.safeString(this.urls.get("api"), apiName);

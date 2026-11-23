@@ -746,7 +746,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
 
         Map<String, Object> paramsResolved = this.handleRouteAndParams("watchFundingRate", parameters);
         Ticker ticker = (this.watchTicker(symbol, paramsResolved)).join();
-        return this.parseFundingRate(((Map<String, Object>)ticker).get("info"), this.market(symbol));
+        return this.parseFundingRate(this.extend(new HashMap<String, Object>() {{}}, ((Map<String, Object>)ticker).get("info")), this.market(symbol));
 
     }
 
@@ -786,7 +786,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         {
             String symbol = (tickerSymbols == null || i < 0 || i >= tickerSymbols.size() ? null : tickerSymbols.get(i));
             Map<String, Object> ticker = (Map<String, Object>) ((tickers == null || symbol == null ? null : tickers.get(symbol)));
-            result.put(symbol, this.parseFundingRate(ticker.get("info"), this.market(symbol)));
+            result.put(symbol, this.parseFundingRate(this.extend(new HashMap<String, Object>() {{}}, ticker.get("info")), this.market(symbol)));
         }
         return result;
 
@@ -1759,8 +1759,8 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                 this.resubscribeOrderBook((String) (channel));
                 return;
             }
-            this.handleDeltas((orderbook == null ? null : orderbook.asks), this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList())));
-            this.handleDeltas((orderbook == null ? null : orderbook.bids), this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList())));
+            this.handleDeltas((orderbook == null ? null : orderbook.asks), (List<Object>) (this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()))));
+            this.handleDeltas((orderbook == null ? null : orderbook.bids), (List<Object>) (this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()))));
         }
         orderbook.put("symbol", symbol);
         orderbook.put("nonce", this.safeInteger(data, "change_id"));
@@ -1814,16 +1814,16 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Double amount = this.safeNumber(delta, 2, (Object) null);
         if ((java.util.Objects.equals(action, "new")) || (java.util.Objects.equals(action, "change")))
         {
-            ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(new ArrayList<Object>(Arrays.asList(price, amount, 1)));
+            bookside.storeArray(new ArrayList<Object>(Arrays.asList(price, amount, 1)));
         } else if (java.util.Objects.equals(action, "delete"))
         {
-            ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(new ArrayList<Object>(Arrays.asList(price, amount, 0)));
+            bookside.storeArray(new ArrayList<Object>(Arrays.asList(price, amount, 0)));
         }
     }
 
-    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, Object deltas)
+    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, List<Object> deltas)
     {
-        Integer deltasLength = ((List<?>)deltas).size();
+        Integer deltasLength = deltas.size();
         for (var i = 0; (deltasLength != null && i < deltasLength); i++)
         {
             this.handleDelta(bookside, this.safeList(deltas, i, null));

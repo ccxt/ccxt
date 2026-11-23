@@ -128,7 +128,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
         String messageHash = ("trade:" + market.get("symbol"));
-        List<Object> trades = (List<Object>) (this.watchPublic("trade", market, messageHash, parameters)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.watchPublic("trade", market, messageHash, parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -795,7 +795,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             }
             productId = this.parseToInt(market.get("id"));
         }
-        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrders", "subaccount", "default");
+        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "watchOrders", "subaccount", "default");
         String subaccount = subaccountparamsSubaccountVariable.first();
         Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
         String sender = this.createSubaccount((String) (this.walletAddress), subaccount);
@@ -803,7 +803,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         stream.put("type", "order_update");
         stream.put("subaccount", sender);
         stream.put("product_id", productId);
-        List<Object> orders = (List<Object>) (this.watchPrivate("order_update", stream, messageHash, paramsSubaccount)).join();
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.watchPrivate("order_update", stream, messageHash, paramsSubaccount)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -847,7 +847,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             }
             productId = this.parseToInt(market.get("id"));
         }
-        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "unWatchOrders", "subaccount", "default");
+        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "unWatchOrders", "subaccount", "default");
         String subaccount = subaccountparamsSubaccountVariable.first();
         Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
         String sender = this.createSubaccount((String) (this.walletAddress), subaccount);
@@ -898,7 +898,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             }
             productId = this.parseToInt(market.get("id"));
         }
-        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchMyTrades", "subaccount", "default");
+        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "watchMyTrades", "subaccount", "default");
         String subaccount = subaccountparamsSubaccountVariable.first();
         Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
         String sender = this.createSubaccount((String) (this.walletAddress), subaccount);
@@ -906,7 +906,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         stream.put("type", "fill");
         stream.put("subaccount", sender);
         stream.put("product_id", productId);
-        List<Object> trades = (List<Object>) (this.watchPrivate("fill", stream, messageHash, paramsSubaccount)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.watchPrivate("fill", stream, messageHash, paramsSubaccount)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -950,7 +950,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
             }
             productId = this.parseToInt(market.get("id"));
         }
-        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "unWatchMyTrades", "subaccount", "default");
+        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "unWatchMyTrades", "subaccount", "default");
         String subaccount = subaccountparamsSubaccountVariable.first();
         Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
         String sender = this.createSubaccount((String) (this.walletAddress), subaccount);
@@ -1003,7 +1003,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 productId = this.parseToInt(market.get("id"));
             }
         }
-        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchPositions", "subaccount", "default");
+        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "watchPositions", "subaccount", "default");
         String subaccount = subaccountparamsSubaccountVariable.first();
         Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
         String sender = this.createSubaccount((String) (this.walletAddress), subaccount);
@@ -1058,7 +1058,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
                 productId = this.parseToInt(market.get("id"));
             }
         }
-        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "unWatchPositions", "subaccount", "default");
+        Pair<String, Map<String, Object>> subaccountparamsSubaccountVariable = this.handleOptionStringAndParams(parameters, "unWatchPositions", "subaccount", "default");
         String subaccount = subaccountparamsSubaccountVariable.first();
         Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
         String sender = this.createSubaccount((String) (this.walletAddress), subaccount);
@@ -2134,7 +2134,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
     public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         List<Object> bidAsk = new ArrayList<Object>(Arrays.asList(this.parseX18(this.safeString(delta, 0)), this.parseX18(this.safeString(delta, 1))));
-        ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
+        bookside.storeArray(bidAsk);
     }
 
     public void handleOrderBook(Client client, Map<String, Object> message)

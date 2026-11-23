@@ -1910,12 +1910,12 @@ public class Bitso extends BitsoApi
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     @Deprecated
-    public CompletableFuture<Object> fetchTransactionFees(List<String> codes, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchTransactionFees(List<String> codes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchTransactionFeesCore(codes, parameters));
     }
 
-    private Object fetchTransactionFeesCore(List<String> codes, Map<String, Object> parameters)
+    private Map<String, Object> fetchTransactionFeesCore(List<String> codes, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2086,7 +2086,7 @@ public class Bitso extends BitsoApi
 
     }
 
-    public Object parseDepositWithdrawFees(Object response, List<String> codes, String currencyIdKey)
+    public Map<String, Object> parseDepositWithdrawFees(Object response, List<String> codes, String currencyIdKey)
     {
         //
         //    {
@@ -2276,7 +2276,7 @@ public class Bitso extends BitsoApi
         //
         List<Object> payload = this.safeList(response, "payload", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> first = this.safeDict(payload, 0, null);
-        return this.parseTransaction((Map<String, Object>) (first), currency);
+        return this.parseTransaction(first, currency);
 
     }
 
@@ -2371,7 +2371,7 @@ public class Bitso extends BitsoApi
         return this.milliseconds();
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         Map<String, Object> requestHeaders = null;
         String requestBody = null;
@@ -2443,7 +2443,7 @@ public class Bitso extends BitsoApi
                     throw new ExchangeError(feedback) ;
                 }
                 String codeError = this.safeString(error, "code");
-                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions), codeError, feedback);
+                this.throwExactlyMatchedException(this.exceptions, codeError, feedback);
                 throw new ExchangeError(feedback) ;
             }
         }

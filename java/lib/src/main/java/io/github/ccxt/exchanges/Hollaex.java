@@ -1125,7 +1125,7 @@ public class Hollaex extends HollaexApi
         }};
         Boolean paginate = false;
         Long maxLimit = 500L;
-        Pair<Boolean, Map<String, Object>> paginateOptionparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", paginate);
+        Pair<Boolean, Map<String, Object>> paginateOptionparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", paginate);
         Boolean paginateOption = paginateOptionparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateOptionparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginateOption))
@@ -2407,7 +2407,7 @@ public class Hollaex extends HollaexApi
 
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         Object query = this.omit(parameters, this.extractParams(path));
         String requestPath = ((("/" + this.version) + "/") + this.implodeParams(path, parameters));

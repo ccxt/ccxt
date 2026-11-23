@@ -174,7 +174,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         Map<String, Object> market = this.market(symbol);
         String symbolValue = this.safeString(market, "symbol", "");
         String messageHash = ("ticker:" + symbolValue);
-        Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchTicker", "uta", false);
+        Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams(parameters, "watchTicker", "uta", false);
         var uta = ((List<Object>) utaparamsUtaVariable).get(0);
         Map<String, Object> paramsUta = utaparamsUtaVariable.second();
         Pair<String, Map<String, Object>> instTypeparamsValueVariable = this.getInstType("watchTicker", market, uta, paramsUta);
@@ -248,7 +248,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
         List<String> symbolsList = symbolsNormalized;
         Map<String, Object> market = this.market((symbolsList == null || 0 >= ((List<?>)symbolsList).size() ? null : ((List<?>)symbolsList).get(0)));
-        Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchTickers", "uta", false);
+        Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams(parameters, "watchTickers", "uta", false);
         var uta = ((List<Object>) utaparamsUtaVariable).get(0);
         Map<String, Object> paramsUta = utaparamsUtaVariable.second();
         Pair<String, Map<String, Object>> instTypeparamsValueVariable = this.getInstType("watchTickers", market, uta, paramsUta);
@@ -524,7 +524,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
         List<String> symbolsList = symbolsNormalized;
         Map<String, Object> market = this.market((symbolsList == null || 0 >= ((List<?>)symbolsList).size() ? null : ((List<?>)symbolsList).get(0)));
-        Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchBidsAsks", "uta", false);
+        Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams(parameters, "watchBidsAsks", "uta", false);
         var uta = ((List<Object>) utaparamsUtaVariable).get(0);
         Map<String, Object> paramsUta = utaparamsUtaVariable.second();
         Pair<String, Map<String, Object>> instTypeparamsValueVariable = this.getInstType("watchBidsAsks", market, uta, paramsUta);
@@ -641,7 +641,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         Map<String, Object> timeframes = this.safeDict(this.options, "timeframes", null);
         String interval = this.safeString(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
         String messageHash = null;
-        Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchOHLCV", "uta", false);
+        Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams(parameters, "watchOHLCV", "uta", false);
         Boolean uta = utaparamsUtaVariable.first();
         Map<String, Object> paramsUta = utaparamsUtaVariable.second();
         Boolean isStock = (Boolean) market.get("stock");
@@ -714,7 +714,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         String channel = "";
         Map<String, Object> market = this.market(symbol);
         String messageHash = "";
-        List<Object> values = (List<Object>) this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchOHLCV", "uta", false);
+        List<Object> values = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchOHLCV", "uta", false);
         Boolean uta = (Boolean) ((List<Object>)values).get(0);
         Boolean isStock = (Boolean) market.get("stock");
         Map<String, Object> paramsStock = this.omit(parameters, "stock");
@@ -1000,7 +1000,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         Map<String, Object> market = this.market(symbol);
         String marketSymbol = this.safeString(market, "symbol", "");
         String messageHash = ((("unsubscribe:" + messageHashTopic) + ":") + marketSymbol);
-        Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), (String) (methodName), "uta", false);
+        Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams(parameters, (String) (methodName), "uta", false);
         var uta = ((List<Object>) utaparamsUtaVariable).get(0);
         Map<String, Object> paramsUta = utaparamsUtaVariable.second();
         Pair<Boolean, Map<String, Object>> privateChannelparamsPrivateChannelVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsUta), (String) (methodName), "privateChannel", false);
@@ -1317,14 +1317,14 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         // we store the string representations in the orderbook for checksum calculation
         // this simplifies the code for generating checksums as we do not need to do any complex number transformations
         ((List<Object>)bidAsk).add(delta);
-        ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
+        bookside.storeArray(bidAsk);
     }
 
-    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, Object deltas)
+    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, List<Object> deltas)
     {
-        for (var i = 0; i < ((List<?>)deltas).size(); i++)
+        for (var i = 0; i < deltas.size(); i++)
         {
-            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= deltas.size() ? null : deltas.get(i)));
         }
     }
 
@@ -1386,7 +1386,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-        Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchTradesForSymbols", "uta", false);
+        Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams(parameters, "watchTradesForSymbols", "uta", false);
         var uta = ((List<Object>) utaparamsUtaVariable).get(0);
         Map<String, Object> paramsUta = utaparamsUtaVariable.second();
         Map<String, Object> paramsCursor = paramsUta;
@@ -1430,7 +1430,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 put( "uta", true );
             }});
         }
-        List<Object> trades = (List<Object>) (this.watchPublicMultiple(uta, messageHashes, topics, paramsRequest)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.watchPublicMultiple(uta, messageHashes, topics, paramsRequest)).join();
         Map<String, Object> first = this.safeDict(trades, 0, null);
         String tradeSymbol = this.safeString(first, "symbol");
         Long limitResolved = limit;
@@ -1471,7 +1471,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     private Object unWatchTradesCore(String symbol, Map<String, Object> parameters)
     {
 
-        List<Object> values = (List<Object>) this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchTrades", "uta", false);
+        List<Object> values = (List<Object>) this.handleOptionBoolAndParams(parameters, "watchTrades", "uta", false);
         Boolean uta = (Boolean) ((List<Object>)values).get(0);
         String channelTopic = "trade";
         if (Boolean.TRUE.equals(uta))
@@ -1723,7 +1723,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         String messageHash = "";
         String subscriptionHash = "positions";
         String instType = "USDT-FUTURES";
-        Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchPositions", "uta", false);
+        Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams(parameters, "watchPositions", "uta", false);
         var uta = ((List<Object>) utaparamsUtaVariable).get(0);
         Map<String, Object> paramsUta = utaparamsUtaVariable.second();
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
@@ -2029,7 +2029,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }
         Map<String, Object> market = null;
         String marketId = null;
-        var isTriggerparamsTriggerVariable = this.isTriggerOrder((Map<String, Object>) (parameters));
+        var isTriggerparamsTriggerVariable = this.isTriggerOrder(parameters);
         var isTrigger = ((List<Object>) isTriggerparamsTriggerVariable).get(0);
         var paramsTrigger = ((List<Object>) isTriggerparamsTriggerVariable).get(1);
         String messageHash = "order";
@@ -2885,7 +2885,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
     private Object watchBalanceCore(Map<String, Object> parameters)
     {
 
-        Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchBalance", "uta", false);
+        Pair<Boolean, Map<String, Object>> utaparamsUtaVariable = this.handleOptionBoolAndParams(parameters, "watchBalance", "uta", false);
         Boolean uta = utaparamsUtaVariable.first();
         Map<String, Object> paramsUta = utaparamsUtaVariable.second();
         Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsUta), "watchBalance", "stock", false);
@@ -3362,7 +3362,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         }
     }
 
-    public void handleTextMessage(Client client, Object message)
+    public void handleTextMessage(Client client, String message)
     {
         if (java.util.Objects.equals(message, "pong"))
         {

@@ -1614,10 +1614,10 @@ public class Mexc extends MexcApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
@@ -1642,12 +1642,12 @@ public class Mexc extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchSpotMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchSpotMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchSpotMarketsCore(parameters));
     }
 
-    private Object fetchSpotMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchSpotMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.spotPublicGetExchangeInfo(parameters)).join();
@@ -1783,12 +1783,12 @@ public class Mexc extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public CompletableFuture<Object> fetchSwapMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchSwapMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchSwapMarketsCore(parameters));
     }
 
-    private Object fetchSwapMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchSwapMarketsCore(Map<String, Object> parameters)
     {
 
         Object currentRl = this.rateLimit;
@@ -2296,7 +2296,7 @@ public class Mexc extends MexcApi
         }
         Map<String, Object> market = this.market(symbol);
         Long maxLimit = ((Boolean.TRUE.equals((this.safeBool(market, "spot", false))))) ? 500L : 2000L; // docs say 1000 for spot, but in practice it's 500
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -3650,7 +3650,7 @@ public class Mexc extends MexcApi
                 //
                 ordersOfTrigger = this.safeValue(response, "data");
             }
-            List<Object> merged = (List<Object>) this.arrayConcat(ordersOfTrigger, ordersOfRegular);
+            List<Object> merged = this.arrayConcat(ordersOfTrigger, ordersOfRegular);
             return this.parseOrders(merged, market, since, limit, paramsOmitted);
         }
 
@@ -4059,7 +4059,6 @@ public class Mexc extends MexcApi
             {
                 throw new InvalidOrder(((((this.id + " cancelOrder() the order with id ") + id) + " cannot be cancelled: ") + errorMsg)) ;
             }
-            return this.parseOrder(this.safeDict(data, 0, new HashMap<String, Object>() {{}}), market);
         }
         return this.parseOrder((Map<String, Object>) (data), market);
 
@@ -5127,12 +5126,12 @@ public class Mexc extends MexcApi
 
     }
 
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, String addOrReduce, Map<String, Object> parameters)
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Double amount, String addOrReduce, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.modifyMarginHelperCore(symbol, amount, addOrReduce, parameters));
     }
 
-    private Object modifyMarginHelperCore(String symbol, Object amount, String addOrReduce, Map<String, Object> parameters)
+    private Object modifyMarginHelperCore(String symbol, Double amount, String addOrReduce, Map<String, Object> parameters)
     {
 
         Long positionId = this.safeInteger(parameters, "positionId");
@@ -6934,12 +6933,12 @@ public class Mexc extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public CompletableFuture<Object> fetchTransactionFees(List<String> codes, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchTransactionFees(List<String> codes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchTransactionFeesCore(codes, parameters));
     }
 
-    private Object fetchTransactionFeesCore(List<String> codes, Map<String, Object> parameters)
+    private Map<String, Object> fetchTransactionFeesCore(List<String> codes, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -7430,7 +7429,7 @@ public class Mexc extends MexcApi
         return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         Map<String, Object> requestHeaders = null;
         String requestBody = null;

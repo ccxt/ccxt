@@ -880,7 +880,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         String symbol = this.safeString(market, "symbol", "");
         String aggregation = null;
         Map<String, Object> paramsAggregation = null;
-        Pair<String, Map<String, Object>> aggregationparamsAggregationVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), (String) (methodName), "aggregation", (String) null);
+        Pair<String, Map<String, Object>> aggregationparamsAggregationVariable = this.handleOptionStringAndParams(parameters, (String) (methodName), "aggregation", (String) null);
         aggregation = aggregationparamsAggregationVariable.first();
         paramsAggregation = aggregationparamsAggregationVariable.second();
         if (java.util.Objects.equals(aggregation, null))
@@ -1467,7 +1467,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         return this.safeString(modes, marginMode, marginMode);
     }
 
-    public void handleTextMessage(Client client, Object message)
+    public void handleTextMessage(Client client, String message)
     {
         if (java.util.Objects.equals(message, "pong"))
         {

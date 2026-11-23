@@ -3060,7 +3060,7 @@ public class Tokocrypto extends TokocryptoApi
 
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> restUrls = this.extend(new HashMap<String, Object>() {{}}, ((Map<String, Object>)this.urls.get("api")).get("rest"));
@@ -3253,7 +3253,7 @@ public class Tokocrypto extends TokocryptoApi
         return null;
     }
 
-    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
+    public Object calculateRateLimiterCost(Object api, String method, String path, Object parameters, Map<String, Object> config)
     {
         Map<String, Object> paramsDict = this.extend(new HashMap<String, Object>() {{}}, parameters);
         List<Object> byLimit = this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));

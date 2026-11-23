@@ -84,33 +84,6 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         return String.valueOf(precise);
     }
 
-    public String fromEp(String ep, Map<String, Object> market)
-    {
-        if ((java.util.Objects.equals(ep, null)) || (java.util.Objects.equals(market, null)))
-        {
-            return ep;
-        }
-        return this.fromEn((String) (ep), this.safeInteger(market, "priceScale"));
-    }
-
-    public String fromEv(String ev, Map<String, Object> market)
-    {
-        if ((java.util.Objects.equals(ev, null)) || (java.util.Objects.equals(market, null)))
-        {
-            return ev;
-        }
-        return this.fromEn((String) (ev), this.safeInteger(market, "valueScale"));
-    }
-
-    public String fromEr(String er, Map<String, Object> market)
-    {
-        if ((java.util.Objects.equals(er, null)) || (java.util.Objects.equals(market, null)))
-        {
-            return er;
-        }
-        return this.fromEn((String) (er), this.safeInteger(market, "ratioScale"));
-    }
-
     public Long requestId()
     {
         Long requestId = this.nextCounter("requestId", 1L);
@@ -1147,7 +1120,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 messageHash = ("trades:" + type);
             }
         }
-        List<Object> trades = (List<Object>) (this.subscribePrivate((String) (type), messageHash, paramsType)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.subscribePrivate((String) (type), messageHash, paramsType)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -1348,7 +1321,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 messageHash = ("orders:" + type);
             }
         }
-        List<Object> orders = (List<Object>) (this.subscribePrivate((String) (type), messageHash, paramsType)).join();
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.subscribePrivate((String) (type), messageHash, paramsType)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -1526,7 +1499,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         {
             List<Object> closed = this.safeList(ordersDict, "closed", new ArrayList<Object>(Arrays.asList()));
             List<Object> open = this.safeList(ordersDict, "open", new ArrayList<Object>(Arrays.asList()));
-            List<Object> orders = (List<Object>) this.arrayConcat(open, closed);
+            List<Object> orders = this.arrayConcat(open, closed);
             Integer ordersLength = orders.size();
             if (java.util.Objects.equals(ordersLength, 0))
             {

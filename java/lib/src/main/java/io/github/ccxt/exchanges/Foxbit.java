@@ -1621,7 +1621,7 @@ public class Foxbit extends FoxbitApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "currency_symbol", currency.get("id") );
         }};
-        List<Object> networkCodeparamsOmitedVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
+        List<Object> networkCodeparamsOmitedVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
         String networkCode = (String) ((List<Object>) networkCodeparamsOmitedVariable).get(0);
         Map<String, Object> paramsOmited = (Map<String, Object>) ((List<Object>) networkCodeparamsOmitedVariable).get(1);
         if (!java.util.Objects.equals(networkCode, null))
@@ -1806,7 +1806,7 @@ public class Foxbit extends FoxbitApi
 
         List<Transaction> withdrawals = (this.fetchWithdrawals(code, since, limit, parameters)).join();
         List<Transaction> deposits = (this.fetchDeposits(code, since, limit, parameters)).join();
-        List<Object> allTransactions = (List<Object>) this.arrayConcat(withdrawals, deposits);
+        List<Object> allTransactions = this.arrayConcat(withdrawals, deposits);
         List<Object> result = this.sortBy(allTransactions, "timestamp");
         return result;
 
@@ -2450,7 +2450,7 @@ public class Foxbit extends FoxbitApi
         }
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String version = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String urlPath = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));

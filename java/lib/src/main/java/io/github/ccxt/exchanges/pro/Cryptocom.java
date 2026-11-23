@@ -189,7 +189,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         {
             parameters.put("params", new HashMap<String, Object>() {{}});
         }
-        Pair<String, Map<String, Object>> bookSubscriptionTypeparamsBookSubscriptionTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
+        Pair<String, Map<String, Object>> bookSubscriptionTypeparamsBookSubscriptionTypeVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
         String bookSubscriptionType = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.first();
         Map<String, Object> paramsBookSubscriptionType = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.second();
         Pair<String, Map<String, Object>> bookSubscriptionType2paramsBookSubscriptionType2Variable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookSubscriptionType), "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
@@ -261,7 +261,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         {
             parameters.put("params", new HashMap<String, Object>() {{}});
         }
-        Pair<String, Map<String, Object>> bookSubscriptionTypeparamsBookSubscriptionTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
+        Pair<String, Map<String, Object>> bookSubscriptionTypeparamsBookSubscriptionTypeVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "bookSubscriptionType", "SNAPSHOT_AND_UPDATE");
         String bookSubscriptionType = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.first();
         Map<String, Object> paramsBookSubscriptionType = bookSubscriptionTypeparamsBookSubscriptionTypeVariable.second();
         Pair<String, Map<String, Object>> bookSubscriptionType2paramsBookSubscriptionType2Variable = this.handleOptionStringAndParams((Map<String, Object>) (paramsBookSubscriptionType), "watchOrderBookForSymbols", "bookSubscriptionType", bookSubscriptionType);
@@ -303,12 +303,12 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         Double price = this.safeFloat(delta, 0);
         Double amount = this.safeFloat(delta, 1);
         Long count = this.safeInteger(delta, 2);
-        ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(new ArrayList<Object>(Arrays.asList(price, amount, count)));
+        bookside.storeArray(new ArrayList<Object>(Arrays.asList(price, amount, count)));
     }
 
-    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, Object deltas)
+    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, List<Object> deltas)
     {
-        for (var i = 0; i < ((List<?>)deltas).size(); i++)
+        for (var i = 0; i < deltas.size(); i++)
         {
             this.handleDelta(bookside, this.safeList(deltas, i, null));
         }
@@ -406,8 +406,8 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 }
             }
         }
-        this.handleDeltas((orderbook == null ? null : orderbook.asks), this.safeList(books, "asks", new ArrayList<Object>(Arrays.asList())));
-        this.handleDeltas((orderbook == null ? null : orderbook.bids), this.safeList(books, "bids", new ArrayList<Object>(Arrays.asList())));
+        this.handleDeltas((orderbook == null ? null : orderbook.asks), (List<Object>) (this.safeList(books, "asks", new ArrayList<Object>(Arrays.asList()))));
+        this.handleDeltas((orderbook == null ? null : orderbook.bids), (List<Object>) (this.safeList(books, "bids", new ArrayList<Object>(Arrays.asList()))));
         orderbook.put("nonce", nonce);
         this.orderbooks.put(symbol, orderbook);
         String messageHash = ("orderbook:" + symbol);
@@ -489,7 +489,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             Map<String, Object> market = this.market(symbol);
             topics.add(("trade." + this.safeString(market, "id", "")));
         }
-        List<Object> trades = (List<Object>) (this.watchPublicMultiple(topics, topics, parameters)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.watchPublicMultiple(topics, topics, parameters)).join();
         Map<String, Object> first = this.safeDict(trades, 0, null);
         String tradeSymbol = this.safeString(first, "symbol");
         Long limitResolved = limit;
@@ -630,7 +630,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         {
             messageHash = ("user.trade." + this.safeString(market, "id", ""));
         }
-        List<Object> trades = (List<Object>) (this.watchPrivateSubscribe(messageHash, parameters)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.watchPrivateSubscribe(messageHash, parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -984,7 +984,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         }
         Map<String, Object> market = this.market(symbol);
         String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-        List<Object> ohlcv = (List<Object>) (this.watchPublic(((("candlestick." + interval) + ".") + this.safeString(market, "id", "")), parameters)).join();
+        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) (this.watchPublic(((("candlestick." + interval) + ".") + this.safeString(market, "id", "")), parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -1101,7 +1101,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         {
             messageHash = ("user.order." + this.safeString(market, "id", ""));
         }
-        List<Object> orders = (List<Object>) (this.watchPrivateSubscribe(messageHash, parameters)).join();
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.watchPrivateSubscribe(messageHash, parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {

@@ -1370,7 +1370,7 @@ public class Aster extends AsterApi
                 ((List<Object>)fapiRowsFiltered).add(market);
             }
         }
-        List<Object> rows = (List<Object>) this.arrayConcat(sapiRows, fapiRowsFiltered);
+        List<Object> rows = this.arrayConcat(sapiRows, fapiRowsFiltered);
         return this.parseMarkets(rows);
 
     }
@@ -1589,7 +1589,7 @@ public class Aster extends AsterApi
         {
             request.put("limit", Math.min(limit, 1500));
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, parameters, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         ((Map<String, Object>)requestUntil).put("interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
@@ -1770,7 +1770,7 @@ public class Aster extends AsterApi
         Map<String, Object> paramsUntil = parameters;
         if (Boolean.TRUE.equals(untilDefined))
         {
-            Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("endTime", request, parameters, 1);
             request = requestparamsUntilVariable.first();
             paramsUntil = requestparamsUntilVariable.second();
         }
@@ -2231,7 +2231,7 @@ public class Aster extends AsterApi
 
     }
 
-    public Object parseLastPrice(Map<String, Object> entry, Map<String, Object> market)
+    public Map<String, Object> parseLastPrice(Map<String, Object> entry, Map<String, Object> market)
     {
         //
         // spot & swap
@@ -2409,7 +2409,7 @@ public class Aster extends AsterApi
         //         "time": 1750146970000
         //     }
         //
-        return this.parseFundingRate(response, market);
+        return this.parseFundingRate(this.extend(new HashMap<String, Object>() {{}}, response), market);
 
     }
 
@@ -2532,7 +2532,7 @@ public class Aster extends AsterApi
         {
             request.put("limit", Math.min(limit, 1000));
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, parameters, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         List<Object> response = (this.fapiPublicGetV3FundingRate(this.extend(requestUntil, paramsUntil))).join();
@@ -3110,7 +3110,7 @@ public class Aster extends AsterApi
         {
             request.put("startTime", since);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, parameters, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         List<Object> response = null;
@@ -3589,7 +3589,7 @@ public class Aster extends AsterApi
             }
             request.put("stopPrice", this.priceToPrecision(symbol, stopPrice));
         }
-        Pair<String, Map<String, Object>> tifOptionparamsTifOptionVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "timeInForce", (String) null);
+        Pair<String, Map<String, Object>> tifOptionparamsTifOptionVariable = this.handleOptionStringAndParams(parameters, "createOrder", "timeInForce", (String) null);
         String tifOption = tifOptionparamsTifOptionVariable.first();
         Map<String, Object> paramsTifOption = tifOptionparamsTifOptionVariable.second();
         Boolean tifIsMissing = Boolean.TRUE.equals(timeInForceIsRequired) && (java.util.Objects.equals(this.safeString(parameters, "timeInForce"), null)) && (java.util.Objects.equals(this.safeString(request, "timeInForce"), null));
@@ -4087,12 +4087,12 @@ public class Aster extends AsterApi
         }
     }
 
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object addOrReduce, Map<String, Object> parameters)
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Double amount, Object addOrReduce, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.modifyMarginHelperCore(symbol, amount, addOrReduce, parameters));
     }
 
-    private Object modifyMarginHelperCore(String symbol, Object amount, Object addOrReduce, Map<String, Object> parameters)
+    private Object modifyMarginHelperCore(String symbol, Double amount, Object addOrReduce, Map<String, Object> parameters)
     {
 
         (this.loadMarketsAndSignIn()).join();
@@ -4231,7 +4231,7 @@ public class Aster extends AsterApi
         {
             request.put("limit", Math.min(limit, 1000)); // max 1000
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, parameters, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         List<Object> response = (this.fapiPrivateGetV3Income(this.extend(requestUntil, paramsUntil))).join();
@@ -4637,7 +4637,7 @@ public class Aster extends AsterApi
     private Object fetchPositionsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
-        Pair<String, Map<String, Object>> methodOptionparamsMethodVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchPositions", "method", (String) null);
+        Pair<String, Map<String, Object>> methodOptionparamsMethodVariable = this.handleOptionStringAndParams(parameters, "fetchPositions", "method", (String) null);
         String methodOption = methodOptionparamsMethodVariable.first();
         Map<String, Object> paramsMethod = methodOptionparamsMethodVariable.second();
         String defaultMethod = methodOption;
@@ -4936,7 +4936,7 @@ public class Aster extends AsterApi
         (this.loadMarketsAndSignIn()).join();
         (this.loadLeverageBrackets(false, parameters)).join();
         Map<String, Object> response = (this.fapiPrivateGetV4Account(parameters)).join();
-        Boolean filterClosed = (Boolean) ((List<Object>)this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchAccountPositions", "filterClosed", false)).get(0);
+        Boolean filterClosed = (Boolean) ((List<Object>)this.handleOptionBoolAndParams(parameters, "fetchAccountPositions", "filterClosed", false)).get(0);
         List<Object> result = this.parseAccountPositions(response, filterClosed);
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
         return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
@@ -5260,7 +5260,7 @@ public class Aster extends AsterApi
         return ((("0x" + (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r))) + (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s))) + v);
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String baseApiUrl = this.safeString(this.urls.get("api"), apiName);

@@ -1008,7 +1008,7 @@ public class Apex extends ApexApi
         // default is 200 when requested with `since`, max 200
         Long limitResolved = (((java.util.Objects.equals(limit, null) || (limit > 200)))) ? 200 : limit;
         request.put("limit", limitResolved);
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", request, (Map<String, Object>) (parameters), 0.001);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", request, parameters, 0.001);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         if (!java.util.Objects.equals(since, null))
@@ -2392,7 +2392,7 @@ public class Apex extends ApexApi
         return this.safePosition(mapLiteral3);
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String baseApiUrl = this.safeString(this.urls.get("api"), apiName);

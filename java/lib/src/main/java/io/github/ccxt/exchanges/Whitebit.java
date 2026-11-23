@@ -1033,7 +1033,7 @@ public class Whitebit extends WhitebitApi
         Map<String, Object> networkLimits = this.safeDict(rawCurrency, "limits", new HashMap<String, Object>() {{}});
         Map<String, Object> depositLimits = this.safeDict(networkLimits, "deposit", new HashMap<String, Object>() {{}});
         Map<String, Object> withdrawLimits = this.safeDict(networkLimits, "withdraw", new HashMap<String, Object>() {{}});
-        List<Object> allNetworks = (List<Object>) this.arrayConcat(depositsNetworks, withdrawsNetworks);
+        List<Object> allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
         for (var j = 0; j < allNetworks.size(); j++)
         {
             String networkId = this.safeString(allNetworks, j, "");
@@ -1103,12 +1103,12 @@ public class Whitebit extends WhitebitApi
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     @Deprecated
-    public CompletableFuture<Object> fetchTransactionFees(List<String> codes, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchTransactionFees(List<String> codes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchTransactionFeesCore(codes, parameters));
     }
 
-    private Object fetchTransactionFeesCore(List<String> codes, Map<String, Object> parameters)
+    private Map<String, Object> fetchTransactionFeesCore(List<String> codes, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -1236,7 +1236,7 @@ public class Whitebit extends WhitebitApi
 
     }
 
-    public Object parseDepositWithdrawFees(Object response, List<String> codes, String currencyIdKey)
+    public Map<String, Object> parseDepositWithdrawFees(Object response, List<String> codes, String currencyIdKey)
     {
         //
         //    {
@@ -1414,12 +1414,12 @@ public class Whitebit extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [trading limits structure]{@link https://docs.ccxt.com/?id=trading-limits-structure}
      */
-    public CompletableFuture<Object> fetchTradingLimits(List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchTradingLimits(List<String> symbols, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchTradingLimitsCore(symbols, parameters));
     }
 
-    private Object fetchTradingLimitsCore(List<String> symbols, Map<String, Object> parameters)
+    private Map<String, Object> fetchTradingLimitsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2292,7 +2292,7 @@ public class Whitebit extends WhitebitApi
                 Map<String, Object> marketNew = this.safeMarket(marketId, (Map<String, Object>) null, "_", (String) null);
                 List<Object> rawTrades = this.safeList(response, marketId, new ArrayList<Object>(Arrays.asList()));
                 List<Object> parsed = this.parseTrades(rawTrades, marketNew, since, limit, new HashMap<String, Object>() {{}});
-                results = (List<Object>) this.arrayConcat(results, parsed);
+                results = this.arrayConcat(results, parsed);
             }
             results = this.sortBy2(results, "timestamp", "id");
             return this.filterBySinceLimit(results, since, limit, "timestamp", false);
@@ -2992,7 +2992,7 @@ public class Whitebit extends WhitebitApi
         var openOrdersclosedOrdersVariable = (CompletableFuture.allOf(openOrdersclosedOrdersFutures.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(openOrdersclosedOrdersFutures.stream().<Object>map(CompletableFuture::join).toList()))).join();
         var openOrders = ((List<Object>) openOrdersclosedOrdersVariable).get(0);
         var closedOrders = ((List<Object>) openOrdersclosedOrdersVariable).get(1);
-        List<Object> allOrders = (List<Object>) this.arrayConcat(openOrders, closedOrders);
+        List<Object> allOrders = this.arrayConcat(openOrders, closedOrders);
         // Sort by timestamp (most recent first)
         List<Object> sortedOrders = this.sortBy(allOrders, "timestamp", true);
         // Apply limit if specified (since and symbol filtering already handled by individual methods)
@@ -4580,7 +4580,7 @@ public class Whitebit extends WhitebitApi
         {
             request.put("limit", limit);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endDate", request, (Map<String, Object>) (parameters), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endDate", request, parameters, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = (this.v4PrivatePostCollateralAccountFundingHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -4606,7 +4606,7 @@ public class Whitebit extends WhitebitApi
 
     }
 
-    public Object parseFundingHistory(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingHistory(Object contract, Map<String, Object> market)
     {
         //
         //     {
@@ -4746,12 +4746,12 @@ public class Whitebit extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public CompletableFuture<Conversion> fetchConvertQuote(String fromCode, String toCode, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Conversion> fetchConvertQuote(String fromCode, String toCode, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchConvertQuoteCore(fromCode, toCode, amount, parameters)).thenApply(Conversion::new);
     }
 
-    private Object fetchConvertQuoteCore(String fromCode, String toCode, Object amount, Map<String, Object> parameters)
+    private Object fetchConvertQuoteCore(String fromCode, String toCode, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -4794,12 +4794,12 @@ public class Whitebit extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public CompletableFuture<Conversion> createConvertTrade(String id, String fromCode, String toCode, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Conversion> createConvertTrade(String id, String fromCode, String toCode, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createConvertTradeCore(id, fromCode, toCode, amount, parameters)).thenApply(Conversion::new);
     }
 
-    private Object createConvertTradeCore(String id, String fromCode, String toCode, Object amount, Map<String, Object> parameters)
+    private Object createConvertTradeCore(String id, String fromCode, String toCode, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -4863,7 +4863,7 @@ public class Whitebit extends WhitebitApi
         {
             request.put("limit", limit);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", request, (Map<String, Object>) (parameters), 0.001);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("to", request, parameters, 0.001);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Map<String, Object> response = (this.v4PrivatePostConvertHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -4993,7 +4993,7 @@ public class Whitebit extends WhitebitApi
         {
             request.put("limit", since);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endDate", request, (Map<String, Object>) (parameters), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endDate", request, parameters, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         List<Object> response = (this.v4PrivatePostCollateralAccountPositionsHistory(this.extend(requestUntil, paramsUntil))).join();
@@ -5237,7 +5237,7 @@ public class Whitebit extends WhitebitApi
             throw new ArgumentsRequired((this.id + " fetchFundingRateHistory() requires a symbol argument")) ;
         }
         Long maxLimit = 100L;
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -5298,7 +5298,7 @@ public class Whitebit extends WhitebitApi
         return (this.milliseconds() - this.safeInteger(this.options, "timeDifference", 0));
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         Object query = this.omit(parameters, this.extractParams(path));
         String version = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));

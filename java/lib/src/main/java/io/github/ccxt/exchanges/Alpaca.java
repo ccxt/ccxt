@@ -1045,7 +1045,7 @@ public class Alpaca extends AlpacaApi
         String method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
         Boolean paginate = false;
         Object query = null;
-        Pair<Boolean, Map<String, Object>> paginatequeryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginatequeryVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         paginate = paginatequeryVariable.first();
         query = paginatequeryVariable.second();
         List<Object> paginationCallsqueryPaginationVariable = (List<Object>) this.handleOptionIntegerAndParams(query, "fetchOHLCV", "paginationCalls", 10L);
@@ -1127,7 +1127,7 @@ public class Alpaca extends AlpacaApi
                     {
                         break;
                     }
-                    ohlcvs = (List<Object>) this.arrayConcat(ohlcvs, page);
+                    ohlcvs = this.arrayConcat(ohlcvs, page);
                     pageToken = this.safeString(response, "next_page_token");
                 }
             }
@@ -2734,7 +2734,7 @@ public class Alpaca extends AlpacaApi
         return this.safeBalance(result);
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String endpoint = ("/" + this.implodeParams(path, parameters));
         String baseApiUrl = this.safeString(this.urls.get("api"), (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)));

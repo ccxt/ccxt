@@ -3798,7 +3798,7 @@ public class Bitget extends BitgetApi
         {
             (this.loadTimeDifference(new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMarkets", "stock", false);
+        Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "fetchMarkets", "stock", false);
         Boolean stock = stockparamsStockVariable.first();
         Map<String, Object> paramsStock = stockparamsStockVariable.second();
         List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (paramsStock), "fetchMarkets", false)).join();
@@ -3912,7 +3912,7 @@ public class Bitget extends BitgetApi
                 this.options.put("isolatedMarginPairsData", isolatedKeys);
             } else
             {
-                markets = (List<Object>) this.arrayConcat(markets, data);
+                markets = this.arrayConcat(markets, data);
             }
         }
         //
@@ -4218,7 +4218,7 @@ public class Bitget extends BitgetApi
         {
             Map<String, Object> res = this.safeDict(results, i, null);
             List<Object> data = this.safeList(res, "data", new ArrayList<Object>(Arrays.asList()));
-            markets = (List<Object>) this.arrayConcat(markets, data);
+            markets = this.arrayConcat(markets, data);
         }
         //
         // spot uta
@@ -4898,7 +4898,7 @@ public class Bitget extends BitgetApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "fetchDeposits", false)).join();
+        List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams(parameters, "fetchDeposits", false)).join();
         Boolean uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
         Map<String, Object> paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
         Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsUTA), "fetchDeposits", "paginate", false);
@@ -5142,7 +5142,7 @@ public class Bitget extends BitgetApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "fetchWithdrawals", false)).join();
+        List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams(parameters, "fetchWithdrawals", false)).join();
         Boolean uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
         Map<String, Object> paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
         Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsUTA), "fetchWithdrawals", "paginate", false);
@@ -5430,7 +5430,7 @@ public class Bitget extends BitgetApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "fetchDepositAddress", false)).join();
+        List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams(parameters, "fetchDepositAddress", false)).join();
         Boolean uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
         Map<String, Object> paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
         List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (paramsUTA));
@@ -6392,7 +6392,7 @@ public class Bitget extends BitgetApi
         }
         Boolean paginate = false;
         Object paramsPaginate = null;
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTrades", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
         paginate = paginateparamsPaginateVariable.first();
         paramsPaginate = paginateparamsPaginateVariable.second();
         Map<String, Object> market = this.market(symbol);
@@ -6592,7 +6592,7 @@ public class Bitget extends BitgetApi
         }};
         Boolean uta = false;
         Map<String, Object> paramsUTA = null;
-        List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "fetchTradingFee", false)).join();
+        List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams(parameters, "fetchTradingFee", false)).join();
         uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
         paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
         if (java.util.Objects.equals(uta, true))
@@ -6935,7 +6935,7 @@ public class Bitget extends BitgetApi
         Long maxLimitForHistoryEndpoint = 200L; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
         Boolean useHistoryEndpoint = (Boolean) this.safeBool(parameters, "useHistoryEndpoint", false);
         Boolean useHistoryEndpointForPagination = (Boolean) this.safeBool(parameters, "useHistoryEndpointForPagination", true);
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (paramsPaginate), "fetchOHLCV", false)).join();
@@ -7198,7 +7198,7 @@ public class Bitget extends BitgetApi
         String marketType = null;
         String marginMode = null;
         Map<String, Object> response = null;
-        Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchBalance", "stock", false);
+        Pair<Boolean, Map<String, Object>> stockparamsStockVariable = this.handleOptionBoolAndParams(parameters, "fetchBalance", "stock", false);
         Boolean stock = stockparamsStockVariable.first();
         Map<String, Object> paramsStock = stockparamsStockVariable.second();
         Boolean uta = false;
@@ -8658,7 +8658,7 @@ public class Bitget extends BitgetApi
         }
         Boolean uta = false;
         Map<String, Object> paramsUTA = null;
-        List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "createOrders", false)).join();
+        List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams(parameters, "createOrders", false)).join();
         uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
         paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
         if (java.util.Objects.equals(uta, true))
@@ -8762,7 +8762,7 @@ public class Bitget extends BitgetApi
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         List<Object> failure = this.safeList(data, "failureList", new ArrayList<Object>(Arrays.asList()));
         List<Object> orderInfo = this.safeList(data, "successList", new ArrayList<Object>(Arrays.asList()));
-        List<Object> both = (List<Object>) this.arrayConcat(orderInfo, failure);
+        List<Object> both = this.arrayConcat(orderInfo, failure);
         return this.parseOrders(both, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
 
     }
@@ -9362,7 +9362,7 @@ public class Bitget extends BitgetApi
         Map<String, Object> market = this.market(symbol);
         Boolean uta = false;
         Map<String, Object> paramsUTA = null;
-        List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "cancelOrders", false)).join();
+        List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams(parameters, "cancelOrders", false)).join();
         uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
         paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
         if (java.util.Objects.equals(uta, true))
@@ -9565,7 +9565,7 @@ public class Bitget extends BitgetApi
         List<Object> responseList = null;
         if ((!java.util.Objects.equals(resultList, null)) && (!java.util.Objects.equals(failureList, null)))
         {
-            responseList = (List<Object>) this.arrayConcat(resultList, failureList);
+            responseList = this.arrayConcat(resultList, failureList);
         } else
         {
             responseList = resultList;
@@ -10354,7 +10354,7 @@ public class Bitget extends BitgetApi
 
         Boolean uta = false;
         Map<String, Object> paramsUTA = null;
-        List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "fetchCanceledAndClosedOrders", false)).join();
+        List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams(parameters, "fetchCanceledAndClosedOrders", false)).join();
         uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
         paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
         if (java.util.Objects.equals(uta, true))
@@ -11377,7 +11377,7 @@ public class Bitget extends BitgetApi
 
         Boolean uta = false;
         Map<String, Object> paramsUTA = null;
-        List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "fetchMyTrades", false)).join();
+        List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams(parameters, "fetchMyTrades", false)).join();
         uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
         paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
         if ((!java.util.Objects.equals(uta, true)) && (java.util.Objects.equals(symbol, null)))
@@ -11767,7 +11767,7 @@ public class Bitget extends BitgetApi
         }
         Boolean paginate = false;
         Map<String, Object> paramsPaginate = null;
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchPositions", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchPositions", "paginate", false);
         paginate = paginateparamsPaginateVariable.first();
         paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -12405,7 +12405,7 @@ public class Bitget extends BitgetApi
             }
         }
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        return this.parseFundingRate((data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0)), market);
+        return this.parseFundingRate(this.safeDict(data, 0, new HashMap<String, Object>() {{}}), market);
 
     }
 
@@ -12681,7 +12681,7 @@ public class Bitget extends BitgetApi
         {
             throw new ArgumentsRequired((this.id + " fetchFundingHistory() requires a symbol argument")) ;
         }
-        List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "fetchFundingHistory", false)).join();
+        List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams(parameters, "fetchFundingHistory", false)).join();
         Boolean uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
         Map<String, Object> paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
         Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsUTA), "fetchFundingHistory", "paginate", false);
@@ -12802,12 +12802,12 @@ public class Bitget extends BitgetApi
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit, false);
     }
 
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, String type, Map<String, Object> parameters)
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Double amount, String type, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.modifyMarginHelperCore(symbol, amount, type, parameters));
     }
 
-    private Object modifyMarginHelperCore(String symbol, Object amount, String type, Map<String, Object> parameters)
+    private Object modifyMarginHelperCore(String symbol, Double amount, String type, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -13416,7 +13416,7 @@ public class Bitget extends BitgetApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "transfer", false)).join();
+        List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams(parameters, "transfer", false)).join();
         Boolean uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
         Map<String, Object> paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
         Map<String, Object> currency = this.currency((String) (code));
@@ -13651,12 +13651,12 @@ public class Bitget extends BitgetApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public CompletableFuture<MarginLoan> borrowCrossMargin(String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginLoan> borrowCrossMargin(String code, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.borrowCrossMarginCore(code, amount, parameters)).thenApply(MarginLoan::new);
     }
 
-    private Object borrowCrossMarginCore(String code, Object amount, Map<String, Object> parameters)
+    private Object borrowCrossMarginCore(String code, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -13697,12 +13697,12 @@ public class Bitget extends BitgetApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public CompletableFuture<MarginLoan> borrowIsolatedMargin(String symbol, String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginLoan> borrowIsolatedMargin(String symbol, String code, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.borrowIsolatedMarginCore(symbol, code, amount, parameters)).thenApply(MarginLoan::new);
     }
 
-    private Object borrowIsolatedMarginCore(String symbol, String code, Object amount, Map<String, Object> parameters)
+    private Object borrowIsolatedMarginCore(String symbol, String code, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -13746,12 +13746,12 @@ public class Bitget extends BitgetApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public CompletableFuture<MarginLoan> repayIsolatedMargin(String symbol, String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginLoan> repayIsolatedMargin(String symbol, String code, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.repayIsolatedMarginCore(symbol, code, amount, parameters)).thenApply(MarginLoan::new);
     }
 
-    private Object repayIsolatedMarginCore(String symbol, String code, Object amount, Map<String, Object> parameters)
+    private Object repayIsolatedMarginCore(String symbol, String code, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -13795,12 +13795,12 @@ public class Bitget extends BitgetApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public CompletableFuture<MarginLoan> repayCrossMargin(String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginLoan> repayCrossMargin(String code, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.repayCrossMarginCore(code, amount, parameters)).thenApply(MarginLoan::new);
     }
 
-    private Object repayCrossMarginCore(String code, Object amount, Map<String, Object> parameters)
+    private Object repayCrossMarginCore(String code, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -13917,7 +13917,7 @@ public class Bitget extends BitgetApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyLiquidations", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyLiquidations", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -14234,7 +14234,7 @@ public class Bitget extends BitgetApi
         }};
         Map<String, Object> response = null;
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams((Map<String, Object>) (parameters), "fetchCrossBorrowRate", false)).join();
+        List<Object> utaparamsUTAVariable = (List<Object>) (this.handleUTAAndParams(parameters, "fetchCrossBorrowRate", false)).join();
         Boolean uta = (Boolean) ((List<Object>) utaparamsUTAVariable).get(0);
         Map<String, Object> paramsUTA = (Map<String, Object>) ((List<Object>) utaparamsUTAVariable).get(1);
         if (java.util.Objects.equals(uta, true))
@@ -14291,7 +14291,7 @@ public class Bitget extends BitgetApi
 
     }
 
-    public Object parseBorrowRate(Object info, Map<String, Object> currency)
+    public Map<String, Object> parseBorrowRate(Object info, Map<String, Object> currency)
     {
         //
         // default
@@ -14360,7 +14360,7 @@ public class Bitget extends BitgetApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchBorrowInterest", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchBorrowInterest", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -14748,7 +14748,7 @@ public class Bitget extends BitgetApi
         {
             request.put("limit", limit);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, parameters, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Pair<String, Map<String, Object>> productTypeparamsProductTypeVariable = this.handleProductTypeAndParams(market, paramsUntil);
@@ -14783,12 +14783,12 @@ public class Bitget extends BitgetApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public CompletableFuture<Conversion> fetchConvertQuote(String fromCode, String toCode, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Conversion> fetchConvertQuote(String fromCode, String toCode, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchConvertQuoteCore(fromCode, toCode, amount, parameters)).thenApply(Conversion::new);
     }
 
-    private Object fetchConvertQuoteCore(String fromCode, String toCode, Object amount, Map<String, Object> parameters)
+    private Object fetchConvertQuoteCore(String fromCode, String toCode, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -14840,12 +14840,12 @@ public class Bitget extends BitgetApi
      * @param {string} params.toAmount the amount you want to trade in units of the toCurrency, obtained from fetchConvertQuote()
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public CompletableFuture<Conversion> createConvertTrade(String id, String fromCode, String toCode, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Conversion> createConvertTrade(String id, String fromCode, String toCode, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createConvertTradeCore(id, fromCode, toCode, amount, parameters)).thenApply(Conversion::new);
     }
 
-    private Object createConvertTradeCore(String id, String fromCode, String toCode, Object amount, Map<String, Object> parameters)
+    private Object createConvertTradeCore(String id, String fromCode, String toCode, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -15272,7 +15272,7 @@ public class Bitget extends BitgetApi
         return (this.milliseconds() - timeDifference);
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         Boolean signed = java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "private");
         String endpoint = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));

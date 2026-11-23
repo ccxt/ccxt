@@ -642,7 +642,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
     private Object watchMyTradesCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        List<Object> userAddressparamsValueVariable = (List<Object>) this.handlePublicAddress("watchMyTrades", (Map<String, Object>) (parameters));
+        List<Object> userAddressparamsValueVariable = (List<Object>) this.handlePublicAddress("watchMyTrades", parameters);
         String userAddress = (String) ((List<Object>) userAddressparamsValueVariable).get(0);
         Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) userAddressparamsValueVariable).get(1);
         if (java.util.Objects.equals(this.markets, null))
@@ -724,7 +724,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
     private Object watchMyLiquidationsForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        List<Object> userAddressparamsValueVariable = (List<Object>) this.handlePublicAddress("watchMyLiquidationsForSymbols", (Map<String, Object>) (parameters));
+        List<Object> userAddressparamsValueVariable = (List<Object>) this.handlePublicAddress("watchMyLiquidationsForSymbols", parameters);
         String userAddress = (String) ((List<Object>) userAddressparamsValueVariable).get(0);
         Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) userAddressparamsValueVariable).get(1);
         if (java.util.Objects.equals(this.markets, null))
@@ -793,7 +793,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         {
             throw new NotSupported((this.id + " unWatchMyTrades does not support a symbol argument, unWatch from all markets only")) ;
         }
-        List<Object> userAddressparamsValueVariable = (List<Object>) this.handlePublicAddress("unWatchMyTrades", (Map<String, Object>) (parameters));
+        List<Object> userAddressparamsValueVariable = (List<Object>) this.handlePublicAddress("unWatchMyTrades", parameters);
         String userAddress = (String) ((List<Object>) userAddressparamsValueVariable).get(0);
         Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) userAddressparamsValueVariable).get(1);
         String messageHash = "unsubscribe:myTrades";
@@ -1398,7 +1398,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<Object> userAddressparamsValueVariable = (List<Object>) this.handlePublicAddress("watchBalance", (Map<String, Object>) (parameters));
+        List<Object> userAddressparamsValueVariable = (List<Object>) this.handlePublicAddress("watchBalance", parameters);
         var userAddress = ((List<Object>) userAddressparamsValueVariable).get(0);
         Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) userAddressparamsValueVariable).get(1);
         Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, paramsValue, (String) null);
@@ -1466,7 +1466,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
-        List<Object> userAddressparamsValueVariable = (List<Object>) this.handlePublicAddress("unWatchBalance", (Map<String, Object>) (parameters));
+        List<Object> userAddressparamsValueVariable = (List<Object>) this.handlePublicAddress("unWatchBalance", parameters);
         var userAddress = ((List<Object>) userAddressparamsValueVariable).get(0);
         Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) userAddressparamsValueVariable).get(1);
         Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("unWatchBalance", (Map<String, Object>) null, paramsValue, (String) null);
@@ -1681,7 +1681,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<Object> userAddressparamsValueVariable = (List<Object>) this.handlePublicAddress("watchPositions", (Map<String, Object>) (parameters));
+        List<Object> userAddressparamsValueVariable = (List<Object>) this.handlePublicAddress("watchPositions", parameters);
         String userAddress = (String) ((List<Object>) userAddressparamsValueVariable).get(0);
         Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) userAddressparamsValueVariable).get(1);
         String topic = "clearinghouseState";
@@ -1804,7 +1804,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         }
         String messageHash = "unsubscribe:clearinghouseState";
         String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
-        List<Object> userAddressparamsValueVariable = (List<Object>) this.handlePublicAddress("unWatchPositions", (Map<String, Object>) (parameters));
+        List<Object> userAddressparamsValueVariable = (List<Object>) this.handlePublicAddress("unWatchPositions", parameters);
         String userAddress = (String) ((List<Object>) userAddressparamsValueVariable).get(0);
         Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) userAddressparamsValueVariable).get(1);
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1843,7 +1843,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<Object> userAddressparamsValueVariable = (List<Object>) this.handlePublicAddress("watchOrders", (Map<String, Object>) (parameters));
+        List<Object> userAddressparamsValueVariable = (List<Object>) this.handlePublicAddress("watchOrders", parameters);
         String userAddress = (String) ((List<Object>) userAddressparamsValueVariable).get(0);
         Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) userAddressparamsValueVariable).get(1);
         Map<String, Object> market = null;
@@ -1913,7 +1913,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         }
         String messageHash = "unsubscribe:order";
         String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
-        List<Object> userAddressparamsValueVariable = (List<Object>) this.handlePublicAddress("unWatchOrders", (Map<String, Object>) (parameters));
+        List<Object> userAddressparamsValueVariable = (List<Object>) this.handlePublicAddress("unWatchOrders", parameters);
         String userAddress = (String) ((List<Object>) userAddressparamsValueVariable).get(0);
         Map<String, Object> paramsValue = (Map<String, Object>) ((List<Object>) userAddressparamsValueVariable).get(1);
         Map<String, Object> request = new HashMap<String, Object>() {{

@@ -1432,7 +1432,7 @@ public class Kraken extends KrakenApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -3031,7 +3031,7 @@ public class Kraken extends KrakenApi
             }
             List<Object> trades = this.parseTrades(this.toArray(rawTradesWithIds), (Map<String, Object>) null, since, limit, new HashMap<String, Object>() {{}});
             Object tradesFilteredBySymbol = this.filterBySymbol(trades, symbolResolved);
-            result = (List<Object>) this.arrayConcat(result, tradesFilteredBySymbol);
+            result = this.arrayConcat(result, tradesFilteredBySymbol);
         }
         return result;
 
@@ -3822,7 +3822,7 @@ public class Kraken extends KrakenApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchWithdrawals", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchWithdrawals", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -4400,7 +4400,7 @@ public class Kraken extends KrakenApi
         }};
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String url = ((((("/" + this.version) + "/") + apiName) + "/") + path);

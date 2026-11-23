@@ -1462,10 +1462,10 @@ public class Xt extends XtApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         if (Boolean.TRUE.equals(this.safeBool(this.options, "adjustForTimeDifference", false)))
@@ -1480,12 +1480,12 @@ public class Xt extends XtApi
 
     }
 
-    public CompletableFuture<Object> fetchSpotMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchSpotMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchSpotMarketsCore(parameters));
     }
 
-    private Object fetchSpotMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchSpotMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.publicSpotGetSymbol(parameters)).join();
@@ -1547,12 +1547,12 @@ public class Xt extends XtApi
 
     }
 
-    public CompletableFuture<Object> fetchSwapAndFutureMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchSwapAndFutureMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchSwapAndFutureMarketsCore(parameters));
     }
 
-    private Object fetchSwapAndFutureMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchSwapAndFutureMarketsCore(Map<String, Object> parameters)
     {
 
         List<CompletableFuture<?>> marketsFutures = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.publicLinearGetFutureMarketV1PublicSymbolList(parameters), this.publicInverseGetFutureMarketV1PublicSymbolList(parameters)));
@@ -1619,7 +1619,7 @@ public class Xt extends XtApi
         //         ]
         //     }
         //
-        List<Object> swapAndFutureMarkets = (List<Object>) this.arrayConcat(this.safeList(((List<Object>)markets).get(0), "result", new ArrayList<Object>(Arrays.asList())), this.safeList(((List<Object>)markets).get(1), "result", new ArrayList<Object>(Arrays.asList())));
+        List<Object> swapAndFutureMarkets = this.arrayConcat(this.safeList(((List<Object>)markets).get(0), "result", new ArrayList<Object>(Arrays.asList())), this.safeList(((List<Object>)markets).get(1), "result", new ArrayList<Object>(Arrays.asList())));
         return this.parseMarkets(swapAndFutureMarkets);
 
     }
@@ -1939,7 +1939,7 @@ public class Xt extends XtApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -3529,7 +3529,7 @@ public class Xt extends XtApi
         //         "result": "206410760006650176"
         //     }
         //
-        return this.parseOrder((Map<String, Object>) (response), market);
+        return this.parseOrder(response, market);
 
     }
 
@@ -5159,7 +5159,7 @@ public class Xt extends XtApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
+        List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
         String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
         Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
         Map<String, Object> currency = this.currency((String) (code));
@@ -5611,12 +5611,12 @@ public class Xt extends XtApi
 
     }
 
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, String addOrReduce, Map<String, Object> parameters)
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Double amount, String addOrReduce, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.modifyMarginHelperCore(symbol, amount, addOrReduce, parameters));
     }
 
-    private Object modifyMarginHelperCore(String symbol, Object amount, String addOrReduce, Map<String, Object> parameters)
+    private Object modifyMarginHelperCore(String symbol, Double amount, String addOrReduce, Map<String, Object> parameters)
     {
 
         String positionSide = this.safeString(parameters, "positionSide");
@@ -5909,7 +5909,7 @@ public class Xt extends XtApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -6386,7 +6386,7 @@ public class Xt extends XtApi
 
     }
 
-    public Object parseFundingHistory(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingHistory(Object contract, Map<String, Object> market)
     {
         //
         //     {
@@ -6691,7 +6691,7 @@ public class Xt extends XtApi
         {
             request.put("limit", limit);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, parameters, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         Pair<Object, Map<String, Object>> subTypeparamsSubTypeVariable = this.handleSubTypeAndParams("fetchPositionsHistory", market, paramsUntil, (Object) null);
@@ -7154,7 +7154,7 @@ public class Xt extends XtApi
         return null;
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         Boolean signed = java.util.Objects.equals((api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0)), "private");
         String endpoint = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));

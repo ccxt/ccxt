@@ -1035,12 +1035,12 @@ public class Binance extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public CompletableFuture<PredictionTickers> fetchTickers(Object outcomes, Map<String, Object> parameters)
+    public CompletableFuture<PredictionTickers> fetchTickers(List<String> outcomes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchTickersCore(outcomes, parameters)).thenApply(PredictionTickers::new);
     }
 
-    private Object fetchTickersCore(Object outcomes, Map<String, Object> parameters)
+    private Object fetchTickersCore(List<String> outcomes, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(outcomes, null))
@@ -1050,10 +1050,10 @@ public class Binance extends BinanceApi
         (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> responsesByMarketId = new HashMap<String, Object>() {{}};
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        Integer outcomesLength = ((List<?>)outcomes).size();
+        Integer outcomesLength = outcomes.size();
         for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
         {
-            Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
+            Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i))));
             Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String marketId = this.safeString(info, "marketId");
             if (java.util.Objects.equals(marketId, null))
@@ -1068,8 +1068,8 @@ public class Binance extends BinanceApi
                 response = (this.sapiPrivateGetOrderBookLastTradePrice(this.extend(request, parameters))).join();
                 responsesByMarketId.put(marketId, response);
             }
-            Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (response), outcomeObj);
-            String symbolKey = this.safeString(ticker, "outcome", (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)));
+            Map<String, Object> ticker = this.parsePredictionTicker(response, outcomeObj);
+            String symbolKey = this.safeString(ticker, "outcome", (outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i)));
             result.put(symbolKey, ticker);
         }
         return result;
@@ -1135,7 +1135,7 @@ public class Binance extends BinanceApi
     private Object fetchBalanceCore(Map<String, Object> parameters)
     {
 
-        Pair<String, Map<String, Object>> typeparamsTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchBalance", "type", "SPOT");
+        Pair<String, Map<String, Object>> typeparamsTypeVariable = this.handleOptionStringAndParams(parameters, "fetchBalance", "type", "SPOT");
         String type = typeparamsTypeVariable.first();
         Map<String, Object> paramsType = typeparamsTypeVariable.second();
         Map<String, Object> response = (this.sapiPrivateGetBalancePaymentOptions(paramsType)).join();
@@ -1295,7 +1295,7 @@ public class Binance extends BinanceApi
 
         Boolean paginate = false;
         Map<String, Object> paramsPaginate = new HashMap<String, Object>() {{}};
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOpenOrders", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
         paginate = paginateparamsPaginateVariable.first();
         paramsPaginate = paginateparamsPaginateVariable.second();
         List<Object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchOpenOrders", "maxEntriesPerRequest", 100L);
@@ -1394,7 +1394,7 @@ public class Binance extends BinanceApi
 
         Boolean paginate = false;
         Map<String, Object> paramsPaginate = new HashMap<String, Object>() {{}};
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrders", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
         paginate = paginateparamsPaginateVariable.first();
         paramsPaginate = paginateparamsPaginateVariable.second();
         List<Object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchOrders", "maxEntriesPerRequest", 100L);
@@ -1486,21 +1486,21 @@ public class Binance extends BinanceApi
      * @param {string} [params.tab] Position status tab. Values from PositionQueryType. Default ONGOING
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public CompletableFuture<List<PredictionPosition>> fetchPositions(Object outcomes, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionPosition>> fetchPositions(List<String> outcomes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchPositionsCore(outcomes, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
     }
 
-    private Object fetchPositionsCore(Object outcomes, Map<String, Object> parameters)
+    private Object fetchPositionsCore(List<String> outcomes, Map<String, Object> parameters)
     {
 
-        (this.loadOutcomes((Object) null, false, new HashMap<String, Object>() {{}})).join();
+        (this.loadOutcomes((List<String>) null, false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> requestedOutcomeSymbols = new HashMap<String, Object>() {{}};
         if (!java.util.Objects.equals(outcomes, null))
         {
-            for (var i = 0; i < ((List<?>)outcomes).size(); i++)
+            for (var i = 0; i < outcomes.size(); i++)
             {
-                String requested = (String) (outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i));
+                String requested = (outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i));
                 Map<String, Object> requestedOutcomeObj = this.safeOutcome(requested, (Map<String, Object>) null);
                 String requestedOutcome = this.safeString(requestedOutcomeObj, "outcome", requested);
                 requestedOutcomeSymbols.put(requestedOutcome, true);
@@ -1698,7 +1698,7 @@ public class Binance extends BinanceApi
 
         Boolean paginate = false;
         Map<String, Object> paramsPaginate = new HashMap<String, Object>() {{}};
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         paginate = paginateparamsPaginateVariable.first();
         paramsPaginate = paginateparamsPaginateVariable.second();
         List<Object> maxEntriesPerRequestparamsMaxEntriesPerRequestVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPaginate, "fetchMyTrades", "maxEntriesPerRequest", 100L);
@@ -1791,7 +1791,7 @@ public class Binance extends BinanceApi
      * @param {object} [outcomeObj] the outcome the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public Object parsePredictionTrade(Map<String, Object> trade, Map<String, Object> outcomeObj)
+    public Map<String, Object> parsePredictionTrade(Map<String, Object> trade, Map<String, Object> outcomeObj)
     {
         //
         // {
@@ -1888,7 +1888,7 @@ public class Binance extends BinanceApi
         {
             return cachedWallet;
         }
-        String walletAddress = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (parameters), (String) (methodName), "walletAddress", this.walletAddress)).get(0);
+        String walletAddress = (String) ((List<Object>)this.handleOptionStringAndParams(parameters, (String) (methodName), "walletAddress", this.walletAddress)).get(0);
         Map<String, Object> response = (this.sapiPrivateGetWalletList(new HashMap<String, Object>() {{}})).join();
         //
         // {
@@ -2294,7 +2294,7 @@ public class Binance extends BinanceApi
      * @param {object} [params] request parameters
      * @returns {object} a dictionary with url, method, body and headers
      */
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> baseUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});

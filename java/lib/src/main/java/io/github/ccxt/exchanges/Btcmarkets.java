@@ -1323,7 +1323,7 @@ public class Btcmarkets extends BtcmarketsApi
         //
         List<Object> cancelOrders = this.safeList(response, "cancelOrders", new ArrayList<Object>(Arrays.asList()));
         List<Object> unprocessedRequests = this.safeList(response, "unprocessedRequests", new ArrayList<Object>(Arrays.asList()));
-        List<Object> orders = (List<Object>) this.arrayConcat(cancelOrders, unprocessedRequests);
+        List<Object> orders = this.arrayConcat(cancelOrders, unprocessedRequests);
         return this.parseOrders(orders, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
 
     }
@@ -1750,7 +1750,7 @@ public class Btcmarkets extends BtcmarketsApi
         return this.milliseconds();
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> requestHeaders = null;

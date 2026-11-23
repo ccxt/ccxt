@@ -750,7 +750,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("watchOrders", (Map<String, Object>) (parameters));
+        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("watchOrders", parameters);
         var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
         var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
         String subaccountIdString = this.numberToString(subaccountId);
@@ -894,7 +894,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("unWatchOrders", (Map<String, Object>) (parameters));
+        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("unWatchOrders", parameters);
         var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
         var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
         String subaccountIdString = this.numberToString(subaccountId);
@@ -938,7 +938,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("watchMyTrades", (Map<String, Object>) (parameters));
+        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("watchMyTrades", parameters);
         var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
         var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
         String subaccountIdString = this.numberToString(subaccountId);
@@ -1020,7 +1020,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("unWatchMyTrades", (Map<String, Object>) (parameters));
+        List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("unWatchMyTrades", parameters);
         var subaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(0);
         var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
         String subaccountIdString = this.numberToString(subaccountId);
@@ -1062,7 +1062,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> fetchSnapshotparamsSnapshotVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchBalance", "fetchBalanceSnapshot", true);
+        Pair<Boolean, Map<String, Object>> fetchSnapshotparamsSnapshotVariable = this.handleOptionBoolAndParams(parameters, "watchBalance", "fetchBalanceSnapshot", true);
         Boolean fetchSnapshot = fetchSnapshotparamsSnapshotVariable.first();
         Map<String, Object> paramsSnapshot = fetchSnapshotparamsSnapshotVariable.second();
         List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("watchBalance", (Map<String, Object>) (paramsSnapshot));
@@ -1133,7 +1133,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, true, false, false);
-        Pair<Boolean, Map<String, Object>> fetchSnapshotparamsSnapshotVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "watchPositions", "fetchPositionsSnapshot", true);
+        Pair<Boolean, Map<String, Object>> fetchSnapshotparamsSnapshotVariable = this.handleOptionBoolAndParams(parameters, "watchPositions", "fetchPositionsSnapshot", true);
         Boolean fetchSnapshot = fetchSnapshotparamsSnapshotVariable.first();
         Map<String, Object> paramsSnapshot = fetchSnapshotparamsSnapshotVariable.second();
         List<Object> subaccountIdparamsDeriveSubaccountIdVariable = (List<Object>) this.handleDeriveSubaccountId("watchPositions", (Map<String, Object>) (paramsSnapshot));

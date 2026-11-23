@@ -324,11 +324,11 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
         {
             Double price = this.safeFloat(delta, 0);
             Double amount = this.safeFloat(delta, 1);
-            ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
+            bookside.store(price, amount);
         } else
         {
             List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk(delta, "price", "size", 2);
-            ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
+            bookside.storeArray(bidAsk);
         }
     }
 

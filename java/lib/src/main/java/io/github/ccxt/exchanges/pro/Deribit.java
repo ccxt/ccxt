@@ -493,14 +493,14 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
     private Object watchTradesForSymbolsCore(List<String> symbols, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTradesForSymbols", "interval", "100ms");
+        Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(parameters, "watchTradesForSymbols", "interval", "100ms");
         var interval = ((List<Object>) intervalparamsIntervalVariable).get(0);
         Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
         if (java.util.Objects.equals(interval, "raw"))
         {
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
         }
-        List<Object> trades = (List<Object>) (this.watchMultipleWrapper("trades", (String) (interval), symbols, paramsInterval)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.watchMultipleWrapper("trades", (String) (interval), symbols, paramsInterval)).join();
         Map<String, Object> first = this.safeDict(trades, 0, null);
         String tradeSymbol = this.safeString(first, "symbol");
         Long limitResolved = limit;
@@ -700,7 +700,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
     private Object watchOrderBookForSymbolsCore(List<String> symbols, Long limit, Map<String, Object> parameters)
     {
 
-        Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBookForSymbols", "interval", "100ms");
+        Pair<String, Map<String, Object>> intervalparamsIntervalVariable = this.handleOptionStringAndParams(parameters, "watchOrderBookForSymbols", "interval", "100ms");
         String interval = intervalparamsIntervalVariable.first();
         Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
         if (java.util.Objects.equals(interval, "raw"))
@@ -843,18 +843,18 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         String action = this.safeString(delta, 0);
         if (java.util.Objects.equals(action, "new") || java.util.Objects.equals(action, "change"))
         {
-            ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(new ArrayList<Object>(Arrays.asList(price, amount, 1)));
+            bookside.storeArray(new ArrayList<Object>(Arrays.asList(price, amount, 1)));
         } else if (java.util.Objects.equals(action, "delete"))
         {
-            ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(new ArrayList<Object>(Arrays.asList(price, amount, 0)));
+            bookside.storeArray(new ArrayList<Object>(Arrays.asList(price, amount, 0)));
         }
     }
 
-    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, Object deltas)
+    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, List<Object> deltas)
     {
-        for (var i = 0; i < ((List<?>)deltas).size(); i++)
+        for (var i = 0; i < deltas.size(); i++)
         {
-            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= deltas.size() ? null : deltas.get(i)));
         }
     }
 

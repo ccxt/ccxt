@@ -857,14 +857,14 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
     public void handleDelta(io.github.ccxt.ws.OrderBookSide bookside, Object delta)
     {
         List<Object> bookArray = (List<Object>) this.parseOrderBookBidAsk(delta, "px", "qty", "num");
-        ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bookArray);
+        bookside.storeArray(bookArray);
     }
 
-    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, Object deltas)
+    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, List<Object> deltas)
     {
-        for (var i = 0; i < ((List<?>)deltas).size(); i++)
+        for (var i = 0; i < deltas.size(); i++)
         {
-            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= deltas.size() ? null : deltas.get(i)));
         }
     }
 

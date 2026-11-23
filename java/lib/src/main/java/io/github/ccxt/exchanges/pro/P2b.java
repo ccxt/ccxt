@@ -146,7 +146,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         Map<String, Object> market = this.market(symbol);
         List<Object> request = new ArrayList<Object>(Arrays.asList(market.get("id"), channel));
         String messageHash = ("kline::" + market.get("symbol"));
-        List<Object> ohlcv = (List<Object>) (this.subscribe("kline.subscribe", messageHash, request, parameters)).join();
+        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) (this.subscribe("kline.subscribe", messageHash, request, parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -181,7 +181,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         }
         Map<String, Object> watchTickerOptions = this.safeDict(this.options, "watchTicker", null);
         String name = this.safeString(watchTickerOptions, "name", "state"); // or price
-        Pair<String, Map<String, Object>> nameOptionparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTicker", "name", name);
+        Pair<String, Map<String, Object>> nameOptionparamsNameVariable = this.handleOptionStringAndParams(parameters, "watchTicker", "name", name);
         var nameOption = ((List<Object>) nameOptionparamsNameVariable).get(0);
         Map<String, Object> paramsName = nameOptionparamsNameVariable.second();
         Map<String, Object> market = this.market(symbol);
@@ -218,7 +218,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
         Map<String, Object> watchTickerOptions = this.safeDict(this.options, "watchTicker", null);
         String name = this.safeString(watchTickerOptions, "name", "state"); // or price
-        Pair<String, Map<String, Object>> nameOptionparamsNameVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTickers", "name", name);
+        Pair<String, Map<String, Object>> nameOptionparamsNameVariable = this.handleOptionStringAndParams(parameters, "watchTickers", "name", name);
         String nameOption = nameOptionparamsNameVariable.first();
         Map<String, Object> paramsName = nameOptionparamsNameVariable.second();
         List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());

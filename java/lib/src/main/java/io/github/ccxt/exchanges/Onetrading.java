@@ -1741,7 +1741,7 @@ public class Onetrading extends OnetradingApi
         //
         // responds with an empty body
         //
-        return this.parseOrder((Map<String, Object>) (response), (Map<String, Object>) null);
+        return this.parseOrder(response, (Map<String, Object>) null);
 
     }
 
@@ -2203,7 +2203,7 @@ public class Onetrading extends OnetradingApi
 
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);

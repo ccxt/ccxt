@@ -944,7 +944,7 @@ public class Cex extends CexApi
     private Object fetchOHLCVCore(String symbol, String timeframe, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        Pair<String, Map<String, Object>> dataTypeparamsDataTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "dataType", (String) null);
+        Pair<String, Map<String, Object>> dataTypeparamsDataTypeVariable = this.handleOptionStringAndParams(parameters, "fetchOHLCV", "dataType", (String) null);
         String dataType = dataTypeparamsDataTypeVariable.first();
         Map<String, Object> paramsDataType = dataTypeparamsDataTypeVariable.second();
         if (java.util.Objects.equals(dataType, null))
@@ -1565,7 +1565,7 @@ public class Cex extends CexApi
     private Object createOrderCore(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
 
-        Pair<String, Map<String, Object>> accountIdparamsAccountIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "accountId", (String) null);
+        Pair<String, Map<String, Object>> accountIdparamsAccountIdVariable = this.handleOptionStringAndParams(parameters, "createOrder", "accountId", (String) null);
         String accountId = accountIdparamsAccountIdVariable.first();
         Map<String, Object> paramsAccountId = accountIdparamsAccountIdVariable.second();
         if (java.util.Objects.equals(accountId, null))
@@ -2011,12 +2011,12 @@ public class Cex extends CexApi
 
     }
 
-    public CompletableFuture<Object> transferBetweenMainAndSubAccount(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<Object> transferBetweenMainAndSubAccount(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferBetweenMainAndSubAccountCore(code, amount, fromAccount, toAccount, parameters));
     }
 
-    private Object transferBetweenMainAndSubAccountCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    private Object transferBetweenMainAndSubAccountCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2059,12 +2059,12 @@ public class Cex extends CexApi
 
     }
 
-    public CompletableFuture<Object> transferBetweenSubAccounts(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<Object> transferBetweenSubAccounts(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.transferBetweenSubAccountsCore(code, amount, fromAccount, toAccount, parameters));
     }
 
-    private Object transferBetweenSubAccountsCore(String code, Object amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    private Object transferBetweenSubAccountsCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2149,7 +2149,7 @@ public class Cex extends CexApi
     private Object fetchDepositAddressCore(String code, Map<String, Object> parameters)
     {
 
-        Pair<String, Map<String, Object>> accountIdparamsAccountIdVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "createOrder", "accountId", (String) null);
+        Pair<String, Map<String, Object>> accountIdparamsAccountIdVariable = this.handleOptionStringAndParams(parameters, "createOrder", "accountId", (String) null);
         String accountId = accountIdparamsAccountIdVariable.first();
         Map<String, Object> paramsAccountId = accountIdparamsAccountIdVariable.second();
         if (java.util.Objects.equals(accountId, null))
@@ -2200,7 +2200,7 @@ public class Cex extends CexApi
         }};
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);

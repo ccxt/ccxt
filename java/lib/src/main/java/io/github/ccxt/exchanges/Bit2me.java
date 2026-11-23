@@ -567,7 +567,7 @@ public class Bit2me extends Bit2meApi
     private Map<String, Object> fetchCurrenciesCore(Map<String, Object> parameters)
     {
 
-        Pair<Boolean, Map<String, Object>> includeTestnetqueryVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchCurrencies", "includeTestnet", false);
+        Pair<Boolean, Map<String, Object>> includeTestnetqueryVariable = this.handleOptionBoolAndParams(parameters, "fetchCurrencies", "includeTestnet", false);
         Boolean includeTestnet = includeTestnetqueryVariable.first();
         Map<String, Object> query = includeTestnetqueryVariable.second();
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1040,7 +1040,7 @@ public class Bit2me extends Bit2meApi
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         Long maxLimit = 1000L;
@@ -2157,7 +2157,7 @@ public class Bit2me extends Bit2meApi
         return this.milliseconds();
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> requestHeaders = null;

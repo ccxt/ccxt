@@ -845,7 +845,7 @@ public class Cryptocom extends CryptocomApi
         {
             return new HashMap<String, Object>() {{}};
         }
-        Pair<Boolean, Map<String, Object>> skipFetchCurrenciesparamsSkipFetchCurrenciesVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchCurrencies", "skipFetchCurrencies", false);
+        Pair<Boolean, Map<String, Object>> skipFetchCurrenciesparamsSkipFetchCurrenciesVariable = this.handleOptionBoolAndParams(parameters, "fetchCurrencies", "skipFetchCurrencies", false);
         Boolean skipFetchCurrencies = skipFetchCurrenciesparamsSkipFetchCurrenciesVariable.first();
         Map<String, Object> paramsSkipFetchCurrencies = skipFetchCurrenciesparamsSkipFetchCurrenciesVariable.second();
         if (Boolean.TRUE.equals(skipFetchCurrencies))
@@ -1300,7 +1300,7 @@ public class Cryptocom extends CryptocomApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOrders", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -1399,7 +1399,7 @@ public class Cryptocom extends CryptocomApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchTrades", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchTrades", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -1477,7 +1477,7 @@ public class Cryptocom extends CryptocomApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -1759,7 +1759,7 @@ public class Cryptocom extends CryptocomApi
         //     }
         //
         Map<String, Object> order = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-        return this.parseOrder((Map<String, Object>) (order), market);
+        return this.parseOrder(order, market);
 
     }
 
@@ -1939,7 +1939,7 @@ public class Cryptocom extends CryptocomApi
         //     }
         //
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-        return this.parseOrder((Map<String, Object>) (result), market);
+        return this.parseOrder(result, market);
 
     }
 
@@ -2038,7 +2038,7 @@ public class Cryptocom extends CryptocomApi
 
     }
 
-    public Object createAdvancedOrderRequest(String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    public Object createAdvancedOrderRequest(String symbol, String type, String side, Double amount, Object price, Map<String, Object> parameters)
     {
         if (java.util.Objects.equals(type, null))
         {
@@ -2166,7 +2166,7 @@ public class Cryptocom extends CryptocomApi
         {
             // use createmarketBuy logic here
             String quoteAmount = null;
-            Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable = this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
             Boolean createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable.first();
             Map<String, Object> paramsCreateMarketBuy = createMarketBuyOrderRequiresPriceparamsCreateMarketBuyVariable.second();
             Double cost = this.safeNumber2(paramsCreateMarketBuy, "cost", "notional", (Object) null);
@@ -2229,7 +2229,7 @@ public class Cryptocom extends CryptocomApi
         Map<String, Object> request = this.editOrderRequest((String) (id), (String) (symbol), amount, price, parameters);
         Map<String, Object> response = (this.v1PrivatePostPrivateAmendOrder(request)).join();
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-        return this.parseOrder((Map<String, Object>) (result), (Map<String, Object>) null);
+        return this.parseOrder(result, (Map<String, Object>) null);
 
     }
 
@@ -2339,7 +2339,7 @@ public class Cryptocom extends CryptocomApi
         //     }
         //
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-        return this.parseOrder((Map<String, Object>) (result), market);
+        return this.parseOrder(result, market);
 
     }
 
@@ -2399,12 +2399,12 @@ public class Cryptocom extends CryptocomApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<List<Order>> cancelOrdersForSymbols(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrdersForSymbols(List<?> orders, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersForSymbolsCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object cancelOrdersForSymbolsCore(Object orders, Map<String, Object> parameters)
+    private Object cancelOrdersForSymbolsCore(List<?> orders, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -2412,7 +2412,7 @@ public class Cryptocom extends CryptocomApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         List<Object> orderRequests = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             Map<String, Object> order = this.safeDict(orders, i, null);
             String id = this.safeString(order, "id");
@@ -2533,7 +2533,7 @@ public class Cryptocom extends CryptocomApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -2675,7 +2675,7 @@ public class Cryptocom extends CryptocomApi
         //     }
         //
         Map<String, Object> result = this.safeDict(response, "result", null);
-        return this.parseTransaction((Map<String, Object>) (result), currency);
+        return this.parseTransaction(result, currency);
 
     }
 
@@ -3735,9 +3735,9 @@ public class Cryptocom extends CryptocomApi
      * @param {int} [params.type] 'future', 'option'
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/?id=settlement-history-structure}
      */
-    public CompletableFuture<Object> fetchSettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchSettlementHistory(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchSettlementHistoryCore(symbol, since, limit, parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchSettlementHistoryCore(symbol, since, limit, parameters)).thenApply(res -> (List<Object>) res);
     }
 
     private Object fetchSettlementHistoryCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
@@ -3953,7 +3953,7 @@ public class Cryptocom extends CryptocomApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -4305,7 +4305,7 @@ public class Cryptocom extends CryptocomApi
         //    }
         //
         Map<String, Object> result = this.safeDict(response, "result", null);
-        return this.parseOrder((Map<String, Object>) (result), market);
+        return this.parseOrder(result, market);
 
     }
 
@@ -4351,7 +4351,7 @@ public class Cryptocom extends CryptocomApi
         //    }
         //
         Map<String, Object> data = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-        return this.parseTradingFee((Map<String, Object>) (data), market);
+        return this.parseTradingFee(data, market);
 
     }
 
@@ -4458,7 +4458,7 @@ public class Cryptocom extends CryptocomApi
         }};
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         Map<String, Object> requestHeaders = null;
         String requestBody = null;

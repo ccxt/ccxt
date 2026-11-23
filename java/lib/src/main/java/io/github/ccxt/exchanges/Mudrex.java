@@ -257,7 +257,7 @@ public class Mudrex extends MudrexApi
         }});
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> apiUrls = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
@@ -1639,7 +1639,7 @@ public class Mudrex extends MudrexApi
     private Object reduceMarginCore(String symbol, Double amount, Map<String, Object> parameters)
     {
 
-        return (this.addMargin(symbol, (Double) ((amount == null ? null : -amount)), parameters)).join();
+        return (this.addMargin(symbol, (amount == null ? null : -amount), parameters)).join();
 
     }
 

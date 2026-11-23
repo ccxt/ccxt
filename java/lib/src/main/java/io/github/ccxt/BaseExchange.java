@@ -5161,9 +5161,9 @@ public Map<String, Object> describe()
         }
     }
 
-    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, Object deltas)
+    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, List<Object> deltas)
     {
-        for (var i = 0; i < ((List<?>)deltas).size(); i++)
+        for (var i = 0; i < deltas.size(); i++)
         {
             this.handleDelta(bookside, this.safeValue(deltas, i));
         }
@@ -5202,12 +5202,12 @@ public Map<String, Object> describe()
         return -1;
     }
 
-    public Object arraysConcat(Object arraysOfArrays)
+    public List<Object> arraysConcat(Object arraysOfArrays)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)arraysOfArrays).size(); i++)
         {
-            result = (List<Object>) this.arrayConcat(result, (arraysOfArrays == null || i < 0 || i >= ((List<?>)arraysOfArrays).size() ? null : ((List<?>)arraysOfArrays).get(i)));
+            result = this.arrayConcat(result, (arraysOfArrays == null || i < 0 || i >= ((List<?>)arraysOfArrays).size() ? null : ((List<?>)arraysOfArrays).get(i)));
         }
         return result;
     }
@@ -5546,7 +5546,7 @@ public Map<String, Object> describe()
     {
         if (Boolean.TRUE.equals(enabled))
         {
-            if (((Map<?, ?>)this.urls).containsKey("test"))
+            if (this.urls.containsKey("test"))
             {
                 if ((this.urls.get("api") instanceof String))
                 {
@@ -5563,7 +5563,7 @@ public Map<String, Object> describe()
             }
             // set flag
             this.isSandboxModeEnabled = true;
-        } else if (((Map<?, ?>)this.urls).containsKey("apiBackup"))
+        } else if (this.urls.containsKey("apiBackup"))
         {
             if ((this.urls.get("api") instanceof String))
             {
@@ -5595,7 +5595,7 @@ public Map<String, Object> describe()
         {
             this.urls.put("apiBackupDemoTrading", BaseExchange.this.urls.get("api"));
             this.urls.put("api", this.urls.get("demo"));
-        } else if (((Map<?, ?>)this.urls).containsKey("apiBackupDemoTrading"))
+        } else if (this.urls.containsKey("apiBackupDemoTrading"))
         {
             this.urls.put("api", ((Object)this.urls.get("apiBackupDemoTrading")));
             Map<String, Object> newUrls = this.omit(this.urls, "apiBackupDemoTrading");
@@ -5604,7 +5604,7 @@ public Map<String, Object> describe()
         this.options.put("enableDemoTrading", enable);
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         return new HashMap<String, Object>() {{
             put( "url", null );
@@ -5785,10 +5785,10 @@ public Map<String, Object> describe()
 
     }
 
-    public CompletableFuture<Object> fetchTradingLimits(List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchTradingLimits(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchTradingLimits() is not supported yet")));
+        return CompletableFuture.<Map<String, Object>>failedFuture(new NotSupported((this.id + " fetchTradingLimits() is not supported yet")));
 
     }
 
@@ -5933,7 +5933,7 @@ public Map<String, Object> describe()
         throw new NotSupported((this.id + " parseWsOrder() is not supported yet")) ;
     }
 
-    public Object parseWsOrderTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Trade parseWsOrderTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         throw new NotSupported((this.id + " parseWsOrderTrade() is not supported yet")) ;
     }
@@ -6066,7 +6066,7 @@ public Map<String, Object> describe()
 
     }
 
-    public CompletableFuture<MarginModification> setMargin(String symbol, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginModification> setMargin(String symbol, Double amount, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " setMargin() is not supported yet"))).thenApply(MarginModification::new);
@@ -7764,7 +7764,7 @@ public Map<String, Object> describe()
         for (var i = 0; i < feeValues.size(); i++)
         {
             List<Object> reducedFeeValues = Helpers.objectValues((feeValues == null || i < 0 || i >= feeValues.size() ? null : feeValues.get(i)));
-            result = (List<Object>) this.arrayConcat(result, reducedFeeValues);
+            result = this.arrayConcat(result, reducedFeeValues);
         }
         return result;
     }
@@ -7890,42 +7890,42 @@ public Map<String, Object> describe()
 
     }
 
-    public CompletableFuture<MarginLoan> repayCrossMargin(String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginLoan> repayCrossMargin(String code, Double amount, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " repayCrossMargin is not support yet"))).thenApply(MarginLoan::new);
 
     }
 
-    public CompletableFuture<MarginLoan> repayIsolatedMargin(String symbol, String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginLoan> repayIsolatedMargin(String symbol, String code, Double amount, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " repayIsolatedMargin is not support yet"))).thenApply(MarginLoan::new);
 
     }
 
-    public CompletableFuture<MarginLoan> borrowCrossMargin(String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginLoan> borrowCrossMargin(String code, Double amount, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " borrowCrossMargin is not support yet"))).thenApply(MarginLoan::new);
 
     }
 
-    public CompletableFuture<MarginLoan> borrowIsolatedMargin(String symbol, String code, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginLoan> borrowIsolatedMargin(String symbol, String code, Double amount, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " borrowIsolatedMargin is not support yet"))).thenApply(MarginLoan::new);
 
     }
 
-    public CompletableFuture<MarginLoan> borrowMargin(String code, Object amount, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<MarginLoan> borrowMargin(String code, Double amount, String symbol, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead"))).thenApply(MarginLoan::new);
 
     }
 
-    public CompletableFuture<MarginLoan> repayMargin(String code, Object amount, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<MarginLoan> repayMargin(String code, Double amount, String symbol, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead"))).thenApply(MarginLoan::new);
@@ -9009,7 +9009,7 @@ public Map<String, Object> describe()
         return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
     }
 
-    public Object parseADLRank(Map<String, Object> info, Map<String, Object> market)
+    public Map<String, Object> parseADLRank(Map<String, Object> info, Map<String, Object> market)
     {
         if (java.util.Objects.equals(info, null))
         {
@@ -9025,7 +9025,7 @@ public Map<String, Object> describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ranksArray.size(); i++)
         {
-            Map<String, Object> rank = this.extend(this.parseADLRank((Map<String, Object>) ((ranksArray == null || i < 0 || i >= ranksArray.size() ? null : ranksArray.get(i))), (Map<String, Object>) null), parameters);
+            Map<String, Object> rank = this.extend(this.parseADLRank(this.extend(new HashMap<String, Object>() {{}}, (ranksArray == null || i < 0 || i >= ranksArray.size() ? null : ranksArray.get(i))), (Map<String, Object>) null), parameters);
             ((List<Object>)result).add(rank);
         }
         return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
@@ -9037,7 +9037,7 @@ public Map<String, Object> describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < accountsArray.size(); i++)
         {
-            Map<String, Object> account = this.extend(this.parseAccount((Map<String, Object>) ((accountsArray == null || i < 0 || i >= accountsArray.size() ? null : accountsArray.get(i)))), parameters);
+            Map<String, Object> account = this.extend(this.parseAccount(this.extend(new HashMap<String, Object>() {{}}, (accountsArray == null || i < 0 || i >= accountsArray.size() ? null : accountsArray.get(i)))), parameters);
             ((List<Object>)result).add(account);
         }
         return result;
@@ -9357,12 +9357,12 @@ public Map<String, Object> describe()
         return results;
     }
 
-    public CompletableFuture<Object> fetch2(String path, Object api, Object method, Object parameters, Map<String, Object> config)
+    public CompletableFuture<Object> fetch2(String path, List<String> api, String method, Object parameters, Map<String, Object> config)
     {
         return BaseExchange.supplyAsync(() -> this.fetch2Core(path, api, method, parameters, config));
     }
 
-    private Object fetch2Core(String path, Object api, Object method, Object parameters, Map<String, Object> config)
+    private Object fetch2Core(String path, List<String> api, String method, Object parameters, Map<String, Object> config)
     {
 
         if (this.enableRateLimit)
@@ -9397,7 +9397,7 @@ public Map<String, Object> describe()
             try
             {
                 this.setLastRestRequestTimestamp();
-                Map<String, Object> request = this.sign(path, api, java.util.Objects.toString(java.util.Objects.requireNonNullElse(method, "GET"), null), paramsMaxRetriesOnFailureDelay);
+                Map<String, Object> request = this.sign(path, api, java.util.Objects.requireNonNullElse(method, "GET"), paramsMaxRetriesOnFailureDelay);
                 if (!java.util.Objects.equals(fetchData, null))
                 {
                     fetchData.put("request", request);
@@ -9447,15 +9447,15 @@ public Map<String, Object> describe()
 
     }
 
-    public CompletableFuture<Object> request(String path, Object api, Object method, Object parameters, Map<String, Object> config)
+    public CompletableFuture<Object> request(String path, List<String> api, Object method, Object parameters, Map<String, Object> config)
     {
         return BaseExchange.supplyAsync(() -> this.requestCore(path, api, method, parameters, config));
     }
 
-    private Object requestCore(String path, Object api, Object method, Object parameters, Map<String, Object> config)
+    private Object requestCore(String path, List<String> api, Object method, Object parameters, Map<String, Object> config)
     {
 
-        return (this.fetch2(path, api, java.util.Objects.requireNonNullElse(method, "GET"), parameters, config)).join();
+        return (this.fetch2(path, api, java.util.Objects.toString(java.util.Objects.requireNonNullElse(method, "GET"), null), parameters, config)).join();
 
     }
 
@@ -9864,10 +9864,10 @@ public Map<String, Object> describe()
 
     }
 
-    public CompletableFuture<Object> fetchTransactionFees(List<String> codes, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchTransactionFees(List<String> codes, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchTransactionFees() is not supported yet")));
+        return CompletableFuture.<Map<String, Object>>failedFuture(new NotSupported((this.id + " fetchTransactionFees() is not supported yet")));
 
     }
 
@@ -10113,7 +10113,7 @@ public Map<String, Object> describe()
         return null;
     }
 
-    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
+    public Object calculateRateLimiterCost(Object api, String method, String path, Object parameters, Map<String, Object> config)
     {
         return this.safeValue(config, "cost", 1);
     }
@@ -10160,7 +10160,7 @@ public Map<String, Object> describe()
 
     }
 
-    public CompletableFuture<Conversion> createConvertTrade(String id, String fromCode, String toCode, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Conversion> createConvertTrade(String id, String fromCode, String toCode, Double amount, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " createConvertTrade() is not supported yet"))).thenApply(Conversion::new);
@@ -10293,14 +10293,14 @@ public Map<String, Object> describe()
         return paramsOmitted;
     }
 
-    public CompletableFuture<List<Order>> createSpotOrders(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> createSpotOrders(List<?> orders, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " createSpotOrders() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }
 
-    public CompletableFuture<List<Order>> createContractOrders(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> createContractOrders(List<?> orders, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " createContractOrders() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -10342,7 +10342,7 @@ public Map<String, Object> describe()
 
     }
 
-    public CompletableFuture<List<Order>> cancelOrdersForSymbols(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> cancelOrdersForSymbols(List<?> orders, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " cancelOrdersForSymbols() is not supported yet"))).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -10391,7 +10391,7 @@ public Map<String, Object> describe()
 
     }
 
-    public CompletableFuture<Conversion> fetchConvertQuote(String fromCode, String toCode, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<Conversion> fetchConvertQuote(String fromCode, String toCode, Double amount, Map<String, Object> parameters)
     {
 
         return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchConvertQuote() is not supported yet"))).thenApply(Conversion::new);
@@ -10447,7 +10447,7 @@ public Map<String, Object> describe()
 
     }
 
-    public Object parseLastPrice(Map<String, Object> price, Map<String, Object> market)
+    public Map<String, Object> parseLastPrice(Map<String, Object> price, Map<String, Object> market)
     {
         throw new NotSupported((this.id + " parseLastPrice() is not supported yet")) ;
     }
@@ -10889,10 +10889,10 @@ public Map<String, Object> describe()
 
     }
 
-    public CompletableFuture<Object> createSubAccount(Object name, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> createSubAccount(Object name, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.failedFuture(new NotSupported((this.id + " createSubAccount() is not supported yet")));
+        return CompletableFuture.<Map<String, Object>>failedFuture(new NotSupported((this.id + " createSubAccount() is not supported yet")));
 
     }
 
@@ -10951,7 +10951,7 @@ public Map<String, Object> describe()
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)pricesData).size(); i++)
         {
-            ((List<Object>)results).add(this.extend(this.parseLastPrice((Map<String, Object>) ((pricesData == null || i < 0 || i >= ((List<?>)pricesData).size() ? null : ((List<?>)pricesData).get(i))), (Map<String, Object>) null), parameters));
+            ((List<Object>)results).add(this.extend(this.parseLastPrice(this.extend(new HashMap<String, Object>() {{}}, (pricesData == null || i < 0 || i >= ((List<?>)pricesData).size() ? null : ((List<?>)pricesData).get(i))), (Map<String, Object>) null), parameters));
         }
         return this.indexBy(this.filterByArray(results, "symbol", this.marketSymbols(symbols, (Object) null, true, false, false), false), "symbol");
     }
@@ -11058,7 +11058,7 @@ public Map<String, Object> describe()
         return interests;
     }
 
-    public Object parseBorrowRate(Object info, Map<String, Object> currency)
+    public Map<String, Object> parseBorrowRate(Object info, Map<String, Object> currency)
     {
         throw new NotSupported((this.id + " parseBorrowRate() is not supported yet")) ;
     }
@@ -11115,7 +11115,7 @@ public Map<String, Object> describe()
         Map<String, Object> fundingRates = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parseFundingRate((response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)), (Map<String, Object>) null);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseFundingRate(this.safeDict(response, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             String symbol = this.safeString(parsed, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -11135,7 +11135,7 @@ public Map<String, Object> describe()
         List<Object> rates = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            ((List<Object>)rates).add(this.parseLongShortRatio((Map<String, Object>) ((response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i))), market));
+            ((List<Object>)rates).add(this.parseLongShortRatio(this.extend(new HashMap<String, Object>() {{}}, (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i))), market));
         }
         List<Object> sorted = this.sortBy(rates, "timestamp");
         String symbol = java.util.Objects.toString((((java.util.Objects.equals(market, null)))) ? null : market.get("symbol"), null);
@@ -11221,7 +11221,7 @@ public Map<String, Object> describe()
     public Object isTriggerOrder(Map<String, Object> parameters)
     {
         // for backwards compatibility
-        return this.handleTriggerAndParams((Map<String, Object>) (parameters));
+        return this.handleTriggerAndParams(parameters);
     }
 
     public Boolean isPostOnly(Object isMarketOrder, Boolean exchangeSpecificParam, Map<String, Object> parameters)
@@ -11502,7 +11502,7 @@ public Map<String, Object> describe()
         return null;
     }
 
-    public Object convertTypeToAccount(Object account)
+    public String convertTypeToAccount(Object account)
     {
         /**
          * @ignore
@@ -11525,7 +11525,7 @@ public Map<String, Object> describe()
             return this.safeString(market, "id", account);
         } else
         {
-            return account;
+            return (String) account;
         }
     }
 
@@ -11571,7 +11571,7 @@ public Map<String, Object> describe()
         }
     }
 
-    public Object parseDepositWithdrawFees(Object response, List<String> codes, String currencyIdKey)
+    public Map<String, Object> parseDepositWithdrawFees(Object response, List<String> codes, String currencyIdKey)
     {
         /**
          * @ignore
@@ -11692,7 +11692,7 @@ public Map<String, Object> describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)incomes).size(); i++)
         {
-            ((List<Object>)result).add(this.parseIncome((Map<String, Object>) ((incomes == null || i < 0 || i >= ((List<?>)incomes).size() ? null : ((List<?>)incomes).get(i))), market));
+            ((List<Object>)result).add(this.parseIncome(this.extend(new HashMap<String, Object>() {{}}, (incomes == null || i < 0 || i >= ((List<?>)incomes).size() ? null : ((List<?>)incomes).get(i))), market));
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
         String symbol = this.safeString(market, "symbol");
@@ -11874,7 +11874,7 @@ public Map<String, Object> describe()
                         break;
                     }
                     errors = 0;
-                    result = (List<Object>) this.arrayConcat(result, response);
+                    result = this.arrayConcat(result, response);
                     Map<String, Object> firstElement = this.safeDict(response, 0, null);
                     paginationTimestamp = this.safeInteger2(firstElement, "timestamp", 0);
                     if (java.util.Objects.equals(paginationTimestamp, null))
@@ -11907,7 +11907,7 @@ public Map<String, Object> describe()
                         break;
                     }
                     errors = 0;
-                    result = (List<Object>) this.arrayConcat(result, response);
+                    result = this.arrayConcat(result, response);
                     Map<String, Object> last = this.safeDict(response, (((long) responseLength) - 1L), null);
                     Long lastTimestamp = this.safeInteger(last, "timestamp", 0);
                     if (java.util.Objects.equals(lastTimestamp, null))
@@ -12062,7 +12062,7 @@ public Map<String, Object> describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < results.size(); i++)
         {
-            result = (List<Object>) this.arrayConcat(result, (results == null || i < 0 || i >= results.size() ? null : results.get(i)));
+            result = this.arrayConcat(result, (results == null || i < 0 || i >= results.size() ? null : results.get(i)));
         }
         Object uniqueResults = ((Object)this.removeRepeatedElementsFromArray(result, true));
         Object key = (((java.util.Objects.equals(method, "fetchOHLCV")))) ? 0 : "timestamp";
@@ -12152,7 +12152,7 @@ public Map<String, Object> describe()
                     shouldBreak = true;
                     break;
                 }
-                result = (List<Object>) this.arrayConcat(result, response);
+                result = this.arrayConcat(result, response);
                 Map<String, Object> last = this.safeDict(response, (((long) responseLength) - 1L), null);
                 // cursorValue = this.safeValue (last['info'], cursorReceived);
                 cursorValue = null; // search for the cursor
@@ -12245,7 +12245,7 @@ public Map<String, Object> describe()
                     shouldBreak = true;
                     break;
                 }
-                result = (List<Object>) this.arrayConcat(result, response);
+                result = this.arrayConcat(result, response);
             } catch(Exception e)
             {
                 errors = (errors + 1L);
@@ -12401,7 +12401,7 @@ public Map<String, Object> describe()
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit, false);
     }
 
-    public Object parseGreeks(Map<String, Object> greeks, Map<String, Object> market)
+    public Map<String, Object> parseGreeks(Map<String, Object> greeks, Map<String, Object> market)
     {
         throw new NotSupported((this.id + " parseGreeks () is not supported yet")) ;
     }
@@ -12441,7 +12441,7 @@ public Map<String, Object> describe()
         return this.indexBy(this.filterByArray(results, "symbol", this.marketSymbols(symbols, (Object) null, true, false, false), false), "symbol");
     }
 
-    public Object parseOption(Map<String, Object> chain, Map<String, Object> currency, Map<String, Object> market)
+    public Map<String, Object> parseOption(Map<String, Object> chain, Map<String, Object> currency, Map<String, Object> market)
     {
         throw new NotSupported((this.id + " parseOption () is not supported yet")) ;
     }
@@ -12493,7 +12493,7 @@ public Map<String, Object> describe()
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketTypeResolved);
             if ((java.util.Objects.equals(symbols, null)) || this.inArray(market.get("symbol"), symbols))
             {
-                leverageStructures.put((String)market.get("symbol"), this.parseLeverage((Map<String, Object>) (info), market));
+                leverageStructures.put((String)market.get("symbol"), this.parseLeverage(this.extend(new HashMap<String, Object>() {{}}, info), market));
             }
         }
         return leverageStructures;
@@ -12539,7 +12539,7 @@ public Map<String, Object> describe()
         String currencyCode = (String) currency.get("code");
         List<Object> fromConversion = this.filterBy(sorted, "fromCurrency", currencyCode);
         List<Object> toConversion = this.filterBy(sorted, "toCurrency", currencyCode);
-        List<Object> both = (List<Object>) this.arrayConcat(fromConversion, toConversion);
+        List<Object> both = this.arrayConcat(fromConversion, toConversion);
         return this.filterBySinceLimit(both, since, limit, "timestamp", false);
     }
 

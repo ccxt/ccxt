@@ -586,12 +586,12 @@ public class Myriad extends MyriadApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of raw myriad question objects
      */
-    public CompletableFuture<Object> fetchRawQuestionsBySearch(List<Object> queries, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchRawQuestionsBySearch(List<Object> queries, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchRawQuestionsBySearchCore(queries, parameters));
     }
 
-    private Object fetchRawQuestionsBySearchCore(List<Object> queries, Map<String, Object> parameters)
+    private List<Object> fetchRawQuestionsBySearchCore(List<Object> queries, Map<String, Object> parameters)
     {
 
         Long limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "defaultFetchEventsLimit", 50));
@@ -630,12 +630,12 @@ public class Myriad extends MyriadApi
      * @param {string} [params.state] optional question state filter when supported by the backend
      * @returns {object[]} an array of raw myriad question objects
      */
-    public CompletableFuture<Object> fetchRawQuestionsList(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchRawQuestionsList(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchRawQuestionsListCore(parameters));
     }
 
-    private Object fetchRawQuestionsListCore(Map<String, Object> parameters)
+    private List<Object> fetchRawQuestionsListCore(Map<String, Object> parameters)
     {
 
         Long limit = this.safeInteger(this.options, "defaultFetchEventsLimit", 50);
@@ -700,12 +700,12 @@ public class Myriad extends MyriadApi
      * @param {string} [params.address] the wallet address to query, defaults to this.walletAddress
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public CompletableFuture<List<PredictionPosition>> fetchPositions(Object outcomes, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionPosition>> fetchPositions(List<String> outcomes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchPositionsCore(outcomes, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
     }
 
-    private Object fetchPositionsCore(Object outcomes, Map<String, Object> parameters)
+    private Object fetchPositionsCore(List<String> outcomes, Map<String, Object> parameters)
     {
 
         // resolve the owner the same way fetchBalance does — derive from the configured privateKey
@@ -3434,12 +3434,12 @@ public class Myriad extends MyriadApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    public CompletableFuture<PredictionTickers> fetchTickers(Object outcomes, Map<String, Object> parameters)
+    public CompletableFuture<PredictionTickers> fetchTickers(List<String> outcomes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchTickersCore(outcomes, parameters)).thenApply(PredictionTickers::new);
     }
 
-    private Object fetchTickersCore(Object outcomes, Map<String, Object> parameters)
+    private Object fetchTickersCore(List<String> outcomes, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(outcomes, null))
@@ -3451,9 +3451,9 @@ public class Myriad extends MyriadApi
         (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> outcomesByMarket = new HashMap<String, Object>() {{}};
         List<Object> marketKeys = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)outcomes).size(); i++)
+        for (var i = 0; i < outcomes.size(); i++)
         {
-            Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i))));
+            Map<String, Object> outcomeObj = this.outcome((String) ((outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i))));
             Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             String networkId = this.safeString(info, "networkId", "");
             String marketId = this.safeString(info, "marketId", "");
@@ -3586,7 +3586,7 @@ public class Myriad extends MyriadApi
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public Object parsePredictionTrade(Map<String, Object> trade, Map<String, Object> market)
+    public Map<String, Object> parsePredictionTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         Long timestamp = this.safeTimestamp(trade, "timestamp");
         String amountStr = this.safeString(trade, "shares");
@@ -3923,7 +3923,7 @@ public class Myriad extends MyriadApi
 
     }
 
-    public void handleTextMessage(Client client, Object message)
+    public void handleTextMessage(Client client, String message)
     {
         List<Object> lines = new ArrayList<Object>(Arrays.asList(((String)message).split(java.util.regex.Pattern.quote("\n"))));
         Integer linesLength = lines.size();
@@ -4016,7 +4016,7 @@ public class Myriad extends MyriadApi
         Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
         String networkId = this.safeString(info, "networkId", "");
         String marketId = this.safeString(info, "marketId", "");
-        Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
+        String sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
         String channel = ((("orderbook:" + networkId) + ":") + marketId);
         String messageHash = ("orderbook::" + sym);
         String url = this.safeString(this.urls.get("api"), "ws");
@@ -4127,7 +4127,7 @@ public class Myriad extends MyriadApi
         Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
         String networkId = this.safeString(info, "networkId", "");
         String marketId = this.safeString(info, "marketId", "");
-        Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
+        String sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
         String channel = ((("trades:" + networkId) + ":") + marketId);
         String messageHash = ("trades::" + sym);
         List<Object> trades = (List<Object>) (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
@@ -4163,7 +4163,7 @@ public class Myriad extends MyriadApi
         Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
         String networkId = this.safeString(info, "networkId", "");
         String marketId = this.safeString(info, "marketId", "");
-        Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
+        String sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
         String channel = ((("trades:" + networkId) + ":") + marketId);
         String messageHash = "myTrades";
         List<Object> trades = (List<Object>) (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
@@ -4321,7 +4321,7 @@ public class Myriad extends MyriadApi
         Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
         String networkId = this.safeString(info, "networkId", "");
         String marketId = this.safeString(info, "marketId", "");
-        Object sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
+        String sym = this.safeOutcomeSymbol((String) (outcome), outcomeObj);
         String channel = ((("prices:" + networkId) + ":") + marketId);
         String messageHash = ("ticker::" + sym);
         return (this.subscribeMyriadChannel(messageHash, channel, parameters)).join();
@@ -4337,19 +4337,19 @@ public class Myriad extends MyriadApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dict of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    public CompletableFuture<PredictionTickers> watchTickers(Object outcomes, Map<String, Object> parameters)
+    public CompletableFuture<PredictionTickers> watchTickers(List<String> outcomes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchTickersCore(outcomes, parameters)).thenApply(PredictionTickers::new);
     }
 
-    private Object watchTickersCore(Object outcomes, Map<String, Object> parameters)
+    private Object watchTickersCore(List<String> outcomes, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(outcomes, null))
         {
             throw new ArgumentsRequired((this.id + " watchTickers() requires a list of outcomes (the prices channel is per-market)")) ;
         }
-        Integer symbolsLength = ((List<?>)outcomes).size();
+        Integer symbolsLength = outcomes.size();
         String url = this.safeString(this.urls.get("api"), "ws");
         (this.connectCentrifugo((String) (url))).join();
         (this.loadOutcomes(outcomes, false, new HashMap<String, Object>() {{}})).join();
@@ -4488,13 +4488,13 @@ public class Myriad extends MyriadApi
 
         String trader = this.walletAddressFromKeys();
         String networkId = this.safeString(this.options, "defaultNetworkId", "56");
-        Object outcomeResolved = outcome;
+        String outcomeResolved = outcome;
         if (!java.util.Objects.equals(outcomeResolved, null))
         {
-            Map<String, Object> outcomeObj = (this.loadOutcome((String) (outcomeResolved), false)).join();
+            Map<String, Object> outcomeObj = (this.loadOutcome(outcomeResolved, false)).join();
             Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
             networkId = this.safeString(info, "networkId", networkId);
-            outcomeResolved = this.safeOutcomeSymbol((String) (outcomeResolved), outcomeObj);
+            outcomeResolved = this.safeOutcomeSymbol(outcomeResolved, outcomeObj);
         }
         String channel = ((("orders:" + networkId) + ":") + trader);
         String messageHash = "orders";
@@ -4565,12 +4565,12 @@ public class Myriad extends MyriadApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    public CompletableFuture<List<PredictionPosition>> watchPositions(Object outcomes, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionPosition>> watchPositions(List<String> outcomes, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchPositionsCore(outcomes, since, limit, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionPosition::new).collect(Collectors.toList()));
     }
 
-    private Object watchPositionsCore(Object outcomes, Long since, Long limit, Map<String, Object> parameters)
+    private Object watchPositionsCore(List<String> outcomes, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (!java.util.Objects.equals(outcomes, null))
@@ -4614,7 +4614,7 @@ public class Myriad extends MyriadApi
     private Void seedPositionBalancesCore(String trader)
     {
 
-        List<PredictionPosition> positions = (this.fetchPositions((Object) null, new HashMap<String, Object>() {{
+        List<PredictionPosition> positions = (this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{
             put( "address", trader );
         }})).join();
         Map<String, Object> balances = new HashMap<String, Object>() {{}};
@@ -4737,7 +4737,7 @@ public class Myriad extends MyriadApi
      * @param {object} params the request parameters
      * @returns {object} a dict with url, method, body and headers
      */
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> baseUrls = (Map<String, Object>) this.urls.get("api");

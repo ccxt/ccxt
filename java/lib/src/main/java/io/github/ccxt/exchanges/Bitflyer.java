@@ -400,8 +400,8 @@ public class Bitflyer extends BitflyerApi
         //         { "product_code": "BTC_JPY", "market_type": "Spot" },
         //     ];
         //
-        List<Object> markets = (List<Object>) this.arrayConcat(this.toArray(jp_markets), this.toArray(us_markets));
-        markets = (List<Object>) this.arrayConcat(markets, this.toArray(eu_markets));
+        List<Object> markets = this.arrayConcat(this.toArray(jp_markets), this.toArray(us_markets));
+        markets = this.arrayConcat(markets, this.toArray(eu_markets));
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < markets.size(); i++)
         {
@@ -1550,7 +1550,7 @@ public class Bitflyer extends BitflyerApi
         }};
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String bodySigned = null;

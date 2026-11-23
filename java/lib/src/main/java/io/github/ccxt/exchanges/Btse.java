@@ -966,7 +966,7 @@ public class Btse extends BtseApi
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Long maxLimit = 300L;
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -1135,7 +1135,7 @@ public class Btse extends BtseApi
         }
         String period = null;
         Map<String, Object> paramsPeriod = null;
-        Pair<String, Map<String, Object>> periodparamsPeriodVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "fetchFundingRateHistory", "period", (String) null);
+        Pair<String, Map<String, Object>> periodparamsPeriodVariable = this.handleOptionStringAndParams(parameters, "fetchFundingRateHistory", "period", (String) null);
         period = periodparamsPeriodVariable.first();
         paramsPeriod = periodparamsPeriodVariable.second();
         if (java.util.Objects.equals(period, null))
@@ -1930,7 +1930,7 @@ public class Btse extends BtseApi
             request.put("count", limit);
         }
         Map<String, Object> paramsUntil = null;
-        Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("endTime", request, parameters, 1);
         request = requestparamsUntilVariable.first();
         paramsUntil = requestparamsUntilVariable.second();
         Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, paramsUntil, "spot");
@@ -3319,7 +3319,7 @@ public class Btse extends BtseApi
         //     ]
         //
         List<Object> rows = (List<Object>) this.safeList(response, "data", ((Object)response));
-        List<Object> responseList = (List<Object>) this.arrayConcat(new ArrayList<Object>(Arrays.asList()), rows);
+        List<Object> responseList = this.arrayConcat(new ArrayList<Object>(Arrays.asList()), rows);
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < responseList.size(); i++)
         {
@@ -4218,7 +4218,7 @@ public class Btse extends BtseApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", Btse.this.futuresRequestId(market) );
         }};
-        Pair<String, Map<String, Object>> orderTypeparamsOrderTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "closePosition", "type", "market");
+        Pair<String, Map<String, Object>> orderTypeparamsOrderTypeVariable = this.handleOptionStringAndParams(parameters, "closePosition", "type", "market");
         String orderType = orderTypeparamsOrderTypeVariable.first();
         Map<String, Object> paramsOrderType = orderTypeparamsOrderTypeVariable.second();
         String typeUpper = ((String)orderType).toUpperCase();
@@ -4447,7 +4447,7 @@ public class Btse extends BtseApi
         return null;
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String requestBody = null;

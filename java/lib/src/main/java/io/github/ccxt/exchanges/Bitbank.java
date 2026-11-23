@@ -964,7 +964,7 @@ public class Bitbank extends BitbankApi
         }
         Map<String, Object> response = (this.privatePostUserSpotOrder(this.extend(request, parameters))).join();
         Map<String, Object> data = this.safeDict(response, "data", null);
-        return this.parseOrder((Map<String, Object>) (data), market);
+        return this.parseOrder(data, market);
 
     }
 
@@ -1075,7 +1075,7 @@ public class Bitbank extends BitbankApi
         //    }
         //
         Map<String, Object> data = this.safeDict(response, "data", null);
-        return this.parseOrder((Map<String, Object>) (data), market);
+        return this.parseOrder(data, market);
 
     }
 
@@ -1316,7 +1316,7 @@ public class Bitbank extends BitbankApi
         return this.milliseconds();
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> query = this.extend(new HashMap<String, Object>() {{}}, this.omit(parameters, this.extractParams(path)));

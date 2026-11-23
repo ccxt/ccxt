@@ -906,7 +906,7 @@ public class Poloniex extends PoloniexApi
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -1026,10 +1026,10 @@ public class Poloniex extends PoloniexApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.fetchSpotMarkets(parameters), this.fetchSwapMarkets(parameters)));
@@ -1038,12 +1038,12 @@ public class Poloniex extends PoloniexApi
 
     }
 
-    public CompletableFuture<Object> fetchSpotMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchSpotMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchSpotMarketsCore(parameters));
     }
 
-    private Object fetchSpotMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchSpotMarketsCore(Map<String, Object> parameters)
     {
 
         List<Object> markets = (this.publicGetMarkets(parameters)).join();
@@ -1074,12 +1074,12 @@ public class Poloniex extends PoloniexApi
 
     }
 
-    public CompletableFuture<Object> fetchSwapMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchSwapMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchSwapMarketsCore(parameters));
     }
 
-    private Object fetchSwapMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchSwapMarketsCore(Map<String, Object> parameters)
     {
 
         // do similar as spot per https://api-docs.poloniex.com/v3/futures/api/market/get-product-info
@@ -1916,7 +1916,7 @@ public class Poloniex extends PoloniexApi
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMyTrades", "paginate", false);
+        Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         Boolean paginate = paginateparamsPaginateVariable.first();
         Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
         if (Boolean.TRUE.equals(paginate))
@@ -3565,7 +3565,7 @@ public class Poloniex extends PoloniexApi
         Map<String, Object> currency = this.currency((String) (code));
         String networkCode = null;
         Map<String, Object> query = null;
-        List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
+        List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
         networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
         query = (Map<String, Object>) ((List<Object>) networkCodequeryVariable).get(1);
         if (java.util.Objects.equals(networkCode, null))
@@ -3743,7 +3743,7 @@ public class Poloniex extends PoloniexApi
         {
             request.put("limit", limit);
         }
-        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
+        Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("endTime", request, parameters, 1);
         Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
         Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
         List<Object> response = (this.privateGetAccountsTransfer(this.extend(requestUntil, paramsUntil))).join();
@@ -3995,7 +3995,7 @@ public class Poloniex extends PoloniexApi
         List<Object> deposits = this.safeList(response, "deposits", new ArrayList<Object>(Arrays.asList()));
         List<Object> withdrawalTransactions = this.parseTransactions(withdrawals, currency, since, limit, new HashMap<String, Object>() {{}});
         List<Object> depositTransactions = this.parseTransactions(deposits, currency, since, limit, new HashMap<String, Object>() {{}});
-        List<Object> transactions = (List<Object>) this.arrayConcat(depositTransactions, withdrawalTransactions);
+        List<Object> transactions = this.arrayConcat(depositTransactions, withdrawalTransactions);
         return this.filterByCurrencySinceLimit(this.sortBy(transactions, "timestamp"), code, since, limit, false);
 
     }
@@ -4092,7 +4092,7 @@ public class Poloniex extends PoloniexApi
 
     }
 
-    public Object parseDepositWithdrawFees(Object response, List<String> codes, String currencyIdKey)
+    public Map<String, Object> parseDepositWithdrawFees(Object response, List<String> codes, String currencyIdKey)
     {
         //
         //         {
@@ -4712,12 +4712,12 @@ public class Poloniex extends PoloniexApi
         return this.safePosition(mapLiteral8);
     }
 
-    public CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, String type, Map<String, Object> parameters)
+    public CompletableFuture<Object> modifyMarginHelper(String symbol, Double amount, String type, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.modifyMarginHelperCore(symbol, amount, type, parameters));
     }
 
-    private Object modifyMarginHelperCore(String symbol, Object amount, String type, Map<String, Object> parameters)
+    private Object modifyMarginHelperCore(String symbol, Double amount, String type, Map<String, Object> parameters)
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -4751,7 +4751,7 @@ public class Poloniex extends PoloniexApi
             amountResolved = Precise.stringAbs(amountResolved);
         }
         Map<String, Object> data = this.safeDict(response, "data", null);
-        return this.parseMarginModification((Map<String, Object>) (data), market);
+        return this.parseMarginModification(data, market);
 
     }
 
@@ -4823,7 +4823,7 @@ public class Poloniex extends PoloniexApi
         return this.milliseconds();
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Boolean isArray = (parameters instanceof List);

@@ -1319,7 +1319,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
     public Map<String, Object> parseFundingRateHistory(Object info, Map<String, Object> market)
     {
-        Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(info, market);
+        Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(this.extend(new HashMap<String, Object>() {{}}, info), market);
         return new HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", fundingRate.get("symbol") );
@@ -3917,7 +3917,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         return this.safeString(this.options, "v2AccessToken", this.token);
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String access = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String rpcMethod = ((access + "/") + path);
@@ -4048,7 +4048,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      */
     public Map<String, Object> handleRouteAndParams(String methodName, Map<String, Object> parameters)
     {
-        Pair<String, Map<String, Object>> routeparamsResolvedVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), (String) (methodName), "route", "auto");
+        Pair<String, Map<String, Object>> routeparamsResolvedVariable = this.handleOptionStringAndParams(parameters, (String) (methodName), "route", "auto");
         String route = routeparamsResolvedVariable.first();
         Map<String, Object> paramsResolved = routeparamsResolvedVariable.second();
         Boolean deribit = this.resolveRoute(route);

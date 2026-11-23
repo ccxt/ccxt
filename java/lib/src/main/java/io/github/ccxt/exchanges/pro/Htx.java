@@ -325,7 +325,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String marketId = this.safeString(market, "id", "");
         String messageHash = (("market." + marketId) + ".trade.detail");
         String url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, false, false);
-        List<Object> trades = (List<Object>) (this.subscribePublic(url, (String) (symbolValue), messageHash, (Object) null, parameters)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.subscribePublic(url, (String) (symbolValue), messageHash, (Object) null, parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -450,7 +450,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String marketId = this.safeString(market, "id", "");
         String messageHash = ((("market." + marketId) + ".kline.") + interval);
         String url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, false, false);
-        List<Object> ohlcv = (List<Object>) (this.subscribePublic(url, (String) (symbolValue), messageHash, (Object) null, parameters)).join();
+        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) (this.subscribePublic(url, (String) (symbolValue), messageHash, (Object) null, parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -810,14 +810,14 @@ public class Htx extends io.github.ccxt.exchanges.Htx
     {
         Double price = this.safeFloat(delta, 0);
         Double amount = this.safeFloat(delta, 1);
-        ((io.github.ccxt.ws.OrderBookSide) bookside).store(price, amount);
+        bookside.store(price, amount);
     }
 
-    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, Object deltas)
+    public void handleDeltas(io.github.ccxt.ws.OrderBookSide bookside, List<Object> deltas)
     {
-        for (var i = 0; i < ((List<?>)deltas).size(); i++)
+        for (var i = 0; i < deltas.size(); i++)
         {
-            this.handleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)));
+            this.handleDelta(bookside, (deltas == null || i < 0 || i >= deltas.size() ? null : deltas.get(i)));
         }
     }
 
@@ -1294,7 +1294,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Map<String, Object> subscriptionParams = new HashMap<String, Object>() {{
             put( "isV5", isV5Linear );
         }};
-        List<Object> orders = (List<Object>) (this.subscribePrivate(channel, messageHash, type, subType, paramsRequest, subscriptionParams)).join();
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.subscribePrivate(channel, messageHash, type, subType, paramsRequest, subscriptionParams)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {

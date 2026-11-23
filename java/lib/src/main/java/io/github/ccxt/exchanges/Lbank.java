@@ -682,10 +682,10 @@ public class Lbank extends LbankApi
      */
     public CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters)).thenApply(res -> (List<Object>) res);
+        return BaseExchange.supplyAsync(() -> this.fetchMarketsCore(parameters));
     }
 
-    private Object fetchMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsCore(Map<String, Object> parameters)
     {
 
         List<CompletableFuture<?>> marketsPromises = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.fetchSpotMarkets(parameters), this.fetchSwapMarkets(parameters)));
@@ -696,12 +696,12 @@ public class Lbank extends LbankApi
 
     }
 
-    public CompletableFuture<Object> fetchSpotMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchSpotMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchSpotMarketsCore(parameters));
     }
 
-    private Object fetchSpotMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchSpotMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.spotPublicGetAccuracy(parameters)).join();
@@ -790,12 +790,12 @@ public class Lbank extends LbankApi
 
     }
 
-    public CompletableFuture<Object> fetchSwapMarkets(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchSwapMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchSwapMarketsCore(parameters));
     }
 
-    private Object fetchSwapMarketsCore(Map<String, Object> parameters)
+    private List<Object> fetchSwapMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2764,7 +2764,7 @@ public class Lbank extends LbankApi
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "assetCode", currency.get("id") );
         }};
-        String network = this.getNetworkCodeForCurrency((String) (code), (Map<String, Object>) (parameters));
+        String network = this.getNetworkCodeForCurrency((String) (code), parameters);
         Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(network, null)))) ? this.omit(parameters, "network") : parameters;
         if (!java.util.Objects.equals(network, null))
         {
@@ -3181,12 +3181,12 @@ public class Lbank extends LbankApi
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     @Deprecated
-    public CompletableFuture<Object> fetchTransactionFees(List<String> codes, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchTransactionFees(List<String> codes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchTransactionFeesCore(codes, parameters));
     }
 
-    private Object fetchTransactionFeesCore(List<String> codes, Map<String, Object> parameters)
+    private Map<String, Object> fetchTransactionFeesCore(List<String> codes, Map<String, Object> parameters)
     {
 
         // private only returns information for currencies with non-zero balance
@@ -3537,7 +3537,7 @@ public class Lbank extends LbankApi
                             result.put(code, this.depositWithdrawFee(new ArrayList<Object>(Arrays.asList(fee))));
                         } else
                         {
-                            List<Object> infoList = (List<Object>) this.arrayConcat(resultValue.get("info"), new ArrayList<Object>(Arrays.asList(fee)));
+                            List<Object> infoList = this.arrayConcat(resultValue.get("info"), new ArrayList<Object>(Arrays.asList(fee)));
                             result.put(code, this.extend(resultValue, new HashMap<String, Object>() {{
     put( "info", infoList );
 }}));
@@ -3642,7 +3642,7 @@ public class Lbank extends LbankApi
         return result;
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         Object paramsOmitted = this.omit(parameters, this.extractParams(path));
         String apiUrl = this.safeString(this.urls.get("api"), "rest");

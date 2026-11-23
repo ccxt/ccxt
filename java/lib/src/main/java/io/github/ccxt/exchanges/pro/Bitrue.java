@@ -550,7 +550,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         return result;
     }
 
-    public Object convertFromRawQuantity(String symbol, Object rawQuantity)
+    public Object convertFromRawQuantity(String symbol, Double rawQuantity)
     {
         if (java.util.Objects.equals(rawQuantity, null))
         {

@@ -927,7 +927,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         Object orderbook = null;
         if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
-            Pair<String, Map<String, Object>> frequencyparamsFrequencyVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "frequency", "100ms");
+            Pair<String, Map<String, Object>> frequencyparamsFrequencyVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
             String frequency = frequencyparamsFrequencyVariable.first();
             Map<String, Object> paramsFrequency = frequencyparamsFrequencyVariable.second();
             String spotChannel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + this.safeString(market, "id", ""));
@@ -2248,7 +2248,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
             url = ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("spot");
-            Pair<String, Map<String, Object>> frequencyparamsFrequencyVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "frequency", "100ms");
+            Pair<String, Map<String, Object>> frequencyparamsFrequencyVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
             String frequency = frequencyparamsFrequencyVariable.first();
             Map<String, Object> paramsFrequency = frequencyparamsFrequencyVariable.second();
             String channel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + this.safeString(market, "id", ""));
@@ -2592,7 +2592,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         return true;
     }
 
-    public void handleTextMessage(Client client, Object message)
+    public void handleTextMessage(Client client, String message)
     {
         if (java.util.Objects.equals(message, "Invalid listen key"))
         {

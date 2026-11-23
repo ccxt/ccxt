@@ -1011,8 +1011,8 @@ public class Bitrue extends BitrueApi
         List<Object> futureMarkets = this.safeList(promises, 1, new ArrayList<Object>(Arrays.asList()));
         List<Object> deliveryMarkets = this.safeList(promises, 2, new ArrayList<Object>(Arrays.asList()));
         List<Object> markets = spotMarkets;
-        markets = (List<Object>) this.arrayConcat(markets, futureMarkets);
-        markets = (List<Object>) this.arrayConcat(markets, deliveryMarkets);
+        markets = this.arrayConcat(markets, futureMarkets);
+        markets = this.arrayConcat(markets, deliveryMarkets);
         //
         // spot
         //
@@ -2318,7 +2318,7 @@ public class Bitrue extends BitrueApi
                 request.put("type", "IOC");
             }
             request.put("contractName", market.get("id"));
-            Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "createOrder", "createMarketBuyOrderRequiresPrice", true);
+            Pair<Boolean, Map<String, Object>> createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = this.handleOptionBoolAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
             Boolean createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.first();
             Map<String, Object> paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.second();
             Boolean isMarketBuyWithPrice = Boolean.TRUE.equals(isMarket) && (java.util.Objects.equals(side, "buy")) && Boolean.TRUE.equals(createMarketBuyOrderRequiresPrice);
@@ -2413,7 +2413,7 @@ public class Bitrue extends BitrueApi
         //         }
         //     }
         //
-        return this.parseOrder((Map<String, Object>) (data), market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), market);
 
     }
 
@@ -2527,7 +2527,7 @@ public class Bitrue extends BitrueApi
         //         }
         //     }
         //
-        return this.parseOrder((Map<String, Object>) (data), market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), market);
 
     }
 
@@ -2790,7 +2790,7 @@ public class Bitrue extends BitrueApi
         //         }
         //     }
         //
-        return this.parseOrder((Map<String, Object>) (data), market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), market);
 
     }
 
@@ -3336,7 +3336,7 @@ public class Bitrue extends BitrueApi
         //     }
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.parseTransaction((Map<String, Object>) (data), currency);
+        return this.parseTransaction(data, currency);
 
     }
 
@@ -3671,12 +3671,12 @@ public class Bitrue extends BitrueApi
      * @param {object} [params] parameters specific to the exchange API endpoint
      * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
      */
-    public CompletableFuture<MarginModification> setMargin(String symbol, Object amount, Map<String, Object> parameters)
+    public CompletableFuture<MarginModification> setMargin(String symbol, Double amount, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.setMarginCore(symbol, amount, parameters)).thenApply(MarginModification::new);
     }
 
-    private Object setMarginCore(String symbol, Object amount, Map<String, Object> parameters)
+    private Object setMarginCore(String symbol, Double amount, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3711,7 +3711,7 @@ public class Bitrue extends BitrueApi
 
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String requestBody = null;
         Map<String, Object> requestHeaders = null;
@@ -3896,7 +3896,7 @@ public class Bitrue extends BitrueApi
         return null;
     }
 
-    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
+    public Object calculateRateLimiterCost(Object api, String method, String path, Object parameters, Map<String, Object> config)
     {
         String paramsSymbol = this.safeString(parameters, "symbol");
         String paramsLimit = this.safeString(parameters, "limit");

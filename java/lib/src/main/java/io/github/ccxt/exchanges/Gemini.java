@@ -833,12 +833,12 @@ public class Gemini extends GeminiApi
 
     }
 
-    public CompletableFuture<Object> fetchMarketsFromWeb(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchMarketsFromWeb(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchMarketsFromWebCore(parameters));
     }
 
-    private Object fetchMarketsFromWebCore(Map<String, Object> parameters)
+    private List<Object> fetchMarketsFromWebCore(Map<String, Object> parameters)
     {
 
         Object data = (this.fetchWebEndpoint("fetchMarkets", "webGetRestApi", false, "<h1 id=\"symbols-and-minimums\">Symbols and minimums</h1>", (String) null)).join();
@@ -978,7 +978,7 @@ public class Gemini extends GeminiApi
 
         // these markets can't be scrapped and fetchMarketsFrom api does an extra call
         // to load market ids which we don't need here
-        if (((Map<?, ?>)this.urls).containsKey("test"))
+        if (this.urls.containsKey("test"))
         {
             return new ArrayList<Object>(Arrays.asList());  // sandbox does not have usdt markets
         }
@@ -2546,7 +2546,7 @@ public class Gemini extends GeminiApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> indexedByNetwork = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
-        String networkCode = (String) ((List<Object>)this.handleNetworkCodeAndParams((Map<String, Object>) (parameters))).get(0);
+        String networkCode = (String) ((List<Object>)this.handleNetworkCodeAndParams(parameters)).get(0);
         return this.safeDict(indexedByNetwork, networkCode, null);
 
     }
@@ -2575,7 +2575,7 @@ public class Gemini extends GeminiApi
         }
         Map<String, Object> currency = this.currency((String) (code));
         String codeValue = this.safeString(currency, "code", "");
-        List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
+        List<Object> networkCodeparamsNetworkCodeVariable = (List<Object>) this.handleNetworkCodeAndParams(parameters);
         String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
         Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
         if (java.util.Objects.equals(networkCode, null))
@@ -2597,7 +2597,7 @@ public class Gemini extends GeminiApi
 
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String url = ("/" + this.implodeParams(path, parameters));

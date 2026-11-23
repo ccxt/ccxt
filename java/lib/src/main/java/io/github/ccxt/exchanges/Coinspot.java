@@ -980,7 +980,7 @@ public class Coinspot extends CoinspotApi
         {
             ((Map<String, Object>)(sellTrades == null || i < 0 || i >= sellTrades.size() ? null : sellTrades.get(i))).put("side", "sell");
         }
-        List<Object> trades = (List<Object>) this.arrayConcat(buyTrades, sellTrades);
+        List<Object> trades = this.arrayConcat(buyTrades, sellTrades);
         return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
 
     }
@@ -1181,11 +1181,11 @@ public class Coinspot extends CoinspotApi
         return this.milliseconds();
     }
 
-    public Map<String, Object> sign(String path, Object api, String method, Object parameters)
+    public Map<String, Object> sign(String path, List<String> api, String method, Object parameters)
     {
         Map<String, Object> requestHeaders = null;
         String requestBody = null;
-        Integer apiLength = ((List<?>)api).size();
+        Integer apiLength = api.size();
         Boolean isVersionedApi = (apiLength != null && apiLength > 1);
         Object accessType = (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         if (Boolean.TRUE.equals(isVersionedApi))
