@@ -1314,12 +1314,12 @@ export default class bybit extends bybitRest {
         //
         const id = this.safeStringN (trade, [ 'i', 'T', 'v' ]);
         const isContract = (this.safeBool (trade, 'BT') !== undefined);
-        let marketType: Str = 'spot';
+        let marketType: string = 'spot';
         if (isContract) {
             marketType = 'contract';
         }
         if (market !== undefined) {
-            marketType = this.safeString (market, 'type');
+            marketType = this.safeString (market, 'type', marketType);
         }
         const marketId = this.safeString (trade, 's');
         const marketResolved: Market = this.safeMarket (marketId, market, undefined, marketType);

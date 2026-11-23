@@ -3343,16 +3343,20 @@ export default class bybit extends Exchange {
         //
         const id = this.safeStringN (trade, [ 'execId', 'id', 'tradeId' ]);
         const marketId = this.safeString (trade, 'symbol');
-        let marketType: Str = 'spot';
+        let marketType: string = 'spot';
         if ('createType' in trade) {
             marketType = 'contract';
         }
         const category = this.safeString (trade, 'category');
         if (category !== undefined) {
-            marketType = (category === 'spot') ? 'spot' : 'contract';
+            if (category === 'spot') {
+                marketType = 'spot';
+            } else {
+                marketType = 'contract';
+            }
         }
         if (market !== undefined) {
-            marketType = this.safeString (market, 'type');
+            marketType = this.safeString (market, 'type', marketType);
         }
         const marketResolved: Market = this.safeMarket (marketId, market, undefined, marketType);
         const symbol = this.safeString (marketResolved, 'symbol');
@@ -7742,7 +7746,7 @@ export default class bybit extends Exchange {
         //
         const data = this.safeDict (response, 'result', {});
         const rows = this.safeList (data, 'loanAccountList', []);
-        const interest = this.parseBorrowInterests (rows);
+        const interest: BorrowInterest[] = this.parseBorrowInterests (rows);
         return this.filterByCurrencySinceLimit (interest, code, since, limit);
     }
 
@@ -8163,9 +8167,9 @@ export default class bybit extends Exchange {
         //     }
         //
         const marketId = this.safeString (fee, 'symbol');
-        let defaultType: Str = 'contract';
+        let defaultType: string = 'contract';
         if (market !== undefined) {
-            defaultType = this.safeString (market, 'type');
+            defaultType = this.safeString (market, 'type', 'contract');
         }
         const symbol = this.safeSymbol (marketId, market, undefined, defaultType);
         return {
@@ -9182,9 +9186,9 @@ export default class bybit extends Exchange {
         //
         const marketId = this.safeString (income, 'symbol');
         const marketResolved: Market = this.safeMarket (marketId, market, undefined, 'contract');
-        let code = 'USDT';
+        let code: string = 'USDT';
         if (this.safeBool (marketResolved, 'inverse', false)) {
-            code = marketResolved['quote'];
+            code = this.safeString (marketResolved, 'quote', 'USDT');
         }
         const timestamp = this.safeInteger (income, 'execTime');
         return {
