@@ -882,7 +882,7 @@ export default class bitvavo extends bitvavoRest {
         // unroll the accumulated deltas
         const messages = orderbook.cache;
         for (let i = 0; i < messages.length; i++) {
-            const messageItem = messages[i];
+            const messageItem = this.safeDict (messages, i, {});
             this.handleOrderBookMessage (client, messageItem, orderbook);
         }
         this.orderbooks[symbol] = orderbook;

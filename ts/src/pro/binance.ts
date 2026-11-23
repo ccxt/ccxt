@@ -1037,7 +1037,7 @@ export default class binance extends binanceRest {
             const messages = orderbook.cache;
             orderbook.cache = [];
             for (let i = 0; i < messages.length; i++) {
-                const messageItem = this.safeValue (messages, i);
+                const messageItem = this.safeDict (messages, i, {});
                 const U = this.safeInteger (messageItem, 'U');
                 const u = this.safeInteger (messageItem, 'u');
                 if ((U === undefined) || (u === undefined)) {

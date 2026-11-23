@@ -307,7 +307,7 @@ export default class woo extends wooRest {
             orderbook.reset (snapshot);
             const messages = orderbook.cache;
             for (let i = 0; i < messages.length; i++) {
-                const messageItem = messages[i];
+                const messageItem = this.safeDict (messages, i, {});
                 const ts = this.safeInteger (messageItem, 'ts');
                 if (ts === undefined) {
                     continue;
