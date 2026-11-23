@@ -5713,6 +5713,89 @@ class NewTranspiler {
         return content;
     }
 
+    // ws handlers TypeScript declares `(client: Client, message: Dict)` print `IDictionary<string, object> message`
+    // when every direct call passes a dict-typed name and every non-call reference is a dispatch-table entry
+    // whose method invokes it only with a dict-typed name; anything else keeps `object`.
+    retypeDeclaredWsHandlerMessages (content: string, wsTier: boolean): string {
+        const venue = this.currentVenue;
+        // the ws flag is not set on every driver path; the pro constructor line marks a pro file
+        const ws = wsTier || /^public partial class (\w+) \{ public \1\(object args = null\) : base\(args\) \{ \} \}$/m.test (content);
+        const tsFile = this.isPrediction ? './ts/src/prediction/' + venue + '.ts' : (ws ? './ts/src/pro/' + venue + '.ts' : '');
+        if (venue === '' || tsFile === '' || !fs.existsSync (tsFile)) {
+            return content;
+        }
+        const skip = new Set ([ 'handleMessage', 'handleTextMessage', 'handleListMessage', 'handleBinaryMessage', 'handleErrorMessage' ]);
+        const declared = new Set<string> ();
+        for (const m of fs.readFileSync (tsFile, 'utf8').matchAll (/^ {4}(?:async\s+)?(handle\w+)\s*\(\s*client\s*:\s*Client\s*,\s*message\s*:\s*Dict\s*\)/gm)) {
+            declared.add (m[1]);
+        }
+        for (const name of WS_HANDLER_DICT_MESSAGE[venue] ?? []) {
+            declared.delete (name);
+        }
+        const declRe = /^ {4}public (?:virtual|override) [\w<>?, ]+? (handle\w+)\(WebSocketClient client, object message\)$/gm;
+        let changed = true;
+        while (changed) {
+            changed = false;
+            const sigs = [ ...content.matchAll (/^ {4}(?:public|protected|private|internal)[^\n]*?\b(\w+)\s*\(([^()]*)\)\s*$/gm) ];
+            const body = (at: number) => {
+                const next = sigs.findIndex ((sig) => sig.index > at);
+                const sig = sigs[((next === -1) ? sigs.length : next) - 1];
+                return content.substring ((sig === undefined) ? 0 : sig.index, (next === -1) ? content.length : sigs[next].index);
+            };
+            const dictTyped = (text: string, id: string) => new RegExp ('(?:^|[\\s(,])(?:I?Dictionary<string, object>)\\s+' + id + '\\b', 'm').test (text);
+            const dispatchOk = (text: string) => {
+                const invokes = [ ...text.matchAll (/DynamicInvoker\.InvokeMethod\(\w+, new object\[\] \{ ([^}]*)\}\)/g) ];
+                return invokes.length > 0 && !/this\.spawn\(|return methods\b/.test (text) && invokes.every ((inv) => {
+                    const a = inv[1].split (',').map ((x) => x.trim ());
+                    return a.length === 2 && a[0] === 'client' && /^[A-Za-z_]\w*$/.test (a[1]) && dictTyped (text, a[1]);
+                });
+            };
+            const edits: { start: number, end: number }[] = [];
+            for (const decl of content.matchAll (declRe)) {
+                const name = decl[1];
+                if (skip.has (name) || !declared.has (name) || /(?<![\w.])message\s*=[^=>]/.test (body (decl.index + 1))) {
+                    continue;
+                }
+                let ok = true;
+                for (const ref of content.matchAll (new RegExp ('(?<![\\w.])(?:this\\.|base\\.)?' + name + '\\b(?!\\()', 'g'))) {
+                    const lineStart = content.lastIndexOf ('\n', ref.index) + 1;
+                    const line = content.substring (lineStart, content.indexOf ('\n', ref.index));
+                    if (lineStart === decl.index || /^\s*(\/\/|\*)/.test (line)) {
+                        continue;
+                    }
+                    if (!/^\s*\{ "[^"]*", this\.\w+ \},?\s*$/.test (line) || !dispatchOk (body (ref.index))) {
+                        ok = false;
+                        break;
+                    }
+                }
+                for (const call of ok ? content.matchAll (new RegExp ('(?<![\\w.])(?:this\\.|base\\.)?' + name + '\\(', 'g')) : []) {
+                    const lineStart = content.lastIndexOf ('\n', call.index) + 1;
+                    if (lineStart === decl.index || /^\s*(\/\/|\*)/.test (content.substring (lineStart, call.index))) {
+                        continue;
+                    }
+                    const open = call.index + call[0].length - 1;
+                    const close = csharpMatchingClose (content, open, '(', ')', '"');
+                    const spans = (close === -1) ? [] : this.wsArgSpans (content, open + 1, close);
+                    const arg = (spans.length === 2) ? spans[1].text.trim () : '';
+                    if (spans.length !== 2 || spans[0].text.trim () !== 'client' || !/^[A-Za-z_]\w*$/.test (arg) || !dictTyped (body (call.index), arg)) {
+                        ok = false;
+                        break;
+                    }
+                }
+                if (ok) {
+                    const at = decl.index + decl[0].lastIndexOf ('object message');
+                    edits.push ({ start: at, end: at + 'object'.length });
+                }
+            }
+            edits.sort ((a, b) => b.start - a.start);
+            for (const edit of edits) {
+                content = content.substring (0, edit.start) + 'IDictionary<string, object>' + content.substring (edit.end);
+                changed = true;
+            }
+        }
+        return content;
+    }
+
     // top-level comma split of a C# parameter/argument list
     splitCsharpParams (plist: string): string[] {
         const out: string[] = [];
@@ -6537,7 +6620,7 @@ class NewTranspiler {
         // tier flag has to come from `this.isPrediction` (set by every prediction pass) --
         // otherwise a prediction file would look up the REST venue's table and skip its own
         const venueKey = (this.isPrediction ? 'prediction:' : ws ? 'pro:' : '') + this.currentVenue;
-        content = nativeDeclaredHelperCalls (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.typeVenueListArgs (this.retypeParseMarketParams (this.retypeWsHandlerMessages (this.retypeWsHandlerMessages ((this.dropStringTimeframeCasts ((this.finalizeCoreArgTypes (((this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content)))))))))), true)), venueKey))))), venueKey)), false);
+        content = nativeDeclaredHelperCalls (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.typeVenueListArgs (this.retypeParseMarketParams (this.retypeDeclaredWsHandlerMessages (this.retypeWsHandlerMessages (this.retypeWsHandlerMessages ((this.dropStringTimeframeCasts ((this.finalizeCoreArgTypes (((this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content)))))))))), true)), ws), venueKey))))), venueKey)), false);
         // the copy retypes below read `isEqual(x, null)` on `object` names; the final pass rewrites them
         content = this.dropRedundantObjectBoxCasts (content);
         content = this.retypeIdentifierCopies (content);
