@@ -505,9 +505,9 @@ type IDerivedExchange interface {
 	HandleErrors(statusCode int64, statusText string, url string, method string, responseHeaders map[string]any, responseBody string, response any, requestHeaders map[string]any, requestBody *string) any
 	// HandleMessage is not here: a venue declares its ws frame shape (map[string]any for an
 	// object frame, any for an array/text frame), so the dispatch loop binds it by assertion.
-	OnError(client any, err any)
-	OnClose(client any, err any)
-	OnConnected(client any, err any)
+	OnError(client ClientInterface, err any)
+	OnClose(client ClientInterface, err any)
+	OnConnected(client ClientInterface, err any)
 	WatchLiquidationsForSymbolsAsync(symbols []string, optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
 	WatchMyLiquidationsForSymbolsAsync(symbols []string, optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
 	ParseWsTrade(trade any, optionalArgs ...any) map[string]any

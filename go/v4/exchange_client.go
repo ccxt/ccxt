@@ -100,10 +100,10 @@ type Client struct {
 	Inflate               any                           // zlib inflater or similar
 	URL                   string                        // URL string
 	IsConnected           any                           // bool or state variable
-	OnConnectedCallback   func(client any, message any) // callback function signature - adjust as needed
+	OnConnectedCallback   func(client ClientInterface, message any) // callback function signature - adjust as needed
 	OnMessageCallback     func(client any, message any) // example callback with message
-	OnErrorCallback       func(client any, err any)     // error callback
-	OnCloseCallback       func(client any, err any)     // connection closed callback
+	OnErrorCallback       func(client ClientInterface, err any) // error callback
+	OnCloseCallback       func(client ClientInterface, err any) // connection closed callback
 	Ping                  any                           // e.g. timer or pong/ping state
 	Throttle              any                           // throttling mechanism (rate limiter, etc.)
 	// Owner any 											// pointer to the exchange that created the client
@@ -187,7 +187,7 @@ func (this *Client) Close() error {
 
 // NewClient creates a new WebSocket client with the given URL and callbacks
 // Matches the TypeScript constructor exactly with all the same properties
-func NewClient(url string, onMessageCallback func(client any, err any), onErrorCallback func(client any, err any), onCloseCallback func(client any, err any), onConnectedCallback func(client any, err any), config ...map[string]any) *Client {
+func NewClient(url string, onMessageCallback func(client any, err any), onErrorCallback func(client ClientInterface, err any), onCloseCallback func(client ClientInterface, err any), onConnectedCallback func(client ClientInterface, err any), config ...map[string]any) *Client {
 	// Set up defaults exactly like TypeScript constructor
 	defaults := map[string]any{
 		"Url":                   url,

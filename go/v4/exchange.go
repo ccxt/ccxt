@@ -2020,21 +2020,21 @@ func (this *BaseExchange) HandleMessage(client ClientInterface, message any) {
 	// stub to override
 }
 
-func (this *BaseExchange) OnConnected(client any, message any) {
+func (this *BaseExchange) OnConnected(client ClientInterface, message any) {
 	// for user hooks
 	// fmt.Println('Connected to', client.url)
 }
 
-func (this *BaseExchange) OnError(client any, err any) {
-	this.wsClientDeleteIfErrored(client.(ClientInterface).GetUrl())
-	client.(ClientInterface).SetError(fmt.Errorf("%v", err))
+func (this *BaseExchange) OnError(client ClientInterface, err any) {
+	this.wsClientDeleteIfErrored(client.GetUrl())
+	client.SetError(fmt.Errorf("%v", err))
 }
 
-func (this *BaseExchange) OnClose(client any, err any) {
-	if client.(ClientInterface).GetError() != nil {
+func (this *BaseExchange) OnClose(client ClientInterface, err any) {
+	if client.GetError() != nil {
 		// connection closed due to an error, do nothing
 	} else {
-		this.wsClientDelete(client.(ClientInterface).GetUrl())
+		this.wsClientDelete(client.GetUrl())
 	}
 }
 
@@ -2401,7 +2401,7 @@ func (this *BaseExchange) Delay(timeout any, method any, args ...any) {
 // 62 symbol-based methods that hang off *Exchange. Only regular WS venues (whose core embeds Exchange)
 // use it; prediction venues embed BaseExchange and never call it.
 // synchronous: it returns a nil channel (nothing to await, Spawn resolves nil); failures panic into Spawn
-func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any, optionalArgs ...any) <-chan AsyncResult[bool] {
+func (this *Exchange) LoadOrderBookAsync(client ClientInterface, messageHash any, symbol any, optionalArgs ...any) <-chan AsyncResult[bool] {
 	// generated callers pass typed pointer locals (*string symbol, *int64 limit); the
 	// `.(string)` assertions below need the plain values, and a panic here would be
 	// swallowed by Spawn and leave the watch future unresolved
@@ -2420,26 +2420,26 @@ func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any
 			}
 			orderBook := StructBox(fetched.Value, OrderBookToMap)
 			if this.ApplyOrderBookSnapshot(stored, orderBook) {
-				client.(ClientInterface).Resolve(stored, messageHash)
+				client.Resolve(stored, messageHash)
 				return nil
 			}
 			tries++
 		}
 		errorMsg := fmt.Sprintf("%s nonce is behind the cache after %v tries.", this.Id, maxRetries)
 		err := ExchangeError(errorMsg)
-		client.(ClientInterface).Reject(err, messageHash)
+		client.Reject(err, messageHash)
 		// close the dropped connection, otherwise its read and ping loops keep running
-		if client.(ClientInterface).GetError() == nil {
-			client.(ClientInterface).SetError(fmt.Errorf("%v", err))
+		if client.GetError() == nil {
+			client.SetError(fmt.Errorf("%v", err))
 		}
 		if wsClient, ok := client.(*WSClient); ok {
 			wsClient.Close()
 		}
-		this.wsClientDeleteIfSame(client.(ClientInterface).GetUrl(), client)
+		this.wsClientDeleteIfSame(client.GetUrl(), client)
 		// clear the orderbook and its cache - issue https://github.com/ccxt/ccxt/issues/26753 (parity with the other ports, see #29399)
 		this.Orderbooks[symbolKey] = this.OrderBook()
 	} else {
-		client.(ClientInterface).Reject(ExchangeError(this.Id+" loadOrderBook() orderbook is not initiated"), messageHash)
+		client.Reject(ExchangeError(this.Id+" loadOrderBook() orderbook is not initiated"), messageHash)
 		return nil
 	}
 	// TODO: don't know where this fits

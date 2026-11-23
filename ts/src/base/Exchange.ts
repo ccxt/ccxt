@@ -1991,13 +1991,13 @@ export class BaseExchange {
         // console.log ('Connected to', client.url)
     }
 
-    onError (client: any, error: any) {
+    onError (client: Client, error: any) {
         if ((client.url in this.clients) && (this.clients[client.url].error !== undefined)) {
             delete this.clients[client.url];
         }
     }
 
-    onClose (client: any, error: any) {
+    onClose (client: Client, error: any) {
         if (client.error !== undefined) {
             // connection closed due to an error, do nothing
         } else {

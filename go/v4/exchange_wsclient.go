@@ -47,7 +47,7 @@ type WSClient struct {
 }
 
 // NewWSClient dials the given URL and starts the read-loop.
-func NewWSClient(url string, onMessageCallback func(client any, err any), onErrorCallback func(client any, err any), onCloseCallback func(client any, err any), onConnectedCallback func(client any, err any), proxyUrl string, config ...map[string]any) *WSClient {
+func NewWSClient(url string, onMessageCallback func(client any, err any), onErrorCallback func(client ClientInterface, err any), onCloseCallback func(client ClientInterface, err any), onConnectedCallback func(client ClientInterface, err any), proxyUrl string, config ...map[string]any) *WSClient {
 	// Call NewClient to do exactly the same initialization
 	client := NewClient(url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config...)
 
