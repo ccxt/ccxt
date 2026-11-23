@@ -542,7 +542,7 @@ const FIELD_FUNCTION_NAMES = new Set ([ 'parse8601', 'parseDate', 'iso8601' ]);
 // TS method names that rebuild / mutate a list in place — any use of the receiver
 // through one disqualifies it (the same set the C# port uses).
 const LIST_MUTATING_METHODS = new Set ([
-    'push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse', 'fill', 'copyWithin',
+    'push', 'pop', 'shift', 'splice', 'sort', 'reverse', 'fill', 'copyWithin',
 ]);
 
 // every assignment operator kind (ts.SyntaxKind.FirstAssignment .. LastAssignment)
@@ -1116,7 +1116,7 @@ function awaitedThisCallType (node) {
 const JAVA_CORE_METHOD = /^\s*(?:public|protected)\s+(?:java\.util\.concurrent\.)?CompletableFuture<(.+?)>\s+(\w+)\s*\(/;
 const JAVA_CORE_TYPE_OK = /^(?:java\.util\.)?(?:List|Map)<[A-Za-z0-9_$<>,. ]+>$|^(?:io\.github\.ccxt\.types\.)?[A-Z][A-Za-z0-9_]*$|^String$|^Long$|^Double$|^Boolean$|^Void$/;
 const JAVA_CORE_ANY_METHOD = /^\s*(?:public|protected)\s+(?:static\s+final\s+|static\s+|final\s+|abstract\s+|synchronized\s+)*([\w.$]+(?:<[^()]*>)?)\s+(\w+)\s*\(/;
-const JAVA_CORE_SYNC_DECLINED = new Set ([ 'omit', 'omitN', 'omitZero', 'clone', 'deepExtend2', 'sort' ]);
+const JAVA_CORE_SYNC_DECLINED = new Set ([ 'omit', 'omitZero', 'clone', 'sort' ]);
 const JAVA_CORE_FUTURE = /^(?:java\.util\.concurrent\.)?CompletableFuture</;
 const JAVA_CORE_TS_ROOT = path.resolve (path.dirname (fileURLToPath (import.meta.url)), '..', 'ts', 'src');
 const JAVA_CORE_LIB_DIR = path.resolve (path.dirname (fileURLToPath (import.meta.url)), '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt');
@@ -3433,12 +3433,12 @@ function addChainRights (n) {
 // receiver methods whose printed receiver cast is the narrowed type (or Object); unknown methods
 // could print an inconvertible cast, so reject by default
 const STRING_RECEIVER_METHODS = new Set ([
-    'toUpperCase', 'toLowerCase', 'trim', 'trimStart', 'trimEnd', 'startsWith', 'endsWith',
-    'includes', 'indexOf', 'lastIndexOf', 'split', 'replace', 'replaceAll', 'slice',
+    'toUpperCase', 'toLowerCase', 'trim', 'startsWith', 'endsWith',
+    'includes', 'indexOf', 'split', 'replace', 'replaceAll', 'slice',
     'substring', 'padStart', 'padEnd', 'concat', 'charAt', 'search', 'toString', 'match',
 ]);
 const LIST_RECEIVER_METHODS = new Set ([
-    'push', 'shift', 'slice', 'sort', 'reverse', 'concat', 'indexOf', 'lastIndexOf', 'includes',
+    'push', 'shift', 'slice', 'sort', 'reverse', 'concat', 'indexOf', 'includes',
     'map', 'filter', 'forEach', 'some', 'every', 'find', 'keys', 'toString', 'at', 'clear',
     'add', 'size', 'get', 'set',
 ]);
@@ -5007,7 +5007,7 @@ export function patchJavaHandleTupleCoercionTypes (printer) {
 
 // ===== collection/dict helpers -> java.util.Map<String, Object> / java.util.List<Object> =====
 // Locals initialised by a whole call to a helper whose Java box is always the named collection.
-// omit / omitN / clone / deepExtend2 / omitZero / sort stay Object (omit hands lists back as-is).
+// omit / clone / omitZero / sort stay Object (omit hands lists back as-is).
 
 const JAVA_MAP_TYPE = 'java.util.Map<String, Object>';
 
@@ -8826,7 +8826,6 @@ export const JAVA_STRING_PARAM_POSITIONS = {
     'createAmmOrder': [0],
     'createConvertTrade': [0, 1, 2],
     'createDepositAddress': [0],
-    'createEditOrderRequest': [0, 1],
     'createGiftCode': [0],
     'createLimitBuyOrder': [0],
     'createLimitBuyOrderWs': [0],
