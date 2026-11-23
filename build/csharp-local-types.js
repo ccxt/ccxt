@@ -3982,7 +3982,12 @@ function integerOrNullArgumentKind (csharp, node, context) {
     if (chain !== undefined && chain.nullable) {
         return 'Int64?';
     }
-    return (csharpTypeOfValue (csharp, node, context) === 'Int64?') ? 'Int64?' : undefined;
+    if (csharpTypeOfValue (csharp, node, context) === 'Int64?') {
+        return 'Int64?';
+    }
+    // a parameter whose printed C# signature slot is `Int64?`
+    const bare = stripParens (node);
+    return ((bare?.kind === ts.SyntaxKind.Identifier) && (parameterArithmeticType (csharp, bare) === 'Int64?')) ? 'Int64?' : undefined;
 }
 
 // a nested `-` / `*` chain over int-like and Int64? leaves (nullable when a leaf is Int64?)
