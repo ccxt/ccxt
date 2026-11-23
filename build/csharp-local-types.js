@@ -835,6 +835,11 @@ export const CSHARP_COLLECTION_RETURN_METHODS = {
     'parseBorrowRate': 'Dictionary<string, object>',
     // parseMarginMode: base `throw` stub plus venue overrides that each return one object literal
     'parseMarginMode': 'Dictionary<string, object>',
+    // assignDefaultDepositWithdrawFees hands back its fee argument; every caller passes a
+    // depositWithdrawFee() / extend() Dictionary. parseDepositWithdrawFee: base `throw` stub plus
+    // overrides returning a Dictionary local, a literal, or assignDefaultDepositWithdrawFees.
+    'assignDefaultDepositWithdrawFees': 'Dictionary<string, object>',
+    'parseDepositWithdrawFee': 'Dictionary<string, object>',
     // unified single-row parsers declared with a struct return in ts/src: base `throw` stub plus
     // venue overrides whose every return is an object literal or safeLiquidation
     'parseAccount': 'Dictionary<string, object>', 'parseFundingRateHistory': 'Dictionary<string, object>',
