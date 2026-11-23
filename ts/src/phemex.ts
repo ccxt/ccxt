@@ -4805,7 +4805,8 @@ export default class phemex extends Exchange {
         if (baseApiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        url = this.implodeHostname (baseApiUrl) + url;
+        const baseUrl = this.implodeHostname (baseApiUrl);
+        url = baseUrl + url;
         const isPrivatePost = (apiName === 'private') && (method === 'POST');
         let bodyResolved: Str = undefined;
         if (isPrivatePost) {
