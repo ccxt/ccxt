@@ -6085,7 +6085,7 @@ export default class bybit extends Exchange {
         const chains: Dict[] = this.safeList (result, 'chains', []);
         const coin = this.safeString (result, 'coin');
         const currencyFromResponse = this.currency (coin);
-        const parsed = this.parseDepositAddresses (chains, [ currencyFromResponse['code'] ], false, {
+        const parsed = this.parseDepositAddresses (chains, [ this.safeString (currencyFromResponse, 'code', '') ], false, {
             'currency': currencyFromResponse['code'],
         });
         return this.indexBy (parsed, 'network') as DepositAddresses;

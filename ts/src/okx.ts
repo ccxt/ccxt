@@ -5663,7 +5663,7 @@ export default class okx extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         const filtered = this.filterBy (data, 'selected', true);
-        const parsed = this.parseDepositAddresses (filtered, [ currency['code'] ], false);
+        const parsed = this.parseDepositAddresses (filtered, [ this.safeString (currency, 'code', '') ], false);
         return this.indexBy (parsed, 'network') as DepositAddresses;
     }
 

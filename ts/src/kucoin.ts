@@ -3824,7 +3824,7 @@ export default class kucoin extends Exchange {
             this.setDepositAddressesVersion (version);
         }
         const chains: Dict[] = this.safeList (response, 'data', []);
-        const parsed = this.parseDepositAddresses (chains, [ currency['code'] ], false, {
+        const parsed = this.parseDepositAddresses (chains, [ this.safeString (currency, 'code', '') ], false, {
             'currency': currency['code'],
         });
         return this.indexBy (parsed, 'network') as DepositAddresses;

@@ -6468,7 +6468,7 @@ export default class htx extends Exchange {
         //     }
         //
         const data: Dict[] = this.safeList (response, 'data', []);
-        const parsed = this.parseDepositAddresses (data, [ currency['code'] ], false);
+        const parsed = this.parseDepositAddresses (data, [ this.safeString (currency, 'code', '') ], false);
         return this.indexBy (parsed, 'network') as DepositAddresses;
     }
 
@@ -6516,7 +6516,7 @@ export default class htx extends Exchange {
         //     }
         //
         const data: Dict[] = this.safeList (response, 'data', []);
-        const allAddresses: Dict[] = this.parseDepositAddresses (data, [ currency['code'] ], false);
+        const allAddresses: Dict[] = this.parseDepositAddresses (data, [ this.safeString (currency, 'code', '') ], false);
         const addresses: List = [];
         for (let i = 0; i < allAddresses.length; i++) {
             const address = allAddresses[i];

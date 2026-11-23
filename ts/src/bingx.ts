@@ -5642,7 +5642,7 @@ export default class bingx extends Exchange {
         //     }
         //
         const data = this.safeList (this.safeDict (response, 'data'), 'data', []);
-        const parsed = this.parseDepositAddresses (data, [ currency['code'] ], false);
+        const parsed = this.parseDepositAddresses (data, [ this.safeString (currency, 'code', '') ], false);
         return this.indexBy (parsed, 'network') as DepositAddresses;
     }
 
