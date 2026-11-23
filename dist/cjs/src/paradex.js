@@ -3353,7 +3353,7 @@ class paradex extends paradex$1["default"] {
         // }
         //
         const configs = this.safeList(response, 'configs');
-        return this.parseMarginMode(this.safeDict(configs, 0), market);
+        return this.parseMarginMode(this.safeDict(configs, 0, {}), market);
     }
     parseMarginMode(rawMarginMode, market = undefined) {
         const marketId = this.safeString(rawMarginMode, 'market');
@@ -3731,15 +3731,14 @@ class paradex extends paradex$1["default"] {
         const result = {};
         const prefix = code + '-';
         for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            const marketId = this.safeString(entry, 'symbol', '');
+            const marketId = this.safeString(data[i], 'symbol', '');
             // the id starts with the base, so the other underlyings are skipped before the market is resolved
             if (marketId.startsWith(prefix)) {
                 // options left out by options.fetchMarkets.types are rebuilt from their id
                 const market = this.safeMarket(marketId);
                 if (market['option'] === true) {
                     const optionSymbol = this.safeString(market, 'symbol', '');
-                    result[optionSymbol] = this.parseOption(entry, undefined, market);
+                    result[optionSymbol] = this.parseOption(this.safeDict(data, i, {}), undefined, market);
                 }
             }
         }

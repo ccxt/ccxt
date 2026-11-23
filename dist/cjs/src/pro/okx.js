@@ -1618,7 +1618,7 @@ class okx extends okx$1["default"] {
             if (symbol in this.orderbooks) {
                 const updatedBook = this.orderbooks[symbol];
                 for (let i = 0; i < data.length; i++) {
-                    const update = data[i];
+                    const update = this.safeDict(data, i, {});
                     this.handleOrderBookMessage(client, update, updatedBook, messageHash, market);
                     if (!(messageHash in client.subscriptions)) {
                         // a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it

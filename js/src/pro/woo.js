@@ -302,7 +302,7 @@ export default class woo extends wooRest {
             orderbook.reset(snapshot);
             const messages = orderbook.cache;
             for (let i = 0; i < messages.length; i++) {
-                const messageItem = messages[i];
+                const messageItem = this.safeDict(messages, i, {});
                 const ts = this.safeInteger(messageItem, 'ts');
                 if (ts === undefined) {
                     continue;
@@ -612,8 +612,7 @@ export default class woo extends wooRest {
             if (ticker === undefined) {
                 continue;
             }
-            ticker['ts'] = timestamp;
-            const parsedTicker = this.parseWsBidAsk(ticker);
+            const parsedTicker = this.parseWsBidAsk(this.extend(ticker, { 'ts': timestamp }));
             const symbol = this.safeString(parsedTicker, 'symbol');
             if (symbol !== undefined) {
                 this.bidsasks[symbol] = parsedTicker;

@@ -1620,7 +1620,7 @@ export default class kalshi extends Exchange {
         const rawSettlementsLength = rawSettlements.length;
         const parsed = [];
         for (let i = 0; i < rawSettlementsLength; i++) {
-            parsed.push(this.parseSettlement(rawSettlements[i]));
+            parsed.push(this.parseSettlement(this.extend({}, rawSettlements[i])));
         }
         const wantedOutcomeObj = (outcome !== undefined) ? this.outcome(outcome) : {};
         const wantedOutcome = this.safeString(wantedOutcomeObj, 'outcome');

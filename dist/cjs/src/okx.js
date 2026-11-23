@@ -8749,7 +8749,7 @@ class okx extends okx$1["default"] {
         const data = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
-            result.push(this.parseSettlement(data[i], market));
+            result.push(this.parseSettlement(this.extend({}, data[i]), market));
         }
         const sorted = this.sortBy(result, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, this.safeString(market, 'symbol'), since, limit);
@@ -8806,7 +8806,7 @@ class okx extends okx$1["default"] {
             const timestamp = this.safeInteger(entry, 'ts');
             const details = this.safeList(entry, 'details', []);
             for (let j = 0; j < details.length; j++) {
-                const settlement = this.parseSettlement(details[j], market);
+                const settlement = this.parseSettlement(this.extend({}, details[j]), market);
                 result.push(this.extend(settlement, {
                     'timestamp': timestamp,
                     'datetime': this.iso8601(timestamp),

@@ -565,7 +565,7 @@ class myriad extends myriad$1["default"] {
         const data = this.safeList(response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
-            const position = this.parsePredictionPosition(data[i]);
+            const position = this.parsePredictionPosition(this.safeDict(data, i, {}));
             if ((outcomes === undefined) || this.inArray(position['outcome'], outcomes)) {
                 result.push(position);
             }

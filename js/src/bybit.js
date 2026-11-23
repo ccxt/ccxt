@@ -8574,7 +8574,7 @@ export default class bybit extends Exchange {
         //
         const result = [];
         for (let i = 0; i < settlements.length; i++) {
-            result.push(this.parseSettlement(settlements[i], market));
+            result.push(this.parseSettlement(this.extend({}, settlements[i]), market));
         }
         return result;
     }

@@ -5784,7 +5784,7 @@ class phemex extends phemex$1["default"] {
         const ranks = this.safeList(data, 'positions', []);
         const result = [];
         for (let i = 0; i < ranks.length; i++) {
-            result.push(this.parseADLRank(ranks[i]));
+            result.push(this.parseADLRank(this.extend({}, ranks[i])));
         }
         return this.filterByArrayADLRanks(result, 'symbol', symbolsNormalized, false);
     }

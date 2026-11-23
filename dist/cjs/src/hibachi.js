@@ -2173,7 +2173,7 @@ class hibachi extends hibachi$1["default"] {
     parseSettlements(settlements, market = undefined) {
         const result = [];
         for (let i = 0; i < settlements.length; i++) {
-            result.push(this.parseSettlement(settlements[i], market));
+            result.push(this.parseSettlement(this.extend({}, settlements[i]), market));
         }
         return result;
     }

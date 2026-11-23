@@ -691,7 +691,7 @@ export declare class BaseExchange {
     fetchDepositAddressesByNetwork(code: string, params?: Dict): Promise<DepositAddresses>;
     fetchOpenInterestHistory(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OpenInterest[]>;
     fetchOpenInterests(symbols?: Strings, params?: Dict): Promise<OpenInterests>;
-    signIn(params?: {}): Promise<{}>;
+    signIn(params?: Dict): Promise<{}>;
     fetchPaymentMethods(params?: Dict): Promise<Dict[]>;
     parseToInt(number: any): number;
     parseToNumeric(number: any): number;

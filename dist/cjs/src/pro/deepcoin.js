@@ -803,7 +803,7 @@ class deepcoin extends deepcoin$1["default"] {
         orderbook.reset(snapshot);
         const cachedMessages = orderbook.cache;
         for (let j = 0; j < cachedMessages.length; j++) {
-            const cachedMessage = cachedMessages[j];
+            const cachedMessage = this.safeDict(cachedMessages, j, {});
             this.handleOrderBookMessage(client, cachedMessage, orderbook);
         }
         orderbook.cache = [];

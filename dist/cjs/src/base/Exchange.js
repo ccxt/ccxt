@@ -4099,14 +4099,11 @@ class BaseExchange {
         const marketValues = this.sortBy(this.toArray(markets), 'spot', true, true);
         for (let i = 0; i < marketValues.length; i++) {
             const value = this.safeDict(marketValues, i, {});
-            if (value['id'] in marketsById) {
-                const marketsByIdArray = marketsById[value['id']];
-                marketsByIdArray.push(value);
-                marketsById[value['id']] = marketsByIdArray;
+            const id = this.safeString(value, 'id', '');
+            if (!(id in marketsById)) {
+                marketsById[id] = [];
             }
-            else {
-                marketsById[value['id']] = [value];
-            }
+            marketsById[id].push(value);
             // strip undefined-valued keys from the parsed market before deepExtend,
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
             // would clobber the fee defaults from this.fees['trading'] in the merge
@@ -7315,7 +7312,7 @@ class BaseExchange {
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket(marketId);
-            results.push(this.extend(this.parseLastPrice(pricesData[marketId], market), params));
+            results.push(this.extend(this.parseLastPrice(this.extend({}, pricesData[marketId]), market), params));
         }
         return this.indexBy(this.filterByArray(results, 'symbol', this.marketSymbols(symbols), false), 'symbol');
     }
@@ -8479,7 +8476,7 @@ class BaseExchange {
             const marketId = (symbolKey === undefined) ? undefined : this.safeString(info, symbolKey);
             const market = this.safeMarket(marketId, undefined, undefined, marketTypeResolved);
             if ((symbols === undefined) || this.inArray(market['symbol'], symbols)) {
-                marginModeStructures[market['symbol']] = this.parseMarginMode(info, market);
+                marginModeStructures[market['symbol']] = this.parseMarginMode(this.safeDict(response, i, {}), market);
             }
         }
         return marginModeStructures;

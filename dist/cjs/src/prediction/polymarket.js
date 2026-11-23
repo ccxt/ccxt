@@ -3352,7 +3352,7 @@ class polymarket extends polymarket$1["default"] {
             this.myTrades = new Cache.ArrayCacheByOutcomeById(limit);
         }
         const stored = this.myTrades;
-        const parsed = this.parsePredictionTrade(event);
+        const parsed = this.parsePredictionTrade(this.extend({}, event));
         stored.append(parsed);
         client.resolve(stored, 'myTrades');
         const outcome = this.safeString(parsed, 'outcome');

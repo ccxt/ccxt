@@ -508,7 +508,7 @@ declare abstract class binance extends _binance {
     dapiPublicGetIndexPriceKlines(params?: {}): Promise<List>;
     dapiPublicGetMarkPriceKlines(params?: {}): Promise<List>;
     dapiPublicGetPremiumIndexKlines(params?: {}): Promise<List>;
-    dapiPublicGetTicker24hr(params?: {}): Promise<Dict | List>;
+    dapiPublicGetTicker24hr(params?: {}): Promise<List>;
     dapiPublicGetTickerPrice(params?: {}): Promise<List>;
     dapiPublicGetTickerBookTicker(params?: {}): Promise<List>;
     dapiPublicGetConstituents(params?: {}): Promise<Dict>;

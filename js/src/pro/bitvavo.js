@@ -211,8 +211,7 @@ export default class bitvavo extends bitvavoRest {
         const tickers = this.safeList(message, 'data', []);
         const result = [];
         for (let i = 0; i < tickers.length; i++) {
-            const data = tickers[i];
-            const ticker = this.parseWsBidAsk(data);
+            const ticker = this.parseWsBidAsk(this.safeDict(tickers, i, {}));
             const symbol = this.safeString(ticker, 'symbol', '');
             this.bidsasks[symbol] = ticker;
             result.push(ticker);
@@ -465,8 +464,7 @@ export default class bitvavo extends bitvavoRest {
             this.ohlcvs[symbol][timeframe] = stored;
         }
         for (let i = 0; i < candles.length; i++) {
-            const candle = candles[i];
-            const parsed = this.parseOHLCV(candle, market);
+            const parsed = this.parseOHLCV(candles[i], market);
             stored.append(parsed);
         }
         client.resolve(stored, messageHash);
@@ -854,7 +852,7 @@ export default class bitvavo extends bitvavoRest {
         // unroll the accumulated deltas
         const messages = orderbook.cache;
         for (let i = 0; i < messages.length; i++) {
-            const messageItem = messages[i];
+            const messageItem = this.safeDict(messages, i, {});
             this.handleOrderBookMessage(client, messageItem, orderbook);
         }
         this.orderbooks[symbol] = orderbook;

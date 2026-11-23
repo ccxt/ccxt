@@ -1752,7 +1752,7 @@ class aster extends aster$1["default"] {
         for (let i = 0; i < rows.length; i++) {
             const marketId = this.safeString(rows[i], 'symbol');
             const safeMarket = this.safeMarket(marketId, undefined, undefined, marketType);
-            const priceData = this.extend(this.parseLastPrice(rows[i], safeMarket), paramsMarketType);
+            const priceData = this.extend(this.parseLastPrice(this.extend({}, rows[i]), safeMarket), paramsMarketType);
             results.push(priceData);
         }
         const symbolsNormalized2 = this.marketSymbols(symbolsNormalized);

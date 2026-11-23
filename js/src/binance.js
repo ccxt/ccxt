@@ -4783,7 +4783,9 @@ export default class binance extends Exchange {
             response = await this.fapiPublicGetTicker24hr(this.extend(request, params));
         }
         else if (this.safeBool(market, 'inverse', false)) {
-            response = await this.dapiPublicGetTicker24hr(this.extend(request, params));
+            // coin-m returns a list of one ticker
+            const inverseResponse = await this.dapiPublicGetTicker24hr(this.extend(request, params));
+            response = this.safeDict(inverseResponse, 0, {});
         }
         else {
             const stock = this.safeBool(market, 'stock', false);
@@ -5083,7 +5085,9 @@ export default class binance extends Exchange {
             response = await this.fapiPublicGetPremiumIndex(this.extend(request, paramsSubType));
         }
         else if (this.isInverse(type, subType)) {
-            response = await this.dapiPublicGetPremiumIndex(this.extend(request, paramsSubType));
+            // coin-m returns a list of one entry
+            const inverseResponse = await this.dapiPublicGetPremiumIndex(this.extend(request, paramsSubType));
+            return this.parseTicker(this.safeDict(inverseResponse, 0, {}), market);
         }
         else {
             throw new NotSupported(this.id + ' fetchMarkPrice() does not support ' + type + ' markets yet');
@@ -13361,7 +13365,7 @@ export default class binance extends Exchange {
         //
         const result = [];
         for (let i = 0; i < settlements.length; i++) {
-            result.push(this.parseSettlement(this.safeValue(settlements, i), market));
+            result.push(this.parseSettlement(this.extend({}, settlements[i]), market));
         }
         return result;
     }
@@ -15398,12 +15402,11 @@ export default class binance extends Exchange {
         }
         const market = this.market(symbol);
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchMarginMode', market, params);
-        let response = undefined;
         if (subType === 'linear') {
             const request = {
                 'symbol': market['id'],
             };
-            response = await this.fapiPrivateGetSymbolConfig(this.extend(request, paramsSubType));
+            const response = await this.fapiPrivateGetSymbolConfig(this.extend(request, paramsSubType));
             //
             // [
             //     {
@@ -15415,6 +15418,10 @@ export default class binance extends Exchange {
             //     }
             // ]
             //
+            if (response === undefined) {
+                throw new NullResponse(this.id + ' fetchMarginMode() returned empty response');
+            }
+            return this.parseMarginMode(this.safeDict(response, 0, {}), market);
         }
         else if (subType === 'inverse') {
             const fetchMarginModesResponse = await this.fetchMarginModes([symbol], paramsSubType);
@@ -15424,10 +15431,6 @@ export default class binance extends Exchange {
         else {
             throw new BadRequest(this.id + ' fetchMarginMode () supports linear and inverse subTypes only');
         }
-        if (response === undefined) {
-            throw new NullResponse(this.id + ' fetchMarginMode() returned empty response');
-        }
-        return this.parseMarginMode(this.safeValue(response, 0), market);
     }
     parseMarginMode(marginMode, market = undefined) {
         const marketId = this.safeString(marginMode, 'symbol');

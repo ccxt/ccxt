@@ -592,7 +592,8 @@ export default class htx extends htxRest {
                 orderbook.reset(snapshot);
                 // unroll the accumulated deltas
                 for (let i = 0; i < messages.length; i++) {
-                    this.handleOrderBookMessage(client, messages[i]);
+                    const messageItem = this.safeDict(messages, i, {});
+                    this.handleOrderBookMessage(client, messageItem);
                 }
                 orderbook.cache = [];
                 if (symbol !== undefined) {

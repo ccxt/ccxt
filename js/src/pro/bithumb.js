@@ -241,12 +241,9 @@ export default class bithumb extends bithumbRest {
         //
         const content = this.safeDict(message, 'content');
         const isGenerationTwo = (content === undefined);
-        let tickerMessage = undefined;
-        if (isGenerationTwo) {
-            tickerMessage = message;
-        }
-        else {
-            tickerMessage = content;
+        let tickerMessage = message;
+        if (!isGenerationTwo) {
+            tickerMessage = this.safeDict(message, 'content', {});
         }
         const marketId = this.safeString2(tickerMessage, 'symbol', 'code');
         if (marketId === undefined) {
