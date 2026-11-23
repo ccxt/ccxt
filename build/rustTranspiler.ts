@@ -6670,7 +6670,9 @@ function typeParseListReturns(content: string): string {
         return `${sig}crate::value::List${open}${b}\n}`;
     });
     // the base set is declared in exchange_generated.rs; parse_settlements exists only where a venue declares it
-    const names = RUST_PARSE_LIST_FNS.filter((n) => !failed.has(n) && (typed.has(n) || (n !== 'parse_settlements' && !RUST_VENUE_LIST_FNS.has(n))));
+    // a member the printer already returns as `List` (declared here, not typed above) has native call sites already
+    const printerTyped = new Set([...content.matchAll(/\n {4}(?:pub )?(?:async )?fn (\w+)\([^\n]*\) -> crate::value::List \{/g)].map((d) => d[1]).filter((n) => !typed.has(n)));
+    const names = RUST_PARSE_LIST_FNS.filter((n) => !failed.has(n) && !printerTyped.has(n) && (typed.has(n) || (n !== 'parse_settlements' && !RUST_VENUE_LIST_FNS.has(n))));
     if (names.length === 0) return content;
     const head = new RegExp(String.raw`(?:\bself(?:\.parent)?\.|<Self as crate::prediction_exchange_generated::PredictionBase>::)(?:${names.join('|')})\(`, 'g');
     const typedBody = new RegExp(String.raw`\n {4}(?:pub )?(?:async )?fn (?:${RUST_PARSE_LIST_FNS.join('|')})\([^\n]*\) -> crate::value::List \{`, 'g');
