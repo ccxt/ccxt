@@ -381,7 +381,7 @@ public partial class BaseExchange
             responseBody = result; // if parsing fails, return the original result
         }
 
-        var res = handleErrors(httpStatusCode, httpStatusText, url, method, responseHeaders, result, responseBody, headers, body);
+        var res = handleErrors(httpStatusCode, httpStatusText, url, method, responseHeaders?.ToDictionary(x => x.Key, x => (object)x.Value), result, responseBody, headers, body);
         if (res == null)
             handleHttpStatusCode(httpStatusCode, httpStatusText, url, method, result);
 

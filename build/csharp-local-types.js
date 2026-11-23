@@ -17032,7 +17032,8 @@ export const SIGNATURE_ARG_TYPES = {
     'sign': { 0: 'string', 1: 'IList<object>', 2: 'string' },
     // position 0 is `int` on every generated declaration (code / httpCode / statusCode), never written by a
     // body, and the only hand-written caller (Exchange.cs) passes an `int`: `Int64?` is its own type
-    'handleErrors': { 0: 'Int64?', 1: 'string', 2: 'string', 3: 'string', 7: 'Dictionary<string, object>' },
+    // headers / body / requestBody as declared (Dict, string, Str); `response` stays object: bitfinex and binance read it as a list
+    'handleErrors': { 0: 'Int64?', 1: 'string', 2: 'string', 3: 'string', 4: 'IDictionary<string, object>', 5: 'string', 7: 'Dictionary<string, object>', 8: 'string' },
     // PredictionExchange only (no overrides): `events: any[]` prints IList<object> and is never written
     'applyEventFetchParams': { 0: 'IList<object>' },
     // every caller passes a declared dictionary member, an entry view (exceptionsExact / exceptionsWsExact) or a dictionary local
