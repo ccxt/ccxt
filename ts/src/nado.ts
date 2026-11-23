@@ -1564,10 +1564,9 @@ export default class nado extends Exchange {
             const submissionIdx = this.safeString (event, 'submission_idx');
             let tx: Dict = {};
             for (let j = 0; j < txs.length; j++) {
-                const rawTx = txs[j];
-                const txSubmissionIdx = this.safeString (rawTx, 'submission_idx');
+                const txSubmissionIdx = this.safeString (txs[j], 'submission_idx');
                 if (txSubmissionIdx === submissionIdx) {
-                    tx = rawTx;
+                    tx = txs[j];
                     break;
                 }
             }
@@ -1642,10 +1641,9 @@ export default class nado extends Exchange {
             const productId = this.safeString (position, 'product_id');
             let product: Dict = {};
             for (let j = 0; j < products.length; j++) {
-                const rawProduct = products[j];
-                const rawProductId = this.safeString (rawProduct, 'product_id');
+                const rawProductId = this.safeString (products[j], 'product_id');
                 if (rawProductId === productId) {
-                    product = rawProduct;
+                    product = products[j];
                     break;
                 }
             }
@@ -1800,9 +1798,9 @@ export default class nado extends Exchange {
             }
             const tradingStatus = this.safeString (market, 'trading_status');
             const active = (tradingStatus !== 'not_tradable');
-            const priceIncrement = this.parseX18 (this.safeString (market, 'price_increment_x18'));
-            const amountIncrement = this.parseX18 (this.safeString (market, 'size_increment'));
-            const minCost = this.parseX18 (this.safeString (market, 'min_size'));
+            const priceIncrement: Num = this.parseX18 (this.safeString (market, 'price_increment_x18'));
+            const amountIncrement: Num = this.parseX18 (this.safeString (market, 'size_increment'));
+            const minCost: Num = this.parseX18 (this.safeString (market, 'min_size'));
             const marketEntry: Dict = {
                 'id': id,
                 'lowercaseId': undefined,
@@ -2720,7 +2718,7 @@ export default class nado extends Exchange {
         const postSpotBalance = this.safeDict (postSpot, 'balance', {});
         const preAmount = this.safeString (preSpotBalance, 'amount', '0');
         const postAmount = this.safeString (postSpotBalance, 'amount', '0');
-        const amount = this.parseX18 (Precise.stringAbs (Precise.stringSub (postAmount, preAmount)));
+        const amount: Num = this.parseX18 (Precise.stringAbs (Precise.stringSub (postAmount, preAmount)));
         return {
             'info': transaction,
             'id': this.safeString (transaction, 'submission_idx'),

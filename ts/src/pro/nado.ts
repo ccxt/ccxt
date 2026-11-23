@@ -1430,7 +1430,7 @@ export default class nado extends nadoRest {
             remaining = this.parseX18 (amountString);
         }
         const filled = this.parseX18 (this.safeString (order, 'filled_qty'));
-        const average = this.parseX18 (this.safeString (order, 'filled_price'));
+        const average: Num = this.parseX18 (this.safeString (order, 'filled_price'));
         const reason = this.safeString (order, 'reason');
         let status: Str = undefined;
         if (reason === 'placed') {
