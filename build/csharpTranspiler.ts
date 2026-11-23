@@ -145,7 +145,8 @@ const CSHARP_DECLARED_DICT_TYPES = [ 'Dictionary<', 'IDictionary<', 'ConcurrentD
 // space-normalized dictionary types whose indexer hands back an `object`: the box GetValue's
 // dictionary branch returns, and the only value the `: null` branch can join
 const CSHARP_DECLARED_OBJECT_DICT_TYPES = [ 'Dictionary<string,object>', 'IDictionary<string,object>',
-    'ConcurrentDictionary<string,object>', 'IReadOnlyDictionary<string,object>', 'SortedDictionary<string,object>' ];
+    'ConcurrentDictionary<string,object>', 'IReadOnlyDictionary<string,object>', 'SortedDictionary<string,object>',
+    'IDictionary<string,List<object>>' ];
 // declared C# list types whose `Contains` is InOp's IList<object> branch (a List<string> /
 // List<Int64> receiver casts the key in the helper, so it keeps the helper)
 const CSHARP_DECLARED_LIST_TYPES = [ 'List<object>', 'IList<object>' ];
@@ -159,6 +160,8 @@ const CSHARP_HELPER_DECL_RE = /^[ ]*([A-Za-z_][\w<>,.\[\]?]*(?:[ ][A-Za-z_][\w<>
 // the same declaration with a collection/object initializer that spans lines (`= new X () {`)
 const CSHARP_HELPER_NEW_DECL_RE = /^[ ]*([A-Za-z_][\w<>,.\[\]]*(?:[ ][A-Za-z_][\w<>,.\[\]]*)*)[ ]+([A-Za-z_]\w*)[ ]*=[ ]*new\b[^;]*\{[ ]*$/;
 const CSHARP_HELPER_TYPE_RE = /^[A-Za-z_][\w.]*(?:[ ]*<[^<>=;(){}]*>)?(?:[ ]*\[\])?[?]?$/;
+// the one nested generic a declaration may name: the list-valued markets_by_id (Exchange.Options.cs)
+const CSHARP_HELPER_NESTED_TYPE_RE = /^IDictionary<string,[ ]?List<object>>$/;
 // statement keywords a declaration-shaped line may start with
 const CSHARP_HELPER_KEYWORDS = [ 'return', 'throw', 'if', 'else', 'while', 'for', 'foreach', 'using',
     'lock', 'yield', 'case', 'switch', 'do', 'try', 'catch', 'break', 'continue', 'goto', 'new',
@@ -315,7 +318,7 @@ function csharpHelperDeclarationOfLine (line: string): { type: string, name: str
     }
     const type = match[1].trim ();
     const name = match[2];
-    if (CSHARP_HELPER_KEYWORDS.includes (type.split (' ')[0]) || !CSHARP_HELPER_TYPE_RE.test (type)) {
+    if (CSHARP_HELPER_KEYWORDS.includes (type.split (' ')[0]) || !(CSHARP_HELPER_TYPE_RE.test (type) || CSHARP_HELPER_NESTED_TYPE_RE.test (type))) {
         return undefined;
     }
     return { type, name, value: (match[4] ?? '').trim () };
@@ -328,7 +331,7 @@ const CSHARP_WS_CACHE_DICT_FIELDS = [ 'balance', 'tickers', 'fundingRates', 'bid
 // inOp-only receivers: further hand-written base dictionaries (Exchange.Options.cs, ws/Exchange.WsBridge.cs)
 // and the ws client's maps (ws/Client.cs); InOp's IDictionary branches answer ContainsKey for each
 const CSHARP_INOP_DICT_FIELDS: { [name: string]: string } = {
-    'orderbooks': 'IDictionary<string, object>', 'markets_by_id': 'IDictionary<string, object>',
+    'orderbooks': 'IDictionary<string, object>', 'markets_by_id': 'IDictionary<string, List<object>>',
     'timeframes': 'Dictionary<string, object>', 'has': 'Dictionary<string, object>',
     'options': 'ConcurrentDictionary<string, object>', 'clients': 'ConcurrentDictionary<string, WebSocketClient>',
     'markets': 'IDictionary<string, object>', 'currencies_by_id': 'IDictionary<string, object>',
@@ -8695,9 +8698,9 @@ export function csharpPureKeyInOp (content: string): string {
     if (!/(?<![\w.])(?:inOp|getIndexOf)\(/.test (content)) {
         return content;
     }
-    const objectDicts = [ 'Dictionary<string,object>', 'IDictionary<string,object>', 'ConcurrentDictionary<string,object>' ];
+    const objectDicts = [ 'Dictionary<string,object>', 'IDictionary<string,object>', 'ConcurrentDictionary<string,object>', 'IDictionary<string,List<object>>' ];
     // hand-written base fields declared as a string->object dictionary (cs/ccxt/base/Exchange.Options.cs, ws/Client.cs)
-    const fields = { 'this.features': 'Dictionary<string, object>', 'this.markets_by_id': 'IDictionary<string, object>',
+    const fields = { 'this.features': 'Dictionary<string, object>', 'this.markets_by_id': 'IDictionary<string, List<object>>',
         'this.orderbooks': 'IDictionary<string, object>', 'this.markets': 'IDictionary<string, object>',
         'this.currencies_by_id': 'IDictionary<string, object>', 'this.has': 'Dictionary<string, object>',
         'this.timeframes': 'Dictionary<string, object>' };
@@ -9298,7 +9301,7 @@ export function csharpDeclaredGetValue (content: string): string {
     const dictFields = [ 'features', 'userAgents', 'has', 'timeframes', 'precision', 'markets', 'markets_by_id',
         'currencies_by_id', 'options', 'balance', 'tickers', 'fundingRates', 'bidsasks', 'trades', 'ohlcvs', 'events' ];
     const listFields = [ 'symbols', 'codes', 'ids' ];
-    const dictTypes = [ 'Dictionary<string,object>', 'IDictionary<string,object>', 'ConcurrentDictionary<string,object>', 'ccxt.pro.IOrderBook', 'ccxt.pro.IOrderBook?' ];
+    const dictTypes = [ 'Dictionary<string,object>', 'IDictionary<string,object>', 'ConcurrentDictionary<string,object>', 'ccxt.pro.IOrderBook', 'ccxt.pro.IOrderBook?', 'IDictionary<string,List<object>>' ];
     const listTypes = [ 'List<object>', 'IList<object>', 'ccxt.pro.IBids', 'ccxt.pro.IAsks', 'ccxt.pro.IOrderBookSide' ];
     return csharpTwoArgCallPass (content, 'getValue', (region, i, { start: at, close, masked: line, a: r, b: keyMask, bText: k }) => {
         const { start, params, declarations, lines: masked } = region;

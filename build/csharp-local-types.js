@@ -3426,7 +3426,7 @@ const CSHARP_LOCAL_WS_MEMBER_TYPES = {
     // markets_by_id is declared IDictionary<string, object>, the interface every writer stores
     // (createSafeDictionary / another exchange's map / null), so no cast; no generated class
     // declares or hides it.
-    'markets_by_id': 'IDictionary<string, object>',
+    'markets_by_id': 'IDictionary<string, List<object>>',
 };
 
 // let x: <alias> = undefined -> nullable C# type (the null initialiser forces ?). Each alias
@@ -15770,6 +15770,7 @@ const CSHARP_DICT_WRITE_MEMBER_TYPES = {
     'bidsasks': 'IDictionary<string, object>',              // ws cache, cs/ccxt/base/Exchange.Options.cs
     'trades': 'IDictionary<string, object>',                // ws cache, cs/ccxt/base/Exchange.Options.cs
     'ohlcvs': 'IDictionary<string, object>',                // ws cache, cs/ccxt/base/Exchange.Options.cs
+    'markets_by_id': 'IDictionary<string, List<object>>',    // list-valued, cs/ccxt/base/Exchange.Options.cs
 };
 const CSHARP_DICT_WRITE_LOCAL_TYPES = [
     'ccxt.pro.IOrderBook', 'ccxt.pro.OrderBook', 'ccxt.pro.CountedOrderBook',
@@ -22323,6 +22324,11 @@ function listBucketMap87c7 (csharp, scope, map, ctx) {
         // `this.safeList (map, k, [])` reads an element: the List<object> box or the default list
         if (parent?.kind === ts.SyntaxKind.CallExpression && parent.arguments[0] === node && parent.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
                 && parent.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && parent.expression.name?.text === 'safeList') {
+            continue;
+        }
+        // `this.mapToSafeMap (map)` publishes the same map (Exchange.cs has the List<object>-valued overload)
+        if (parent?.kind === ts.SyntaxKind.CallExpression && parent.arguments.length === 1 && parent.arguments[0] === node && parent.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+                && parent.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && parent.expression.name?.text === 'mapToSafeMap') {
             continue;
         }
         return false;

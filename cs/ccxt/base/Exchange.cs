@@ -1560,6 +1560,11 @@ public partial class BaseExchange
         return (IDictionary<string, object>)obj;
     }
 
+    public IDictionary<string, List<object>> mapToSafeMap(IDictionary<string, List<object>> obj)
+    {
+        return obj;
+    }
+
     public IDictionary<string, object> safeMapToMap(object obj)
     {
         return (IDictionary<string, object>)obj;

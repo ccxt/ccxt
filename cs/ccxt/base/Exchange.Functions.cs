@@ -17,6 +17,18 @@ public partial class BaseExchange
 
     // Declared types spell Dictionary<string, object> out (never the file-local `dict` alias, which
     // stays expression-position only) so the classifier's string-keyed type tables name them verbatim.
+    public Dictionary<string, object> keysort(IDictionary<string, List<object>> parameters)
+    {
+        var keys = new List<string>(parameters.Keys);
+        keys.Sort();
+        var outDict = new dict();
+        foreach (string key in keys)
+        {
+            outDict.Add(key, parameters[key]);
+        }
+        return outDict;
+    }
+
     public Dictionary<string, object> keysort(object parameters2)
     {
         var parameters = (IDictionary<string, object>)parameters2;

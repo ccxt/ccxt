@@ -44,7 +44,7 @@ public partial class BaseExchange
 
     public bool reduceFees { get; set; } = true;
 
-    public IDictionary<string, object> markets_by_id { get; set; } = null;
+    public IDictionary<string, List<object>> markets_by_id { get; set; } = null;
 
     public List<object> symbols { get; set; } = null;
 

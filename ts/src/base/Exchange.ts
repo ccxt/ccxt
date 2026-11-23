@@ -4739,13 +4739,11 @@ export class BaseExchange {
         const marketValues = this.sortBy (this.toArray (markets), 'spot', true, true);
         for (let i = 0; i < marketValues.length; i++) {
             const value = this.safeDict (marketValues, i, {});
-            if (value['id'] in marketsById) {
-                const marketsByIdArray = marketsById[value['id']];
-                marketsByIdArray.push (value);
-                marketsById[value['id']] = marketsByIdArray;
-            } else {
-                marketsById[value['id']] = [ value ];
+            const id = this.safeString (value, 'id', '');
+            if (!(id in marketsById)) {
+                marketsById[id] = [];
             }
+            marketsById[id].push (value);
             // strip undefined-valued keys from the parsed market before deepExtend,
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
             // would clobber the fee defaults from this.fees['trading'] in the merge
