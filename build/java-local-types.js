@@ -8871,11 +8871,13 @@ export const JAVA_STRING_PARAM_POSITIONS = {
     'fetchClosedOrder': [0],
     'fetchContractDepositAddress': [0],
     'fetchContractOHLCV': [0],
+    'fetchConvertQuote': [0, 1],
     'fetchConvertTrade': [0],
     'fetchCrossBorrowRate': [0],
     'fetchCurrency': [0],
     'fetchDeposit': [0],
     'fetchDepositAddress': [0],
+    'fetchDepositAddressesByNetwork': [0],
     'fetchDepositAddressDefault': [0],
     'fetchDepositAddressSupplement': [0],
     'fetchDepositMethodId': [0],
@@ -19423,7 +19425,7 @@ export function installJavaBaseProducerLocals (transpiler) {
 
 // these members keep an int TS parameter as `Object p` (a Number box or null at runtime); a compare / divide /
 // mod of that unwritten parameter against an integer literal prints the double form with the helper's null arm.
-const JAVA_INT_PARAM_COMPARE_MEMBER = /^    (?:public|private) \S+(?:<[^>]*>)? (?:(?:cancelAllOrdersAfter|parseWsOrderStatus)(?:Core)?\(Object (\w+)[,)]|buildOutcomeSymbol\((?:java\.util\.)?Map<String, Object> \w+, Object (\w+)[,)])/;
+const JAVA_INT_PARAM_COMPARE_MEMBER = /^    (?:public|private) \S+(?:<[^>]*>)? (?:(?:parseWsOrderStatus)(?:Core)?\(Object (\w+)[,)]|buildOutcomeSymbol\((?:java\.util\.)?Map<String, Object> \w+, Object (\w+)[,)])/;
 // Opinion.opinionOutcomeByMarketIdSide(marketId, outcomeSide): both callers pass safeInteger (Long/null); 2nd param.
 const JAVA_INT_PARAM_COMPARE_MEMBER_PAIR = /^    public \S+ opinionOutcomeByMarketIdSide\(Object (\w+), Object (\w+)\)/;
 
@@ -19445,7 +19447,7 @@ function javaIntParamCompareRewrite (line, p) {
 }
 
 export function nativeJavaParamCompare (content) {
-    if (!/ (?:(?:cancelAllOrdersAfter|parseWsOrderStatus)(?:Core)?\(Object |buildOutcomeSymbol\((?:java\.util\.)?Map<String, Object> \w+, Object )|opinionOutcomeByMarketIdSide\(Object /.test (content)) return content;
+    if (!/ (?:(?:parseWsOrderStatus)(?:Core)?\(Object |buildOutcomeSymbol\((?:java\.util\.)?Map<String, Object> \w+, Object )|opinionOutcomeByMarketIdSide\(Object /.test (content)) return content;
     const lines = content.split ('\n');
     let changed = false;
     for (let i = 0; i < lines.length; i++) {

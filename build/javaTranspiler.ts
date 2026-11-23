@@ -6398,7 +6398,7 @@ function javaNonNullCompareSelfTest (): string[] {
     return runSnippetCases(cases, member, nativeJavaNonNullCompare, (name, out) => `compare ${name}: ${out.slice (0, 400)}`);
 }
 
-// The unwritten first parameter of cancelAllOrdersAfter compared to,
+// The unwritten first parameter of parseWsOrderStatus compared to,
 // divided or mod-ed with an integer literal prints a double compare carrying the helper's null arm
 function javaParamCompareSelfTest (): string[] {
     const problems: string[] = [];
