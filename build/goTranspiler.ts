@@ -7278,6 +7278,8 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     // order-row lists the createOrders cores hand over whole (kucoin spot/contract, bitget uta)
     'createSpotOrders': { 0: '[]map[string]any' }, 'createContractOrders': { 0: '[]map[string]any' },
     'createUtaOrders': { 0: '[]map[string]any' },
+    // ws symbol lists (symbols: string[]) on the base and every override; only the typed wrappers call them
+    'watchMyTradesForSymbols': { 0: '[]string' }, 'watchFundingRatesForSymbols': { 0: '[]string' },
 };
 
 // the typed wrapper's slice annotation -> the hand-written converter to the core's `[]any`
