@@ -12113,7 +12113,10 @@ function javaOmitLocalType (printer, declaration) {
     if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1) {
         return undefined;
     }
-    const info = javaOmitMapCall (printer, declaration.initializer) ?? javaOmitMapTernary (printer, declaration.initializer);
+    // `this.omit (m, ..) as Dict` prints the bare call: the assertion keeps the Map overload's type
+    let initializer = unwrapParens (declaration.initializer);
+    initializer = initializer !== undefined && ts.isAsExpression (initializer) ? initializer.expression : declaration.initializer;
+    const info = javaOmitMapCall (printer, initializer) ?? javaOmitMapTernary (printer, initializer);
     if (info === undefined) {
         return undefined;
     }
