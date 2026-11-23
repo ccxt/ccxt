@@ -5293,6 +5293,7 @@ function rustBorrowedParseRows (content: string): string {
         content = content.replace (new RegExp ('(\\n    pub fn ' + f + '\\(&self, (\\w+): )impl Into<crate::Value>(,[^\\n]*\\{\\n        let \\2: Value = )\\2\\.into\\(\\);', 'g'), '$1Option<&crate::value::Dict>$3Value::from($2);');
         optFns.push (f);
     }
+    optFns.push ('parse_prediction_trade');
     const fns = optFns.join ('|');
     const slot = (fn: string) => optFns.includes (fn) ? 'Option<&crate::value::Dict>' : '&crate::value::Dict';
     content = content.replace (new RegExp ('\\n    fn (' + fns + ')\\(&self, (\\w+): impl Into<crate::Value>([,)])', 'g'), (_m, f: string, x: string, e: string) => '\n    fn ' + f + '(&self, ' + x + ': ' + slot (f) + e);
