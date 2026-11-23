@@ -1062,8 +1062,7 @@ export default class backpack extends Exchange {
             throw new InvalidOrder (this.id + ' fetchStockIndicativeQuote() requires a positive base share quantity');
         }
         const request: Dict = { 'symbol': market['baseId'], 'side': this.encodeOrderSide (side), 'quantity': this.numberToString (amount) };
-        const requestMethod = 'publicGetApiV1StockIndicativeQuote';
-        return await this[requestMethod] (this.extend (query, request));
+        return await this.publicGetApiV1StockIndicativeQuote (this.extend (query, request));
     }
 
     /**

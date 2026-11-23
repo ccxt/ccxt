@@ -2207,7 +2207,7 @@ export default class interactivebrokers extends Exchange {
         };
         let response: List = [];
         for (let i = 0; i <= retries; i++) {
-            response = await this.webapiGetV1ApiIserverMarketdataSnapshot (this.extend (request, params)) as any;
+            response = await this.webapiGetV1ApiIserverMarketdataSnapshot (this.extend (request, params));
             if (this.ibkrSnapshotReady (response, readyFields)) {
                 break;
             }
