@@ -1939,7 +1939,7 @@ export default class krakenfutures extends Exchange {
         return this.safeString (typesMap, orderType, orderType);
     }
 
-    verifyOrderActionSuccess (status: any, method: string, omit: string[] = []) {
+    verifyOrderActionSuccess (status: Str, method: string, omit: string[] = []) {
         const errors: Dict = {
             'invalidOrderType': InvalidOrder,
             'invalidSide': InvalidOrder,
@@ -1962,8 +1962,10 @@ export default class krakenfutures extends Exchange {
             'filled': OrderNotFound,
             'notFound': OrderNotFound,
         };
-        if ((status in errors) && !this.inArray (status, omit)) {
-            throw new errors[status] (this.id + ': ' + method + ' failed due to ' + status);
+        if (status !== undefined) {
+            if ((status in errors) && !this.inArray (status, omit)) {
+                throw new errors[status] (this.id + ': ' + method + ' failed due to ' + status);
+            }
         }
     }
 
