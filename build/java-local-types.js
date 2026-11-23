@@ -29384,7 +29384,8 @@ function h26j01PushIsMap (printer, arg) {
         return false;
     }
     const declared = String (printer.javaDeclaredTypeOf (value) ?? '').trim ();
-    if (/^(?:java\.util\.)?Map<String, ?Object>$/.test (declared) || h26j01DeepExtendConst (printer, value)) {
+    if (/^(?:java\.util\.)?Map<String, ?Object>$/.test (declared) || h26j01DeepExtendConst (printer, value)
+        || h42j05ConstMapCall (printer, value)) {
         return true;
     }
     const dto = /^(?:io\.github\.ccxt\.types\.)?(\w+)$/.exec (declared)?.[1];
@@ -29556,6 +29557,33 @@ function h27j01PushIsMap (printer, value) {
         const printed = norm (printer.printFunctionType (d));
         return printed === 'Map<String,Object>' || (printed === 'Object' && typeof printer.javaNativeReturnType === 'function'
             && norm (printer.javaNativeReturnType (d)) === 'Map<String,Object>');
+    } catch (e) {
+        return false;
+    }
+}
+
+// a const local bound from such a call is decided from its initializer: the row list prints before the
+// local's own declaration publishes a type; a TypedMap DTO return (parseWSSwapOrder -> Order) is a Map too
+function h42j05ConstMapCall (printer, node) {
+    try {
+        const d = printer.getChecker ().getSymbolAtLocation (node)?.valueDeclaration?.resolve ();
+        if (d === undefined || !ts.isVariableDeclaration (d) || (ts.getCombinedNodeFlags (d) & ts.NodeFlags.Const) === 0) {
+            return false;
+        }
+        const init = unwrapParens (d.initializer);
+        if (init === undefined || !isThisCall (init)) {
+            return false;
+        }
+        if (h27j01PushIsMap (printer, init) === true) {
+            return true;
+        }
+        const m = printer.getChecker ().getResolvedSignature (init)?.declaration?.resolve?.();
+        if (m === undefined || !ts.isMethodDeclaration (m) || m.body === undefined
+            || (typeof printer.isAsyncFunction === 'function' && printer.isAsyncFunction (m))) {
+            return false;
+        }
+        const dto = /^(?:io\.github\.ccxt\.types\.)?(\w+)$/.exec (String (printer.printFunctionType (m) ?? '').trim ())?.[1];
+        return dto !== undefined && javaIsTypedMapDto (dto);
     } catch (e) {
         return false;
     }
