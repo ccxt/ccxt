@@ -14464,7 +14464,7 @@ export default class binance extends Exchange {
             const duration = this.parseTimeframe (timeframe);
             request['endTime'] = this.sum (since, duration * limitDefault * 1000);
         }
-        let response: NullableDict = undefined;
+        let response: NullableList = undefined;
         if (this.safeBool (market, 'inverse', false)) {
             response = await this.dapiDataGetOpenInterestHist (this.extend (request, paramsOmitted));
         } else {
