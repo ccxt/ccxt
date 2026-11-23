@@ -637,31 +637,26 @@ func (this *Kalshi) fetchOutcomeBody(ch chan ccxt.AsyncResult[ccxt.PredictionOut
  * @param {string[]} outcomeSymbols kalshi tickers (optionally with a '-NO' suffix) or outcome handles
  * @returns {object} the outcome cache
  */
-func (this *Kalshi) FetchOutcomesAsync(outcomeSymbols []any) <-chan ccxt.AsyncResult[map[string]ccxt.PredictionOutcome] {
+func (this *Kalshi) FetchOutcomesAsync(outcomeSymbols []string) <-chan ccxt.AsyncResult[map[string]ccxt.PredictionOutcome] {
 	ch := make(chan ccxt.AsyncResult[map[string]ccxt.PredictionOutcome], 1)
 	go this.fetchOutcomesBody(ch, outcomeSymbols)
 	return ch
 }
-func (this *Kalshi) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]ccxt.PredictionOutcome], outcomeSymbols []any) any {
+func (this *Kalshi) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]ccxt.PredictionOutcome], outcomeSymbols []string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var tickers []string = []string{}
 	var seen map[string]any = map[string]any{}
 	var outcomeSymbolsLength int = len(outcomeSymbols)
 	for i := 0; i < outcomeSymbolsLength; i++ {
-		var outcomeSymbol *string = ccxt.SafeStringPtr(outcomeSymbols[i])
-		if strings.Index(*outcomeSymbol, ":") >= 0 {
+		var outcomeSymbol string = outcomeSymbols[i]
+		if strings.Index(outcomeSymbol, ":") >= 0 {
 			continue
 		}
-		var tickerText string = *this.SafeString(outcomeSymbols, i, "")
+		var tickerText string = outcomeSymbols[i]
 		var baseTicker string = tickerText
-		if strings.HasSuffix(*outcomeSymbol, "-NO") {
-			var outcomeSymbolPart string
-			if outcomeSymbol != nil {
-				str := *outcomeSymbol
-				outcomeSymbolPart = str[0 : len(str)-3]
-			}
-			baseTicker = outcomeSymbolPart
+		if strings.HasSuffix(outcomeSymbol, "-NO") {
+			baseTicker = outcomeSymbol[0 : len(outcomeSymbol)-3]
 		}
 		if _, ok := seen[baseTicker]; !ok {
 			seen[baseTicker] = true
@@ -704,7 +699,7 @@ func (this *Kalshi) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]ccxt.P
 		}
 	}
 	for i := 0; i < outcomeSymbolsLength; i++ {
-		var pendingSymbol *string = this.SafeString(outcomeSymbols, i, "")
+		var pendingSymbol string = outcomeSymbols[i]
 		if !this.HasOutcome(pendingSymbol) {
 
 			r1 := <-this.FetchOutcomeAsync(pendingSymbol)
@@ -717,7 +712,7 @@ func (this *Kalshi) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]ccxt.P
 	ch <- ccxt.AsyncResult[map[string]ccxt.PredictionOutcome]{Value: ccxt.PredictionOutcomeMapFromMap(this.Outcomes)}
 	return nil
 }
-func (this *Kalshi) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Kalshi) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	// kalshi returns { "error": { "code": "...", ... } } with a 4xx; map known codes to ccxt
 	// errors (e.g. not_found -> ccxt.BadSymbol) so callers can distinguish them from a transport
 	// outage (the base otherwise maps a bare 404 to the exchange-not-available error). unmapped codes fall
@@ -1840,7 +1835,7 @@ func (this *Kalshi) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTr
  * @param {object} [market] the outcome object the trade belongs to
  * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-func (this *Kalshi) ParsePredictionTrade(trade any, optionalArgs ...any) any {
+func (this *Kalshi) ParsePredictionTrade(trade map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(trade, "trade_id")
@@ -2250,7 +2245,7 @@ func (this *Kalshi) fetchSettlementsBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	var rawSettlementsLength int = len(rawSettlements)
 	var parsed []any = []any{}
 	for i := 0; i < rawSettlementsLength; i++ {
-		parsed = append(parsed, this.ParseSettlement(rawSettlements[i]))
+		parsed = append(parsed, this.ParseSettlement(this.Extend(map[string]any{}, rawSettlements[i])))
 	}
 	var wantedOutcomeObj map[string]any
 	if outcome != nil {
@@ -2280,7 +2275,7 @@ func (this *Kalshi) fetchSettlementsBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
  * @param {object} [market] a resolved outcome/market hint
  * @returns {object} a prediction settlement structure
  */
-func (this *Kalshi) ParseSettlement(settlement any, optionalArgs ...any) map[string]any {
+func (this *Kalshi) ParseSettlement(settlement map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var ticker *string = this.SafeString(settlement, "ticker")
@@ -2372,7 +2367,7 @@ func (this *Kalshi) ParseSettlement(settlement any, optionalArgs ...any) map[str
  * @param {object} [market] the outcome object the position belongs to
  * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
-func (this *Kalshi) ParsePredictionPosition(position any, optionalArgs ...any) map[string]any {
+func (this *Kalshi) ParsePredictionPosition(position map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var ticker *string = this.SafeString(position, "ticker")
@@ -3837,7 +3832,7 @@ func (this *Kalshi) FetchOutcome(outcomeSymbol string) (map[string]any, error) {
  * @returns {object} the outcome cache
  */
 func (this *Kalshi) FetchOutcomes(outcomeSymbols []string) (map[string]any, error) {
-	r := <-this.FetchOutcomesAsync(ccxt.StringSliceToList(outcomeSymbols))
+	r := <-this.FetchOutcomesAsync(outcomeSymbols)
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}

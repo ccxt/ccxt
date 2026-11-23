@@ -3191,7 +3191,7 @@ func (this *Coinbaseexchange) Sign(path string, optionalArgs ...any) map[string]
 	}
 	return literal227215
 }
-func (this *Coinbaseexchange) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Coinbaseexchange) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if (code == 400) || (code == 404) {
 		if strings.HasPrefix(body, "{") {
 			var message *string = this.SafeString(response, "message")

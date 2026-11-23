@@ -933,7 +933,10 @@ func (this *Cryptocom) HandleTicker(client ccxt.ClientInterface, message map[str
 	var market map[string]any = this.SafeMarket(marketId)
 	var data, _ = message["data"].([]any)
 	for i := 0; i < len(data); i++ {
-		var ticker any = data[i]
+		var ticker, _ = data[i].(map[string]any)
+		if ticker == nil {
+			ticker = map[string]any{}
+		}
 		var parsed map[string]any = this.ParseWsTicker(ticker, market)
 		var symbol *string = this.SafeString(parsed, "symbol")
 		if symbol != nil {
@@ -942,7 +945,7 @@ func (this *Cryptocom) HandleTicker(client ccxt.ClientInterface, message map[str
 		client.Resolve(parsed, messageHash)
 	}
 }
-func (this *Cryptocom) ParseWsTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Cryptocom) ParseWsTicker(ticker map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//       "h": "2400.20",

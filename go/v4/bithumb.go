@@ -2345,12 +2345,12 @@ func (this *Bithumb) createMarketBuyOrderWithCostBody(ch chan AsyncResult[Order]
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bithumb) CreateTwapOrderAsync(symbol string, side string, amount float64, duration any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bithumb) CreateTwapOrderAsync(symbol string, side string, amount float64, duration float64, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createTwapOrderBody(ch, symbol, side, amount, duration, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) createTwapOrderBody(ch chan AsyncResult[Order], symbol string, side string, amount float64, duration any, optionalArgs ...any) any {
+func (this *Bithumb) createTwapOrderBody(ch chan AsyncResult[Order], symbol string, side string, amount float64, duration float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4332,7 +4332,7 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	return literal341415
 }
-func (this *Bithumb) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Bithumb) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

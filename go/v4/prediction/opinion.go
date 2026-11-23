@@ -2040,7 +2040,7 @@ func (this *Opinion) loadTradeMarketBody(ch chan ccxt.AsyncResult[ccxt.MarketInt
  * @param {object} [market] the outcome object the trade belongs to
  * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-func (this *Opinion) ParsePredictionTrade(trade any, optionalArgs ...any) any {
+func (this *Opinion) ParsePredictionTrade(trade map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var tokenId *string = this.SafeString(trade, "tokenId")
@@ -2243,7 +2243,7 @@ func (this *Opinion) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
  * @param {object} [market] the outcome object the position belongs to
  * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
-func (this *Opinion) ParsePredictionPosition(position any, optionalArgs ...any) map[string]any {
+func (this *Opinion) ParsePredictionPosition(position map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var tokenId *string = this.SafeString(position, "tokenId")
@@ -3225,7 +3225,7 @@ func (this *Opinion) HandleMyTrade(client ccxt.ClientInterface, message map[stri
 	stored.Append(trade)
 	client.Resolve(stored, "myTrades")
 }
-func (this *Opinion) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Opinion) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil
 	}

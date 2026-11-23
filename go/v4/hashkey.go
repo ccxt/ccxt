@@ -2117,7 +2117,7 @@ func (this *Hashkey) fetchLastPricesBody(ch chan AsyncResult[map[string]LastPric
 	ch <- AsyncResult[map[string]LastPrice]{Value: LastPriceMapFromMap(this.ParseLastPrices(response, symbolsNormalized))}
 	return nil
 }
-func (this *Hashkey) ParseLastPrice(entry any, optionalArgs ...any) any {
+func (this *Hashkey) ParseLastPrice(entry map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(entry, "s")
@@ -5590,7 +5590,7 @@ func (this *Hashkey) CustomUrlencode(optionalArgs ...any) string {
 	result = strings.Replace(result, "%2C", ",", 1)
 	return result
 }
-func (this *Hashkey) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Hashkey) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil
 	}

@@ -4164,7 +4164,7 @@ func (this *Cryptocom) fetchSettlementHistoryBody(ch chan AsyncResult[[]map[stri
 	ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList(this.FilterBySymbolSinceLimit(sorted, symbol, since, limit))}
 	return nil
 }
-func (this *Cryptocom) ParseSettlement(settlement any, optionalArgs ...any) map[string]any {
+func (this *Cryptocom) ParseSettlement(settlement map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "i": "BTCUSD-230526",
@@ -4200,7 +4200,7 @@ func (this *Cryptocom) ParseSettlements(settlements []any, optionalArgs ...any) 
 	_ = market
 	var result []any = []any{}
 	for i := 0; i < len(settlements); i++ {
-		result = append(result, this.ParseSettlement(this.SafeDict(settlements, i, map[string]any{}), market))
+		result = append(result, this.ParseSettlement(this.Extend(map[string]any{}, settlements[i]), market))
 	}
 	return result
 }
@@ -5005,7 +5005,7 @@ func (this *Cryptocom) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	return literal366515
 }
-func (this *Cryptocom) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Cryptocom) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	var errorCode *string = this.SafeString(response, "code")
 	if errorCode == nil || *errorCode != "0" {
 		var feedback string = this.Id + " " + body

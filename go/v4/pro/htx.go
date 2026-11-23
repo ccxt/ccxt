@@ -815,7 +815,11 @@ func (this *Htx) HandleOrderBookSnapshot(client ccxt.ClientInterface, message ma
 				orderbook.Reset(snapshot)
 				// unroll the accumulated deltas
 				for i := 0; i < len(messages); i++ {
-					this.HandleOrderBookMessage(client, messages[i])
+					var messageItem, _ = messages[i].(map[string]any)
+					if messageItem == nil {
+						messageItem = map[string]any{}
+					}
+					this.HandleOrderBookMessage(client, messageItem)
 				}
 				orderbook.SetCache([]any{})
 				if symbol != nil {
@@ -912,7 +916,7 @@ func (this *Htx) HandleDeltas(bookside ccxt.IOrderBookSide, deltas []any) {
 		this.HandleDelta(bookside, deltas[i])
 	}
 }
-func (this *Htx) HandleOrderBookMessage(client ccxt.ClientInterface, message any) {
+func (this *Htx) HandleOrderBookMessage(client ccxt.ClientInterface, message map[string]any) {
 	// spot markets
 	//
 	//     {
@@ -985,7 +989,11 @@ func (this *Htx) HandleOrderBookMessage(client ccxt.ClientInterface, message any
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
 	var symbol string = market.Symbol
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[symbol]
-	var tick map[string]any = this.SafeDictMap(message, "tick", map[string]any{})
+	var tick map[string]any
+	tick, _ = message["tick"].(map[string]any)
+	if tick == nil {
+		tick = map[string]any{}
+	}
 	var prevSeqNum *int64 = this.SafeInteger(tick, "prevSeqNum")
 	var event *string = this.SafeString(tick, "event")
 	var version *int64 = this.SafeInteger(tick, "version")
@@ -1912,7 +1920,7 @@ func (this *Htx) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 		side = this.SafeString2(order, "direction", "side")
 	}
 	var cost *string = this.SafeString2(order, "orderValue", "trade_turnover")
-	var literal153931 map[string]any = map[string]any{
+	var literal154031 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
@@ -1940,9 +1948,9 @@ func (this *Htx) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 		"stopLossPrice":      this.SafeString2(order, "sl_trigger_price", "sl_order_price"),
 	}
 	if typeVar != nil {
-		literal153931["type"] = *typeVar
+		literal154031["type"] = *typeVar
 	}
-	return ccxt.OrderToMap(this.SafeOrder(literal153931, marketResolved))
+	return ccxt.OrderToMap(this.SafeOrder(literal154031, marketResolved))
 }
 func (this *Htx) ParseOrderTrade(trade map[string]any, optionalArgs ...any) any {
 	// spot private wrapped trade
@@ -1993,7 +2001,7 @@ func (this *Htx) ParseOrderTrade(trade map[string]any, optionalArgs ...any) any 
 		}
 		takerOrMaker = &takerOrMakerStr
 	}
-	var literal160931 map[string]any = map[string]any{
+	var literal161031 map[string]any = map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -2009,9 +2017,9 @@ func (this *Htx) ParseOrderTrade(trade map[string]any, optionalArgs ...any) any 
 		"fee":          nil,
 	}
 	if side != nil {
-		literal160931["side"] = *side
+		literal161031["side"] = *side
 	}
-	return ccxt.TradeToMap(this.SafeTrade(literal160931, marketValue))
+	return ccxt.TradeToMap(this.SafeTrade(literal161031, marketValue))
 }
 
 /**
@@ -2257,11 +2265,11 @@ func (this *Htx) HandlePositions(client ccxt.ClientInterface, message map[string
 	var positionsByMarginMode map[string]any = map[string]any{}
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	for i := 0; i < len(rawPositions); i++ {
-		rawPositionsDict180449, _ := rawPositions[i].(map[string]any)
-		if rawPositionsDict180449 == nil {
-			rawPositionsDict180449 = map[string]any{}
+		rawPositionsDict180549, _ := rawPositions[i].(map[string]any)
+		if rawPositionsDict180549 == nil {
+			rawPositionsDict180549 = map[string]any{}
 		}
-		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPositionsDict180449))
+		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPositionsDict180549))
 		position["timestamp"] = timestamp
 		position["datetime"] = this.Iso8601(timestamp)
 		var marginMode *string = this.SafeStringLower(position, "marginMode", defaultMarginMode)
@@ -2280,13 +2288,13 @@ func (this *Htx) HandlePositions(client ccxt.ClientInterface, message map[string
 		if marginMode != nil {
 			positionsByMarginMode[*marginMode] = this.SafeList(positionsByMarginMode, marginMode, []any{})
 		}
-		retRes181812 := func() any {
+		retRes181912 := func() any {
 			if marginMode == nil {
 				return nil
 			}
 			return positionsByMarginMode[*marginMode]
 		}()
-		ccxt.AppendToArray(&retRes181812, position)
+		ccxt.AppendToArray(&retRes181912, position)
 		cache.Append(position)
 	}
 	var marginModes []string = nil
@@ -3467,7 +3475,7 @@ func (this *Htx) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 			"currency": feeCurrency,
 		}
 	}
-	var literal286931 map[string]any = map[string]any{
+	var literal287031 map[string]any = map[string]any{
 		"info":         trade,
 		"timestamp":    timestamp,
 		"datetime":     this.Iso8601(timestamp),
@@ -3483,9 +3491,9 @@ func (this *Htx) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		"fee":          fee,
 	}
 	if typeVar != nil {
-		literal286931["type"] = *typeVar
+		literal287031["type"] = *typeVar
 	}
-	return ccxt.TradeToMap(this.SafeTrade(literal286931, marketResolved))
+	return ccxt.TradeToMap(this.SafeTrade(literal287031, marketResolved))
 }
 func (this *Htx) GetUrlByMarketType(typeVar any, optionalArgs ...any) any {
 	var isLinear bool = ccxt.GetArgBool(optionalArgs, 0, true)

@@ -10560,7 +10560,7 @@ func (this *Gate) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[string]
 	ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList(this.FilterBySymbolSinceLimit(sorted, symbolResolved, since, limit))}
 	return nil
 }
-func (this *Gate) ParseSettlement(settlement any, optionalArgs ...any) map[string]any {
+func (this *Gate) ParseSettlement(settlement map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// fetchSettlementHistory
 	//
@@ -10647,7 +10647,7 @@ func (this *Gate) ParseSettlements(settlements []any, optionalArgs ...any) []any
 	_ = market
 	var result []any = []any{}
 	for i := 0; i < len(settlements); i++ {
-		result = append(result, this.ParseSettlement(settlements[i], market))
+		result = append(result, this.ParseSettlement(this.Extend(map[string]any{}, settlements[i]), market))
 	}
 	return result
 }
@@ -11815,7 +11815,7 @@ func (this *Gate) fetchOptionChainBody(ch chan AsyncResult[map[string]Option], c
 	ch <- AsyncResult[map[string]Option]{Value: OptionMapFromMap(this.ParseOptionChain(this.ToArray(response), nil, "name"))}
 	return nil
 }
-func (this *Gate) ParseOption(chain any, optionalArgs ...any) Option {
+func (this *Gate) ParseOption(chain map[string]any, optionalArgs ...any) Option {
 	//
 	//     {
 	//         "is_active": true,
@@ -11991,7 +11991,7 @@ func (this *Gate) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], opt
 	ch <- AsyncResult[[]Position]{Value: PositionsFromList(this.ParsePositions(responseList, symbols, paramsValue))}
 	return nil
 }
-func (this *Gate) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Gate) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil
 	}

@@ -1842,7 +1842,7 @@ func (this *Grvt) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.ParseFundingRateHistories(result, market))}
 	return nil
 }
-func (this *Grvt) ParseFundingRateHistory(rawItem any, optionalArgs ...any) any {
+func (this *Grvt) ParseFundingRateHistory(rawItem any, optionalArgs ...any) FundingRateHistory {
 	//
 	//            {
 	//                "instrument": "BTC_USDT_Perp",
@@ -1860,13 +1860,13 @@ func (this *Grvt) ParseFundingRateHistory(rawItem any, optionalArgs ...any) any 
 	// the api documents funding_rate in percentage points, and a unified
 	// fundingRate is a fraction, with the Manual's examples reading 0.000072
 	var rate *string = this.SafeString(rawItem, "funding_rate")
-	return map[string]any{
+	return FundingRateHistoryFromMap(map[string]any{
 		"info":        rawItem,
 		"symbol":      this.SafeSymbol(marketId, market),
 		"fundingRate": this.ParseNumber(Precise.StringDiv(rate, "100")),
 		"timestamp":   ts,
 		"datetime":    this.Iso8601(ts),
-	}
+	})
 }
 func (this *Grvt) GetSubAccountId(params any) string {
 	var subAccountId *string = this.SafeString(TupleSlice(this.HandleOptionAndParams(params, "getSubAccountId", "accountId")), 0)
@@ -3590,7 +3590,7 @@ func (this *Grvt) fetchMarginModesBody(ch chan AsyncResult[map[string]MarginMode
 	ch <- AsyncResult[map[string]MarginMode]{Value: MarginModeMapFromMap(this.ParseLeverages(results, symbols))}
 	return nil
 }
-func (this *Grvt) ParseMarginMode(marginMode any, optionalArgs ...any) MarginMode {
+func (this *Grvt) ParseMarginMode(marginMode map[string]any, optionalArgs ...any) MarginMode {
 	//
 	// fetchMarginModes
 	//
@@ -4624,7 +4624,7 @@ func (this *Grvt) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Grvt) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Grvt) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if strings.HasSuffix(url, "auth/api_key/login") || strings.HasSuffix(url, "auth/wallet/login") {
 		var accountId *string = this.SafeString2(headers, "X-Grvt-Account-Id", "x-grvt-account-id")
 		if accountId != nil {

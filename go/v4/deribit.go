@@ -5300,7 +5300,7 @@ func (this *Deribit) fetchOptionChainBody(ch chan AsyncResult[map[string]Option]
 	ch <- AsyncResult[map[string]Option]{Value: OptionMapFromMap(this.ParseOptionChain(result, "base_currency", "instrument_name"))}
 	return nil
 }
-func (this *Deribit) ParseOption(chain any, optionalArgs ...any) Option {
+func (this *Deribit) ParseOption(chain map[string]any, optionalArgs ...any) Option {
 	//
 	//     {
 	//         "mid_price": 0.04025,
@@ -5539,7 +5539,7 @@ func (this *Deribit) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": nil,
 	}
 }
-func (this *Deribit) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Deribit) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

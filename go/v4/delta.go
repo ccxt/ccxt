@@ -4237,7 +4237,7 @@ func (this *Delta) fetchSettlementHistoryBody(ch chan AsyncResult[[]map[string]a
 	ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList(this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit))}
 	return nil
 }
-func (this *Delta) ParseSettlement(settlement any, market any) map[string]any {
+func (this *Delta) ParseSettlement(settlement map[string]any, market any) map[string]any {
 	//
 	//     {
 	//         "contract_value": "0.001",
@@ -4304,7 +4304,7 @@ func (this *Delta) ParseSettlement(settlement any, market any) map[string]any {
 func (this *Delta) ParseSettlements(settlements []any, market any) []any {
 	var result []any = []any{}
 	for i := 0; i < len(settlements); i++ {
-		result = append(result, this.ParseSettlement(settlements[i], market))
+		result = append(result, this.ParseSettlement(this.Extend(map[string]any{}, settlements[i]), market))
 	}
 	return result
 }
@@ -4638,7 +4638,7 @@ func (this *Delta) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol s
 	ch <- AsyncResult[MarginMode]{Value: this.ParseMarginMode(result, market)}
 	return nil
 }
-func (this *Delta) ParseMarginMode(marginMode any, optionalArgs ...any) MarginMode {
+func (this *Delta) ParseMarginMode(marginMode map[string]any, optionalArgs ...any) MarginMode {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = nil
@@ -4785,7 +4785,7 @@ func (this *Delta) fetchOptionBody(ch chan AsyncResult[Option], symbol string, o
 	ch <- AsyncResult[Option]{Value: this.ParseOption(result, nil, market)}
 	return nil
 }
-func (this *Delta) ParseOption(chain any, optionalArgs ...any) Option {
+func (this *Delta) ParseOption(chain map[string]any, optionalArgs ...any) Option {
 	//
 	//     {
 	//         "close": 6793.0,
@@ -4841,7 +4841,7 @@ func (this *Delta) ParseOption(chain any, optionalArgs ...any) Option {
 	_ = market
 	var marketId *string = this.SafeString(chain, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var quotes map[string]any = SafeMapTyped(chain, "quotes")
+	var quotes, _ = chain["quotes"].(map[string]any)
 	var timestamp *int64 = this.SafeIntegerProduct(chain, "timestamp", 0.001)
 	return OptionFromMap(map[string]any{
 		"info":              chain,
@@ -5076,7 +5076,7 @@ func (this *Delta) fetchPositionsADLRankBody(ch chan AsyncResult[[]ADL], optiona
 	ch <- AsyncResult[[]ADL]{Value: ADLsFromList(this.ParseADLRanks(result, symbolsNormalized))}
 	return nil
 }
-func (this *Delta) ParseADLRank(info any, optionalArgs ...any) map[string]any {
+func (this *Delta) ParseADLRank(info map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// fetchPositionsADLRank
 	//
@@ -5311,7 +5311,7 @@ func (this *Delta) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResult,
 	}
 }
-func (this *Delta) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Delta) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil
 	}

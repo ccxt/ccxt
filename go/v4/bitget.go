@@ -16055,7 +16055,7 @@ func (this *Bitget) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol 
 	ch <- AsyncResult[MarginMode]{Value: this.ParseMarginMode(data, market)}
 	return nil
 }
-func (this *Bitget) ParseMarginMode(marginMode any, optionalArgs ...any) MarginMode {
+func (this *Bitget) ParseMarginMode(marginMode map[string]any, optionalArgs ...any) MarginMode {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marginType *string = this.SafeString(marginMode, "marginMode")
@@ -16709,7 +16709,7 @@ func (this *Bitget) ParseLongShortRatio(info any, optionalArgs ...any) LongShort
 		"longShortRatio": this.SafeNumber2(info, "longShortRatio", "longShortAccountRatio"),
 	})
 }
-func (this *Bitget) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Bitget) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

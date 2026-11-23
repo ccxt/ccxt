@@ -2351,7 +2351,7 @@ func (this *Aster) fetchLastPricesBody(ch chan AsyncResult[map[string]LastPrice]
 	for i := 0; i < len(rows); i++ {
 		var marketId *string = this.SafeString(rows[i], "symbol")
 		var safeMarket map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
-		var priceData map[string]any = this.Extend(this.ParseLastPrice(rows[i], safeMarket), paramsMarketType)
+		var priceData map[string]any = this.Extend(this.ParseLastPrice(this.Extend(map[string]any{}, rows[i]), safeMarket), paramsMarketType)
 		results = append(results, priceData)
 	}
 	var symbolsNormalized2 []string = this.MarketSymbols(symbolsNormalized)
@@ -2359,7 +2359,7 @@ func (this *Aster) fetchLastPricesBody(ch chan AsyncResult[map[string]LastPrice]
 	ch <- AsyncResult[map[string]LastPrice]{Value: LastPriceMapFromMap(this.IndexBy(this.FilterByArray(results, "symbol", symbolsNormalized2, false), "symbol"))}
 	return nil
 }
-func (this *Aster) ParseLastPrice(entry any, optionalArgs ...any) any {
+func (this *Aster) ParseLastPrice(entry map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// spot & swap
 	//
@@ -2737,7 +2737,7 @@ func (this *Aster) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRate
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.ParseFundingRateHistories(response, market))}
 	return nil
 }
-func (this *Aster) ParseFundingRateHistory(contract any, optionalArgs ...any) any {
+func (this *Aster) ParseFundingRateHistory(contract any, optionalArgs ...any) FundingRateHistory {
 	//
 	//     {
 	//         "symbol": "BTCUSDT",
@@ -2748,13 +2748,13 @@ func (this *Aster) ParseFundingRateHistory(contract any, optionalArgs ...any) an
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(contract, "fundingTime")
-	return map[string]any{
+	return FundingRateHistoryFromMap(map[string]any{
 		"info":        contract,
 		"symbol":      this.SafeSymbol(this.SafeString(contract, "symbol"), nil, nil, "swap"),
 		"fundingRate": this.SafeNumber(contract, "fundingRate"),
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
-	}
+	})
 }
 
 /**
@@ -4333,7 +4333,7 @@ func (this *Aster) fetchMarginModesBody(ch chan AsyncResult[map[string]MarginMod
 	ch <- AsyncResult[map[string]MarginMode]{Value: MarginModeMapFromMap(this.ParseMarginModes(this.ToArray(response), symbols, "symbol", "swap"))}
 	return nil
 }
-func (this *Aster) ParseMarginMode(marginMode any, optionalArgs ...any) MarginMode {
+func (this *Aster) ParseMarginMode(marginMode map[string]any, optionalArgs ...any) MarginMode {
 	//
 	//     {
 	//         "symbol": "INJUSDT",
@@ -6088,7 +6088,7 @@ func (this *Aster) initializeClientBody(ch chan AsyncResult[bool], optionalArgs 
 	ch <- AsyncResult[bool]{} // just c#
 	return nil
 }
-func (this *Aster) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Aster) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

@@ -3489,7 +3489,7 @@ func (this *Htx) fetchLastPricesBody(ch chan AsyncResult[map[string]LastPrice], 
 	ch <- AsyncResult[map[string]LastPrice]{Value: LastPriceMapFromMap(this.ParseLastPrices(data, symbolsNormalized))}
 	return nil
 }
-func (this *Htx) ParseLastPrice(entry any, optionalArgs ...any) any {
+func (this *Htx) ParseLastPrice(entry map[string]any, optionalArgs ...any) map[string]any {
 	// example responses are documented in fetchLastPrices
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
@@ -10504,7 +10504,7 @@ func (this *Htx) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResolved,
 	}
 }
-func (this *Htx) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Htx) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -12999,7 +12999,7 @@ func (this *Htx) fetchPositionsADLRankBody(ch chan AsyncResult[[]ADL], optionalA
 	ch <- AsyncResult[[]ADL]{Value: ADLsFromList(this.ParseADLRanks(data, symbolsNormalized))}
 	return nil
 }
-func (this *Htx) ParseADLRank(info any, optionalArgs ...any) map[string]any {
+func (this *Htx) ParseADLRank(info map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// fetchPositionADLRank linear
 	//

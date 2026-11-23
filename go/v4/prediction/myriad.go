@@ -847,7 +847,11 @@ func (this *Myriad) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	var data, _ = response["data"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var position map[string]any = this.ParsePredictionPosition(data[i])
+		dataDict57759, _ := data[i].(map[string]any)
+		if dataDict57759 == nil {
+			dataDict57759 = map[string]any{}
+		}
+		var position map[string]any = this.ParsePredictionPosition(dataDict57759)
 		if (outcomes == nil) || this.InArray(position["outcome"], outcomes) {
 			result = append(result, position)
 		}
@@ -866,7 +870,7 @@ func (this *Myriad) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
  * @param {object} [market] not used by myriad
  * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
-func (this *Myriad) ParsePredictionPosition(position any, optionalArgs ...any) map[string]any {
+func (this *Myriad) ParsePredictionPosition(position map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketSlug *string = this.SafeString(position, "marketSlug", "")
@@ -4122,7 +4126,7 @@ func (this *Myriad) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionTr
  * @param {object} [market] the outcome object the trade belongs to
  * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-func (this *Myriad) ParsePredictionTrade(trade any, optionalArgs ...any) any {
+func (this *Myriad) ParsePredictionTrade(trade map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeTimestamp(trade, "timestamp")
@@ -5497,7 +5501,7 @@ func (this *Myriad) WalletAddressFromKeys() string {
 	}
 	return strings.ToLower(this.EthGetAddressFromPrivateKey(this.PrivateKey))
 }
-func (this *Myriad) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Myriad) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	// Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
 	if response == nil {
 		return nil

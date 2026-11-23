@@ -3670,7 +3670,7 @@ func (this *Hitbtc) fetchMarginModesBody(ch chan AsyncResult[map[string]MarginMo
 	ch <- AsyncResult[map[string]MarginMode]{Value: MarginModeMapFromMap(this.ParseMarginModes(config, symbolsNormalized, "symbol"))}
 	return nil
 }
-func (this *Hitbtc) ParseMarginMode(marginMode any, optionalArgs ...any) MarginMode {
+func (this *Hitbtc) ParseMarginMode(marginMode map[string]any, optionalArgs ...any) MarginMode {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(marginMode, "symbol")
@@ -5286,7 +5286,7 @@ func (this *Hitbtc) HandleMarginModeAndParams(methodName any, optionalArgs ...an
 	}
 	return marginMode, paramsMarginMode
 }
-func (this *Hitbtc) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Hitbtc) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	//
 	//     {
 	//       "error": {

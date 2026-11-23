@@ -1268,7 +1268,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(result)}
 	return nil
 }
-func (this *Btse) ParseFundingRateHistory(contract any, optionalArgs ...any) any {
+func (this *Btse) ParseFundingRateHistory(contract any, optionalArgs ...any) FundingRateHistory {
 	//
 	//     {
 	//         "timestamp": 1786003200911,
@@ -1278,13 +1278,13 @@ func (this *Btse) ParseFundingRateHistory(contract any, optionalArgs ...any) any
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(contract, "timestamp")
-	return map[string]any{
+	return FundingRateHistoryFromMap(map[string]any{
 		"info":        contract,
 		"symbol":      this.SafeSymbol(nil, market),
 		"fundingRate": this.SafeNumber(contract, "rate"),
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
-	}
+	})
 }
 
 /**
@@ -4624,7 +4624,7 @@ func (this *Btse) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol st
 	ch <- AsyncResult[MarginMode]{Value: this.ParseMarginMode(data, market)}
 	return nil
 }
-func (this *Btse) ParseMarginMode(marginMode any, optionalArgs ...any) MarginMode {
+func (this *Btse) ParseMarginMode(marginMode map[string]any, optionalArgs ...any) MarginMode {
 	//
 	//     {
 	//         "symbol": "ETH-PERP",
@@ -4923,7 +4923,7 @@ func (this *Btse) setLeverageBody(ch chan AsyncResult[map[string]any], leverage 
 	ch <- AsyncResult[map[string]any]{Value: response}
 	return nil
 }
-func (this *Btse) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Btse) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

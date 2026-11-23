@@ -221,7 +221,7 @@ func (this *Mexc) HandleTicker(client ccxt.ClientInterface, message any) {
 	var ticker map[string]any = nil
 	if *this.SafeBool(market, "spot", false) {
 		this.HandleBidAsk(client, message) // the bids-asks channel is spot only
-		ticker = this.ParseWsTicker(rawTicker, market)
+		ticker = this.ParseWsTicker(this.SafeDictN(message, []any{"d", "data", "publicAggreBookTicker"}, map[string]any{}), market)
 		if ticker != nil {
 			if timestamp != nil {
 				ticker["timestamp"] = *timestamp
@@ -398,7 +398,10 @@ func (this *Mexc) HandleTickers(client ccxt.ClientInterface, message map[string]
 	var topic string = messageHashPrefix + "ticker"
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var entry any = data[i]
+		var entry, _ = data[i].(map[string]any)
+		if entry == nil {
+			entry = map[string]any{}
+		}
 		var ticker map[string]any = nil
 		if isSpot == true {
 			ticker = this.ParseWsTicker(entry, market)

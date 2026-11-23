@@ -3626,7 +3626,7 @@ func (this *Bitvavo) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	return literal273415
 }
-func (this *Bitvavo) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Bitvavo) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

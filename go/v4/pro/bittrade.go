@@ -506,7 +506,11 @@ func (this *Bittrade) HandleOrderBookSnapshot(client ccxt.ClientInterface, messa
 	// unroll the accumulated deltas
 	var messages []any = orderbook.GetCache()
 	for i := 0; i < len(messages); i++ {
-		this.HandleOrderBookMessage(client, messages[i], orderbook)
+		var messageItem, _ = messages[i].(map[string]any)
+		if messageItem == nil {
+			messageItem = map[string]any{}
+		}
+		this.HandleOrderBookMessage(client, messageItem, orderbook)
 	}
 	if symbol != nil {
 		this.Orderbooks[*symbol] = orderbook
@@ -592,7 +596,7 @@ func (this *Bittrade) HandleDelta(bookside ccxt.IOrderBookSide, delta any) {
 	var amount *float64 = this.SafeFloat(delta, 1)
 	bookside.Store(price, amount)
 }
-func (this *Bittrade) HandleOrderBookMessage(client ccxt.ClientInterface, message any, orderbook ccxt.OrderBookInterface) any {
+func (this *Bittrade) HandleOrderBookMessage(client ccxt.ClientInterface, message map[string]any, orderbook ccxt.OrderBookInterface) any {
 	//
 	//     {
 	//         "ch": "market.btcusdt.mbp.150",
@@ -613,7 +617,7 @@ func (this *Bittrade) HandleOrderBookMessage(client ccxt.ClientInterface, messag
 	//         }
 	//     }
 	//
-	var tick map[string]any = ccxt.SafeMapTyped(message, "tick")
+	var tick, _ = message["tick"].(map[string]any)
 	var seqNum *int64 = this.SafeInteger(tick, "seqNum")
 	var prevSeqNum *int64 = this.SafeInteger(tick, "prevSeqNum")
 	if (prevSeqNum == nil) || (seqNum == nil) {

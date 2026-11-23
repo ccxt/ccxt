@@ -3116,7 +3116,7 @@ func (this *Bitstamp) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.ParseFundingRateHistories(values, market, since, limit))}
 	return nil
 }
-func (this *Bitstamp) ParseFundingRateHistory(contract any, optionalArgs ...any) any {
+func (this *Bitstamp) ParseFundingRateHistory(contract any, optionalArgs ...any) FundingRateHistory {
 	//
 	//     {
 	//         "funding_rate": "0.0024",
@@ -3126,13 +3126,13 @@ func (this *Bitstamp) ParseFundingRateHistory(contract any, optionalArgs ...any)
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeIntegerProduct(contract, "timestamp", 1000)
-	return map[string]any{
+	return FundingRateHistoryFromMap(map[string]any{
 		"info":        contract,
 		"symbol":      this.SafeSymbol(nil, market),
 		"fundingRate": this.SafeNumber(contract, "funding_rate"),
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
-	}
+	})
 }
 
 /**
@@ -4184,7 +4184,7 @@ func (this *Bitstamp) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	return literal284015
 }
-func (this *Bitstamp) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Bitstamp) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil
 	}

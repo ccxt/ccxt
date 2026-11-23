@@ -2197,7 +2197,7 @@ func (this *Okx) HandleDeltas(bookside ccxt.IOrderBookSide, deltas []any) {
 		this.HandleDelta(bookside, deltas[i])
 	}
 }
-func (this *Okx) HandleOrderBookMessage(client ccxt.ClientInterface, message any, orderbook ccxt.OrderBookInterface, messageHash any, optionalArgs ...any) any {
+func (this *Okx) HandleOrderBookMessage(client ccxt.ClientInterface, message map[string]any, orderbook ccxt.OrderBookInterface, messageHash any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "asks": [
@@ -2377,7 +2377,10 @@ func (this *Okx) HandleOrderBook(client ccxt.ClientInterface, message map[string
 		if this.Orderbooks[symbol] != nil {
 			var updatedBook ccxt.OrderBookInterface = this.Orderbooks[symbol]
 			for i := 0; i < len(data); i++ {
-				var update any = data[i]
+				var update, _ = data[i].(map[string]any)
+				if update == nil {
+					update = map[string]any{}
+				}
 				this.HandleOrderBookMessage(client, update, updatedBook, messageHash, market)
 				if !(client.SubscriptionHas(messageHash)) {
 					// a nonce gap rejected the future; the channel stays subscribed without a book until the next watch resyncs it

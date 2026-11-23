@@ -660,7 +660,10 @@ func (this *Coinbase) HandleTickers(client ccxt.ClientInterface, message map[str
 		var tickers []any
 		tickers, _ = tickersObj["tickers"].([]any)
 		for j := 0; j < len(tickers); j++ {
-			var ticker any = tickers[j]
+			var ticker, _ = tickers[j].(map[string]any)
+			if ticker == nil {
+				ticker = map[string]any{}
+			}
 			var wsMarketId *string = this.SafeString(ticker, "product_id")
 			if wsMarketId == nil {
 				continue
@@ -681,7 +684,7 @@ func (this *Coinbase) HandleTickers(client ccxt.ClientInterface, message map[str
 		}
 	}
 }
-func (this *Coinbase) ParseWsTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Coinbase) ParseWsTicker(ticker map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "type": "ticker",

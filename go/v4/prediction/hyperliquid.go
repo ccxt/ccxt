@@ -1350,7 +1350,7 @@ func (this *Hyperliquid) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Pred
  * @param {object} [market] the outcome object the position belongs to
  * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
-func (this *Hyperliquid) ParsePredictionPosition(position any, optionalArgs ...any) map[string]any {
+func (this *Hyperliquid) ParsePredictionPosition(position map[string]any, optionalArgs ...any) map[string]any {
 	// `position` is a spotClearinghouseState balance entry ({ coin, total, hold, entryNtl })
 	// enriched with the current mid price (markPx); hyperliquid does not return the position
 	// value / entry price / pnl for outcome tokens, so they are computed here
@@ -2372,7 +2372,7 @@ func (this *Hyperliquid) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
  * @param {object} [market] the market the trade belongs to
  * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-func (this *Hyperliquid) ParsePredictionTrade(trade any, optionalArgs ...any) any {
+func (this *Hyperliquid) ParsePredictionTrade(trade map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//   "closedPnl": "0.19343",
@@ -2976,7 +2976,7 @@ func (this *Hyperliquid) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	return literal226715
 }
-func (this *Hyperliquid) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Hyperliquid) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil
 	}

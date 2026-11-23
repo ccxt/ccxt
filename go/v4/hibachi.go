@@ -2452,7 +2452,7 @@ func (this *Hibachi) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersValue,
 	}
 }
-func (this *Hibachi) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Hibachi) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -2923,7 +2923,7 @@ func (this *Hibachi) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.FilterBySinceLimit(withdrawals, since, limit, "timestamp"))}
 	return nil
 }
-func (this *Hibachi) ParseSettlement(settlement any, optionalArgs ...any) map[string]any {
+func (this *Hibachi) ParseSettlement(settlement map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "direction": "Long",
@@ -2952,7 +2952,7 @@ func (this *Hibachi) ParseSettlements(settlements []any, optionalArgs ...any) []
 	_ = market
 	var result []any = []any{}
 	for i := 0; i < len(settlements); i++ {
-		result = append(result, this.ParseSettlement(settlements[i], market))
+		result = append(result, this.ParseSettlement(this.Extend(map[string]any{}, settlements[i]), market))
 	}
 	return result
 }

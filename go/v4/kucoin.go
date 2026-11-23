@@ -14103,7 +14103,7 @@ func (this *Kucoin) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.ParseFundingRateHistories(result, market, since, limit))}
 	return nil
 }
-func (this *Kucoin) ParseFundingRateHistory(info any, optionalArgs ...any) any {
+func (this *Kucoin) ParseFundingRateHistory(info any, optionalArgs ...any) FundingRateHistory {
 	//
 	// uta
 	//     {
@@ -14122,13 +14122,13 @@ func (this *Kucoin) ParseFundingRateHistory(info any, optionalArgs ...any) any {
 	_ = market
 	var marketId *string = this.SafeString(info, "symbol")
 	var timestamp *int64 = this.SafeInteger2(info, "ts", "timepoint")
-	return map[string]any{
+	return FundingRateHistoryFromMap(map[string]any{
 		"info":        info,
 		"symbol":      this.SafeSymbol(marketId, market),
 		"fundingRate": this.SafeNumber(info, "fundingRate"),
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
-	}
+	})
 }
 
 /**
@@ -15338,7 +15338,7 @@ func (this *Kucoin) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol 
 	ch <- AsyncResult[MarginMode]{Value: this.ParseMarginMode(data, market)}
 	return nil
 }
-func (this *Kucoin) ParseMarginMode(marginMode any, optionalArgs ...any) MarginMode {
+func (this *Kucoin) ParseMarginMode(marginMode map[string]any, optionalArgs ...any) MarginMode {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marginType *string = this.SafeString(marginMode, "marginMode")
@@ -16174,7 +16174,7 @@ func (this *Kucoin) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	return literal1195715
 }
-func (this *Kucoin) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Kucoin) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], body, body)
 		return nil
@@ -16406,7 +16406,7 @@ func (this *Kucoin) fetchPositionsADLRankBody(ch chan AsyncResult[[]ADL], option
 	ch <- AsyncResult[[]ADL]{Value: ADLsFromList(this.ParseADLRanks(data, symbolsNormalized))}
 	return nil
 }
-func (this *Kucoin) ParseADLRank(info any, optionalArgs ...any) map[string]any {
+func (this *Kucoin) ParseADLRank(info map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// fetchPositionsADLRank
 	//

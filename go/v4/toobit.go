@@ -1855,7 +1855,7 @@ func (this *Toobit) fetchLastPricesBody(ch chan AsyncResult[map[string]LastPrice
 	ch <- AsyncResult[map[string]LastPrice]{Value: LastPriceMapFromMap(this.ParseLastPrices(response, symbolsNormalized))}
 	return nil
 }
-func (this *Toobit) ParseLastPrice(entry any, optionalArgs ...any) any {
+func (this *Toobit) ParseLastPrice(entry map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(entry, "s")
@@ -2127,18 +2127,18 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.ParseFundingRateHistories(response, market, since, limit))}
 	return nil
 }
-func (this *Toobit) ParseFundingRateHistory(contract any, optionalArgs ...any) any {
+func (this *Toobit) ParseFundingRateHistory(contract any, optionalArgs ...any) FundingRateHistory {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(contract, "settleTime")
 	var marketId *string = this.SafeString(contract, "symbol")
-	return map[string]any{
+	return FundingRateHistoryFromMap(map[string]any{
 		"info":        contract,
 		"symbol":      this.SafeSymbol(marketId, market),
 		"fundingRate": this.SafeNumber(contract, "settleRate"),
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
-	}
+	})
 }
 
 /**
@@ -3531,7 +3531,11 @@ func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan AsyncResult[[]T
 	}
 	var results []any = []any{}
 	for i := 0; i < len(response); i++ {
-		results = append(results, this.Extend(this.ParseTransactionWithType(this.SafeDictMap(response, i, map[string]any{}), currency, transactType), paramsUntil))
+		responseDict286870, _ := response[i].(map[string]any)
+		if responseDict286870 == nil {
+			responseDict286870 = map[string]any{}
+		}
+		results = append(results, this.Extend(this.ParseTransactionWithType(responseDict286870, currency, transactType), paramsUntil))
 	}
 	var sorted []any = this.SortBy(results, "timestamp")
 	var currencyCode any
@@ -4191,7 +4195,7 @@ func (this *Toobit) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": nil,
 	}
 }
-func (this *Toobit) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Toobit) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil
 	}

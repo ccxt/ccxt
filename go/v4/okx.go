@@ -11935,14 +11935,14 @@ func (this *Okx) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[string]a
 	var data []any = SafeListTyped(response, "data")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		result = append(result, this.ParseSettlement(data[i], market))
+		result = append(result, this.ParseSettlement(this.Extend(map[string]any{}, data[i]), market))
 	}
 	var sorted []any = this.SortBy(result, "timestamp")
 
 	ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList(this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit))}
 	return nil
 }
-func (this *Okx) ParseSettlement(settlement any, market any) map[string]any {
+func (this *Okx) ParseSettlement(settlement map[string]any, market any) map[string]any {
 	//
 	//     {
 	//         "insId": "BTC-USD-230521-28500-P",
@@ -11994,7 +11994,7 @@ func (this *Okx) ParseSettlements(settlements []any, market any) []any {
 		var timestamp *int64 = this.SafeInteger(entry, "ts")
 		var details []any = SafeListTyped(entry, "details")
 		for j := 0; j < len(details); j++ {
-			var settlement map[string]any = this.ParseSettlement(details[j], market)
+			var settlement map[string]any = this.ParseSettlement(this.Extend(map[string]any{}, details[j]), market)
 			result = append(result, this.Extend(settlement, map[string]any{
 				"timestamp": timestamp,
 				"datetime":  this.Iso8601(timestamp),
@@ -12554,7 +12554,7 @@ func (this *Okx) fetchOptionChainBody(ch chan AsyncResult[map[string]Option], co
 	ch <- AsyncResult[map[string]Option]{Value: OptionMapFromMap(this.ParseOptionChain(result, nil, "instId"))}
 	return nil
 }
-func (this *Okx) ParseOption(chain any, optionalArgs ...any) Option {
+func (this *Okx) ParseOption(chain map[string]any, optionalArgs ...any) Option {
 	//
 	//     {
 	//         "instType": "OPTION",
@@ -13090,7 +13090,7 @@ func (this *Okx) fetchConvertCurrenciesBody(ch chan AsyncResult[Currencies], opt
 	ch <- AsyncResult[Currencies]{Value: CurrenciesFromMap(result)}
 	return nil
 }
-func (this *Okx) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Okx) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

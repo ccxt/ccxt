@@ -327,13 +327,11 @@ func (this *Bithumb) HandleTicker(client ccxt.ClientInterface, message map[strin
 	//         "stream_type": "REALTIME"
 	//     }
 	//
-	var content any = this.SafeDict(message, "content")
+	var content, _ = message["content"].(map[string]any)
 	var isGenerationTwo bool = (content == nil)
-	var tickerMessage any = nil
-	if isGenerationTwo {
-		tickerMessage = message
-	} else {
-		tickerMessage = content
+	var tickerMessage any = message
+	if !isGenerationTwo {
+		tickerMessage = this.SafeDict(message, "content", map[string]any{})
 	}
 	var marketId *string = this.SafeString2(tickerMessage, "symbol", "code")
 	if marketId == nil {
@@ -904,9 +902,9 @@ func (this *Bithumb) ParseWsTrade(trade any, optionalArgs ...any) map[string]any
 		timestamp = &timestampValue
 	}
 	var sideId *string = this.SafeString(trade, "buySellGb")
-	var ternaryStr71620 string = "sell"
+	var ternaryStr71420 string = "sell"
 	if sideId != nil && *sideId == "1" {
-		ternaryStr71620 = "buy"
+		ternaryStr71420 = "buy"
 	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"id":           nil,
@@ -916,7 +914,7 @@ func (this *Bithumb) ParseWsTrade(trade any, optionalArgs ...any) map[string]any
 		"symbol":       this.SafeSymbol(marketId, market, "_"),
 		"order":        nil,
 		"type":         nil,
-		"side":         ternaryStr71620,
+		"side":         ternaryStr71420,
 		"takerOrMaker": nil,
 		"price":        this.SafeString(trade, "contPrice"),
 		"amount":       this.SafeString(trade, "contQty"),

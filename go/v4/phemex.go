@@ -7220,13 +7220,13 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan AsyncResult[[]ADL], option
 	ranks, _ = data["positions"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(ranks); i++ {
-		result = append(result, this.ParseADLRank(ranks[i]))
+		result = append(result, this.ParseADLRank(this.Extend(map[string]any{}, ranks[i])))
 	}
 
 	ch <- AsyncResult[[]ADL]{Value: ADLsFromList(this.FilterByArrayADLRanks(result, "symbol", symbolsNormalized, false))}
 	return nil
 }
-func (this *Phemex) ParseADLRank(info any, optionalArgs ...any) map[string]any {
+func (this *Phemex) ParseADLRank(info map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// fetchPositionADLRank: linear
 	//
@@ -7356,7 +7356,7 @@ func (this *Phemex) ParseADLRank(info any, optionalArgs ...any) map[string]any {
 		"datetime":   nil,
 	}
 }
-func (this *Phemex) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Phemex) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

@@ -1911,10 +1911,10 @@ func (this *Predictfun) fetchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
  * @param {object} [market] the outcome the trade belongs to
  * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-func (this *Predictfun) ParsePredictionTrade(trade any, optionalArgs ...any) any {
+func (this *Predictfun) ParsePredictionTrade(trade map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var party map[string]any = ccxt.SafeMapTyped(trade, "partyToParse")
+	var party, _ = trade["partyToParse"].(map[string]any)
 	// fetchMyTrades spans several markets at once, so the row's identity comes from the party
 	// it carries rather than from the outcome the caller asked for
 	var partyOutcome, _ = party["outcome"].(map[string]any)
@@ -2558,7 +2558,11 @@ func (this *Predictfun) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
 	//         "success": true
 	//     }
 	//
-	var rows any = this.SafeList(response, "data", []any{})
+	var rows []any
+	rows, _ = response["data"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 	if outcomesLength == 0 {
 
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionPosition]{Value: ccxt.PredictionPositionsFromList(this.ParsePredictionPositions(rows))}
@@ -2646,11 +2650,11 @@ func (this *Predictfun) fetchPositionBody(ch chan ccxt.AsyncResult[ccxt.Predicti
  * @param {object} [market] not used by predictfun parsePredictionPosition
  * @returns {object} a [position structure](https://docs.ccxt.com/#/?id=position-structure)
  */
-func (this *Predictfun) ParsePredictionPosition(position any, optionalArgs ...any) map[string]any {
+func (this *Predictfun) ParsePredictionPosition(position map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var rawOutcome map[string]any = ccxt.SafeMapTyped(position, "outcome")
-	var rawMarket map[string]any = ccxt.SafeMapTyped(position, "market")
+	var rawOutcome, _ = position["outcome"].(map[string]any)
+	var rawMarket, _ = position["market"].(map[string]any)
 	var tokenId *string = this.SafeString(rawOutcome, "onChainId")
 	var outcomeObj any = this.OutcomeForToken(tokenId, market)
 	// shares are collateral wei, the usd figures come back already scaled
@@ -3297,7 +3301,7 @@ func (this *Predictfun) ParseOrderStatus(status *string) *string {
  * @param {object} requestBody the request body
  * @returns {undefined} nothing, it throws when the venue reported a failure
  */
-func (this *Predictfun) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Predictfun) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil
 	}

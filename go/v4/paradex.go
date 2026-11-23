@@ -4878,10 +4878,17 @@ func (this *Paradex) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol
 	var configs []any
 	configs, _ = response["configs"].([]any)
 
-	ch <- AsyncResult[MarginMode]{Value: this.ParseMarginMode(this.SafeDict(configs, 0), market)}
+	var configsDict340437 map[string]any
+	if len(configs) > 0 {
+		configsDict340437, _ = configs[0].(map[string]any)
+	}
+	if configsDict340437 == nil {
+		configsDict340437 = map[string]any{}
+	}
+	ch <- AsyncResult[MarginMode]{Value: this.ParseMarginMode(configsDict340437, market)}
 	return nil
 }
-func (this *Paradex) ParseMarginMode(rawMarginMode any, optionalArgs ...any) MarginMode {
+func (this *Paradex) ParseMarginMode(rawMarginMode map[string]any, optionalArgs ...any) MarginMode {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(rawMarginMode, "market")
@@ -5471,15 +5478,18 @@ func (this *Paradex) fetchOptionChainBody(ch chan AsyncResult[map[string]Option]
 	var result map[string]any = map[string]any{}
 	var prefix string = code + "-"
 	for i := 0; i < len(data); i++ {
-		var entry, _ = data[i].(map[string]any)
-		var marketId string = *this.SafeString(entry, "symbol", "")
+		var marketId string = *this.SafeString(data[i], "symbol", "")
 		// the id starts with the base, so the other underlyings are skipped before the market is resolved
 		if strings.HasPrefix(marketId, prefix) {
 			// options left out by options.fetchMarkets.types are rebuilt from their id
 			var market map[string]any = this.SafeMarket(marketId)
 			if market["option"] == true {
 				var optionSymbol string = *this.SafeString(market, "symbol", "")
-				result[optionSymbol] = OptionToMap(this.ParseOption(data[i], nil, market))
+				dataDict380061, _ := data[i].(map[string]any)
+				if dataDict380061 == nil {
+					dataDict380061 = map[string]any{}
+				}
+				result[optionSymbol] = OptionToMap(this.ParseOption(dataDict380061, nil, market))
 			}
 		}
 	}
@@ -5487,7 +5497,7 @@ func (this *Paradex) fetchOptionChainBody(ch chan AsyncResult[map[string]Option]
 	ch <- AsyncResult[map[string]Option]{Value: OptionMapFromMap(result)}
 	return nil
 }
-func (this *Paradex) ParseOption(chain any, optionalArgs ...any) Option {
+func (this *Paradex) ParseOption(chain map[string]any, optionalArgs ...any) Option {
 	//
 	//     {
 	//         "symbol": "BTC-USD-25JUN27-86000-C",
@@ -5597,11 +5607,11 @@ func (this *Paradex) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistor
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var retRes388619 []any = r2.Value
-		if retRes388619 == nil {
+		var retRes388519 []any = r2.Value
+		if retRes388519 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes388619)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes388519)}
 		}
 		return nil
 	}
@@ -5915,7 +5925,7 @@ func (this *Paradex) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": nil,
 	}
 }
-func (this *Paradex) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Paradex) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

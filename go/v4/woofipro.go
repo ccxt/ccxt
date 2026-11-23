@@ -4412,7 +4412,7 @@ func (this *Woofipro) withdrawBody(ch chan AsyncResult[Transaction], code string
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(data, currency)}
 	return nil
 }
-func (this *Woofipro) ParseMarginMode(marginMode any, optionalArgs ...any) MarginMode {
+func (this *Woofipro) ParseMarginMode(marginMode map[string]any, optionalArgs ...any) MarginMode {
 	//
 	//     {
 	//         "symbol": "PERP_BTC_USDC",
@@ -5184,7 +5184,7 @@ func (this *Woofipro) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": requestHeaders,
 	}
 }
-func (this *Woofipro) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Woofipro) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

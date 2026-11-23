@@ -5067,7 +5067,7 @@ func (this *Kraken) Sign(path string, optionalArgs ...any) map[string]any {
 func (this *Kraken) Nonce() int64 {
 	return this.Milliseconds() - *this.SafeInteger(this.Options, "timeDifference", 0)
 }
-func (this *Kraken) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Kraken) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if code == 520 {
 		panic(ExchangeNotAvailable(this.Id + " " + strconv.FormatInt(code, 10) + " " + reason))
 	}

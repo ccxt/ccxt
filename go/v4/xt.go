@@ -7883,7 +7883,7 @@ func (this *Xt) editOrderBody(ch chan AsyncResult[Order], id string, symbol stri
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(response, "result", map[string]any{}), market)}
 	return nil
 }
-func (this *Xt) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Xt) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	//
 	// spot: error
 	//

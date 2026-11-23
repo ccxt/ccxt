@@ -4724,7 +4724,7 @@ func (this *Woo) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	return literal357715
 }
-func (this *Woo) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Woo) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
@@ -6336,7 +6336,7 @@ func (this *Woo) fetchPositionsADLRankBody(ch chan AsyncResult[[]ADL], optionalA
 	ch <- AsyncResult[[]ADL]{Value: ADLsFromList(this.ParseADLRanks(positions, symbolsNormalized))}
 	return nil
 }
-func (this *Woo) ParseADLRank(info any, optionalArgs ...any) map[string]any {
+func (this *Woo) ParseADLRank(info map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// fetchPositionsADLRank
 	//

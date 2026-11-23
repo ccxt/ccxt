@@ -323,8 +323,7 @@ func (this *Bitvavo) HandleBidAsk(client ccxt.ClientInterface, message map[strin
 	var tickers, _ = message["data"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(tickers); i++ {
-		var data any = tickers[i]
-		var ticker map[string]any = this.ParseWsBidAsk(data)
+		var ticker map[string]any = this.ParseWsBidAsk(this.SafeDict(tickers, i, map[string]any{}))
 		var symbol string = *this.SafeString(ticker, "symbol", "")
 		this.Bidsasks[symbol] = ccxt.TickerFromMap(ticker)
 		result = append(result, ticker)
@@ -699,8 +698,7 @@ func (this *Bitvavo) HandleOHLCV(client ccxt.ClientInterface, message map[string
 		}
 	}
 	for i := 0; i < len(candles); i++ {
-		var candle any = candles[i]
-		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(candle, market))
+		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(candles[i], market))
 		stored.Append(parsed)
 	}
 	client.Resolve(stored, messageHash)
@@ -1134,7 +1132,7 @@ func (this *Bitvavo) HandleDeltas(bookside ccxt.IOrderBookSide, deltas []any) {
 		this.HandleDelta(bookside, deltas[i])
 	}
 }
-func (this *Bitvavo) HandleOrderBookMessage(client ccxt.ClientInterface, message any, orderbook ccxt.OrderBookInterface) any {
+func (this *Bitvavo) HandleOrderBookMessage(client ccxt.ClientInterface, message map[string]any, orderbook ccxt.OrderBookInterface) any {
 	//
 	//     {
 	//         "event": "book",
@@ -1282,7 +1280,10 @@ func (this *Bitvavo) HandleOrderBookSnapshot(client ccxt.ClientInterface, messag
 	// unroll the accumulated deltas
 	var messages []any = orderbook.GetCache()
 	for i := 0; i < len(messages); i++ {
-		var messageItem any = messages[i]
+		var messageItem, _ = messages[i].(map[string]any)
+		if messageItem == nil {
+			messageItem = map[string]any{}
+		}
 		this.HandleOrderBookMessage(client, messageItem, orderbook)
 	}
 	if symbol != nil {

@@ -1379,17 +1379,17 @@ func (this *Coinbaseinternational) fetchFundingRateHistoryBody(ch chan AsyncResu
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.ParseFundingRateHistories(rawRates, market, since, limit))}
 	return nil
 }
-func (this *Coinbaseinternational) ParseFundingRateHistory(info any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) ParseFundingRateHistory(info any, optionalArgs ...any) FundingRateHistory {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var fundingRate map[string]any = FundingRateToMap(this.ParseFundingRate(this.Extend(map[string]any{}, info), market))
-	return map[string]any{
+	return FundingRateHistoryFromMap(map[string]any{
 		"info":        info,
 		"symbol":      fundingRate["symbol"],
 		"fundingRate": fundingRate["fundingRate"],
 		"timestamp":   fundingRate["timestamp"],
 		"datetime":    fundingRate["datetime"],
-	}
+	})
 }
 func (this *Coinbaseinternational) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
@@ -4517,7 +4517,7 @@ func (this *Coinbaseinternational) ResolveRoute(optionalArgs ...any) bool {
 	}
 	return (len(this.ApiKey) == 8) && (len(this.Secret) == 43)
 }
-func (this *Coinbaseinternational) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Coinbaseinternational) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	//
 	//     { "jsonrpc": "2.0", "id": 1, "error": { "code": 13004, "message": "invalid_credentials" } }
 	//

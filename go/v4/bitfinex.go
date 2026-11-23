@@ -4236,7 +4236,7 @@ func (this *Bitfinex) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResolved,
 	}
 }
-func (this *Bitfinex) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Bitfinex) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	// ["error", 11010, "ratelimit: error"]
 	if response != nil {
 		if !IsArray(response) {
@@ -4263,7 +4263,8 @@ func (this *Bitfinex) HandleErrors(code int64, reason string, url string, method
 	if response == nil {
 		return nil
 	}
-	return true
+	retBoolVal := true
+	return &retBoolVal
 }
 func (this *Bitfinex) ParseLedgerEntryType(typeVar *string) any {
 	if typeVar == nil {
@@ -4663,7 +4664,7 @@ func (this *Bitfinex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 	var rates []any = []any{}
 	for i := 0; i < len(rawRatesData); i++ {
 		var fr any = rawRatesData[i]
-		var rate any = this.ParseFundingRateHistory(fr, market)
+		var rate any = FundingRateHistoryToMap(this.ParseFundingRateHistory(fr, market))
 		rates = append(rates, rate)
 	}
 	var reversedArray []any = []any{}
@@ -4733,7 +4734,7 @@ func (this *Bitfinex) ParseFundingRate(contract map[string]any, optionalArgs ...
 		"interval":                 nil,
 	})
 }
-func (this *Bitfinex) ParseFundingRateHistory(contract any, optionalArgs ...any) any {
+func (this *Bitfinex) ParseFundingRateHistory(contract any, optionalArgs ...any) FundingRateHistory {
 	//
 	// [
 	//     1691165494000,
@@ -4764,13 +4765,13 @@ func (this *Bitfinex) ParseFundingRateHistory(contract any, optionalArgs ...any)
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(contract, 0)
-	return map[string]any{
+	return FundingRateHistoryFromMap(map[string]any{
 		"info":        contract,
 		"symbol":      this.SafeSymbol(nil, market),
 		"fundingRate": this.SafeNumber(contract, 11),
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
-	}
+	})
 }
 
 /**

@@ -4798,7 +4798,7 @@ func (this *Blofin) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol 
 	ch <- AsyncResult[MarginMode]{Value: this.ParseMarginMode(data, market)}
 	return nil
 }
-func (this *Blofin) ParseMarginMode(marginMode any, optionalArgs ...any) MarginMode {
+func (this *Blofin) ParseMarginMode(marginMode map[string]any, optionalArgs ...any) MarginMode {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return MarginModeFromMap(map[string]any{
@@ -5040,7 +5040,7 @@ func (this *Blofin) fetchPositionsADLRankBody(ch chan AsyncResult[[]ADL], option
 	ch <- AsyncResult[[]ADL]{Value: ADLsFromList(this.ParseADLRanks(data, symbolsNormalized))}
 	return nil
 }
-func (this *Blofin) ParseADLRank(info any, optionalArgs ...any) map[string]any {
+func (this *Blofin) ParseADLRank(info map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// fetchPositionsADLRank
 	//
@@ -5080,7 +5080,7 @@ func (this *Blofin) ParseADLRank(info any, optionalArgs ...any) map[string]any {
 		"datetime":   this.Iso8601(timestamp),
 	}
 }
-func (this *Blofin) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Blofin) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

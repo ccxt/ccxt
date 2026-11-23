@@ -4095,7 +4095,7 @@ func (this *Deepcoin) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.ParseFundingRateHistories(rows, market, since, limit))}
 	return nil
 }
-func (this *Deepcoin) ParseFundingRateHistory(info any, optionalArgs ...any) any {
+func (this *Deepcoin) ParseFundingRateHistory(info any, optionalArgs ...any) FundingRateHistory {
 	//
 	//     {
 	//         "instrumentID": "ETHUSD",
@@ -4109,13 +4109,13 @@ func (this *Deepcoin) ParseFundingRateHistory(info any, optionalArgs ...any) any
 	var timestamp *int64 = this.SafeTimestamp(info, "CreateTime")
 	var instrumentID *string = this.SafeString2(info, "instrumentID", "instrumentId")
 	var marketResolved map[string]any = this.SafeMarket(instrumentID, market, nil, "swap")
-	return map[string]any{
+	return FundingRateHistoryFromMap(map[string]any{
 		"info":        info,
 		"symbol":      marketResolved["symbol"],
 		"fundingRate": this.SafeNumber(info, "rate"),
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
-	}
+	})
 }
 
 /**
@@ -4425,7 +4425,7 @@ func (this *Deepcoin) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": nil,
 	}
 }
-func (this *Deepcoin) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Deepcoin) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	var data map[string]any = SafeMapTyped(response, "data")
 	var msg *string = this.SafeString(response, "msg")
 	var messageCode *string = this.SafeString(response, "code")

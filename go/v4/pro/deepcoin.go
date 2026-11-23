@@ -1163,14 +1163,17 @@ func (this *Deepcoin) HandleOrderBookSnapshot(client ccxt.ClientInterface, messa
 	orderbook.Reset(snapshot)
 	var cachedMessages []any = orderbook.GetCache()
 	for j := 0; j < len(cachedMessages); j++ {
-		var cachedMessage any = cachedMessages[j]
+		var cachedMessage, _ = cachedMessages[j].(map[string]any)
+		if cachedMessage == nil {
+			cachedMessage = map[string]any{}
+		}
 		this.HandleOrderBookMessage(client, cachedMessage, orderbook)
 	}
 	orderbook.SetCache([]any{})
 	var messageHash string = "orderbook" + "::" + *symbol
 	client.Resolve(orderbook, messageHash)
 }
-func (this *Deepcoin) HandleOrderBookMessage(client ccxt.ClientInterface, message any, orderbook ccxt.OrderBookInterface) {
+func (this *Deepcoin) HandleOrderBookMessage(client ccxt.ClientInterface, message map[string]any, orderbook ccxt.OrderBookInterface) {
 	//     {
 	//         "a": "PMO",
 	//         "t": "i", // i - update, f - snapshot

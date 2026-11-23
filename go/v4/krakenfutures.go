@@ -4917,7 +4917,7 @@ func (this *Krakenfutures) ParseLeverage(leverage map[string]any, optionalArgs .
 		"shortLeverage": leverageValue,
 	})
 }
-func (this *Krakenfutures) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Krakenfutures) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil
 	}

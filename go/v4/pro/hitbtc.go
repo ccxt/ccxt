@@ -686,7 +686,7 @@ func (this *Hitbtc) HandleTicker(client ccxt.ClientInterface, message map[string
 		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = this.SafeSymbol(marketId, market)
-		var ticker map[string]any = this.ParseWsTicker(data[marketId], market)
+		var ticker map[string]any = this.ParseWsTicker(this.SafeDict(data, marketId, map[string]any{}), market)
 		if symbol != nil {
 			this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 		}
@@ -850,7 +850,7 @@ func (this *Hitbtc) HandleBidAsk(client ccxt.ClientInterface, message map[string
 		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = this.SafeSymbol(marketId, market)
-		var ticker map[string]any = this.ParseWsBidAsk(data[marketId], market)
+		var ticker map[string]any = this.ParseWsBidAsk(this.SafeDict(data, marketId, map[string]any{}), market)
 		if symbol != nil {
 			this.Bidsasks[*symbol] = ccxt.TickerFromMap(ticker)
 		}

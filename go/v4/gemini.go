@@ -2884,7 +2884,7 @@ func (this *Gemini) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersSigned,
 	}
 }
-func (this *Gemini) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Gemini) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		if true {
 			var feedback string = this.Id + " " + body

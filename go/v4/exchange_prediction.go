@@ -815,30 +815,30 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan AsyncResult[map[string]
 	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
 	_ = params
 	if outcomes != nil {
-		var missing []any = []any{}
+		var wasWarm bool = (this.Outcomes != nil) && !this.IsEmpty(this.Outcomes)
+		var loadAll *bool = this.SafeBool(this.Options, "loadAllOutcomes", false)
+		if (loadAll != nil && *loadAll) && !wasWarm && !(reload == true) {
+			var coldMiss bool = false
+			for i := 0; i < len(outcomes); i++ {
+				if !this.HasOutcome(outcomes[i]) {
+					coldMiss = true
+				}
+			}
+			if coldMiss {
+
+				r := <-this.LoadOutcomesAsync()
+				if r.Err != nil {
+					panic(r.Err)
+				}
+			}
+		}
+		var missing []string = []string{}
 		for i := 0; i < len(outcomes); i++ {
 			if (reload == true) || !this.HasOutcome(outcomes[i]) {
 				missing = append(missing, outcomes[i])
 			}
 		}
 		var missingLength int = len(missing)
-		var wasWarm bool = (this.Outcomes != nil) && !this.IsEmpty(this.Outcomes)
-		var loadAll *bool = this.SafeBool(this.Options, "loadAllOutcomes", false)
-		if (missingLength > 0) && (loadAll != nil && *loadAll) && !wasWarm && !(reload == true) {
-
-			r := <-this.LoadOutcomesAsync()
-			if r.Err != nil {
-				panic(r.Err)
-			}
-			var stillMissing []any = []any{}
-			for i := 0; i < missingLength; i++ {
-				if !this.HasOutcome(missing[i]) {
-					stillMissing = append(stillMissing, DerefScalar(missing[i]))
-				}
-			}
-			missing = stillMissing
-			missingLength = len(missing)
-		}
 		if missingLength > 0 {
 
 			r1 := <-this.DerivedExchange.FetchOutcomesAsync(missing)
@@ -874,17 +874,17 @@ func (this *PredictionExchange) loadOutcomesBody(ch chan AsyncResult[map[string]
  * @param {string[]} outcomeSymbols the uncached outcome handles or ids to resolve
  * @returns {object} the outcome cache
  */
-func (this *PredictionExchange) FetchOutcomesAsync(outcomeSymbols []any) <-chan AsyncResult[map[string]PredictionOutcome] {
+func (this *PredictionExchange) FetchOutcomesAsync(outcomeSymbols []string) <-chan AsyncResult[map[string]PredictionOutcome] {
 	ch := make(chan AsyncResult[map[string]PredictionOutcome], 1)
 	go this.fetchOutcomesBody(ch, outcomeSymbols)
 	return ch
 }
-func (this *PredictionExchange) fetchOutcomesBody(ch chan AsyncResult[map[string]PredictionOutcome], outcomeSymbols []any) any {
+func (this *PredictionExchange) fetchOutcomesBody(ch chan AsyncResult[map[string]PredictionOutcome], outcomeSymbols []string) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	for i := 0; i < len(outcomeSymbols); i++ {
 
-		r := <-this.DerivedExchange.FetchOutcomeAsync(GetValue(outcomeSymbols, i))
+		r := <-this.DerivedExchange.FetchOutcomeAsync(outcomeSymbols[i])
 		if r.Err != nil {
 			panic(r.Err)
 		}
@@ -1942,7 +1942,7 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 	}
 	return result
 }
-func (this *PredictionExchange) SafePredictionTrade(trade any, optionalArgs ...any) any {
+func (this *PredictionExchange) SafePredictionTrade(trade any, optionalArgs ...any) map[string]any {
 	// build the prediction trade directly (no crypto safeTrade, which leaks fields the type omits)
 	var outcomeObj map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = outcomeObj
@@ -2103,12 +2103,12 @@ func (this *PredictionExchange) ParsePredictionOrder(order any, optionalArgs ...
 	_ = market
 	panic(NotSupported(this.Id + " parsePredictionOrder() is not supported yet"))
 }
-func (this *PredictionExchange) ParsePredictionTrade(trade any, optionalArgs ...any) any {
+func (this *PredictionExchange) ParsePredictionTrade(trade map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parsePredictionTrade() is not supported yet"))
 }
-func (this *PredictionExchange) ParsePredictionPosition(position any, optionalArgs ...any) map[string]any {
+func (this *PredictionExchange) ParsePredictionPosition(position map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parsePredictionPosition() is not supported yet"))
@@ -2147,7 +2147,11 @@ func (this *PredictionExchange) ParsePredictionTrades(trades any, optionalArgs .
 	var rows []any = this.ToArray(trades)
 	var results []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionTrade(rows[i], outcomeObj)
+		rowsDict157454, _ := rows[i].(map[string]any)
+		if rowsDict157454 == nil {
+			rowsDict157454 = map[string]any{}
+		}
+		var parsed any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionTrade(rowsDict157454, outcomeObj)
 		var trade map[string]any = this.Extend(parsed, params)
 		results = append(results, trade)
 	}
@@ -2209,7 +2213,11 @@ func (this *PredictionExchange) ParsePredictionPositions(positions any, optional
 	var rows []any = this.ToArray(positions)
 	var results []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var parsed map[string]any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionPosition(rows[i])
+		rowsDict162657, _ := rows[i].(map[string]any)
+		if rowsDict162657 == nil {
+			rowsDict162657 = map[string]any{}
+		}
+		var parsed map[string]any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionPosition(rowsDict162657)
 		var position map[string]any = this.Extend(parsed, params)
 		results = append(results, position)
 	}

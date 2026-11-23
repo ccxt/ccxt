@@ -1341,7 +1341,10 @@ func (this *Binance) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], 
 			var messages []any = orderbook.GetCache()
 			orderbook.SetCache([]any{})
 			for i := 0; i < len(messages); i++ {
-				var messageItem any = this.SafeValue(messages, i)
+				var messageItem, _ = messages[i].(map[string]any)
+				if messageItem == nil {
+					messageItem = map[string]any{}
+				}
 				var U *int64 = this.SafeInteger(messageItem, "U")
 				var u *int64 = this.SafeInteger(messageItem, "u")
 				if (U == nil) || (u == nil) {
@@ -1396,7 +1399,7 @@ func (this *Binance) HandleDeltas(bookside ccxt.IOrderBookSide, deltas []any) {
 		this.HandleDelta(bookside, this.SafeList(deltas, i))
 	}
 }
-func (this *Binance) HandleOrderBookMessage(client ccxt.ClientInterface, message any, orderbook ccxt.OrderBookInterface) any {
+func (this *Binance) HandleOrderBookMessage(client ccxt.ClientInterface, message map[string]any, orderbook ccxt.OrderBookInterface) any {
 	var u *int64 = this.SafeInteger(message, "u")
 	this.HandleDeltas(orderbook.GetAsks(), this.SafeListSlice(message, "a", []any{}))
 	this.HandleDeltas(orderbook.GetBids(), this.SafeListSlice(message, "b", []any{}))

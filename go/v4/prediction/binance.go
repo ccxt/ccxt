@@ -1817,7 +1817,7 @@ func (this *Binance) fetchPositionBody(ch chan ccxt.AsyncResult[ccxt.PredictionP
  * @param {object} [outcomeObj] the ourtome the position belongs to
  * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
-func (this *Binance) ParsePredictionPosition(position any, optionalArgs ...any) map[string]any {
+func (this *Binance) ParsePredictionPosition(position map[string]any, optionalArgs ...any) map[string]any {
 	var outcomeObj map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = outcomeObj
 	var outcomeObjResolved map[string]any = outcomeObj
@@ -2008,7 +2008,7 @@ func (this *Binance) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
  * @param {object} [outcomeObj] the outcome the trade belongs to
  * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-func (this *Binance) ParsePredictionTrade(trade any, optionalArgs ...any) any {
+func (this *Binance) ParsePredictionTrade(trade map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "orderId": "54124",
@@ -2545,7 +2545,7 @@ func (this *Binance) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Prediction
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(orders)}
 	return nil
 }
-func (this *Binance) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Binance) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil
 	}

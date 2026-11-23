@@ -455,7 +455,10 @@ func (this *Woo) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 			orderbook.Reset(snapshot)
 			var messages []any = orderbook.GetCache()
 			for i := 0; i < len(messages); i++ {
-				var messageItem any = messages[i]
+				var messageItem, _ = messages[i].(map[string]any)
+				if messageItem == nil {
+					messageItem = map[string]any{}
+				}
 				var ts *int64 = this.SafeInteger(messageItem, "ts")
 				if ts == nil {
 					continue
@@ -477,8 +480,8 @@ func (this *Woo) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 	}
 	return nil
 }
-func (this *Woo) HandleOrderBookMessage(client ccxt.ClientInterface, message any, orderbook ccxt.OrderBookInterface) any {
-	var data map[string]any = ccxt.SafeMapTyped(message, "data")
+func (this *Woo) HandleOrderBookMessage(client ccxt.ClientInterface, message map[string]any, orderbook ccxt.OrderBookInterface) any {
+	var data, _ = message["data"].(map[string]any)
 	this.HandleDeltas(orderbook.GetAsks(), this.SafeListSlice(data, "asks", []any{}))
 	this.HandleDeltas(orderbook.GetBids(), this.SafeListSlice(data, "bids", []any{}))
 	var timestamp *int64 = this.SafeInteger(message, "ts")
@@ -912,14 +915,9 @@ func (this *Woo) HandleBidAsk(client ccxt.ClientInterface, message map[string]an
 		if ticker == nil {
 			continue
 		}
-		if ticker != nil {
-			if timestamp != nil {
-				ticker["ts"] = *timestamp
-			} else {
-				ticker["ts"] = nil
-			}
-		}
-		var parsedTicker map[string]any = this.ParseWsBidAsk(ticker)
+		var parsedTicker map[string]any = this.ParseWsBidAsk(this.Extend(ticker, map[string]any{
+			"ts": timestamp,
+		}))
 		var symbol *string = this.SafeString(parsedTicker, "symbol")
 		if symbol != nil {
 			this.Bidsasks[*symbol] = ccxt.TickerFromMap(parsedTicker)
@@ -2020,11 +2018,11 @@ func (this *Woo) HandlePositions(client ccxt.ClientInterface, message map[string
 	for i := 0; i < len(postitionsIds); i++ {
 		var marketId string = postitionsIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
-		rawPositionsDict144649, _ := rawPositions[marketId].(map[string]any)
-		if rawPositionsDict144649 == nil {
-			rawPositionsDict144649 = map[string]any{}
+		rawPositionsDict144549, _ := rawPositions[marketId].(map[string]any)
+		if rawPositionsDict144549 == nil {
+			rawPositionsDict144549 = map[string]any{}
 		}
-		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPositionsDict144649, market))
+		var position map[string]any = ccxt.PositionToMap(this.ParsePosition(rawPositionsDict144549, market))
 		newPositions = append(newPositions, position)
 		cache.Append(position)
 		var marketSymbol string = *this.SafeString(market, "symbol", "")

@@ -2899,12 +2899,12 @@ func (this *Hyperliquid) createOrderBody(ch chan AsyncResult[Order], symbol stri
  * @param {string} [params.vaultAddress] the vault address for order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Hyperliquid) CreateTwapOrderAsync(symbol string, side string, amount float64, duration any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Hyperliquid) CreateTwapOrderAsync(symbol string, side string, amount float64, duration float64, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.createTwapOrderBody(ch, symbol, side, amount, duration, optionalArgs...)
 	return ch
 }
-func (this *Hyperliquid) createTwapOrderBody(ch chan AsyncResult[Order], symbol string, side string, amount float64, duration any, optionalArgs ...any) any {
+func (this *Hyperliquid) createTwapOrderBody(ch chan AsyncResult[Order], symbol string, side string, amount float64, duration float64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -6995,7 +6995,7 @@ func (this *Hyperliquid) CoinToMarketId(coin *string) *string {
 	retStrVal := *retStrPtr + "/USDC:USDC"
 	return &retStrVal
 }
-func (this *Hyperliquid) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Hyperliquid) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

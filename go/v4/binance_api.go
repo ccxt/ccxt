@@ -2282,9 +2282,9 @@ func (this *Binance) DapiPublicGetPremiumIndexKlines(args ...any) <-chan Endpoin
 	return Fetch2Result[[]any](this, "premiumIndexKlines", []string{"dapiPublic"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-// DapiPublicGetTicker24hr returns a channel that yields a JSON object or a JSON array.
-func (this *Binance) DapiPublicGetTicker24hr(args ...any) <-chan AsyncResult[any] {
-	return this.Fetch2Async("ticker/24hr", []string{"dapiPublic"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+// DapiPublicGetTicker24hr returns a channel that yields a JSON array.
+func (this *Binance) DapiPublicGetTicker24hr(args ...any) <-chan EndpointResult[[]any] {
+	return Fetch2Result[[]any](this, "ticker/24hr", []string{"dapiPublic"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // DapiPublicGetTickerPrice returns a channel that yields a JSON array.

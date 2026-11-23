@@ -1671,14 +1671,14 @@ func (this *Derive) fetchOptionBody(ch chan AsyncResult[Option], symbol string, 
 	ch <- AsyncResult[Option]{Value: this.ParseOption(result, nil, market)}
 	return nil
 }
-func (this *Derive) ParseOption(chain any, optionalArgs ...any) Option {
+func (this *Derive) ParseOption(chain map[string]any, optionalArgs ...any) Option {
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var market map[string]any = GetArgMap(optionalArgs, 1, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(chain, "t")
-	var pricing map[string]any = SafeMapTyped(chain, "option_pricing")
-	var stats map[string]any = SafeMapTyped(chain, "stats")
+	var pricing, _ = chain["option_pricing"].(map[string]any)
+	var stats, _ = chain["stats"].(map[string]any)
 	var change *string = this.SafeString(stats, "p")
 	var percentage *string = nil
 	if change != nil {
@@ -1863,7 +1863,7 @@ func (this *Derive) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[strin
 	ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList(this.FilterBySymbolSinceLimit(sorted, symbolResolved, since, limit))}
 	return nil
 }
-func (this *Derive) ParseSettlement(settlement any, optionalArgs ...any) map[string]any {
+func (this *Derive) ParseSettlement(settlement map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// fetchSettlementHistory
 	//
@@ -1911,7 +1911,7 @@ func (this *Derive) ParseSettlements(settlements []any, optionalArgs ...any) []a
 	_ = market
 	var result []any = []any{}
 	for i := 0; i < len(settlements); i++ {
-		result = append(result, this.ParseSettlement(settlements[i], market))
+		result = append(result, this.ParseSettlement(this.Extend(map[string]any{}, settlements[i]), market))
 	}
 	return result
 }
@@ -5614,7 +5614,7 @@ func (this *Derive) HandleDeriveWalletAddress(methodName string, params any) (*s
 	}
 	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires the walletAddress credential, a deriveWalletAddress parameter inside 'params', or exchange.options['deriveWalletAddress'] = ADDRESS."))
 }
-func (this *Derive) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Derive) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

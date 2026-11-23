@@ -3330,7 +3330,7 @@ func (this *Interactivebrokers) fetchLastPricesBody(ch chan AsyncResult[map[stri
 	ch <- AsyncResult[map[string]LastPrice]{Value: LastPriceMapFromMap(this.ParseLastPrices(response, symbolsNormalized))}
 	return nil
 }
-func (this *Interactivebrokers) ParseLastPrice(entry any, optionalArgs ...any) any {
+func (this *Interactivebrokers) ParseLastPrice(entry map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(entry, "conid")
@@ -3760,7 +3760,10 @@ func (this *Interactivebrokers) fetchAccountsBody(ch chan AsyncResult[[]Account]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	portfolioAccounts := r.Value
+	var portfolioAccounts any = nil
+	if r.Value != nil {
+		portfolioAccounts = r.Value
+	}
 	var accountIds []string = ObjectKeys(this.IndexBy(portfolioAccounts, "accountId"))
 	var length int = len(accountIds)
 	if length == 0 {
@@ -3921,12 +3924,12 @@ func (this *Interactivebrokers) fetchServiceAccountsBody(ch chan AsyncResult[any
  * @param {string} [params.method] 'privateGetPortfolioAccounts' (default) or 'privateGetPortfolioSubaccounts'
  * @returns {object[]} the raw response from the exchange
  */
-func (this *Interactivebrokers) FetchPortfolioAccountsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Interactivebrokers) FetchPortfolioAccountsAsync(optionalArgs ...any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchPortfolioAccountsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Interactivebrokers) fetchPortfolioAccountsBody(ch chan AsyncResult[any], optionalArgs ...any) any {
+func (this *Interactivebrokers) fetchPortfolioAccountsBody(ch chan AsyncResult[[]any], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3937,24 +3940,61 @@ func (this *Interactivebrokers) fetchPortfolioAccountsBody(ch chan AsyncResult[a
 		panic(r.Err)
 	}
 	method, query := this.HandleOptionAndParams(params, "fetchPortfolioAccounts", "method", "privateGetPortfolioAccounts")
-	var response []any = nil
 	if method == "privateGetPortfolioSubaccounts" {
 
-		responseRecv := <-this.WebapiGetV1ApiPortfolioSubaccounts(query)
-		if responseRecv.Err != nil {
-			panic(responseRecv.Err)
+		r1 := <-this.WebapiGetV1ApiPortfolioSubaccounts(query)
+		if r1.Err != nil {
+			panic(r1.Err)
 		}
-		response = responseRecv.Value
-	} else {
+		var subaccounts []any = r1.Value
 
-		responseRecv := <-this.WebapiGetV1ApiPortfolioAccounts(query)
-		if responseRecv.Err != nil {
-			panic(responseRecv.Err)
-		}
-		response = responseRecv.Value
+		ch <- AsyncResult[[]any]{Value: subaccounts}
+		return nil
 	}
 
-	ch <- AsyncResult[any]{Value: response}
+	r2 := <-this.WebapiGetV1ApiPortfolioAccounts(query)
+	if r2.Err != nil {
+		panic(r2.Err)
+	}
+	var response []any = r2.Value
+
+	//
+	//    [
+	//        {
+	//            "id": "U3448646",
+	//            "PrepaidCrypto-Z": false,
+	//            "PrepaidCrypto-P": true,
+	//            "brokerageAccess": true,
+	//            "accountId": "U3448646",
+	//            "accountVan": "U3448646",
+	//            "accountTitle": "Toma Todua",
+	//            "displayName": "Toma Todua",
+	//            "accountAlias": null,
+	//            "accountStatus": 1646607600000,
+	//            "currency": "USD",
+	//            "type": "INDIVIDUAL",
+	//            "tradingType": "STKNOPT",
+	//            "businessType": "INDEPENDENT",
+	//            "category": "",
+	//            "ibEntity": "IBLLC-US",
+	//            "faclient": false,
+	//            "clearingStatus": "O",
+	//            "covestor": false,
+	//            "noClientTrading": false,
+	//            "trackVirtualFXPortfolio": true,
+	//            "acctCustType": "INDIVIDUAL",
+	//            "parent": {
+	//                "mmc": [],
+	//                "accountId": "",
+	//                "isMParent": false,
+	//                "isMChild": false,
+	//                "isMultiplex": false
+	//            },
+	//            "desc": "U3448646"
+	//        }
+	//    ]
+	//
+	ch <- AsyncResult[[]any]{Value: response}
 	return nil
 }
 
@@ -5606,11 +5646,11 @@ func (this *Interactivebrokers) fetchPositionsForSymbolBody(ch chan AsyncResult[
 	}
 	var result []any = []any{}
 	for i := 0; i < len(positions); i++ {
-		positionsDict384549, _ := positions[i].(map[string]any)
-		if positionsDict384549 == nil {
-			positionsDict384549 = map[string]any{}
+		positionsDict384449, _ := positions[i].(map[string]any)
+		if positionsDict384449 == nil {
+			positionsDict384449 = map[string]any{}
 		}
-		var position map[string]any = PositionToMap(this.ParsePosition(positionsDict384549, market))
+		var position map[string]any = PositionToMap(this.ParsePosition(positionsDict384449, market))
 		if Precise.StringGt(this.SafeString(position, "contracts", "0"), "0") {
 			result = append(result, position)
 		}
@@ -6008,7 +6048,7 @@ func (this *Interactivebrokers) requestBody(ch chan AsyncResult[any], path strin
 
 	return nil
 }
-func (this *Interactivebrokers) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Interactivebrokers) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if (code == 401) && (*this.SafeBool(this.Options, "useGateway", false)) {
 		// the gateway answers every request with 401 once its sso login is lost (daily reset, container restart, competing login)
 		this.Options["gatewayAuthenticatedTimestamp"] = nil

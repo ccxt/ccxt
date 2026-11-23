@@ -3364,7 +3364,7 @@ func (this *Limitless) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
  * @param {object} [market] the outcome object the trade belongs to
  * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-func (this *Limitless) ParsePredictionTrade(trade any, optionalArgs ...any) any {
+func (this *Limitless) ParsePredictionTrade(trade map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var matchedSize *string = this.SafeString(trade, "matchedSize")
@@ -3470,7 +3470,7 @@ func (this *Limitless) ParsePredictionTrade(trade any, optionalArgs ...any) any 
 		takerOrMakerStr2 := "taker"
 		takerOrMaker = &takerOrMakerStr2
 	}
-	var rawMarket map[string]any = ccxt.SafeMapTyped(trade, "market")
+	var rawMarket, _ = trade["market"].(map[string]any)
 	var slug *string = this.SafeString(rawMarket, "slug")
 	var outcomeIndex *int64 = this.SafeInteger(trade, "outcomeIndex")
 	var label string = "no"
@@ -3688,7 +3688,7 @@ func (this *Limitless) GetPositionFromClobEntry(label *string, optionalArgs ...a
  * @param {object} [market] the outcome object the position belongs to
  * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
-func (this *Limitless) ParsePredictionPosition(position any, optionalArgs ...any) map[string]any {
+func (this *Limitless) ParsePredictionPosition(position map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "cost": "995720",
@@ -4123,7 +4123,7 @@ func (this *Limitless) Sign(path string, optionalArgs ...any) map[string]any {
  * @name limitless#handleErrors
  * @description maps limitless error responses to ccxt exceptions
  */
-func (this *Limitless) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Limitless) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil
 	}

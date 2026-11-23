@@ -1905,14 +1905,14 @@ func (this *Extended) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 				"cursor": cursor,
 			})
 		}
-		result = append(result, this.ParseFundingRateHistory(entry, market))
+		result = append(result, FundingRateHistoryToMap(this.ParseFundingRateHistory(entry, market)))
 	}
 	var sorted []any = this.SortBy(result, "timestamp")
 
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.FilterBySymbolSinceLimit(sorted, symbolValue, sinceResolved, limitResolved))}
 	return nil
 }
-func (this *Extended) ParseFundingRateHistory(info any, optionalArgs ...any) any {
+func (this *Extended) ParseFundingRateHistory(info any, optionalArgs ...any) FundingRateHistory {
 	//
 	//     {
 	//       "m": "BTC-USD",
@@ -1925,13 +1925,13 @@ func (this *Extended) ParseFundingRateHistory(info any, optionalArgs ...any) any
 	var marketId *string = this.SafeString(info, "m")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var timestamp *int64 = this.SafeInteger(info, "T")
-	return map[string]any{
+	return FundingRateHistoryFromMap(map[string]any{
 		"info":        info,
 		"symbol":      marketResolved["symbol"],
 		"fundingRate": this.SafeNumber(info, "f"),
 		"timestamp":   timestamp,
 		"datetime":    this.Iso8601(timestamp),
-	}
+	})
 }
 
 /**
@@ -5000,7 +5000,7 @@ func (this *Extended) GetExtendedTransferMsgHash(settlement map[string]any) stri
 	var transferHash any = this.ConvertToBigInt(this.ExtendedStarknetComputePoseidonHashOnElements([]any{transferTypeHash, this.ConvertToBigInt(this.SafeString(settlement, "senderPositionId", "0")), this.ConvertToBigInt(this.SafeString(settlement, "receiverPositionId", "0")), this.ConvertToBigInt(this.SafeString(settlement, "assetId", "0")), this.ConvertToBigInt(this.SafeString(settlement, "amount", "0")), this.ConvertToBigInt(this.SafeString(settlement, "expirationTimestamp", "0")), this.ConvertToBigInt(this.SafeString(settlement, "nonce", "0"))}))
 	return this.ExtendedStarknetComputePoseidonHashOnElements([]any{this.GetExtendedStringToFelt("StarkNet Message"), domainHash, senderPublicKey, transferHash})
 }
-func (this *Extended) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Extended) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil // fallback to default error handler
 	}

@@ -1877,7 +1877,7 @@ func (this *Blockchaincom) Sign(path string, optionalArgs ...any) map[string]any
 	}
 	return literal131315
 }
-func (this *Blockchaincom) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Blockchaincom) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	// {"timestamp":"2021-10-21T15:13:58.837+00:00","status":404,"error":"Not Found","message":"","path":"/orders/505050"
 	if response == nil {
 		return nil

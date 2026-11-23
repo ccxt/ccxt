@@ -1314,17 +1314,17 @@ func (this *Polymarket) fetchOutcomeBody(ch chan ccxt.AsyncResult[ccxt.Predictio
  * @param {string[]} outcomeSymbols outcome token ids or handles
  * @returns {object} the outcome cache
  */
-func (this *Polymarket) FetchOutcomesAsync(outcomeSymbols []any) <-chan ccxt.AsyncResult[map[string]ccxt.PredictionOutcome] {
+func (this *Polymarket) FetchOutcomesAsync(outcomeSymbols []string) <-chan ccxt.AsyncResult[map[string]ccxt.PredictionOutcome] {
 	ch := make(chan ccxt.AsyncResult[map[string]ccxt.PredictionOutcome], 1)
 	go this.fetchOutcomesBody(ch, outcomeSymbols)
 	return ch
 }
-func (this *Polymarket) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]ccxt.PredictionOutcome], outcomeSymbols []any) any {
+func (this *Polymarket) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]ccxt.PredictionOutcome], outcomeSymbols []string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var tokenIds []string = []string{}
 	for i := 0; i < len(outcomeSymbols); i++ {
-		var outcomeSymbol string = *this.SafeString(outcomeSymbols, i, "")
+		var outcomeSymbol string = outcomeSymbols[i]
 		// only id-like symbols (no ':', no searchable words) belong in the by-id batch —
 		// see the same gate in fetchOutcome. absence must be `< 0` — the php transpiler
 		// maps that to `=== false`, while a literal `=== -1` passes through and never
@@ -1383,7 +1383,7 @@ func (this *Polymarket) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]cc
 		this.PopulateOutcomes()
 	}
 	for i := 0; i < len(outcomeSymbols); i++ {
-		var pendingSymbol string = *this.SafeString(outcomeSymbols, i, "")
+		var pendingSymbol string = outcomeSymbols[i]
 		if !this.HasOutcome(pendingSymbol) {
 
 			r1 := <-this.FetchOutcomeAsync(pendingSymbol)
@@ -1518,7 +1518,7 @@ func (this *Polymarket) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccx
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var targets []string = []string{}
+	var targets []any = []any{}
 	for oi := 0; oi < len(outcomes); oi++ {
 		targets = append(targets, outcomes[oi])
 	}
@@ -2395,7 +2395,7 @@ func (this *Polymarket) fetchOrderTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Pre
  * @param {object} [market] the outcome object the trade belongs to
  * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-func (this *Polymarket) ParsePredictionTrade(trade any, optionalArgs ...any) any {
+func (this *Polymarket) ParsePredictionTrade(trade map[string]any, optionalArgs ...any) map[string]any {
 	// public data-api trades use 'asset'/'orderId'/'transactionHash'/'timestamp'
 	// the private CLOB /data/trades use 'asset_id'/'taker_order_id'/'transaction_hash'/'match_time'
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
@@ -2653,7 +2653,7 @@ func (this *Polymarket) fetchPositionBody(ch chan ccxt.AsyncResult[ccxt.Predicti
  * @param {object} [market] the outcome object the position belongs to
  * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
  */
-func (this *Polymarket) ParsePredictionPosition(position any, optionalArgs ...any) map[string]any {
+func (this *Polymarket) ParsePredictionPosition(position map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var tokenId *string = this.SafeString(position, "asset")
@@ -3945,7 +3945,7 @@ func (this *Polymarket) ParseEvents(rawEvents []any) []any {
 	}
 	return result
 }
-func (this *Polymarket) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Polymarket) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	// the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg")
 	// map the known messages so callers can distinguish a dead book or a rejected order
 	// from a transport outage (the base otherwise maps a bare 404 to a retryable error)
@@ -4955,7 +4955,7 @@ func (this *Polymarket) HandleMyTrade(client ccxt.ClientInterface, event any) {
 		this.MyTrades = ccxt.NewArrayCacheByOutcomeById(limit)
 	}
 	var stored ccxt.WsArrayCache = this.MyTrades
-	var parsed any = this.ParsePredictionTrade(event)
+	var parsed any = this.ParsePredictionTrade(this.Extend(map[string]any{}, event))
 	stored.Append(parsed)
 	client.Resolve(stored, "myTrades")
 	var outcome *string = this.SafeString(parsed, "outcome")
@@ -5098,7 +5098,7 @@ func (this *Polymarket) FetchOutcome(outcomeSymbol string) (map[string]any, erro
  * @returns {object} the outcome cache
  */
 func (this *Polymarket) FetchOutcomes(outcomeSymbols []string) (map[string]any, error) {
-	r := <-this.FetchOutcomesAsync(ccxt.StringSliceToList(outcomeSymbols))
+	r := <-this.FetchOutcomesAsync(outcomeSymbols)
 	if r.Err != nil {
 		return map[string]any{}, r.Err
 	}

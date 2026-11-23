@@ -11555,7 +11555,7 @@ func (this *Bybit) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[string
 	ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList(this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit))}
 	return nil
 }
-func (this *Bybit) ParseSettlement(settlement any, market any) map[string]any {
+func (this *Bybit) ParseSettlement(settlement map[string]any, market any) map[string]any {
 	//
 	// fetchSettlementHistory
 	//
@@ -11617,7 +11617,7 @@ func (this *Bybit) ParseSettlements(settlements []any, market any) []any {
 	//
 	var result []any = []any{}
 	for i := 0; i < len(settlements); i++ {
-		result = append(result, this.ParseSettlement(settlements[i], market))
+		result = append(result, this.ParseSettlement(this.Extend(map[string]any{}, settlements[i]), market))
 	}
 	return result
 }
@@ -12668,7 +12668,7 @@ func (this *Bybit) fetchOptionChainBody(ch chan AsyncResult[map[string]Option], 
 	ch <- AsyncResult[map[string]Option]{Value: OptionMapFromMap(this.ParseOptionChain(resultList, nil, "symbol"))}
 	return nil
 }
-func (this *Bybit) ParseOption(chain any, optionalArgs ...any) Option {
+func (this *Bybit) ParseOption(chain map[string]any, optionalArgs ...any) Option {
 	//
 	//     {
 	//         "symbol": "BTC-27DEC24-55000-P",
@@ -13590,7 +13590,7 @@ func (this *Bybit) fetchPositionsADLRankBody(ch chan AsyncResult[[]ADL], optiona
 	ch <- AsyncResult[[]ADL]{Value: ADLsFromList(this.ParseADLRanks(ranks, symbolsNormalized))}
 	return nil
 }
-func (this *Bybit) ParseADLRank(info any, optionalArgs ...any) map[string]any {
+func (this *Bybit) ParseADLRank(info map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// fetchPositionsADLRank
 	//
@@ -13705,7 +13705,7 @@ func (this *Bybit) fetchMarginModeBody(ch chan AsyncResult[MarginMode], symbol s
 	ch <- AsyncResult[MarginMode]{Value: this.ParseMarginMode(result, market)}
 	return nil
 }
-func (this *Bybit) ParseMarginMode(marginMode any, optionalArgs ...any) MarginMode {
+func (this *Bybit) ParseMarginMode(marginMode map[string]any, optionalArgs ...any) MarginMode {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marginType *string = this.SafeString(marginMode, "marginMode")
@@ -13859,7 +13859,7 @@ func (this *Bybit) Sign(path string, optionalArgs ...any) map[string]any {
 		"headers": headersResolved,
 	}
 }
-func (this *Bybit) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) any {
+func (this *Bybit) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	if response == nil {
 		return nil // fallback to default error handler
 	}
