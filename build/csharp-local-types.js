@@ -17045,6 +17045,8 @@ export const SIGNATURE_ARG_TYPES = {
     'isLeveragedCurrency': { 2: 'IDictionary<string, object>' },
     // paradex only: both callers pass the `int i` loop counter, the body never writes it
     'unsubscribeChannelAt': { 5: 'Int64' },
+    // `ticker: Dict` (the TypeScript declaration); no body writes the row or reads it as a list
+    'parseTicker': { 0: 'IDictionary<string, object>' },
 };
 
 // parse* cores whose `market: Market` parameter prints `IDictionary<string, object>` on every
