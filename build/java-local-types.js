@@ -59,6 +59,8 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
     'parseSettlements',
     // base reduceFeesByCurrency returns its own `result: any[]` list (arrayConcat writes cast back to List); no override
     'reduceFeesByCurrency',
+    // every parseMarketLeverageTiers returns its own List `tiers`, a new list, or parseEmulatedLeverageTiers (own List)
+    'parseMarketLeverageTiers', 'parseEmulatedLeverageTiers',
 ]);
 // awaited typed cores added by ral-84j7 to build/javaTypedCore.ts BASE_ASYNC_HELPERS (keep in sync)
 const J84J7_TYPED_CORES = { 'fetchDepositAddressesByNetwork': 'Map<String, Object>', 'sendEvmTransaction': 'String' }; // ral-90j5 R1: + sendEvmTransaction
@@ -312,6 +314,9 @@ ROW_PARSER_MAP_RETURN_METHODS.forEach ((m) => { J92J7_MAP_RETURN_METHODS.push (m
 // leverage / margin / account parsers: every declaration returns a literal, a Map local or throws
 const ACCOUNT_PARSER_MAP_RETURN_METHODS = [ 'parseLeverage', 'parseMarginModification', 'parseIncome', 'parseAccount', 'parseDepositWithdrawFee' ];
 ACCOUNT_PARSER_MAP_RETURN_METHODS.forEach ((m) => { J92J7_MAP_RETURN_METHODS.push (m); JAVA_MAP_RETURN_METHODS.add (m); });
+// every declaration (base throws) returns a literal, a HashMap local or this.safeLiquidation (a Map)
+const ROW_PARSER_MAP_RETURN_METHODS_2 = [ 'parseMarginMode', 'parseFundingRateHistory', 'parseBorrowInterest', 'parseLiquidation', 'parseConversion' ];
+ROW_PARSER_MAP_RETURN_METHODS_2.forEach ((m) => { J92J7_MAP_RETURN_METHODS.push (m); JAVA_MAP_RETURN_METHODS.add (m); });
 
 // Methods returning a unified struct (TypedMap view) on every declaration. Return sites:
 // null / same-table this|super call pass, a proven Map prints `new T(x)`, a const local of a
