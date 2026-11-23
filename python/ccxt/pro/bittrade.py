@@ -498,21 +498,20 @@ class bittrade(ccxt.async_support.bittrade):
         #
         id = self.safe_string(message, 'id')
         if id is None:
-            return message
+            return
         subscriptionsById = self.index_by(client.subscriptions, 'id')
         subscription = self.safe_dict(subscriptionsById, id)
         if subscription is not None:
             method = self.safe_string(subscription, 'method')
             if method == 'handleOrderBookSnapshot':
                 self.handle_order_book_snapshot(client, message, subscription)
-                return None
+                return
             elif method == 'handleOrderBookSubscription':
                 self.handle_order_book_subscription(client, message, subscription)
-                return None
+                return
             # clean up
             if id in client.subscriptions:
                 del client.subscriptions[id]
-        return message
 
     def handle_system_status(self, client: Client, message: dict) -> dict:
         #

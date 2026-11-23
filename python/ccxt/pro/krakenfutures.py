@@ -1659,7 +1659,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             if method is not None:
                 method(client, message)
 
-    def handle_authenticate(self, client: Client, message: dict) -> dict:
+    def handle_authenticate(self, client: Client, message: dict):
         """
  @ignore
         https://docs.kraken.com/exchange/api-reference/futures-websocket/challenge
@@ -1686,4 +1686,3 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             client.reject(error, messageHash)
             if messageHash in client.subscriptions:
                 del client.subscriptions[messageHash]
-        return message

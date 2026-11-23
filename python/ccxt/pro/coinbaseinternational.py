@@ -1045,7 +1045,6 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             tradesArray.append(trade)
         self.trades[symbol] = tradesArray
         client.resolve(tradesArray, channel)
-        return message
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """

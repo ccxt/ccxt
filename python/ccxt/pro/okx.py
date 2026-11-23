@@ -2423,7 +2423,6 @@ class okx(ccxt.async_support.okx):
 
     def handle_pong(self, client: Client, message: object):
         client.lastPong = self.milliseconds()
-        return message
 
     def handle_error_message(self, client: Client, message: dict) -> Bool:
         #

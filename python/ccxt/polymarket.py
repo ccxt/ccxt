@@ -1215,7 +1215,7 @@ class polymarket(Exchange, ImplicitAPI):
             }
         return result
 
-    def create_order_request(self, market: Market, type: OrderType, side: OrderSide, amount: object, price: object = None, params: dict = {}) -> dict:
+    def create_order_request(self, market: Market, type: OrderType, side: OrderSide, amount: Str, price: object = None, params: dict = {}) -> dict:
         """
  @ignore
         builds one order for the createOrders operation, returning the compact signable row next to the structured body entry

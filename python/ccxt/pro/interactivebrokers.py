@@ -469,7 +469,9 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
                 self.ohlcvs[unifiedSymbol][timeframe] = ArrayCacheByTimestamp(ohlcvLimit)
             options = self.safe_dict(self.options, 'watchOHLCV', {})
             duration = self.parse_timeframe(timeframe)
-            historyLimit = 100 if (limit is None) else limit
+            historyLimit = 100
+            if limit is not None:
+                historyLimit = self.parse_to_int(limit)
             historyRequest = {
                 'exchange': self.safe_string(options, 'exchange', 'SMART'),
                 'period': self.ibkr_ws_period(duration, historyLimit),

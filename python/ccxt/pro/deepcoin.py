@@ -103,7 +103,6 @@ class deepcoin(ccxt.async_support.deepcoin):
 
     def handle_pong(self, client: Client, message: str):
         client.lastPong = self.milliseconds()
-        return message
 
     def request_id(self) -> int:
         self.lock_id()

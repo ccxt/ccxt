@@ -2363,7 +2363,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
                 raise ExchangeError('Multiple account IDs found, please set .options["accountId"] to desired one from: ' + ', '.join(accountIds))
         accounts = []
         for i in range(0, len(portfolioAccounts)):
-            accounts.append(self.parse_account(portfolioAccounts[i]))
+            accounts.append(self.parse_account(self.extend({}, portfolioAccounts[i])))
         return accounts
 
     def parse_account(self, account: dict) -> Account:

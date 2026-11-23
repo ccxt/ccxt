@@ -1838,7 +1838,7 @@ class krakenfutures(Exchange, ImplicitAPI):
         }
         return self.safe_string(typesMap, orderType, orderType)
 
-    def verify_order_action_success(self, status: object, method: str, omit: list[str] = []):
+    def verify_order_action_success(self, status: Str, method: str, omit: list[str] = []):
         errors = {
             'invalidOrderType': InvalidOrder,
             'invalidSide': InvalidOrder,
@@ -1861,8 +1861,9 @@ class krakenfutures(Exchange, ImplicitAPI):
             'filled': OrderNotFound,
             'notFound': OrderNotFound,
         }
-        if (status in errors) and not self.in_array(status, omit):
-            raise errors[status](self.id + ': ' + method + ' failed due to ' + status)
+        if status is not None:
+            if (status in errors) and not self.in_array(status, omit):
+                raise errors[status](self.id + ': ' + method + ' failed due to ' + status)
 
     def parse_order_status(self, status: Str) -> Str:
         statuses = {

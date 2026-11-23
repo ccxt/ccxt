@@ -2732,7 +2732,6 @@ class bitget(ccxt.async_support.bitget):
 
     def handle_pong(self, client: Client, message: object):
         client.lastPong = self.milliseconds()
-        return message
 
     def handle_subscription_status(self, client: Client, message: dict) -> dict:
         #
