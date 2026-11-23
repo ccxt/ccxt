@@ -617,11 +617,11 @@ export default class blofin extends blofinRest {
      */
     override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         params['callerMethodName'] = 'watchOrders';
-        const symbolsArray: string[] = [];
         if (symbol !== undefined) {
-            symbolsArray.push (symbol);
+            await this.loadMarkets ();
+            return await this.watchOrdersForSymbols ([ this.symbol (symbol) ], since, limit, params);
         }
-        return await this.watchOrdersForSymbols (symbolsArray, since, limit, params);
+        return await this.watchOrdersForSymbols ([], since, limit, params);
     }
 
     /**

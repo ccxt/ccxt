@@ -424,9 +424,9 @@ type ICoreExchange interface {
 	UnWatchTradesForSymbolsAsync(symbols []string, optionalArgs ...any) <-chan AsyncResult[bool]
 	WatchBalanceAsync(optionalArgs ...any) <-chan AsyncResult[Balances]
 	WatchLiquidationsAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
-	WatchLiquidationsForSymbolsAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
+	WatchLiquidationsForSymbolsAsync(symbols []string, optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
 	WatchMyLiquidationsAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
-	WatchMyLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
+	WatchMyLiquidationsForSymbolsAsync(symbols []string, optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
 	WatchOHLCVForSymbolsAsync(symbolsAndTimeframes [][]any, optionalArgs ...any) <-chan AsyncResult[map[string]map[string][]OHLCV]
 	WatchOrderBookAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[OrderBookInterface]
 	WithdrawWsAsync(code string, amount float64, address string, optionalArgs ...any) <-chan AsyncResult[Transaction]
@@ -508,8 +508,8 @@ type IDerivedExchange interface {
 	OnError(client any, err any)
 	OnClose(client any, err any)
 	OnConnected(client any, err any)
-	WatchLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
-	WatchMyLiquidationsForSymbolsAsync(symbols any, optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
+	WatchLiquidationsForSymbolsAsync(symbols []string, optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
+	WatchMyLiquidationsForSymbolsAsync(symbols []string, optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
 	ParseWsTrade(trade any, optionalArgs ...any) map[string]any
 	FetchPositionsADLRankAsync(optionalArgs ...any) <-chan AsyncResult[[]ADL]
 	ParseADLRank(info any, optionalArgs ...any) map[string]any

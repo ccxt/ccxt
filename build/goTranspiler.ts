@@ -7286,6 +7286,9 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     'createUtaOrders': { 0: '[]map[string]any' },
     // ws symbol lists (symbols: string[]) on the base and every override; only the typed wrappers call them
     'watchMyTradesForSymbols': { 0: '[]string' }, 'watchFundingRatesForSymbols': { 0: '[]string' },
+    'watchLiquidationsForSymbols': { 0: '[]string' },
+    'watchMyLiquidationsForSymbols': { 0: '[]string' },
+    'watchOrdersForSymbols': { 0: '[]string' },
 };
 
 // the typed wrapper's slice annotation -> the hand-written converter to the core's `[]any`
