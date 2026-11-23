@@ -2458,7 +2458,6 @@ export default class weex extends Exchange {
                 throw new BadRequest (this.id + ' createOrder() cannot use both stopLossPrice and takeProfitPrice parameters at the same time');
             }
             request['clientAlgoId'] = clientOrderId;
-            let orderType: Str = undefined;
             if (isStopLoss) {
                 const stopLossPriceType = this.safeString2 (params, 'stopLossPriceType', 'triggerPriceType');
                 if (stopLossPriceType !== undefined) {
@@ -2466,9 +2465,9 @@ export default class weex extends Exchange {
                 }
                 params['triggerPrice'] = this.priceToPrecision (symbol, stopLossPrice);
                 if (isMarketOrder) {
-                    orderType = 'STOP_MARKET';
+                    params['type'] = 'STOP_MARKET';
                 } else {
-                    orderType = 'STOP';
+                    params['type'] = 'STOP';
                 }
             } else if (isTakeProfit) {
                 const takeProfitPriceType = this.safeString2 (params, 'takeProfitPriceType', 'triggerPriceType');
@@ -2477,12 +2476,11 @@ export default class weex extends Exchange {
                 }
                 params['triggerPrice'] = this.priceToPrecision (symbol, takeProfitPrice);
                 if (isMarketOrder) {
-                    orderType = 'TAKE_PROFIT_MARKET';
+                    params['type'] = 'TAKE_PROFIT_MARKET';
                 } else {
-                    orderType = 'TAKE_PROFIT';
+                    params['type'] = 'TAKE_PROFIT';
                 }
             }
-            params['type'] = orderType;
         } else {
             if (!isMarketOrder && timeInForce === undefined) {
                 request['timeInForce'] = 'GTC';
