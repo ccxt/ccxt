@@ -5089,7 +5089,7 @@ const RUST_DICT_BUILDER_FNS: string[] = [
 // any other use (dispatch arms, `Value` locals) boxes it.
 function rustTypedRequestBuilders (content: string, fns: string[] = RUST_DICT_BUILDER_FNS): string {
     for (const fn of fns) {
-        if (rustPrinterTypedDict (content, fn)) continue;
+        // a declaration the printer already typed keeps its body; its callers are still settled below
         const decl = new RegExp ('\\n    pub (?:async )?fn ' + fn + '\\([^\\n]*\\) -> Value \\{\\n', 'g');
         const tail = '\n\n    Value::Null\n}';
         let d: RegExpExecArray | null;
@@ -5126,7 +5126,8 @@ function rustTypedRequestBuilders (content: string, fns: string[] = RUST_DICT_BU
             const typedHead = rustDictBuilderHeadArg (content, s, close);
             if (typedHead !== undefined) { content = typedHead; continue; }
             // the printer types a builder it proves: its Dict locals take the call as is, its boxes are undone here
-            if (/: crate::value::Dict = $/.test (content.slice (s - 40, s)) && content[close + 1] === ';') continue;
+            if (/: crate::value::Dict = $/.test (content.slice (s - 40, s)) && /^(?:\.await)?;/.test (content.slice (close + 1))) continue;
+            if (content.slice (s - 'Value::Dict('.length, s) === 'Value::Dict(' && content.startsWith ('.await)', close + 1)) continue;
             if (content.slice (s - 'Value::Dict('.length, s) === 'Value::Dict(' && content[close + 1] === ')') {
                 content = content.slice (0, s - 'Value::Dict('.length) + content.slice (s, close + 1) + content.slice (close + 2);
                 s -= 'Value::Dict('.length; close -= 'Value::Dict('.length;
@@ -5136,10 +5137,17 @@ function rustTypedRequestBuilders (content: string, fns: string[] = RUST_DICT_BU
             if (rest.startsWith ('.into_dict()')) content = content.slice (0, close + 1) + rest.slice ('.into_dict()'.length);
             else if (rest.startsWith ('.into_opt_dict()')) content = content.slice (0, s) + 'Some(' + content.slice (s, close + 1) + ')' + rest.slice ('.into_opt_dict()'.length);
             else if (rest.startsWith (copy)) content = content.slice (0, s) + 'std::sync::Arc::unwrap_or_clone(' + content.slice (s, close + 1) + ')' + rest.slice (copy.length);
+            else if (rest.startsWith (';') && rustReturnsInDictFn (content, s)) continue;
             else content = content.slice (0, s) + 'Value::Dict(' + content.slice (s, close + 1) + ')' + rest;
         }
     }
     return content;
+}
+// `s` starts the expression of a `return` in a method declared `-> crate::value::Dict`
+function rustReturnsInDictFn (content: string, s: number): boolean {
+    if (!/\n *return $/.test (content.slice (s - 80, s))) return false;
+    const fn = content.lastIndexOf ('\n    pub ', s), line = content.slice (fn, content.indexOf ('\n', fn + 1));
+    return / fn \w+\(/.test (line) && line.endsWith (') -> crate::value::Dict {');
 }
 
 // A builder returning its first parameter as is takes that parameter as `Dict` when every caller hands a boxed map
@@ -8796,8 +8804,8 @@ function rustTypedDictProducers (content: string): string {
     // later rows first: a dict producer may return another one (binance parse_balance_custom -> parse_balance_list)
     const dictRet = new RegExp ('^( *return )Value::Dict\\((self\\.(?:safe_balance|' + RUST_TYPED_DICT_PRODUCERS.filter ((r) => r[1] === 'dict').map ((r) => r[0]).join ('|') + ')\\(.*\\))\\);$', 'gm');
     for (const [fn, rowKind] of [ ...RUST_TYPED_DICT_PRODUCERS ].reverse ()) {
-        if (rustPrinterTypedDict (content, fn)) continue;
         const kind = rowKind === 'built' ? 'dict' : rowKind;
+        if (kind !== 'dict' && rustPrinterTypedDict (content, fn)) continue;
         const decl = new RegExp ('\\n    pub (?:async )?fn ' + fn + '\\([^\\n]*\\) -> Value \\{\\n', 'g');
         const tail = '\n\n    Value::Null\n}';
         let d: RegExpExecArray | null;
@@ -8834,6 +8842,11 @@ function rustTypedDictProducers (content: string): string {
             const call = content.slice (s, close + 1), rest = content.slice (close + 1);
             // a Dict local the printer already gave the bare call (declaration in another file) keeps it
             if (kind === 'dict' && /: crate::value::Dict = $/.test (content.slice (s - 40, s)) && rest.startsWith (';')) continue;
+            // a call the printer already boxed is boxed once
+            if (kind === 'dict' && content.slice (s - 'Value::Dict('.length, s) === 'Value::Dict(' && rest.startsWith (')')) continue;
+            // a hoisted ws argument whose use is already boxed (`Value::Dict(__ws_arg_N)`) keeps the bare call
+            const hoisted = /let (__ws_arg_\d+) = $/.exec (content.slice (s - 40, s));
+            if (kind === 'dict' && hoisted && rest.startsWith (';') && rest.slice (0, 400).includes ('Value::Dict(' + hoisted[1] + ')')) continue;
             if (rest.startsWith ('.into_opt_dict()')) {
                 content = content.slice (0, s) + (kind === 'dict' ? 'Some(' + call + ')' : call) + rest.slice ('.into_opt_dict()'.length);
             } else if (rest.startsWith ('.into_dict()')) {
