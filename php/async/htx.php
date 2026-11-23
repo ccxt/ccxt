@@ -7998,7 +7998,7 @@ class htx extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -8695,7 +8695,9 @@ class htx extends Exchange {
         }
         $data = $this->safe_value($response, 'data');
         if ($this->safe_bool($market, 'linear', false)) {
-            return $this->parse_position($this->safe_dict($data, 0, array()), $market);
+            $positionRows = $this->safe_list($response, 'data', array());
+            $positionRow = $this->safe_dict($positionRows, 0, array());
+            return $this->parse_position($positionRow, $market);
         }
         $account = null;
         if (($marginModeOption === null) || ($marginModeOption === 'cross')) {

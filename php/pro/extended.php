@@ -473,12 +473,11 @@ class extended extends \ccxt\async\extended {
             return;
         }
         for ($i = 0; $i < count($rawPositions); $i++) {
-            $rawPosition = $rawPositions[$i];
-            $marketId = $this->safe_string($rawPosition, 'market');
+            $marketId = $this->safe_string($rawPositions[$i], 'market');
             if ($marketId === null) {
                 continue;
             }
-            $position = $this->parse_position($rawPosition);
+            $position = $this->parse_position($this->safe_dict($rawPositions, $i, array()));
             $newPositions[] = $position;
             $stored->append($position);
         }

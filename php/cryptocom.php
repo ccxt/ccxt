@@ -3294,7 +3294,7 @@ class cryptocom extends Exchange {
          *
          * @param {string[]|null} $symbols list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$position-structure $position structure~
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -3341,10 +3341,10 @@ class cryptocom extends Exchange {
         $positions = $this->safe_list($responseResult, 'data', array());
         $result = array();
         for ($i = 0; $i < count($positions); $i++) {
-            $entry = $positions[$i];
-            $marketId = $this->safe_string($entry, 'instrument_name');
+            $marketId = $this->safe_string($positions[$i], 'instrument_name');
             $marketInner = $this->safe_market($marketId, null, null, 'contract');
-            $result[] = $this->parse_position($entry, $marketInner);
+            $position = $this->parse_position($this->safe_dict($positions, $i, array()), $marketInner);
+            $result[] = $position;
         }
         return $this->filter_by_array_positions($result, 'symbol', null);
     }
@@ -3661,7 +3661,7 @@ class cryptocom extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         $errorCode = $this->safe_string($response, 'code');
         if ($errorCode !== '0') {
             $feedback = $this->id . ' ' . $body;

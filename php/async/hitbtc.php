@@ -3186,7 +3186,7 @@ class hitbtc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported, defaults to spot-margin endpoint if this is set
          * @param {bool} [$params->margin] true for fetching spot-margin positions
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=position-structure position structure~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=$position-structure $position structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -3199,6 +3199,7 @@ class hitbtc extends Exchange {
         }
         list($marginMode, $paramsMarginMode) = $this->handle_margin_mode_and_params('fetchPositions', $paramsMarketType);
         $paramsOmitted = $this->omit($paramsMarginMode, array( 'marginMode', 'margin' ));
+        $response = array();
         if ($marginMode !== null) {
             $response = Async\await($this->privateGetMarginAccount($this->extend($request, $paramsOmitted)));
         } else {
@@ -3244,7 +3245,8 @@ class hitbtc extends Exchange {
         //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
-            $result[] = $this->parse_position($this->safe_dict($response, $i, array()));
+            $position = $this->parse_position($this->safe_dict($response, $i, array()));
+            $result[] = $position;
         }
         return $result;
     }
@@ -4053,7 +4055,7 @@ class hitbtc extends Exchange {
         return array( $marginMode, $paramsMarginMode );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         //
         //     {
         //       "error": {

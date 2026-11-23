@@ -9119,7 +9119,6 @@ class bitget extends Exchange {
             'symbol' => $market['id'],
         );
         $response = null;
-        $result = null;
         list($uta, $paramsUTA) = Async\await($this->handle_uta_and_params($paramsProductType, 'fetchPosition', false));
         if ($uta === true) {
             $request['category'] = $productType;
@@ -9163,7 +9162,8 @@ class bitget extends Exchange {
             //     }
             //
             $data = $this->safe_dict($response, 'data', array());
-            $result = $this->safe_list($data, 'list', array());
+            $utaPositionRows = $this->safe_list($data, 'list', array());
+            return $this->parse_position($this->safe_dict($utaPositionRows, 0, array()), $market);
         } else {
             $request['marginCoin'] = $market['settleId'];
             $request['productType'] = $productType;
@@ -9198,9 +9198,9 @@ class bitget extends Exchange {
             //         ]
             //     }
             //
-            $result = $this->safe_list($response, 'data', array());
+            $singlePositionRows = $this->safe_list($response, 'data', array());
+            return $this->parse_position($this->safe_dict($singlePositionRows, 0, array()), $market);
         }
-        return $this->parse_position($this->safe_dict($result, 0, array()), $market);
     }
 
     public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
@@ -12584,7 +12584,7 @@ class bitget extends Exchange {
         );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if (($response === null) || ($response === null)) {
             return null; // fallback to default error handler
         }

@@ -4041,7 +4041,8 @@ class digifinex extends Exchange {
         $positions = $this->safe_list($response, $positionRequest, array());
         $result = array();
         for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($this->safe_dict($positions, $i, array()), $market);
+            $parsedPosition = $this->parse_position($this->safe_dict($positions, $i, array()), $market);
+            $result[] = $parsedPosition;
         }
         return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized);
     }
@@ -4954,7 +4955,7 @@ class digifinex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fall back to default error handler
         }

@@ -1056,7 +1056,7 @@ class interactivebrokers extends Exchange {
          * @param {string} [$params->accountId] the account id to use
          * @return {Array} the account id and the $params without $accountId
          */
-        list($accountIdFromParams, $query) = $this->handle_option_and_params($params, 'loadAccountId', 'accountId');
+        list($accountIdFromParams, $query) = $this->handle_option_string_and_params($params, 'loadAccountId', 'accountId');
         $accountId = $accountIdFromParams;
         if ($accountId === null) {
             Async\await($this->fetch_accounts());
@@ -4330,7 +4330,7 @@ class interactivebrokers extends Exchange {
         return null;
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if (($code === 401) && $this->safe_bool($this->options, 'useGateway', false)) {
             // the gateway answers every request with 401 once its sso login is lost (daily reset, container restart, competing login)
             $this->options['gatewayAuthenticatedTimestamp'] = null;

@@ -4009,7 +4009,7 @@ class myriad extends Exchange {
         return strtolower($this->eth_get_address_from_private_key($this->privateKey));
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         // Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
         if ($response === null) {
             return null;

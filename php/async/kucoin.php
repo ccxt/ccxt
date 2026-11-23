@@ -10910,7 +10910,6 @@ class kucoin extends Exchange {
         );
         $uta = Async\await($this->is_uta_enabled());
         list($utaOption, $paramsUta) = $this->handle_option_bool_and_params($params, 'fetchPosition', 'uta', $uta);
-        $position = array();
         if ($utaOption) {
             $request['accountMode'] = 'unified';
             $response = Async\await($this->utaPrivateGetAccountModePositionOpenList($this->extend($request, $paramsUta)));
@@ -10939,7 +10938,7 @@ class kucoin extends Exchange {
             //     }
             //
             $data = $this->safe_list($response, 'data', array());
-            $position = $this->safe_dict($data, 0, array());
+            return $this->parse_position($this->safe_dict($data, 0, array()), $market);
         } else {
             $response = Async\await($this->futuresPrivateGetPosition($this->extend($request, $paramsUta)));
             //
@@ -10987,8 +10986,8 @@ class kucoin extends Exchange {
             //    }
             //
             $position = $this->safe_dict($response, 'data', array());
+            return $this->parse_position($position, $market);
         }
-        return $this->parse_position($position, $market);
     }
 
     public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {
@@ -12345,7 +12344,7 @@ class kucoin extends Exchange {
         return array( 'url' => $apiUrl . $endpoint, 'method' => $method, 'body' => $bodyJson, 'headers' => $headersResult );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if (($response === null) || ($response === null)) {
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $body);
             return null;

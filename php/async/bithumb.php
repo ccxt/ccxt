@@ -1713,7 +1713,7 @@ class bithumb extends Exchange {
             if ($side === null) {
                 throw new ArgumentsRequired($this->id . ' createOrders() requires each order to have a side');
             }
-            $amount = $this->safe_value($rawOrder, 'amount');
+            $amount = $this->safe_number($rawOrder, 'amount');
             $price = $this->safe_number($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
             $orderRequest = $this->create_order_request($symbol, $type, $side, $amount, $price, $orderParams);
@@ -1743,7 +1743,7 @@ class bithumb extends Exchange {
         return $this->parse_orders($data, $market);
     }
 
-    public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
+    public function create_order_request(string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): array {
         /**
          * @ignore
          * helper function to build the $request *for generation 2 createOrder and createOrders only*
@@ -3530,7 +3530,7 @@ class bithumb extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fallback to default error handler
         }

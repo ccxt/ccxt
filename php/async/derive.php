@@ -1988,7 +1988,7 @@ class derive extends Exchange {
         );
     }
 
-    public function hash_order_message(mixed $order): string {
+    public function hash_order_message(array $order): string {
         $accountHash = $this->hash($this->eth_abi_encode(array(
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ), $order), 'keccak', 'binary');
@@ -2003,7 +2003,7 @@ class derive extends Exchange {
         return $this->hash($this->binary_concat($prefix, $binaryDomainSeparator, $accountHash), 'keccak', 'hex');
     }
 
-    public function sign_order(mixed $order, string $privateKey): string {
+    public function sign_order(array $order, string $privateKey): string {
         $hashOrder = $this->hash_order_message($order);
         return $this->sign_hash($hashOrder, $privateKey);
     }
@@ -4452,7 +4452,7 @@ class derive extends Exchange {
         throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires the walletAddress credential, a deriveWalletAddress parameter inside \'params\', or exchange.options[\'deriveWalletAddress\'] = ADDRESS.');
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fallback to default error handler
         }

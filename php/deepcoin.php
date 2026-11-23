@@ -3123,7 +3123,7 @@ class deepcoin extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         $data = $this->safe_dict($response, 'data', array());
         $msg = $this->safe_string($response, 'msg');
         $messageCode = $this->safe_string($response, 'code');

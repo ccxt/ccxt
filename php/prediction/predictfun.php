@@ -2707,7 +2707,7 @@ class predictfun extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         /**
          * @ignore
          * maps the venue's $error slugs and messages onto the unified exceptions

@@ -899,7 +899,7 @@ class lighter extends Exchange {
             $takeProfitOrderLimitPrice = $this->safe_number_2($takeProfit, 'price', 'takeProfitPrice', $takeProfitOrderTriggerPrice);
             // amount should be 0 for child orders
             if ($stopLoss !== null) {
-                $orderObj = $this->safe_dict($this->create_order_request($symbol, $stopLossOrderType, $triggerOrderSide, 0, $stopLossOrderLimitPrice, $this->extend($paramsRequest, array(
+                $orderObj = $this->safe_dict($this->create_order_request($symbol, $stopLossOrderType, $triggerOrderSide, 0.0, $stopLossOrderLimitPrice, $this->extend($paramsRequest, array(
                     'stopLossPrice' => $stopLossOrderTriggerPrice,
                     'reduceOnly' => true,
                 ))), 0, array());
@@ -907,7 +907,7 @@ class lighter extends Exchange {
                 $orders[] = $orderObj;
             }
             if ($takeProfit !== null) {
-                $orderObj = $this->safe_dict($this->create_order_request($symbol, $takeProfitOrderType, $triggerOrderSide, 0, $takeProfitOrderLimitPrice, $this->extend($paramsRequest, array(
+                $orderObj = $this->safe_dict($this->create_order_request($symbol, $takeProfitOrderType, $triggerOrderSide, 0.0, $takeProfitOrderLimitPrice, $this->extend($paramsRequest, array(
                     'takeProfitPrice' => $takeProfitOrderTriggerPrice,
                     'reduceOnly' => true,
                 ))), 0, array());
@@ -3471,7 +3471,7 @@ class lighter extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => null, 'headers' => null );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if (($response === null) || ($response === null)) {
             return null; // fallback to default error handler
         }

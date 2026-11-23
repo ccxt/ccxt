@@ -3377,7 +3377,7 @@ class grvt extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if (str_ends_with($url, 'auth/api_key/login') || str_ends_with($url, 'auth/wallet/login')) {
             $accountId = $this->safe_string_2($headers, 'X-Grvt-Account-Id', 'x-grvt-account-id');
             $this->options['AuthAccountId'] = $accountId;

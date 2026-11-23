@@ -1301,7 +1301,7 @@ class dydx extends Exchange {
         return $signature;
     }
 
-    public function sign_dydx_tx(?string $privateKey, mixed $message, ?string $memo, ?string $chainId, array $account, mixed $authenticators, mixed $fee = null): string {
+    public function sign_dydx_tx(?string $privateKey, array $message, ?string $memo, ?string $chainId, array $account, mixed $authenticators, ?array $fee = null): string {
         list($encodedTx, $signDoc) = $this->encode_dydx_tx_for_signing($message, $memo, $chainId, $account, $authenticators, $fee);
         $signature = $this->sign_hash($encodedTx, $privateKey);
         $signatureR = $this->safe_string($signature, 'r', '');
@@ -2668,7 +2668,7 @@ class dydx extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if (($response === null) || ($response === null)) {
             return null; // fallback to default error handler
         }

@@ -3977,7 +3977,8 @@ class hyperliquid extends Exchange {
         $data = $this->safe_list($response, 'assetPositions', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $result[] = $this->parse_position($this->safe_dict($data, $i, array()));
+            $parsedPosition = $this->parse_position($this->safe_dict($data, $i, array()));
+            $result[] = $parsedPosition;
         }
         return $this->filter_by_array_positions($result, 'symbol', $symbolsNormalized);
     }
@@ -5199,7 +5200,7 @@ class hyperliquid extends Exchange {
         return $this->safe_currency_code($coinId) . '/USDC:USDC';
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if (($response === null) || ($response === null)) {
             return null; // fallback to default error handler
         }

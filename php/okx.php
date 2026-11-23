@@ -6404,7 +6404,8 @@ class okx extends Exchange {
         $positions = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($positions); $i++) {
-            $result[] = $this->parse_position($this->safe_dict($positions, $i, array()));
+            $parsedPosition = $this->parse_position($this->safe_dict($positions, $i, array()));
+            $result[] = $parsedPosition;
         }
         return $this->filter_by_array_positions($result, 'symbol', $this->market_symbols($symbols));
     }
@@ -9592,7 +9593,7 @@ class okx extends Exchange {
         return $result;
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fallback to default error handler
         }

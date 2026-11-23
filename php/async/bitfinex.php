@@ -3217,7 +3217,7 @@ class bitfinex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         // ["error", 11010, "ratelimit: error"]
         if ($response !== null) {
             if ((gettype($response) !== 'array' || array_keys($response) !== array_keys(array_keys($response)))) {
@@ -3241,7 +3241,10 @@ class bitfinex extends Exchange {
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorText, $feedback);
             throw new ExchangeError($this->id . ' ' . $errorText . ' (#' . $errorCode . ')');
         }
-        return $response;
+        if ($response === null) {
+            return null;
+        }
+        return true;
     }
 
     public function parse_ledger_entry_type(?string $type): ?string {

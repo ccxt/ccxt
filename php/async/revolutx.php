@@ -1645,7 +1645,7 @@ class revolutx extends Exchange {
         return $order;
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         $statusCode = $this->parse_to_int($code);
         if ($statusCode >= 400) {
             if ($response === null) {

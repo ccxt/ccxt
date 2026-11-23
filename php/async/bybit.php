@@ -7092,9 +7092,12 @@ class bybit extends Exchange {
             $rawPosition = $positions[$i];
             if ((is_array($rawPosition) && array_key_exists('data' ?? '', $rawPosition)) && (is_array($rawPosition) && array_key_exists('is_valid' ?? '', $rawPosition))) {
                 // futures only
-                $results[] = $this->parse_position($this->safe_dict($rawPosition, 'data', array()));
+                $futuresData = $this->safe_dict($rawPosition, 'data', array());
+                $futuresPosition = $this->parse_position($futuresData);
+                $results[] = $futuresPosition;
             } else {
-                $results[] = $this->parse_position($this->safe_dict($positions, $i, array()));
+                $parsedPosition = $this->parse_position($this->safe_dict($positions, $i, array()));
+                $results[] = $parsedPosition;
             }
         }
         return $this->filter_by_array_positions($results, 'symbol', $symbolsNormalized);
@@ -10573,7 +10576,7 @@ class bybit extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResolved, 'headers' => $headersResolved );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null; // fallback to default error handler
         }

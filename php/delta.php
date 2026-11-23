@@ -3545,7 +3545,8 @@ class delta extends Exchange {
         //
         // {"result":{},"success":true}
         //
-        $position = $this->parse_position($this->safe_dict($response, 'result', array()));
+        $positionRow = $this->safe_dict($response, 'result', array());
+        $position = $this->parse_position($positionRow);
         return array( $position );
     }
 
@@ -4222,7 +4223,7 @@ class delta extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
     }
 
-    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody): ?bool {
         if ($response === null) {
             return null;
         }
