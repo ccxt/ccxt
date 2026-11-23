@@ -17603,6 +17603,10 @@ function javaMapLocalValue (printer, node, declaration, depth = 0) {
             return undefined;
         }
         const fallback = value.arguments[defaultAt];
+        // a `{..}` default binds the hand-written safeDict overload declared Map: no checkcast
+        if (name === 'safeDict' && fallback !== undefined && ts.isObjectLiteralExpression (unwrapParens (fallback)) && literalObjectLiteralIsPlain (unwrapParens (fallback))) {
+            return { cast: false };
+        }
         return fallback === undefined || javaMapLocalValue (printer, fallback, declaration, depth + 1) !== undefined ? { cast: true } : undefined;
     }
     const collection = collectionCallInfo (printer, value);
