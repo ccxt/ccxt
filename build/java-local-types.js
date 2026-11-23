@@ -9678,6 +9678,10 @@ function javaVenueListReadNames () {
                     }
                 }
             }
+            // `return await this.m (..)` from a method declared `Promise<T[]>`: the list is the caller's own list return
+            if (ts.isReturnStatement (node) && javaVenueAwaitedListReturn (node)) {
+                names.add (unwrapParens (unwrapParens (node.expression).expression).expression.name.text);
+            }
             // a call collected for `await Promise.all (..)`: pushed into, or an element of, the joined list
             // or `return await this.m (..)` from a method declared `Promise<T[]>` (the list rides the typed return)
             if (isThisCall (node) && (javaVenuePromiseAllOperand (node) || javaVenueListReturnOperand (node))) {
@@ -9696,6 +9700,15 @@ function javaVenueListReturnOperand (call) {
     return call.parent.kind === ts.SyntaxKind.AwaitExpression && ts.isReturnStatement (call.parent.parent) && type !== undefined
         && type.kind === ts.SyntaxKind.TypeReference && ts.isIdentifier (type.typeName) && type.typeName.text === 'Promise'
         && type.typeArguments?.length === 1 && type.typeArguments[0].kind === ts.SyntaxKind.ArrayType;
+}
+
+function javaVenueAwaitedListReturn (node) {
+    const value = unwrapParens (node.expression);
+    if (value === undefined || value.kind !== ts.SyntaxKind.AwaitExpression || !isThisCall (unwrapParens (value.expression))) {
+        return false;
+    }
+    const scope = enclosingFunction (node);
+    return scope !== undefined && ts.isMethodDeclaration (scope) && /^Promise<\s*\w+\[\]\s*>$/.test (scope.type?.getText () ?? '');
 }
 
 // `call` reaches an awaited Promise.all through an array literal element, a `.push (call)` or a const local

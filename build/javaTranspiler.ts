@@ -9367,6 +9367,8 @@ function javaR92j8LocalsSelfTest (): string[] {
         "    async zzr92j8Outer (params: Dict = {}): Promise<Dict[]> {",
         "        return await this.zzr92j8Inner (params);",
         "    }",
+        "    async zzr92j8Leaf (params: Dict = {}): Promise<Dict[]> { const res: Dict[] = []; res.push (params); return res; }",
+        "    async zzr92j8Load (params: Dict = {}): Promise<Dict[]> { return await this.zzr92j8Leaf (params); }",
         "    omitPerBinding (a: Dict, flag: boolean) { if (flag) { let tickers = [ 1 ]; tickers = [ 2 ]; return tickers; } const data = this.safeDict (a, 'data', {}); const tickers = this.omit (data, 'date'); return Object.keys (tickers).length; }",
         "    signedCopy (params: Dict, post: boolean) { const sorted: Dict = this.keysort (this.omit (params, 'a')); let signed: Dict = sorted; if (post) { signed = this.keysort (sorted); } return Object.keys (signed).length; }",
         "    async zzr92j8Use (q: string, params: Dict = {}) { const first = await this.zzr92j8Inner (params); let rows: List = []; if (q !== undefined) { rows = await this.zzr92j8Outer (params); } return [ first.length, rows.length ]; }",
@@ -9377,6 +9379,7 @@ function javaR92j8LocalsSelfTest (): string[] {
         resetJavaVenueIndexes();
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/List<Object> rows = /.test(out) || !/\brows\.size\(\)/.test(out)) problems.push("'rows' (let x: List = [] written from a list fetcher) must print List<Object> with a native size()");
+        if (!/private List<Object> zzr92j8LeafCore\(/.test(out)) problems.push("'zzr92j8Leaf' (a list fetcher returned only by `return await` from a Promise<Dict[]> method) must print a List<Object> core");
         if (!/Map<String, Object> signed = sorted;/.test(out) || !/\bsigned\.size\(\)/.test(out)) problems.push("'signed' (copy of a keysort Map local, published as Map<String,Object>) must print Map<String, Object> with a native size()");
         if (!/Map<String, Object> tickers = this\.omit\(/.test(out)) problems.push("'tickers' (omit of a Map, a same-named sibling binding written elsewhere) must print Map<String, Object>");
         if (problems.length) problems.push('output:\n' + out);
