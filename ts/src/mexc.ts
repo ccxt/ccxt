@@ -3348,7 +3348,8 @@ export default class mexc extends Exchange {
                 if (marginMode !== 'isolated') {
                     throw new BadRequest (this.id + ' cancelOrder() does not support marginMode ' + marginMode + ' for spot-margin trading');
                 }
-                data = await this.spotPrivateDeleteMarginOrder (this.extend (requestInner, query));
+                const marginRows = await this.spotPrivateDeleteMarginOrder (this.extend (requestInner, query));
+                return this.parseOrder (this.safeDict (marginRows, 0, {}), market);
             } else {
                 data = await this.spotPrivateDeleteOrder (this.extend (requestInner, query));
             }
@@ -3427,6 +3428,7 @@ export default class mexc extends Exchange {
             if (errorMsg !== 'success') {
                 throw new InvalidOrder (this.id + ' cancelOrder() the order with id ' + id + ' cannot be cancelled: ' + errorMsg);
             }
+            return this.parseOrder (this.safeDict (data, 0, {}), market);
         }
         return this.parseOrder (data, market);
     }
