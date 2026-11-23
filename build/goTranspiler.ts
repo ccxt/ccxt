@@ -7245,6 +7245,8 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     'arraysConcat': { 0: '[]any' }, 'removeRepeatedElementsFromArray': { 0: '[]any' },
     'removeRepeatedTradesFromArray': { 0: '[]any' }, 'parseOptionChain': { 0: '[]any' }, 'findNearestCeiling': { 0: '[]any' },
     'parseWsOHLCVs': { 0: '[]any' },
+    // fetchOutcomes (outcomeSymbols: string[]) on PredictionExchange, kalshi and polymarket: the one caller hands its []any
+    'fetchOutcomes': { 0: '[]any' },
     // cancelOrders (ids: string[]) on the base, every venue and ICancelOrders
     'cancelOrders': { 0: '[]string' },
     // calculateRateLimiterCost (api: string[]) on the base and every override; fetch2 hands its []string api
