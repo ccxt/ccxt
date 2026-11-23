@@ -266,13 +266,10 @@ public partial class bithumb : ccxt.bithumb
         //
         IDictionary<string, object> content = this.safeDict(message, "content");
         bool isGenerationTwo = ((content == null));
-        object tickerMessage = null;
-        if (isGenerationTwo)
+        object tickerMessage = message;
+        if (!isGenerationTwo)
         {
-            tickerMessage = message;
-        } else
-        {
-            tickerMessage = content;
+            tickerMessage = this.safeDict(message, "content", new Dictionary<string, object>() {});
         }
         string? marketId = this.safeString2(tickerMessage, "symbol", "code");
         if ((marketId == null))

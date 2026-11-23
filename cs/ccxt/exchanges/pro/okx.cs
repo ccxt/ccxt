@@ -1842,7 +1842,7 @@ public partial class okx : ccxt.okx
                 ccxt.pro.IOrderBook updatedBook = this.getOrderBook(this.orderbooks, symbol);
                 for (int i = 0; i < data.Count; i++)
                 {
-                    object update = data[i];
+                    IDictionary<string, object> update = this.safeDict(data, i, new Dictionary<string, object>() {});
                     this.handleOrderBookMessage(client, update, updatedBook, messageHash, market);
                     if (!(((messageHash != null) && (client.subscriptions != null && messageHash != null && client.subscriptions.ContainsKey(messageHash)))))
                     {

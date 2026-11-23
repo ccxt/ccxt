@@ -492,7 +492,7 @@ public partial class coinbase : ccxt.coinbase
             List<object> tickers = this.safeList(tickersObj, "tickers", new List<object>() {});
             for (int j = 0; j < tickers.Count; j++)
             {
-                IDictionary<string, object> ticker = ((IDictionary<string, object>)tickers[j]);
+                IDictionary<string, object> ticker = this.safeDict(tickers, j, new Dictionary<string, object>() {});
                 string? wsMarketId = this.safeString(ticker, "product_id");
                 if ((wsMarketId == null))
                 {

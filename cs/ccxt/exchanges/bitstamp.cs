@@ -1654,12 +1654,12 @@ public partial class bitstamp : Exchange
             string firstCurrencyId = this.safeString(currencyIds, 0, "");
             string secondCurrencyId = this.safeString(currencyIds, 1, "");
             string marketId = (firstCurrencyId + secondCurrencyId);
-            if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId != null && this.markets_by_id.ContainsKey(marketId))))
+            if (((this.markets_by_id != null)) && ((this.markets_by_id != null && this.markets_by_id.ContainsKey(marketId))))
             {
                 return this.safeMarket(marketId);
             }
             marketId = (secondCurrencyId + firstCurrencyId);
-            if (((this.markets_by_id != null)) && ((this.markets_by_id != null && marketId != null && this.markets_by_id.ContainsKey(marketId))))
+            if (((this.markets_by_id != null)) && ((this.markets_by_id != null && this.markets_by_id.ContainsKey(marketId))))
             {
                 return this.safeMarket(marketId);
             }

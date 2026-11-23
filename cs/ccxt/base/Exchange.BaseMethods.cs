@@ -639,7 +639,7 @@ public partial class BaseExchange
         }
     }
 
-    public virtual Int64 getCacheIndex(object orderbook, IList<object> deltas)
+    public virtual Int64 getCacheIndex(IDictionary<string, object> orderbook, IList<object> deltas)
     {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible.
         return -1;
@@ -2182,22 +2182,19 @@ public partial class BaseExchange
     {
         List<object> values = new List<object>() {};
         // build the id index locally and publish it in one swap, so ws handlers never see a half-built table
-        Dictionary<string, object> marketsById = new Dictionary<string, object>() {};
+        Dictionary<string, List<object>> marketsById = new Dictionary<string, List<object>>() {};
         // handle marketId conflicts
         // we insert spot markets first
         List<object> marketValues = this.sortBy(this.toArray(markets), "spot", true, true);
         for (int i = 0; i < (marketValues?.Count ?? 0); i++)
         {
             IDictionary<string, object> value = this.safeDict(marketValues, i, new Dictionary<string, object>() {});
-            if ((marketsById != null && (value != null && value.ContainsKey("id") ? value["id"] : null) is string inOpKey13 && marketsById.ContainsKey(inOpKey13)))
+            string? id = this.safeString(value, "id", "");
+            if (!(((id != null) && marketsById.ContainsKey(id))))
             {
-                IList<object> marketsByIdArray = ((IList<object>)(marketsById != null && (value != null && value.ContainsKey("id") ? value["id"] : null) != null && marketsById.TryGetValue((string)(value != null && value.ContainsKey("id") ? value["id"] : null), out var marketsByIdValue2186_65) ? marketsByIdValue2186_65 : null));
-                marketsByIdArray.Add(value);
-                marketsById[(string)(value != null && value.ContainsKey("id") ? value["id"] : null)] = marketsByIdArray;
-            } else
-            {
-                marketsById[(string)(value != null && value.ContainsKey("id") ? value["id"] : null)] = new List<object>() {value};
+                marketsById[(string)id] = new List<object>() {};
             }
+            ((IList<object>)(id != null && marketsById.ContainsKey(id) ? marketsById[id] : null)).Add(value);
             // strip undefined-valued keys from the parsed market before deepExtend,
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
             // would clobber the fee defaults from this.fees['trading'] in the merge
@@ -2206,9 +2203,9 @@ public partial class BaseExchange
             for (int j = 0; j < valueKeys.Count; j++)
             {
                 string? valueKey = ((string)valueKeys[j]);
-                if (!((value != null && valueKey != null && value.ContainsKey(valueKey) ? value[valueKey] : null) == null))
+                if (!(((object)((valueKey != null && value.ContainsKey(valueKey) ? value[valueKey] : null))) == null))
                 {
-                    valueDefined[(string)valueKey] = (value != null && valueKey != null && value.ContainsKey(valueKey) ? value[valueKey] : null);
+                    valueDefined[(string)valueKey] = (valueKey != null && value.ContainsKey(valueKey) ? value[valueKey] : null);
                 }
             }
             Dictionary<string, object> market = this.deepExtend(this.safeMarketStructure(), new Dictionary<string, object>() {
@@ -2346,9 +2343,9 @@ public partial class BaseExchange
         for (int i = 0; i < (sourceExchangeHelpers?.Count ?? 0); i++)
         {
             object helper = sourceExchangeHelpers[i];
-            if (!((sourceExchange.options != null && helper != null && sourceExchange.options.TryGetValue((string)helper, out var sourceExchangeOption2341_18) ? sourceExchangeOption2341_18 : null) == null))
+            if (!((sourceExchange.options != null && helper != null && sourceExchange.options.TryGetValue((string)helper, out var sourceExchangeOption2338_18) ? sourceExchangeOption2338_18 : null) == null))
             {
-                this.options[(string)helper] = (sourceExchange.options != null && helper != null && sourceExchange.options.TryGetValue((string)helper, out var sourceExchangeOption2343_47) ? sourceExchangeOption2343_47 : null);
+                this.options[(string)helper] = (sourceExchange.options != null && helper != null && sourceExchange.options.TryGetValue((string)helper, out var sourceExchangeOption2340_47) ? sourceExchangeOption2340_47 : null);
             }
         }
         return this;
@@ -4953,7 +4950,7 @@ public partial class BaseExchange
             bool isNewCandle = (candle == -1);
             if (!isNewCandle)
             {
-                object candleTimestamp = (ohlcvs != null && candle < ohlcvs.Count && ohlcvs[candle] is IList<object> ohlcvsSlot327850 && i_timestamp < ohlcvsSlot327850.Count ? ohlcvsSlot327850[i_timestamp] : null);
+                object candleTimestamp = (ohlcvs != null && candle < ohlcvs.Count && ohlcvs[candle] is IList<object> ohlcvsSlot327738 && i_timestamp < ohlcvsSlot327738.Count ? ohlcvsSlot327738[i_timestamp] : null);
                 if ((candleTimestamp == null))
                 {
                     throw new ExchangeError ((this.id + " buildOHLCVC() missing candle timestamp")) ;
@@ -6040,7 +6037,7 @@ public partial class BaseExchange
         {
             throw new ExchangeError ((this.id + " markets not loaded")) ;
         }
-        IDictionary<string, object> marketsById = this.markets_by_id;
+        IDictionary<string, List<object>> marketsById = this.markets_by_id;
         if ((markets != null && symbol is string inOpKey6 && markets.ContainsKey(inOpKey6)))
         {
             return ccxt.BaseExchange.ToDict((markets != null && symbol != null && markets.ContainsKey((string)symbol) ? markets[(string)symbol] : null));
@@ -6412,7 +6409,7 @@ public partial class BaseExchange
         {
             string? marketId = ((string)marketIds[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
-            results.Add(this.extend(this.parseLastPrice(((IDictionary<string, object>)getValue(pricesData, marketId)), market), parameters));
+            results.Add(this.extend(this.parseLastPrice(this.extend(new Dictionary<string, object>() {}, getValue(pricesData, marketId)), market), parameters));
         }
         return this.indexBy(this.filterByArray(results, "symbol", this.marketSymbols(symbols), false), "symbol");
     }
@@ -6578,7 +6575,7 @@ public partial class BaseExchange
         return this.indexBy(this.filterByArray(fundingRates, "symbol", symbols, false), "symbol");
     }
 
-    public virtual Dictionary<string, object> parseLongShortRatio(object info, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseLongShortRatio(Dictionary<string, object> info, IDictionary<string, object> market = null)
     {
         throw new NotSupported ((this.id + " parseLongShortRatio() is not supported yet")) ;
     }
@@ -6987,7 +6984,7 @@ public partial class BaseExchange
             return ((string?)((object)(this.safeString(accountsByType, lowercaseAccount, account))));
         }
         IDictionary<string, object> markets = this.markets;
-        IDictionary<string, object> marketsById = this.markets_by_id;
+        IDictionary<string, List<object>> marketsById = this.markets_by_id;
         if ((((markets != null)) && ((markets != null && account is string inOpKey9 && markets.ContainsKey(inOpKey9)))) || (((marketsById != null)) && ((marketsById != null && account is string inOpKey10 && marketsById.ContainsKey(inOpKey10)))))
         {
             Dictionary<string, object> market = this.market(account);
@@ -7925,7 +7922,7 @@ public partial class BaseExchange
             Dictionary<string, object> market = this.safeMarket(marketId, null, null,((string)marketTypeResolved));
             if (((symbols == null)) || this.inArray((market.ContainsKey("symbol") ? market["symbol"] : null), symbols))
             {
-                marginModeStructures[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = this.parseMarginMode(((IDictionary<string, object>)info), market);
+                marginModeStructures[(string)(market.ContainsKey("symbol") ? market["symbol"] : null)] = this.parseMarginMode(this.safeDict(response, i, new Dictionary<string, object>() {}), market);
             }
         }
         return marginModeStructures;

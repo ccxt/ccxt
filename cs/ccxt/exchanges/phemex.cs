@@ -6304,7 +6304,7 @@ public partial class phemex : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < ranks.Count; i++)
         {
-            result.Add(this.parseADLRank(((IDictionary<string, object>)ranks[i])));
+            result.Add(this.parseADLRank(this.extend(new Dictionary<string, object>() {}, ranks[i])));
         }
         return ccxt.BaseExchange.ToADLList(this.filterByArrayADLRanks(result, "symbol", symbolsNormalized, false));
     }

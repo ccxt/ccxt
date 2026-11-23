@@ -731,7 +731,7 @@ public partial class toobit : ccxt.toobit
         this.setOrderBookSnapshot(client, message, "depth");
     }
 
-    public virtual void setOrderBookSnapshot(WebSocketClient client, object message, string channel)
+    public virtual void setOrderBookSnapshot(WebSocketClient client, IDictionary<string, object> message, string channel)
     {
         List<object> data = this.safeList(message, "data", new List<object>() {});
         int length = data.Count;
@@ -1117,7 +1117,7 @@ public partial class toobit : ccxt.toobit
         client.resolve(myTrades, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseMyTrade(object trade, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseMyTrade(IDictionary<string, object> trade, IDictionary<string, object>? market = null)
     {
         string? marketId = this.safeString(trade, "s");
         string? ts = this.safeString(trade, "t");
@@ -1293,7 +1293,7 @@ public partial class toobit : ccxt.toobit
         client.resolve(newPositions, (accountType + ":positions"));
     }
 
-    public virtual Dictionary<string, object> parseWsPosition(object position, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsPosition(IDictionary<string, object> position, IDictionary<string, object>? market = null)
     {
         string? marketId = this.safeString(position, "s");
         Int64? timestamp = this.safeInteger(position, "E");

@@ -229,8 +229,7 @@ public partial class bitvavo : ccxt.bitvavo
         List<object> result = new List<object>() {};
         for (int i = 0; i < tickers.Count; i++)
         {
-            object data = tickers[i];
-            Dictionary<string, object> ticker = this.parseWsBidAsk(data);
+            Dictionary<string, object> ticker = this.parseWsBidAsk(this.safeDict(tickers, i, new Dictionary<string, object>() {}));
             string? symbol = this.safeString(ticker, "symbol", "");
             this.bidsasks[(string)symbol] = ticker;
             result.Add(ticker);
@@ -240,7 +239,7 @@ public partial class bitvavo : ccxt.bitvavo
         client.resolve(result, eventVar);
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
     {
         string? marketId = this.safeString(ticker, "market");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, null, "-");
@@ -514,8 +513,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
         for (int i = 0; i < candles.Count; i++)
         {
-            IDictionary<string, object> candle = ((IDictionary<string, object>)candles[i]);
-            IList<object> parsed = this.parseOHLCV(candle, market);
+            IList<object> parsed = this.parseOHLCV(candles[i], market);
             stored.append(parsed);
         }
         client.resolve(stored, messageHash);
@@ -956,7 +954,7 @@ public partial class bitvavo : ccxt.bitvavo
         IList<object> messages = (orderbook as ccxt.pro.OrderBook).cache;
         for (int i = 0; i < (messages?.Count ?? 0); i++)
         {
-            object messageItem = (messages != null && i < messages.Count ? messages[i] : null);
+            IDictionary<string, object> messageItem = this.safeDict(messages, i, new Dictionary<string, object>() {});
             this.handleOrderBookMessage(client, messageItem, orderbook);
         }
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
@@ -971,7 +969,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
     }
 
-    public virtual void handleOrderBookSubscription(WebSocketClient client, Dictionary<string, object> message, object subscription)
+    public virtual void handleOrderBookSubscription(WebSocketClient client, Dictionary<string, object> message, IDictionary<string, object> subscription)
     {
         string? symbol = this.safeString(subscription, "symbol");
         Int64? limit = this.safeInteger(subscription, "limit");

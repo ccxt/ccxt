@@ -2123,7 +2123,7 @@ public partial class aster : Exchange
         {
             string? marketId = this.safeString(rows[i], "symbol");
             Dictionary<string, object> safeMarket = this.safeMarket(marketId, null, null,marketType);
-            Dictionary<string, object> priceData = this.extend(this.parseLastPrice(((IDictionary<string, object>)rows[i]), safeMarket), paramsMarketType);
+            Dictionary<string, object> priceData = this.extend(this.parseLastPrice(this.extend(new Dictionary<string, object>() {}, rows[i]), safeMarket), paramsMarketType);
             results.Add(priceData);
         }
         IList<object> symbolsNormalized2 = this.marketSymbols(symbolsNormalized);

@@ -9753,7 +9753,7 @@ public partial class okx : Exchange
         // handle unified currency code or symbol
         string? currencyId = null;
         IDictionary<string, object> market = null;
-        if ((((this.markets != null)) && ((this.markets != null && symbol is string inOpKey0 && this.markets.ContainsKey(inOpKey0)))) || (((this.markets_by_id != null)) && ((this.markets_by_id != null && symbol is string inOpKey1 && this.markets_by_id.ContainsKey(inOpKey1)))))
+        if ((((this.markets != null)) && ((this.markets != null && symbol is string inOpKey0 && this.markets.ContainsKey(inOpKey0)))) || (((this.markets_by_id != null)) && ((this.markets_by_id != null && this.markets_by_id.ContainsKey(symbol)))))
         {
             market = this.market(symbol);
             currencyId = this.safeString(market, "baseId");
@@ -10270,7 +10270,7 @@ public partial class okx : Exchange
         List<Dictionary<string, object>> result = new List<Dictionary<string, object>>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            result.Add(this.parseSettlement(((IDictionary<string, object>)data[i]), market));
+            result.Add(this.parseSettlement(this.extend(new Dictionary<string, object>() {}, data[i]), market));
         }
         List<Dictionary<string, object>> sorted = this.sortBy(result, "timestamp");
         return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit);
@@ -10333,7 +10333,7 @@ public partial class okx : Exchange
             List<object> details = this.safeList(entry, "details", new List<object>() {});
             for (int j = 0; j < (details?.Count ?? 0); j++)
             {
-                Dictionary<string, object> settlement = this.parseSettlement(((IDictionary<string, object>)details[j]), market);
+                Dictionary<string, object> settlement = this.parseSettlement(this.extend(new Dictionary<string, object>() {}, details[j]), market);
                 result.Add(this.extend(settlement, new Dictionary<string, object>() {
                     { "timestamp", timestamp },
                     { "datetime", this.iso8601(timestamp) },
@@ -11516,7 +11516,7 @@ public partial class okx : Exchange
         return ccxt.BaseExchange.ToLongShortRatioList(this.parseLongShortRatioHistory(result, market, since, limit));
     }
 
-    public override Dictionary<string, object> parseLongShortRatio(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLongShortRatio(Dictionary<string, object> info, IDictionary<string, object> market = null)
     {
         Int64? timestamp = this.safeInteger(info, "timestamp");
         string? symbol = null;

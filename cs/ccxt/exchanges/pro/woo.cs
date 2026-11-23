@@ -301,7 +301,7 @@ public partial class woo : ccxt.woo
         }
     }
 
-    public virtual void handleOrderBookSubscription(WebSocketClient client, object message, object subscription)
+    public virtual void handleOrderBookSubscription(WebSocketClient client, object message, IDictionary<string, object> subscription)
     {
         Int64? defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
         Int64? limit = this.safeInteger(subscription, "limit", defaultLimit);
@@ -342,7 +342,7 @@ public partial class woo : ccxt.woo
             IList<object> messages = (orderbook as ccxt.pro.OrderBook).cache;
             for (int i = 0; i < (messages?.Count ?? 0); i++)
             {
-                object messageItem = (messages != null && i < messages.Count ? messages[i] : null);
+                IDictionary<string, object> messageItem = this.safeDict(messages, i, new Dictionary<string, object>() {});
                 Int64? ts = this.safeInteger(messageItem, "ts");
                 if ((ts == null))
                 {
@@ -705,8 +705,9 @@ public partial class woo : ccxt.woo
             {
                 continue;
             }
-            ticker["ts"] = timestamp;
-            Dictionary<string, object> parsedTicker = this.parseWsBidAsk(ticker);
+            Dictionary<string, object> parsedTicker = this.parseWsBidAsk(this.extend(ticker, new Dictionary<string, object>() {
+                { "ts", timestamp },
+            }));
             string? symbol = this.safeString(parsedTicker, "symbol");
             if ((symbol != null))
             {

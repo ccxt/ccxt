@@ -898,7 +898,7 @@ public partial class deepcoin : ccxt.deepcoin
         IList<object> cachedMessages = (orderbook as ccxt.pro.OrderBook).cache;
         for (int j = 0; j < (cachedMessages?.Count ?? 0); j++)
         {
-            object cachedMessage = (cachedMessages != null && j < cachedMessages.Count ? cachedMessages[j] : null);
+            IDictionary<string, object> cachedMessage = this.safeDict(cachedMessages, j, new Dictionary<string, object>() {});
             this.handleOrderBookMessage(client, cachedMessage, orderbook);
         }
         (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};

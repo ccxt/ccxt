@@ -1129,7 +1129,7 @@ public partial class binance : ccxt.binance
             (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};
             for (int i = 0; i < (messages?.Count ?? 0); i++)
             {
-                object messageItem = this.safeValue(messages, i);
+                IDictionary<string, object> messageItem = this.safeDict(messages, i, new Dictionary<string, object>() {});
                 Int64? U = this.safeInteger(messageItem, "U");
                 Int64? u = this.safeInteger(messageItem, "u");
                 if (((U == null)) || ((u == null)))
@@ -1355,7 +1355,7 @@ public partial class binance : ccxt.binance
         }
     }
 
-    public virtual void handleOrderBookSubscription(WebSocketClient client, object message, object subscription)
+    public virtual void handleOrderBookSubscription(WebSocketClient client, object message, IDictionary<string, object> subscription)
     {
         Int64? defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
         // const messageHash = this.safeString (subscription, 'messageHash');
@@ -3961,7 +3961,7 @@ public partial class binance : ccxt.binance
         //
         //
         string? messageHash = this.safeString(message, "id");
-        if (((getValue(message, "result")) is var hxArr190593 && ((hxArr190593 is IList<object>) || (hxArr190593 is not null && hxArr190593.GetType().IsGenericType && hxArr190593.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if (((getValue(message, "result")) is var hxArr190596 && ((hxArr190596 is IList<object>) || (hxArr190596 is not null && hxArr190596.GetType().IsGenericType && hxArr190596.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             // account.balance
             List<object> rawBalance = this.safeList(message, "result", new List<object>() {});

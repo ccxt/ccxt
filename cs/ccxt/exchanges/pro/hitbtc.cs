@@ -546,7 +546,7 @@ public partial class hitbtc : ccxt.hitbtc
             string? marketId = ((string)marketIds[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = this.safeSymbol(marketId, market);
-            ccxt.Ticker ticker = this.parseWsTicker((marketId != null && data.ContainsKey(marketId) ? data[marketId] : null), market);
+            ccxt.Ticker ticker = this.parseWsTicker(this.safeDict(data, marketId, new Dictionary<string, object>() {}), market);
             this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             result.Add(ccxt.BaseExchange.FromTicker(ticker));
             string messageHash = ((topic + "::") + symbol);
@@ -555,7 +555,7 @@ public partial class hitbtc : ccxt.hitbtc
         client.resolve(result, topic);
     }
 
-    public virtual ccxt.Ticker parseWsTicker(object ticker, IDictionary<string, object>? market = null)
+    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
     {
         //
         //    {
@@ -687,7 +687,7 @@ public partial class hitbtc : ccxt.hitbtc
             string? marketId = ((string)marketIds[i]);
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = this.safeSymbol(marketId, market);
-            Dictionary<string, object> ticker = this.parseWsBidAsk((marketId != null && data.ContainsKey(marketId) ? data[marketId] : null), market);
+            Dictionary<string, object> ticker = this.parseWsBidAsk(this.safeDict(data, marketId, new Dictionary<string, object>() {}), market);
             this.bidsasks[(string)symbol] = ticker;
             result.Add(ticker);
             string messageHash = ((topic + "::") + symbol);
@@ -696,7 +696,7 @@ public partial class hitbtc : ccxt.hitbtc
         client.resolve(result, topic);
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
     {
         Int64? timestamp = this.safeInteger(ticker, "t");
         object bidAskSymbol = null;
@@ -1691,7 +1691,7 @@ public partial class hitbtc : ccxt.hitbtc
             {
                 this.handleAuthenticate(client, message);
             }
-            if ((result is IList<object> hxList72214))
+            if ((result is IList<object> hxList72254))
             {
                 // to do improve this, not very reliable right now
                 IDictionary<string, object> first = this.safeDict(result, 0, new Dictionary<string, object>() {});

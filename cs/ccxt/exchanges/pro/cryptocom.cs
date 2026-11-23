@@ -699,7 +699,7 @@ public partial class cryptocom : ccxt.cryptocom
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            IDictionary<string, object> ticker = ((IDictionary<string, object>)data[i]);
+            IDictionary<string, object> ticker = this.safeDict(data, i, new Dictionary<string, object>() {});
             ccxt.Ticker parsed = this.parseWsTicker(ticker, market);
             string? symbol = parsed.symbol;
             if ((symbol != null))

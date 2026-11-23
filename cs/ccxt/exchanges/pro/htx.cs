@@ -668,7 +668,8 @@ public partial class htx : ccxt.htx
                 // unroll the accumulated deltas
                 for (int i = 0; i < (messages?.Count ?? 0); i++)
                 {
-                    this.handleOrderBookMessage(client, (messages != null && i < messages.Count ? messages[i] : null));
+                    IDictionary<string, object> messageItem = this.safeDict(messages, i, new Dictionary<string, object>() {});
+                    this.handleOrderBookMessage(client, messageItem);
                 }
                 (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};
                 if ((symbol != null))
@@ -748,7 +749,7 @@ public partial class htx : ccxt.htx
         }
     }
 
-    public virtual void handleOrderBookMessage(WebSocketClient client, object message)
+    public virtual void handleOrderBookMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         // spot markets
         //
@@ -942,7 +943,7 @@ public partial class htx : ccxt.htx
         }
     }
 
-    public virtual void handleOrderBookSubscription(WebSocketClient client, Dictionary<string, object> message, object subscription)
+    public virtual void handleOrderBookSubscription(WebSocketClient client, Dictionary<string, object> message, IDictionary<string, object> subscription)
     {
         string? symbol = this.safeString(subscription, "symbol");
         Dictionary<string, object> market = this.market(symbol);

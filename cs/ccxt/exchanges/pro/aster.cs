@@ -479,7 +479,7 @@ public partial class aster : ccxt.aster
         }
     }
 
-    public virtual ccxt.Ticker parseWsTicker(object message, string? marketType)
+    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> message, string? marketType)
     {
         string? eventVar = this.safeString(message, "e");
         string? marketId = this.safeString(message, "s");
@@ -662,7 +662,7 @@ public partial class aster : ccxt.aster
         client.resolve(ticker, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(object message, IDictionary<string, object> market)
+    public virtual Dictionary<string, object> parseWsBidAsk(IDictionary<string, object> message, IDictionary<string, object> market)
     {
         Int64? timestamp = this.safeInteger(message, "T");
         string? bidAskSymbol = null;

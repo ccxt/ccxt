@@ -1407,7 +1407,7 @@ public partial class apex : Exchange
             } else
             {
                 string? newMarketId = this.addHyphenBeforeUsdt(marketId);
-                if (((this.markets_by_id != null)) && (((newMarketId != null) && (this.markets_by_id != null && newMarketId != null && this.markets_by_id.ContainsKey(newMarketId)))))
+                if (((this.markets_by_id != null)) && ((this.markets_by_id != null && newMarketId != null && this.markets_by_id.ContainsKey(newMarketId))))
                 {
                     object markets = (this.markets_by_id != null && newMarketId != null && this.markets_by_id.ContainsKey(newMarketId) ? this.markets_by_id[newMarketId] : null);
                     int numMarkets = getArrayLength(markets);

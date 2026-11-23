@@ -1382,7 +1382,7 @@ public partial class backpack : ccxt.backpack
         }
     }
 
-    public override Int64 getCacheIndex(object orderbook, IList<object> cache)
+    public override Int64 getCacheIndex(IDictionary<string, object> orderbook, IList<object> cache)
     {
         //
         // {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}

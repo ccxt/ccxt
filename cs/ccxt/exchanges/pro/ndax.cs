@@ -541,7 +541,7 @@ public partial class ndax : ccxt.ndax
         client.resolve(orderbook, messageHash);
     }
 
-    public virtual void handleOrderBookSubscription(WebSocketClient client, object message, object subscription)
+    public virtual void handleOrderBookSubscription(WebSocketClient client, object message, IDictionary<string, object> subscription)
     {
         //
         //     {

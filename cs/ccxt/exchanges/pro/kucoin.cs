@@ -944,7 +944,7 @@ public partial class kucoin : ccxt.kucoin
         client.resolve(parsedTicker, messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsBidAsk(object ticker, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsBidAsk(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
     {
         string? topic = this.safeString(ticker, "topic");
         if (topic.IndexOf("contractMarket", StringComparison.Ordinal) < 0)
@@ -1985,7 +1985,7 @@ public partial class kucoin : ccxt.kucoin
         client.resolve(book, messageHash);
     }
 
-    public override Int64 getCacheIndex(object orderbook, IList<object> cache)
+    public override Int64 getCacheIndex(IDictionary<string, object> orderbook, IList<object> cache)
     {
         IDictionary<string, object> firstDelta = this.safeDict(cache, 0);
         Int64? nonce = this.safeInteger(orderbook, "nonce");
@@ -2073,7 +2073,7 @@ public partial class kucoin : ccxt.kucoin
         }
     }
 
-    public virtual void handleOrderBookSubscription(WebSocketClient client, object message, object subscription)
+    public virtual void handleOrderBookSubscription(WebSocketClient client, object message, IDictionary<string, object> subscription)
     {
         Int64? limit = this.safeInteger(subscription, "limit");
         List<object> symbols = this.safeList(subscription, "symbols");

@@ -3516,9 +3516,9 @@ public partial class polymarket : PredictionExchange
         return ("0x" + result);
     }
 
-    public virtual Dictionary<string, object> signHash(object hash, object privateKey)
+    public virtual Dictionary<string, object> signHash(string? hash, object privateKey)
     {
-        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : ((string)hash).Substring(Math.Max(((string)hash).Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : hash.Substring(Math.Max(hash.Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
         // assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
         string? rRaw = this.safeString(signature, "r", "");
         string? sRaw = this.safeString(signature, "s", "");
@@ -4106,7 +4106,7 @@ public partial class polymarket : PredictionExchange
             this.myTrades = new ArrayCacheByOutcomeById(limit);
         }
         ccxt.pro.ArrayCache stored = this.myTrades;
-        Dictionary<string, object> parsed = this.parsePredictionTrade(((IDictionary<string, object>)eventVar));
+        Dictionary<string, object> parsed = this.parsePredictionTrade(this.extend(new Dictionary<string, object>() {}, eventVar));
         stored.append(parsed);
         client.resolve(stored, "myTrades");
         string? outcome = this.safeString(parsed, "outcome");

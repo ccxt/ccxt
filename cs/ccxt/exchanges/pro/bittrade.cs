@@ -418,7 +418,8 @@ public partial class bittrade : ccxt.bittrade
         IList<object> messages = (orderbook as ccxt.pro.OrderBook).cache;
         for (int i = 0; i < (messages?.Count ?? 0); i++)
         {
-            this.handleOrderBookMessage(client, (messages != null && i < messages.Count ? messages[i] : null), orderbook);
+            IDictionary<string, object> messageItem = this.safeDict(messages, i, new Dictionary<string, object>() {});
+            this.handleOrderBookMessage(client, messageItem, orderbook);
         }
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         client.resolve(orderbook, messageHash);
@@ -565,7 +566,7 @@ public partial class bittrade : ccxt.bittrade
         }
     }
 
-    public virtual void handleOrderBookSubscription(WebSocketClient client, object message, object subscription)
+    public virtual void handleOrderBookSubscription(WebSocketClient client, object message, IDictionary<string, object> subscription)
     {
         string? symbol = this.safeString(subscription, "symbol");
         if ((symbol == null))

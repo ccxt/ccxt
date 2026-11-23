@@ -6552,7 +6552,7 @@ public partial class bitget : Exchange
             {
                 IDictionary<string, object> entry = ((IDictionary<string, object>)rows[i]);
                 string? entryMarketId = this.safeString(entry, "symbol");
-                if (((entryMarketId == null)) || ((this.markets_by_id == null)) || !(((entryMarketId != null) && (this.markets_by_id != null && this.markets_by_id.ContainsKey(entryMarketId)))))
+                if (((entryMarketId == null)) || ((this.markets_by_id == null)) || !(((entryMarketId != null) && this.markets_by_id.ContainsKey(entryMarketId))))
                 {
                     continue;
                 }
@@ -14675,7 +14675,7 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToLongShortRatioList(this.parseLongShortRatioHistory(data, market));
     }
 
-    public override Dictionary<string, object> parseLongShortRatio(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLongShortRatio(Dictionary<string, object> info, IDictionary<string, object> market = null)
     {
         string? marketId = this.safeString(info, "symbol");
         Int64? timestamp = this.safeIntegerOmitZero(info, "ts");

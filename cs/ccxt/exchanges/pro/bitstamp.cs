@@ -219,7 +219,7 @@ public partial class bitstamp : ccxt.bitstamp
         }
     }
 
-    public override Int64 getCacheIndex(object orderbook, IList<object> deltas)
+    public override Int64 getCacheIndex(IDictionary<string, object> orderbook, IList<object> deltas)
     {
         // we will consider it a fail
         IDictionary<string, object> firstElement = this.safeDict(deltas, 0);

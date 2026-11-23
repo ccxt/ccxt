@@ -823,7 +823,7 @@ public partial class gate : ccxt.gate
         client.resolve(storedOrderBook, messageHash);
     }
 
-    public override Int64 getCacheIndex(object orderBook, IList<object> cache)
+    public override Int64 getCacheIndex(IDictionary<string, object> orderBook, IList<object> cache)
     {
         Int64? nonce = this.safeInteger(orderBook, "nonce");
         IDictionary<string, object> firstDelta = this.safeDict(cache, 0);

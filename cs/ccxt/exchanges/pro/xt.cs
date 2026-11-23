@@ -153,7 +153,7 @@ public partial class xt : ccxt.xt
         return ((string?)((object)((client.subscriptions != null && client.subscriptions.ContainsKey("token") ? client.subscriptions["token"] : null))));
     }
 
-    public override Int64 getCacheIndex(object orderbook, IList<object> cache)
+    public override Int64 getCacheIndex(IDictionary<string, object> orderbook, IList<object> cache)
     {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         Int64? nonce = this.safeInteger(orderbook, "nonce");

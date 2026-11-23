@@ -591,7 +591,7 @@ public partial class onetrading : ccxt.onetrading
         client.resolve(this.orders, "orders");
     }
 
-    public virtual Dictionary<string, object> parseTradingOrder(object order, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseTradingOrder(IDictionary<string, object> order, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -1430,12 +1430,12 @@ public partial class onetrading : ccxt.onetrading
         int numSymbols = symbols?.Count ?? 0;
         if ((numSymbols == 0))
         {
-            IDictionary<string, object> marketsById = this.markets_by_id;
+            IDictionary<string, List<object>> marketsById = this.markets_by_id;
             if ((marketsById == null))
             {
                 return new List<object>() {};
             }
-            marketIds = new List<object>(marketsById.Keys);
+            marketIds = new List<object>(((IDictionary<string,object>)marketsById).Keys);
         } else
         {
             marketIds = this.marketIds(symbols);

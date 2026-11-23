@@ -115,7 +115,7 @@ public partial class hashkey : ccxt.hashkey
         return ccxt.BaseExchange.ToOHLCVList(this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true));
     }
 
-    public virtual void handleOHLCV(WebSocketClient client, object message)
+    public virtual void handleOHLCV(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -215,7 +215,7 @@ public partial class hashkey : ccxt.hashkey
         return ccxt.BaseExchange.ToTicker(await this.wathPublic<object>(market, topic, messageHash, parameters));
     }
 
-    public virtual void handleTicker(WebSocketClient client, object message)
+    public virtual void handleTicker(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -285,7 +285,7 @@ public partial class hashkey : ccxt.hashkey
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
-    public virtual void handleTrades(WebSocketClient client, object message)
+    public virtual void handleTrades(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -360,7 +360,7 @@ public partial class hashkey : ccxt.hashkey
         return (orderbook as IOrderBook).limit().Copy();
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message)
+    public virtual void handleOrderBook(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -442,7 +442,7 @@ public partial class hashkey : ccxt.hashkey
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true));
     }
 
-    public virtual void handleOrder(WebSocketClient client, object message)
+    public virtual void handleOrder(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // swap
@@ -716,7 +716,7 @@ public partial class hashkey : ccxt.hashkey
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true));
     }
 
-    public virtual void handlePosition(WebSocketClient client, object message)
+    public virtual void handlePosition(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -856,7 +856,7 @@ public partial class hashkey : ccxt.hashkey
         }
     }
 
-    public virtual void handleBalance(WebSocketClient client, object message)
+    public virtual void handleBalance(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -996,7 +996,7 @@ public partial class hashkey : ccxt.hashkey
         this.handleStreamMessage(client, message);
     }
 
-    public virtual void handleStreamMessage(WebSocketClient client, object message)
+    public virtual void handleStreamMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         string? topic = this.safeString2(message, "topic", "e");
         if (topic == "kline")

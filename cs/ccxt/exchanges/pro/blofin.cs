@@ -672,9 +672,9 @@ public partial class blofin : ccxt.blofin
         client.resolve((this.balance != null && marketType != null && this.balance.ContainsKey(marketType) ? this.balance[marketType] : null), messageHash);
     }
 
-    public virtual Dictionary<string, object> parseWsBalance(object message)
+    public virtual Dictionary<string, object> parseWsBalance(IDictionary<string, object> message)
     {
-        return this.parseBalance(((IDictionary<string, object>)message));
+        return this.parseBalance(message);
     }
 
     /**

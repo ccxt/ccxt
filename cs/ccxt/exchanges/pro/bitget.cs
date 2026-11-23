@@ -317,7 +317,7 @@ public partial class bitget : ccxt.bitget
         client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
     }
 
-    public virtual ccxt.Ticker parseWsTicker(object message, IDictionary<string, object>? market = null)
+    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> message, IDictionary<string, object>? market = null)
     {
         //
         // spot

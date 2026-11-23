@@ -1540,7 +1540,7 @@ public partial class paradex : Exchange
     public virtual List<object> filterLoadedSummaries(IList<object> summaries, string? marketType = null)
     {
         List<object> result = new List<object>() {};
-        IDictionary<string, object> marketsById = this.markets_by_id;
+        IDictionary<string, List<object>> marketsById = this.markets_by_id;
         if ((marketsById == null))
         {
             return result;
@@ -3974,7 +3974,7 @@ public partial class paradex : Exchange
         // }
         //
         List<object> configs = this.safeList(response, "configs");
-        return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode(this.safeDict(configs, 0), market));
+        return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode(this.safeDict(configs, 0, new Dictionary<string, object>() {}), market));
     }
 
     public override Dictionary<string, object> parseMarginMode(IDictionary<string, object> rawMarginMode, IDictionary<string, object> market = null)
@@ -4397,8 +4397,7 @@ public partial class paradex : Exchange
         string prefix = (code + "-");
         for (int i = 0; i < data.Count; i++)
         {
-            object entry = data[i];
-            string? marketId = this.safeString(entry, "symbol", "");
+            string? marketId = this.safeString((data != null && i < data.Count ? data[i] : null), "symbol", "");
             // the id starts with the base, so the other underlyings are skipped before the market is resolved
             if (marketId.StartsWith(prefix))
             {
@@ -4407,7 +4406,7 @@ public partial class paradex : Exchange
                 if ((((market.ContainsKey("option") ? market["option"] : null) as bool?) == true))
                 {
                     string? optionSymbol = this.safeString(market, "symbol", "");
-                    result[(string)optionSymbol] = this.parseOption(((IDictionary<string, object>)entry), null, market);
+                    result[(string)optionSymbol] = this.parseOption(this.safeDict(data, i, new Dictionary<string, object>() {}), null, market);
                 }
             }
         }

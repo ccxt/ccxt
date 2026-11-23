@@ -188,7 +188,7 @@ public partial class mexc : ccxt.mexc
         if ((this.safeBool(market, "spot", false) == true))
         {
             this.handleBidAsk(client, message); // the bids-asks channel is spot only
-            ticker = ccxt.BaseExchange.FromTicker(this.parseWsTicker(rawTicker, market));
+            ticker = ccxt.BaseExchange.FromTicker(this.parseWsTicker(this.safeDictN(message, new List<object>() {"d", "data", "publicAggreBookTicker"}, new Dictionary<string, object>() {}), market));
             ticker["timestamp"] = timestamp;
             ticker["datetime"] = this.iso8601(timestamp);
         } else if ((rawTicker != null))
@@ -335,7 +335,7 @@ public partial class mexc : ccxt.mexc
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            IDictionary<string, object> entry = ((IDictionary<string, object>)(data != null && i < data.Count ? data[i] : null));
+            IDictionary<string, object> entry = this.safeDict(data, i, new Dictionary<string, object>() {});
             Dictionary<string, object> ticker = null;
             if ((isSpot == true))
             {
@@ -356,7 +356,7 @@ public partial class mexc : ccxt.mexc
         client.resolve(result, topic);
     }
 
-    public virtual ccxt.Ticker parseWsTicker(object ticker, IDictionary<string, object>? market = null)
+    public virtual ccxt.Ticker parseWsTicker(IDictionary<string, object> ticker, IDictionary<string, object>? market = null)
     {
         // protobuf ticker
         // "bidPrice": "93387.28",  // Best bid price
@@ -887,7 +887,7 @@ public partial class mexc : ccxt.mexc
         (orderbook as ccxt.pro.OrderBook).cache = new List<object>() {};
     }
 
-    public override Int64 getCacheIndex(object orderbook, IList<object> cache)
+    public override Int64 getCacheIndex(IDictionary<string, object> orderbook, IList<object> cache)
     {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         Int64? nonce = this.safeInteger(orderbook, "nonce");

@@ -6417,7 +6417,9 @@ public partial class binance : Exchange
             response = await this.fapiPublicGetTicker24hr(this.extend(request, parameters));
         } else if ((this.safeBool(market, "inverse", false) == true))
         {
-            response = await this.dapiPublicGetTicker24hr(this.extend(request, parameters));
+            // coin-m returns a list of one ticker
+            List<object> inverseResponse = await this.dapiPublicGetTicker24hr(this.extend(request, parameters));
+            response = this.safeDict(inverseResponse, 0, new Dictionary<string, object>() {});
         } else
         {
             bool? stock = this.safeBool(market, "stock", false);
@@ -6745,7 +6747,9 @@ public partial class binance : Exchange
             response = await this.fapiPublicGetPremiumIndex(this.extend(request, paramsSubType));
         } else if (this.isInverse(type, subType))
         {
-            response = await this.dapiPublicGetPremiumIndex(this.extend(request, paramsSubType));
+            // coin-m returns a list of one entry
+            List<object> inverseResponse = await this.dapiPublicGetPremiumIndex(this.extend(request, paramsSubType));
+            return this.parseTicker(this.safeDict(inverseResponse, 0, new Dictionary<string, object>() {}), market);
         } else
         {
             throw new NotSupported ((((this.id + " fetchMarkPrice() does not support ") + type) + " markets yet")) ;
@@ -15619,7 +15623,7 @@ public partial class binance : Exchange
         List<Dictionary<string, object>> result = new List<Dictionary<string, object>>() {};
         for (int i = 0; i < (settlements?.Count ?? 0); i++)
         {
-            result.Add(this.parseSettlement(((IDictionary<string, object>)this.safeValue(settlements, i)), market));
+            result.Add(this.parseSettlement(this.extend(new Dictionary<string, object>() {}, (settlements != null && i < settlements.Count ? settlements[i] : null)), market));
         }
         return result;
     }
@@ -17872,13 +17876,28 @@ public partial class binance : Exchange
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams("fetchMarginMode", market, parameters);
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
-        List<object> response = null;
         if ((subType == "linear"))
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             };
-            response = await this.fapiPrivateGetSymbolConfig(this.extend(request, paramsSubType));
+            List<object> response = await this.fapiPrivateGetSymbolConfig(this.extend(request, paramsSubType));
+            //
+            // [
+            //     {
+            //         "symbol": "BTCUSDT",
+            //         "marginType": "CROSSED",
+            //         "isAutoAddMargin": "false",
+            //         "leverage": 21,
+            //         "maxNotionalValue": "1000000",
+            //     }
+            // ]
+            //
+            if ((response == null))
+            {
+                throw new NullResponse ((this.id + " fetchMarginMode() returned empty response")) ;
+            }
+            return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode(this.safeDict(response, 0, new Dictionary<string, object>() {}), market));
         } else if ((subType == "inverse"))
         {
             Dictionary<string, object> fetchMarginModesResponse = ccxt.BaseExchange.FromMarginModes(await this.FetchMarginModes(new List<object>() {symbol}, paramsSubType));
@@ -17888,11 +17907,6 @@ public partial class binance : Exchange
         {
             throw new BadRequest ((this.id + " fetchMarginMode () supports linear and inverse subTypes only")) ;
         }
-        if ((response == null))
-        {
-            throw new NullResponse ((this.id + " fetchMarginMode() returned empty response")) ;
-        }
-        return ccxt.BaseExchange.ToMarginMode(this.parseMarginMode(((IDictionary<string, object>)this.safeValue(response, 0)), market));
     }
 
     public override Dictionary<string, object> parseMarginMode(IDictionary<string, object> marginMode, IDictionary<string, object> market = null)
@@ -18583,7 +18597,7 @@ public partial class binance : Exchange
         return ccxt.BaseExchange.ToLongShortRatioList(this.parseLongShortRatioHistory(response, market));
     }
 
-    public override Dictionary<string, object> parseLongShortRatio(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseLongShortRatio(Dictionary<string, object> info, IDictionary<string, object> market = null)
     {
         //
         // linear

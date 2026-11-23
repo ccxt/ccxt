@@ -1940,7 +1940,7 @@ public partial class kalshi : PredictionExchange
         List<object> parsed = new List<object>() {};
         for (int i = 0; i < rawSettlementsLength; i++)
         {
-            parsed.Add(this.parseSettlement(((IDictionary<string, object>)(rawSettlements != null && i < rawSettlements.Count ? rawSettlements[i] : null))));
+            parsed.Add(this.parseSettlement(this.extend(new Dictionary<string, object>() {}, (rawSettlements != null && i < rawSettlements.Count ? rawSettlements[i] : null))));
         }
         IDictionary<string, object> wantedOutcomeObj = ((outcome != null)) ? this.outcome(outcome) : new Dictionary<string, object>() {};
         string? wantedOutcome = this.safeString(wantedOutcomeObj, "outcome");

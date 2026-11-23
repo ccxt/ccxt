@@ -853,6 +853,23 @@ public partial class PredictionExchange : BaseExchange
         parameters ??= new Dictionary<string, object>();
         if ((outcomes != null))
         {
+            bool wasWarm = ((this.outcomes != null)) && !this.isEmpty(this.outcomes);
+            bool? loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
+            if ((loadAll == true) && !wasWarm && reload != true)
+            {
+                bool coldMiss = false;
+                for (int i = 0; i < (outcomes?.Count ?? 0); i++)
+                {
+                    if (!this.hasOutcome((outcomes != null && i < outcomes.Count ? outcomes[i] : null)))
+                    {
+                        coldMiss = true;
+                    }
+                }
+                if (coldMiss)
+                {
+                    await this.loadOutcomes();
+                }
+            }
             List<object> missing = new List<object>() {};
             for (int i = 0; i < (outcomes?.Count ?? 0); i++)
             {
@@ -862,22 +879,6 @@ public partial class PredictionExchange : BaseExchange
                 }
             }
             int missingLength = (missing?.Count ?? 0);
-            bool wasWarm = ((this.outcomes != null)) && !this.isEmpty(this.outcomes);
-            bool? loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
-            if ((missingLength > 0) && (loadAll == true) && !wasWarm && reload != true)
-            {
-                await this.loadOutcomes();
-                List<object> stillMissing = new List<object>() {};
-                for (int i = 0; i < missingLength; i++)
-                {
-                    if (!this.hasOutcome((missing != null && i < missing.Count ? missing[i] : null)))
-                    {
-                        stillMissing.Add((missing != null && i < missing.Count ? missing[i] : null));
-                    }
-                }
-                missing = stillMissing;
-                missingLength = (missing?.Count ?? 0);
-            }
             if (missingLength > 0)
             {
                 await this.FetchOutcomes(missing);
@@ -1842,7 +1843,7 @@ public partial class PredictionExchange : BaseExchange
         List<object> results = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            Dictionary<string, object> parsed = this.parsePredictionTrade(((IDictionary<string, object>)rows[i]), outcomeObj);
+            Dictionary<string, object> parsed = this.parsePredictionTrade(this.safeDict(rows, i, new Dictionary<string, object>() {}), outcomeObj);
             Dictionary<string, object> trade = this.extend(parsed, parameters);
             results.Add(trade);
         }
@@ -1900,7 +1901,7 @@ public partial class PredictionExchange : BaseExchange
         List<object> results = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            Dictionary<string, object> parsed = this.parsePredictionPosition(((IDictionary<string, object>)rows[i]));
+            Dictionary<string, object> parsed = this.parsePredictionPosition(this.safeDict(rows, i, new Dictionary<string, object>() {}));
             Dictionary<string, object> position = this.extend(parsed, parameters);
             results.Add(position);
         }

@@ -1593,7 +1593,7 @@ public partial class toobit : Exchange
         {
             object ticker = response[i];
             string? marketId = this.safeString(ticker, "s");
-            if (((marketId != null)) && ((this.markets_by_id != null)) && (((marketId != null) && (this.markets_by_id != null && this.markets_by_id.ContainsKey(marketId)))))
+            if (((marketId != null)) && ((this.markets_by_id != null)) && (((marketId != null) && this.markets_by_id.ContainsKey(marketId))))
             {
                 rows.Add(ticker);
             }
