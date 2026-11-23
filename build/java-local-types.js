@@ -1640,8 +1640,9 @@ const RECEIVER_METHOD_LOCAL_ENTRIES = {
     'toLowerCase': { type: 'String', prefixes: [ '((String)' ], args: [ 0 ], nonNull: true },
     'trim':        { type: 'String', prefixes: [ '((String)' ], args: [ 0 ], nonNull: true },
     'search':      { type: 'Integer', prefixes: [ '((String)' ], args: [ 1 ] },
-    'startsWith':  { type: 'Boolean', prefixes: [ '((String)' ], match: /^\w+\.startsWith\(\(\(String\)/, args: [ 1 ] },
-    'endsWith':    { type: 'Boolean', prefixes: [ '((String)' ], args: [ 1 ] },
+    // a bare receiver prints only for a String-declared identifier: String.startsWith / endsWith
+    'startsWith':  { type: 'Boolean', prefixes: [ '((String)' ], match: /^(?!this\.)\w+\.startsWith\(/, args: [ 1 ] },
+    'endsWith':    { type: 'Boolean', prefixes: [ '((String)' ], match: /^(?!this\.)\w+\.endsWith\(/, args: [ 1 ] },
     'split':       { type: JAVA_ARRAY_TYPE, cast: JAVA_ARRAY_CAST, prefixes: [ 'Helpers.split(' ], args: [ 1, 2 ] },
     'join':        { type: 'String', prefixes: [ 'String.join(' ], args: [ 1 ], nonNull: true },
     'replace':     { type: 'String', prefixes: [ 'Helpers.replace(' ], match: /^(\(\(String\)\w+\)|\w+)\.replaceFirst\("/, args: [ 1, 2 ], nonNull: false },
@@ -1650,7 +1651,7 @@ const RECEIVER_METHOD_LOCAL_ENTRIES = {
     'slice':       { type: 'String', prefixes: [ 'Helpers.slice(' ], match: /^\w+(?:\.\w+)* == null \? null : \(\(String\)/, args: [ 1, 2 ], nonNull: false },
     'padEnd':      { type: 'String', prefixes: [ 'Helpers.padEnd(' ], args: [ 2 ], nonNull: true },
     'padStart':    { type: 'String', prefixes: [ 'Helpers.padStart(' ], args: [ 2 ], nonNull: true },
-    'indexOf':     { type: 'Integer', prefixes: [ 'Helpers.getIndexOf(', '((String)' ], match: /^\(\w+ == null \|\| \w+ == null \|\| .* \? -1 : \w+\.indexOf\(/, args: [ 1, 2 ] },
+    'indexOf':     { type: 'Integer', prefixes: [ 'Helpers.getIndexOf(', '((String)' ], match: /^\(\w+ == null \|\| \w+ == null \|\| .* \? -1 : \w+\.indexOf\(|^(?!this\.)\w+\.indexOf\("/, args: [ 1, 2 ] },
     'includes':    { type: 'Boolean', match: /\.contains\(/, args: [ 1, 2 ] },
     'toString':    { type: 'String', prefixes: [ 'String.valueOf(' ], args: [ 0 ], nonNull: true },
 };
@@ -7996,8 +7997,8 @@ export function patchJavaStringReceiverCasts (transpiler) {
     patchJavaStringReceiverCall (printer, 'printToLowerCaseCall', (clean) => `${clean}.toLowerCase()`);
     patchJavaStringReceiverCall (printer, 'printTrimCall', (clean) => `${clean}.trim()`);
     patchJavaStringReceiverCall (printer, 'printSearchCall', (clean, arg) => `${clean}.indexOf(${arg})`);
-    patchJavaStringReceiverCall (printer, 'printStartsWithCall', (clean, arg) => `${clean}.startsWith(((String)${arg}))`);
-    patchJavaStringReceiverCall (printer, 'printEndsWithCall', (clean, arg) => `${clean}.endsWith(((String)${arg}))`);
+    patchJavaStringReceiverCall (printer, 'printStartsWithCall', (clean, arg, _a2, node) => `${clean}.startsWith(${javaAffixArgText (node, arg)})`);
+    patchJavaStringReceiverCall (printer, 'printEndsWithCall', (clean, arg, _a2, node) => `${clean}.endsWith(${javaAffixArgText (node, arg)})`);
     patchJavaStringReceiverCall (printer, 'printReplaceCall',
         (clean, arg, arg2) => `Helpers.replace(${clean}, (String)${arg}, (String)${arg2})`);
     patchJavaStringReceiverCall (printer, 'printReplaceAllCall',
@@ -8107,6 +8108,12 @@ function isJavaStringMethodReceiver (node) {
 
 // wrap one cast-emitting printer method: when the receiver is a String-declared local,
 // rebuild the call with the receiver slot cleaned; otherwise defer to the printer.
+// a string literal argument is already a Java String: no checkcast
+function javaAffixArgText (node, arg) {
+    const first = unwrapParens (node?.arguments?.[0]);
+    return first !== undefined && ts.isStringLiteral (first) ? arg : `((String)${arg})`;
+}
+
 function patchJavaStringReceiverCall (printer, method, rebuild) {
     const upstream = printer[method];
     if (typeof upstream !== 'function') {
@@ -8127,7 +8134,7 @@ function patchJavaStringReceiverCall (printer, method, rebuild) {
             return typedReplace;
         }
         if (clean !== undefined) {
-            return rebuild (clean, parsedArg, parsedArg2);
+            return rebuild (clean, parsedArg, parsedArg2, node);
         }
         return upstream.apply (printer, arguments);
     };
