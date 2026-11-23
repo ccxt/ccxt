@@ -1256,7 +1256,7 @@ export default class dydx extends Exchange {
         return signature;
     }
 
-    signDydxTx (privateKey: Str, message: any, memo: Str, chainId: Str, account: Dict, authenticators: any, fee: any = undefined): string {
+    signDydxTx (privateKey: Str, message: Dict, memo: Str, chainId: Str, account: Dict, authenticators: any, fee: NullableDict = undefined): string {
         const [ encodedTx, signDoc ] = this.encodeDydxTxForSigning (message, memo, chainId, account, authenticators, fee);
         const signature = this.signHash (encodedTx, privateKey);
         const signatureR = this.safeString (signature, 'r', '');

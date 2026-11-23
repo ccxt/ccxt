@@ -1914,7 +1914,7 @@ export default class derive extends Exchange {
         } as FundingRate;
     }
 
-    hashOrderMessage (order: any): string {
+    hashOrderMessage (order: List): string {
         const accountHash = this.hash (this.ethAbiEncode ([
             'bytes32', 'uint256', 'uint256', 'address', 'bytes32', 'uint256', 'address', 'address',
         ], order), keccak, 'binary');
@@ -1929,7 +1929,7 @@ export default class derive extends Exchange {
         return this.hash (this.binaryConcat (prefix, binaryDomainSeparator, accountHash), keccak, 'hex');
     }
 
-    signOrder (order: any, privateKey: string): string {
+    signOrder (order: List, privateKey: string): string {
         const hashOrder = this.hashOrderMessage (order);
         return this.signHash (hashOrder, privateKey);
     }
