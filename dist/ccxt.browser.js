@@ -495603,7 +495603,7 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': undefined,
                 'fetchGreeks': false,
@@ -498672,6 +498672,87 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
             'datetime': this.iso8601(timestamp),
             'nonce': undefined
         };
+    }
+    /**
+     * @method
+     * @name poloniex#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-current-funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */ async fetchFundingRate(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!this.safeBool(market, 'swap', false)) {
+            throw new _base_errors_js__rspack_import_2.BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
+        }
+        const request = {
+            'symbol': market['id']
+        };
+        const response = await this.swapPublicGetV3MarketFundingRate(this.extend(request, params));
+        //
+        //    {
+        //        "code": 200,
+        //        "msg": "Success",
+        //        "data": {
+        //            "s": "BTC_USDT_PERP",
+        //            "fR": "0.0001",
+        //            "fT": "1795276800000",
+        //            "nFR": "0.0001",
+        //            "nFT": "1795305600000"
+        //        }
+        //    }
+        //
+        const data = this.safeDict(response, 'data', {});
+        return this.parseFundingRate(data, market);
+    }
+    parseFundingRate(contract, market = undefined) {
+        //
+        //    {
+        //        "s": "BTC_USDT_PERP",
+        //        "fR": "0.0001",
+        //        "fT": "1795276800000",
+        //        "nFR": "0.0001",
+        //        "nFT": "1795305600000"
+        //    }
+        //
+        const marketId = this.safeString(contract, 's');
+        // fR and fT are the funding that already settled, nFR and nFT the one about to be applied
+        const previousFundingTimestamp = this.safeInteger(contract, 'fT');
+        const fundingTimestamp = this.safeInteger(contract, 'nFT');
+        const intervalMilliseconds = _base_Precise_js__rspack_import_3/* .Precise.stringSub */.Y.stringSub(this.safeString(contract, 'nFT'), this.safeString(contract, 'fT'));
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol(marketId, market),
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeNumber(contract, 'nFR'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601(fundingTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': this.safeNumber(contract, 'fR'),
+            'previousFundingTimestamp': previousFundingTimestamp,
+            'previousFundingDatetime': this.iso8601(previousFundingTimestamp),
+            'interval': this.parseFundingInterval(intervalMilliseconds)
+        };
+    }
+    parseFundingInterval(interval) {
+        const intervals = {
+            '3600000': '1h',
+            '7200000': '2h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h'
+        };
+        return this.safeString(intervals, interval, interval);
     }
     /**
      * @method

@@ -3386,6 +3386,7 @@ fetch the current funding rate
 [okx](/exchanges/okx.md#fetchfundingrate)
 [paradex](/exchanges/paradex.md#fetchfundingrate)
 [phemex](/exchanges/phemex.md#fetchfundingrate)
+[poloniex](/exchanges/poloniex.md#fetchfundingrate)
 [polymarket](/exchanges/polymarket.md#fetchfundingrate)
 [whitebit](/exchanges/whitebit.md#fetchfundingrate)
 [woo](/exchanges/woo.md#fetchfundingrate)
