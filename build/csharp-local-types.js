@@ -17120,6 +17120,10 @@ export const SIGNATURE_ARG_TYPES = {
     'parsePredictionOrder': { 0: 'IDictionary<string, object>', 1: 'IDictionary<string, object>' },
     'parsePredictionTrade': { 0: 'IDictionary<string, object>', 1: 'IDictionary<string, object>' },
     'parsePredictionPosition': { 0: 'IDictionary<string, object>', 1: 'IDictionary<string, object>' },
+    // `outcomeObj` is a resolved outcome dict or undefined at every caller; the bodies only read it
+    'parsePredictionTrades': { 1: 'IDictionary<string, object>' },
+    'parsePredictionOrders': { 1: 'IDictionary<string, object>' },
+    'safePredictionOrder': { 1: 'IDictionary<string, object>' },
     // `order: Dict` (the TypeScript declaration); every caller passes a row, no body reads it as a list
     'parseOrder': { 0: 'IDictionary<string, object>' },
     // ws json-object frames: TS declares `message: Dict` on the base and every override; routeMessage
