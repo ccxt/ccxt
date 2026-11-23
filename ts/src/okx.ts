@@ -2993,7 +2993,7 @@ export default class okx extends Exchange {
         }
         const market = this.market (symbol);
         const request: Dict = {
-            'instType': this.convertToInstrumentType (market['type']), // SPOT, MARGIN, SWAP, FUTURES, OPTION
+            'instType': this.convertToInstrumentType (this.safeString (market, 'type')), // SPOT, MARGIN, SWAP, FUTURES, OPTION
             // "instId": market["id"], // only applicable to SPOT/MARGIN
             // "uly": market["id"], // only applicable to FUTURES/SWAP/OPTION
             // "category": "1", // 1 = Class A, 2 = Class B, 3 = Class C, 4 = Class D
@@ -7882,7 +7882,7 @@ export default class okx extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const type = (this.safeBool (market, 'spot', false)) ? 'MARGIN' : this.convertToInstrumentType (market['type']);
+        const type = (this.safeBool (market, 'spot', false)) ? 'MARGIN' : this.convertToInstrumentType (this.safeString (market, 'type'));
         const instFamily = this.safeString (market['info'], 'instFamily');
         if ((instFamily === undefined) || (instFamily === '')) {
             if (type !== 'MARGIN') {
@@ -8180,7 +8180,7 @@ export default class okx extends Exchange {
         if (!this.safeBool (market, 'contract', false)) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
         }
-        const type = this.convertToInstrumentType (market['type']);
+        const type = this.convertToInstrumentType (this.safeString (market, 'type'));
         const uly = this.safeString (market['info'], 'uly');
         const request: Dict = {
             'instType': type,
@@ -8731,7 +8731,7 @@ export default class okx extends Exchange {
             const symbolMarket = this.market (symbol);
             market = symbolMarket;
             request['instId'] = symbolMarket['id'];
-            request['instType'] = this.convertToInstrumentType (symbolMarket['type']);
+            request['instType'] = this.convertToInstrumentType (this.safeString (symbolMarket, 'type'));
         }
         if (since !== undefined) {
             request['begin'] = since;

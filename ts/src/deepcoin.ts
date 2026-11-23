@@ -2155,7 +2155,7 @@ export default class deepcoin extends Exchange {
         const paramsOmitted = this.omit (params, 'trigger');
         let response = undefined;
         if (trigger) {
-            request['instType'] = this.convertToInstrumentType (market['type']);
+            request['instType'] = this.convertToInstrumentType (this.safeString (market, 'type'));
             //
             //     {
             //         "code": "0",
@@ -2578,7 +2578,7 @@ export default class deepcoin extends Exchange {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        const instrumentType = this.convertToInstrumentType (market['type']);
+        const instrumentType = this.convertToInstrumentType (this.safeString (market, 'type'));
         const request: Dict = {
             'instType': instrumentType,
             'instId': market['id'],
