@@ -9662,11 +9662,52 @@ function javaVenueListReadNames () {
                     }
                 }
             }
+            // a call collected for `await Promise.all (..)`: pushed into, or an element of, the joined list
+            if (isThisCall (node) && javaVenuePromiseAllOperand (node)) {
+                names.add (node.expression.name.text);
+            }
             node.forEachChild (visit);
         };
         visit (sf);
     }
     return names;
+}
+
+// `call` reaches an awaited Promise.all through an array literal element, a `.push (call)` or a const local
+function javaVenuePromiseAllOperand (call) {
+    const scope = enclosingFunction (call);
+    if (scope === undefined) {
+        return false;
+    }
+    let holder;
+    const parent = call.parent;
+    if (ts.isArrayLiteralExpression (parent)) {
+        holder = ts.isVariableDeclaration (parent.parent) && ts.isIdentifier (parent.parent.name) ? parent.parent.name.text : parent;
+    } else if (ts.isCallExpression (parent) && ts.isPropertyAccessExpression (parent.expression) && parent.expression.name.text === 'push'
+        && ts.isIdentifier (parent.expression.expression)) {
+        holder = parent.expression.expression.text;
+    } else if (ts.isVariableDeclaration (parent) && ts.isIdentifier (parent.name)) {
+        holder = parent.name.text;
+    }
+    if (holder === undefined) {
+        return false;
+    }
+    let joined = false;
+    const walk = (n) => {
+        if (joined) {
+            return;
+        }
+        if (ts.isCallExpression (n) && ts.isPropertyAccessExpression (n.expression) && ts.isIdentifier (n.expression.expression)
+            && n.expression.expression.text === 'Promise' && n.expression.name.text === 'all' && n.parent.kind === ts.SyntaxKind.AwaitExpression) {
+            const arg = unwrapParens (n.arguments[0]);
+            joined = arg === holder || (typeof holder === 'string' && arg !== undefined
+                && ((ts.isIdentifier (arg) && arg.text === holder)
+                    || (ts.isArrayLiteralExpression (arg) && arg.elements.some ((e) => ts.isIdentifier (e) && e.text === holder))));
+        }
+        n.forEachChild (walk);
+    };
+    walk (scope);
+    return joined;
 }
 
 function javaVenueSafeListSeededWrites () {
@@ -9731,6 +9772,9 @@ function javaVenueListReturnsProven (file, name, listNames = new Set ()) {
                 ok = value !== undefined && (ts.isIdentifier (value)
                     || (javaVenueTupleNames.has (name) && ts.isArrayLiteralExpression (value))
                     || (isThisCall (value) && value.expression.name.text === 'arraySlice')
+                    // parseMarkets prints List<Object> on every tier; BaseExchange.java `<T> List<T> filterBy`
+                    || [ value, value !== undefined && ts.isAsExpression (value) ? unwrapParens (value.expression) : undefined ]
+                        .some ((v) => isThisCall (v) && [ 'parseMarkets', 'filterBy' ].includes (v.expression.name.text))
                     || (isThisCall (awaited) && listNames.has (awaited.expression.name.text)));
                 return;
             }
