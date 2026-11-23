@@ -867,11 +867,11 @@ impl Exchange {
     ///
     /// Absent keys leave the base default in place — the equivalent of Go's
     /// `SafeString(props, key, default)`.
-    pub fn initialize_properties(&mut self, described: Value) {
+    pub fn initialize_properties(&mut self, described: impl Into<Value>) {
         let props = if matches!(self.userConfig, Value::Null) {
-            described
+            described.into()
         } else {
-            crate::runtime::deep_merge_dict(&described, &self.userConfig)
+            crate::runtime::deep_merge_dict(&described.into(), &self.userConfig)
         };
         let get = |k: &str| props.at(k).to_owned();
         let assign = |field: &mut Value, v: Value| {
@@ -2069,7 +2069,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
 
     // ── super.X() shims — call the BASE (ExchangeBase) method, fully-qualified
     // so a derived override is bypassed (that is what `super.X()` means).
-    fn super_describe(&self) -> Value {
+    fn super_describe(&self) -> crate::value::Dict {
         <Self as crate::exchange_generated::ExchangeBase>::describe(self)
     }
     fn super_set_sandbox_mode(&mut self, enabled: bool) {
