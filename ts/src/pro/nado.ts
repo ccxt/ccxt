@@ -97,7 +97,7 @@ export default class nado extends nadoRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = 'trade:' + market['symbol'];
-        const trades = await this.watchPublic ('trade', market, messageHash, params);
+        const trades: ArrayCache = await this.watchPublic ('trade', market, messageHash, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (market['symbol'], limit);
@@ -590,7 +590,7 @@ export default class nado extends nadoRest {
             'subaccount': sender,
             'product_id': productId,
         };
-        const orders = await this.watchPrivate ('order_update', stream, messageHash, paramsSubaccount);
+        const orders: ArrayCacheBySymbolById = await this.watchPrivate ('order_update', stream, messageHash, paramsSubaccount);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);
@@ -670,7 +670,7 @@ export default class nado extends nadoRest {
             'subaccount': sender,
             'product_id': productId,
         };
-        const trades = await this.watchPrivate ('fill', stream, messageHash, paramsSubaccount);
+        const trades: ArrayCacheBySymbolById = await this.watchPrivate ('fill', stream, messageHash, paramsSubaccount);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limit);

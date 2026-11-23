@@ -417,7 +417,7 @@ export default class modetrade extends modetradeRest {
             'topic': topic,
         };
         const message = this.extend (request, params);
-        const ohlcv = await this.watchPublic (topic, message);
+        const ohlcv: ArrayCacheByTimestamp = await this.watchPublic (topic, message);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit (market['symbol'], limit);
@@ -497,7 +497,7 @@ export default class modetrade extends modetradeRest {
             'topic': topic,
         };
         const message = this.extend (request, params);
-        const trades = await this.watchPublic (topic, message);
+        const trades: ArrayCache = await this.watchPublic (topic, message);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (market['symbol'], limit);
@@ -740,7 +740,7 @@ export default class modetrade extends modetradeRest {
             'topic': topic,
         };
         const message = this.extend (request, paramsOmitted);
-        const orders = await this.watchPrivate (messageHash, message);
+        const orders: ArrayCacheBySymbolById = await this.watchPrivate (messageHash, message);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);
@@ -783,7 +783,7 @@ export default class modetrade extends modetradeRest {
             'topic': topic,
         };
         const message = this.extend (request, paramsOmitted);
-        const orders = await this.watchPrivate (messageHash, message);
+        const orders: ArrayCacheBySymbolById = await this.watchPrivate (messageHash, message);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);

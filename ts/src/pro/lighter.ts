@@ -625,7 +625,7 @@ export default class lighter extends lighterRest {
             'channel': 'trade/' + this.safeString (market, 'id', ''),
         };
         const messageHash = this.getMessageHash ('trade', this.safeString (market, 'symbol'));
-        const trades = await this.subscribePublic (messageHash, this.extend (request, params));
+        const trades: ArrayCache = await this.subscribePublic (messageHash, this.extend (request, params));
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
@@ -839,7 +839,7 @@ export default class lighter extends lighterRest {
         const request: Dict = {
             'channel': 'account_all_trades/' + this.numberToString (accountIndex),
         };
-        const trades = await this.subscribePublic (messageHash, this.extend (request, paramsAccountIndex));
+        const trades: ArrayCache = await this.subscribePublic (messageHash, this.extend (request, paramsAccountIndex));
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limit);
@@ -1154,7 +1154,7 @@ export default class lighter extends lighterRest {
             messageHash = this.getMessageHash ('orders');
             request['channel'] = 'account_all_orders/' + this.numberToString (accountIndex);
         }
-        const orders = await this.subscribePrivate (messageHash, this.extend (request, paramsAccountIndex));
+        const orders: ArrayCache = await this.subscribePrivate (messageHash, this.extend (request, paramsAccountIndex));
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbol, limit);
