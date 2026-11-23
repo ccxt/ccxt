@@ -5971,7 +5971,14 @@ export class BaseExchange {
                 this.safeNumber (ohlcv, 5), // volume
             ];
         }
-        return ohlcv;
+        return [
+            this.safeInteger (ohlcv, 'timestamp'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'volume'),
+        ];
     }
 
     safeNetwork (network: Dict) {
