@@ -17714,7 +17714,8 @@ function csharpParameterCallSitesProve (csharp, parameter, target) {
                 return false; // every generated class extends the base: any call site can bind it
             }
             const imports = corpus.imports.get (rel);
-            if (imports !== undefined && imports.has (moduleBase) && !(calledParameterCollectionTarget (target) && foreignCallsPassSafeLists (rel, name))) {
+            if (imports !== undefined && imports.has (moduleBase) && !(calledParameterCollectionTarget (target) && foreignCallsPassSafeLists (rel, name))
+                && !(((target === 'string') || (target === 'string?')) && proSiblingCallsPassCoreStrings (declaringRel, rel, name, position, parameter))) {
                 return false; // a file that can bind this declaration calls the name too
             }
         }
@@ -17995,6 +17996,84 @@ function coreStringParameterIsUnwritten (csharp, parameter) {
     const position = owner?.parameters?.indexOf (parameter) ?? -1;
     return (owner?.kind === ts.SyntaxKind.MethodDeclaration) && (owner.name !== undefined) && (position >= 0)
         && ((CORE_STRING_ARGS[owner.name.text] ?? []).indexOf (position) >= 0) && !csharpParameterIsWritten (csharp, owner, parameter);
+}
+
+// the venue's own pro file (ts/src/pro/<file>), parsed standalone: no same-named declaration, every
+// mention a `this.name (` call that omits the argument (with a default) or passes an unwritten
+// CORE_STRING_ARGS parameter of its caller (printed string); anything else keeps `object`
+function proSiblingCallsPassCoreStrings (declaringRel, rel, name, position, parameter) {
+    const norm = (p) => p.replace (/\\/g, '/');
+    const at = norm (declaringRel).lastIndexOf ('ts/src/');
+    if ((at < 0) || norm (declaringRel).substring (at + 7).includes ('/')
+        || (norm (rel) !== norm (declaringRel).substring (0, at + 7) + 'pro/' + norm (declaringRel).substring (at + 7))) {
+        return false;
+    }
+    let file;
+    try {
+        file = ts.createSourceFile (rel, fs.readFileSync (path.join (process.cwd (), rel), 'utf8'));
+    } catch (e) {
+        return false;
+    }
+    let agree = true;
+    let mentions = 0;
+    let calls = 0;
+    const parameterCount = parameter.parent.parameters.length;
+    const visit = (n) => {
+        if (!agree || (n === undefined)) {
+            return;
+        }
+        if (ts.isIdentifier (n) && (n.text === name)) {
+            mentions++;
+        }
+        if (ts.isMethodDeclaration (n) && ts.isIdentifier (n.name) && (n.name.text === name)) {
+            agree = false; // a pro override
+            return;
+        }
+        if (ts.isCallExpression (n) && ts.isPropertyAccessExpression (n.expression) && ts.isIdentifier (n.expression.name) && (n.expression.name.text === name)) {
+            calls++;
+            agree = (n.expression.expression.kind === ts.SyntaxKind.ThisKeyword) && proCallPassesCoreString (n, position, parameter, parameterCount);
+        }
+        n.forEachChild (visit);
+    };
+    visit (file);
+    return agree && (mentions === calls) && (calls > 0);
+}
+
+function proCallPassesCoreString (call, position, parameter, parameterCount) {
+    const args = Array.from (call.arguments ?? []);
+    if ((args.length > parameterCount) || args.some ((a) => a.kind === ts.SyntaxKind.SpreadElement)) {
+        return false;
+    }
+    const argument = args[position];
+    if (argument === undefined) {
+        return parameter.initializer !== undefined;
+    }
+    let caller = call.parent;
+    while ((caller !== undefined) && !ts.isMethodDeclaration (caller)) {
+        caller = caller.parent;
+    }
+    if (!ts.isIdentifier (argument) || (caller === undefined) || !ts.isIdentifier (caller.name) || (caller.body === undefined)) {
+        return false;
+    }
+    const slot = Array.from (caller.parameters).findIndex ((p) => ts.isIdentifier (p.name) && (p.name.text === argument.text));
+    if ((slot < 0) || ((CORE_STRING_ARGS[caller.name.text] ?? []).indexOf (slot) < 0)) {
+        return false;
+    }
+    // a written parameter prints an `object <name>Var` shadow; a same-named local hides it
+    let clean = true;
+    const scan = (n) => {
+        if (!clean || (n === undefined)) {
+            return;
+        }
+        if (ts.isIdentifier (n) && (n.text === argument.text) && (csharpWriteTarget (n)
+            || ((n.parent !== undefined) && (n.parent.name === n) && (ts.isVariableDeclaration (n.parent) || (n.parent.kind === ts.SyntaxKind.Parameter) || ts.isBindingElement (n.parent))))) {
+            clean = false;
+            return;
+        }
+        n.forEachChild (scan);
+    };
+    caller.body.forEachChild (scan);
+    return clean;
 }
 
 // every `.name (` call in another corpus file is `this.name (x)` with x declared in that file
