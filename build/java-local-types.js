@@ -9642,6 +9642,8 @@ const JAVA_VENUE_RETURN_MAP = {
     'Order': 'Map<String, Object>', 'Transaction': 'Map<String, Object>', 'Market[]': 'List<Object>',
     // venue-private `Promise<NullableDict>` fetchers (wallet / account / ws request): a map or null, like Dict
     'NullableDict': 'Map<String, Object>',
+    // venue-private margin helpers: the parseMarginModification row (or the raw response) as a map
+    'MarginModification': 'Map<String, Object>',
 };
 let javaVenueReturnTable;
 const javaVenueListFiles = [];
