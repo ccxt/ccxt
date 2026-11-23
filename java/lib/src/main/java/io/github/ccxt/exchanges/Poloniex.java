@@ -3496,39 +3496,41 @@ public class Poloniex extends PoloniexApi
      */
     public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
     {
+        return BaseExchange.supplyAsync(() -> this.fetchFundingRateCore(symbol, parameters)).thenApply(FundingRate::new);
+    }
 
-        return BaseExchange.supplyAsync(() -> {
+    private Object fetchFundingRateCore(String symbol, Map<String, Object> parameters)
+    {
 
-            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-            Map<String, Object> market = this.market(symbol);
-            if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
-            {
-                throw new BadSymbol((this.id + " fetchFundingRate() supports swap contracts only")) ;
-            }
-            Map<String, Object> request = new HashMap<String, Object>() {{
-                put( "symbol", market.get("id") );
-            }};
-            Map<String, Object> response = (this.swapPublicGetV3MarketFundingRate(this.extend(request, parameters))).join();
-            //
-            //    {
-            //        "code": 200,
-            //        "msg": "Success",
-            //        "data": {
-            //            "s": "BTC_USDT_PERP",
-            //            "fR": "0.0001",
-            //            "fT": "1795276800000",
-            //            "nFR": "0.0001",
-            //            "nFT": "1795305600000"
-            //        }
-            //    }
-            //
-            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseFundingRate(data, market);
-        }).thenApply(FundingRate::new);
+        (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        Map<String, Object> market = this.market(symbol);
+        if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
+        {
+            throw new BadSymbol((this.id + " fetchFundingRate() supports swap contracts only")) ;
+        }
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "symbol", market.get("id") );
+        }};
+        Map<String, Object> response = (this.swapPublicGetV3MarketFundingRate(this.extend(request, parameters))).join();
+        //
+        //    {
+        //        "code": 200,
+        //        "msg": "Success",
+        //        "data": {
+        //            "s": "BTC_USDT_PERP",
+        //            "fR": "0.0001",
+        //            "fT": "1795276800000",
+        //            "nFR": "0.0001",
+        //            "nFT": "1795305600000"
+        //        }
+        //    }
+        //
+        Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+        return this.parseFundingRate(data, market);
 
     }
 
-    public Object parseFundingRate(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Object contract, Map<String, Object> market)
     {
         //
         //    {
