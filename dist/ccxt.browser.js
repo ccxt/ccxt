@@ -413073,7 +413073,7 @@ class interactivebrokers extends _abstract_interactivebrokers_js__rspack_import_
         }
         const accounts = [];
         for(let i = 0; i < portfolioAccounts.length; i++){
-            accounts.push(this.parseAccount(portfolioAccounts[i]));
+            accounts.push(this.parseAccount(this.extend({}, portfolioAccounts[i])));
         }
         return accounts;
     }
@@ -420766,8 +420766,10 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
             'filled': _base_errors_js__rspack_import_1.OrderNotFound,
             'notFound': _base_errors_js__rspack_import_1.OrderNotFound
         };
-        if (status in errors && !this.inArray(status, omit)) {
-            throw new errors[status](this.id + ': ' + method + ' failed due to ' + status);
+        if (status !== undefined) {
+            if (status in errors && !this.inArray(status, omit)) {
+                throw new errors[status](this.id + ': ' + method + ' failed due to ' + status);
+            }
         }
     }
     parseOrderStatus(status) {
@@ -551156,7 +551158,6 @@ class bitget extends _bitget_js__rspack_import_0/* ["default"] */.A {
     }
     handlePong(client, message) {
         client.lastPong = this.milliseconds();
-        return message;
     }
     handleSubscriptionStatus(client, message) {
         //
@@ -555677,7 +555678,7 @@ class bittrade extends _bittrade_js__rspack_import_0/* ["default"] */.A {
         //
         const id = this.safeString(message, 'id');
         if (id === undefined) {
-            return message;
+            return;
         }
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
         const subscription = this.safeDict(subscriptionsById, id);
@@ -555685,17 +555686,16 @@ class bittrade extends _bittrade_js__rspack_import_0/* ["default"] */.A {
             const method = this.safeString(subscription, 'method');
             if (method === 'handleOrderBookSnapshot') {
                 this.handleOrderBookSnapshot(client, message, subscription);
-                return undefined;
+                return;
             } else if (method === 'handleOrderBookSubscription') {
                 this.handleOrderBookSubscription(client, message, subscription);
-                return undefined;
+                return;
             }
             // clean up
             if (id in client.subscriptions) {
                 delete client.subscriptions[id];
             }
         }
-        return message;
     }
     handleSystemStatus(client, message) {
         //
@@ -568392,7 +568392,6 @@ class coinbaseinternational extends _coinbaseinternational_js__rspack_import_0/*
         }
         this.trades[symbol] = tradesArray;
         client.resolve(tradesArray, channel);
-        return message;
     }
     /**
      * @method
@@ -571523,7 +571522,6 @@ class deepcoin extends _deepcoin_js__rspack_import_0/* ["default"] */.A {
     }
     handlePong(client, message) {
         client.lastPong = this.milliseconds();
-        return message;
     }
     requestId() {
         this.lockId();
@@ -590115,7 +590113,10 @@ class interactivebrokers extends _interactivebrokers_js__rspack_import_0/* ["def
             }
             const options = this.safeDict(this.options, 'watchOHLCV', {});
             const duration = this.parseTimeframe(timeframe);
-            const historyLimit = limit === undefined ? 100 : limit;
+            let historyLimit = 100;
+            if (limit !== undefined) {
+                historyLimit = this.parseToInt(limit);
+            }
             const historyRequest = {
                 'exchange': this.safeString(options, 'exchange', 'SMART'),
                 'period': this.ibkrWsPeriod(duration, historyLimit),
@@ -594688,7 +594689,6 @@ class krakenfutures extends _krakenfutures_js__rspack_import_0/* ["default"] */.
                 delete client.subscriptions[messageHash];
             }
         }
-        return message;
     }
 }
 //  ---------------------------------------------------------------------------
@@ -610845,7 +610845,6 @@ class okx extends _okx_js__rspack_import_0/* ["default"] */.A {
     }
     handlePong(client, message) {
         client.lastPong = this.milliseconds();
-        return message;
     }
     handleErrorMessage(client, message) {
         //

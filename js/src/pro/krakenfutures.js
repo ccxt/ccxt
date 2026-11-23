@@ -1799,6 +1799,5 @@ export default class krakenfutures extends krakenfuturesRest {
                 delete client.subscriptions[messageHash];
             }
         }
-        return message;
     }
 }

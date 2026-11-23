@@ -434,7 +434,7 @@ export default class okx extends okxRest {
     handleSubscriptionStatus(client: Client, message: Dict): Dict;
     handleAuthenticate(client: Client, message: Dict): void;
     ping(client: Client): string;
-    handlePong(client: Client, message: any): any;
+    handlePong(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: Dict): Bool;
     handleTextMessage(client: Client, message: string): void;
     handleMessage(client: Client, message: Dict): void;

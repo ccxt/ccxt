@@ -2600,7 +2600,6 @@ class okx extends okx$1["default"] {
     }
     handlePong(client, message) {
         client.lastPong = this.milliseconds();
-        return message;
     }
     handleErrorMessage(client, message) {
         //

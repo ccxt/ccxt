@@ -5,7 +5,7 @@ import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class deepcoin extends deepcoinRest {
     describe(): Dict;
     ping(client: Client): Str;
-    handlePong(client: Client, message: string): string;
+    handlePong(client: Client, message: string): void;
     requestId(): int;
     createPublicRequest(market: Market, requestId: number, topicID: string, suffix?: string, unWatch?: boolean): Dict;
     watchPublic(market: Market, messageHash: string, topicID: string, params?: Dict, suffix?: string): Promise<any>;

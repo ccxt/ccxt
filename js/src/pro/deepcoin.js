@@ -100,7 +100,6 @@ export default class deepcoin extends deepcoinRest {
     }
     handlePong(client, message) {
         client.lastPong = this.milliseconds();
-        return message;
     }
     requestId() {
         this.lockId();

@@ -2598,7 +2598,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         }
         const accounts = [];
         for (let i = 0; i < portfolioAccounts.length; i++) {
-            accounts.push(this.parseAccount(portfolioAccounts[i]));
+            accounts.push(this.parseAccount(this.extend({}, portfolioAccounts[i])));
         }
         return accounts;
     }

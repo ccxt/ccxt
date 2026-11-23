@@ -2950,7 +2950,6 @@ class bitget extends bitget$1["default"] {
     }
     handlePong(client, message) {
         client.lastPong = this.milliseconds();
-        return message;
     }
     handleSubscriptionStatus(client, message) {
         //

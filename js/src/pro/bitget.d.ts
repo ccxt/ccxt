@@ -275,7 +275,7 @@ export default class bitget extends bitgetRest {
     handleTextMessage(client: Client, message: string): void;
     handleMessage(client: Client, message: Dict): void;
     ping(client: Client): string;
-    handlePong(client: Client, message: any): any;
+    handlePong(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: Dict): Dict;
     handleOrderBookUnSubscription(client: Client, message: Dict): void;
     handleTradesUnSubscription(client: Client, message: Dict): void;

@@ -2603,7 +2603,6 @@ export default class okx extends okxRest {
     }
     handlePong(client, message) {
         client.lastPong = this.milliseconds();
-        return message;
     }
     handleErrorMessage(client, message) {
         //

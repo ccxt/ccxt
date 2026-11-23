@@ -1955,8 +1955,10 @@ class krakenfutures extends krakenfutures$1["default"] {
             'filled': errors.OrderNotFound,
             'notFound': errors.OrderNotFound,
         };
-        if ((status in errors$1) && !this.inArray(status, omit)) {
-            throw new errors$1[status](this.id + ': ' + method + ' failed due to ' + status);
+        if (status !== undefined) {
+            if ((status in errors$1) && !this.inArray(status, omit)) {
+                throw new errors$1[status](this.id + ': ' + method + ' failed due to ' + status);
+            }
         }
     }
     parseOrderStatus(status) {

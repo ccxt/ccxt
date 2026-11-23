@@ -1798,7 +1798,6 @@ class krakenfutures extends krakenfutures$1["default"] {
                 delete client.subscriptions[messageHash];
             }
         }
-        return message;
     }
 }
 

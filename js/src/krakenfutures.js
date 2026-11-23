@@ -1956,8 +1956,10 @@ export default class krakenfutures extends Exchange {
             'filled': OrderNotFound,
             'notFound': OrderNotFound,
         };
-        if ((status in errors) && !this.inArray(status, omit)) {
-            throw new errors[status](this.id + ': ' + method + ' failed due to ' + status);
+        if (status !== undefined) {
+            if ((status in errors) && !this.inArray(status, omit)) {
+                throw new errors[status](this.id + ': ' + method + ' failed due to ' + status);
+            }
         }
     }
     parseOrderStatus(status) {

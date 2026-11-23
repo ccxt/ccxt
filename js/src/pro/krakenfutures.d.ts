@@ -185,5 +185,5 @@ export default class krakenfutures extends krakenfuturesRest {
     getMessageHash(unifiedElementName: string, subChannelName?: Str, symbol?: Str): string;
     handleErrorMessage(client: Client, message: Dict): Bool;
     handleMessage(client: Client, message: Dict): void;
-    handleAuthenticate(client: Client, message: Dict): Dict;
+    handleAuthenticate(client: Client, message: Dict): void;
 }

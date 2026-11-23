@@ -1113,7 +1113,6 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         }
         this.trades[symbol] = tradesArray;
         client.resolve(tradesArray, channel);
-        return message;
     }
     /**
      * @method

@@ -520,7 +520,10 @@ class interactivebrokers extends interactivebrokers$1["default"] {
             }
             const options = this.safeDict(this.options, 'watchOHLCV', {});
             const duration = this.parseTimeframe(timeframe);
-            const historyLimit = (limit === undefined) ? 100 : limit;
+            let historyLimit = 100;
+            if (limit !== undefined) {
+                historyLimit = this.parseToInt(limit);
+            }
             const historyRequest = {
                 'exchange': this.safeString(options, 'exchange', 'SMART'),
                 'period': this.ibkrWsPeriod(duration, historyLimit),

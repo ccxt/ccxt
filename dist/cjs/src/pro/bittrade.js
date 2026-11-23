@@ -528,7 +528,7 @@ class bittrade extends bittrade$1["default"] {
         //
         const id = this.safeString(message, 'id');
         if (id === undefined) {
-            return message;
+            return;
         }
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
         const subscription = this.safeDict(subscriptionsById, id);
@@ -536,18 +536,17 @@ class bittrade extends bittrade$1["default"] {
             const method = this.safeString(subscription, 'method');
             if (method === 'handleOrderBookSnapshot') {
                 this.handleOrderBookSnapshot(client, message, subscription);
-                return undefined;
+                return;
             }
             else if (method === 'handleOrderBookSubscription') {
                 this.handleOrderBookSubscription(client, message, subscription);
-                return undefined;
+                return;
             }
             // clean up
             if (id in client.subscriptions) {
                 delete client.subscriptions[id];
             }
         }
-        return message;
     }
     handleSystemStatus(client, message) {
         //

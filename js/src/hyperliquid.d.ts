@@ -290,7 +290,7 @@ export default class hyperliquid extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     createOrders(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
-    createOrderRequest(symbol: Str, type: Str, side: Str, amount: string, price?: Str, params?: Dict): Dict;
+    createOrderRequest(symbol: Str, type: Str, side: Str, amount: Str, price?: Str, params?: Dict): Dict;
     createOrdersRequest(orders: List, params?: Dict): Dict;
     /**
      * @method

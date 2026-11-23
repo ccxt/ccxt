@@ -99,7 +99,6 @@ class deepcoin extends deepcoin$1["default"] {
     }
     handlePong(client, message) {
         client.lastPong = this.milliseconds();
-        return message;
     }
     requestId() {
         this.lockId();

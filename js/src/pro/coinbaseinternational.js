@@ -1114,7 +1114,6 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         }
         this.trades[symbol] = tradesArray;
         client.resolve(tradesArray, channel);
-        return message;
     }
     /**
      * @method

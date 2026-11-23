@@ -2957,7 +2957,6 @@ export default class bitget extends bitgetRest {
     }
     handlePong(client, message) {
         client.lastPong = this.milliseconds();
-        return message;
     }
     handleSubscriptionStatus(client, message) {
         //

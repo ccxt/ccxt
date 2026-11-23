@@ -194,7 +194,7 @@ export default class polymarket extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dict with the signable row and the body entry
      */
-    createOrderRequest(market: Market, type: OrderType, side: OrderSide, amount: any, price?: any, params?: Dict): Dict;
+    createOrderRequest(market: Market, type: OrderType, side: OrderSide, amount: Str, price?: any, params?: Dict): Dict;
     /**
      * @method
      * @name polymarket#createOrder

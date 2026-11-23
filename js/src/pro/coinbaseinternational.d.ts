@@ -429,7 +429,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @returns {object} the exchange response
      */
     unWatchTradesForSymbols(symbols: string[], params?: Dict): Promise<any>;
-    handleTrades(client: Client, message: Dict): Dict;
+    handleTrades(client: Client, message: Dict): void;
     /**
      * @method
      * @name coinbaseinternational#watchOrderBook
