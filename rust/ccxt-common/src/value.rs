@@ -945,6 +945,7 @@ pub trait OmitSource { fn into_operand(self) -> Value; }
 impl OmitSource for Value { fn into_operand(self) -> Value { self } }
 impl OmitSource for &Value { fn into_operand(self) -> Value { self.clone() } }
 impl OmitSource for &Dict { fn into_operand(self) -> Value { Value::Dict(Arc::clone(self)) } }
+impl OmitSource for Dict { fn into_operand(self) -> Value { Value::Dict(self) } }
 /// ral-48d: an optional map local (`safeDict` with no default, a nil-declared map rewritten by its own omit): `None`
 /// answers `Value::Null` exactly as the boxed Null passed through `omit`; `Some(m)` drops keys from the shared map.
 impl OmitSource for Option<Dict> { fn into_operand(self) -> Value { self.map(Value::Dict).unwrap_or(Value::Null) } }

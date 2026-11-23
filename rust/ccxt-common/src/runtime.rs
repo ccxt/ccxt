@@ -682,6 +682,12 @@ pub fn get_arg<T: std::borrow::Borrow<Value>>(args: &[T], idx: usize, default: V
     }
 }
 
+/// The optional `params` slot as a map: the dict it holds, else the empty map (what `get_arg(.., Value::Map({}))`
+/// then `.into_dict()` answered for an absent, `Null` or non-map slot).
+pub fn get_arg_dict<T: std::borrow::Borrow<Value>>(args: &[T], idx: usize) -> crate::value::Dict {
+    match args.get(idx).map(std::borrow::Borrow::borrow) { Some(Value::Dict(m)) => Arc::clone(m), _ => crate::value::Dict::default() }
+}
+
 pub fn append_to_array(arr: &mut Value, v: Value) {
     if crate::value::try_book_cache_push(arr, &v) { return; }
     if let Value::Arr(a) = arr {
