@@ -2468,7 +2468,7 @@ export default class bullish extends Exchange {
                 }
             }
         }
-        return this.parseDepositAddress (data, currency);
+        return this.parseDepositAddress (this.extend ({}, data), currency);
     }
 
     override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {

@@ -6624,7 +6624,7 @@ export class BaseExchange {
         const transfersArray = this.toArray (transfers);
         let result: TransferEntry[] = [];
         for (let i = 0; i < transfersArray.length; i++) {
-            const transfer = this.extend (this.parseTransfer (transfersArray[i], currency), params);
+            const transfer = this.extend (this.parseTransfer (this.safeDict (transfersArray, i, {}), currency), params);
             result.push (transfer);
         }
         result = this.sortBy (result, 'timestamp');
@@ -8175,7 +8175,7 @@ export class BaseExchange {
     parseDepositAddresses (addresses: List, codes: Strings = undefined, indexed = true, params: Dict = {}): DepositAddress[] {
         let result: DepositAddress[] = [];
         for (let i = 0; i < addresses.length; i++) {
-            const address = this.extend (this.parseDepositAddress (addresses[i]), params);
+            const address = this.extend (this.parseDepositAddress (this.safeDict (addresses, i, {})), params);
             result.push (address);
         }
         if (codes !== undefined) {

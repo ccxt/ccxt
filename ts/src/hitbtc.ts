@@ -2782,10 +2782,13 @@ export default class hitbtc extends Exchange {
         //         "2db6ebab-fb26-4537-9ef8-1a689472d235"
         //     ]
         //
-        return this.parseTransfer (response, currency);
+        return this.extend (this.parseTransfer ({}, currency), {
+            'id': this.safeString (response, 0),
+            'info': response,
+        });
     }
 
-    override parseTransfer (transfer: Dict | List, currency: Currency = undefined): TransferEntry {
+    override parseTransfer (transfer: Dict, currency: Currency = undefined): TransferEntry {
         //
         // transfer
         //

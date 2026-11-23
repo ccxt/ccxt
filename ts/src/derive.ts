@@ -3815,7 +3815,8 @@ export default class derive extends Exchange {
         const transfers = this.safeList (result, 'transfers', []);
         const parsed = [];
         for (let i = 0; i < transfers.length; i++) {
-            parsed.push (this.parseTransfer (this.safeDict (transfers, i, {})));
+            const transfer = this.extend (this.parseTransfer (this.safeDict (transfers, i, {})), {});
+            parsed.push (transfer);
         }
         const sorted = this.sortBy (parsed, 'timestamp');
         return this.filterByCurrencySinceLimit (sorted, code, since, limit);
