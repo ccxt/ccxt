@@ -1247,7 +1247,7 @@ export default class gate extends gateRest {
         const keys = Object.keys (marketIds);
         for (let i = 0; i < keys.length; i++) {
             const symbol = keys[i];
-            const timeframe = marketIds[symbol];
+            const timeframe = this.safeString (marketIds, symbol);
             const interval = this.findTimeframe (timeframe);
             const hash = 'candles' + ':' + interval + ':' + symbol;
             const symbolOhlcv = this.safeValue (this.safeDict (this.ohlcvs, symbol), interval);
@@ -1273,11 +1273,11 @@ export default class gate extends gateRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let marketId: Str = '!' + 'all';
+        let marketId: string = '!' + 'all';
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            marketId = this.safeString (market, 'id');
+            marketId = this.safeString (market, 'id', '');
         }
         const [ type, paramsMarketType ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('watchMyTrades', market, paramsMarketType);

@@ -1693,7 +1693,7 @@ export default class gate extends Exchange {
         }
         const settle = this.safeCurrencyCode (settleId);
         const expiry = this.safeTimestamp (market, 'expire_time');
-        let symbol = '';
+        let symbol: string = '';
         let marketType: MarketType = 'swap';
         if (date !== undefined) {
             symbol = base + '/' + quote + ':' + settle + '-' + this.yymmdd (expiry, '');
@@ -6867,7 +6867,7 @@ export default class gate extends Exchange {
         if (!Array.isArray (info)) {
             return this.parseEmulatedLeverageTiers (info, market);
         }
-        let minNotional = 0;
+        let minNotional: number = 0;
         const tiers: object[] = [];
         for (let i = 0; i < info.length; i++) {
             const item = this.safeDict (info, i);
