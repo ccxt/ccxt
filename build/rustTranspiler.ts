@@ -15006,7 +15006,7 @@ ${proImport}${predImport}`;
             : `    pub exchange: ${baseType},`;
         const newInit = parentCore
             ? `Self { parent: ${parentCore}::new(config) }`
-            : `Self { exchange: ${baseType}::new(config) }`;
+            : `Self { exchange: ${baseType}::new(config.into_option()) }`;
         // Every Core `Deref`s DIRECTLY to `Exchange` so the `ExchangeBase` trait
         // bound `DerefMut<Target = Exchange>` is satisfied and base-method bodies
         // reach fields as `self.field` (review #1). A base REST core holds
@@ -15032,7 +15032,8 @@ ${structField}
 }
 
 impl ${coreName} {
-    pub fn new(config: Option<crate::Value>) -> Self {
+    pub fn new(config: impl Into<crate::Config>) -> Self {
+        let config: crate::Config = config.into();
         let mut s = ${newInit};
         s.init();
         s
@@ -15040,7 +15041,7 @@ impl ${coreName} {
 
     /// Construct from the typed [\`crate::Config\`] builder; \`Config::none()\` for defaults.
     pub fn with_config(config: crate::Config) -> Self {
-        Self::new(config.into_option())
+        Self::new(config)
     }
 
     pub fn init(&mut self) {
