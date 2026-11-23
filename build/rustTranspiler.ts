@@ -4733,10 +4733,11 @@ function rustTypedSafeOrder (content: string): string {
 
 // `parseOrder` builds every order through `safeOrder` (a `Dict`): a venue override returns `Some(..)` through the
 // `DerivedExchange` slot (`None` = not overridden), the base `Dict`. `.into_dict()` drops, `.as_map()` copies unwrap, any other use boxes it.
-function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'position' | 'transfer' | 'transaction' | 'balance'): string {
-    const fn = 'parse_' + fam, Fn = 'parse' + fam[0].toUpperCase () + fam.slice (1);
-    // `parseBalance (response)` has no second argument
-    const arg2 = fam === 'balance' ? '' : ', ' + (fam === 'transfer' || fam === 'transaction' ? 'currency: Option<&crate::types::Currency>' : 'market: Option<&crate::types::Market>'), a2 = arg2.split (':')[0], pn = fam === 'balance' ? 'response' : fam;
+function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'position' | 'transfer' | 'transaction' | 'balance' | 'margin_modification' | 'income' | 'margin_mode' | 'account', p0: string | undefined = undefined): string {
+    const fn = 'parse_' + fam, Fn = 'parse' + fam.replace (/(?:^|_)(\w)/g, (_x, c: string) => c.toUpperCase ());
+    // `parseBalance (response)` and `parseAccount (account)` have no second argument; p0 names a base parameter that differs from the family
+    const sub = p0 ?? fam;
+    const arg2 = (fam === 'balance' || fam === 'account') ? '' : ', ' + (fam === 'transfer' || fam === 'transaction' ? 'currency: Option<&crate::types::Currency>' : 'market: Option<&crate::types::Market>'), a2 = arg2.split (':')[0], pn = p0 ?? (fam === 'balance' ? 'response' : fam);
     const arg2Re = arg2.replace (/[()<>&]/g, '\\$&');
     const derivedSig = new RegExp ('\\n    fn ' + fn + '\\(&self, \\w+: impl Into<crate::Value>' + arg2Re + '\\) -> Value \\{\\n');
     const safeRet = 'Value::Dict(self.safe_' + fam + '(';
@@ -4782,7 +4783,7 @@ function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'posit
         }
         // a sub-parser whose every return is `safeOrder` returns `Dict`
         for (const m of [ ...body.matchAll (new RegExp ('\\breturn self\\.(parse_\\w+_' + fam + ')\\(', 'g')) ]) {
-            const sig = '\n    pub fn ' + m[1] + '(&self, mut ' + fam + ': Value' + arg2 + ') -> Value {\n';
+            const sig = '\n    pub fn ' + m[1] + '(&self, mut ' + sub + ': Value' + arg2 + ') -> Value {\n';
             const s = content.indexOf (sig);
             if (s < 0) continue;
             const e = content.indexOf ('\n\n    Value::Null\n}', s);
@@ -4808,7 +4809,7 @@ function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'posit
         content = content.slice (0, at) + content.slice (at, open).replace ('-> Value {', '-> Option<crate::value::Dict> {') + body + content.slice (end);
     }
     for (const name of dictFns) {
-        const sig = '\n    pub fn ' + name + '(&self, mut ' + fam + ': Value' + arg2 + ') -> Value {\n';
+        const sig = '\n    pub fn ' + name + '(&self, mut ' + sub + ': Value' + arg2 + ') -> Value {\n';
         const s = content.indexOf (sig);
         const e = content.indexOf ('\n\n    Value::Null\n}', s) + '\n\n    Value::Null\n'.length;
         const body = unbox (content.slice (s + sig.length, e), '').replace (/\n\n    Value::Null\n$/, '\n\n    Default::default()\n');
@@ -5042,6 +5043,8 @@ function rustTypedParsePositionFamilies (content: string): string {
     }
     content = rustTypedParseFamily (rustTypedParseFamily (rustTypedParseFamily (content, 'position'), 'transfer'), 'transaction');
     content = rustTypedParseFamily (content, 'balance');
+    content = rustTypedParseFamily (rustTypedParseFamily (content, 'margin_modification', 'data'), 'income', 'info');
+    content = rustTypedParseFamily (rustTypedParseFamily (content, 'margin_mode', 'marginMode'), 'account');
     // a venue method whose every return is a map: `Value::Dict(e)` -> `e`, a literal -> `Arc::new`, `extend` -> `extend_t`
     const typeAll = (name: string) => {
         const head = new RegExp ('\\n    pub fn ' + name + '\\([^\\n]*\\) -> Value \\{\\n');
