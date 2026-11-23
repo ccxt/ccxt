@@ -262,7 +262,7 @@ export const CORE_STRING_ARGS = {
     'convertCurrencyNetwork': [ 0 ],
     'convertToRealAmount': [ 0 ],
     'createAmmOrder': [ 0, 1, 2 ],
-    'createConvertTrade': [ 0 ],
+    'createConvertTrade': [ 0, 1, 2 ],
     'createDepositAddress': [ 0 ],
     'createGiftCode': [ 0 ],
     'createLimitBuyOrder': [ 0 ],
@@ -334,6 +334,7 @@ export const CORE_STRING_ARGS = {
     'fetchContractDeposits': [ 0 ],
     'fetchContractOHLCV': [ 0, 1 ],
     'fetchContractWithdrawals': [ 0 ],
+    'fetchConvertQuote': [ 0, 1 ],
     'fetchConvertTrade': [ 0, 1 ],
     'fetchConvertTradeHistory': [ 0 ],
     'fetchCrossBorrowRate': [ 0 ],
@@ -17054,6 +17055,10 @@ export function installCsharpNumericComparisons (transpiler) {
 export const SIGNATURE_ARG_TYPES = {
     'fetch2': { 0: 'string', 1: 'IList<object>' },
     'request': { 0: 'string', 1: 'IList<object>' },
+    // `method: string` / `config: Dict` on the base and every override; no body writes either, fetch2 is the only caller
+    'calculateRateLimiterCost': { 1: 'string', 4: 'IDictionary<string, object>' },
+    // `marketId: Str`, `market: Market`, `marketType: Str` on the base and every override; no body writes them
+    'safeMarket': { 0: 'string', 1: 'IDictionary<string, object>', 3: 'string' },
     'sign': { 0: 'string', 1: 'IList<object>', 2: 'string' },
     // position 0 is `int` on every generated declaration (code / httpCode / statusCode), never written by a
     // body, and the only hand-written caller (Exchange.cs) passes an `int`: `Int64?` is its own type
