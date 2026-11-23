@@ -7440,7 +7440,7 @@ const GO_UNIFIED_FLOAT64_PARAMS: { [method: string]: number[] } = {
     'createStopMarketOrderWs': [ 2 ], 'createLimitBuyOrder': [ 1 ], 'createLimitBuyOrderWs': [ 1 ], 'createLimitSellOrder': [ 1 ],
     'createLimitSellOrderWs': [ 1 ], 'createMarketBuyOrder': [ 1 ], 'createMarketBuyOrderWs': [ 1 ], 'createMarketSellOrder': [ 1 ],
     'createMarketSellOrderWs': [ 1 ], 'createMarketOrderWithCost': [ 2 ], 'createMarketOrderWithCostWs': [ 2 ],
-    'createMarketBuyOrderWithCost': [ 1 ], 'createMarketSellOrderWithCost': [ 1 ], 'createTwapOrder': [ 2 ],
+    'createMarketBuyOrderWithCost': [ 1 ], 'createMarketSellOrderWithCost': [ 1 ], 'createTwapOrder': [ 2, 3 ],
     'withdraw': [ 1 ], 'withdrawWs': [ 1 ], 'transfer': [ 1 ], 'transferIn': [ 1 ], 'transferOut': [ 1 ],
     'addMargin': [ 1 ], 'reduceMargin': [ 1 ], 'setMargin': [ 1 ], 'borrowCrossMargin': [ 1 ], 'repayCrossMargin': [ 1 ],
     'borrowIsolatedMargin': [ 2 ], 'repayIsolatedMargin': [ 2 ],
