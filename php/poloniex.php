@@ -53,7 +53,7 @@ class poloniex extends Exchange {
                 'fetchFundingHistory' => false,
                 'fetchFundingInterval' => false,
                 'fetchFundingIntervals' => false,
-                'fetchFundingRate' => false,
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => null, // has but not implemented
                 'fetchGreeks' => false,
@@ -2895,6 +2895,91 @@ class poloniex extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'nonce' => null,
         );
+    }
+
+    public function fetch_funding_rate(string $symbol, $params = array()): array {
+        /**
+         * fetch the current funding rate
+         *
+         * @see https://api-docs.poloniex.com/v3/futures/api/market/get-current-funding-rate
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$this->safe_bool($market, 'swap', false)) {
+            throw new BadSymbol($this->id . ' fetchFundingRate() supports swap contracts only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->swapPublicGetV3MarketFundingRate($this->extend($request, $params));
+        //
+        //    {
+        //        "code": 200,
+        //        "msg": "Success",
+        //        "data": {
+        //            "s": "BTC_USDT_PERP",
+        //            "fR": "0.0001",
+        //            "fT": "1795276800000",
+        //            "nFR": "0.0001",
+        //            "nFT": "1795305600000"
+        //        }
+        //    }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_funding_rate($data, $market);
+    }
+
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
+        //
+        //    {
+        //        "s": "BTC_USDT_PERP",
+        //        "fR": "0.0001",
+        //        "fT": "1795276800000",
+        //        "nFR": "0.0001",
+        //        "nFT": "1795305600000"
+        //    }
+        //
+        $marketId = $this->safe_string($contract, 's');
+        // fR and fT are the funding that already settled, nFR and nFT the one about to be applied
+        $previousFundingTimestamp = $this->safe_integer($contract, 'fT');
+        $fundingTimestamp = $this->safe_integer($contract, 'nFT');
+        $intervalMilliseconds = Precise::string_sub($this->safe_string($contract, 'nFT'), $this->safe_string($contract, 'fT'));
+        return array(
+            'info' => $contract,
+            'symbol' => $this->safe_symbol($marketId, $market),
+            'markPrice' => null,
+            'indexPrice' => null,
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'fundingRate' => $this->safe_number($contract, 'nFR'),
+            'fundingTimestamp' => $fundingTimestamp,
+            'fundingDatetime' => $this->iso8601($fundingTimestamp),
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => $this->safe_number($contract, 'fR'),
+            'previousFundingTimestamp' => $previousFundingTimestamp,
+            'previousFundingDatetime' => $this->iso8601($previousFundingTimestamp),
+            'interval' => $this->parse_funding_interval($intervalMilliseconds),
+        );
+    }
+
+    public function parse_funding_interval(?string $interval): ?string {
+        $intervals = array(
+            '3600000' => '1h',
+            '7200000' => '2h',
+            '14400000' => '4h',
+            '28800000' => '8h',
+            '57600000' => '16h',
+            '86400000' => '24h',
+        );
+        return $this->safe_string($intervals, $interval, $interval);
     }
 
     public function create_deposit_address(string $code, $params = array()): array {
