@@ -4691,9 +4691,9 @@ function rustTypedSafeOrder (content: string): string {
 
 // `parseOrder` builds every order through `safeOrder` (a `Dict`): a venue override returns `Some(..)` through the
 // `DerivedExchange` slot (`None` = not overridden), the base `Dict`. `.into_dict()` drops, `.as_map()` copies unwrap, any other use boxes it.
-function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'position' | 'transfer'): string {
+function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'position' | 'transfer' | 'transaction'): string {
     const fn = 'parse_' + fam, Fn = 'parse' + fam[0].toUpperCase () + fam.slice (1);
-    const arg2 = fam === 'transfer' ? 'currency: Option<&crate::types::Currency>' : 'market: Option<&crate::types::Market>', a2 = arg2.split (':')[0];
+    const arg2 = fam === 'transfer' || fam === 'transaction' ? 'currency: Option<&crate::types::Currency>' : 'market: Option<&crate::types::Market>', a2 = arg2.split (':')[0];
     const arg2Re = arg2.replace (/[()<>&]/g, '\\$&');
     const derivedSig = new RegExp ('\\n    fn ' + fn + '\\(&self, \\w+: impl Into<crate::Value>, ' + arg2Re + '\\) -> Value \\{\\n');
     const safeRet = 'Value::Dict(self.safe_' + fam + '(';
@@ -4934,7 +4934,7 @@ function rustTypedParsePositionFamilies (content: string): string {
             throw new Error ('parsePosition: unproven safe_position argument ' + content.slice (open, open + 60));
         });
     }
-    content = rustTypedParseFamily (rustTypedParseFamily (content, 'position'), 'transfer');
+    content = rustTypedParseFamily (rustTypedParseFamily (rustTypedParseFamily (content, 'position'), 'transfer'), 'transaction');
     // a venue method whose every return is a map: `Value::Dict(e)` -> `e`, a literal -> `Arc::new`, `extend` -> `extend_t`
     const typeAll = (name: string) => {
         const head = new RegExp ('\\n    pub fn ' + name + '\\([^\\n]*\\) -> Value \\{\\n');
