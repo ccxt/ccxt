@@ -512,7 +512,7 @@ type IDerivedExchange interface {
 	WatchMyLiquidationsForSymbolsAsync(symbols []string, optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
 	ParseWsTrade(trade any, optionalArgs ...any) map[string]any
 	FetchPositionsADLRankAsync(optionalArgs ...any) <-chan AsyncResult[[]ADL]
-	ParseADLRank(info any, optionalArgs ...any) map[string]any
+	ParseADLRank(info map[string]any, optionalArgs ...any) map[string]any
 	FetchDepositAddressesByNetworkAsync(code string, optionalArgs ...any) <-chan AsyncResult[map[string]DepositAddress]
 	FetchOpenInterestsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]OpenInterest]
 }
