@@ -130,9 +130,10 @@ func (this *BaseExchange) Omit(a any, parameters ...any) any {
 	return this.OmitMap(a, keys)
 }
 
-// OmitDict is Omit for a map argument: the result is always a fresh map (a nil map yields an empty one).
+// OmitDict is Omit for a map argument: a fresh map, or nil for a nil map (as Omit answers absent).
 func (this *BaseExchange) OmitDict(a map[string]any, parameters ...any) map[string]any {
-	return this.Omit(a, parameters...).(map[string]any)
+	res, _ := this.Omit(a, parameters...).(map[string]any)
+	return res
 }
 
 // omitMap removes specified keys from a map.
