@@ -7216,6 +7216,9 @@ function borrowProMessageView(content: string): string {
         const loop = /^\s*(?:for |while |loop\b)|[;{]\s*(?:for |while |loop \{)/;
         const capture = /\basync (?:move )?\{|\|[\w, :&]*\| ?\{/;
         if (code.slice(0, last + 1).some((l) => loop.test(l) || capture.test(l)) && code.some((l) => move.test(l))) return whole;
+        // a borrowed map parameter already is the map: the view is the parameter itself
+        const fnHead = content.slice(content.lastIndexOf('fn ', at), at);
+        if (new RegExp(`[(,]\\s*${name}: &(?:indexmap::IndexMap<String, Value>|crate::value::Dict)[,)]`).test(fnHead)) return `${ind}let __pro_message: &indexmap::IndexMap<String, Value> = &${name};`;
         return `${ind}let __pro_message_empty = indexmap::IndexMap::new();\n`
             + `${ind}let __pro_message: &indexmap::IndexMap<String, Value> = ${name}.as_map().unwrap_or(&__pro_message_empty);`;
     });
@@ -7281,7 +7284,11 @@ function borrowLocalDictKeyLists(content: string): string {
             }
         }
         if (!ok) continue;
-        lines[i] = `${ind}let ${mut ?? ''}${v}: Vec<&str> = ${src}.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();`;
+        // a borrowed map parameter of this fn already is the map: read its keys directly
+        let head = i; while (head > 0 && !fnStart.test(lines[head])) head--;
+        const mapParam = new RegExp(`[(,]\\s*${src}: &(?:indexmap::IndexMap<String, Value>|crate::value::Dict)[,)]`).test(lines[head]);
+        const keys = mapParam ? `${src}.keys().map(String::as_str).collect()` : `${src}.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default()`;
+        lines[i] = `${ind}let ${mut ?? ''}${v}: Vec<&str> = ${keys};`;
         for (let j = i + 1; j < end; j++) {
             lines[j] = lines[j].replace(new RegExp('(?<![\\w.])' + v + '\\.get\\((\\w+) as usize\\)\\.and_then\\(Value::as_str\\)', 'g'), `${v}.get($1 as usize).copied()`);
         }
@@ -9505,6 +9512,8 @@ function lendWsDispatchArgs(content: string): string {
     const body = content.slice(start, end)
         .replace(sig, sig.replace('args: &[crate::Value]', 'args: &[&crate::Value]'))
         .replace(/args\.get\((\d+)\)\./g, 'args.get($1).copied().')
+        // a borrowed dict slot matches on the lent element
+        .replace(/match args\.get\((\d+)\) \{/g, 'match args.get($1).copied() {')
         .replace(/args\.to_vec\(\)/g, 'args.iter().copied().cloned().collect::<Vec<_>>()')
         .replace(/&args\[([^\]]*)\](?![.\w])/g, '&args[$1].iter().copied().cloned().collect::<Vec<_>>()')
         .replace(/&args\[([^\]]*)\]\.iter\(\)\.collect::<Vec<_>>\(\)/g, '&args[$1]');
