@@ -150,7 +150,7 @@ public partial class BaseExchange
     }
 
     // a venue overrides the handler that takes the frame shape it receives, see routeMessage
-    public virtual void handleTextMessage(WebSocketClient client, object messageContent)
+    public virtual void handleTextMessage(WebSocketClient client, string messageContent)
     {
     }
 
@@ -165,9 +165,9 @@ public partial class BaseExchange
     // hands a parsed frame to the handler that takes its shape: text, json array, raw bytes or json object
     public void routeMessage(WebSocketClient client, object messageContent)
     {
-        if (messageContent is string)
+        if (messageContent is string textContent)
         {
-            handleTextMessage(client, messageContent);
+            handleTextMessage(client, textContent);
         }
         else if (messageContent is IList<object> listContent)
         {

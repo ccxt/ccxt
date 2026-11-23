@@ -17081,6 +17081,8 @@ export const SIGNATURE_ARG_TYPES = {
     // ws json-object frames: TS declares `message: Dict` on the base and every override; routeMessage
     // hands only dictionaries here (lists, text and bytes have their own handlers)
     'handleMessage': { 1: 'IDictionary<string, object>' },
+    // TS declares `message: string` on the base and every override; routeMessage hands only text frames here
+    'handleTextMessage': { 1: 'string' },
     // TS declares `Dict` on every declaration; every caller passes its own handler's message
     'handleErrorMessage': { 1: 'IDictionary<string, object>' },
     // TS declares `response: Dict` on the base; no override writes it and every caller passes a dictionary
