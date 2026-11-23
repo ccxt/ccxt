@@ -262,7 +262,7 @@ export default class bitvavo extends bitvavoRest {
             await this.loadMarkets ();
         }
         const symbolValue: string = this.symbol (symbol);
-        const trades = await this.watchPublic ('trades', symbolValue, params);
+        const trades: ArrayCache = await this.watchPublic ('trades', symbolValue, params);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolValue, limit);

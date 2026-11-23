@@ -358,7 +358,7 @@ export default class cryptocom extends cryptocomRest {
             const market = this.market (symbol);
             topics.push ('trade.' + this.safeString (market, 'id', ''));
         }
-        const trades = await this.watchPublicMultiple (topics, topics, params);
+        const trades: ArrayCache = await this.watchPublicMultiple (topics, topics, params);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved: Int = limit;
@@ -472,7 +472,7 @@ export default class cryptocom extends cryptocomRest {
         if (market !== undefined) {
             messageHash = 'user.trade.' + this.safeString (market, 'id', '');
         }
-        const trades = await this.watchPrivateSubscribe (messageHash, params);
+        const trades: ArrayCache = await this.watchPrivateSubscribe (messageHash, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limit);
@@ -757,7 +757,7 @@ export default class cryptocom extends cryptocomRest {
         }
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
-        const ohlcv = await this.watchPublic ('candlestick.' + interval + '.' + this.safeString (market, 'id', ''), params);
+        const ohlcv: ArrayCacheByTimestamp = await this.watchPublic ('candlestick.' + interval + '.' + this.safeString (market, 'id', ''), params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit (market['symbol'], limit);
@@ -849,7 +849,7 @@ export default class cryptocom extends cryptocomRest {
         if (market !== undefined) {
             messageHash = 'user.order.' + this.safeString (market, 'id', '');
         }
-        const orders = await this.watchPrivateSubscribe (messageHash, params);
+        const orders: ArrayCacheBySymbolById = await this.watchPrivateSubscribe (messageHash, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);

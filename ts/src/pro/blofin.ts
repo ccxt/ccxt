@@ -108,7 +108,7 @@ export default class blofin extends blofinRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const trades = await this.watchMultipleWrapper (true, 'trades', 'watchTradesForSymbols', symbols, params);
+        const trades: ArrayCache = await this.watchMultipleWrapper (true, 'trades', 'watchTradesForSymbols', symbols, params);
         const firstMarket = this.safeDict (trades, 0);
         const firstSymbol = this.safeString (firstMarket, 'symbol');
         let limitResolved = limit;

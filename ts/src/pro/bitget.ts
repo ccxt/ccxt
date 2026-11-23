@@ -1173,7 +1173,7 @@ export default class bitget extends bitgetRest {
         if (uta) {
             paramsRequest = this.extend (paramsCursor, { 'uta': true });
         }
-        const trades = await this.watchPublicMultiple (uta, messageHashes, topics, paramsRequest);
+        const trades: ArrayCache = await this.watchPublicMultiple (uta, messageHashes, topics, paramsRequest);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved = limit;

@@ -1180,7 +1180,7 @@ export default class bybit extends bybitRest {
             const messageHash = 'trade:' + symbol;
             messageHashes.push (messageHash);
         }
-        const trades = await this.watchTopics (url, messageHashes, topics, paramsValue);
+        const trades: ArrayCache = await this.watchTopics (url, messageHashes, topics, paramsValue);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved: Int = limit;
@@ -1405,7 +1405,7 @@ export default class bybit extends bybitRest {
         if (executionFast) {
             topic = 'execution.fast';
         }
-        const trades = await this.watchTopics (url, [ messageHash ], [ topic ], paramsExecutionFast);
+        const trades: ArrayCacheBySymbolById = await this.watchTopics (url, [ messageHash ], [ topic ], paramsExecutionFast);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolResolved, limit);
@@ -1955,7 +1955,7 @@ export default class bybit extends bybitRest {
                 topics.push ('stopOrder');
             }
         }
-        const orders = await this.watchTopics (url, [ messageHash ], topics, params);
+        const orders: ArrayCacheBySymbolById = await this.watchTopics (url, [ messageHash ], topics, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbolResolved, limit);

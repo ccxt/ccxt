@@ -539,7 +539,7 @@ export default class coinbase extends coinbaseRest {
         }
         const symbolValue: string = this.symbol (symbol);
         const name = 'candles';
-        const ohlcv = await this.subscribe (name, false, symbolValue, params);
+        const ohlcv: ArrayCacheByTimestamp = await this.subscribe (name, false, symbolValue, params);
         let limitResolved: Int = limit;
         if (this.newUpdates) {
             limitResolved = ohlcv.getLimit (symbolValue, limit);
@@ -621,7 +621,7 @@ export default class coinbase extends coinbaseRest {
         }
         const symbolValue: string = this.symbol (symbol);
         const name = 'market_trades';
-        const trades = await this.subscribe (name, false, symbolValue, params);
+        const trades: ArrayCacheBySymbolById = await this.subscribe (name, false, symbolValue, params);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbolValue, limit);
@@ -662,7 +662,7 @@ export default class coinbase extends coinbaseRest {
             await this.loadMarkets ();
         }
         const name = 'market_trades';
-        const trades = await this.subscribeMultiple (name, false, symbols, params);
+        const trades: ArrayCacheBySymbolById = await this.subscribeMultiple (name, false, symbols, params);
         const first = this.safeDict (trades, 0);
         const tradeSymbol = this.safeString (first, 'symbol');
         let limitResolved = limit;
@@ -705,7 +705,7 @@ export default class coinbase extends coinbaseRest {
             await this.loadMarkets ();
         }
         const name = 'user';
-        const orders = await this.subscribe (name, true, symbol, params);
+        const orders: ArrayCacheBySymbolById = await this.subscribe (name, true, symbol, params);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbol, limit);

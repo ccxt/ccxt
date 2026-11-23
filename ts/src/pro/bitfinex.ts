@@ -327,7 +327,7 @@ export default class bitfinex extends bitfinexRest {
             const marketId = this.safeString (market, 'id', '');
             messageHash = 'myTrade:' + marketId;
         }
-        const trades = await this.subscribePrivate (messageHash);
+        const trades: ArrayCacheBySymbolById = await this.subscribePrivate (messageHash);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit (symbol, limit);
@@ -1109,7 +1109,7 @@ export default class bitfinex extends bitfinexRest {
             const marketId = this.safeString (market, 'id', '');
             messageHash = 'orders:' + marketId;
         }
-        const orders = await this.subscribePrivate (messageHash);
+        const orders: ArrayCacheBySymbolById = await this.subscribePrivate (messageHash);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit (symbol, limit);
