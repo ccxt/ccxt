@@ -27381,6 +27381,7 @@ const JAVA_LIST_PARAM_SLOTS = {
     'filterByKey': [ 0 ],
     'filterBySymbol': [ 0 ],
     'parseOpenInterestsHistory': [ 0 ],
+    'handleListMessage': [ 1 ],
 };
 // unified list parameters: the typed surface hands List<Map<String, Object>> rows (OrderRequest[]) and
 // venues hand ArrayList<Object> literals, so the core takes List<?> (string[][] rows likewise)

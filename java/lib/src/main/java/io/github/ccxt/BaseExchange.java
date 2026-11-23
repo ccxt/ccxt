@@ -2393,7 +2393,7 @@ public class BaseExchange {
         // Base implementation — overridden by exchanges that receive text frames
     }
 
-    public void handleListMessage(Client client, Object message) {
+    public void handleListMessage(Client client, List<Object> message) {
         // Base implementation — overridden by exchanges that receive json array frames
     }
 
@@ -2407,7 +2407,7 @@ public class BaseExchange {
         if (message instanceof String text) {
             this.handleTextMessage(client, text);
         } else if (message instanceof List<?>) {
-            this.handleListMessage(client, message);
+            this.handleListMessage(client, (List<Object>) message);
         } else if (message instanceof byte[]) {
             this.handleBinaryMessage(client, message);
         } else if (message instanceof Map<?, ?>) {
