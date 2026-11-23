@@ -4736,11 +4736,11 @@ function rustTypedSafeOrder (content: string): string {
 
 // `parseOrder` builds every order through `safeOrder` (a `Dict`): a venue override returns `Some(..)` through the
 // `DerivedExchange` slot (`None` = not overridden), the base `Dict`. `.into_dict()` drops, `.as_map()` copies unwrap, any other use boxes it.
-function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'position' | 'transfer' | 'transaction' | 'balance' | 'margin_modification' | 'income' | 'margin_mode' | 'account', p0: string | undefined = undefined): string {
+function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'position' | 'transfer' | 'transaction' | 'balance' | 'margin_modification' | 'income' | 'margin_mode' | 'account' | 'funding_rate' | 'deposit_address' | 'leverage' | 'ledger_entry' | 'open_interest', p0: string | undefined = undefined): string {
     const fn = 'parse_' + fam, Fn = 'parse' + fam.replace (/(?:^|_)(\w)/g, (_x, c: string) => c.toUpperCase ());
     // `parseBalance (response)` and `parseAccount (account)` have no second argument; p0 names a base parameter that differs from the family
     const sub = p0 ?? fam;
-    const arg2 = (fam === 'balance' || fam === 'account') ? '' : ', ' + (fam === 'transfer' || fam === 'transaction' ? 'currency: Option<&crate::types::Currency>' : 'market: Option<&crate::types::Market>'), a2 = arg2.split (':')[0], pn = p0 ?? (fam === 'balance' ? 'response' : fam);
+    const arg2 = (fam === 'balance' || fam === 'account') ? '' : ', ' + (fam === 'transfer' || fam === 'transaction' || fam === 'deposit_address' || fam === 'ledger_entry' ? 'currency: Option<&crate::types::Currency>' : 'market: Option<&crate::types::Market>'), a2 = arg2.split (':')[0], pn = p0 ?? (fam === 'balance' ? 'response' : fam);
     const arg2Re = arg2.replace (/[()<>&]/g, '\\$&');
     const derivedSig = new RegExp ('\\n    fn ' + fn + '\\(&self, \\w+: impl Into<crate::Value>' + arg2Re + '\\) -> Value \\{\\n');
     const safeRet = 'Value::Dict(self.safe_' + fam + '(';
@@ -5004,6 +5004,29 @@ function rustTypedWsTickers (content: string): string {
 // `safePosition` only writes keys into its map and returns it, so it takes and returns `Dict` (a non-map dispatch argument
 // comes back unchanged, as before). `parsePosition` / `parseTransfer` are typed like `parseOrder`; a venue `parseWsPosition`
 // / prediction `parseEvent` whose every return is a map returns `Dict`. Any unproven return throws.
+// A base `safe*` builder whose single return is a map literal or `extend` returns `Dict`; its callers unbox like `safe_ticker`.
+function rustTypedSafeDict (content: string, fn: string, params: string, ret: string, typed: string): string {
+    const sig = 'fn ' + fn + '(&self, ' + params + ') -> Value {', tail = '\n    Value::Null\n}';
+    const base = content.indexOf (sig), end = base < 0 ? -1 : content.indexOf (tail, base);
+    if (end >= 0) {
+        const body = content.slice (base + sig.length, end);
+        if (body.split (/\breturn\b/).length !== 2 || !body.includes (ret)) throw new Error (fn + ': unproven body');
+        const at = body.indexOf (ret), close = balancedCloseIndex (body, at + ret.length);
+        content = content.slice (0, base) + sig.replace (') -> Value {', ') -> crate::value::Dict {') + body.slice (0, at) + typed + body.slice (at + ret.length, close) + (ret.endsWith ('Map(') ? ')' : '') + body.slice (close + (ret.endsWith ('Map(') ? 1 : 0)) + '\n    Default::default()\n}' + content.slice (end + tail.length);
+    }
+    const head = new RegExp ('(?<![\\w.])self\\.' + fn + '\\(', 'g'), starts: number[] = [];
+    let m: RegExpExecArray | null;
+    while ((m = head.exec (content)) !== null) starts.push (m.index);
+    for (const s of starts.reverse ()) {
+        const close = balancedCloseIndex (content, s + ('self.' + fn + '(').length);
+        if (close >= content.length) continue;
+        const rest = content.slice (close + 1);
+        if (rest.startsWith ('.into_dict()')) content = content.slice (0, close + 1) + rest.slice ('.into_dict()'.length);
+        else content = content.slice (0, s) + 'Value::Dict(' + content.slice (s, close + 1) + ')' + rest;
+    }
+    return content;
+}
+
 function rustTypedParsePositionFamilies (content: string): string {
     const Q = '\u0000', copy = '.as_map().cloned().unwrap_or_default()';
     const sig = 'fn safe_position(&self, mut position: Value) -> Value {', tail = '\n    Value::Null\n}';
@@ -5048,6 +5071,10 @@ function rustTypedParsePositionFamilies (content: string): string {
     content = rustTypedParseFamily (content, 'balance');
     content = rustTypedParseFamily (rustTypedParseFamily (content, 'margin_modification', 'data'), 'income', 'info');
     content = rustTypedParseFamily (rustTypedParseFamily (content, 'margin_mode', 'marginMode'), 'account');
+    content = rustTypedParseFamily (rustTypedParseFamily (rustTypedParseFamily (content, 'funding_rate', 'contract'), 'deposit_address', 'depositAddress'), 'leverage');
+    content = rustTypedSafeDict (rustTypedSafeDict (content, 'safe_ledger_entry', 'entry: impl KeyRead, currency: Option<&crate::types::Currency>', 'return Value::Map(', 'return std::sync::Arc::new('),
+        'safe_open_interest', 'mut interest: Value, market: Option<&crate::types::Market>', 'return self.extend(', 'return self.extend_t(');
+    content = rustTypedParseFamily (rustTypedParseFamily (content, 'ledger_entry', 'item'), 'open_interest', 'interest');
     // a venue method whose every return is a map: `Value::Dict(e)` -> `e`, a literal -> `Arc::new`, `extend` -> `extend_t`
     const typeAll = (name: string) => {
         const head = new RegExp ('\\n    pub fn ' + name + '\\([^\\n]*\\) -> Value \\{\\n');
