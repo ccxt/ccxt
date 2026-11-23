@@ -7,7 +7,7 @@ package ccxt
 // the transpiler type-asserts DerivedExchange to this interface there.
 type IPredictionDispatch interface {
 	ParsePredictionOrder(order any, optionalArgs ...any) map[string]any
-	ParsePredictionTrade(trade map[string]any, optionalArgs ...any) any
+	ParsePredictionTrade(trade map[string]any, optionalArgs ...any) map[string]any
 	ParsePredictionPosition(position map[string]any, optionalArgs ...any) map[string]any
 }
 

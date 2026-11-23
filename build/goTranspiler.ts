@@ -12051,6 +12051,7 @@ function goProvenParseMapMethods (): string[] {
         // every override returns a map literal or SafeLiquidation(<map literal>); SafeLiquidation returns its map param
         'SafeLiquidation', 'ParseLiquidation', 'ParseIncome',
         'Sign',
+        'SafePredictionTrade', 'ParsePredictionTrade', // base + every override return a SafePredictionTrade map literal
         'SafePredictionPosition', 'ParsePredictionPosition', 'ParseWsOptionsPosition' ]; // map literal / converter on every override // base + every override return a request map literal
 }
 
