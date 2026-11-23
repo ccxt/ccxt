@@ -27236,8 +27236,6 @@ const JAVA_LIST_PARAM_SLOTS = {
 // unified list parameters: the typed surface hands List<Map<String, Object>> rows (OrderRequest[]) and
 // venues hand ArrayList<Object> literals, so the core takes List<?> (string[][] rows likewise)
 const JAVA_WILDCARD_LIST_PARAM_SLOTS = {
-    'createOrders': [ 0 ],
-    'createOrdersWs': [ 0 ],
     'watchOHLCVForSymbols': [ 0 ],
     'unWatchOHLCVForSymbols': [ 0 ],
 };
@@ -27274,11 +27272,39 @@ function javaListParamSlot (printer, node) {
         || node.initializer !== undefined || node.questionToken !== undefined || node.dotDotDotToken !== undefined) {
         return undefined;
     }
-    const type = javaParamSlotTypeAt (method.name.text, method.parameters.indexOf (node), node.getSourceFile ().fileName);
+    const type = javaParamSlotTypeAt (method.name.text, method.parameters.indexOf (node), node.getSourceFile ().fileName)
+        ?? javaUnifiedRequestListSlot (printer, node, method);
     if (type === undefined || !JAVA_LIST_PARAM_SLOT_FILES.test (node.getSourceFile ().fileName)) {
         return undefined;
     }
     return printer.javaParameterIsWritten (node) || printer.javaParameterIsCompoundAssigned (node) ? undefined : type;
+}
+
+// a fixed `X[]` parameter, X an interface of base/types.ts (OrderRequest, CancellationRequest), of an async
+// method first declared in the (Prediction)Exchange tier: List<?> takes the typed surface rows and venue ArrayList literals
+function javaUnifiedRequestListSlot (printer, node, method) {
+    try {
+        const annotation = node.type;
+        if (annotation === undefined || !ts.isArrayTypeNode (annotation) || !ts.isTypeReferenceNode (annotation.elementType)
+            || !printer.isAsyncFunction (method)) {
+            return undefined;
+        }
+        const checker = printer.getChecker ();
+        const elementType = checker.getTypeFromTypeNode (annotation.elementType);
+        const element = (elementType?.getSymbol?.() ?? elementType?.symbol)?.declarations?.[0]?.resolve ();
+        if (element === undefined || !ts.isInterfaceDeclaration (element)
+            || !/[\\/]ts[\\/]src[\\/]base[\\/]types\.ts$/.test (element.getSourceFile ().fileName)) {
+            return undefined;
+        }
+        let root = method;
+        for (let m = printer.getMethodOverride (method); m !== undefined; m = printer.getMethodOverride (m)) {
+            root = m;
+        }
+        return /[\\/]ts[\\/]src[\\/]base[\\/](Prediction)?Exchange(\.nooverloads[^\\/]*)?\.ts$/.test (root.getSourceFile ().fileName)
+            ? JAVA_WILDCARD_LIST_PARAM_SLOT_TYPE : undefined;
+    } catch (e) {
+        return undefined;
+    }
 }
 
 function javaParamSlotTypeAt (name, index, fileName) {
@@ -27301,12 +27327,23 @@ function javaParamSlotTypeAt (name, index, fileName) {
 }
 
 // the slot type of a `x.m (..)` argument position, if the table names it
-function javaListSlotArgument (arg) {
+function javaListSlotArgument (arg, printer) {
     const call = arg?.parent;
     if (call === undefined || !ts.isCallExpression (call) || !ts.isPropertyAccessExpression (call.expression)) {
         return undefined;
     }
-    return javaParamSlotTypeAt (call.expression.name.text, call.arguments.indexOf (arg), arg.getSourceFile ().fileName);
+    const index = call.arguments.indexOf (arg);
+    const tabled = javaParamSlotTypeAt (call.expression.name.text, index, arg.getSourceFile ().fileName);
+    if (tabled !== undefined || printer === undefined) {
+        return tabled;
+    }
+    try {
+        const declaration = printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve ();
+        const parameter = declaration?.parameters?.[index];
+        return parameter !== undefined && ts.isMethodDeclaration (declaration) ? javaUnifiedRequestListSlot (printer, parameter, declaration) : undefined;
+    } catch (e) {
+        return undefined;
+    }
 }
 
 // `book['asks'|'bids']` on a local or parameter the printer declares WsOrderBook: the typed field get() answers
@@ -27337,7 +27374,7 @@ export function installJavaListParamSlots (transpiler) {
     };
     const upstreamTyped = printer.javaNativeArgumentAlreadyTyped.bind (printer);
     printer.javaNativeArgumentAlreadyTyped = function (arg, type) {
-        const slot = javaListSlotArgument (arg);
+        const slot = javaListSlotArgument (arg, printer);
         if (slot === JAVA_BOOKSIDE_PARAM_SLOT_TYPE && slot === type) {
             const declaration = ts.isIdentifier (arg) ? printer.javaDeclarationOfIdentifier (arg) : undefined;
             const forwarded = declaration !== undefined && declaration.kind === ts.SyntaxKind.Parameter && printer.javaNativeParameterType (declaration) === slot;
