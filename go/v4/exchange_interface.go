@@ -445,7 +445,7 @@ type IDerivedExchange interface {
 	HandleDeltas(bookside IOrderBookSide, deltas []any)
 	HandleBookDelta(orderbook OrderBookInterface, delta any)
 	HandleBookDeltas(orderbook OrderBookInterface, deltas []any)
-	ParseLeverage(leverage any, optionalArgs ...any) Leverage
+	ParseLeverage(leverage map[string]any, optionalArgs ...any) Leverage
 	ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV
 	ParseTrade(trade any, optionalArgs ...any) Trade
 	ParseTrades(trades any, optionalArgs ...any) []any
@@ -465,7 +465,7 @@ type IDerivedExchange interface {
 	SafeMarketStructure(optionalArgs ...any) map[string]any
 	ParseOpenInterest(interest any, optionalArgs ...any) OpenInterest
 	ParseLiquidation(liquidation any, optionalArgs ...any) map[string]any
-	ParseIncome(info any, optionalArgs ...any) map[string]any
+	ParseIncome(info map[string]any, optionalArgs ...any) map[string]any
 	ParseMarginMode(marginMode any, optionalArgs ...any) MarginMode
 	ParseBorrowInterest(info map[string]any, optionalArgs ...any) any
 	ParseOption(chain any, optionalArgs ...any) Option
@@ -490,7 +490,7 @@ type IDerivedExchange interface {
 	ParseDepositAddress(depositAddress map[string]any, optionalArgs ...any) DepositAddress
 	ParseBorrowRate(info any, optionalArgs ...any) map[string]any
 	ParseFundingRateHistory(info any, optionalArgs ...any) any
-	ParseFundingRate(contract any, optionalArgs ...any) FundingRate
+	ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate
 	FetchFundingRatesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]FundingRate]
 	FetchFundingIntervalsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]FundingRate]
 	FetchDepositsWithdrawalsAsync(optionalArgs ...any) <-chan AsyncResult[[]Transaction]

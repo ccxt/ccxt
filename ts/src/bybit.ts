@@ -7198,7 +7198,7 @@ export default class bybit extends Exchange {
         }
         const market = this.market (symbol);
         const position = await this.fetchPosition (symbol, params);
-        return this.parseLeverage (position, market);
+        return this.parseLeverage (this.extend ({}, position), market);
     }
 
     override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {

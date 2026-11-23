@@ -1910,7 +1910,7 @@ export default class aster extends Exchange {
         //         "time": 1750146970000
         //     }
         //
-        return this.parseFundingRate (response, market);
+        return this.parseFundingRate (this.extend ({}, response), market);
     }
 
     /**

@@ -8242,7 +8242,7 @@ export class BaseExchange {
     parseFundingRates (response: Dict[], symbols: Strings = undefined): FundingRates {
         const fundingRates: Dict = {};
         for (let i = 0; i < response.length; i++) {
-            const parsed = this.parseFundingRate (response[i]);
+            const parsed = this.parseFundingRate (this.safeDict (response, i, {}));
             const symbol = this.safeString (parsed, 'symbol');
             if (symbol !== undefined) {
                 fundingRates[symbol] = parsed;
@@ -9338,7 +9338,7 @@ export class BaseExchange {
             const marketId = (symbolKey === undefined) ? undefined : this.safeString (info, symbolKey);
             const market = this.safeMarket (marketId, undefined, undefined, marketTypeResolved);
             if ((symbols === undefined) || this.inArray (market['symbol'], symbols)) {
-                leverageStructures[market['symbol']] = this.parseLeverage (info, market);
+                leverageStructures[market['symbol']] = this.parseLeverage (this.extend ({}, info), market);
             }
         }
         return leverageStructures;

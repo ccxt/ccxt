@@ -1004,7 +1004,7 @@ export default class coinbaseinternational extends Exchange {
     }
 
     override parseFundingRateHistory (info: any, market: Market = undefined): FundingRateHistory {
-        const fundingRate = this.parseFundingRate (info, market);
+        const fundingRate = this.parseFundingRate (this.extend ({}, info), market);
         return {
             'info': info,
             'symbol': fundingRate['symbol'],

@@ -3484,7 +3484,7 @@ export default class paradex extends Exchange {
         // }
         //
         const configs = this.safeList (response, 'configs');
-        return this.parseLeverage (this.safeDict (configs, 0) as Dict, market);
+        return this.parseLeverage (this.safeDict (configs, 0, {}), market);
     }
 
     override parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
