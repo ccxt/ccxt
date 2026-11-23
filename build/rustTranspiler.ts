@@ -14735,7 +14735,10 @@ ${isBase
         // the frame-shape handlers the base `routeMessage` splits a frame into (text, json array,
         // raw bytes) are void sync methods too, reached by name from the same drive loop
         for (const frameHandler of frameHandlers) {
-            arms.push(`                "${frameHandler}" => { self.${frameHandler}(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },`);
+            // a text-frame handler whose printed signature takes `message: &str` gets the frame decoded once
+            const frameArg = frameHandler.endsWith('*str') ? 'args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()' : 'args.get(1).cloned().unwrap_or(crate::Value::Null)';
+            const handler = frameHandler.replace(/\*str$/, '');
+            arms.push(`                "${handler}" => { self.${handler}(args.get(0).cloned().unwrap_or(crate::Value::Null), ${frameArg}); crate::Value::Null },`);
         }
         arms.sort();
         const fallthrough = parentCore
@@ -15300,7 +15303,8 @@ ${proImport}${predImport}`;
         // `impl ExchangeBase for <Core>` — supplies the static `call_dynamic`.
         const hasHandleMessage: boolean | 'client' = /\bfn\s+handle_message\(&(?:mut )?self, client: &crate::pro::ws_client::ClientHandle\b/.test(content) ? 'client' : /\b(?:pub\s+)?(?:async\s+)?fn\s+handle_message\s*\(/.test(content);
         const frameHandlers = [ 'handle_text_message', 'handle_list_message', 'handle_binary_message' ]
-            .filter((name) => content.includes('fn ' + name + '('));
+            .filter((name) => content.includes('fn ' + name + '('))
+            .map((name) => (new RegExp(`fn ${name}\\([^)]*\\bmessage: &str\\)`).test(content) ? name + '*str' : name));
         const coreDispatchImpl = this.emitCoreDispatchImpl(coreName, methodSigs, parentCore, isPrediction, hasHandleMessage, frameHandlers);
         // Sync WS handler dispatch (used by the rewritten `method.call(...)` in
         // handle_message). WS-only — REST/prediction have no `.call` dispatch, so
