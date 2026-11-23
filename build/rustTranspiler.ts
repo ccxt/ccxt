@@ -5273,18 +5273,29 @@ function rustTypedParsePositionFamilies (content: string): string {
 // The `parseTransaction` / `parseOrder` / `parseIncome` / `parseAccount` / `parseMarginMode` / `parseLedgerEntry` / `parsePosition` /
 // `parseTransfer` / `parseDepositAddress` / `parseLeverage` / `parseBorrowInterest` slots borrow their `Dict` row as
 // `Option<&Dict>` (the TypeScript declaration): a missing or non-map row stays `Value::Null` in the body.
+// venue overrides of a base `Dict` row parser with no trait slot (inherent `pub fn`, called as `self.X(`), one name per line
+const RUST_BORROWED_VENUE_ROWS: string[] = [
+    'parse_option',
+];
 function rustBorrowedParseRows (content: string): string {
     const optFns = [ 'parse_transaction', 'parse_order', 'parse_income', 'parse_account', 'parse_margin_mode', 'parse_ledger_entry', 'parse_position', 'parse_transfer', 'parse_deposit_address', 'parse_leverage', 'parse_borrow_interest' ];
     optFns.push ('parse_prediction_order');
     optFns.push ('parse_adl_rank');
     optFns.push ('parse_greeks');
+    // an inherent override borrows `Option<&Dict>` too; its `self.X(` callers and dispatch arm in the same file lend
+    const venue = RUST_BORROWED_VENUE_ROWS.filter ((f) => content.includes ('\n    pub fn ' + f + '(&self, '));
+    for (const f of venue) {
+        content = content.replace (new RegExp ('(\\n    pub fn ' + f + '\\(&self, (\\w+): )impl Into<crate::Value>(,[^\\n]*\\{\\n        let \\2: Value = )\\2\\.into\\(\\);', 'g'), '$1Option<&crate::value::Dict>$3Value::from($2);');
+        optFns.push (f);
+    }
     const fns = optFns.join ('|');
     const slot = (fn: string) => optFns.includes (fn) ? 'Option<&crate::value::Dict>' : '&crate::value::Dict';
     content = content.replace (new RegExp ('\\n    fn (' + fns + ')\\(&self, (\\w+): impl Into<crate::Value>([,)])', 'g'), (_m, f: string, x: string, e: string) => '\n    fn ' + f + '(&self, ' + x + ': ' + slot (f) + e);
     content = content.replace (new RegExp ('(\\n    fn (?:' + fns + ')\\(&self, (\\w+): (?:Option<)?&crate::value::Dict>?[^\\n]*\\{\\n        let \\2: Value = )\\2\\.into\\(\\);', 'g'), '$1Value::from($2);');
-    const head = new RegExp ('(?:crate::exchange::DerivedExchange::|<Self as crate::exchange::DerivedExchange>::)(' + fns + ')\\(self, ', 'g');
+    const head = new RegExp ('(?:crate::exchange::DerivedExchange::|<Self as crate::exchange::DerivedExchange>::)(' + fns + ')\\(self, ' + (venue.length > 0 ? '|(?<![\\w.:])self\\.(' + venue.join ('|') + ')\\(' : ''), 'g');
     let out = '', last = 0, m: RegExpExecArray | null;
     while ((m = head.exec (content)) !== null) {
+        if (m[1] === undefined) m[1] = m[2];
         const open = m.index + m[0].length, opt = optFns.includes (m[1]);
         const fromBody = (v: string) => opt ? '<crate::value::Dict as crate::value::EndpointBody>::from_body(' + v + ').as_ref()' : '&<crate::value::Dict as crate::value::EndpointBody>::from_body(' + v + ').unwrap_or_default()';
         let close = open, depth = 0;
