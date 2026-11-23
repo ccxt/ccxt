@@ -9679,7 +9679,8 @@ function javaVenueListReadNames () {
                 }
             }
             // a call collected for `await Promise.all (..)`: pushed into, or an element of, the joined list
-            if (isThisCall (node) && javaVenuePromiseAllOperand (node)) {
+            // or `return await this.m (..)` from a method declared `Promise<T[]>` (the list rides the typed return)
+            if (isThisCall (node) && (javaVenuePromiseAllOperand (node) || javaVenueListReturnOperand (node))) {
                 names.add (node.expression.name.text);
             }
             node.forEachChild (visit);
@@ -9687,6 +9688,14 @@ function javaVenueListReadNames () {
         visit (sf);
     }
     return names;
+}
+
+function javaVenueListReturnOperand (call) {
+    const scope = enclosingFunction (call);
+    const type = scope?.type;
+    return call.parent.kind === ts.SyntaxKind.AwaitExpression && ts.isReturnStatement (call.parent.parent) && type !== undefined
+        && type.kind === ts.SyntaxKind.TypeReference && ts.isIdentifier (type.typeName) && type.typeName.text === 'Promise'
+        && type.typeArguments?.length === 1 && type.typeArguments[0].kind === ts.SyntaxKind.ArrayType;
 }
 
 // `call` reaches an awaited Promise.all through an array literal element, a `.push (call)` or a const local
@@ -9786,7 +9795,7 @@ function javaVenueListReturnsProven (file, name, listNames = new Set ()) {
                 const value = unwrapParens (node.expression);
                 const awaited = value !== undefined && value.kind === ts.SyntaxKind.AwaitExpression ? unwrapParens (value.expression) : undefined;
                 ok = value !== undefined && (ts.isIdentifier (value)
-                    || (javaVenueTupleNames.has (name) && ts.isArrayLiteralExpression (value))
+                    || (ts.isArrayLiteralExpression (value) && (javaVenueTupleNames.has (name) || value.elements.length === 0))
                     || (isThisCall (value) && value.expression.name.text === 'arraySlice')
                     // parseMarkets prints List<Object> on every tier; BaseExchange.java `<T> List<T> filterBy`
                     || [ value, value !== undefined && ts.isAsExpression (value) ? unwrapParens (value.expression) : undefined ]
