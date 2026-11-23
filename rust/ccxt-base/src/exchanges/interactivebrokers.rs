@@ -21,15 +21,16 @@ pub struct Interactivebrokers {
 }
 
 impl Interactivebrokers {
-    pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { exchange: crate::exchange::Exchange::new(config) };
+    pub fn new(config: impl Into<crate::Config>) -> Self {
+        let config: crate::Config = config.into();
+        let mut s = Self { exchange: crate::exchange::Exchange::new(config.into_option()) };
         s.init();
         s
     }
 
     /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
     pub fn with_config(config: crate::Config) -> Self {
-        Self::new(config.into_option())
+        Self::new(config)
     }
 
     pub fn init(&mut self) {
@@ -511,12 +512,12 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
 
     Value::Null
 }
-    fn parse_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Value {
-        return Value::from(vec![self.safe_integer_k(&ohlcv, "t", &[]), self.safe_number_k(&ohlcv, "o", &[]), self.safe_number_k(&ohlcv, "h", &[]), self.safe_number_k(&ohlcv, "l", &[]), self.safe_number_k(&ohlcv, "c", &[]), self.safe_number_k(ohlcv, "v", &[])]);
+    fn parse_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Option<crate::value::List> {
+        return Some(std::sync::Arc::new(vec![self.safe_integer_k(&ohlcv, "t", &[]), self.safe_number_k(&ohlcv, "o", &[]), self.safe_number_k(&ohlcv, "h", &[]), self.safe_number_k(&ohlcv, "l", &[]), self.safe_number_k(&ohlcv, "c", &[]), self.safe_number_k(ohlcv, "v", &[])]));
 
-    Value::Null
+    None
 }
-    fn parse_balance(&self, response: impl Into<crate::Value>) -> Value {
+    fn parse_balance(&self, response: impl Into<crate::Value>) -> Option<crate::value::Dict> {
         let response: Value = response.into();
         //
         //     {
@@ -671,9 +672,9 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
 })]), Value::Str("timestamp".into()), &[]).as_i64();
         result.insert("timestamp".into(), Value::from(timestamp));
         result.insert("datetime".into(), self.iso8601(timestamp));
-        return Value::Dict(self.safe_balance(Value::Map(result)));
+        return Some(self.safe_balance(Value::Map(result)));
 
-    Value::Null
+    None
 }
     fn parse_position(&self, position: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let position: Value = position.into();
@@ -765,7 +766,7 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
 
     Value::Null
 }
-    fn parse_account(&self, account: impl Into<crate::Value>) -> Value {
+    fn parse_account(&self, account: impl Into<crate::Value>) -> Option<crate::value::Dict> {
         let account: Value = account.into();
         //
         //     {
@@ -783,7 +784,7 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
         //     }
         //
         let currencyId: Option<String> = self.safe_string_k_opt(&account, "currency", &[]);
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string2(&account, Value::Str("accountId".into()), Value::Str("id".into()), &[]));
         m.insert("type".to_string(), self.safe_string_lower_k(&account, "type", &[]));
@@ -791,11 +792,11 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
         m.insert("info".to_string(), account.clone());
         m.insert("name".to_string(), self.safe_string_k(account, "accountTitle", &[]));
     m
-});
+}));
 
-    Value::Null
+    None
 }
-    fn sign(&mut self, path: &str, optional_args: &[Value]) -> Value {
+    fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let params = get_arg(optional_args, 2, Value::Map({
@@ -833,14 +834,14 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
                     m.insert("User-Agent".to_string(), Value::Str("ccxt".into()));
                 m
             }));
-            return Value::Map({
+            return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.as_str()));
         m.insert("method".to_string(), method.clone());
         m.insert("body".to_string(), Value::from(requestBody.as_deref()));
         m.insert("headers".to_string(), requestHeaders.clone().map_or(Value::Null, Value::Dict));
     m
-});
+}));
         }
         self.ibkr_check_oauth_credentials();
         let mut oauthParams: crate::value::Dict = self.ibkr_oauth_base(self.options.get("consumer_key").cloned().unwrap_or(Value::Null), (self.apiKey.clone()).as_str().unwrap_or_default());
@@ -888,22 +889,22 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
                 m
             }));
         }
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), requestHeaders.map_or(Value::Null, Value::Dict));
     m
-});
+}));
 
-    Value::Null
+    None
 }
-    fn handle_errors(&mut self, mut code: Value, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         let url: Value = url.into();
         let method: Value = method.into();
         let body: Value = body.into();
-        if (code.as_f64() == Some(401.0)) && matches!(self.safe_bool_k(&self.options, "useGateway", &[Value::Bool(false)]), Value::Bool(true)) {
+        if (code == 401) && matches!(self.safe_bool_k(&self.options, "useGateway", &[Value::Bool(false)]), Value::Bool(true)) {
             // the gateway answers every request with 401 once its sso login is lost (daily reset, container restart, competing login)
             { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("gatewayAuthenticatedTimestamp".into(), Value::Null); }
             let gatewayUrl: Option<String> = self.safe_string_k_opt(&self.options, "gatewayUrl", &[]);
@@ -962,7 +963,7 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
                 "fetch_forex_markets" => self.fetch_forex_markets(&args[..]).await,
                 "fetch_futures_and_swap_markets" => self.fetch_futures_and_swap_markets(&args[..]).await,
                 "fetch_last_prices" => crate::types::IntoRaw::into_raw(self.fetch_last_prices(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_live_orders_raw" => self.fetch_live_orders_raw(&args[..]).await,
+                "fetch_live_orders_raw" => crate::Value::Arr(self.fetch_live_orders_raw(&args[..]).await),
                 "fetch_mark_prices" => crate::types::IntoRaw::into_raw(self.fetch_mark_prices(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_markets" => crate::types::IntoRaw::into_raw(self.fetch_markets(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_my_trades" => crate::types::IntoRaw::into_raw(self.fetch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -981,12 +982,12 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
                 "fetch_status" => crate::types::IntoRaw::into_raw(self.fetch_status(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_stock_markets" => self.fetch_stock_markets(&args[..]).await,
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
+                "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "ibkr_balance_code" => crate::Value::from(self.ibkr_balance_code(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "ibkr_check_oauth_credentials" => self.ibkr_check_oauth_credentials(),
                 "ibkr_disambiguate_contract_symbols" => self.ibkr_disambiguate_contract_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "ibkr_fetch_snapshot" => crate::Value::Arr(self.ibkr_fetch_snapshot(args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await),
+                "ibkr_fetch_snapshot" => crate::Value::Arr(self.ibkr_fetch_snapshot(args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), &args[3.min(args.len())..]).await),
                 "ibkr_gateway_keep_alive" => self.ibkr_gateway_keep_alive().await,
                 "ibkr_gateway_on_session_lost" => self.ibkr_gateway_on_session_lost().await,
                 "ibkr_gateway_regain_delay" => self.ibkr_gateway_regain_delay(),
@@ -1002,15 +1003,15 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
                 "ibkr_is_gateway_request" => self.ibkr_is_gateway_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "ibkr_oauth_base" => crate::Value::Dict(self.ibkr_oauth_base(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "ibkr_path_params" => self.ibkr_path_params(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
-                "ibkr_snapshot_ready" => self.ibkr_snapshot_ready(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "ibkr_snapshot_ready" => self.ibkr_snapshot_ready(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()),
                 "load_account_id" => self.load_account_id(&args[..]).await,
                 "load_markets" => crate::types::IntoRaw::into_raw(self.load_markets(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).cloned().unwrap_or_default()).await),
                 "markets_endpoint_call" => self.markets_endpoint_call(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]).await,
-                "parse_account" => self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_account" => Value::Dict(self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_last_price" => self.parse_last_price(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1018,7 +1019,7 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_transaction_date" => self.parse_transaction_date(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "request" => self.request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
+                "sign" => Value::Dict(self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..])),
                 "sign_in" => self.sign_in(&args[..]).await,
                 "switch_to_account" => self.switch_to_account(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
@@ -3023,7 +3024,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             promises.push(self.call_method(Value::Str("webapi_get_v1_api_portfolio2_account_id_positions".into()), &[&Value::Map(request)]).await);
         }
         if withOpenOrders {
-            promises.push(self.fetch_live_orders_raw(&[]).await);
+            promises.push(Value::Arr(self.fetch_live_orders_raw(&[]).await));
         }
         let results: crate::value::List = promise_all(&Value::from(promises)).await;
         let response: crate::value::Dict = self.safe_dict_t(&results, Value::Int(0));
@@ -3066,7 +3067,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             // the 'orders' key is present only when the open orders were fetched, then the currencies without open orders get used = 0
             balanceResponse.insert("orders".into(), self.safe_list(&results, Value::from(index), &[]));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, Value::Map(balanceResponse));
+        return <Self as crate::exchange::DerivedExchange>::parse_balance(self, Value::Map(balanceResponse)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3961,7 +3962,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let fields: Value = fieldsqueryVariable.0;
         let query: crate::value::Dict = fieldsqueryVariable.1;
         let fieldsString: Value = join(&fields, &Value::Str(",".into()));
-        let response: Option<crate::value::List> = Some(self.ibkr_fetch_snapshot(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default(), fieldsString, &[Value::Dict(query)]).await);
+        let readyFields: Vec<Value> = vec![Value::Str("31".into()), Value::Str("84".into()), Value::Str("86".into())];
+        let response: Option<crate::value::List> = Some(self.ibkr_fetch_snapshot(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default(), fieldsString, &readyFields, &[Value::Dict(query)]).await);
         return self.parse_tickers(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -3975,16 +3977,15 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @see https://www.interactivebrokers.com/docs/web-api/api-reference/trading/trading-market-data/get-md-snapshot
  * @param {string[]} symbols unified market symbols
  * @param {string} fields comma-separated snapshot field ids
+ * @param {string[]} readyFields the snapshot is ready once every item has at least one of these fields
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string[]} [readyFields] the snapshot is ready once every item has at least one of these fields, default [ '31', '84', '86' ]
  * @returns {object[]} the raw snapshot items
  */
-    pub async fn ibkr_fetch_snapshot(&mut self, symbols: &[crate::Value], mut fields: Value, optional_args: &[Value]) -> crate::value::List {
+    pub async fn ibkr_fetch_snapshot(&mut self, symbols: &[crate::Value], mut fields: Value, readyFields: &[crate::Value], optional_args: &[Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
-        let readyFields = get_arg(optional_args, 1, Value::Null);
         let mut conids: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -4010,7 +4011,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             while { if !__for_first_40 { i += 1; } __for_first_40 = false; i <= retries } {
             let __ws_arg_9 = self.extend(&request, &[&params]);
             response = self.webapi_get_v1_api_iserver_marketdata_snapshot(&[&__ws_arg_9]).await.unwrap_or_default();
-            if self.ibkr_snapshot_ready(&response, &[readyFields.clone()]).as_bool() == Some(true) {
+            if self.ibkr_snapshot_ready(&response, readyFields).as_bool() == Some(true) {
                 break;
             }
             if i < retries {
@@ -4021,17 +4022,15 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         return response;
 }
 
-    pub fn ibkr_snapshot_ready(&self, response: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn ibkr_snapshot_ready(&self, response: impl Into<crate::Value>, fieldIds: &[crate::Value]) -> Value {
         let mut response: Value = response.into();
-        let readyFields = get_arg(optional_args, 0, Value::Null);
         let __response_empty = Vec::new();
         let response = response.as_array().unwrap_or(&__response_empty);
         let numItems: i64 = response.len() as i64;
         if (numItems == 0) {
             return Value::Bool(false);
         }
-        let fieldIds: Option<crate::value::List> = (if (readyFields == Value::Null) { Value::from(vec![Value::Str("31".into()), Value::Str("84".into()), Value::Str("86".into())]) } else { readyFields }).into_opt_list();
-        let numFields: i64 = fieldIds.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+        let numFields: i64 = fieldIds.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_42: bool = true;
@@ -4041,7 +4040,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                                 let mut j: i64 = 0;
                 let mut __for_first_41: bool = true;
                 while { if !__for_first_41 { j += 1; } __for_first_41 = false; j < numFields } {
-                if (self.safe_string(response.get(i as usize).cloned().unwrap_or(Value::Null), fieldIds.as_deref().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null), &[]) != Value::Null) {
+                if (self.safe_string(response.get(i as usize).cloned().unwrap_or(Value::Null), fieldIds.get(j as usize).cloned().unwrap_or(Value::Null), &[]) != Value::Null) {
                     found = true;
                     break;
                 }
@@ -4088,7 +4087,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
         let fields: String = self.safe_string_k(&params, "fields", &[Value::Str("84,85,86,88".into())]).as_str().unwrap_or("84,85,86,88").to_string();
         let query: crate::value::Dict = self.omit_t(params, Value::Str("fields".into()), &[]);
-        let response: Option<crate::value::List> = Some(self.ibkr_fetch_snapshot(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default(), Value::from(fields), &[Value::Dict(query), Value::from(vec![Value::Str("84".into()), Value::Str("86".into())])]).await);
+        let response: Option<crate::value::List> = Some(self.ibkr_fetch_snapshot(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default(), Value::from(fields), &[Value::Str("84".into()), Value::Str("86".into())], &[Value::Dict(query)]).await);
         return self.parse_tickers(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -4122,7 +4121,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
-        let response: Option<crate::value::List> = Some(self.ibkr_fetch_snapshot(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default(), Value::Str("31".into()), &[params, Value::from(vec![Value::Str("31".into())])]).await);
+        let response: Option<crate::value::List> = Some(self.ibkr_fetch_snapshot(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default(), Value::Str("31".into()), &[Value::Str("31".into())], &[params]).await);
         return self.parse_last_prices(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -4157,7 +4156,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
-        let response: Option<crate::value::List> = Some(self.ibkr_fetch_snapshot(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default(), Value::Str("7635".into()), &[params, Value::from(vec![Value::Str("7635".into())])]).await);
+        let response: Option<crate::value::List> = Some(self.ibkr_fetch_snapshot(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default(), Value::Str("7635".into()), &[Value::Str("7635".into())], &[params]).await);
         return self.parse_tickers(&response, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -4202,7 +4201,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         }
         // 7697 futures open interest, 7638 option open interest, 31 last price for the open interest value
-        let response: crate::value::List = self.ibkr_fetch_snapshot(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default(), Value::Str("31,7697,7638".into()), &[params, Value::from(vec![Value::Str("7697".into()), Value::Str("7638".into())])]).await;
+        let response: crate::value::List = self.ibkr_fetch_snapshot(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default(), Value::Str("31,7697,7638".into()), &[Value::Str("7697".into()), Value::Str("7638".into())], &[params]).await;
         return self.parse_open_interests(self.to_array(&response), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
@@ -4444,7 +4443,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_44: bool = true;
             while { if !__for_first_44 { i += 1; } __for_first_44 = false; i < (portfolioAccounts.len() as i64) } {
-            accounts.push(<Self as crate::exchange::DerivedExchange>::parse_account(self, crate::value::KeyRead::read(&&portfolioAccounts, &Value::Int(i))));
+            accounts.push(<Self as crate::exchange::DerivedExchange>::parse_account(self, crate::value::KeyRead::read(&&portfolioAccounts, &Value::Int(i))).map_or(Value::Null, Value::Dict));
         }
         }
         return Value::from(accounts);
@@ -4987,7 +4986,7 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let orders: crate::value::List = self.fetch_live_orders_raw(&[params]).await.into_list();
+        let orders: crate::value::List = self.fetch_live_orders_raw(&[params]).await;
         let parsed: crate::value::List = self.parse_orders(&orders, market.as_ref(), &[&Value::Null, &Value::Null]);
         return Value::Arr(self.filter_by_symbol_since_limit(&parsed, symbol.as_str(), since, limit, &[]));
         Value::Null
@@ -5121,7 +5120,7 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let orders: crate::value::List = self.fetch_live_orders_raw(&[params]).await.into_list();
+        let orders: crate::value::List = self.fetch_live_orders_raw(&[params]).await;
         let parsed: Vec<Value> = self.parse_orders(&orders, market.as_ref(), &[&Value::Null, &Value::Null]).to_vec();
         let mut result: Vec<Value> = Vec::new();
         {
@@ -5164,7 +5163,7 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
         if (symbol.is_some()) {
             market = Some(match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let orders: crate::value::List = self.fetch_live_orders_raw(&[params]).await.into_list();
+        let orders: crate::value::List = self.fetch_live_orders_raw(&[params]).await;
         let parsed: crate::value::List = self.parse_orders(&orders, market.as_ref(), &[&Value::Null, &Value::Null]);
         let filtered: crate::value::List = self.filter_by(Value::Arr(parsed), Value::Str("status".into()), Value::from(status), &[]);
         return Value::Arr(self.filter_by_symbol_since_limit(&filtered, symbol, since, limit, &[]));
@@ -5181,7 +5180,7 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} the raw orders
  */
-    pub async fn fetch_live_orders_raw(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_live_orders_raw(&mut self, optional_args: &[Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -5211,9 +5210,7 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
             self.sleep(Value::from(retryDelay)).await;
             response = self.webapi_get_v1_api_iserver_account_orders(&[&Value::Dict(query)]).await;
         }
-        return self.safe_list_k(&response, "orders", &[Value::from(vec![])]);
-
-    Value::Null
+        return self.safe_list_k_t(&response, "orders");
 }
 
     pub fn parse_order_status(&self, status: Option<&str>) -> Option<String> {

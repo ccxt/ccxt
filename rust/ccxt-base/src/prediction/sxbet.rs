@@ -24,15 +24,16 @@ pub struct Sxbet {
 }
 
 impl Sxbet {
-    pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { exchange: crate::prediction_exchange::PredictionExchange::new(config) };
+    pub fn new(config: impl Into<crate::Config>) -> Self {
+        let config: crate::Config = config.into();
+        let mut s = Self { exchange: crate::prediction_exchange::PredictionExchange::new(config.into_option()) };
         s.init();
         s
     }
 
     /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
     pub fn with_config(config: crate::Config) -> Self {
-        Self::new(config.into_option())
+        Self::new(config)
     }
 
     pub fn init(&mut self) {
@@ -137,7 +138,7 @@ impl crate::exchange::DerivedExchange for Sxbet {
 
     Value::Null
 }
-    fn sign(&mut self, path: &str, optional_args: &[Value]) -> Value {
+    fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("sxbet".into())]));
         let method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let params = get_arg(optional_args, 2, Value::Map({
@@ -196,18 +197,18 @@ impl crate::exchange::DerivedExchange for Sxbet {
                 bodyValue = json_stringify(&query).as_str().map(str::to_owned);
             }
         }
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyValue.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Dict(headersExtended));
     m
-});
+}));
 
-    Value::Null
+    None
 }
-    fn handle_errors(&mut self, mut code: Value, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         // sx.bet returns { "error": "Bad Request", "message": <code or [strings]>, "statusCode": 4xx }
         // map the known codes to ccxt errors so callers can distinguish a rejected order or a
         // validation problem from a transport outage (the base otherwise maps a bare 4xx to the
@@ -231,7 +232,7 @@ impl crate::exchange::DerivedExchange for Sxbet {
         self.throw_broadly_matched_exception(self.exceptions.at("broad"), messageString, feedback.as_str());
         // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
         // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
-        if (code.as_f64() == Some(400.0)) {
+        if (code == 400) {
             panic!("{}", crate::exchange_errors::bad_request(feedback));
         }
         return Value::Null;
@@ -268,15 +269,15 @@ impl crate::exchange_generated::ExchangeBase for Sxbet {
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_raw_markets_paged" => Value::Arr(self.fetch_raw_markets_paged(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_settlements" => crate::types::IntoRaw::into_raw(self.fetch_settlements(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_sxbet_best_odds" => self.fetch_sxbet_best_odds(args.get(0).cloned().unwrap_or_default().to_str_vec(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "fetch_sxbet_book_snapshot" => Value::Dict(self.fetch_sxbet_book_snapshot(args.get(0).and_then(crate::Value::as_text).as_deref()).await),
-                "fetch_sxbet_proxy" => Value::Dict(self.fetch_sxbet_proxy().await),
+                "fetch_sxbet_best_odds" => crate::Value::Arr(self.fetch_sxbet_best_odds(args.get(0).cloned().unwrap_or_default().to_str_vec(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
+                "fetch_sxbet_book_snapshot" => crate::Value::Dict(self.fetch_sxbet_book_snapshot(args.get(0).and_then(crate::Value::as_text).as_deref()).await),
+                "fetch_sxbet_proxy" => crate::Value::Dict(self.fetch_sxbet_proxy().await),
                 "fetch_sxbet_realtime_token" => self.fetch_sxbet_realtime_token().await,
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "filter_raw_markets_by_fixture" => Value::Arr(self.filter_raw_markets_by_fixture(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
-                "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
+                "filter_raw_markets_by_fixture" => crate::Value::Arr(self.filter_raw_markets_by_fixture(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
+                "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -297,7 +298,7 @@ impl crate::exchange_generated::ExchangeBase for Sxbet {
                 "parse_sxbet_v3_public_trade" => self.parse_sxbet_v3_public_trade(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "pong" => self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "request_id" => crate::Value::from(self.request_id(args.get(0).and_then(crate::Value::as_text).as_deref())),
-                "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
+                "sign" => Value::Dict(self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..])),
                 "subscribe_sxbet_channel" => self.subscribe_sxbet_channel(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()).await,
                 "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
@@ -1366,12 +1367,7 @@ impl Sxbet {
  */
     pub async fn fetch_sxbet_proxy(&mut self) -> crate::value::Dict {
         let response: crate::value::Dict = self.sxbet_private_get_user_proxy(&[]).await.unwrap_or_default();
-        return self.safe_dict_k_or(&response, "data", Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-
-    Default::default()
+        return self.safe_dict_k_t(&response, "data");
 }
 
 /*
@@ -2750,12 +2746,7 @@ impl Sxbet {
             m
         });
         let response: crate::value::Dict = self.sxbet_public_get_orderbook_v3_snapshot(&[&Value::Map(request)]).await.unwrap_or_default();
-        return self.safe_dict_k_or(&response, "data", Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-
-    Default::default()
+        return self.safe_dict_k_t(&response, "data");
 }
 
 /*
@@ -2800,7 +2791,7 @@ impl Sxbet {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} the raw bestOdds rows ({marketHash, outcomeOne, outcomeTwo})
  */
-    pub async fn fetch_sxbet_best_odds(&mut self, marketHashes: Vec<String>, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_sxbet_best_odds(&mut self, marketHashes: Vec<String>, optional_args: &[&Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2813,9 +2804,7 @@ impl Sxbet {
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.sxbet_private_get_orders_v3_odds_best(&[&__ws_arg_17]).await.unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return self.safe_list_k(&data, "bestOdds", &[Value::from(vec![])]);
-
-    Value::Null
+        return self.safe_list_k_t(&data, "bestOdds");
 }
 
 /*
@@ -2933,7 +2922,7 @@ impl Sxbet {
                 end = self.parse_to_int(Value::from(hashesLength));
             }
             let mut chunk: Value = Value::Arr(self.array_slice(Value::Arr(hashesOrder.clone()), Value::from(start), &[Value::from(end)]));
-            let rows: Vec<Value> = self.fetch_sxbet_best_odds(chunk.to_str_vec(), &[&params]).await.as_array().cloned().unwrap_or_default();
+            let rows: Vec<Value> = self.fetch_sxbet_best_odds(chunk.to_str_vec(), &[&params]).await.to_vec();
             let rowsLength: i64 = rows.len() as i64;
             {
                                 let mut j: i64 = 0;

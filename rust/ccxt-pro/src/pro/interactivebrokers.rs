@@ -22,7 +22,8 @@ pub struct Interactivebrokers {
 }
 
 impl Interactivebrokers {
-    pub fn new(config: Option<crate::Value>) -> Self {
+    pub fn new(config: impl Into<crate::Config>) -> Self {
+        let config: crate::Config = config.into();
         let mut s = Self { parent: crate::exchanges::interactivebrokers::Interactivebrokers::new(config) };
         s.init();
         s
@@ -30,7 +31,7 @@ impl Interactivebrokers {
 
     /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
     pub fn with_config(config: crate::Config) -> Self {
-        Self::new(config.into_option())
+        Self::new(config)
     }
 
     pub fn init(&mut self) {
@@ -96,45 +97,45 @@ impl Interactivebrokers {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[&crate::Value]) -> crate::Value {
-        let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[&crate::Value]) {
+        let __n = match __name.strict() { Some(s) => s, None => return };
         match __n {
-            "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_error_message" => self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)),
-            "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); crate::Value::Null },
-            "handle_orders" => { self.handle_orders(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_session_status" => { self.handle_session_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_text_message" => { self.handle_text_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "ibkr_cancel_history" => { crate::exchange_stubs::enqueue_spawn("ibkr_cancel_history", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "ibkr_connect" => { crate::exchange_stubs::enqueue_spawn("ibkr_connect", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "ibkr_keep_alive_session" => { crate::exchange_stubs::enqueue_spawn("ibkr_keep_alive_session", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "ibkr_market_data_request" => self.ibkr_market_data_request(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()),
-            "ibkr_subscribe" => { crate::exchange_stubs::enqueue_spawn("ibkr_subscribe", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "ibkr_un_watch_market_data" => { crate::exchange_stubs::enqueue_spawn("ibkr_un_watch_market_data", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "ibkr_unsubscribe" => { crate::exchange_stubs::enqueue_spawn("ibkr_unsubscribe", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "ibkr_unsubscribe_market_data" => { crate::exchange_stubs::enqueue_spawn("ibkr_unsubscribe_market_data", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "ibkr_update_ohlc_vs" => { self.ibkr_update_ohlc_vs(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "ibkr_watch_market_data" => { crate::exchange_stubs::enqueue_spawn("ibkr_watch_market_data", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "ping" => self.ping(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)),
-            "un_watch_balance" => { crate::exchange_stubs::enqueue_spawn("un_watch_balance", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "un_watch_bids_asks" => { crate::exchange_stubs::enqueue_spawn("un_watch_bids_asks", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "un_watch_my_trades" => { crate::exchange_stubs::enqueue_spawn("un_watch_my_trades", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "un_watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("un_watch_ohlcv", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "un_watch_order_book" => { crate::exchange_stubs::enqueue_spawn("un_watch_order_book", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "un_watch_orders" => { crate::exchange_stubs::enqueue_spawn("un_watch_orders", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "un_watch_tickers" => { crate::exchange_stubs::enqueue_spawn("un_watch_tickers", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "watch_balance" => { crate::exchange_stubs::enqueue_spawn("watch_balance", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "watch_bids_asks" => { crate::exchange_stubs::enqueue_spawn("watch_bids_asks", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "watch_my_trades" => { crate::exchange_stubs::enqueue_spawn("watch_my_trades", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("watch_ohlcv", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "watch_order_book" => { crate::exchange_stubs::enqueue_spawn("watch_order_book", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "watch_orders" => { crate::exchange_stubs::enqueue_spawn("watch_orders", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "watch_tickers" => { crate::exchange_stubs::enqueue_spawn("watch_tickers", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            _ => crate::Value::Null,
+            "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_orders" => { self.handle_orders(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_session_status" => { self.handle_session_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_text_message" => { self.handle_text_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "ibkr_cancel_history" => crate::exchange_stubs::enqueue_spawn("ibkr_cancel_history", args.iter().copied().cloned().collect::<Vec<_>>()),
+            "ibkr_connect" => crate::exchange_stubs::enqueue_spawn("ibkr_connect", args.iter().copied().cloned().collect::<Vec<_>>()),
+            "ibkr_keep_alive_session" => crate::exchange_stubs::enqueue_spawn("ibkr_keep_alive_session", args.iter().copied().cloned().collect::<Vec<_>>()),
+            "ibkr_market_data_request" => { self.ibkr_market_data_request(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
+            "ibkr_subscribe" => crate::exchange_stubs::enqueue_spawn("ibkr_subscribe", args.iter().copied().cloned().collect::<Vec<_>>()),
+            "ibkr_un_watch_market_data" => crate::exchange_stubs::enqueue_spawn("ibkr_un_watch_market_data", args.iter().copied().cloned().collect::<Vec<_>>()),
+            "ibkr_unsubscribe" => crate::exchange_stubs::enqueue_spawn("ibkr_unsubscribe", args.iter().copied().cloned().collect::<Vec<_>>()),
+            "ibkr_unsubscribe_market_data" => crate::exchange_stubs::enqueue_spawn("ibkr_unsubscribe_market_data", args.iter().copied().cloned().collect::<Vec<_>>()),
+            "ibkr_update_ohlc_vs" => { self.ibkr_update_ohlc_vs(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "ibkr_watch_market_data" => crate::exchange_stubs::enqueue_spawn("ibkr_watch_market_data", args.iter().copied().cloned().collect::<Vec<_>>()),
+            "ping" => { self.ping(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "un_watch_balance" => crate::exchange_stubs::enqueue_spawn("un_watch_balance", args.iter().copied().cloned().collect::<Vec<_>>()),
+            "un_watch_bids_asks" => crate::exchange_stubs::enqueue_spawn("un_watch_bids_asks", args.iter().copied().cloned().collect::<Vec<_>>()),
+            "un_watch_my_trades" => crate::exchange_stubs::enqueue_spawn("un_watch_my_trades", args.iter().copied().cloned().collect::<Vec<_>>()),
+            "un_watch_ohlcv" => crate::exchange_stubs::enqueue_spawn("un_watch_ohlcv", args.iter().copied().cloned().collect::<Vec<_>>()),
+            "un_watch_order_book" => crate::exchange_stubs::enqueue_spawn("un_watch_order_book", args.iter().copied().cloned().collect::<Vec<_>>()),
+            "un_watch_orders" => crate::exchange_stubs::enqueue_spawn("un_watch_orders", args.iter().copied().cloned().collect::<Vec<_>>()),
+            "un_watch_tickers" => crate::exchange_stubs::enqueue_spawn("un_watch_tickers", args.iter().copied().cloned().collect::<Vec<_>>()),
+            "watch_balance" => crate::exchange_stubs::enqueue_spawn("watch_balance", args.iter().copied().cloned().collect::<Vec<_>>()),
+            "watch_bids_asks" => crate::exchange_stubs::enqueue_spawn("watch_bids_asks", args.iter().copied().cloned().collect::<Vec<_>>()),
+            "watch_my_trades" => crate::exchange_stubs::enqueue_spawn("watch_my_trades", args.iter().copied().cloned().collect::<Vec<_>>()),
+            "watch_ohlcv" => crate::exchange_stubs::enqueue_spawn("watch_ohlcv", args.iter().copied().cloned().collect::<Vec<_>>()),
+            "watch_order_book" => crate::exchange_stubs::enqueue_spawn("watch_order_book", args.iter().copied().cloned().collect::<Vec<_>>()),
+            "watch_orders" => crate::exchange_stubs::enqueue_spawn("watch_orders", args.iter().copied().cloned().collect::<Vec<_>>()),
+            "watch_tickers" => crate::exchange_stubs::enqueue_spawn("watch_tickers", args.iter().copied().cloned().collect::<Vec<_>>()),
+            _ => {}
         }
     }
 }
@@ -1042,7 +1043,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_9: bool = true;
             while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (data.len() as i64) } {
-            let mut parsed: Value = self.parse_ohlcv(data.get(i as usize).cloned().unwrap_or(Value::Null), Some(&market));
+            let mut parsed: Value = Value::Arr(self.parse_ohlcv(data.get(i as usize).cloned().unwrap_or(Value::Null), Some(&market)));
             let mut timestamp: Value = parsed.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
             if (timestamp == Value::Null) {
                 continue;
@@ -1498,7 +1499,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let options: crate::value::Dict = self.safe_dict_k_t(&self.options, "watchOrders");
             let fetchOrdersSnapshot: bool = self.safe_bool_k_opt(&options, "fetchOrdersSnapshot", &[Value::Bool(true)]).unwrap_or(true);
             if fetchOrdersSnapshot {
-                let snapshot: Vec<Value> = self.parent.fetch_live_orders_raw(&[]).await.as_array().cloned().unwrap_or_default();
+                let snapshot: Vec<Value> = self.parent.fetch_live_orders_raw(&[]).await.to_vec();
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_15: bool = true;
@@ -1631,7 +1632,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 merged = self.extend(previous, &[rawOrder]);
                 rawOrders.insert(orderId.as_deref().unwrap_or("null").to_string(), merged.clone());
             }
-            let parsed: crate::value::Dict = self.parse_order(merged, None);
+            let __ws_arg_1 = self.extend(Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            }), &[merged]);
+            let parsed: crate::value::Dict = self.parse_order(__ws_arg_1, None);
             self.orders.append(Value::from(&parsed));
             let orderSymbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             if (orderSymbol.is_some()) {
@@ -1885,8 +1890,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         m.insert("accountId".to_string(), accountId.clone());
                     m
                 });
-                let __ws_arg_1 = self.extend(query, &[Value::Map(snapshotRequest)]);
-                let snapshot: crate::types::Balances = (match self.fetch_balance(__ws_arg_1).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                let __ws_arg_2 = self.extend(query, &[Value::Map(snapshotRequest)]);
+                let snapshot: crate::types::Balances = (match self.fetch_balance(__ws_arg_2).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 // typed copy: the statically typed ports keep this.balance as a dictionary
                 let emptyBalance: indexmap::IndexMap<String, Value> = ({
                     let m = indexmap::IndexMap::new();

@@ -32,7 +32,7 @@ pub async fn testWatchTickersHelper(mut exchange: Value, mut skippedProperties: 
         let mut shouldReturn: bool = false;
         let startTime: i64 = exchange.milliseconds();
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            response = crate::live_dispatch::dispatch(&mut exchange, "watch_tickers", vec![argSymbols.clone(), argParams.clone()]).await;
+            response = crate::live_dispatch::dispatch(&mut exchange, "watch_tickers", vec![argSymbols.clone()]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             // for some exchanges, specifically watchTickers method not subscribe

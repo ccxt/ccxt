@@ -24,15 +24,16 @@ pub struct Myriad {
 }
 
 impl Myriad {
-    pub fn new(config: Option<crate::Value>) -> Self {
-        let mut s = Self { exchange: crate::prediction_exchange::PredictionExchange::new(config) };
+    pub fn new(config: impl Into<crate::Config>) -> Self {
+        let config: crate::Config = config.into();
+        let mut s = Self { exchange: crate::prediction_exchange::PredictionExchange::new(config.into_option()) };
         s.init();
         s
     }
 
     /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
     pub fn with_config(config: crate::Config) -> Self {
-        Self::new(config.into_option())
+        Self::new(config)
     }
 
     pub fn init(&mut self) {
@@ -51,7 +52,7 @@ impl Myriad {
 }
 
 impl crate::exchange::DerivedExchange for Myriad {
-    fn parse_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Value {
+    fn parse_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> Option<crate::value::List> {
         //
         //     {
         //         "timestamp": 1705318200,
@@ -76,9 +77,9 @@ impl crate::exchange::DerivedExchange for Myriad {
             (if (close.is_some()) { Value::from(close) } else { Value::from(price) }),
             Value::Int(0),
         ];
-        return Value::from(__yd0);
+        return Some(std::sync::Arc::new(__yd0));
 
-    Value::Null
+    None
 }
     fn parse_prediction_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let trade: Value = trade.into();
@@ -220,7 +221,7 @@ impl crate::exchange::DerivedExchange for Myriad {
 
     Value::Null
 }
-    fn sign(&mut self, path: &str, optional_args: &[Value]) -> Value {
+    fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("myriad".into())]));
         let method = get_arg(optional_args, 1, Value::Str("GET".into()));
         let params = get_arg(optional_args, 2, Value::Map({
@@ -274,18 +275,18 @@ impl crate::exchange::DerivedExchange for Myriad {
             headersKey.insert(headerKey, self.apiKey.clone());
             headersValue = self.extend_t(&headersValue, &[Value::Map(headersKey)]);
         }
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyValue.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Dict(headersValue));
     m
-});
+}));
 
-    Value::Null
+    None
 }
-    fn handle_errors(&mut self, mut code: Value, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         // Myriad error responses are { "error": "<message>", "details": [...] } with a 4xx status
         if (response == Value::Null) {
             return Value::Null;
@@ -341,11 +342,11 @@ impl crate::exchange_generated::ExchangeBase for Myriad {
                 "fetch_orders" => crate::types::IntoRaw::into_raw(self.fetch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_raw_market_by_id" => self.fetch_raw_market_by_id(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "fetch_raw_markets_by_search" => Value::Arr(self.fetch_raw_markets_by_search(args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
-                "fetch_raw_markets_list" => Value::Arr(self.fetch_raw_markets_list(&args[..].iter().collect::<Vec<_>>()).await),
+                "fetch_raw_markets_by_search" => crate::Value::Arr(self.fetch_raw_markets_by_search(args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
+                "fetch_raw_markets_list" => crate::Value::Arr(self.fetch_raw_markets_list(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_raw_question_by_id" => self.fetch_raw_question_by_id(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "fetch_raw_questions_by_search" => self.fetch_raw_questions_by_search(args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "fetch_raw_questions_list" => self.fetch_raw_questions_list(&args[..].iter().collect::<Vec<_>>()).await,
+                "fetch_raw_questions_by_search" => crate::Value::Arr(self.fetch_raw_questions_by_search(args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
+                "fetch_raw_questions_list" => crate::Value::Arr(self.fetch_raw_questions_list(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trade_quote" => crate::Value::Dict(self.fetch_trade_quote(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await),
@@ -353,7 +354,7 @@ impl crate::exchange_generated::ExchangeBase for Myriad {
                 "fetch_trading_fee" => crate::types::IntoRaw::into_raw(self.fetch_trading_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "from_wei" => self.from_wei(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "get_order_response_from_params" => self.get_order_response_from_params(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
-                "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
+                "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -363,7 +364,7 @@ impl crate::exchange_generated::ExchangeBase for Myriad {
                 "parse_event" => Value::Dict(self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_market_to_event" => Value::Dict(self.parse_market_to_event(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "parse_myriad_market" => Value::Dict(self.parse_myriad_market(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref())),
-                "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_prediction_order" => self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_prediction_position" => self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -375,7 +376,7 @@ impl crate::exchange_generated::ExchangeBase for Myriad {
                 "request_id" => crate::Value::from(self.request_id(args.get(0).and_then(crate::Value::as_text).as_deref())),
                 "seed_order_book" => self.seed_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64)).await,
                 "seed_position_balances" => self.seed_position_balances(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()).await,
-                "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
+                "sign" => Value::Dict(self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..])),
                 "sign_evm_transaction" => self.sign_evm_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "subscribe_myriad_channel" => self.subscribe_myriad_channel(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -1092,7 +1093,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of raw myriad question objects
  */
-    pub async fn fetch_raw_questions_by_search(&mut self, queries: &[crate::Value], optional_args: &[&Value]) -> Value {
+    pub async fn fetch_raw_questions_by_search(&mut self, queries: &[crate::Value], optional_args: &[&Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1131,9 +1132,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
         }
         }
-        return Value::from(rawQuestions);
-
-    Value::Null
+        return std::sync::Arc::new(rawQuestions);
 }
 
 /*
@@ -1145,7 +1144,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {string} [params.state] optional question state filter when supported by the backend
  * @returns {object[]} an array of raw myriad question objects
  */
-    pub async fn fetch_raw_questions_list(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_raw_questions_list(&mut self, optional_args: &[&Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1201,9 +1200,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 break;
             }
         }
-        return Value::from(allRawQuestions);
-
-    Value::Null
+        return std::sync::Arc::new(allRawQuestions);
 }
 
 /*
@@ -4174,7 +4171,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut rawQuestions: crate::value::List = std::sync::Arc::new(Vec::new());
         if queriesLength > 0 {
             // some markets are only discoverable through the questions search endpoint
-            let responses: crate::value::List = promise_all(&Value::from(vec![Value::Arr(self.fetch_raw_markets_by_search(&queries, &[&Value::from(&rest)]).await), self.fetch_raw_questions_by_search(&queries, &[&Value::from(&rest)]).await])).await;
+            let responses: crate::value::List = promise_all(&Value::from(vec![Value::Arr(self.fetch_raw_markets_by_search(&queries, &[&Value::from(&rest)]).await), Value::Arr(self.fetch_raw_questions_by_search(&queries, &[&Value::from(&rest)]).await)])).await;
             rawMarkets = self.safe_list_t(&responses, Value::Int(0));
             rawQuestions = self.safe_list_t(&responses, Value::Int(1));
         }  else if (eventId.is_some()) {
@@ -4190,7 +4187,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let requestedTagsLength: i64 = requestedTags.len() as i64;
             if (requestedTagsLength == 0) {
                 // unscoped mode: fetch bounded open lists from both sources and merge
-                let listResponses: crate::value::List = promise_all(&Value::from(vec![Value::Arr(self.fetch_raw_markets_list(&[&Value::from(&rest)]).await), self.fetch_raw_questions_list(&[&Value::from(&rest)]).await])).await;
+                let listResponses: crate::value::List = promise_all(&Value::from(vec![Value::Arr(self.fetch_raw_markets_list(&[&Value::from(&rest)]).await), Value::Arr(self.fetch_raw_questions_list(&[&Value::from(&rest)]).await)])).await;
                 rawMarkets = self.safe_list_t(&listResponses, Value::Int(0));
                 rawQuestions = self.safe_list_t(&listResponses, Value::Int(1));
             }  else {
@@ -4206,7 +4203,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 }
                 // run both searches in parallel; some events are only discoverable from questions,
                 // while market search is still the primary source for market-level data
-                let responses: crate::value::List = promise_all(&Value::from(vec![Value::Arr(self.fetch_raw_markets_by_search(&tagQueries, &[&Value::from(&rest)]).await), self.fetch_raw_questions_by_search(&tagQueries, &[&Value::from(&rest)]).await])).await;
+                let responses: crate::value::List = promise_all(&Value::from(vec![Value::Arr(self.fetch_raw_markets_by_search(&tagQueries, &[&Value::from(&rest)]).await), Value::Arr(self.fetch_raw_questions_by_search(&tagQueries, &[&Value::from(&rest)]).await)])).await;
                 rawMarkets = self.safe_list_t(&responses, Value::Int(0));
                 rawQuestions = self.safe_list_t(&responses, Value::Int(1));
             }

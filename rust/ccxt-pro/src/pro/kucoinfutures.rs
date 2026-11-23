@@ -22,7 +22,8 @@ pub struct Kucoinfutures {
 }
 
 impl Kucoinfutures {
-    pub fn new(config: Option<crate::Value>) -> Self {
+    pub fn new(config: impl Into<crate::Config>) -> Self {
+        let config: crate::Config = config.into();
         let mut s = Self { parent: crate::pro::kucoin::Kucoin::new(config) };
         s.init();
         s
@@ -30,7 +31,7 @@ impl Kucoinfutures {
 
     /// Construct from the typed [`crate::Config`] builder; `Config::none()` for defaults.
     pub fn with_config(config: crate::Config) -> Self {
-        Self::new(config.into_option())
+        Self::new(config)
     }
 
     pub fn init(&mut self) {
@@ -72,12 +73,12 @@ impl Kucoinfutures {
     /// Synchronous WS handler dispatch — routes a handler-name string (from the
     /// venue's handle_message dispatch table) to the real handler method.
     #[allow(dead_code, unreachable_patterns, clippy::all)]
-    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[&crate::Value]) -> crate::Value {
-        let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
+    pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[&crate::Value]) {
+        let __n = match __name.strict() { Some(s) => s, None => return };
         match __n {
-            "fetch_bids_asks" => { crate::exchange_stubs::enqueue_spawn("fetch_bids_asks", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            "transfer" => { crate::exchange_stubs::enqueue_spawn("transfer", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
-            _ => crate::Value::Null,
+            "fetch_bids_asks" => crate::exchange_stubs::enqueue_spawn("fetch_bids_asks", args.iter().copied().cloned().collect::<Vec<_>>()),
+            "transfer" => crate::exchange_stubs::enqueue_spawn("transfer", args.iter().copied().cloned().collect::<Vec<_>>()),
+            _ => {}
         }
     }
 }
