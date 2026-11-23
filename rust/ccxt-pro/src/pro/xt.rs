@@ -259,7 +259,7 @@ impl Xt {
             let m = indexmap::IndexMap::new();
             m
         })]), Value::Str("ws".into()));
-        let mut url: Option<String> = self.safe_string_opt(&apiUrls, Value::from(tradeType.as_str()), &[]);
+        let mut url: Option<String> = self.safe_string_opt(&apiUrls, &tradeType, &[]);
         if !isContract {
             url = Some(format!("{}{}", url.as_deref().unwrap_or("null"), "/private"));
         }
@@ -444,7 +444,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let m = indexmap::IndexMap::new();
             m
         })]), Value::Str("ws".into()));
-        let url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(&apiUrls, Value::from(tradeType), &[Value::Str("".into())]), Value::Str("/".into())).into()), tail);
+        let url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(&apiUrls, &tradeType, &[Value::Str("".into())]), Value::Str("/".into())).into()), tail);
         return self.watch(url.as_str(), &messageHash[..], &request, &messageHash[..], Value::Map(subscription)).await;
 
     Value::Null
@@ -515,7 +515,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let m = indexmap::IndexMap::new();
             m
         })]), Value::Str("ws".into()));
-        let url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(&apiUrls, Value::from(tradeType), &[Value::Str("".into())]), Value::Str("/".into())).into()), tail);
+        let url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(&apiUrls, &tradeType, &[Value::Str("".into())]), Value::Str("/".into())).into()), tail);
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("unsubscribe".to_string(), Value::Bool(true));

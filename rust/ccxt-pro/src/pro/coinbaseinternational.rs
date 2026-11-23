@@ -1946,7 +1946,10 @@ impl Coinbaseinternational {
                         let mut i: i64 = 0;
             let mut __for_first_17: bool = true;
             while { if !__for_first_17 { i += 1; } __for_first_17 = false; i < dataLength } {
-            let trade: crate::value::Dict = self.parse_trade(data.get(i as usize).cloned().unwrap_or(Value::Null), Some(&market));
+            let trade: crate::value::Dict = self.parse_trade(self.safe_dict(&data, Value::Int(i), &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })]), Some(&market));
             tradesArray.append(Value::Dict(trade));
         }
         }

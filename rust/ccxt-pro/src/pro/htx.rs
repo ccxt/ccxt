@@ -619,7 +619,10 @@ impl Htx {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (data.len() as i64) } {
-            let trade: crate::value::Dict = self.parse_trade(data.get(i as usize).cloned().unwrap_or(Value::Null), Some(&market));
+            let trade: crate::value::Dict = self.parse_trade(self.safe_dict(&data, Value::Int(i), &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })]), Some(&market));
             tradesCache.append(Value::Dict(trade));
         }
         }
@@ -2037,7 +2040,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut side: Option<String> = None;
         if (type_var.is_some()) {
             let typeParts: crate::value::List = crate::value::List::new(if let Some(__s) = type_var.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
-            side = typeParts.get(0).and_then(Value::as_str).map(str::to_owned);
+            side = self.safe_string_opt(&typeParts, Value::Int(0), &[]);
             type_var = self.safe_string_opt(&typeParts, Value::Int(1), &[]);
         }
         let aggressor: Option<bool> = self.safe_bool_k_opt(&trade, "aggressor", &[]);
@@ -3336,15 +3339,17 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }  else {
                 // this trades object is artificially created
                 // in handleOrder
-                let rawTrades: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("trades"));
+                let rawTrades: crate::value::List = __pro_message.key_list("trades");
                 let marketId: Option<String> = self.safe_string_k_opt(message, "symbol", &[]);
                 let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_13: bool = true;
                     while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (rawTrades.len() as i64) } {
-                    let trade: crate::value::Dict = rawTrades.get(i as usize).cloned().unwrap_or_default();
-                    let mut parsedTrade: Value = Value::Dict(self.parse_trade(Value::Dict(trade), Some(&market)));
+                    let mut parsedTrade: Value = Value::Dict(self.parse_trade(self.safe_dict(&rawTrades, Value::Int(i), &[Value::Map({
+                        let m = indexmap::IndexMap::new();
+                        m
+                    })]), Some(&market)));
                     // add extra params (side, type, ...) coming from the order
                     parsedTrade = self.extend(parsedTrade, &[&extendParams]);
                     self.myTrades.append(parsedTrade);

@@ -260,7 +260,7 @@ impl Bitfinex {
         let subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::from(channel), ":").into()), marketId);
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:", Value::from(channel)).into()), ":").into()), marketId);
         let unSubTopic: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe", ":").into()), Value::from(topic)).into()), ":").into()), Value::from(symbol));
-        let channelId: String = self.safe_string(&(client).subscriptions, Value::from(unSubTopic), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let channelId: String = self.safe_string(&(client).subscriptions, &unSubTopic, &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("unsubscribe".into()));
@@ -384,7 +384,7 @@ impl Bitfinex {
         let url: Option<String> = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "public").as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         let subId: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:trade:", interval.as_deref().unwrap_or("null")).into()), ":").into()), marketId); // trade here because we use the key
-        let channelId: String = self.safe_string(&(client).subscriptions, Value::from(subId), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let channelId: String = self.safe_string(&(client).subscriptions, &subId, &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("event".to_string(), Value::Str("unsubscribe".into()));
@@ -1355,7 +1355,7 @@ impl Bitfinex {
         //
         let channelId: String = (match message.get("chanId") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "".to_string() });
         let unSubChannel: String = format!("{}{}", "unsubscribe:", channelId);
-        let subMessageHash: String = self.safe_string(&__ch.subscriptions, Value::from(unSubChannel.as_str()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let subMessageHash: String = self.safe_string(&__ch.subscriptions, &unSubChannel, &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let subscription: Value = self.safe_dict(&__ch.subscriptions, Value::Str(format!("{}{}", "unsubscribe:", subMessageHash).into()), &[]);
         __ch.remove_subscription(unSubChannel.as_str());
         let messageHashes: Option<crate::value::List> = self.safe_string_list(&subscription, Value::from(vec![Value::Str("messageHashes".into())]));

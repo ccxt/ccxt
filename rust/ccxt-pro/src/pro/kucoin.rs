@@ -478,7 +478,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
-        let url: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(urlType), &[]);
+        let url: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &urlType, &[]);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         if !(client.has_subscription(&Value::from(messageHash))) {
             client.add_subscription(requestId.as_str(), Value::from(messageHash));
@@ -890,7 +890,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
-        let url: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(urlType), &[]);
+        let url: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &urlType, &[]);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
         let messageHashWithSymbols: String = format!("{}{}", Value::Str(format!("{}{}", Value::from(channel), ":").into()), join(&symbols, &Value::Str(",".into())));
         if !(client.has_subscription(messageHashWithSymbols.as_str())) {
@@ -4510,10 +4510,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
             { let __bf03d0 = &mut self.options; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("urls".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(type_var.to_string(), Value::Null); } }
         }
-        self.handle_errors(Value::Int(1), Value::Str("".into()), client.url(), Value::Str("".into()), Value::Map({
+        self.handle_errors(Value::Int(1), "", (client.url()).as_str().unwrap_or_default(), "", Value::Map({
             let m = indexmap::IndexMap::new();
             m
-        }), Value::from(data), message, Value::Map({
+        }), data.as_str(), message, Value::Map({
             let m = indexmap::IndexMap::new();
             m
         }), Value::Str("".into()));

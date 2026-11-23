@@ -3299,7 +3299,7 @@ impl Bitget {
                 if (self.safe_string_k(&rawBalance, "maxTransferOut", &[]) != Value::Null) {
                     freeQuery = "maxTransferOut".to_string();
                 }
-                account.insert("free".into(), self.safe_string(&rawBalance, Value::from(freeQuery), &[]));
+                account.insert("free".into(), self.safe_string(&rawBalance, &freeQuery, &[]));
                 account.insert("total".into(), self.safe_string_k(&rawBalance, "equity", &[]));
                 account.insert("used".into(), self.safe_string_k(&rawBalance, "frozen", &[]));
                 if (code.is_some()) {

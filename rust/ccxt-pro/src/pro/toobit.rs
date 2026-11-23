@@ -533,7 +533,11 @@ impl Toobit {
 
     pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let trade: Value = trade.into();
-        return self.parse_trade(trade, market);
+        let __ws_arg_2 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[trade]);
+        return self.parse_trade(__ws_arg_2, market);
 
     Default::default()
 }
@@ -632,8 +636,8 @@ impl Toobit {
                 m.insert("event".to_string(), Value::Str("sub".into()));
             m
         });
-        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let symboltimeframestoredVariable = self.watch_multiple(url.as_str(), &messageHashes, __ws_arg_2, &messageHashes, Value::Null).await;
+        let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
+        let symboltimeframestoredVariable = self.watch_multiple(url.as_str(), &messageHashes, __ws_arg_3, &messageHashes, Value::Null).await;
         let symbol: Value = get_value(&symboltimeframestoredVariable, &Value::Int(0));
         let timeframe: Value = get_value(&symboltimeframestoredVariable, &Value::Int(1));
         let mut stored: Value = get_value(&symboltimeframestoredVariable, &Value::Int(2));
@@ -797,9 +801,9 @@ impl Toobit {
                 m.insert("event".to_string(), Value::Str("sub".into()));
             m
         });
-        let __ws_arg_3 = self.safe_string(crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL), "ws"), Value::Str("common".into()), &[Value::Str("".into())]);
-        let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let ticker: Value = self.watch_multiple(&(Value::Str(format!("{}{}", __ws_arg_3, Value::Str("/quote/ws/v1".into())).into())), &messageHashes, __ws_arg_4, &messageHashes, Value::Null).await;
+        let __ws_arg_4 = self.safe_string(crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL), "ws"), Value::Str("common".into()), &[Value::Str("".into())]);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
+        let ticker: Value = self.watch_multiple(&(Value::Str(format!("{}{}", __ws_arg_4, Value::Str("/quote/ws/v1".into())).into())), &messageHashes, __ws_arg_5, &messageHashes, Value::Null).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let m = indexmap::IndexMap::new();
@@ -968,8 +972,8 @@ impl Toobit {
                 m.insert("event".to_string(), Value::Str("sub".into()));
             m
         });
-        let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsChannel]);
-        let mut orderbook: Value = self.watch_multiple(url.as_str(), &messageHashes, __ws_arg_5, &messageHashes, Value::Null).await;
+        let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsChannel]);
+        let mut orderbook: Value = self.watch_multiple(url.as_str(), &messageHashes, __ws_arg_6, &messageHashes, Value::Null).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -1258,11 +1262,11 @@ impl Toobit {
         if (marketType.as_str() == Some("spot")) {
             type_var = "spot".to_string();
         }
-        let __ws_arg_6 = self.balance.get(type_var.as_str()).filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Map({
+        let __ws_arg_7 = self.balance.get(type_var.as_str()).filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
-        { let __be_tmp = self.extend(crate::types::IntoRaw::into_raw(response), &[__ws_arg_6]); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(type_var.to_string(), __be_tmp); } }
+        { let __be_tmp = self.extend(crate::types::IntoRaw::into_raw(response), &[__ws_arg_7]); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(type_var.to_string(), __be_tmp); } }
         // don't remove the future from the .futures cache
         if (__ch.has_future(&messageHash)) {
             let mut future: crate::pro::ws_client::Flight = __ch.get_future(&messageHash);
@@ -1748,11 +1752,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }
 
     pub fn set_ws_options(&mut self, mut entry: Value) {
-        let __ws_arg_7 = self.safe_dict_k(&self.options, "ws", &[Value::Map({
+        let __ws_arg_8 = self.safe_dict_k(&self.options, "ws", &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]);
-        { let __be_tmp = self.extend(__ws_arg_7, &[entry]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("ws".into(), __be_tmp); } }
+        { let __be_tmp = self.extend(__ws_arg_8, &[entry]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("ws".into(), __be_tmp); } }
 }
 
     pub async fn keep_alive_listen_key(&mut self, optional_args: &[Value]) -> Value {

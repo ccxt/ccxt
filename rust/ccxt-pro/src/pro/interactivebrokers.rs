@@ -1811,7 +1811,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut __for_first_18: bool = true;
             while { if !__for_first_18 { i += 1; } __for_first_18 = false; i < (args.len() as i64) } {
             let rawTrade: Value = args.get(i as usize).cloned().unwrap_or(Value::Null);
-            let trade: crate::value::Dict = self.parse_trade(rawTrade.clone(), None);
+            let trade: crate::value::Dict = self.parse_trade(self.safe_dict(&args, Value::Int(i), &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })]), None);
             let tradeTimestamp: Option<i64> = self.safe_integer_k(&trade, "timestamp", &[]).as_i64();
             if (threshold.is_some()) && (tradeTimestamp.is_some()) && ((tradeTimestamp.is_some() && threshold.is_some() && tradeTimestamp < threshold)) {
                 continue;

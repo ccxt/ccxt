@@ -820,7 +820,7 @@ impl crate::exchange::DerivedExchange for Whitebit {
 
     Value::Null
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         //     {
@@ -866,7 +866,7 @@ impl crate::exchange::DerivedExchange for Whitebit {
         }  else if (method.as_deref() == Some("2")) {
             addressTo = address.clone();
         }
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&transaction, "uniqueId", &[]));
         m.insert("txid".to_string(), self.safe_string_k(&transaction, "transactionId", &[]));
@@ -894,9 +894,9 @@ impl crate::exchange::DerivedExchange for Whitebit {
 }));
         m.insert("info".to_string(), transaction);
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn parse_borrow_interest(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let info: Value = info.into();
@@ -1080,9 +1080,9 @@ impl crate::exchange::DerivedExchange for Whitebit {
 
     Value::Null
 }
-    fn handle_errors(&mut self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, mut code: Value, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         if (code.as_f64() == Some(418.0)) || (code.as_f64() == Some(429.0)) {
-            panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::Str(format!("{}", code).into())).into()), " ").into()), reason).into()), " ").into()), body)));
+            panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::Str(format!("{}", code).into())).into()), " ").into()), Value::from(reason)).into()), " ").into()), Value::from(body))));
         }
         if (code.as_f64() == Some(404.0)) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::Str(format!("{}", code).into())).into()), " endpoint not found")));
@@ -1099,7 +1099,7 @@ impl crate::exchange::DerivedExchange for Whitebit {
             let codeNew: Option<i64> = self.safe_integer_k(&response, "code", &[]).as_i64();
             let hasErrorStatus: bool = (status.is_some()) && (status.as_deref() != Some("200")) && (errors.is_some());
             if hasErrorStatus || (codeNew.is_some()) {
-                let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
+                let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
                 let mut errorInfo: Option<String> = message;
                 if hasErrorStatus {
                     errorInfo = status;
@@ -1114,7 +1114,7 @@ impl crate::exchange::DerivedExchange for Whitebit {
                     }
                 }
                 self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorInfo, feedback.as_str());
-                self.throw_broadly_matched_exception(self.exceptions.at("broad"), &body, feedback.as_str());
+                self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(body), feedback.as_str());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
             // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
@@ -1123,15 +1123,15 @@ impl crate::exchange::DerivedExchange for Whitebit {
                 let errMsg: crate::value::Dict = self.safe_dict_k_t(response, "message");
                 let errKeys: Vec<Value> = Value::Array(errMsg.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
                 let errKeysLength: i64 = errKeys.len() as i64;
-                let mut errorInfo: Value = body.clone();
+                let mut errorInfo: Option<String> = Some(body).map(str::to_owned);
                 if errKeysLength > 0 {
                     let errorKey: String = self.safe_string(&errKeys, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                     let errorMessageArray: crate::value::List = self.safe_list_t(&errMsg, Value::from(errorKey));
-                    errorInfo = self.safe_string(&errorMessageArray, Value::Int(0), &[body.clone()]);
+                    errorInfo = self.safe_string_opt(&errorMessageArray, Value::Int(0), &[&body]);
                 }
-                let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-                self.throw_exactly_matched_exception(self.exceptions.at("exact"), errorInfo, feedback.as_str());
-                self.throw_broadly_matched_exception(self.exceptions.at("broad"), body, feedback.as_str());
+                let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorInfo, feedback.as_str());
+                self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(body), feedback.as_str());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
         }
@@ -1197,8 +1197,8 @@ impl crate::exchange_generated::ExchangeBase for Whitebit {
                 "fetch_transaction_fees" => self.fetch_transaction_fees(&args[..]).await,
                 "fetch_transactions" => crate::types::IntoRaw::into_raw(self.fetch_transactions(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
-                    args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "is_fiat" => self.is_fiat(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "nonce" => self.nonce(),
                 "parse_balance" => self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -1217,7 +1217,7 @@ impl crate::exchange_generated::ExchangeBase for Whitebit {
                 "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_transaction" => Value::Dict(self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_transfer" => Value::Dict(self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
@@ -3228,7 +3228,10 @@ impl Whitebit {
                     if (orderId == id.as_str().unwrap_or_default().to_string()) {
                         let marketId: Option<String> = self.safe_string_k_opt(&order, "market", &[]);
                         let marketNew: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("_".into())]);
-                        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, Some(&marketNew)).map_or(Value::Null, Value::Dict);
+                        return <Self as crate::exchange::DerivedExchange>::parse_order(self, self.safe_dict(&orders, Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), Some(&marketNew)).map_or(Value::Null, Value::Dict);
                     }
                 }
                 }
@@ -3256,15 +3259,18 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (marketIds.len() as i64) } {
                     let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
                     let marketNew: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("_".into())]);
-                    let marketOrders: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_t(&response, Value::from(marketId.as_deref())));
+                    let marketOrders: crate::value::List = self.safe_list_t(&response, Value::from(marketId.as_deref()));
                     {
                                                 let mut j: i64 = 0;
                         let mut __for_first_9: bool = true;
                         while { if !__for_first_9 { j += 1; } __for_first_9 = false; j < (marketOrders.len() as i64) } {
-                        let order: crate::value::Dict = marketOrders.get(j as usize).cloned().unwrap_or_default();
+                        let order: crate::value::Dict = self.safe_dict_t(&marketOrders, Value::Int(j));
                         let orderId: String = self.safe_string_k(&order, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                         if (orderId == id.as_str().unwrap_or_default().to_string()) {
-                            return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, Some(&marketNew)).map_or(Value::Null, Value::Dict);
+                            return <Self as crate::exchange::DerivedExchange>::parse_order(self, self.safe_dict(&marketOrders, Value::Int(j), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), Some(&marketNew)).map_or(Value::Null, Value::Dict);
                         }
                     }
                     }
@@ -3413,7 +3419,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (marketIds.len() as i64) } {
             let marketId: Option<&str> = marketIds.get(i as usize).copied();
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_value(&response, Value::from(marketId.as_deref()), &[]), Some(&market)).unwrap_or_default();
+            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_dict(&response, Value::from(marketId.as_deref()), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), Some(&market)).unwrap_or_default();
             let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
         }
@@ -5049,7 +5058,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
         let response: crate::value::Dict = self.v4_private_post_main_account_withdraw(&[&__ws_arg_30]).await.unwrap_or_default();
-        let __ws_arg_31 = <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
+        let __ws_arg_31 = <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
         return self.extend(__ws_arg_31, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), uniqueId);
@@ -5156,7 +5165,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //
         let records: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "records"));
         let first: crate::value::Dict = records.get(0).cloned().unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &first, currency.as_ref());
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &first, currency.as_ref()).map_or(Value::Null, Value::Dict);
 
     Value::Null
 }

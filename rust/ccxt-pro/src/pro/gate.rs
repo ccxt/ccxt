@@ -1877,8 +1877,8 @@ impl Gate {
             let mut __for_first_9: bool = true;
             while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (keys.len() as i64) } {
             let symbol: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let timeframe: Value = marketIds.get(symbol.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
-            let interval: Option<String> = self.find_timeframe(timeframe, &[]);
+            let timeframe: Option<String> = self.safe_string_opt(&marketIds, Value::from(symbol.as_deref()), &[]);
+            let interval: Option<String> = self.find_timeframe(timeframe.map(Value::from).unwrap_or(Value::Null), &[]);
             let hash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles", ":").into()), interval.as_deref().unwrap_or("null")).into()), ":").into()), symbol.as_deref().unwrap_or("null"));
             let symbolOhlcv: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&interval);
             client.resolve(Value::from(&symbolOhlcv), hash.as_str());
@@ -1916,11 +1916,11 @@ impl Gate {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut marketId: Option<String> = Some(format!("{}{}", "!", "all"));
+        let mut marketId: String = format!("{}{}", "!", "all");
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            marketId = self.safe_string_k_opt(&market, "id", &[]);
+            marketId = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         }
         let type_varparamsMarketTypeVariable = self.handle_market_type_and_params(Value::Str("watchMyTrades".into()), market.as_ref(), &[&params]);
         let type_var: Option<String> = type_varparamsMarketTypeVariable.0.as_str().map(str::to_owned);
@@ -1944,7 +1944,7 @@ impl Gate {
         }
         let isInverse: bool = subType.as_deref() == Some("inverse");
         let url: Option<String> = self.get_url_by_market_type(type_var.as_deref(), &[&Value::Bool(isInverse)]).as_str().map(str::to_owned);
-        let payload: crate::value::List = std::sync::Arc::new(vec![marketId.map(Value::from).unwrap_or(Value::Null)]);
+        let payload: crate::value::List = std::sync::Arc::new(vec![Value::from(marketId)]);
         // uid required for non spot markets
         let requiresUid: bool = type_var.as_deref() != Some("spot");
         let mut trades: Value = self.subscribe_private(url.as_deref(), messageHash.as_str(), &payload, Some(channel.as_str()), Value::Dict(paramsSubType), &[Value::Bool(requiresUid)]).await;
@@ -3186,7 +3186,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     pub fn get_url_by_market(&self, market: impl KeyRead) -> Value {
         if matches!(self.safe_bool_k(&market, "contract", &[Value::Bool(false)]), Value::Bool(true)) {
             let settleKey: String = (if matches!((self.safe_bool_k(&market, "linear", &[Value::Bool(false)])), Value::Bool(true)) { "usdt".to_string() } else { "btc".to_string() });
-            let contractUrl: String = self.safe_string(get_value(&self.urls.get("api").cloned().unwrap_or(Value::Null), &crate::value::KeyRead::key_read(&market, "type")), Value::from(settleKey), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let contractUrl: String = self.safe_string(get_value(&self.urls.get("api").cloned().unwrap_or(Value::Null), &crate::value::KeyRead::key_read(&market, "type")), &settleKey, &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             return Value::from(contractUrl);
         }
         let spotUrl: String = self.safe_string(self.urls.get("api").cloned().unwrap_or(Value::Null), crate::value::KeyRead::key_read(&market, "type"), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -3211,7 +3211,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let isInverse = get_arg(optional_args, 0, Value::Bool(false));
         if (type_var == Some("swap")) || (type_var == Some("future")) {
             let settleKey: String = (if isInverse.as_bool() == Some(true) { "btc".to_string() } else { "usdt".to_string() });
-            return self.safe_string(self.safe_dict(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::from(type_var), &[]), Value::from(settleKey), &[]);
+            return self.safe_string(self.safe_dict(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::from(type_var), &[]), &settleKey, &[]);
         }  else {
             return self.safe_string(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::from(type_var), &[]);
         }

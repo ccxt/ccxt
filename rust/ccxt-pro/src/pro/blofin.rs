@@ -66,7 +66,6 @@ impl crate::exchange_generated::ExchangeBase for Blofin {
                 "parse_ws_balance" => self.parse_ws_balance(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
@@ -118,7 +117,6 @@ impl Blofin {
             "parse_ws_balance" => self.parse_ws_balance(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)),
             "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())),
             "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())),
-            "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())),
             "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())),
             "ping" => self.ping(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)),
             "un_watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("un_watch_ohlcv", args.iter().copied().cloned().collect::<Vec<_>>()); crate::Value::Null },
@@ -414,7 +412,11 @@ impl Blofin {
 
     pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let trade: Value = trade.into();
-        return self.parse_trade(trade, market);
+        let __ws_arg_0 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[trade]);
+        return self.parse_trade(__ws_arg_0, market);
 
     Default::default()
 }
@@ -633,7 +635,7 @@ impl Blofin {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (data.len() as i64) } {
-            let ticker: crate::value::Dict = self.parse_ws_ticker(self.safe_dict(&data, Value::Int(i), &[Value::Map({
+            let ticker: crate::value::Dict = self.parse_ticker(self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
             })]), None);
@@ -645,12 +647,6 @@ impl Blofin {
             }
         }
         }
-}
-
-    pub fn parse_ws_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
-        return self.parse_ticker(ticker, market);
-
-    Default::default()
 }
 
 /*
@@ -701,8 +697,8 @@ impl Blofin {
         }
         }
         let request: crate::value::Dict = self.get_subscription_request(Value::from(args));
-        let __ws_arg_0 = self.deep_extend(request, &[&paramsMarketType]);
-        let ticker: Value = self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_0, &messageHashes, Value::Null).await;
+        let __ws_arg_1 = self.deep_extend(request, &[&paramsMarketType]);
+        let ticker: Value = self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_1, &messageHashes, Value::Null).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let m = indexmap::IndexMap::new();
@@ -977,8 +973,8 @@ impl Blofin {
         let request: crate::value::Dict = self.get_subscription_request(Value::from(vec![Value::Map(sub)]));
         let typeUrls: crate::value::Dict = self.safe_dict_t(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.map(Value::from).unwrap_or(Value::Null));
         let url: Option<String> = self.safe_string_k_opt(&typeUrls, "private", &[]);
-        let __ws_arg_1 = self.deep_extend(request, &[&paramsMarketType]);
-        return self.watch(url.as_deref(), &messageHash[..], __ws_arg_1, &messageHash[..], Value::Null).await;
+        let __ws_arg_2 = self.deep_extend(request, &[&paramsMarketType]);
+        return self.watch(url.as_deref(), &messageHash[..], __ws_arg_2, &messageHash[..], Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -1304,8 +1300,8 @@ impl Blofin {
         let request: crate::value::Dict = self.get_subscription_request(Value::from(vec![Value::Map(requestParams)]));
         let typeUrls: crate::value::Dict = self.safe_dict_t(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.map(Value::from).unwrap_or(Value::Null));
         let url: Option<String> = self.safe_string_k_opt(&typeUrls, "public", &[]);
-        let __ws_arg_2 = self.deep_extend(request, &[&paramsMarketType]);
-        return self.watch(url.as_deref(), &messageHash[..], __ws_arg_2, &messageHash[..], Value::Null).await;
+        let __ws_arg_3 = self.deep_extend(request, &[&paramsMarketType]);
+        return self.watch(url.as_deref(), &messageHash[..], __ws_arg_3, &messageHash[..], Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -1416,9 +1412,9 @@ impl Blofin {
             privateOrPublic = "public".to_string();
         }
         let typeUrls: crate::value::Dict = self.safe_dict_t(self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.map(Value::from).unwrap_or(Value::Null));
-        let url: Option<String> = self.safe_string_opt(&typeUrls, Value::from(privateOrPublic), &[]);
-        let __ws_arg_3 = self.deep_extend(request, &[&paramsMarketType]);
-        return self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_3, &messageHashes, Value::Null).await;
+        let url: Option<String> = self.safe_string_opt(&typeUrls, &privateOrPublic, &[]);
+        let __ws_arg_4 = self.deep_extend(request, &[&paramsMarketType]);
+        return self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_4, &messageHashes, Value::Null).await;
 
     Value::Null
 }
@@ -1479,8 +1475,8 @@ impl Blofin {
             m
         });
         let url: Value = crate::value::get_value_k(&get_value(&(self.urls.get("api").cloned().unwrap_or(Value::Null)).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), &marketType), "public");
-        let __ws_arg_4 = self.deep_extend(Value::Map(request), &[&paramsMarketType]);
-        return self.watch_multiple(&url, &messageHashes, __ws_arg_4, &messageHashes, Value::Null).await;
+        let __ws_arg_5 = self.deep_extend(Value::Map(request), &[&paramsMarketType]);
+        return self.watch_multiple(&url, &messageHashes, __ws_arg_5, &messageHashes, Value::Null).await;
 
     Value::Null
 }
@@ -1629,8 +1625,8 @@ impl Blofin {
 })]));
                 m
             });
-            let __ws_arg_5 = self.deep_extend(Value::Map(request), &[params]);
-            self.watch(url.as_deref(), &messageHash[..], __ws_arg_5, &messageHash[..], Value::Null).await;
+            let __ws_arg_6 = self.deep_extend(Value::Map(request), &[params]);
+            self.watch(url.as_deref(), &messageHash[..], __ws_arg_6, &messageHash[..], Value::Null).await;
         }
         return crate::exchange_stubs::ws_await_flight(&future).await;
 

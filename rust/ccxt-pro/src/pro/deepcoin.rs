@@ -313,7 +313,7 @@ impl Deepcoin {
 }));
         let suffix = get_arg(optional_args, 1, Value::Str("".into()));
         let marketType: String = self.safe_string_k(&market, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let url: String = self.safe_string(crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "public"), Value::from(marketType), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let url: String = self.safe_string(crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "public"), &marketType, &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let requestId: i64 = self.request_id();
         let request: crate::value::Dict = self.create_public_request(market, Value::from(requestId), topicID, &[&suffix]);
         let subscription: indexmap::IndexMap<String, Value> = ({
@@ -339,7 +339,7 @@ impl Deepcoin {
 }));
         let suffix = get_arg(optional_args, 2, Value::Str("".into()));
         let marketType: String = self.safe_string_k(&market, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let url: String = self.safe_string(crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "public"), Value::from(marketType), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let url: String = self.safe_string(crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "public"), &marketType, &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let requestId: i64 = self.request_id();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_str()));
         let existingSubscription: Option<crate::value::Dict> = self.safe_dict_o(&(client).subscriptions, Value::from(messageHash));

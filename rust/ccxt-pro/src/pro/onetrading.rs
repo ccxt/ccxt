@@ -1054,7 +1054,10 @@ impl Onetrading {
                                 let mut ii: i64 = 0;
                 let mut __for_first_3: bool = true;
                 while { if !__for_first_3 { ii += 1; } __for_first_3 = false; ii < (rawTrades.len() as i64) } {
-                let trade: crate::value::Dict = self.parse_trade(rawTrades.get(ii as usize).cloned().unwrap_or(Value::Null), None);
+                let trade: crate::value::Dict = self.parse_trade(self.safe_dict(&rawTrades, Value::Int(ii), &[Value::Map({
+                    let m = indexmap::IndexMap::new();
+                    m
+                })]), None);
                 symbol = self.safe_string_k_opt(&trade, "symbol", &[&symbol]);
                 self.myTrades.append(Value::Dict(trade));
                 client.resolve(Value::from(&self.myTrades), &(Value::Str(format!("{}{}", "myTrades:", symbol.as_deref().unwrap_or("null")).into())));

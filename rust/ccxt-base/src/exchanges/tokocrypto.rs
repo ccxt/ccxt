@@ -596,7 +596,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
 
     Value::Null
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // fetchDeposits
@@ -691,7 +691,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
             id = self.safe_string_k_opt(&data, "withdrawId", &[]);
             type_var = Some("withdrawal".to_string());
         }
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction.clone());
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -714,9 +714,9 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
         m.insert("internal".to_string(), Value::Bool(internal));
         m.insert("fee".to_string(), Value::Map(fee));
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Value {
         let path: Value = path.into();
@@ -729,11 +729,11 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let __ws_arg_20 = self.urls.get("api").cloned().unwrap_or(Value::Null);
+        let __ws_arg_21 = self.urls.get("api").cloned().unwrap_or(Value::Null);
         let restUrls: crate::value::Dict = self.extend_t(Value::Map({
             let m = indexmap::IndexMap::new();
             m
-        }), &[crate::value::get_value_k(&__ws_arg_20, "rest")]);
+        }), &[crate::value::get_value_k(&__ws_arg_21, "rest")]);
         if !(matches!(apiName.as_deref(), Some(__k) if restUrls.contains_key(__k))) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " does not have a testnet/sandbox URL for ").into()), apiName.as_deref().unwrap_or("null")).into()), " endpoints")));
         }
@@ -830,22 +830,22 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
 
     Value::Null
 }
-    fn handle_errors(&mut self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, mut code: Value, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         if (code.as_f64() == Some(418.0)) || (code.as_f64() == Some(429.0)) {
-            panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::Str(format!("{}", code).into())).into()), " ").into()), reason).into()), " ").into()), body)));
+            panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::Str(format!("{}", code).into())).into()), " ").into()), Value::from(reason)).into()), " ").into()), Value::from(body))));
         }
         // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
         // following block contains legacy checks against message patterns in "msg" property
         // will switch "code" checks eventually, when we know all of them
         if code.as_f64().unwrap_or(f64::NAN) >= ((400i64) as f64) {
-            if body.as_str().unwrap_or("").contains("Price * QTY is zero or less") {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id, " order cost = amount * price is zero or less ").into()), body)));
+            if Some(body).unwrap_or("").contains("Price * QTY is zero or less") {
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id, " order cost = amount * price is zero or less ").into()), Value::from(body))));
             }
-            if body.as_str().unwrap_or("").contains("LOT_SIZE") {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id, " order amount should be evenly divisible by lot size ").into()), body)));
+            if Some(body).unwrap_or("").contains("LOT_SIZE") {
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id, " order amount should be evenly divisible by lot size ").into()), Value::from(body))));
             }
-            if body.as_str().unwrap_or("").contains("PRICE_FILTER") {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id, " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ").into()), body)));
+            if Some(body).unwrap_or("").contains("PRICE_FILTER") {
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id, " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ").into()), Value::from(body))));
             }
         }
         if (response == Value::Null) {
@@ -884,9 +884,9 @@ if _try_result.is_err() {
             // despite that their message is very confusing, it is raised by Binance
             // on a temporary ban, the API key is valid, but disabled for a while
             if (error.as_deref() == Some("-2015")) && matches!((self.safe_bool_k(&self.options, "hasAlreadyAuthenticatedSuccessfully", &[Value::Bool(false)])), Value::Bool(true)) {
-                panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body)));
+                panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body))));
             }
-            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
+            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
             if (message.as_deref() == Some("No need to change margin type.")) {
                 panic!("{}", crate::exchange_errors::margin_mode_already_set(feedback.clone()));
             }
@@ -894,7 +894,7 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }
         if !success {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body)));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body))));
         }
         return Value::Null;
 
@@ -929,8 +929,8 @@ impl crate::exchange_generated::ExchangeBase for Tokocrypto {
                 "fetch_time" => crate::types::IntoRaw::into_raw(self.fetch_time(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
-                    args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "is_native_market" => self.is_native_market(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref()),
                 "nonce" => self.nonce(),
                 "parse_balance_custom" => Value::Dict(self.parse_balance_custom(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref())),
@@ -939,7 +939,7 @@ impl crate::exchange_generated::ExchangeBase for Tokocrypto {
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_transaction" => Value::Dict(self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
                 "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
@@ -2283,7 +2283,11 @@ impl Tokocrypto {
             let firstTicker: crate::value::Dict = self.safe_dict_t(&response, Value::Int(0));
             return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &firstTicker, Some(&market)).map_or(Value::Null, Value::Dict);
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, response__map.map_or(Value::Null, Value::Dict), Some(&market)).map_or(Value::Null, Value::Dict);
+        let __ws_arg_6 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[response__map.map_or(Value::Null, Value::Dict)]);
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, __ws_arg_6, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2414,8 +2418,8 @@ impl Tokocrypto {
         //
         let mut data: crate::value::List = std::sync::Arc::new(Vec::new());
         if self.is_native_market(Some(&market)).as_bool() == Some(true) {
-            let __ws_arg_6 = self.extend(&request, &[&paramsOmitted]);
-            let response: crate::value::Dict = self.public_get_open_v1_market_klines(&[&__ws_arg_6]).await.unwrap_or_default();
+            let __ws_arg_7 = self.extend(&request, &[&paramsOmitted]);
+            let response: crate::value::Dict = self.public_get_open_v1_market_klines(&[&__ws_arg_7]).await.unwrap_or_default();
             let dataList: Option<crate::value::List> = self.safe_list_k_o(&response, "data");
             if (dataList.is_some()) {
                 data = dataList.unwrap_or_default();
@@ -2424,8 +2428,8 @@ impl Tokocrypto {
                 data = self.safe_list_k_t(&dataDict, "list");
             }
         }  else {
-            let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            data = self.binance_get_klines(&[&__ws_arg_7]).await.unwrap_or_default();
+            let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            data = self.binance_get_klines(&[&__ws_arg_8]).await.unwrap_or_default();
         }
         return Value::Arr(self.parse_ohlc_vs(&data, Some(&market), &[timeframe, Value::from(since), Value::from(limitValue)]));
         Value::Null
@@ -2464,8 +2468,8 @@ impl Tokocrypto {
             let m = indexmap::IndexMap::new();
             m
         });
-        let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.private_get_open_v1_account_spot(&[&__ws_arg_8]).await.unwrap_or_default();
+        let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.private_get_open_v1_account_spot(&[&__ws_arg_9]).await.unwrap_or_default();
         return Value::Dict(self.parse_balance_custom(&response, type_var.as_deref(), marginMode.as_deref()));
         Value::Null
         }).await?))
@@ -2645,7 +2649,7 @@ impl Tokocrypto {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseId, "_").into()), quoteId).into()));
-                m.insert("type".to_string(), self.safe_string(&reverseOrderTypeMapping, Value::from(uppercaseType.as_str()), &[]));
+                m.insert("type".to_string(), self.safe_string(&reverseOrderTypeMapping, &uppercaseType, &[]));
             m
         });
         if (side.as_str() == Some("buy")) {
@@ -2773,8 +2777,8 @@ impl Tokocrypto {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() does not support the ").into()), timeInForceResolved.as_deref().unwrap_or("null")).into()), " timeInForce for ").into()), type_var).into()), " orders")));
             }
         }
-        let __ws_arg_9 = self.extend(Value::Map(request), &[paramsRequest]);
-        let response: crate::value::Dict = self.private_post_open_v1_orders(&[&__ws_arg_9]).await.unwrap_or_default();
+        let __ws_arg_10 = self.extend(Value::Map(request), &[paramsRequest]);
+        let response: crate::value::Dict = self.private_post_open_v1_orders(&[&__ws_arg_10]).await.unwrap_or_default();
         //
         //     {
         //         "code": 0,
@@ -2836,8 +2840,8 @@ impl Tokocrypto {
                 m.insert("orderId".to_string(), id);
             m
         });
-        let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.private_get_open_v1_orders(&[&__ws_arg_10]).await.unwrap_or_default();
+        let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.private_get_open_v1_orders(&[&__ws_arg_11]).await.unwrap_or_default();
         //
         //     {
         //         "code": 0,
@@ -2918,8 +2922,8 @@ impl Tokocrypto {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.private_get_open_v1_orders(&[&__ws_arg_11]).await.unwrap_or_default();
+        let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.private_get_open_v1_orders(&[&__ws_arg_12]).await.unwrap_or_default();
         //
         //     {
         //         "code": 0,
@@ -2989,8 +2993,8 @@ impl Tokocrypto {
                 m.insert("type".to_string(), Value::Int(1));
             m
         }); // -1 = all, 1 = open, 2 = closed
-        let __ws_arg_12 = self.extend(Value::Map(request), &[params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since, limit, __ws_arg_12).await);
+        let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
+        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since, limit, __ws_arg_13).await);
         Value::Null
         }).await?))
     }
@@ -3024,8 +3028,8 @@ impl Tokocrypto {
                 m.insert("type".to_string(), Value::Int(2));
             m
         }); // -1 = all, 1 = open, 2 = closed
-        let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since, limit, __ws_arg_13).await);
+        let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
+        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since, limit, __ws_arg_14).await);
         Value::Null
         }).await?))
     }
@@ -3057,8 +3061,8 @@ impl Tokocrypto {
                 m.insert("orderId".to_string(), id);
             m
         });
-        let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.private_post_open_v1_orders_cancel(&[&__ws_arg_14]).await.unwrap_or_default();
+        let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.private_post_open_v1_orders_cancel(&[&__ws_arg_15]).await.unwrap_or_default();
         //
         //     {
         //         "code": 0,
@@ -3139,8 +3143,8 @@ impl Tokocrypto {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_get_open_v1_orders_trades(&[&__ws_arg_15]).await.unwrap_or_default();
+        let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_get_open_v1_orders_trades(&[&__ws_arg_16]).await.unwrap_or_default();
         //
         //     {
         //         "code": 0,
@@ -3211,8 +3215,8 @@ impl Tokocrypto {
         }
         // has support for the 'network' parameter
         // https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
-        let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_get_open_v1_deposits_address(&[&__ws_arg_16]).await.unwrap_or_default();
+        let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_get_open_v1_deposits_address(&[&__ws_arg_17]).await.unwrap_or_default();
         //
         //     {
         //         "code":0,
@@ -3298,8 +3302,8 @@ impl Tokocrypto {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.private_get_open_v1_deposits(&[&__ws_arg_17]).await.unwrap_or_default();
+        let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.private_get_open_v1_deposits(&[&__ws_arg_18]).await.unwrap_or_default();
         //
         //     {
         //         "code":0,
@@ -3374,8 +3378,8 @@ impl Tokocrypto {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.private_get_open_v1_withdraws(&[&__ws_arg_18]).await.unwrap_or_default();
+        let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.private_get_open_v1_withdraws(&[&__ws_arg_19]).await.unwrap_or_default();
         //
         //     {
         //         "code":0,
@@ -3485,9 +3489,9 @@ impl Tokocrypto {
         if (networkId.is_some()) {
             request.insert("network".into(), networkId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_19 = self.extend(Value::Map(request), &[&query]);
-        let response: crate::value::Dict = self.private_post_open_v1_withdraws(&[&__ws_arg_19]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
+        let __ws_arg_20 = self.extend(Value::Map(request), &[&query]);
+        let response: crate::value::Dict = self.private_post_open_v1_withdraws(&[&__ws_arg_20]).await.unwrap_or_default();
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

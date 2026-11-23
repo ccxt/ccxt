@@ -567,8 +567,7 @@ impl Gemini {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < changesLength } {
-            let parsed: Value = self.parse_ohlcv(self.safe_value(&changes, Value::Int((((changesLength - i)) - 1)), &[]), Some(&market));
-            stored.append(parsed);
+            stored.append(self.parse_ohlcv(self.safe_value(&changes, Value::Int((((changesLength - i)) - 1)), &[]), Some(&market)));
         }
         }
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv:", symbol.as_deref().unwrap_or("null")).into()), ":").into()), timeframeId);

@@ -899,7 +899,10 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
 
     Value::Null
 }
-    fn handle_errors(&mut self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, mut code: Value, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+        let url: Value = url.into();
+        let method: Value = method.into();
+        let body: Value = body.into();
         if (code.as_f64() == Some(401.0)) && matches!(self.safe_bool_k(&self.options, "useGateway", &[Value::Bool(false)]), Value::Bool(true)) {
             // the gateway answers every request with 401 once its sso login is lost (daily reset, container restart, competing login)
             { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("gatewayAuthenticatedTimestamp".into(), Value::Null); }
@@ -978,8 +981,8 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
                 "fetch_status" => crate::types::IntoRaw::into_raw(self.fetch_status(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_stock_markets" => self.fetch_stock_markets(&args[..]).await,
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
-                    args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "ibkr_balance_code" => crate::Value::from(self.ibkr_balance_code(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "ibkr_check_oauth_credentials" => self.ibkr_check_oauth_credentials(),
                 "ibkr_disambiguate_contract_symbols" => self.ibkr_disambiguate_contract_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null)),

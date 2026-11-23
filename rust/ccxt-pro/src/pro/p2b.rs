@@ -566,7 +566,7 @@ impl P2b {
         //    }
         //
         let data: crate::value::List = __pro_message.key_list("params");
-        let trades: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_t(&data, Value::Int(1)));
+        let mut trades: crate::value::List = self.safe_list_t(&data, Value::Int(1));
         let marketId: Option<String> = self.safe_string_opt(&data, Value::Int(0), &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
         let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -580,8 +580,10 @@ impl P2b {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (trades.len() as i64) } {
-            let item: crate::value::Dict = trades.get(i as usize).cloned().unwrap_or_default();
-            let trade: crate::value::Dict = self.parse_trade(Value::Dict(item), Some(&market));
+            let trade: crate::value::Dict = self.parse_trade(self.safe_dict(&trades, Value::Int(i), &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })]), Some(&market));
             tradesArray.append(Value::Dict(trade));
         }
         }

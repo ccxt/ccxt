@@ -925,7 +925,7 @@ impl Coinbaseexchange {
         if isMaker {
             idKey = "maker_order_id".to_string();
         }
-        if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("order".to_string(), self.safe_string(trade, Value::from(idKey), &[])); }
+        if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("order".to_string(), self.safe_string(trade, &idKey, &[])); }
         let parsedSymbol: String = self.safe_string_k(&parsed, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let marketResolved: crate::types::Market = (match self.market(parsedSymbol.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let feeCurrency: String = (marketResolved).quote.clone();

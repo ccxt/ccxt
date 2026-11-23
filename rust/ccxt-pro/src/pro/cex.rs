@@ -1319,7 +1319,7 @@ impl Cex {
         //     }
         //
         let symbol: String = (match message.get("oid") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "".to_string() }); // symbol is set as requestId in watchOrders
-        let rawOrders: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
+        let rawOrders: crate::value::List = message.key_list("data");
         if (self.orders.is_none()) {
             let limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
@@ -1328,9 +1328,11 @@ impl Cex {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (rawOrders.len() as i64) } {
-            let rawOrder: crate::value::Dict = rawOrders.get(i as usize).cloned().unwrap_or_default();
             let market: crate::types::Market = self.safe_market(Some(symbol.as_str()), None, &[]);
-            let mut order: crate::value::Dict = self.parse_order(Value::Dict(rawOrder), Some(&market));
+            let mut order: crate::value::Dict = self.parse_order(self.safe_dict(&rawOrders, Value::Int(i), &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })]), Some(&market));
             std::sync::Arc::make_mut(&mut order).insert("status".into(), Value::Str("open".into()));
             self.orders.append(Value::Dict(order));
         }

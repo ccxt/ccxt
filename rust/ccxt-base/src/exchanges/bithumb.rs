@@ -622,7 +622,7 @@ impl crate::exchange::DerivedExchange for Bithumb {
 
     Value::Null
 }
-    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Value {
+    fn parse_transaction(&self, transaction: impl Into<crate::Value>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
         //
         // generation 1: withdraw
@@ -658,7 +658,7 @@ impl crate::exchange::DerivedExchange for Bithumb {
                 timestamp = (if let Some(__l) = normalizedTimestamp { Some(__l - ((9 * 3600000))) } else { None });
             }
         }
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&transaction, "uuid", &[]));
         m.insert("txid".to_string(), self.safe_string_k(&transaction, "txid", &[]));
@@ -687,9 +687,9 @@ impl crate::exchange::DerivedExchange for Bithumb {
 }));
         m.insert("info".to_string(), transaction);
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Value {
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
@@ -760,12 +760,12 @@ impl crate::exchange::DerivedExchange for Bithumb {
                 let token: String = jwt(&request, self.encode(&self.secret), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
                 requestHeaders.insert("Authorization".into(), Value::Str(format!("{}{}", "Bearer ", token).into()));
             }  else {
-                let __ws_arg_50 = self.extend(Value::Map({
+                let __ws_arg_51 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("endpoint".to_string(), Value::from(endpoint.as_str()));
     m
 }), &[&query]);
-                let encodedBody: String = self.urlencode(__ws_arg_50, &[]);
+                let encodedBody: String = self.urlencode(__ws_arg_51, &[]);
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
                 let bodyParts: crate::value::List = crate::value::List::new(encodedBody.split("%20").map(Value::from).collect());
                 requestBody = Some(bodyParts.iter().map(Value::to_string).collect::<Vec<String>>().join("+"));
@@ -796,7 +796,7 @@ impl crate::exchange::DerivedExchange for Bithumb {
 
     Value::Null
 }
-    fn handle_errors(&mut self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, mut code: Value, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         if (response == Value::Null) {
             return Value::Null;
         }
@@ -879,8 +879,8 @@ impl crate::exchange_generated::ExchangeBase for Bithumb {
                 "fetch_withdrawal_whitelist" => self.fetch_withdrawal_whitelist(&args[..].iter().collect::<Vec<_>>()).await,
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "get_gen2_market_id" => crate::Value::from(self.get_gen2_market_id(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref())),
-                "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
-                    args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
+                "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
+                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "nonce" => self.nonce(),
                 "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_deposit_address" => self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
@@ -888,7 +888,7 @@ impl crate::exchange_generated::ExchangeBase for Bithumb {
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_transaction" => Value::Dict(self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "safe_market" => crate::types::IntoRaw::into_raw(self.safe_market(args.get(0).and_then(crate::Value::as_text).as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
                 "withdraw" => crate::types::IntoRaw::into_raw(self.withdraw(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
@@ -2321,7 +2321,10 @@ impl Bithumb {
                     if (symbol.is_none()) {
                         continue;
                     }
-                    result.insert(symbol.as_deref().unwrap_or("null").to_string(), <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &entry, Some(&market)).map_or(Value::Null, Value::Dict));
+                    result.insert(symbol.as_deref().unwrap_or("null").to_string(), <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_dict(&tickers, Value::Int(j), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), Some(&market)).map_or(Value::Null, Value::Dict));
                 }
                 }
             }
@@ -2507,7 +2510,11 @@ impl Bithumb {
             //
             data = self.safe_dict_k_t(&response, "data");
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
+        let __ws_arg_10 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&data]);
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, __ws_arg_10, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2594,22 +2601,22 @@ impl Bithumb {
                 request.insert("to".into(), self.ymdhms(Value::from((if let Some(__m0) = to { Some((__m0 + 32400000)) } else { None })), &[Value::Str(" ".into())]));
             }
             if (timeframe.as_str() == Some("1d")) {
-                let __ws_arg_10 = self.extend(&request, &[&requestParams]);
-                response = self.call_method(Value::Str("public_get_v1_candles_days".into()), &[&__ws_arg_10]).await;
-            }  else if (timeframe.as_str() == Some("1w")) {
                 let __ws_arg_11 = self.extend(&request, &[&requestParams]);
-                response = self.call_method(Value::Str("public_get_v1_candles_weeks".into()), &[&__ws_arg_11]).await;
-            }  else if (timeframe.as_str() == Some("1M")) {
+                response = self.call_method(Value::Str("public_get_v1_candles_days".into()), &[&__ws_arg_11]).await;
+            }  else if (timeframe.as_str() == Some("1w")) {
                 let __ws_arg_12 = self.extend(&request, &[&requestParams]);
-                response = self.call_method(Value::Str("public_get_v1_candles_months".into()), &[&__ws_arg_12]).await;
+                response = self.call_method(Value::Str("public_get_v1_candles_weeks".into()), &[&__ws_arg_12]).await;
+            }  else if (timeframe.as_str() == Some("1M")) {
+                let __ws_arg_13 = self.extend(&request, &[&requestParams]);
+                response = self.call_method(Value::Str("public_get_v1_candles_months".into()), &[&__ws_arg_13]).await;
             }  else {
                 let timeframeInteger: Option<i64> = self.safe_integer(&self.timeframes, &timeframe, &[]).as_i64();
                 if (timeframeInteger.is_none()) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOHLCV() unsupported timeframe ").into()), timeframe)));
                 }
                 request.insert("unit".into(), Value::from(timeframeInteger));
-                let __ws_arg_13 = self.extend(&request, &[&requestParams]);
-                response = self.call_method(Value::Str("public_get_v1_candles_minutes_unit".into()), &[&__ws_arg_13]).await;
+                let __ws_arg_14 = self.extend(&request, &[&requestParams]);
+                response = self.call_method(Value::Str("public_get_v1_candles_minutes_unit".into()), &[&__ws_arg_14]).await;
             }
             //
             //     [
@@ -2648,8 +2655,8 @@ impl Bithumb {
             request.insert("interval".into(), self.safe_string(&legacyTimeframes, &timeframe, std::slice::from_ref(&timeframe)));
             request.insert("baseId".into(), Value::from((market).base_id.as_deref()));
             request.insert("quoteId".into(), Value::from((market).quote_id.as_deref()));
-            let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsGeneration]);
-            response = self.public_get_public_candlestick_base_id_quote_id_interval(&[&__ws_arg_14]).await;
+            let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsGeneration]);
+            response = self.public_get_public_candlestick_base_id_quote_id_interval(&[&__ws_arg_15]).await;
             //
             //     {
             //         "status": "0000",
@@ -2724,8 +2731,8 @@ impl Bithumb {
         let mut data: Value = Value::from(vec![]);
         if (generation == Some(2)) {
             request.insert("market".into(), self.get_gen2_market_id(Some(&market)).map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_15 = self.extend(&request, &[&paramsGeneration]);
-            let response: Value = self.call_method(Value::Str("public_get_v1_trades_ticks".into()), &[&__ws_arg_15]).await;
+            let __ws_arg_16 = self.extend(&request, &[&paramsGeneration]);
+            let response: Value = self.call_method(Value::Str("public_get_v1_trades_ticks".into()), &[&__ws_arg_16]).await;
             //
             //     [
             //         {
@@ -2746,8 +2753,8 @@ impl Bithumb {
         }  else {
             request.insert("baseId".into(), Value::from((market).base_id.as_deref()));
             request.insert("quoteId".into(), Value::from((market).quote_id.as_deref()));
-            let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsGeneration]);
-            let response: crate::value::Dict = self.public_get_public_transaction_history_base_id_quote_id(&[&__ws_arg_16]).await.unwrap_or_default();
+            let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsGeneration]);
+            let response: crate::value::Dict = self.public_get_public_transaction_history_base_id_quote_id(&[&__ws_arg_17]).await.unwrap_or_default();
             //
             //     {
             //         "status":"0000",
@@ -2785,7 +2792,7 @@ impl Bithumb {
     pub async fn create_orders(&mut self, orders: Vec<crate::types::OrderRequest>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
         let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(orders), params.into().into_value()];
         let mut __it = __args.into_iter();
-        let orders = __it.next().unwrap_or_default();
+        let orders: Vec<crate::value::Dict> = crate::value::dict_rows(std::sync::Arc::new(__it.next().unwrap_or_default().as_array().cloned().unwrap_or_default()));
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
@@ -2812,7 +2819,7 @@ impl Bithumb {
                         let mut i: i64 = 0;
             let mut __for_first_16: bool = true;
             while { if !__for_first_16 { i += 1; } __for_first_16 = false; i < (orders.len() as i64) } {
-            let rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
+            let rawOrder: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or_default();
             let symbol: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             if (symbol.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrders() requires each order to have a symbol")));
@@ -2840,8 +2847,8 @@ impl Bithumb {
                 m.insert("batch_orders".to_string(), Value::from(ordersRequests));
             m
         });
-        let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsGeneration]);
-        let response: crate::value::Dict = self.private_post_v2_orders_batch(&[&__ws_arg_17]).await.unwrap_or_default();
+        let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsGeneration]);
+        let response: crate::value::Dict = self.private_post_v2_orders_batch(&[&__ws_arg_18]).await.unwrap_or_default();
         //
         //     {
         //         "batch_orders_response": [
@@ -3016,22 +3023,22 @@ impl Bithumb {
                     typeRequest = Some("ask".to_string());
                 }
                 request.insert("type".into(), typeRequest.map(Value::from).unwrap_or(Value::Null));
-                let __ws_arg_18 = self.extend(&request, &[&paramsGeneration]);
-                response = self.private_post_trade_place(&[&__ws_arg_18]).await;
-            }  else if (side.as_str() == Some("buy")) {
                 let __ws_arg_19 = self.extend(&request, &[&paramsGeneration]);
-                response = self.private_post_trade_market_buy(&[&__ws_arg_19]).await;
+                response = self.private_post_trade_place(&[&__ws_arg_19]).await;
+            }  else if (side.as_str() == Some("buy")) {
+                let __ws_arg_20 = self.extend(&request, &[&paramsGeneration]);
+                response = self.private_post_trade_market_buy(&[&__ws_arg_20]).await;
             }  else {
-                let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsGeneration]);
-                response = self.private_post_trade_market_sell(&[&__ws_arg_20]).await;
+                let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsGeneration]);
+                response = self.private_post_trade_market_sell(&[&__ws_arg_21]).await;
             }
         }
         let id: Option<String> = self.safe_string_k_opt(&response, "order_id", &[]);
         if (id.is_none()) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id, " createOrder() did not return an order id")));
         }
-        let __ws_arg_21 = <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
-        return self.extend(__ws_arg_21, &[Value::Map({
+        let __ws_arg_22 = <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
+        return self.extend(__ws_arg_22, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
         m.insert("symbol".to_string(), symbol);
@@ -3076,12 +3083,12 @@ impl Bithumb {
         if (generation != Some(2)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " createMarketBuyOrderWithCost() is only supported for the generation 2 API")));
         }
-        let __ws_arg_22 = self.extend(paramsGeneration, &[Value::Map({
+        let __ws_arg_23 = self.extend(paramsGeneration, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("createMarketBuyOrderRequiresPrice".to_string(), Value::Bool(false));
     m
 })]);
-        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "buy", cost, None, __ws_arg_22).await);
+        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", "buy", cost, None, __ws_arg_23).await);
         Value::Null
         }).await?))
     }
@@ -3143,8 +3150,8 @@ impl Bithumb {
             sideRequest = Some("ask".to_string());
         }
         request.insert("side".into(), sideRequest.map(Value::from).unwrap_or(Value::Null));
-        let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsGeneration]);
-        let response: crate::value::Dict = self.private_post_v1_twap(&[&__ws_arg_23]).await.unwrap_or_default();
+        let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsGeneration]);
+        let response: crate::value::Dict = self.private_post_v1_twap(&[&__ws_arg_24]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -3202,8 +3209,8 @@ impl Bithumb {
                     request.insert("market".into(), self.get_gen2_market_id(market.as_ref()).map(Value::from).unwrap_or(Value::Null));
                 }
                 request.insert("uuids".into(), Value::from(vec![id.clone()]));
-                let __ws_arg_24 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_get_v1_twap(&[&__ws_arg_24]).await;
+                let __ws_arg_25 = self.extend(&request, &[&paramsOmitted]);
+                response = self.private_get_v1_twap(&[&__ws_arg_25]).await;
                 //
                 //     {
                 //         "has_next": false,
@@ -3241,8 +3248,8 @@ impl Bithumb {
                 }  else {
                     request.insert("uuid".into(), id.clone());
                 }
-                let __ws_arg_25 = self.extend(&request, &[&paramsClientOrderId]);
-                response = self.private_get_v1_order(&[&__ws_arg_25]).await;
+                let __ws_arg_26 = self.extend(&request, &[&paramsClientOrderId]);
+                response = self.private_get_v1_order(&[&__ws_arg_26]).await;
                 //
                 //     {
                 //         "uuid": "C0101000003152406454",
@@ -3279,8 +3286,8 @@ impl Bithumb {
             request.insert("order_id".into(), id.clone());
             request.insert("order_currency".into(), base.map(Value::from).unwrap_or(Value::Null));
             request.insert("payment_currency".into(), quote.map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_post_info_order_detail(&[&__ws_arg_26]).await;
+            let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            response = self.private_post_info_order_detail(&[&__ws_arg_27]).await;
             //
             //     {
             //         "status": "0000",
@@ -3382,12 +3389,12 @@ impl Bithumb {
         let mut response: Option<crate::value::Dict> = None;
         if (generation == Some(2)) {
             let twap: bool = self.safe_bool_k_opt(&paramsGeneration, "twap", &[Value::Bool(false)]).unwrap_or(false);
-            let __ws_arg_27 = self.extend(&paramsGeneration, &[Value::Map({
+            let __ws_arg_28 = self.extend(&paramsGeneration, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("state".to_string(), (if twap { Value::Str("progress".into()) } else { Value::Str("wait".into()) }));
     m
 })]);
-            let orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since, limit, __ws_arg_27).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since, limit, __ws_arg_28).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             return Value::Arr(self.filter_by_since_limit(crate::types::IntoRaw::into_raw(orders), since, limit, &[]));
         }  else {
             if (symbol == Value::Null) {
@@ -3400,8 +3407,8 @@ impl Bithumb {
             request.insert("count".into(), Value::from(limitResolved));
             request.insert("order_currency".into(), crate::value::KeyRead::key_read(&&market, "base"));
             request.insert("payment_currency".into(), crate::value::KeyRead::key_read(&&market, "quote"));
-            let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsGeneration]);
-            response = self.private_post_info_orders(&[&__ws_arg_28]).await;
+            let __ws_arg_29 = self.extend(Value::Map(request), &[&paramsGeneration]);
+            response = self.private_post_info_orders(&[&__ws_arg_29]).await;
         }
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
         return Value::Arr(self.parse_orders(&data, market.as_ref(), &[&Value::from(since), &Value::from(limitResolved)]));
@@ -3473,8 +3480,8 @@ impl Bithumb {
         }
         let mut data: Value = Value::Null;
         if twap {
-            let __ws_arg_29 = self.extend(&request, &[&paramsRequest]);
-            let response: crate::value::Dict = self.private_get_v1_twap(&[&__ws_arg_29]).await.unwrap_or_default();
+            let __ws_arg_30 = self.extend(&request, &[&paramsRequest]);
+            let response: crate::value::Dict = self.private_get_v1_twap(&[&__ws_arg_30]).await.unwrap_or_default();
             //
             //     {
             //         "has_next": false,
@@ -3501,8 +3508,8 @@ impl Bithumb {
             //
             data = self.safe_list_k(&response, "orders", &[Value::from(vec![])]);
         }  else {
-            let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsRequest]);
-            let response: Value = self.call_method(Value::Str("private_get_v1_orders".into()), &[&__ws_arg_30]).await;
+            let __ws_arg_31 = self.extend(Value::Map(request), &[&paramsRequest]);
+            let response: Value = self.call_method(Value::Str("private_get_v1_orders".into()), &[&__ws_arg_31]).await;
             //
             //     [
             //         {
@@ -3664,11 +3671,11 @@ impl Bithumb {
         }
         if (generation == Some(2)) {
             if twap {
-                let __ws_arg_31 = self.extend(&request, &[&paramsRequest]);
-                response = self.private_delete_v1_twap(&[&__ws_arg_31]).await;
-            }  else {
                 let __ws_arg_32 = self.extend(&request, &[&paramsRequest]);
-                response = self.private_delete_v2_order(&[&__ws_arg_32]).await;
+                response = self.private_delete_v1_twap(&[&__ws_arg_32]).await;
+            }  else {
+                let __ws_arg_33 = self.extend(&request, &[&paramsRequest]);
+                response = self.private_delete_v2_order(&[&__ws_arg_33]).await;
             }
         }  else {
             if (symbol == Value::Null) {
@@ -3694,11 +3701,11 @@ impl Bithumb {
             request.insert("type".into(), side.map(Value::from).unwrap_or(Value::Null));
             request.insert("order_currency".into(), base.map(Value::from).unwrap_or(Value::Null));
             request.insert("payment_currency".into(), quote.map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_33 = self.extend(Value::Map(request), &[&paramsSide]);
-            response = self.private_post_trade_cancel(&[&__ws_arg_33]).await;
+            let __ws_arg_34 = self.extend(Value::Map(request), &[&paramsSide]);
+            response = self.private_post_trade_cancel(&[&__ws_arg_34]).await;
         }
-        let __ws_arg_34 = <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, market.as_ref()).map_or(Value::Null, Value::Dict);
-        return self.extend(__ws_arg_34, &[Value::Map({
+        let __ws_arg_35 = <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, market.as_ref()).map_or(Value::Null, Value::Dict);
+        return self.extend(__ws_arg_35, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
     m
@@ -3755,8 +3762,8 @@ impl Bithumb {
         }  else {
             request.insert("order_ids".into(), ids);
         }
-        let __ws_arg_35 = self.extend(Value::Map(request), &[&paramsRequest]);
-        let response: crate::value::Dict = self.private_post_v2_orders_cancel(&[&__ws_arg_35]).await.unwrap_or_default();
+        let __ws_arg_36 = self.extend(Value::Map(request), &[&paramsRequest]);
+        let response: crate::value::Dict = self.private_post_v2_orders_cancel(&[&__ws_arg_36]).await.unwrap_or_default();
         //
         //     {
         //         "success": [
@@ -3790,10 +3797,10 @@ impl Bithumb {
                 m.insert("side".to_string(), self.safe_string_k(&order, "side", &[]));
             m
         });
-        let __ws_arg_36 = self.safe_string_k(&order, "id", &[Value::Str("".into())]);
-        let __ws_arg_37 = self.safe_string_k(order, "symbol", &[]);
-        let __ws_arg_38 = self.extend(Value::Map(request), &[params]);
-        return crate::types::IntoRaw::into_raw(self.cancel_order((__ws_arg_36).as_str().unwrap_or_default(), (__ws_arg_37).as_str(), __ws_arg_38).await);
+        let __ws_arg_37 = self.safe_string_k(&order, "id", &[Value::Str("".into())]);
+        let __ws_arg_38 = self.safe_string_k(order, "symbol", &[]);
+        let __ws_arg_39 = self.extend(Value::Map(request), &[params]);
+        return crate::types::IntoRaw::into_raw(self.cancel_order((__ws_arg_37).as_str().unwrap_or_default(), (__ws_arg_38).as_str(), __ws_arg_39).await);
         Value::Null
         }).await?))
     }
@@ -3883,8 +3890,8 @@ impl Bithumb {
                         m.insert("amount".to_string(), Value::from(self.number_to_string(&amount)));
                     m
                 }); // KRW withdraw only accepts amount and two_factor_type parameters
-                let __ws_arg_39 = self.extend(Value::Map(krwRequest), &[&paramsReceiverType]);
-                response = self.private_post_v1_withdraws_krw(&[&__ws_arg_39]).await;
+                let __ws_arg_40 = self.extend(Value::Map(krwRequest), &[&paramsReceiverType]);
+                response = self.private_post_v1_withdraws_krw(&[&__ws_arg_40]).await;
             }  else {
                 if (network.is_none()) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), code).into()), " withdraw() requires a network parameter")));
@@ -3899,8 +3906,8 @@ impl Bithumb {
                 if (receiverType.is_some()) {
                     request.insert("receiver_type".into(), Value::from(receiverType.as_deref()));
                 }
-                let __ws_arg_40 = self.extend(&request, &[&paramsReceiverType]);
-                response = self.private_post_v1_withdraws_coin(&[&__ws_arg_40]).await;
+                let __ws_arg_41 = self.extend(&request, &[&paramsReceiverType]);
+                response = self.private_post_v1_withdraws_coin(&[&__ws_arg_41]).await;
             }
         }  else {
             request.insert("address".into(), address);
@@ -3921,10 +3928,10 @@ impl Bithumb {
                     request.insert("cust_type_cd".into(), receiverType.map(Value::from).unwrap_or(Value::Null));
                 }
             }
-            let __ws_arg_41 = self.extend(Value::Map(request), &[&paramsReceiverType]);
-            response = self.private_post_trade_btc_withdrawal(&[&__ws_arg_41]).await;
+            let __ws_arg_42 = self.extend(Value::Map(request), &[&paramsReceiverType]);
+            response = self.private_post_trade_btc_withdrawal(&[&__ws_arg_42]).await;
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4029,9 +4036,9 @@ impl Bithumb {
         if (true) {
             request.insert("uuid".into(), Value::from(id));
         }
-        let __ws_arg_42 = self.extend(Value::Map(request), &[&paramsGeneration]);
-        let response: crate::value::Dict = self.private_get_v1_withdraw(&[&__ws_arg_42]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
+        let __ws_arg_43 = self.extend(Value::Map(request), &[&paramsGeneration]);
+        let response: crate::value::Dict = self.private_get_v1_withdraw(&[&__ws_arg_43]).await.unwrap_or_default();
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
 
     Value::Null
 }
@@ -4087,15 +4094,15 @@ impl Bithumb {
         let mut currency: Option<crate::types::Currency> = None;
         if (code.as_str() == Some("KRW")) {
             currency = Some(self.currency(code.as_str()));
-            let __ws_arg_43 = self.extend(&request, &[&paramsGeneration]);
-            response = self.private_get_v1_withdraws_krw(&[&__ws_arg_43]).await;
+            let __ws_arg_44 = self.extend(&request, &[&paramsGeneration]);
+            response = self.private_get_v1_withdraws_krw(&[&__ws_arg_44]).await;
         }  else {
             if (code != Value::Null) {
                 currency = Some(self.currency(code.as_str()));
                 request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
             }
-            let __ws_arg_44 = self.extend(Value::Map(request), &[&paramsGeneration]);
-            response = self.private_get_v1_withdraws(&[&__ws_arg_44]).await;
+            let __ws_arg_45 = self.extend(Value::Map(request), &[&paramsGeneration]);
+            response = self.private_get_v1_withdraws(&[&__ws_arg_45]).await;
         }
         return Value::Arr(self.parse_transactions(&response, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
@@ -4140,9 +4147,9 @@ impl Bithumb {
         if (true) {
             request.insert("uuid".into(), Value::from(id));
         }
-        let __ws_arg_45 = self.extend(Value::Map(request), &[&paramsGeneration]);
-        let response: crate::value::Dict = self.private_get_v1_deposit(&[&__ws_arg_45]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency));
+        let __ws_arg_46 = self.extend(Value::Map(request), &[&paramsGeneration]);
+        let response: crate::value::Dict = self.private_get_v1_deposit(&[&__ws_arg_46]).await.unwrap_or_default();
+        return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &response, Some(&currency)).map_or(Value::Null, Value::Dict);
 
     Value::Null
 }
@@ -4198,15 +4205,15 @@ impl Bithumb {
         let mut currency: Option<crate::types::Currency> = None;
         if (code.as_str() == Some("KRW")) {
             currency = Some(self.currency(code.as_str()));
-            let __ws_arg_46 = self.extend(&request, &[&paramsGeneration]);
-            response = self.private_get_v1_deposits_krw(&[&__ws_arg_46]).await;
+            let __ws_arg_47 = self.extend(&request, &[&paramsGeneration]);
+            response = self.private_get_v1_deposits_krw(&[&__ws_arg_47]).await;
         }  else {
             if (code != Value::Null) {
                 currency = Some(self.currency(code.as_str()));
                 request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
             }
-            let __ws_arg_47 = self.extend(Value::Map(request), &[&paramsGeneration]);
-            response = self.private_get_v1_deposits(&[&__ws_arg_47]).await;
+            let __ws_arg_48 = self.extend(Value::Map(request), &[&paramsGeneration]);
+            response = self.private_get_v1_deposits(&[&__ws_arg_48]).await;
         }
         return Value::Arr(self.parse_transactions(&response, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
@@ -4256,8 +4263,8 @@ impl Bithumb {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), code).into()), " createDepositAddress() requires a network parameter")));
         }
         request.insert("net_type".into(), self.network_code_to_id(network.as_deref(), code.as_text().as_deref()));
-        let __ws_arg_48 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_post_v1_deposits_generate_coin_address(&[&__ws_arg_48]).await.unwrap_or_default();
+        let __ws_arg_49 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_post_v1_deposits_generate_coin_address(&[&__ws_arg_49]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, Some(&currency));
         Value::Null
         }).await?))
@@ -4306,8 +4313,8 @@ impl Bithumb {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), code).into()), " fetchDepositAddress() requires a network parameter")));
         }
         request.insert("net_type".into(), self.network_code_to_id(network.as_deref(), code.as_text().as_deref()));
-        let __ws_arg_49 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_get_v1_deposits_coin_address(&[&__ws_arg_49]).await.unwrap_or_default();
+        let __ws_arg_50 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_get_v1_deposits_coin_address(&[&__ws_arg_50]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, &response, Some(&currency));
         Value::Null
         }).await?))

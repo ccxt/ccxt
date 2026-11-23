@@ -1238,8 +1238,10 @@ impl Coinbase {
                                 let mut j: i64 = 0;
                 let mut __for_first_6: bool = true;
                 while { if !__for_first_6 { j += 1; } __for_first_6 = false; j < tradesLength } {
-                let item: crate::value::Dict = currentTrades.as_deref().map(Vec::as_slice).unwrap_or_default().get(((tradesLength - j) - 1) as usize).cloned().unwrap_or(Value::Null).into_dict();
-                tradesArray.append(Value::Dict(self.parse_trade(Value::Dict(item), None)));
+                tradesArray.append(Value::Dict(self.parse_trade(self.safe_dict(&currentTrades, Value::Int((((tradesLength - j)) - 1)), &[Value::Map({
+                    let m = indexmap::IndexMap::new();
+                    m
+                })]), None)));
             }
             }
         }

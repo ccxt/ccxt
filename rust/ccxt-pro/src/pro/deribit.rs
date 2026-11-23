@@ -723,7 +723,7 @@ impl Deribit {
         let marketId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-        let trades: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&params, "data"));
+        let mut trades: crate::value::List = self.safe_list_k_t(&params, "data");
         if (self.trades.lookup(&symbol).is_none()) {
             let limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             CacheStore::put(&mut self.trades, &symbol, ArrayCache::new(Value::from(limit)));
@@ -733,8 +733,10 @@ impl Deribit {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (trades.len() as i64) } {
-            let trade: crate::value::Dict = trades.get(i as usize).cloned().unwrap_or_default();
-            let parsed: crate::value::Dict = self.parse_trade(Value::Dict(trade), Some(&market));
+            let parsed: crate::value::Dict = self.parse_trade(self.safe_dict(&trades, Value::Int(i), &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })]), Some(&market));
             stored.append(Value::Dict(parsed));
         }
         }

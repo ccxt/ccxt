@@ -274,7 +274,7 @@ impl Grvt {
         if publicOrPrivate {
             apiPart = "publicMarket".to_string();
         }
-        let __ws_arg_0 = self.safe_string(crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL), "ws"), Value::from(apiPart), &[]);
+        let __ws_arg_0 = self.safe_string(crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL), "ws"), &apiPart, &[]);
         return self.watch_multiple(&(__ws_arg_0), messageHashes, Value::Map(payload), rawHashes, Value::Null).await;
 
     Value::Null
@@ -622,7 +622,11 @@ impl Grvt {
 
     pub fn parse_ws_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let trade: Value = trade.into();
-        return self.parse_trade(trade, market);
+        let __ws_arg_4 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[trade]);
+        return self.parse_trade(__ws_arg_4, market);
 
     Default::default()
 }
@@ -713,8 +717,8 @@ impl Grvt {
                 m.insert("selectors".to_string(), Value::from(rawHashes.clone()));
             m
         });
-        let __ws_arg_4 = self.extend(params, &[Value::Map(request)]);
-        let symboltimeframestoredVariable = self.subscribe_multiple(&messageHashes, __ws_arg_4, &rawHashes, &[]).await;
+        let __ws_arg_5 = self.extend(params, &[Value::Map(request)]);
+        let symboltimeframestoredVariable = self.subscribe_multiple(&messageHashes, __ws_arg_5, &rawHashes, &[]).await;
         let symbol: Option<String> = get_value(&symboltimeframestoredVariable, &Value::Int(0)).as_str().map(str::to_owned);
         let timeframe: Value = get_value(&symboltimeframestoredVariable, &Value::Int(1));
         let mut stored: Option<crate::pro::cache::Cache> = get_value(&symboltimeframestoredVariable, &Value::Int(2)).into();
@@ -885,8 +889,8 @@ impl Grvt {
                 m.insert("selectors".to_string(), Value::from(rawHashes.clone()));
             m
         });
-        let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsInterval]);
-        let mut orderbook: Option<crate::pro::order_book::Book> = self.subscribe_multiple(&messageHashes, __ws_arg_5, &rawHashes, &[]).await.into();
+        let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsInterval]);
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.subscribe_multiple(&messageHashes, __ws_arg_6, &rawHashes, &[]).await.into();
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -997,8 +1001,8 @@ impl Grvt {
                 m
             });
             self.extend_exchange_options(&[Value::Map(defaultOptions)]);
-            let __ws_arg_6 = self.safe_string(crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL), "ws"), Value::Str("privateTrading".into()), &[]);
-            self.client(&(__ws_arg_6));
+            let __ws_arg_7 = self.safe_string(crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL), "ws"), Value::Str("privateTrading".into()), &[]);
+            self.client(&(__ws_arg_7));
         }
 
     Value::Null
@@ -1050,8 +1054,8 @@ impl Grvt {
                 m.insert("selectors".to_string(), Value::from(rawHashes));
             m
         });
-        let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_multiple(&messageHashes, __ws_arg_7, &messageHashes, &[&Value::Bool(false)]).await.into();
+        let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_multiple(&messageHashes, __ws_arg_8, &messageHashes, &[&Value::Bool(false)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit);
@@ -1170,8 +1174,8 @@ impl Grvt {
                 m.insert("selectors".to_string(), Value::from(rawHashes.clone()));
             m
         });
-        let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let newPositions: Value = self.subscribe_multiple(&messageHashes, __ws_arg_8, &rawHashes, &[&Value::Bool(false)]).await;
+        let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
+        let newPositions: Value = self.subscribe_multiple(&messageHashes, __ws_arg_9, &rawHashes, &[&Value::Bool(false)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
@@ -1268,8 +1272,8 @@ impl Grvt {
                 m.insert("selectors".to_string(), Value::from(rawHashes.clone()));
             m
         });
-        let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut orders: Option<crate::pro::cache::Cache> = self.subscribe_multiple(&messageHashes, __ws_arg_9, &rawHashes, &[&Value::Bool(false)]).await.into();
+        let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
+        let mut orders: Option<crate::pro::cache::Cache> = self.subscribe_multiple(&messageHashes, __ws_arg_10, &rawHashes, &[&Value::Bool(false)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbol.as_str(), limit);

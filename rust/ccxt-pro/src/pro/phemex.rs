@@ -706,8 +706,7 @@ impl Phemex {
                                 let mut i: i64 = 0;
                 let mut __for_first_4: bool = true;
                 while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (ohlcvs.len() as i64) } {
-                let candle: Value = ohlcvs.get(i as usize).cloned().unwrap_or(Value::Null);
-                stored.append(candle);
+                stored.append(ohlcvs.get(i as usize).cloned().unwrap_or(Value::Null));
             }
             }
             client.resolve(Value::from(&stored), messageHash.as_str());
@@ -1741,8 +1740,10 @@ impl Phemex {
                                 let mut i: i64 = 0;
                 let mut __for_first_10: bool = true;
                 while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (orders.len() as i64) } {
-                let rawOrder: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
-                let parsedOrder: crate::value::Dict = self.parse_order(Value::Dict(rawOrder), None);
+                let parsedOrder: crate::value::Dict = self.parse_order(self.safe_dict(&orders, Value::Int(i), &[Value::Map({
+                    let m = indexmap::IndexMap::new();
+                    m
+                })]), None);
                 parsedOrders.push(Value::Dict(parsedOrder));
             }
             }

@@ -998,7 +998,11 @@ impl Bybit {
             let rawTicker: crate::value::Dict = self.safe_dict_k_t(&ticker, "info");
             tickerInput = self.extend(rawTicker, &[&data]);
         }
-        let mut parsed: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_ticker(tickerInput, None));
+        let __ws_arg_0 = self.extend(Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        }), &[tickerInput]);
+        let mut parsed: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.parse_ticker(__ws_arg_0, None));
         if (updateType.as_deref() == Some("snapshot")) {
             symbol = self.safe_string_k_opt(&parsed, "symbol", &[]);
         }
@@ -1937,7 +1941,7 @@ impl Bybit {
             marketType = Some("contract".to_string());
         }
         if (market.is_some()) {
-            marketType = self.safe_string_k_opt(&market, "type", &[]);
+            marketType = self.safe_string_k_opt(&market, "type", &[&marketType]);
         }
         let marketId: Option<String> = self.safe_string_k_opt(&trade, "s", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[Value::Null, marketType.map(Value::from).unwrap_or(Value::Null)]);
@@ -3395,8 +3399,8 @@ impl Bybit {
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[params]);
-        let __ws_arg_0 = self.extend(Value::Map(subscription), &[subExtension]);
-        return self.watch_multiple(url, &messageHashes, &message, &messageHashes, __ws_arg_0).await;
+        let __ws_arg_1 = self.extend(Value::Map(subscription), &[subExtension]);
+        return self.watch_multiple(url, &messageHashes, &message, &messageHashes, __ws_arg_1).await;
 
     Value::Null
 }
@@ -3668,8 +3672,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //       "conn_id": "d266o6hqo29sqmnq4vk0-1yus1"
         //   }
         //
-        let __ws_arg_1 = self.milliseconds();
-        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.safe_integer_k(&message, "pong", &[Value::Int(__ws_arg_1)]));
+        let __ws_arg_2 = self.milliseconds();
+        crate::set_value(&mut client, &Value::Str("lastPong".into()), self.safe_integer_k(&message, "pong", &[Value::Int(__ws_arg_2)]));
         return message;
 
     Value::Null

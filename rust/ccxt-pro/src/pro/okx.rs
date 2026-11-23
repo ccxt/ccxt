@@ -340,9 +340,9 @@ impl Okx {
     pub fn get_url(&self, mut channel: Value, optional_args: &[&Value]) -> Option<String> {
         let access = get_arg(optional_args, 0, Value::Str("public".into()));
         // for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
-        let isSandbox: Value = self.options.get("sandboxMode").cloned().unwrap_or(Value::Null);
+        let isSandbox: bool = self.safe_bool_k_opt(&self.options, "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
         let mut sandboxSuffix: String = "".to_string();
-        if (isSandbox.as_bool() == Some(true)) {
+        if (isSandbox == true) {
             sandboxSuffix = "?brokerId=9999".to_string();
         }
         let isBusiness: bool = access.as_str() == Some("business");
@@ -683,7 +683,10 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (data.len() as i64) } {
-            let trade: crate::value::Dict = self.parse_trade(data.get(i as usize).cloned().unwrap_or(Value::Null), None);
+            let trade: crate::value::Dict = self.parse_trade(self.safe_dict(&data, Value::Int(i), &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })]), None);
             let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
             if (stored.is_none()) {
                 stored = Some(ArrayCache::new(Value::from(tradesLimit)));
@@ -1487,13 +1490,12 @@ impl Okx {
         //        ]
         //    }
         //
-        let rawLiquidations: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
+        let rawLiquidations: crate::value::List = message.key_list("data");
         {
                         let mut i: i64 = 0;
             let mut __for_first_11: bool = true;
             while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (rawLiquidations.len() as i64) } {
-            let rawLiquidation: crate::value::Dict = rawLiquidations.get(i as usize).cloned().unwrap_or_default();
-            let liquidation: crate::value::Dict = self.parse_ws_liquidation(Value::Dict(rawLiquidation), None);
+            let liquidation: crate::value::Dict = self.parse_ws_liquidation(rawLiquidations.get(i as usize).cloned().unwrap_or(Value::Null), None);
             let symbol: String = self.safe_string_k(&liquidation, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (self.liquidations.is_none()) {
                 let limit: i64 = self.safe_integer_k(&self.options, "liquidationsLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -3385,10 +3387,10 @@ impl Okx {
         if self.is_empty(&args).as_bool() == Some(true) {
             let method: Option<String> = (match __pro_message.get("op") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
             let stringMsg: Option<String> = json_stringify(&message).as_str().map(str::to_owned);
-            self.handle_errors(Value::Int(1), Value::Str("".into()), client.url(), method.map(Value::from).unwrap_or(Value::Null), Value::Map({
+            self.handle_errors(Value::Int(1), "", (client.url()).as_str().unwrap_or_default(), method.as_deref().unwrap_or_default(), Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
-            }), stringMsg.map(Value::from).unwrap_or(Value::Null), message, Value::Map({
+            }), stringMsg.as_deref().unwrap_or_default(), message, Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
             }), Value::Str("".into()));
@@ -3661,10 +3663,10 @@ impl Okx {
         if self.is_empty(&args).as_bool() == Some(true) {
             let method: Option<String> = (match __pro_message.get("op") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
             let stringMsg: Option<String> = json_stringify(&message).as_str().map(str::to_owned);
-            self.handle_errors(Value::Int(1), Value::Str("".into()), client.url(), method.map(Value::from).unwrap_or(Value::Null), Value::Map({
+            self.handle_errors(Value::Int(1), "", (client.url()).as_str().unwrap_or_default(), method.as_deref().unwrap_or_default(), Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
-            }), stringMsg.map(Value::from).unwrap_or(Value::Null), message, Value::Map({
+            }), stringMsg.as_deref().unwrap_or_default(), message, Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
             }), Value::Str("".into()));

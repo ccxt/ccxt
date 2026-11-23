@@ -559,10 +559,7 @@ impl Lighter {
         //     "type": "update/market_stats"
         // }
         //
-        let data: indexmap::IndexMap<String, Value> = (match message.get("market_stats") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}) }).as_map().cloned().unwrap_or_default();
+        let data: crate::value::Dict = message.key_dict("market_stats");
         let channel: Option<String> = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (channel.as_deref() == Some("market_stats:all")) {
             let marketIds: Vec<Value> = Value::Array(data.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
@@ -573,7 +570,10 @@ impl Lighter {
                 let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
                 let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
                 let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-                let ticker: crate::value::Dict = self.parse_ticker(data.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), Some(&market));
+                let ticker: crate::value::Dict = self.parse_ticker(self.safe_dict(&data, Value::from(marketId.as_deref()), &[Value::Map({
+                    let m = indexmap::IndexMap::new();
+                    m
+                })]), Some(&market));
                 { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
                 client.resolve(Value::from(&ticker), &self.get_message_hash("ticker", &[&symbol.map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null));
                 client.resolve(Value::Dict(ticker), &self.get_message_hash("ticker", &[]).map(Value::from).unwrap_or(Value::Null));
@@ -583,7 +583,7 @@ impl Lighter {
             let marketId: Option<String> = self.safe_string_k_opt(&data, "market_id", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-            let ticker: crate::value::Dict = self.parse_ticker(Value::Map(data), Some(&market));
+            let ticker: crate::value::Dict = self.parse_ticker(Value::Dict(data), Some(&market));
             { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
             client.resolve(Value::Dict(ticker), &self.get_message_hash("ticker", &[&symbol.map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null));
         }
@@ -1777,7 +1777,10 @@ impl Lighter {
     }
 
     pub fn request_id(&mut self, url: &str) -> i64 {
-        let mut options: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "requestId", &[self.create_safe_dictionary(&[])]).as_map().cloned().unwrap_or_default();
+        let mut options: indexmap::IndexMap<String, Value> = self.safe_dict_k(&self.options, "requestId", &[Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
         let previousValue: i64 = self.safe_integer(&options, Value::from(url), &[Value::Int(0)]).as_i64().unwrap_or(0);
         let newValue: i64 = (previousValue + 1);
         options.insert(crate::runtime::stringify_param(&Value::from(url)), Value::from(newValue));

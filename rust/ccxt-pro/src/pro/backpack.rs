@@ -2443,14 +2443,14 @@ impl Backpack {
         let markPrice: Option<String> = self.safe_string_k_opt(&position, "M", &[]);
         let netQuantity: Option<f64> = self.safe_number_k(&position, "q", &[]).as_f64();
         let mut hedged: Option<bool> = Some(false);
-        let mut side: Option<String> = Some("long".to_string());
+        let mut side: Option<String> = None;
         if (netQuantity.is_some()) {
+            side = Some("long".to_string());
             if (netQuantity.is_some() && Some(0.0) > netQuantity) {
                 side = Some("short".to_string());
             }
         }  else {
             hedged = None;
-            side = None;
         }
         let microseconds: i64 = self.safe_integer_k(&position, "E", &[Value::Int(0)]).as_i64().unwrap_or(0);
         let timestamp: Option<i64> = self.parse_to_int(Value::Float(((microseconds as f64) / 1000.0)));

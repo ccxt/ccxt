@@ -2131,7 +2131,7 @@ impl Bitvavo {
         // const messageHash = this.buildMessageHash (action, message);
         let messageHash: Option<String> = (match message.get("requestId") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let response: crate::value::Dict = message.key_dict("response");
-        let withdraw: crate::value::Dict = self.parse_transaction(Value::Dict(response), None).into_dict();
+        let withdraw: crate::value::Dict = self.parse_transaction(Value::Dict(response), None);
         client.resolve(Value::Dict(withdraw), messageHash.as_deref());
 }
 
@@ -2764,10 +2764,10 @@ impl Bitvavo {
         let messageHash: Option<String> = self.safe_string_k_opt(message, "requestId", &[&buildMessage]);
         let mut rejected: bool = false;
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.handle_errors(Value::from(code), Value::from(error.as_deref()), client.url(), Value::Str("".into()), Value::Map({
+            self.handle_errors(Value::from(code), error.as_deref().unwrap_or_default(), (client.url()).as_str().unwrap_or_default(), "", Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
-            }), Value::from(error.as_deref()), message.clone(), Value::Map({
+            }), error.as_deref().unwrap_or_default(), message.clone(), Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
             }), Value::Str("".into()));

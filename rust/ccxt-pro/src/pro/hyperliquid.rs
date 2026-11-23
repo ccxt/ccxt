@@ -2443,10 +2443,10 @@ impl Hyperliquid {
             return Value::Bool(true);
         }
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.handle_errors(Value::Int(0), Value::Str("".into()), Value::Str("".into()), Value::Str("".into()), Value::Map({
+            self.handle_errors(Value::Int(0), "", "", "", Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
-            }), json_stringify(&payload), Value::from(&payload), Value::Map({
+            }), (json_stringify(&payload)).as_str().unwrap_or_default(), Value::from(&payload), Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
             }), Value::Str("".into()));
