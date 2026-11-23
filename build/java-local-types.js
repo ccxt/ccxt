@@ -29,6 +29,9 @@ export const JAVA_STRING_RETURN_METHODS_CAST = new Set ([
     'networkCodeToId',
     // base-only commonCurrencyCode: returns its `code: string` param (checkcast) or a safeString read
     'commonCurrencyCode',
+    // convertTypeToAccount returns a safeString read or its `account: string` param (already cast by its toLowerCase);
+    // safeOutcomeSymbol returns a safeString read or the outcome row's `outcome` string (checkcast)
+    'convertTypeToAccount', 'safeOutcomeSymbol',
 ]);
 
 // base filterByArrayPositions returns this.toArray (..); parsePositions returns filterByArrayPositions; parseDepositAddresses
@@ -1932,6 +1935,9 @@ const VENUE_RETURN_KINDS = {
     'infoDict': [ JAVA_ARRAY_TYPE_MAP () ],
     // venue `parseWsPosition (..): Position` / `parseMyTrade (..): Trade` (no base declaration): return this.safePosition / safeTrade / a literal
     'parseWsPosition': [ JAVA_ARRAY_TYPE_MAP () ], 'parseMyTrade': [ JAVA_ARRAY_TYPE_MAP () ],
+    // `: Str`, one declaration each: kucoin handleTradeType (safeString read or literals), interactivebrokers
+    // ibkrParseValue (null, Precise.stringMul or its own string local)
+    'handleTradeType': [ 'String' ], 'ibkrParseValue': [ 'String' ],
 };
 const H29T07_MAP_VIEW_RETURNS = new Set ([ 'safePosition', 'safeTrade' ]);
 // base parsePosition / safePredictionTrade are Map returns (H30T07_MAP_RETURN_METHODS)
@@ -2280,7 +2286,7 @@ function returnCastFor (printer, node, methodName) {
         if (ts.isIdentifier (expression) && guardedNullReturn (node, expression)) {
             return '(String)';
         }
-        if (methodName === 'commonCurrencyCode' && ownParameterReturn (printer, node, expression)) {
+        if ((methodName === 'commonCurrencyCode' || methodName === 'convertTypeToAccount') && ownParameterReturn (printer, node, expression)) {
             return '(String)';
         }
         // every other shape already prints String (census: the safeString reads and the
