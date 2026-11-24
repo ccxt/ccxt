@@ -1969,6 +1969,9 @@ const WS_HANDLER_IDICT_MESSAGE: Record<string, string[]> = {
     bitvavo: [ 'handleOrderBookMessage' ],
     okx: [ 'handleOrderBookMessage' ],
     woo: [ 'handleOrderBookMessage' ],
+    bittrade: [ 'handleOrderBookSubscription' ],
+    kucoin: [ 'handleOrderBookSubscription' ],
+    woo: [ 'handleOrderBookSubscription' ],
 };
 
 // `sign()` / `handleErrors()` parameter types keyed by POSITION (overrides rename parameters; types are
