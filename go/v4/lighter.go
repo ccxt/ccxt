@@ -788,8 +788,14 @@ func (this *Lighter) CreateAuth(optionalArgs ...any) any {
 		accountIndex = this.SafeString(res, 0)
 	}
 	var auths, _ = this.Options["auths"].(map[string]any)
-	var accountAuths map[string]any = SafeMapTyped(auths, accountIndex)
-	var cachedAuth map[string]any = SafeMapTyped(accountAuths, apiKeyIndex)
+	var accountAuths map[string]any = nil
+	if accountIndex != nil {
+		accountAuths, _ = auths[*accountIndex].(map[string]any)
+	}
+	var cachedAuth map[string]any = nil
+	if apiKeyIndex != nil {
+		cachedAuth, _ = accountAuths[*apiKeyIndex].(map[string]any)
+	}
 	var cachedDeadline *int64 = this.SafeInteger(cachedAuth, "deadline")
 	var minimumRemaining int64 = *this.SafeInteger(this.Options, "authDeadlineMinimumRemaining", 60)
 	if (cachedDeadline != nil) && (*cachedDeadline-minimumRemaining >= this.Seconds()) {

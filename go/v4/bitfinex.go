@@ -3428,7 +3428,10 @@ func (this *Bitfinex) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress
 	var networkParam *string = this.SafeString(params, "network", code)
 	var network *string = this.SafeString(this.NetworkAliases, networkParam, networkParam)
 	var currencyNetworks, _ = currency["networks"].(map[string]any)
-	var currencyNetwork map[string]any = SafeMapTyped(currencyNetworks, network)
+	var currencyNetwork map[string]any = nil
+	if network != nil {
+		currencyNetwork, _ = currencyNetworks[*network].(map[string]any)
+	}
 	var networkId *string = this.SafeString(currencyNetwork, "id")
 	if networkId == nil {
 		panic(ArgumentsRequired(this.Id + " fetchDepositAddress() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params"))
@@ -3951,7 +3954,10 @@ func (this *Bitfinex) withdrawBody(ch chan AsyncResult[Transaction], code string
 	var network *string = this.SafeString(this.NetworkAliases, networkParam, networkParam)
 	var paramsOmitted map[string]any = this.OmitDict(paramsWithdrawTag, "network")
 	var currencyNetworks, _ = currency["networks"].(map[string]any)
-	var currencyNetwork map[string]any = SafeMapTyped(currencyNetworks, network)
+	var currencyNetwork map[string]any = nil
+	if network != nil {
+		currencyNetwork, _ = currencyNetworks[*network].(map[string]any)
+	}
 	var networkId *string = this.SafeString(currencyNetwork, "id")
 	if networkId == nil {
 		panic(ArgumentsRequired(this.Id + " withdraw() could not find a network for '" + code + "'. You can specify it by providing the 'network' value inside params"))

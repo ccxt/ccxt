@@ -4516,7 +4516,7 @@ func (this *Predictfun) HandleWalletEventOrder(client ccxt.ClientInterface, orde
  * @param {object} event the raw event
  * @param {object} order the order the same event was parsed into
  */
-func (this *Predictfun) HandleWalletEventTrade(client ccxt.ClientInterface, event any, order any) {
+func (this *Predictfun) HandleWalletEventTrade(client ccxt.ClientInterface, event map[string]any, order any) {
 	var trade any = this.ParseWalletEventTrade(event, order)
 	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -4709,8 +4709,8 @@ func (this *Predictfun) ParseWalletEventOrder(event map[string]any) any {
  * @param {object} order the order the same event was parsed into
  * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
  */
-func (this *Predictfun) ParseWalletEventTrade(event any, order any) any {
-	var fill map[string]any = ccxt.SafeMapTyped(event, "fill")
+func (this *Predictfun) ParseWalletEventTrade(event map[string]any, order any) any {
+	var fill, _ = event["fill"].(map[string]any)
 	// the fill is quoted in wei while the details block is quoted in units, so only these three
 	// fields are scaled down
 	var price *string = ccxt.Precise.StringDiv(this.SafeString(fill, "executedPriceWei"), "1000000000000000000")
@@ -4727,7 +4727,7 @@ func (this *Predictfun) ParseWalletEventTrade(event any, order any) any {
 		}
 		takerOrMaker = &takerOrMakerStr
 	}
-	var rawFee map[string]any = ccxt.SafeMapTyped(event, "fee")
+	var rawFee, _ = event["fee"].(map[string]any)
 	var fee map[string]any = nil
 	if rawFee != nil {
 		var feeType *string = this.SafeString(rawFee, "type")

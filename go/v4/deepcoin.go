@@ -2387,7 +2387,7 @@ func (this *Deepcoin) CreateTriggerOrderRequest(symbol string, typeVar string, s
 	request["mrgPosition"] = mrgPositionOption
 	return this.Extend(request, paramsMrgPosition)
 }
-func (this *Deepcoin) HandleTypePostOnlyAndTimeInForce(typeVar string, params any) (*string, map[string]any) {
+func (this *Deepcoin) HandleTypePostOnlyAndTimeInForce(typeVar string, params map[string]any) (*string, map[string]any) {
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), (typeVar == "post_only"), params)
 	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
 	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)

@@ -6381,7 +6381,10 @@ func (this *Mexc) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[str
 			_, networkUnifiedInNetworks = networks[*networkUnified]
 		}
 		if (networkUnified != nil) && (networkUnifiedInNetworks) {
-			var network map[string]any = SafeMapTyped(networks, networkUnified)
+			var network map[string]any = nil
+			if networkUnified != nil {
+				network, _ = networks[*networkUnified].(map[string]any)
+			}
 			var networkInfo, _ = network["info"].(map[string]any)
 			networkId = this.SafeString(networkInfo, "network")
 		} else {
@@ -6460,7 +6463,10 @@ func (this *Mexc) createDepositAddressBody(ch chan AsyncResult[DepositAddress], 
 		_, networkUnifiedInNetworks = networks[*networkUnified]
 	}
 	if (networkUnified != nil) && (networkUnifiedInNetworks) {
-		var network map[string]any = SafeMapTyped(networks, networkUnified)
+		var network map[string]any = nil
+		if networkUnified != nil {
+			network, _ = networks[*networkUnified].(map[string]any)
+		}
 		var networkInfo, _ = network["info"].(map[string]any)
 		networkId = this.SafeString(networkInfo, "network")
 	} else {

@@ -665,7 +665,10 @@ func (this *Bitso) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 			"maker": makerFees,
 		}
 		fee["tiers"] = tiers
-		var baseCurrency map[string]any = SafeMapTyped(currencies, base)
+		var baseCurrency map[string]any = nil
+		if base != nil {
+			baseCurrency, _ = currencies[*base].(map[string]any)
+		}
 		result = append(result, this.SafeMarketStructure(this.Extend(map[string]any{
 			"id":             id,
 			"symbol":         *base + "/" + *quote,

@@ -2199,7 +2199,10 @@ func (this *Digifinex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 	var candles []any = nil
 	if *this.SafeBool(market, "swap", false) {
 		var data, _ = response["data"].(map[string]any)
-		candles = this.SafeListSlice(data, "candles", []any{})
+		candles, _ = data["candles"].([]any)
+		if candles == nil {
+			candles = []any{}
+		}
 	} else {
 		candles, _ = response["data"].([]any)
 		if candles == nil {
@@ -3938,7 +3941,10 @@ func (this *Digifinex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optio
 		}
 	} else {
 		var data, _ = response["data"].(map[string]any)
-		ledger = this.SafeListSlice(data, "finance", []any{})
+		ledger, _ = data["finance"].([]any)
+		if ledger == nil {
+			ledger = []any{}
+		}
 	}
 
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(ledger, currency, since, limit))}

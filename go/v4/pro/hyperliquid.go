@@ -1959,7 +1959,11 @@ func (this *Hyperliquid) HandleBalance(client ccxt.ClientInterface, message map[
 		this.HandlePositions(client, message)
 	}
 	for i := 0; i < len(rawBalances); i++ {
-		this.ParseWsBalance(ccxt.DerefScalar(rawBalances[i]), account)
+		rawBalancesDict129333, _ := rawBalances[i].(map[string]any)
+		if rawBalancesDict129333 == nil {
+			rawBalancesDict129333 = map[string]any{}
+		}
+		this.ParseWsBalance(rawBalancesDict129333, account)
 	}
 	if _, ok := this.Balance[account]; !ok {
 		this.Balance[account] = map[string]any{}
@@ -1987,7 +1991,7 @@ func (this *Hyperliquid) HandleBalance(client ccxt.ClientInterface, message map[
 		client.Resolve(this.Balance[account], messageHash)
 	}
 }
-func (this *Hyperliquid) ParseWsBalance(balance any, optionalArgs ...any) {
+func (this *Hyperliquid) ParseWsBalance(balance map[string]any, optionalArgs ...any) {
 	//
 	// spot
 	//     {
@@ -2025,7 +2029,7 @@ func (this *Hyperliquid) ParseWsBalance(balance any, optionalArgs ...any) {
 	if currencyId == nil {
 		codeStr := "USDC"
 		code = &codeStr
-		var marginSummary map[string]any = ccxt.SafeMapTyped(balance, "marginSummary")
+		var marginSummary, _ = balance["marginSummary"].(map[string]any)
 		account["free"] = this.SafeString(balance, "withdrawable")
 		account["used"] = this.SafeString(marginSummary, "totalMarginUsed")
 		account["total"] = this.SafeString(marginSummary, "accountValue")

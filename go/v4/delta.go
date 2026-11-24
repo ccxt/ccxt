@@ -2082,7 +2082,10 @@ func (this *Delta) ParseBalance(response map[string]any) map[string]any {
 	for i := 0; i < len(balances); i++ {
 		var balance, _ = balances[i].(map[string]any)
 		var currencyId *string = this.SafeString(balance, "asset_id")
-		var currency map[string]any = SafeMapTyped(currenciesByNumericId, currencyId)
+		var currency map[string]any = nil
+		if currencyId != nil {
+			currency, _ = currenciesByNumericId[*currencyId].(map[string]any)
+		}
 		var code *string = currencyId
 		if currency != nil {
 			code = this.SafeString(currency, "code")

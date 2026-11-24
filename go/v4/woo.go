@@ -3936,10 +3936,7 @@ func (this *Woo) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var rows any = nil
-	if r.Value != nil {
-		rows = r.Value
-	}
+	var rows []any = r.Value
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
@@ -4150,10 +4147,7 @@ func (this *Woo) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transaction]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var rows any = nil
-	if r.Value != nil {
-		rows = r.Value
-	}
+	var rows []any = r.Value
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)

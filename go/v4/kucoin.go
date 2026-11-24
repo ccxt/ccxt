@@ -9820,7 +9820,10 @@ func (this *Kucoin) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		//     }
 		//
 		var data, _ = response["data"].(map[string]any)
-		trades = this.SafeListSlice(data, "list", []any{})
+		trades, _ = data["list"].([]any)
+		if trades == nil {
+			trades = []any{}
+		}
 	} else if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
 
 		r2 := <-this.PublicGetMarketHistories(this.Extend(request, paramsMarketType))
@@ -9891,7 +9894,7 @@ func (this *Kucoin) ParseTrade(trade any, optionalArgs ...any) Trade {
 		return TradeFromMap(this.ParseContractTrade(trade, marketResolved))
 	}
 }
-func (this *Kucoin) ParseSpotOrUtaTrade(trade any, optionalArgs ...any) any {
+func (this *Kucoin) ParseSpotOrUtaTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	// fetchTrades (public)
 	//
@@ -10041,7 +10044,7 @@ func (this *Kucoin) ParseSpotOrUtaTrade(trade any, optionalArgs ...any) any {
 		"fee":          fee,
 	}, marketResolved))
 }
-func (this *Kucoin) ParseContractTrade(trade any, optionalArgs ...any) any {
+func (this *Kucoin) ParseContractTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	// fetchTrades (public)
 	//
@@ -10184,7 +10187,7 @@ func (this *Kucoin) ParseContractTrade(trade any, optionalArgs ...any) any {
 		"fee":          fee,
 	}, marketResolved))
 }
-func (this *Kucoin) ParseMyUtaTrade(trade any, optionalArgs ...any) any {
+func (this *Kucoin) ParseMyUtaTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "orderId": "426373228194254848",

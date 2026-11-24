@@ -117,8 +117,8 @@ func (this *Interactivebrokers) ibkrConnectBody(ch chan ccxt.AsyncResult[any]) a
 		// wss://api.ibkr.com/v1/api/ws -> wss://localhost:5000/v1/api/ws
 		var gatewayUrl *string = this.SafeString(this.Options, "gatewayUrl")
 		var replacedUrl string = strings.Replace(wsUrl, "wss://", "https://", 1)
-		var restUrl any = this.IbkrGatewayBaseUrl(replacedUrl, gatewayUrl)
-		url = ccxt.Replace(restUrl, "https://", "wss://")
+		var restUrl string = this.IbkrGatewayBaseUrl(replacedUrl, gatewayUrl)
+		url = strings.Replace(restUrl, "https://", "wss://", 1)
 		url = strings.ReplaceAll(url, "http://", "ws://")
 	} else {
 		// this.apiKey (the oauth consumer key) is unset in gateway mode, concatenating it here would crash in python/php

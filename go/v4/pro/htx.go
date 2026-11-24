@@ -1223,7 +1223,7 @@ func (this *Htx) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optio
 		}
 		paramsRequest = this.SafeDict(channelAndMessageHashAndParams, 2, map[string]any{})
 	} else {
-		var channelAndMessageHash []any = ccxt.ArrayTyped(this.GetOrderChannelAndMessageHash(typeVar, subType, market, paramsRequest))
+		var channelAndMessageHash []any = this.GetOrderChannelAndMessageHash(typeVar, subType, market, paramsRequest)
 		if derefPtr := this.SafeString(channelAndMessageHash, 0); derefPtr != nil {
 			channel = *derefPtr
 		} else {
@@ -1434,7 +1434,7 @@ func (this *Htx) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optiona
 		}
 		paramsRequest = this.SafeDict(channelAndMessageHashAndParams, 2, map[string]any{})
 	} else {
-		var channelAndMessageHash []any = ccxt.ArrayTyped(this.GetOrderChannelAndMessageHash(typeVar, subType, market, paramsRequest))
+		var channelAndMessageHash []any = this.GetOrderChannelAndMessageHash(typeVar, subType, market, paramsRequest)
 		if derefPtr := this.SafeString(channelAndMessageHash, 0); derefPtr != nil {
 			channel = *derefPtr
 		} else {
@@ -1952,7 +1952,7 @@ func (this *Htx) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	}
 	return ccxt.OrderToMap(this.SafeOrder(literal154031, marketResolved))
 }
-func (this *Htx) ParseOrderTrade(trade map[string]any, optionalArgs ...any) any {
+func (this *Htx) ParseOrderTrade(trade map[string]any, optionalArgs ...any) map[string]any {
 	// spot private wrapped trade
 	//
 	//     {

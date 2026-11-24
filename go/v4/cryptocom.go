@@ -4651,11 +4651,8 @@ func (this *Cryptocom) Nonce() int64 {
 func (this *Cryptocom) ParamsToString(object any, level int64) any {
 	var maxLevel int = 3
 	var depth int64 = this.ParseToInt(level)
-	if depth >= int64(maxLevel) {
+	if (depth >= int64(maxLevel)) || (IsString(object)) {
 		return ToString(object)
-	}
-	if IsString(object) {
-		return object
 	}
 	var returnString any = ""
 	var paramsKeys any = nil
@@ -4995,16 +4992,16 @@ func (this *Cryptocom) Sign(path string, optionalArgs ...any) map[string]any {
 			"Content-Type": "application/json",
 		}
 	}
-	var literal366615 map[string]any = map[string]any{
+	var literal366315 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal366615["body"] = *requestBody
+		literal366315["body"] = *requestBody
 	}
-	return literal366615
+	return literal366315
 }
 func (this *Cryptocom) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	var errorCode *string = this.SafeString(response, "code")

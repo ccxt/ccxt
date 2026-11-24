@@ -2916,7 +2916,7 @@ func (this *Hyperliquid) initializeClientBody(ch chan ccxt.AsyncResult[bool]) an
 
 	return nil
 }
-func (this *Hyperliquid) HandlePublicAddress(methodName string, params any) (*string, map[string]any) {
+func (this *Hyperliquid) HandlePublicAddress(methodName string, params map[string]any) (*string, map[string]any) {
 	userAux, paramsUser := this.HandleOptionStringAndParams2(params, methodName, "user", "subAccountAddress")
 	user, paramsAddress := this.HandleOptionStringAndParams(paramsUser, methodName, "address", userAux)
 	if (user != nil) && (user == nil || *user != "") {

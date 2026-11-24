@@ -2829,7 +2829,7 @@ func (this *Gate) HandleLiquidation(client ccxt.ClientInterface, message map[str
 		client.Resolve(newLiquidations, "myLiquidations")
 	}
 }
-func (this *Gate) ParseWsLiquidation(liquidation any, optionalArgs ...any) any {
+func (this *Gate) ParseWsLiquidation(liquidation any, optionalArgs ...any) map[string]any {
 	//
 	// future / delivery
 	//    {

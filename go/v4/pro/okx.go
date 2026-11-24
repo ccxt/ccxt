@@ -1535,7 +1535,7 @@ func (this *Okx) HandleMyLiquidation(client ccxt.ClientInterface, message map[st
 		client.Resolve([]any{liquidation}, "myLiquidations::"+symbol)
 	}
 }
-func (this *Okx) ParseWsMyLiquidation(liquidation any, optionalArgs ...any) any {
+func (this *Okx) ParseWsMyLiquidation(liquidation any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "pTime": "1597026383085",
@@ -1586,7 +1586,7 @@ func (this *Okx) ParseWsMyLiquidation(liquidation any, optionalArgs ...any) any 
 		"datetime":     this.Iso8601(timestamp),
 	})
 }
-func (this *Okx) ParseWsLiquidation(liquidation any, optionalArgs ...any) any {
+func (this *Okx) ParseWsLiquidation(liquidation any, optionalArgs ...any) map[string]any {
 	//
 	// public liquidation
 	//    {
@@ -2637,7 +2637,7 @@ func (this *Okx) HandleBalance(client ccxt.ClientInterface, message map[string]a
 	this.Balance, _ = this.SafeBalance(this.Balance).(map[string]any)
 	client.Resolve(this.Balance, channel)
 }
-func (this *Okx) OrderToTrade(order any, optionalArgs ...any) any {
+func (this *Okx) OrderToTrade(order any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var info map[string]any = this.SafeDictMap(order, "info", map[string]any{})

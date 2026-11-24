@@ -1297,7 +1297,7 @@ func (this *Cryptocom) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], o
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Cryptocom) HandleOrders(client ccxt.ClientInterface, message any, optionalArgs ...any) {
+func (this *Cryptocom) HandleOrders(client ccxt.ClientInterface, message map[string]any, optionalArgs ...any) {
 	//
 	//    {
 	//        "method": "subscribe",
@@ -1332,7 +1332,11 @@ func (this *Cryptocom) HandleOrders(client ccxt.ClientInterface, message any, op
 	_ = subscription
 	var channel *string = this.SafeString(message, "channel")
 	var symbolSpecificMessageHash *string = this.SafeString(message, "subscription")
-	var orders []any = this.SafeListSlice(message, "data", []any{})
+	var orders []any
+	orders, _ = message["data"].([]any)
+	if orders == nil {
+		orders = []any{}
+	}
 	var ordersLength int = len(orders)
 	if ordersLength > 0 {
 		if this.Orders == nil {

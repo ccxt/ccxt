@@ -669,7 +669,10 @@ func (this *Bitopro) HandleBalance(client ccxt.ClientInterface, message map[stri
 	}
 	for i := 0; i < len(currencies); i++ {
 		var currency *string = this.SafeString(currencies, i)
-		var balance map[string]any = ccxt.SafeMapTyped(data, currency)
+		var balance map[string]any = nil
+		if currency != nil {
+			balance, _ = data[*currency].(map[string]any)
+		}
 		var currencyId *string = this.SafeString(balance, "currency")
 		var code *string = this.SafeCurrencyCode(currencyId)
 		var account map[string]any = this.Account()

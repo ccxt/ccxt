@@ -7000,7 +7000,7 @@ func (this *Coinbase) fetchPositionBody(ch chan AsyncResult[Position], symbol st
  * @param {string} methodName the name of the calling method
  * @param {object} params the parameters passed to the calling method
  */
-func (this *Coinbase) CheckIntxPortfolioParam(methodName string, params any) {
+func (this *Coinbase) CheckIntxPortfolioParam(methodName string, params map[string]any) {
 	var portfolio *string = this.SafeString(params, "portfolio")
 	if portfolio != nil {
 		panic(NotSupported(this.Id + " " + methodName + "() INTX perpetuals were removed from Coinbase Advanced Trade on 2026-10-01, use the coinbaseinternational exchange class for international perpetuals"))

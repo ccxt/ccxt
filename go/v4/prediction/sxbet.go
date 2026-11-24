@@ -622,9 +622,9 @@ func (this *Sxbet) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEve
 			grouped[*sportXeventId] = []any{}
 			order = append(order, *sportXeventId)
 		}
-		var retRes48812, _ = grouped[*sportXeventId].([]any)
-		retRes48812 = append(retRes48812, raw)
-		grouped[*sportXeventId] = retRes48812
+		var retRes48912, _ = grouped[*sportXeventId].([]any)
+		retRes48912 = append(retRes48912, raw)
+		grouped[*sportXeventId] = retRes48912
 	}
 	if this.Markets == nil {
 		this.Markets = map[string]any{}
@@ -780,7 +780,7 @@ func (this *Sxbet) ParseEvent(fixtureId string, rawMarkets any) map[string]any {
 	} else {
 		eventSlug = this.ShortenSlug(fixtureId)
 	}
-	var literal62415 map[string]any = map[string]any{
+	var literal62515 map[string]any = map[string]any{
 		"id":                fixtureId,
 		"slug":              fixtureId,
 		"event":             eventSlug,
@@ -803,12 +803,12 @@ func (this *Sxbet) ParseEvent(fixtureId string, rawMarkets any) map[string]any {
 		"info":              rawMarkets,
 	}
 	if title != nil {
-		literal62415["title"] = *title
+		literal62515["title"] = *title
 	}
 	if leagueLabel != nil {
-		literal62415["category"] = *leagueLabel
+		literal62515["category"] = *leagueLabel
 	}
-	return literal62415
+	return literal62515
 }
 
 /**
@@ -1872,11 +1872,11 @@ func (this *Sxbet) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOrd
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes136815 []any = ccxt.PredictionOrdersToList(r.Value)
-	if retRes136815 == nil {
+	var retRes136915 []any = ccxt.PredictionOrdersToList(r.Value)
+	if retRes136915 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes136815)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes136915)}
 	}
 	return nil
 }
@@ -2343,7 +2343,7 @@ func (this *Sxbet) ParseSxbetV3Position(raw any) any {
 	var totalStake *string = this.SafeString(raw, "totalStake", "0")
 	var pnl *string = this.SafeString(raw, "pnl")
 	var timestamp *int64 = this.Parse8601(this.SafeString(raw, "betTime"))
-	var literal167044 map[string]any = map[string]any{
+	var literal167144 map[string]any = map[string]any{
 		"outcome":             this.SafeString(outcomeObj, "outcome"),
 		"outcomeId":           this.SafeString(outcomeObj, "outcomeId", outcomeId),
 		"label":               this.SafeString(outcomeObj, "label"),
@@ -2359,11 +2359,11 @@ func (this *Sxbet) ParseSxbetV3Position(raw any) any {
 		"info":                raw,
 	}
 	if pnl != nil {
-		literal167044["realizedPnl"] = this.ParseNumber(ccxt.Precise.StringDiv(pnl, usdcDecimals, 6))
+		literal167144["realizedPnl"] = this.ParseNumber(ccxt.Precise.StringDiv(pnl, usdcDecimals, 6))
 	} else {
-		literal167044["realizedPnl"] = nil
+		literal167144["realizedPnl"] = nil
 	}
-	return this.SafePredictionPosition(literal167044)
+	return this.SafePredictionPosition(literal167144)
 }
 
 /**
@@ -2513,7 +2513,7 @@ func (this *Sxbet) ParseSettlement(trade any, optionalArgs ...any) any {
 			return 0
 		}()
 	}
-	var literal178815 map[string]any = map[string]any{
+	var literal178915 map[string]any = map[string]any{
 		"info":      trade,
 		"id":        this.SafeString(trade, "tradeId"),
 		"timestamp": timestamp,
@@ -2531,9 +2531,9 @@ func (this *Sxbet) ParseSettlement(trade any, optionalArgs ...any) any {
 		"pnl":       this.ParseNumber(pnl),
 	}
 	if resultLabel != nil {
-		literal178815["result"] = *resultLabel
+		literal178915["result"] = *resultLabel
 	}
-	return literal178815
+	return literal178915
 }
 
 /**
@@ -3251,7 +3251,10 @@ func (this *Sxbet) HandleCentrifugoFrame(client ccxt.ClientInterface, msg any) {
 	if pendingRequests == nil {
 		pendingRequests = map[string]any{}
 	}
-	var pendingEntry map[string]any = ccxt.SafeMapTyped(pendingRequests, requestIdString)
+	var pendingEntry map[string]any = nil
+	if requestIdString != nil {
+		pendingEntry, _ = pendingRequests[*requestIdString].(map[string]any)
+	}
 	var errorReply map[string]any = ccxt.SafeMapTyped(msg, "error")
 	if errorReply != nil {
 		// a rejected connect (bad or expired realtime token) or subscribe (unauthorized or

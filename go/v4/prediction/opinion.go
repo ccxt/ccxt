@@ -1348,17 +1348,17 @@ func (this *Opinion) OpinionOrderRawAmounts(isMarket bool, side string, amount a
 		makerAmount = ccxt.Precise.StringMul(k, priceDenom)
 		takerAmount = ccxt.Precise.StringMul(k, priceNum)
 	}
-	var literal99615 map[string]any = map[string]any{
+	var literal99715 map[string]any = map[string]any{
 		"makerAmount": nil,
 		"takerAmount": nil,
 	}
 	if makerAmount != nil {
-		literal99615["makerAmount"] = *makerAmount
+		literal99715["makerAmount"] = *makerAmount
 	}
 	if takerAmount != nil {
-		literal99615["takerAmount"] = *takerAmount
+		literal99715["takerAmount"] = *takerAmount
 	}
-	return literal99615
+	return literal99715
 }
 
 /**
@@ -1825,11 +1825,11 @@ func (this *Opinion) fetchOpenOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes126415 []any = ccxt.PredictionOrdersToList(r.Value)
-	if retRes126415 == nil {
+	var retRes126515 []any = ccxt.PredictionOrdersToList(r.Value)
+	if retRes126515 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes126415)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes126515)}
 	}
 	return nil
 }
@@ -1870,11 +1870,11 @@ func (this *Opinion) fetchClosedOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes128115 []any = ccxt.PredictionOrdersToList(r.Value)
-	if retRes128115 == nil {
+	var retRes128215 []any = ccxt.PredictionOrdersToList(r.Value)
+	if retRes128215 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes128115)}
+		ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(retRes128215)}
 	}
 	return nil
 }

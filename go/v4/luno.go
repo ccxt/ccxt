@@ -1996,7 +1996,10 @@ func (this *Luno) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 		}
 		currency = this.Currency(code)
 		var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "currency")
-		var account map[string]any = SafeMapTyped(accountsByCurrencyCode, code)
+		var account map[string]any = nil
+		if code != nil {
+			account, _ = accountsByCurrencyCode[*code].(map[string]any)
+		}
 		if account == nil {
 			panic(ExchangeError(this.Id + " fetchLedger() could not find account id for " + *code))
 		}

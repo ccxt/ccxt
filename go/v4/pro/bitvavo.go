@@ -223,10 +223,7 @@ func (this *Bitvavo) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tickers any = nil
-	if r1.Value != nil {
-		tickers = r1.Value
-	}
+	var tickers []any = r1.Value
 
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(this.FilterByArray(tickers, "symbol", symbolsNormalized))}
 	return nil
@@ -313,10 +310,7 @@ func (this *Bitvavo) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var tickers any = nil
-	if r1.Value != nil {
-		tickers = r1.Value
-	}
+	var tickers []any = r1.Value
 
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: ccxt.TickerMapFromMap(this.FilterByArray(tickers, "symbol", symbolsNormalized))}
 	return nil

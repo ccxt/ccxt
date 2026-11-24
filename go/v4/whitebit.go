@@ -1024,8 +1024,14 @@ func (this *Whitebit) ParseCurrency(rawCurrency any) map[string]any {
 	for j := 0; j < len(allNetworks); j++ {
 		var networkId *string = this.SafeString(allNetworks, j, "")
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
-		var networkDepositLimits map[string]any = SafeMapTyped(depositLimits, networkId)
-		var networkWithdrawLimits map[string]any = SafeMapTyped(withdrawLimits, networkId)
+		var networkDepositLimits map[string]any = nil
+		if networkId != nil {
+			networkDepositLimits, _ = depositLimits[*networkId].(map[string]any)
+		}
+		var networkWithdrawLimits map[string]any = nil
+		if networkId != nil {
+			networkWithdrawLimits, _ = withdrawLimits[*networkId].(map[string]any)
+		}
 		if networkCode != nil {
 			networks[*networkCode] = map[string]any{
 				"id":        networkId,

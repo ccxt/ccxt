@@ -2942,7 +2942,10 @@ func (this *Extended) GetExtendedCurrencyCodeById(assetId *string, optionalArgs 
 		return this.SafeString(currency, "code")
 	}
 	var currenciesByNumericId, _ = this.Options["currenciesByNumericId"].(map[string]any)
-	var currencyByNumericId map[string]any = SafeMapTyped(currenciesByNumericId, assetId)
+	var currencyByNumericId map[string]any = nil
+	if assetId != nil {
+		currencyByNumericId, _ = currenciesByNumericId[*assetId].(map[string]any)
+	}
 	if currencyByNumericId != nil {
 		return this.SafeString(currencyByNumericId, "code")
 	}

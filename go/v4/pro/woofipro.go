@@ -1256,7 +1256,11 @@ func (this *Woofipro) HandleOrderUpdate(client ccxt.ClientInterface, message map
 				}
 				this.HandleMyTrade(client, dataListDict93048)
 			}
-			this.HandleOrder(client, this.SafeDict(dataList, i, map[string]any{}), topic)
+			dataListDict93242, _ := dataList[i].(map[string]any)
+			if dataListDict93242 == nil {
+				dataListDict93242 = map[string]any{}
+			}
+			this.HandleOrder(client, dataListDict93242, topic)
 		}
 	} else {
 		var data map[string]any
@@ -1272,7 +1276,7 @@ func (this *Woofipro) HandleOrderUpdate(client ccxt.ClientInterface, message map
 		this.HandleOrder(client, data, topic)
 	}
 }
-func (this *Woofipro) HandleOrder(client ccxt.ClientInterface, message any, topic string) {
+func (this *Woofipro) HandleOrder(client ccxt.ClientInterface, message map[string]any, topic string) {
 	var parsed map[string]any = this.ParseWsOrder(message)
 	var symbol *string = this.SafeString(parsed, "symbol")
 	var orderId *string = this.SafeString(parsed, "id")

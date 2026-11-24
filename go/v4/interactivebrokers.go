@@ -2417,7 +2417,7 @@ func (this *Interactivebrokers) fetchFuturesAndSwapMarketsBody(ch chan AsyncResu
 	var allowedVenues []string = []string{"CME", "CFE", "COINDERIV"}
 	var detailMarkets []any = []any{}
 	for i := 0; i < len(details); i++ {
-		var venue *string = this.SafeString(GetValue(details, i), "listingExchange")
+		var venue *string = this.SafeString(details[i], "listingExchange")
 		if this.InArray(venue, allowedVenues) {
 			detailMarkets = append(detailMarkets, this.SafeDict(details, i))
 		}
@@ -2498,7 +2498,7 @@ func (this *Interactivebrokers) fetchCfdMarketsBody(ch chan AsyncResult[any], op
 	for i := 0; i < len(cfdExchanges); i++ {
 		var cfdExchange string = *this.SafeString(cfdExchanges, i, "")
 		for j := 0; j < detailMarketsLength; j++ {
-			var listingExchange string = *this.SafeString(GetValue(detailMarkets, j), "listingExchange", "")
+			var listingExchange string = *this.SafeString(detailMarkets[j], "listingExchange", "")
 			if listingExchange == cfdExchange {
 				result = append(result, this.SafeDict(detailMarkets, j))
 			}
@@ -5796,15 +5796,15 @@ func (this *Interactivebrokers) IbkrPathParams(path string) []any {
  * @param {string} gatewayUrl options.gatewayUrl
  * @returns {string} the gateway base url
  */
-func (this *Interactivebrokers) IbkrGatewayBaseUrl(baseUrl any, gatewayUrl *string) any {
+func (this *Interactivebrokers) IbkrGatewayBaseUrl(baseUrl string, gatewayUrl *string) string {
 	var gateway *string = gatewayUrl
 	if !strings.HasSuffix(*gateway, "/") {
 		gatewayStr := *gateway + "/"
 		gateway = &gatewayStr
 	}
 	var prefix string = "https://api.ibkr.com/"
-	if StartsWith(baseUrl, prefix) {
-		var path string = Replace(baseUrl, prefix, "")
+	if strings.HasPrefix(baseUrl, prefix) {
+		var path string = strings.Replace(baseUrl, prefix, "", 1)
 		return *gateway + path
 	}
 	return baseUrl
@@ -5860,7 +5860,7 @@ func (this *Interactivebrokers) Sign(path string, optionalArgs ...any) map[strin
 	var apiBase string = api[0]
 	var apiUrl string = *this.SafeString(this.Urls["api"], apiBase, "")
 	var baseUrl string = apiUrl + implodedPath
-	var url any = baseUrl
+	var url string = baseUrl
 	var query any = this.Omit(params, this.IbkrPathParams(path))
 	queryMap, _ := query.(map[string]any)
 	var hasQuery bool = (len(queryMap) > 0)
@@ -5871,10 +5871,10 @@ func (this *Interactivebrokers) Sign(path string, optionalArgs ...any) map[strin
 	if this.IbkrIsGatewayRequest(path) {
 		// the client portal gateway holds the authenticated session, requests are sent unsigned
 		var gatewayUrl *string = this.SafeString(this.Options, "gatewayUrl")
-		url = Add(this.IbkrGatewayBaseUrl(apiUrl, gatewayUrl), implodedPath)
+		url = this.IbkrGatewayBaseUrl(apiUrl, gatewayUrl) + implodedPath
 		if isGetOrDelete {
 			if hasQuery {
-				url = Add(url, "?"+this.Urlencode(query))
+				url += "?" + this.Urlencode(query)
 			}
 		} else {
 			// the gateway rejects bodiless POST/PUT requests with http 411 (Length Required)
@@ -5921,7 +5921,7 @@ func (this *Interactivebrokers) Sign(path string, optionalArgs ...any) map[strin
 		var signingParams map[string]any = oauthParams
 		if isGetOrDelete {
 			if hasQuery {
-				url = Add(url, "?"+this.Urlencode(query))
+				url += "?" + this.Urlencode(query)
 				// the query-string params are part of the signature base string too
 				signingParams = this.Extend(oauthParams, query)
 			}

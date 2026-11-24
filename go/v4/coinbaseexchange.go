@@ -2675,7 +2675,10 @@ func (this *Coinbaseexchange) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry]
 	}
 	var currency map[string]any = this.Currency(code)
 	var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "code")
-	var account map[string]any = SafeMapTyped(accountsByCurrencyCode, code)
+	var account map[string]any = nil
+	if code != nil {
+		account, _ = accountsByCurrencyCode[*code].(map[string]any)
+	}
 	if account == nil {
 		panic(ExchangeError(this.Id + " fetchLedger() could not find account id for " + *code))
 	}
@@ -2758,7 +2761,10 @@ func (this *Coinbaseexchange) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[
 		if code != nil {
 			currency = this.Currency(code)
 			var accountsByCurrencyCode map[string]any = this.IndexBy(this.Accounts, "code")
-			var account map[string]any = SafeMapTyped(accountsByCurrencyCode, code)
+			var account map[string]any = nil
+			if code != nil {
+				account, _ = accountsByCurrencyCode[*code].(map[string]any)
+			}
 			if account == nil {
 				panic(ExchangeError(this.Id + " fetchDepositsWithdrawals() could not find account id for " + *code))
 			}
@@ -3090,7 +3096,10 @@ func (this *Coinbaseexchange) createDepositAddressBody(ch chan AsyncResult[Depos
 	}
 	var currencyId *string = currency.Id
 	var accountsByCurrencyId, _ = this.Options["coinbaseAccountsByCurrencyId"].(map[string]any)
-	var account map[string]any = SafeMapTyped(accountsByCurrencyId, currencyId)
+	var account map[string]any = nil
+	if currencyId != nil {
+		account, _ = accountsByCurrencyId[*currencyId].(map[string]any)
+	}
 	if account == nil {
 		panic(InvalidAddress(this.Id + " createDepositAddress() could not find currency code " + code + " with id = " + *currencyId + " in this.options['coinbaseAccountsByCurrencyId']"))
 	}

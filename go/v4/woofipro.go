@@ -1126,7 +1126,10 @@ func (this *Woofipro) ParseCurrency(rawCurrency any) map[string]any {
 	for j := 0; j < len(networks); j++ {
 		var networkEntry map[string]any = networks[j]
 		var networkId *string = this.SafeString(networkEntry, "chain_id")
-		var networkRow map[string]any = SafeMapTyped(indexedChains, networkId)
+		var networkRow map[string]any = nil
+		if networkId != nil {
+			networkRow, _ = indexedChains[*networkId].(map[string]any)
+		}
 		var networkName *string = this.SafeString(networkRow, "name", networkId)
 		var networkCode *string = this.NetworkIdToCode(networkName, code)
 		if networkCode != nil {
@@ -4041,10 +4044,7 @@ func (this *Woofipro) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var rows any = nil
-	if r.Value != nil {
-		rows = r.Value
-	}
+	var rows []any = r.Value
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
@@ -4222,10 +4222,7 @@ func (this *Woofipro) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transac
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var rows any = nil
-	if r.Value != nil {
-		rows = r.Value
-	}
+	var rows []any = r.Value
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
@@ -4328,7 +4325,10 @@ func (this *Woofipro) withdrawBody(ch chan AsyncResult[Transaction], code string
 	var verifyingContractAddress *string = this.SafeString(this.Options, "verifyingContractAddress")
 	var chainId *string = this.SafeString(params, "chainId")
 	var currencyNetworks, _ = currency["networks"].(map[string]any)
-	var coinNetwork map[string]any = SafeMapTyped(currencyNetworks, chainId)
+	var coinNetwork map[string]any = nil
+	if chainId != nil {
+		coinNetwork, _ = currencyNetworks[*chainId].(map[string]any)
+	}
 	var coinNetworkId *float64 = this.SafeNumber(coinNetwork, "id")
 	if coinNetworkId == nil {
 		panic(BadRequest(this.Id + " withdraw() require chainId parameter"))

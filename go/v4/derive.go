@@ -3280,10 +3280,7 @@ func (this *Derive) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var allOrders any = nil
-		if r1.Value != nil {
-			allOrders = r1.Value
-		}
+		var allOrders []any = r1.Value
 
 		ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySymbolSinceLimit(allOrders, symbol, since, limit))}
 		return nil
@@ -5590,7 +5587,7 @@ func (this *Derive) HandleDeriveSubaccountId(methodName string, params any) (int
 	}
 	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID."))
 }
-func (this *Derive) HandleDeriveWalletAddress(methodName string, params any) (*string, map[string]any) {
+func (this *Derive) HandleDeriveWalletAddress(methodName string, params map[string]any) (*string, map[string]any) {
 	deriveWalletAddress, paramsDeriveWalletAddress := this.HandleOptionStringAndParams(params, methodName, "deriveWalletAddress")
 	if (deriveWalletAddress != nil) && (deriveWalletAddress == nil || *deriveWalletAddress != "") {
 		this.Options["deriveWalletAddress"] = deriveWalletAddress

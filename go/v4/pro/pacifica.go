@@ -1958,7 +1958,7 @@ func (this *Pacifica) HandleOrderBookUnsubscription(client ccxt.ClientInterface,
 		}
 	}
 }
-func (this *Pacifica) HandleTradesUnsubscription(client ccxt.ClientInterface, subscription any) {
+func (this *Pacifica) HandleTradesUnsubscription(client ccxt.ClientInterface, subscription map[string]any) {
 	var marketId *string = this.SafeString2(subscription, "symbol", "s")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
 	var symbol *string
@@ -1974,7 +1974,7 @@ func (this *Pacifica) HandleTradesUnsubscription(client ccxt.ClientInterface, su
 		}
 	}
 }
-func (this *Pacifica) HandleTickersUnsubscription(client ccxt.ClientInterface, subscription any) {
+func (this *Pacifica) HandleTickersUnsubscription(client ccxt.ClientInterface, subscription map[string]any) {
 	var subMessageHash string = "tickers"
 	var messageHash string = "unsubscribe:" + subMessageHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
@@ -1983,7 +1983,7 @@ func (this *Pacifica) HandleTickersUnsubscription(client ccxt.ClientInterface, s
 		delete(this.Tickers, symbols[i])
 	}
 }
-func (this *Pacifica) HandleOHLCVUnsubscription(client ccxt.ClientInterface, subscription any) {
+func (this *Pacifica) HandleOHLCVUnsubscription(client ccxt.ClientInterface, subscription map[string]any) {
 	var marketId *string = this.SafeString2(subscription, "symbol", "s")
 	var market ccxt.MarketInterface = ccxt.MarketInterfaceFromMap(this.SafeMarket(marketId))
 	var symbol *string
@@ -2006,7 +2006,7 @@ func (this *Pacifica) HandleOHLCVUnsubscription(client ccxt.ClientInterface, sub
 		}
 	}
 }
-func (this *Pacifica) HandleOrderUnsubscription(client ccxt.ClientInterface, subscription any) {
+func (this *Pacifica) HandleOrderUnsubscription(client ccxt.ClientInterface, subscription map[string]any) {
 	var subHash string = "order"
 	var unSubHash string = "unsubscribe:" + subHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, true)
@@ -2015,7 +2015,7 @@ func (this *Pacifica) HandleOrderUnsubscription(client ccxt.ClientInterface, sub
 	}
 	this.CleanCache(topicStructure)
 }
-func (this *Pacifica) HandleMyTradesUnsubscription(client ccxt.ClientInterface, subscription any) {
+func (this *Pacifica) HandleMyTradesUnsubscription(client ccxt.ClientInterface, subscription map[string]any) {
 	var subHash string = "myTrades"
 	var unSubHash string = "unsubscribe:" + subHash
 	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unSubHash, true)

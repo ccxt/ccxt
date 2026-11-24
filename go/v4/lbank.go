@@ -3064,7 +3064,7 @@ func (this *Lbank) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data))}
 	return nil
 }
-func (this *Lbank) GetNetworkCodeForCurrency(currencyCode string, params any) *string {
+func (this *Lbank) GetNetworkCodeForCurrency(currencyCode string, params map[string]any) *string {
 	var defaultNetworks, _ = this.Options["defaultNetworks"].(map[string]any)
 	var defaultNetwork *string = this.SafeStringUpper(defaultNetworks, currencyCode)
 	var networks, _ = this.Options["networks"].(map[string]any)

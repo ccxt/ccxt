@@ -1432,10 +1432,7 @@ func (this *Bitstamp) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var response any = nil
-	if r.Value != nil {
-		response = MapSliceToList(r.Value)
-	}
+	var response []any = MapSliceToList(r.Value)
 
 	//
 	//     [

@@ -2358,7 +2358,7 @@ func (this *Pacifica) CreateOrdersRequest(orders []map[string]any, optionalArgs 
 		if typeVar == nil || *typeVar != "limit" {
 			panic(NotSupported(this.Id + " createOrders() supports only type = \"limit\"! Your value type=" + *typeVar))
 		}
-		var requestList []any = ArrayTyped(this.CreateOrderRequest(symbol, *typeVar, side, amountNumber, priceNumber, orderParams))
+		var requestList []any = this.CreateOrderRequest(symbol, *typeVar, side, amountNumber, priceNumber, orderParams)
 		var action map[string]any = map[string]any{
 			"type": "Create",
 			"data": requestList[0],
@@ -5341,7 +5341,7 @@ func (this *Pacifica) SignMessage(header map[string]any, payload map[string]any,
 	var signatureBase58 string = this.BinaryToBase58(signatureBinary)
 	return signatureBase58
 }
-func (this *Pacifica) PostActionRequest(operationType string, sigPayload map[string]any, params any) map[string]any {
+func (this *Pacifica) PostActionRequest(operationType string, sigPayload map[string]any, params map[string]any) map[string]any {
 	this.CheckRequiredCredentials() // check credentials every post action
 	if operationType == "undefined" {
 		panic(ArgumentsRequired(this.Id + " action: " + operationType + " postActionRequest() requires \"operationType\""))

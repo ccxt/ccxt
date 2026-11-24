@@ -3601,7 +3601,10 @@ func (this *Bithumb) ParseTransactionStatusByType(status *string, optionalArgs .
 			"CANCELLED":  "canceled",
 		},
 	}
-	var statuses map[string]any = SafeMapTyped(statusesByType, typeVar)
+	var statuses map[string]any = nil
+	if typeVar != nil {
+		statuses, _ = statusesByType[*typeVar].(map[string]any)
+	}
 	return this.SafeString(statuses, status, status)
 }
 

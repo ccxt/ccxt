@@ -3015,7 +3015,10 @@ func (this *Blofin) NetworkCodeToChainId(networkCode string, optionalArgs ...any
 	// loaded, since some ids are currency-specific (USDT on Optimism)
 	if currency != nil {
 		var currencyNetworks, _ = currency["networks"].(map[string]any)
-		var currencyNetwork map[string]any = SafeMapTyped(currencyNetworks, unifiedCode)
+		var currencyNetwork map[string]any = nil
+		if unifiedCode != nil {
+			currencyNetwork, _ = currencyNetworks[*unifiedCode].(map[string]any)
+		}
 		var currencyNetworkId *string = this.SafeString(currencyNetwork, "id")
 		if currencyNetworkId != nil {
 			return currencyNetworkId
@@ -3391,7 +3394,10 @@ func (this *Blofin) ParseDepositWithdrawFee(fee any, optionalArgs ...any) map[st
 		}
 		var onlyNetwork *string = this.SafeString(networkKeys, 0)
 		if onlyNetwork != nil {
-			var networkResolved map[string]any = SafeMapTyped(networks, onlyNetwork)
+			var networkResolved map[string]any = nil
+			if onlyNetwork != nil {
+				networkResolved, _ = networks[*onlyNetwork].(map[string]any)
+			}
 			result["withdraw"] = networkResolved["withdraw"]
 		}
 	}

@@ -3987,10 +3987,7 @@ func (this *Modetrade) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var rows any = nil
-	if r.Value != nil {
-		rows = r.Value
-	}
+	var rows []any = r.Value
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)
@@ -4193,10 +4190,7 @@ func (this *Modetrade) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transa
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var rows any = nil
-	if r.Value != nil {
-		rows = r.Value
-	}
+	var rows []any = r.Value
 	var currency map[string]any = nil
 	if code != nil {
 		currency = this.Currency(code)

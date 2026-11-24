@@ -702,7 +702,10 @@ func (this *Bigone) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	if 0 < len(promisesResult) {
 		response, _ = promisesResult[0].(map[string]any)
 	}
-	var contractResponse any = this.SafeValue(promisesResult, 1)
+	var contractMarkets []any
+	if 1 < len(promisesResult) {
+		contractMarkets, _ = promisesResult[1].([]any)
+	}
 	//
 	//     {
 	//         "code":0,
@@ -820,7 +823,6 @@ func (this *Bigone) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 			"info":    market,
 		}))
 	}
-	var contractMarkets []any = this.ToArray(contractResponse)
 	for i := 0; i < len(contractMarkets); i++ {
 		var market any = contractMarkets[i]
 		var baseId *string = this.SafeString(market, "baseCurrency")
@@ -834,7 +836,7 @@ func (this *Bigone) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 		}
 		var settle *string = this.SafeCurrencyCode(settleId)
 		var inverse *bool = this.SafeBool(market, "isInverse")
-		var literal75251 map[string]any = map[string]any{
+		var literal75151 map[string]any = map[string]any{
 			"id":             marketId,
 			"symbol":         nil,
 			"base":           base,
@@ -883,9 +885,9 @@ func (this *Bigone) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 			"info": market,
 		}
 		if base != nil && quote != nil && settle != nil {
-			literal75251["symbol"] = *base + "/" + *quote + ":" + *settle
+			literal75151["symbol"] = *base + "/" + *quote + ":" + *settle
 		}
-		result = append(result, this.SafeMarketStructure(literal75251))
+		result = append(result, this.SafeMarketStructure(literal75151))
 	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
@@ -1847,7 +1849,7 @@ func (this *Bigone) ParseOrder(order map[string]any, optionalArgs ...any) Order 
 		amount = this.SafeString(order, "amount")
 		filled = this.SafeString(order, "filled_amount")
 	}
-	var literal154431 map[string]any = map[string]any{
+	var literal154331 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      this.SafeString(order, "client_order_id"),
@@ -1871,15 +1873,15 @@ func (this *Bigone) ParseOrder(order map[string]any, optionalArgs ...any) Order 
 		"trades":             nil,
 	}
 	if amount != nil {
-		literal154431["amount"] = *amount
+		literal154331["amount"] = *amount
 	}
 	if cost != nil {
-		literal154431["cost"] = *cost
+		literal154331["cost"] = *cost
 	}
 	if filled != nil {
-		literal154431["filled"] = *filled
+		literal154331["filled"] = *filled
 	}
-	return this.SafeOrder(literal154431, market)
+	return this.SafeOrder(literal154331, market)
 }
 
 /**
@@ -2477,11 +2479,11 @@ func (this *Bigone) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes195515 []any = OrdersToList(r.Value)
-	if retRes195515 == nil {
+	var retRes195415 []any = OrdersToList(r.Value)
+	if retRes195415 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes195515)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes195415)}
 	}
 	return nil
 }
@@ -2521,11 +2523,11 @@ func (this *Bigone) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes197315 []any = OrdersToList(r.Value)
-	if retRes197315 == nil {
+	var retRes197215 []any = OrdersToList(r.Value)
+	if retRes197215 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes197315)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes197215)}
 	}
 	return nil
 }

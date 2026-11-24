@@ -1438,19 +1438,19 @@ func (this *Mudrex) fetchOrdersByStateBody(ch chan AsyncResult[[]Order], state s
 		}
 		response = r2.Value
 	}
-	var data any = this.SafeValue(response, "data", []any{})
-	var rows []any = this.ToArray(data)
+	var rows []any
+	rows, _ = response["data"].([]any)
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
 	var orders []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		rowsDict97742, _ := rows[i].(map[string]any)
-		if rowsDict97742 == nil {
-			rowsDict97742 = map[string]any{}
+		rowsDict97642, _ := rows[i].(map[string]any)
+		if rowsDict97642 == nil {
+			rowsDict97642 = map[string]any{}
 		}
-		orders = append(orders, OrderToMap(this.ParseOrder(rowsDict97742, market)))
+		orders = append(orders, OrderToMap(this.ParseOrder(rowsDict97642, market)))
 	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbol, since, limit))}
@@ -1489,11 +1489,11 @@ func (this *Mudrex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes99415 []any = OrdersToList(r.Value)
-	if retRes99415 == nil {
+	var retRes99315 []any = OrdersToList(r.Value)
+	if retRes99315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes99415)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes99315)}
 	}
 	return nil
 }
@@ -1530,11 +1530,11 @@ func (this *Mudrex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes100915 []any = OrdersToList(r.Value)
-	if retRes100915 == nil {
+	var retRes100815 []any = OrdersToList(r.Value)
+	if retRes100815 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes100915)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes100815)}
 	}
 	return nil
 }
@@ -1571,11 +1571,11 @@ func (this *Mudrex) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes102415 []any = OrdersToList(r.Value)
-	if retRes102415 == nil {
+	var retRes102315 []any = OrdersToList(r.Value)
+	if retRes102315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes102415)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes102315)}
 	}
 	return nil
 }
@@ -1616,22 +1616,17 @@ func (this *Mudrex) fetchPositionsBody(ch chan AsyncResult[[]Position], optional
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data any = this.SafeValue(response, "data", []any{})
-	if data == nil {
-
-		ch <- AsyncResult[[]Position]{Value: PositionsFromList([]any{})}
-		return nil
-	}
-	var rows []any = this.ToArray(data)
+	var rows []any
+	rows, _ = response["data"].([]any)
 	var outPos []any = []any{}
 	for i := 0; i < len(rows); i++ {
 		var symRaw *string = this.SafeString(rows[i], "symbol")
 		var m map[string]any = this.SafeMarket(symRaw)
-		rowsDict105244, _ := rows[i].(map[string]any)
-		if rowsDict105244 == nil {
-			rowsDict105244 = map[string]any{}
+		rowsDict104744, _ := rows[i].(map[string]any)
+		if rowsDict104744 == nil {
+			rowsDict104744 = map[string]any{}
 		}
-		var pos map[string]any = PositionToMap(this.ParsePosition(rowsDict105244, m))
+		var pos map[string]any = PositionToMap(this.ParsePosition(rowsDict104744, m))
 		outPos = append(outPos, pos)
 	}
 

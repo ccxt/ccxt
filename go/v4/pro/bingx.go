@@ -1059,7 +1059,10 @@ func (this *Bingx) HandleOHLCV(client ccxt.ClientInterface, message map[string]a
 		if *this.SafeBool(market, "inverse", false) {
 			candles = []any{this.SafeDict(message, "data", map[string]any{})}
 		} else {
-			candles = this.SafeListSlice(message, "data", []any{})
+			candles, _ = message["data"].([]any)
+			if candles == nil {
+				candles = []any{}
+			}
 		}
 	} else {
 		var data, _ = message["data"].(map[string]any)

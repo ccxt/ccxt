@@ -2576,7 +2576,7 @@ func (this *BaseExchange) SetMarkets(markets any, optionalArgs ...any) any {
 }
 func (this *BaseExchange) SetMarketsFromExchange(sourceExchange *BaseExchange) any {
 	// Validate that both exchanges are of the same type
-	if !IsEqual(this.Id, sourceExchange.Id) {
+	if this.Id != sourceExchange.Id {
 		panic(ArgumentsRequired(Add(Add(this.Id+" shareMarkets() can only share markets with exchanges of the same type (got ", GetValue(sourceExchange, "id")), ")")))
 	}
 	// Validate that source exchange has loaded markets
@@ -6770,7 +6770,10 @@ func (this *BaseExchange) CurrencyToPrecision(code any, fee any, optionalArgs ..
 	var precision any = this.SafeValue(currency, "precision")
 	if networkCode != nil {
 		var networks, _ = currency["networks"].(map[string]any)
-		var networkItem map[string]any = SafeMapTyped(networks, networkCode)
+		var networkItem map[string]any = nil
+		if networkCode != nil {
+			networkItem, _ = networks[*networkCode].(map[string]any)
+		}
 		precision = this.SafeValue(networkItem, "precision", precision)
 	}
 	if precision == nil {

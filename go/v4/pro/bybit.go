@@ -264,8 +264,8 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan ccxt.AsyncResult[string], opti
 	ch <- ccxt.AsyncResult[string]{Value: urlResolved}
 	return nil
 }
-func (this *Bybit) CleanParams(params any) any {
-	var paramsOmitted any = this.Omit(params, []any{"type", "subType", "settle", "defaultSettle", "unifiedMargin"})
+func (this *Bybit) CleanParams(params map[string]any) any {
+	var paramsOmitted map[string]any = this.OmitDict(params, []any{"type", "subType", "settle", "defaultSettle", "unifiedMargin"})
 	return paramsOmitted
 }
 
@@ -3331,10 +3331,17 @@ func (this *Bybit) HandleBalance(client ccxt.ClientInterface, message map[string
 			account = this.SafeStringLower(result, "accountType")
 			rawBalances = this.ArrayConcat(rawBalances, this.SafeList(result, "coin", []any{}))
 		}
-		info = this.SafeListSlice(message, "data", []any{})
+		info, _ = message["data"].([]any)
+		if info == nil {
+			info = []any{}
+		}
 	}
 	for i := 0; i < len(rawBalances); i++ {
-		this.ParseWsBalance(ccxt.DerefScalar(rawBalances[i]), account)
+		rawBalancesDict236733, _ := rawBalances[i].(map[string]any)
+		if rawBalancesDict236733 == nil {
+			rawBalancesDict236733 = map[string]any{}
+		}
+		this.ParseWsBalance(rawBalancesDict236733, account)
 	}
 	if account != nil {
 		if this.SafeDictMap(this.Balance, account) == nil {
@@ -3376,7 +3383,7 @@ func (this *Bybit) HandleBalance(client ccxt.ClientInterface, message map[string
 		client.Resolve(this.Balance, messageHash)
 	}
 }
-func (this *Bybit) ParseWsBalance(balance any, optionalArgs ...any) {
+func (this *Bybit) ParseWsBalance(balance map[string]any, optionalArgs ...any) {
 	//
 	// spot
 	//    {

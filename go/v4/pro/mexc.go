@@ -145,7 +145,7 @@ func (this *Mexc) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symbol 
 		return nil
 	}
 }
-func (this *Mexc) HandleTicker(client ccxt.ClientInterface, message any) {
+func (this *Mexc) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// swap
 	//
@@ -560,7 +560,7 @@ func (this *Mexc) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Tic
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Bidsasks, symbolsNormalized)}
 	return nil
 }
-func (this *Mexc) HandleBidAsk(client ccxt.ClientInterface, message any) {
+func (this *Mexc) HandleBidAsk(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// protobuf
 	//
@@ -599,7 +599,7 @@ func (this *Mexc) HandleBidAsk(client ccxt.ClientInterface, message any) {
 	var messageHash string = "bidask:" + *symbol
 	client.Resolve(parsedTicker, messageHash)
 }
-func (this *Mexc) ParseWsBidAsk(ticker any, optionalArgs ...any) map[string]any {
+func (this *Mexc) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var data any = this.SafeDictN(ticker, []any{"d", "data", "publicAggreBookTicker"})
@@ -815,7 +815,7 @@ func (this *Mexc) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
 	return nil
 }
-func (this *Mexc) HandleOHLCV(client ccxt.ClientInterface, message any) {
+func (this *Mexc) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// spot
 	//
@@ -883,11 +883,15 @@ func (this *Mexc) HandleOHLCV(client ccxt.ClientInterface, message any) {
 	var parsed any = nil
 	var market map[string]any = nil
 	var timeframe *string = nil
-	if ccxt.InOp(message, "publicSpotKline") {
+	if _, ok := message["publicSpotKline"]; ok {
 		market = this.SafeMarket(this.Symbol(this.SafeString(message, "symbol")))
-		var data map[string]any = this.SafeDictMap(message, "publicSpotKline", map[string]any{})
+		var data map[string]any
+		data, _ = message["publicSpotKline"].(map[string]any)
+		if data == nil {
+			data = map[string]any{}
+		}
 		var timeframeId *string = this.SafeString(data, "interval")
-		timeframe = this.FindTimeframe(timeframeId, this.Options["timeframes"])
+		timeframe = this.FindTimeframe(timeframeId, this.SafeDict(this.Options, "timeframes"))
 		parsed = ccxt.OHLCVToList(this.ParseWsOHLCV(data, market))
 	} else {
 		var d map[string]any = ccxt.SafeDict2Typed(message, "d", "data", map[string]any{})
@@ -1089,7 +1093,7 @@ func (this *Mexc) GetCacheIndex(orderbook map[string]any, cache []any) int64 {
 	}
 	return int64(len(cache))
 }
-func (this *Mexc) HandleOrderBook(client ccxt.ClientInterface, message any) {
+func (this *Mexc) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// spot
 	//    {
@@ -1313,7 +1317,7 @@ func (this *Mexc) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Mexc) HandleTrades(client ccxt.ClientInterface, message any) {
+func (this *Mexc) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	// protobuf
 	// {
 	// "channel": "spot@public.aggre.deals.v3.api.pb@100ms@BTCUSDT",
@@ -1467,7 +1471,7 @@ func (this *Mexc) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opti
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Mexc) HandleMyTrade(client ccxt.ClientInterface, message any, optionalArgs ...any) {
+func (this *Mexc) HandleMyTrade(client ccxt.ClientInterface, message map[string]any, optionalArgs ...any) {
 	//
 	//    {
 	//        "c": "spot@private.deals.v3.api",
@@ -1698,7 +1702,7 @@ func (this *Mexc) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], option
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Mexc) HandleOrder(client ccxt.ClientInterface, message any) {
+func (this *Mexc) HandleOrder(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// spot
 	//    {
@@ -2001,7 +2005,7 @@ func (this *Mexc) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opti
 		return nil
 	}
 }
-func (this *Mexc) HandleBalance(client ccxt.ClientInterface, message any) {
+func (this *Mexc) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// spot
 	//
@@ -2756,7 +2760,7 @@ func (this *Mexc) HandleSubscriptionStatus(client ccxt.ClientInterface, message 
 		}
 	}
 }
-func (this *Mexc) HandleProtobufMessage(client ccxt.ClientInterface, message any) bool {
+func (this *Mexc) HandleProtobufMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	// protobuf message decoded
 	//  {
 	//    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",
@@ -2802,7 +2806,7 @@ func (this *Mexc) HandleTextMessage(client ccxt.ClientInterface, message string)
 	}
 }
 func (this *Mexc) HandleBinaryMessage(client ccxt.ClientInterface, message any) {
-	var decodedMessage any = this.DecodeProtoMsg(message)
+	var decodedMessage map[string]any = this.DecodeProtoMsg(message)
 	this.HandleProtobufMessage(client, decodedMessage)
 }
 func (this *Mexc) HandleMessage(client ccxt.ClientInterface, message map[string]any) {

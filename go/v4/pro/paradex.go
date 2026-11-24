@@ -1025,7 +1025,7 @@ func (this *Paradex) watchLiquidationsBody(ch chan ccxt.AsyncResult[[]ccxt.Liqui
 	ch <- ccxt.AsyncResult[[]ccxt.Liquidation]{Value: ccxt.LiquidationsFromList(this.FilterBySinceLimit(liquidations, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Paradex) ParseWsLiquidation(liquidation map[string]any, optionalArgs ...any) any {
+func (this *Paradex) ParseWsLiquidation(liquidation map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id": "1718179273230201709233240002",
@@ -1500,12 +1500,12 @@ func (this *Paradex) HandleBookSideDeltas(bookside any, deltas []any) {
  * @param {string} messageHash the message hash the book watchers wait on
  * @returns {boolean} true once both requests are sent
  */
-func (this *Paradex) ResubscribeOrderBookAsync(client ccxt.ClientInterface, channel string, messageHash string) <-chan ccxt.AsyncResult[any] {
-	ch := make(chan ccxt.AsyncResult[any], 1)
+func (this *Paradex) ResubscribeOrderBookAsync(client ccxt.ClientInterface, channel string, messageHash string) <-chan ccxt.AsyncResult[bool] {
+	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.resubscribeOrderBookBody(ch, client, channel, messageHash)
 	return ch
 }
-func (this *Paradex) resubscribeOrderBookBody(ch chan ccxt.AsyncResult[any], client ccxt.ClientInterface, channel string, messageHash string) any {
+func (this *Paradex) resubscribeOrderBookBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, channel string, messageHash string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// a subscribe alone is acknowledged without a snapshot, the feed is unsubscribed first. Both requests
@@ -1533,7 +1533,7 @@ func (this *Paradex) resubscribeOrderBookBody(ch chan ccxt.AsyncResult[any], cli
 		panic(r1.Err)
 	}
 
-	ch <- ccxt.AsyncResult[any]{Value: true}
+	ch <- ccxt.AsyncResult[bool]{Value: true}
 	return nil
 }
 
