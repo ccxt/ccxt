@@ -2215,7 +2215,8 @@ export default class hibachi extends Exchange {
     parseSettlements (settlements: any[], market: Market = undefined): Dict[] {
         const result: Dict[] = [];
         for (let i = 0; i < settlements.length; i++) {
-            result.push (this.parseSettlement (this.extend ({}, settlements[i]), market));
+            const settlementRow: Dict = this.extend ({}, settlements[i]);
+            result.push (this.parseSettlement (settlementRow, market));
         }
         return result;
     }
