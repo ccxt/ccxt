@@ -7303,6 +7303,8 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     'watchOrdersForSymbols': { 0: '[]string' },
     // base List row param with no override; every caller hands a `[]any` local
     'parseADLRanks': { 0: '[]any' },
+    // base parseLeverages (response: object[]): no override, no interface line; every caller hands a `[]any` local or ToArray
+    'parseLeverages': { 0: '[]any' },
 };
 
 // the typed wrapper's slice annotation -> the hand-written converter to the core's `[]any`
