@@ -65,9 +65,9 @@ public partial class apex : Exchange
                 { "fetchDepositWithdrawFee", false },
                 { "fetchDepositWithdrawFees", false },
                 { "fetchFundingHistory", true },
-                { "fetchFundingRate", false },
+                { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", true },
-                { "fetchFundingRates", false },
+                { "fetchFundingRates", true },
                 { "fetchGreeks", false },
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
@@ -1172,6 +1172,115 @@ public partial class apex : Exchange
 
     /**
      * @method
+     * @name apex#fetchFundingRate
+     * @description fetches the current funding rate for a market
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+     * @param {string} symbol unified symbol of the market to fetch the funding rate for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    public async override Task<ccxt.FundingRate> FetchFundingRate(string symbol, IDictionary<string, object> parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "symbol", this.safeString(market, "id2") },
+        };
+        Dictionary<string, object> response = await this.publicGetV3Ticker(this.extend(request, parameters));
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "oraclePrice": "97359.83490000976",
+        //                 "price": "97358.69511000479",
+        //                 "price24hPcnt": "0.025227663459253",
+        //                 "priceChange": "2386.4656100048",
+        //                 "markPrice": "97348.43100000975",
+        //                 "indexPrice": "97354.92100000469",
+        //                 "fundingRate": "0",
+        //                 "predictedFundingRate": "0",
+        //                 "nextFundingTime": "10:00:00",
+        //                 "turnover24h": "5126062036.262683868",
+        //                 "volume24h": "52429.97800000007",
+        //                 "openInterest": "44708.50649999985",
+        //                 "askPrice": "97346.8",
+        //                 "askSize": "0.05",
+        //                 "askVol": "4871.995",
+        //                 "bidPrice": "97329.9",
+        //                 "bidSize": "0.0397",
+        //                 "bidVol": "3861.227",
+        //                 "lastPrice": "97341.22950000488",
+        //                 "highPrice24h": "97492.40501000491",
+        //                 "lowPrice24h": "93419.04950000459",
+        //                 "change15m": "0.000035268322022",
+        //                 "change1h": "0.001633604768945",
+        //                 "change24h": "0.025227663459253",
+        //                 "volume5m": "163.43330000000053",
+        //                 "volume1h": "5662.860900000013"
+        //             }
+        //         ]
+        //     }
+        //
+        List<object> tickers = this.safeList(response, "data", new List<object>() {});
+        IDictionary<string, object> rawTicker = this.safeDict(tickers, 0);
+        if ((rawTicker == null))
+        {
+            throw new BadResponse (((this.id + " fetchFundingRate() returned no data for ") + symbol)) ;
+        }
+        string? responseMarketId = this.safeString(rawTicker, "symbol", "");
+        if ((responseMarketId != this.safeString(market, "id2")))
+        {
+            throw new BadResponse ((((((this.id + " fetchFundingRate() returned a ticker for ") + responseMarketId) + " while ") + symbol) + " was requested")) ;
+        }
+        return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate(rawTicker, market));
+    }
+
+    public override Dictionary<string, object> parseFundingRate(IDictionary<string, object> contract, IDictionary<string, object> market = null)
+    {
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "oraclePrice": "97359.83490000976",
+        //         "price": "97358.69511000479",
+        //         "markPrice": "97348.43100000975",
+        //         "indexPrice": "97354.92100000469",
+        //         "fundingRate": "0",
+        //         "predictedFundingRate": "0",
+        //         "nextFundingTime": "10:00:00",
+        //         ...
+        //     }
+        //
+        string? marketId = this.safeString(contract, "symbol");
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId,((IDictionary<string, object>)market));
+        return new Dictionary<string, object>() {
+            { "info", contract },
+            { "symbol", this.safeSymbol(marketId, marketResolved) },
+            { "markPrice", this.safeNumber(contract, "markPrice") },
+            { "indexPrice", this.safeNumber(contract, "indexPrice") },
+            { "interestRate", null },
+            { "estimatedSettlePrice", null },
+            { "timestamp", null },
+            { "datetime", null },
+            { "fundingRate", this.safeNumber(contract, "fundingRate") },
+            { "fundingTimestamp", null },
+            { "fundingDatetime", null },
+            { "nextFundingRate", null },
+            { "nextFundingTimestamp", null },
+            { "nextFundingDatetime", null },
+            { "previousFundingRate", null },
+            { "previousFundingTimestamp", null },
+            { "previousFundingDatetime", null },
+            { "interval", "1h" },
+        };
+    }
+
+    /**
+     * @method
      * @name apex#fetchFundingRateHistory
      * @description fetches historical funding rate prices
      * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
@@ -1248,6 +1357,28 @@ public partial class apex : Exchange
         }
         List<object> sorted = this.sortBy(rates, "timestamp");
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
+    }
+
+    /**
+     * @method
+     * @name apex#fetchFundingRates
+     * @description fetches the current funding rates for multiple markets
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the funding rates for, all markets are returned when not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbol
+     */
+    public async override Task<ccxt.FundingRates> FetchFundingRates(IList<object> symbols = null, IDictionary<string, object> parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        IList<object> unifiedSymbols = this.marketSymbols(symbols);
+        Dictionary<string, object> response = await this.publicGetV3DataAllTickerInfo(parameters);
+        List<object> data = this.safeList(response, "data", new List<object>() {});
+        return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(data, unifiedSymbols));
     }
 
     public override ccxt.Order parseOrder(IDictionary<string, object> order, IDictionary<string, object> market = null)
