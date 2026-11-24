@@ -61,7 +61,7 @@ export function goPredictionNeedsCcxtImport (methods: string[]): boolean {
 
 // self-check: the typed bind replaces the one GetArg and nothing else; a list-fed endpoint keeps the box
 export function goPredictionEndpointBodySelfTest (): string[] {
-    const body = '\treturn ccxt.RequestResult[any](this, "p", ccxt.GetArg(args, 0, nil))';
+    const body = '\treturn ccxt.Fetch2Result[any](this, "p", ccxt.GetArg(args, 0, nil))';
     const out = goPredictionEndpointBody (body);
     const boxed = goPredictionEndpointBody (body, true);
     const fails: string[] = [];
