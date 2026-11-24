@@ -735,6 +735,9 @@ export default class phemex extends Exchange {
         const maxPriceEp = this.safeString (market, 'maxPriceEp');
         const makerFeeRateEr = this.safeString (market, 'makerFeeRateEr');
         const takerFeeRateEr = this.safeString (market, 'takerFeeRateEr');
+        // https://phemex.com/help-center/Phemex-Future-fee-structure-and-calculation
+        const maker = this.parseNumber (this.fromEn (makerFeeRateEr, ratioScale), this.parseNumber ('0.0001'));
+        const taker = this.parseNumber (this.fromEn (takerFeeRateEr, ratioScale), this.parseNumber ('0.0006'));
         const status = this.safeString (market, 'status');
         const contractSizeString = this.safeString (market, 'contractSize', ' ') as string;
         let contractSize: Num = undefined;
@@ -769,8 +772,8 @@ export default class phemex extends Exchange {
             'contract': true,
             'linear': isLinear,
             'inverse': inverse,
-            'taker': this.parseNumber (this.fromEn (takerFeeRateEr, ratioScale)),
-            'maker': this.parseNumber (this.fromEn (makerFeeRateEr, ratioScale)),
+            'taker': taker,
+            'maker': maker,
             'contractSize': contractSize,
             'expiry': undefined,
             'expiryDatetime': undefined,
