@@ -94,3 +94,50 @@ func TestArrayCacheGetLimitTyped(t *testing.T) {
 		t.Fatalf("a plain list answers the caller's limit")
 	}
 }
+
+// The update scan compares the raw, post-merge id and key values, not the
+// string-normalized Hashmap keys. Each is read once, before the scan; reading
+// the normalized key instead would miss non-string ids and leave the row where
+// it was.
+func TestArrayCacheUpdateScanUsesRawKeys(t *testing.T) {
+	for _, field := range []string{"symbol", "outcome"} {
+		for _, raw := range []any{1, int64(1), 1.5, "1"} {
+			var cache interface {
+				Append(any)
+				ToArray() []any
+				GetLimit(any, any) *int64
+			}
+			if field == "outcome" {
+				cache = NewArrayCacheByOutcomeById(3)
+			} else {
+				cache = NewArrayCacheBySymbolById(3)
+			}
+			first := map[string]any{field: "A", "id": raw, "retained": true}
+			cache.Append(first)
+			cache.Append(map[string]any{field: "B", "id": raw})
+			cache.Append(map[string]any{field: "A", "id": "other"})
+			cache.Append(map[string]any{field: "A", "id": raw, "updated": 1})
+			cache.Append(map[string]any{field: "A", "id": raw, "updated": 2})
+			rows := cache.ToArray()
+			if len(rows) != 3 {
+				t.Fatalf("%s/%T: update must not evict or duplicate: %v", field, raw, rows)
+			}
+			if rows[0].(map[string]any)[field] != "B" || rows[1].(map[string]any)["id"] != "other" {
+				t.Fatalf("%s/%T: update must move the matching row to the end: %v", field, raw, rows)
+			}
+			last := rows[2].(map[string]any)
+			if last[field] != "A" || last["id"] != raw || last["retained"] != true || last["updated"] != 2 {
+				t.Fatalf("%s/%T: update must merge into the stored fields: %v", field, raw, last)
+			}
+			if _, mutated := first["updated"]; mutated {
+				t.Fatalf("%s/%T: merges are copy-on-write; the original map must not change", field, raw)
+			}
+			if got := cache.GetLimit(nil, nil); got == nil || *got != 3 {
+				t.Fatalf("%s/%T: global count = %v, want 3", field, raw, got)
+			}
+			if got := cache.GetLimit("A", nil); got == nil || *got != 2 {
+				t.Fatalf("%s/%T: symbol count = %v, want 2", field, raw, got)
+			}
+		}
+	}
+}

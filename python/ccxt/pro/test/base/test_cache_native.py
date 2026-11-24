@@ -426,7 +426,56 @@ def test_eviction_drops_the_empty_outer_bucket():
     assert sorted(list(multi.hashmap['BTC/USDT'].keys())) == ['1', '3']
 
 
+def test_slices_match_lists():
+    # Exercise forward/reverse/strided slices against Python's own list rules,
+    # including clipped bounds, empty caches and steps larger than Py_ssize_t.
+    for size in (0, 1, 2, 9, 63, 64, 65, 66, 100, 129, 257, 1024):
+        cache = ArrayCache()
+        rows = [{'symbol': 'BTC/USDT', 'i': i} for i in range(size)]
+        for row in rows:
+            cache.append(row)
+        bounds = (None, -10**30, -size - 1, -size, -2, -1, 0, 1, 2, size - 1, size, size + 1, 10**30)
+        for start in bounds:
+            for stop in bounds:
+                for step in (None, 1, 2, 3, -1, -2, -3, 10**30, -10**30):
+                    selection = slice(start, stop, step)
+                    expected = rows[selection]
+                    actual = cache[selection]
+                    assert type(actual) is list
+                    assert actual == expected, (size, selection)
+                    assert all(a is b for a, b in zip(actual, expected))
+        try:
+            cache[::0]
+            assert False, 'a zero slice step must raise'
+        except ValueError:
+            pass
+        snapshot = cache[:]
+        snapshot.clear()
+        assert len(cache) == size
+
+
+def test_slice_bounds_can_mutate_cache():
+    cache = ArrayCache()
+    for i in range(100):
+        cache.append({'symbol': 'A', 'value': i})
+
+    class ShrinkingBound:
+        def __index__(self):
+            cache.clear()
+            return 0
+
+    # Slice normalization accepts arbitrary __index__ objects. The original
+    # index-by-index implementation raises after this callback clears storage.
+    try:
+        cache[ShrinkingBound():]
+        assert False, 'mutating bounds must preserve the original index error'
+    except IndexError:
+        pass
+
+
 def test_ws_cache_python_regressions():
+    test_slices_match_lists()
+    test_slice_bounds_can_mutate_cache()
     test_max_size_zero_is_unbounded()
     test_index_token_does_not_collide_across_the_field_boundary()
     test_numeric_id_does_not_raise()
