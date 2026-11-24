@@ -1,9 +1,7 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { jsonStringify, type Envelope } from './format.js';
 import { redact } from './redact.js';
+import { readAsset } from './embedded.js';
 
 // MCP Apps (io.modelcontextprotocol/ui, spec 2026-01-26): a tool advertises a ui:// resource
 // in its _meta, the host fetches that HTML with resources/read and renders it in a sandboxed
@@ -79,7 +77,6 @@ export function uiToolMeta (view: UiView): Record<string, any> {
     };
 }
 
-const uiDir = path.join (path.dirname (fileURLToPath (import.meta.url)), 'ui');
 const INCLUDE_PATTERN = /\/\*\s*@include\s+([a-z0-9.-]+)\s*\*\//g;
 const cache = new Map<string, string> ();
 
@@ -93,8 +90,8 @@ export function renderView (view: UiView): string {
     if (cached !== undefined) {
         return cached;
     }
-    const template = fs.readFileSync (path.join (uiDir, view.file), 'utf8');
-    const html = template.replace (INCLUDE_PATTERN, (_match, file) => fs.readFileSync (path.join (uiDir, file), 'utf8'));
+    const template = readAsset ('ui/' + view.file);
+    const html = template.replace (INCLUDE_PATTERN, (_match, file) => readAsset ('ui/' + file));
     cache.set (view.file, html);
     return html;
 }

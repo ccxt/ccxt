@@ -58,15 +58,56 @@ jobs:
           npm version "$NEW_VERSION"
           node scripts/sync-versions.mjs
           echo "version=${NEW_VERSION}" >> "$GITHUB_OUTPUT"
-      - name: Build (tsc + doc manifest)
+      - name: Build (tsc + doc manifest + single-file bundle)
         run: npm run build
       - name: Test
         run: npm test
       - run: node -v && npm -v
+      # The plugin's bootstrap downloads this release and runs only what matches the SHA-512
+      # of the tarball and of the single-file server inside it (plugin/server.lock.json). Both
+      # are computed here from ONE packed file, and that same file is what gets published —
+      # not a second pack, and not a value read back from the registry — so the lock cannot
+      # describe anything but the published bytes. The smoke test then runs the whole chain
+      # (launcher -> bootstrap -> download -> verify -> server) against that file before it
+      # is released: a release whose bundle does not start never reaches npm.
+      - name: Pack once, pin the tarball in the plugin lock, smoke-test it
+        id: pack
+        env:
+          NEW_VERSION: ${{ steps.bump.outputs.version }}
+        run: |
+          npm pack --pack-destination "$RUNNER_TEMP"
+          TARBALL="$RUNNER_TEMP/ccxt-mcp-${NEW_VERSION}.tgz"
+          node scripts/lock-server.mjs "$TARBALL"
+          node scripts/smoke-plugin.mjs --tarball "$TARBALL"
+          node scripts/sync-versions.mjs --check
+          echo "tarball=${TARBALL}" >> "$GITHUB_OUTPUT"
       - name: Publish to npm (provenance)
-        run: npm publish --provenance
+        run: npm publish "${{ steps.pack.outputs.tarball }}" --provenance
         env:
           NPM_CONFIG_PROVENANCE: true
+      # Belt and braces: the registry must report the integrity that was pinned. It cannot
+      # differ (it is derived from the uploaded bytes), so a mismatch means the pin is wrong:
+      # clear it, which makes the plugin fall back to npx instead of refusing to start, and
+      # mark the run. A registry that merely has not caught up yet is not a mismatch.
+      - name: Check the registry serves the tarball that was pinned
+        env:
+          NEW_VERSION: ${{ steps.bump.outputs.version }}
+        run: |
+          PINNED="$(node -p "require('./plugin/server.lock.json').integrity")"
+          PUBLISHED=""
+          for attempt in 1 2 3 4 5 6; do
+            PUBLISHED="$(npm view "ccxt-mcp@${NEW_VERSION}" dist.integrity 2>/dev/null || true)"
+            [ -n "$PUBLISHED" ] && break
+            sleep 10
+          done
+          if [ -z "$PUBLISHED" ]; then
+            echo "::warning::npm did not report ccxt-mcp@${NEW_VERSION} yet — the pinned integrity was not cross-checked"
+          elif [ "$PUBLISHED" != "$PINNED" ]; then
+            echo "::error::npm reports ${PUBLISHED} for ccxt-mcp@${NEW_VERSION} but the plugin lock pinned ${PINNED} — clearing the pin (the plugin will use npx for this release)"
+            node scripts/lock-server.mjs --clear
+          else
+            echo "registry integrity matches the plugin lock: ${PINNED}"
+          fi
       # commit the bump only after a successful publish, so a failed release leaves
       # master untouched and the next dispatch retries the same version number
       - name: Get App bot user ID
@@ -86,10 +127,11 @@ jobs:
         run: |
           git config --global user.name "${{ steps.app-token.outputs.app-slug }}[bot]"
           git config --global user.email "${{ steps.app-user.outputs.id }}+${{ steps.app-token.outputs.app-slug }}[bot]@users.noreply.github.com"
-          # every file scripts/sync-versions.mjs rewrites, plus the package files npm version bumps
+          # every file scripts/sync-versions.mjs rewrites (the lock also carries the checksums
+          # scripts/lock-server.mjs wrote above), plus the package files npm version bumps
           git add mcp/package.json mcp/package-lock.json mcp/mcpb/manifest.json mcp/server.json \
             mcp/plugin/.claude-plugin/plugin.json mcp/plugin/plugin.json mcp/plugin/.codex-plugin/plugin.json \
-            mcp/plugin/mcp.json .claude-plugin/marketplace.json
+            mcp/plugin/mcp.json mcp/plugin/server.lock.json .claude-plugin/marketplace.json
           git commit -m "[Automated changes] ccxt-mcp ${NEW_VERSION}"
           # same retry pattern as release.yml: master can move while the release builds,
           # so rebase onto it before every attempt

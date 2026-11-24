@@ -132,16 +132,83 @@ test ('plugin versions match package.json', () => {
     assert.equal (entry['version'], pkg['version'], '.claude-plugin/marketplace.json entry version');
 });
 
-test ('the MCP server is launched through npx pinned to the package version', () => {
+test ('Claude Code launches the server through npx pinned to the package version', () => {
     // npx caches an unpinned package forever, so each plugin release pins its server release
-    const servers: Record<string, any> = {
-        '.claude-plugin/plugin.json': claudeManifest['mcpServers']['ccxt'],
-        'mcp.json': portableMcp['mcpServers']['ccxt'],
-    };
-    for (const [ file, server ] of Object.entries (servers)) {
-        assert.ok (server, `${file} has no "ccxt" server`);
-        assert.equal (server['command'], 'npx', `${file} command`);
-        assert.deepEqual (server['args'], [ '-y', pinnedPackage ], `${file} args`);
+    const server = claudeManifest['mcpServers']['ccxt'];
+    assert.ok (server, '.claude-plugin/plugin.json has no "ccxt" server');
+    assert.equal (server['command'], 'npx');
+    assert.deepEqual (server['args'], [ '-y', pinnedPackage ]);
+});
+
+test ('the portable mcp.json starts the server through the plugin launcher, relative to the plugin root', () => {
+    // OpenAI hosts ship a Node runtime but no npm: scripts/launch finds that runtime and
+    // scripts/bootstrap.mjs fetches the pinned server (see plugin/README.md "Runtime")
+    const server = portableMcp['mcpServers']['ccxt'];
+    assert.ok (server, 'mcp.json has no "ccxt" server');
+    assert.deepEqual (server, { 'type': 'stdio', 'command': './scripts/launch', 'args': [ './scripts/bootstrap.mjs' ], 'cwd': './' });
+    // the Agent Plugins schema: a stdio command is a bare name or a contained ./ path, and cwd
+    // must match this pattern; Codex resolves both against the installed plugin root
+    assert.match (server['cwd'], /^(\.\/|\$\{PLUGIN_ROOT\}(\/|$)|\$\{PLUGIN_DATA\}(\/|$))/);
+    for (const reference of [ server['command'], ...server['args'] ]) {
+        const resolved = path.resolve (pluginRoot, reference);
+        assert.ok (resolved.startsWith (pluginRoot + path.sep), `mcp.json path escapes the plugin: ${reference}`);
+        assert.ok (fs.existsSync (resolved), `mcp.json references a missing file: ${reference}`);
+    }
+});
+
+test ('the launcher scripts ship complete: sh + cmd twins, executable, no machine-specific paths', () => {
+    const scripts = path.join (pluginRoot, 'scripts');
+    assert.deepEqual (fs.readdirSync (scripts).sort (), [ 'bootstrap.mjs', 'launch', 'launch.cmd' ]);
+    if (process.platform !== 'win32') {
+        // hosts exec the file directly; git must record it as 100755
+        assert.equal (fs.statSync (path.join (scripts, 'launch')).mode & 0o111, 0o111, 'plugin/scripts/launch is not executable');
+    }
+    const sh = fs.readFileSync (path.join (scripts, 'launch'), 'utf8');
+    assert.ok (sh.startsWith ('#!/bin/sh\n'));
+    assert.ok (!sh.includes ('\r'), 'plugin/scripts/launch must use LF line endings');
+    // cmd.exe mis-parses labels in LF-only batch files (.gitattributes pins eol=crlf)
+    const cmd = fs.readFileSync (path.join (scripts, 'launch.cmd'), 'utf8');
+    assert.ok (cmd.startsWith ('@echo off\r\n'));
+    assert.ok (!/[^\r]\n/.test (cmd), 'plugin/scripts/launch.cmd must use CRLF line endings');
+    assert.ok (/^[\x00-\x7f]*$/.test (cmd), 'plugin/scripts/launch.cmd must be ASCII: cmd.exe reads it in the console code page');
+    // the script argument is plugin-relative, so both twins must leave the host's working
+    // directory for the plugin root before they look for anything (launcher.test.ts runs the
+    // sh one from a foreign directory; the cmd one can only be checked by reading it)
+    assert.ok (cmd.includes ('\r\ncd /d "%~dp0.." 2>nul || goto :no_root\r\n'));
+    assert.ok (cmd.indexOf ('cd /d "%~dp0.."') < cmd.indexOf ('call :try'), 'launch.cmd must enter the plugin root before probing for Node');
+    assert.ok (cmd.indexOf ('cd /d "%~dp0.."') < cmd.indexOf ('(\'where node'));
+    for (const [ file, text ] of [ [ 'launch', sh ], [ 'launch.cmd', cmd ], [ 'bootstrap.mjs', fs.readFileSync (path.join (scripts, 'bootstrap.mjs'), 'utf8') ] ]) {
+        // a developer's home or checkout must never be baked into what users run
+        assert.ok (!/\/(Users|home)\/[A-Za-z0-9._-]+\//.test (text), `plugin/scripts/${file} contains a user-specific absolute path`);
+        assert.ok (!/[A-Za-z]:\\Users\\/.test (text), `plugin/scripts/${file} contains a user-specific absolute path`);
+    }
+    // the bootstrap has no node_modules to lean on, and must never touch the JSON-RPC channel
+    const bootstrap = fs.readFileSync (path.join (scripts, 'bootstrap.mjs'), 'utf8');
+    const imported = [ ...bootstrap.matchAll (/^import .* from '([^']+)';$/gm) ].map ((match) => match[1]);
+    assert.ok (imported.length > 0 && imported.every ((specifier) => specifier.startsWith ('node:')), 'bootstrap.mjs may only import node: builtins');
+    assert.ok (!/process\.stdout|console\.log|process\.stdin/.test (bootstrap), 'bootstrap.mjs must not use stdout or stdin');
+    // both ends agree on where the bundle sits inside the npm tarball
+    const entry = /const BUNDLE_ENTRY = '(package\/[^']+)';/.exec (bootstrap);
+    assert.ok (entry, 'bootstrap.mjs no longer declares BUNDLE_ENTRY');
+    const builder = fs.readFileSync (path.join (mcpRoot, 'scripts', 'build-bundle.mjs'), 'utf8');
+    const built = /path\.join \(jsDir, '([a-z]+)', '([a-z.-]+)'\)/.exec (builder);
+    assert.ok (built, 'build-bundle.mjs no longer declares its output path');
+    assert.equal (entry[1], 'package/js/' + built[1] + '/' + built[2]);
+    assert.ok (fs.readFileSync (path.join (mcpRoot, 'scripts', 'lock-server.mjs'), 'utf8').includes (`const BUNDLE_ENTRY = '${entry[1]}';`));
+});
+
+test ('server.lock.json pins the package version and its registry tarball', () => {
+    const lock = readJson (path.join (pluginRoot, 'server.lock.json'));
+    assert.deepEqual (Object.keys (lock).sort (), [ 'bundleIntegrity', 'integrity', 'tarball', 'version' ]);
+    assert.equal (lock['version'], pkg['version']);
+    assert.equal (lock['tarball'], `https://registry.npmjs.org/${pkg['name']}/-/${pkg['name']}-${pkg['version']}.tgz`);
+    // both checksums or neither: null means "this release has no verified single-file
+    // server", which makes the bootstrap use npx (true for 0.1.3, and between a version bump
+    // and the release job's scripts/lock-server.mjs run)
+    const pattern = /^sha512-[A-Za-z0-9+/]{86}==$/;
+    assert.equal (lock['integrity'] === null, lock['bundleIntegrity'] === null, 'integrity and bundleIntegrity must be set together');
+    for (const key of [ 'integrity', 'bundleIntegrity' ]) {
+        assert.ok (lock[key] === null || pattern.test (lock[key]), `server.lock.json ${key} is not a sha512 SRI string`);
     }
 });
 

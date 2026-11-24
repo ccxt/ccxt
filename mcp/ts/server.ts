@@ -8,10 +8,17 @@ import { loadConfig } from './config.js';
 import { redact } from './redact.js';
 import { isBenignStreamClose } from './errors.js';
 import { createServer } from './factory.js';
-import { createRequire } from 'module';
+import { packageVersion } from './embedded.js';
 
-const require = createRequire (import.meta.url);
-const packageJson = require ('../package.json');
+const packageJson = { 'version': packageVersion () };
+
+// A host that crashes or is force-quit closes stdin, stdout and stderr in one go. With no
+// listener, the EPIPE from the next write to either output surfaces as an uncaught exception,
+// whose handler logs — another write, another EPIPE — and the orphaned server spins at 100%
+// CPU until the user finds and kills it. Nobody is left to read either stream, so their
+// errors are dropped; the closed stdin (or the listener in main) ends the process.
+process.stdout.on ('error', () => undefined);
+process.stderr.on ('error', () => undefined);
 
 async function main (): Promise<void> {
     setLogRedactor (redact);
@@ -47,7 +54,15 @@ async function main (): Promise<void> {
     // hosts terminate stdio servers by closing stdin
     process.stdin.on ('end', () => void shutdown ('stdin closed'));
     process.stdin.on ('close', () => void shutdown ('stdin closed'));
+    // a broken output pipe means the host is gone even if stdin has not said so yet
+    process.stdout.on ('error', () => void shutdown ('stdout closed'));
     process.on ('uncaughtException', (error) => {
+        // a second failure while already on the way out, or a dead pipe reported some other
+        // way: logging it could only fail again, so leave without another word
+        const code = (error as NodeJS.ErrnoException)?.code;
+        if (shuttingDown || code === 'EPIPE' || code === 'ERR_STREAM_DESTROYED') {
+            process.exit (1);
+        }
         log ('error', 'uncaught exception: ' + redact (String (error?.stack ?? error)));
         void shutdown ('uncaught exception', 1);
     });

@@ -1,6 +1,6 @@
 // Packs the plugin directory (plugin/) into ccxt-mcp-plugin.zip — the archive uploaded to the
 // OpenAI plugin portal, and handy for sideloading. The zip holds the directory's CONTENTS
-// (plugin.json, mcp.json, skills/, assets/, … at the archive root). The sync checks run first,
+// (plugin.json, mcp.json, scripts/, skills/, assets/, … at the archive root). The sync checks run first,
 // so a zip can never carry a stale skill copy or a version that disagrees with package.json.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -47,6 +47,19 @@ fs.rmSync (out, { 'force': true });
 const zip = spawnSync ('zip', [ '-r', '-X', '-q', out, '.', '-x', '.DS_Store', '*/.DS_Store' ], { 'cwd': pluginDir, 'stdio': 'inherit' });
 if (zip.status !== 0) {
     fail (`zip exited with status ${zip.status}`);
+}
+// hosts exec scripts/launch directly, so the archive must carry its unix mode: zip stores it
+// from the working tree, which makes a lost executable bit a silent "permission denied" on
+// the user's machine — check the tree and then what the archive actually recorded
+const launcher = path.join ('scripts', 'launch');
+if (process.platform !== 'win32') {
+    if ((fs.statSync (path.join (pluginDir, launcher)).mode & 0o111) !== 0o111) {
+        fail (`plugin/${launcher} is not executable — run: chmod 755 plugin/${launcher}`);
+    }
+    const listing = spawnSync ('unzip', [ '-Z', out, 'scripts/launch' ], { 'encoding': 'utf8' });
+    if (listing.error === undefined && !/^-rwxr-xr-x /m.test (listing.stdout)) {
+        fail (`the archive does not store ${launcher} as -rwxr-xr-x:\n${listing.stdout}${listing.stderr}`);
+    }
 }
 const kb = (fs.statSync (out).size / 1024).toFixed (1);
 process.stderr.write (`[plugin-zip] wrote ${path.relative (mcpRoot, out)} (${kb} kB)\n`);

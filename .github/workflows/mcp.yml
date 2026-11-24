@@ -20,7 +20,7 @@ on:
 
 # The ccxt-mcp sub-package is self-contained (its own package.json + lockfile) and its
 # tests use a fake ccxt module, so this job never touches the multi-language transpiler
-# pipeline — just build (tsc + doc manifest) and run the offline test matrix.
+# pipeline — just build (tsc + doc manifest + single-file bundle) and run the offline test matrix.
 # The plugin (mcp/plugin) is described by files outside mcp/ too — both marketplaces and the
 # canonical ccxt-mcp skill it bundles a copy of — and test/schema/plugin.test.ts checks them
 # against each other, hence the extra path filters above.
@@ -37,9 +37,21 @@ jobs:
           node-version: 20
       - name: Install
         run: npm ci
-      - name: Build (tsc + doc manifest)
+      - name: Build (tsc + doc manifest + single-file bundle)
         run: npm run build
-      - name: Test (unit + schema snapshot + stdio integration)
+      - name: Test (unit + schema snapshot + stdio integration + bundle / bootstrap / launcher)
         run: npm test
-      - name: Pack check (tarball contents)
-        run: npm pack --dry-run
+      # the plugin's bootstrap extracts exactly this path from the published tarball
+      - name: Pack check (tarball contents, including the single-file server)
+        run: |
+          npm pack --dry-run --json > "$RUNNER_TEMP/pack.json"
+          node -e '
+            const [ pack ] = JSON.parse (require ("fs").readFileSync (process.argv[1], "utf8"));
+            const bundle = pack.files.find ((file) => file.path === "js/bundle/ccxt-mcp.mjs");
+            if (!bundle) { console.error ("js/bundle/ccxt-mcp.mjs is missing from the tarball"); process.exit (1); }
+            console.log (pack.files.length + " files, " + (pack.size / 1048576).toFixed (2) + " MB packed, bundle " + (bundle.size / 1048576).toFixed (2) + " MB");
+          ' "$RUNNER_TEMP/pack.json"
+      # what a user without Node.js gets: packed tarball -> loopback registry -> plugin launcher
+      # -> bootstrap (download, verify, cache) -> single-file server, with no node on PATH
+      - name: Plugin smoke test (launcher + bootstrap + bundle, no Node on PATH)
+        run: node scripts/smoke-plugin.mjs

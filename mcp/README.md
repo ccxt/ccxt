@@ -29,7 +29,7 @@ One-click install links for Claude Desktop, the Claude Code VS Code extension, C
 
 ### Plugins (one-step install)
 
-A plugin installs the server **and** two skills together: `ccxt-mcp` (usage) and `ccxt-get-started` (guided first run — say "Get started"). One plugin directory ([`plugin/`](plugin/README.md)) serves all three hosts below; it pins the server (`npx -y ccxt-mcp@<plugin version>`), so updating the plugin updates the server.
+A plugin installs the server **and** two skills together: `ccxt-mcp` (usage) and `ccxt-get-started` (guided first run — say "Get started"). One plugin directory ([`plugin/`](plugin/README.md)) serves all three hosts below; it pins the server version, so updating the plugin updates the server. Claude Code and Grok start it with `npx -y ccxt-mcp@<plugin version>`; the ChatGPT desktop app and Codex start it through the plugin's launcher, which uses the app's own Node runtime and a verified single-file download of the server, so no Node.js install is needed there once the pinned release carries that file (releases after 0.1.3) — see [plugin/README.md](plugin/README.md#runtime).
 
 **Claude Code**
 

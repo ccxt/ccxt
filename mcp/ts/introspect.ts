@@ -1,7 +1,5 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
 import { ccxt } from './ccxt-loader.js';
+import { hasAsset, readAsset } from './embedded.js';
 
 // signature introspection ported from cli/ts/helpers.ts getArgsWithOptionality
 export function getArgsWithOptionality (func: any): { requiredArgs: string[], optionalArgs: string[], error: boolean } {
@@ -145,10 +143,8 @@ export function loadDocManifest (): typeof docManifest {
     }
     docManifestLoaded = true;
     try {
-        const here = path.dirname (fileURLToPath (import.meta.url));
-        const manifestPath = path.join (here, 'data', 'method-docs.json');
-        if (fs.existsSync (manifestPath)) {
-            docManifest = JSON.parse (fs.readFileSync (manifestPath).toString ());
+        if (hasAsset ('data/method-docs.json')) {
+            docManifest = JSON.parse (readAsset ('data/method-docs.json'));
         }
     } catch (e) {
         docManifest = undefined;

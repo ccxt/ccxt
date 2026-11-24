@@ -9,7 +9,8 @@
     "node": ">=18.0.0"
   },
   "scripts": {
-    "build": "tsc && node scripts/copy-ui.mjs && node scripts/build-doc-manifest.mjs",
+    "build": "tsc && node scripts/copy-ui.mjs && node scripts/build-doc-manifest.mjs && npm run bundle",
+    "bundle": "node scripts/build-bundle.mjs",
     "test": "node --import tsx --test test/unit/*.test.ts test/schema/*.test.ts test/integration/*.test.ts",
     "test:live": "node --import tsx --test test/live/*.test.ts",
     "prepublishOnly": "npm run build",
@@ -42,6 +43,8 @@
   },
   "devDependencies": {
     "@types/node": "^22.20.1",
+    "esbuild": "^0.28.1",
+    "protobufjs": "^7.5.3",
     "tsx": "^4.20.0",
     "typescript": "^5.8.0"
   },

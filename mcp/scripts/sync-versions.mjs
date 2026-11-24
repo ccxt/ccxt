@@ -1,7 +1,8 @@
 // Keeps every file that repeats the package version in lockstep with package.json:
 // mcpb/manifest.json and server.json, plus the plugin manifests (plugin/.claude-plugin,
 // plugin/plugin.json, plugin/.codex-plugin), the "ccxt-mcp@<version>" npx pin in the plugin's
-// MCP server entries, and the plugin entry of the repo-root Claude marketplace.
+// MCP server entries, the server lock (plugin/server.lock.json: version + tarball URL), and
+// the plugin entry of the repo-root Claude marketplace.
 // Run after bumping the package version (and before packing/publishing). With --check it
 // only verifies (exit 1 on drift) — suitable for CI / a prepublish guard.
 import fs from 'node:fs';
@@ -16,6 +17,7 @@ const checkOnly = process.argv.includes ('--check');
 const pkg = JSON.parse (fs.readFileSync (path.join (mcpRoot, 'package.json'), 'utf8'));
 const version = pkg.version;
 const pinned = pkg.name + '@' + version;
+const tarball = `https://registry.npmjs.org/${pkg.name}/-/${pkg.name}-${version}.tgz`;
 
 // a "field" is one place the version lives: get reads it, set rewrites it
 const field = (label, expected, get, set) => ({ label, expected, get, set });
@@ -25,7 +27,8 @@ const versionField = field ('version', version, (json) => json.version, (json) =
 // the plugins launch the server through npx, which caches an unpinned package forever —
 // so the plugin version pins the exact server version it was released with
 const isPin = (arg) => (typeof arg === 'string') && (arg === pkg.name || arg.startsWith (pkg.name + '@'));
-const npxPinFields = (json) => Object.keys (json.mcpServers ?? {}).map ((name) => field (
+// (only entries that run npx carry a pin: the launcher-based entry reads server.lock.json)
+const npxPinFields = (json) => Object.keys (json.mcpServers ?? {}).filter ((name) => (json.mcpServers[name].args ?? []).some (isPin)).map ((name) => field (
     `mcpServers.${name} npx pin`,
     pinned,
     (j) => (j.mcpServers[name].args ?? []).find (isPin),
@@ -58,6 +61,28 @@ const targets = [
     {
         file: path.join (mcpRoot, 'plugin', 'mcp.json'),
         fields: (json) => npxPinFields (json),
+    },
+    {
+        // what the plugin's bootstrap downloads. The two hashes belong to one exact tarball,
+        // so a version change clears them (the bootstrap then falls back to npx); the release
+        // job writes the new ones with scripts/lock-server.mjs from the tarball it publishes
+        file: path.join (mcpRoot, 'plugin', 'server.lock.json'),
+        fields: (json) => {
+            const fields = [
+                versionField,
+                field ('tarball', tarball, (j) => j.tarball, (j) => {
+                    j.tarball = tarball;
+                }),
+            ];
+            if (json.version !== version) {
+                for (const key of [ 'integrity', 'bundleIntegrity' ]) {
+                    fields.push (field (key, null, (j) => j[key] ?? null, (j) => {
+                        j[key] = null;
+                    }));
+                }
+            }
+            return fields;
+        },
     },
     {
         // the marketplace lists the plugin by the package name; plugin.json wins at install

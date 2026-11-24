@@ -37,3 +37,6 @@ rust/ccxt-base/src/pro/mod.rs linguist-generated=true
 *.gif binary
 *.ico binary
 *.jar binary
+# cmd.exe mis-parses labels in LF-only batch files; the plugin launcher is checked out with CRLF everywhere
+mcp/plugin/scripts/launch.cmd text eol=crlf
+mcp/plugin/scripts/launch text eol=lf

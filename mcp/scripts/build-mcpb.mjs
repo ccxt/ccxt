@@ -34,7 +34,10 @@ fs.rmSync (staging, { recursive: true, force: true });
 fs.mkdirSync (serverDir, { recursive: true });
 
 log ('copying compiled server (js/) …');
-fs.cpSync (path.join (mcpRoot, 'js'), path.join (serverDir, 'js'), { recursive: true });
+// js/bundle is the single-file server the plugin downloads; the .mcpb runs js/server.js with
+// its node_modules, so the bundle would only add 13 MB of dead weight here
+const bundleDir = path.join (mcpRoot, 'js', 'bundle');
+fs.cpSync (path.join (mcpRoot, 'js'), path.join (serverDir, 'js'), { recursive: true, filter: (source) => source !== bundleDir });
 
 // a minimal package.json so `npm install` pulls only the runtime deps into the bundle
 const serverPkg = {

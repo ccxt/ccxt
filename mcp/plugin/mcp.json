@@ -3,11 +3,11 @@
   "mcpServers": {
     "ccxt": {
       "type": "stdio",
-      "command": "npx",
+      "command": "./scripts/launch",
       "args": [
-        "-y",
-        "ccxt-mcp@0.1.3"
-      ]
+        "./scripts/bootstrap.mjs"
+      ],
+      "cwd": "./"
     }
   }
 }

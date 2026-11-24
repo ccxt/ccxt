@@ -5,9 +5,9 @@ import path from 'path';
 import { spawn } from 'child_process';
 import { createHash, randomBytes, timingSafeEqual } from 'crypto';
 import type { AddressInfo } from 'net';
-import { fileURLToPath } from 'url';
 import { z } from 'zod';
 import { log } from './logging.js';
+import { readAsset } from './embedded.js';
 import { redact, registerSecret, unregisterSecret } from './redact.js';
 import { ConfigWriteError, hasOwn, isReservedAccountName, isValidAccountName, registerAccountSecrets, resolveConfigPath, unescapePem, validateAccount, writeAccountToConfigFile } from './config.js';
 import type { AccountConfig, ServerContext } from './types.js';
@@ -234,14 +234,13 @@ export function openInBrowser (file: string): Promise<void> {
     });
 }
 
-const uiDir = path.join (path.dirname (fileURLToPath (import.meta.url)), 'ui');
 const INCLUDE_PATTERN = /\/\*\s*@include\s+([a-z0-9.-]+)\s*\*\//g;
 let pageTemplate: string | undefined = undefined;
 
 function loadTemplate (): string {
     if (pageTemplate === undefined) {
-        const template = fs.readFileSync (path.join (uiDir, 'setup.html'), 'utf8');
-        pageTemplate = template.replace (INCLUDE_PATTERN, (_match, file) => fs.readFileSync (path.join (uiDir, file), 'utf8'));
+        const template = readAsset ('ui/setup.html');
+        pageTemplate = template.replace (INCLUDE_PATTERN, (_match, file) => readAsset ('ui/' + file));
     }
     return pageTemplate;
 }

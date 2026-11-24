@@ -1,0 +1,119 @@
+#!/bin/sh
+# Finds a Node.js runtime and runs "$@" with it from the plugin root (the plugin passes
+# ./scripts/bootstrap.mjs).
+#
+# Why not just `node`: the people this plugin is for have often never installed Node.js.
+# The ChatGPT desktop app / Codex bring their own Node binary (and no npm), so that one is
+# tried first; a Node the user installed themselves comes next. Desktop apps start their
+# children with a minimal PATH, which is why well-known install locations are probed too.
+#
+# Where each location comes from:
+#   [openai]   the launcher of OpenAI's own bundled plugin "codex-app-tools"
+#              (scripts/launch_codex_app_tools_mcp) and the openai-docs skill launcher that
+#              ships inside the Codex CLI 0.171.0 binary use it
+#   [verified] seen on a real macOS install of the ChatGPT desktop app
+#   [inferred] not seen on a real machine: the documented default of the named tool
+set -eu
+
+MIN_MAJOR=18
+
+if [ "$#" -lt 1 ]; then
+    printf '%s\n' '[ccxt-mcp plugin] could not start: the launcher was given no script to run — reinstall the CCXT plugin.' >&2
+    exit 64
+fi
+
+# The script is named relative to the plugin ("./scripts/bootstrap.mjs") and Node resolves
+# that against the working directory. A host that starts this launcher from anywhere else —
+# the user's workspace, say — would make it run whatever scripts/bootstrap.mjs an untrusted
+# repository keeps there, skipping every check the real one makes. So the working directory
+# is always the plugin root, taken from this file's own location and not from the host.
+case "$0" in
+    */*) plugin_root=${0%/*}/.. ;;
+    *) plugin_root=.. ;;
+esac
+# CDPATH would make cd print the directory, and stdout is the MCP channel
+if ! CDPATH= cd -- "$plugin_root" >/dev/null 2>&1; then
+    printf '%s\n' '[ccxt-mcp plugin] could not start: the plugin folder cannot be opened — reinstall the CCXT plugin.' >&2
+    exit 66
+fi
+
+too_old=
+
+# Runs "$@" with the candidate when it is an executable Node >= MIN_MAJOR; returns otherwise.
+# The version is read from `node --version` and compared in the shell, so nothing but the
+# candidate itself is executed and no string is ever evaluated.
+try_node() {
+    candidate=$1
+    shift
+    case "$candidate" in /*) ;; *) return 0 ;; esac
+    if [ ! -f "$candidate" ] || [ ! -x "$candidate" ]; then
+        return 0
+    fi
+    version=$("$candidate" --version 2>/dev/null) || return 0
+    major=${version#v}
+    major=${major%%.*}
+    case "$major" in '' | *[!0-9]*) return 0 ;; esac
+    if [ "$major" -lt "$MIN_MAJOR" ]; then
+        too_old="$candidate ($version)"
+        return 0
+    fi
+    exec "$candidate" "$@"
+}
+
+home=${HOME:-}
+cache_root=${XDG_CACHE_HOME:-$home/.cache}
+
+# 1. the runtime the host app points at                                              [openai]
+try_node "${CODEX_MCP_NODE_PATH:-}" "$@"
+try_node "${CODEX_BROWSER_USE_NODE_PATH:-}" "$@"
+if [ -n "${CODEX_ELECTRON_RESOURCES_PATH:-}" ]; then
+    try_node "$CODEX_ELECTRON_RESOURCES_PATH/cua_node/bin/node" "$@"
+fi
+case "${CODEX_CLI_PATH:-}" in
+    */*)
+        try_node "${CODEX_CLI_PATH%/*}/cua_node/bin/node" "$@"
+        # the app keeps its CLI in <Resources>/codex-cli/bin and its Node in
+        # <Resources>/cua_node/bin                                                 [verified]
+        case "$CODEX_CLI_PATH" in
+            */codex-cli/bin/*) try_node "${CODEX_CLI_PATH%/codex-cli/bin/*}/cua_node/bin/node" "$@" ;;
+        esac
+        ;;
+esac
+
+# 2. the runtime the app unpacks into the user's cache                     [openai, verified]
+try_node "$cache_root/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node" "$@"
+try_node "$cache_root/codex-runtimes/codex-primary-runtime/dependencies/bin/node" "$@"
+
+# 3. the Node inside the ChatGPT desktop app bundle (macOS)                        [verified]
+try_node "/Applications/ChatGPT.app/Contents/Resources/cua_node/bin/node" "$@"
+#    the same app installed for one user only                                      [inferred]
+try_node "$home/Applications/ChatGPT.app/Contents/Resources/cua_node/bin/node" "$@"
+
+# 4. a Node the user or the host named explicitly, then whatever PATH has            [openai]
+try_node "${NODE:-}" "$@"
+if node_path=$(command -v node 2>/dev/null); then
+    try_node "$node_path" "$@"
+fi
+
+# 5. usual install locations that a desktop app's PATH tends to miss
+try_node "/opt/homebrew/bin/node" "$@" #  Homebrew on Apple silicon                  [openai]
+try_node "/usr/local/bin/node" "$@" #     nodejs.org installer, Homebrew on Intel    [openai]
+try_node "/usr/bin/node" "$@" #           Linux distribution packages                [openai]
+try_node "$home/.volta/bin/node" "$@" #   Volta's shim directory                   [inferred]
+#    fnm's "default" alias, in its Linux and macOS data directories                [inferred]
+try_node "${XDG_DATA_HOME:-$home/.local/share}/fnm/aliases/default/bin/node" "$@"
+try_node "$home/Library/Application Support/fnm/aliases/default/bin/node" "$@"
+#    nvm keeps one directory per installed version; any that is new enough will do [inferred]
+nvm_dir=${NVM_DIR:-$home/.nvm}
+if [ -d "$nvm_dir/versions/node" ]; then
+    for candidate in "$nvm_dir"/versions/node/*/bin/node; do
+        try_node "$candidate" "$@"
+    done
+fi
+
+if [ -n "$too_old" ]; then
+    printf '%s\n' "[ccxt-mcp plugin] could not start: the CCXT server needs Node.js $MIN_MAJOR or newer, but the only one found is $too_old — update the ChatGPT / Codex app, or install the current Node.js from https://nodejs.org, then restart the app." >&2
+    exit 127
+fi
+printf '%s\n' "[ccxt-mcp plugin] could not start: no Node.js runtime was found — update or reinstall the ChatGPT / Codex app (it brings its own), or install Node.js $MIN_MAJOR or newer from https://nodejs.org, then restart the app." >&2
+exit 127
