@@ -2248,7 +2248,7 @@ class kucoin extends kucoin$1["default"] {
         //        "type": "open"
         //    }
         //
-        const data = this.safeDict(message, 'data');
+        const data = this.safeDict(message, 'data', {});
         const tradeId = this.safeString(data, 'tradeId');
         if (tradeId !== undefined) {
             this.handleMyTrade(client, message);

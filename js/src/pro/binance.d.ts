@@ -376,7 +376,7 @@ export default class binance extends binanceRest {
     handleDeltas(bookside: any, deltas: any[]): void;
     handleOrderBookMessage(client: Client, message: Dict, orderbook: WsOrderBook): WsOrderBook;
     handleOrderBook(client: Client, message: Dict): void;
-    handleOrderBookSubscription(client: Client, message: any, subscription: Dict): void;
+    handleOrderBookSubscription(client: Client, message: Dict, subscription: Dict): void;
     handleSubscriptionStatus(client: Client, message: Dict): Dict;
     handleUnSubscription(client: Client, subscription: Dict): void;
     /**

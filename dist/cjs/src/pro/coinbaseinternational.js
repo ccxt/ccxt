@@ -1825,7 +1825,7 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         }
         const symbolsResolved = this.marketSymbols(symbols);
         const result = await this.requestWs('private/get_positions', paramsResolved, true);
-        const positions = this.parsePositions(result);
+        const positions = this.parsePositions(this.toArray(result));
         return this.filterByArrayPositions(positions, 'symbol', symbolsResolved);
     }
     /**

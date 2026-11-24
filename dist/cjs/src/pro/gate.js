@@ -1488,10 +1488,12 @@ class gate extends gate$1["default"] {
         const [marketType, marketQuery] = this.handleMarketTypeAndParams('watchPositions', market, params);
         let query = marketQuery;
         let type = marketType;
-        let messageHash = marketType + ':positions';
+        let messageHash = 'swap:positions';
+        if ((marketType !== undefined) && (marketType !== 'spot')) {
+            messageHash = marketType + ':positions';
+        }
         if (marketType === 'spot') {
             type = 'swap';
-            messageHash = 'swap:positions';
         }
         const typeId = this.getSupportedMapping(type, {
             'future': 'futures',

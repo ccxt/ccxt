@@ -1591,7 +1591,7 @@ class lbank extends lbank$1["default"] {
         const fees = this.safeList(response, 'data', []);
         const result = {};
         for (let i = 0; i < fees.length; i++) {
-            const fee = this.parseTradingFee(fees[i]);
+            const fee = this.parseTradingFee(this.extend({}, fees[i]));
             const symbol = this.safeString(fee, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = fee;

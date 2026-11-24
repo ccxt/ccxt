@@ -2361,7 +2361,7 @@ class ndax extends ndax$1["default"] {
         //    ]"
         //
         if (typeof response === 'string') {
-            return this.parseTransactions(JSON.parse(response), currency, since, limit);
+            return this.parseTransactions(this.toArray(JSON.parse(response)), currency, since, limit);
         }
         return this.parseTransactions(response, currency, since, limit);
     }

@@ -1041,7 +1041,7 @@ export default class lighter extends Exchange {
         //     "predicted_execution_time_ms": 1766088500120
         // }
         //
-        return this.parseOrder(this.deepExtend(response, order), market);
+        return this.parseOrder(this.extend({}, this.deepExtend(response, order)), market);
     }
     /**
      * @method

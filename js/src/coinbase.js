@@ -3658,7 +3658,7 @@ export default class coinbase extends Exchange {
         //         }
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend({}, response), market);
     }
     /**
      * @method

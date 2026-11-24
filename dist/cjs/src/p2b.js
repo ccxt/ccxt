@@ -940,7 +940,7 @@ class p2b extends p2b$1["default"] {
         //    }
         //
         const result = this.safeDict(response, 'result');
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend({}, result), market);
     }
     /**
      * @method
@@ -988,7 +988,7 @@ class p2b extends p2b$1["default"] {
         //    }
         //
         const result = this.safeDict(response, 'result');
-        return this.parseOrder(result);
+        return this.parseOrder(this.extend({}, result));
     }
     /**
      * @method

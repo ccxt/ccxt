@@ -1075,7 +1075,7 @@ export default class paradex extends Exchange {
         const loadedFees = this.filterLoadedSummaries(fees);
         const result = {};
         for (let i = 0; i < loadedFees.length; i++) {
-            const fee = this.parseTradingFee(loadedFees[i]);
+            const fee = this.parseTradingFee(this.extend({}, loadedFees[i]));
             const symbol = this.safeString(fee, 'symbol');
             result[symbol] = fee;
         }
@@ -2338,7 +2338,7 @@ export default class paradex extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const responseOrder = this.safeDict(responseOrders, i);
             if (responseOrder !== undefined) {
-                result.push(this.parseOrder(responseOrder));
+                result.push(this.parseOrder(this.extend({}, responseOrder)));
             }
             else {
                 const error = this.safeDict(errors, i);

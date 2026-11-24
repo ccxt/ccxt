@@ -11130,7 +11130,7 @@ class binance extends binance$1["default"] {
         if (data === undefined) {
             throw new errors.NullResponse(this.id + ' parseTradingFee() returned empty response');
         }
-        return this.parseTradingFee(data, market);
+        return this.parseTradingFee(this.extend({}, data), market);
     }
     /**
      * @method
@@ -11231,7 +11231,7 @@ class binance extends binance$1["default"] {
             }
             const fees = this.toArray(response);
             for (let i = 0; i < fees.length; i++) {
-                const fee = this.parseTradingFee(fees[i]);
+                const fee = this.parseTradingFee(this.extend({}, fees[i]));
                 const symbol = this.safeString(fee, 'symbol');
                 if (symbol !== undefined) {
                     spotFees[symbol] = fee;

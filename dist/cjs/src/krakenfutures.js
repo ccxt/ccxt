@@ -1457,7 +1457,7 @@ class krakenfutures extends krakenfutures$1["default"] {
         const sendStatus = this.safeDict(response, 'sendStatus');
         const status = this.safeString(sendStatus, 'status');
         this.verifyOrderActionSuccess(status, 'createOrder', ['filled']);
-        return this.parseOrder(sendStatus, market);
+        return this.parseOrder(this.extend({}, sendStatus), market);
     }
     /**
      * @method

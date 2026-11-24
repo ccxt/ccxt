@@ -897,7 +897,7 @@ export default class woofipro extends woofiproRest {
         //         }
         //     }
         //
-        const topic = this.safeString(message, 'topic');
+        const topic = this.safeString(message, 'topic', '');
         const dataList = this.safeList(message, 'data');
         if (dataList !== undefined) {
             // algoexecutionreport

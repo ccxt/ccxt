@@ -2659,7 +2659,7 @@ class sxbet extends sxbet$1["default"] {
         for (let i = 0; i < rowsLength; i++) {
             const rawRow = rows[i];
             const row = this.safeDict(rawRow, 'order', rawRow);
-            const order = this.parsePredictionOrder(row);
+            const order = this.parsePredictionOrder(this.extend({}, row));
             if (this.orders === undefined) {
                 const cacheLimit = this.safeInteger(this.options, 'ordersLimit', 1000);
                 this.orders = new Cache.ArrayCacheByOutcomeById(cacheLimit);

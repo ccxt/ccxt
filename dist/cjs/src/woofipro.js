@@ -2375,7 +2375,7 @@ class woofipro extends woofipro$1["default"] {
         if (parsedOrders === undefined) {
             parsedOrders = {};
         }
-        return this.parseOrder(parsedOrders, market);
+        return this.parseOrder(this.extend({}, parsedOrders), market);
     }
     /**
      * @method

@@ -1651,11 +1651,11 @@ export default class blofin extends Exchange {
         }
         if (isCombinedSlTp || isSlOrTp || isTriggerOrder) {
             const dataDict = this.safeDict(response, 'data', {});
-            return this.parseOrder(dataDict, market);
+            return this.parseOrder(this.extend({}, dataDict), market);
         }
         const data = this.safeList(response, 'data', []);
         const first = this.safeDict(data, 0);
-        const order = this.parseOrder(first, market);
+        const order = this.parseOrder(this.extend({}, first), market);
         order['type'] = type;
         order['side'] = side;
         return order;
@@ -1770,12 +1770,12 @@ export default class blofin extends Exchange {
         else if (isTrigger) {
             const triggerResponse = await this.privatePostTradeCancelAlgo(this.extend(request, query));
             const triggerData = this.safeDict(triggerResponse, 'data');
-            return this.parseOrder(triggerData, market);
+            return this.parseOrder(this.extend({}, triggerData), market);
         }
         const response = await this.privatePostTradeCancelOrder(this.extend(request, query));
         const data = this.safeList(response, 'data', []);
         const order = this.safeDict(data, 0);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     /**
      * @method

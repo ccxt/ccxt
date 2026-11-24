@@ -1047,7 +1047,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeDict(response, 'result', {});
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend({}, result), market);
     }
     /**
      * @method
@@ -1166,7 +1166,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const order = this.safeDict(response, 'result', {});
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     /**
      * @method
@@ -1195,7 +1195,7 @@ export default class bitteam extends Exchange {
         //     }
         //
         const result = this.safeDict(response, 'result', {});
-        return this.parseOrder(result);
+        return this.parseOrder(this.extend({}, result));
     }
     /**
      * @method

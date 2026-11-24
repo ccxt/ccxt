@@ -3657,7 +3657,7 @@ class coinbase extends coinbase$1["default"] {
         //         }
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend({}, response), market);
     }
     /**
      * @method

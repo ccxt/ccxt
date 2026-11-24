@@ -2076,7 +2076,7 @@ class deribit extends deribit$1["default"] {
         //     }
         //
         const result = this.safeDict(response, 'result', {});
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend({}, result), market);
     }
     /**
      * @method
@@ -2323,7 +2323,7 @@ class deribit extends deribit$1["default"] {
         };
         const response = await this.privateGetCancel(this.extend(request, params));
         const result = this.safeDict(response, 'result', {});
-        return this.parseOrder(result);
+        return this.parseOrder(this.extend({}, result));
     }
     /**
      * @method

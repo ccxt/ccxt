@@ -1046,7 +1046,7 @@ class bitteam extends bitteam$1["default"] {
         //     }
         //
         const result = this.safeDict(response, 'result', {});
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend({}, result), market);
     }
     /**
      * @method
@@ -1165,7 +1165,7 @@ class bitteam extends bitteam$1["default"] {
         //     }
         //
         const order = this.safeDict(response, 'result', {});
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     /**
      * @method
@@ -1194,7 +1194,7 @@ class bitteam extends bitteam$1["default"] {
         //     }
         //
         const result = this.safeDict(response, 'result', {});
-        return this.parseOrder(result);
+        return this.parseOrder(this.extend({}, result));
     }
     /**
      * @method

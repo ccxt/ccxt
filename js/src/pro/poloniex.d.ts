@@ -242,7 +242,7 @@ export default class poloniex extends poloniexRest {
     parseStatus(status: Str): Str;
     parseWsOrderTrade(trade: Dict, market?: Market): Trade;
     handleOrder(client: Client, message: Dict): Dict;
-    parseWsOrder(order: any, market?: Market): Order;
+    parseWsOrder(order: Dict, market?: Market): Order;
     handleTicker(client: Client, message: Dict): Dict;
     handleOrderBook(client: Client, message: Dict): void;
     handleBalance(client: Client, message: Dict): void;

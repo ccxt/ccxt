@@ -231,7 +231,7 @@ export default class binance extends binanceRest {
         if (stream === undefined) {
             const previousStreamIndex = this.safeInteger(this.options, 'streamIndex', -1);
             const streamLimits = this.safeDict(this.options, 'streamLimits');
-            const streamLimit = this.safeInteger(streamLimits, type);
+            const streamLimit = this.safeInteger(streamLimits, type, 50);
             const streamIndex = previousStreamIndex + 1;
             const normalizedIndex = streamIndex % streamLimit;
             this.options['streamIndex'] = streamIndex;
@@ -4164,7 +4164,7 @@ export default class binance extends binanceRest {
         const newSpotOrder = this.safeDict(result, 'newOrderResponse');
         let order;
         if (newSpotOrder !== undefined) {
-            order = this.parseOrder(newSpotOrder);
+            order = this.parseOrder(this.extend({}, newSpotOrder));
         }
         else {
             order = this.parseOrder(result);
@@ -4964,9 +4964,9 @@ export default class binance extends binanceRest {
         let messageValue = message;
         if ((e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE')) {
             messageValue = orderValue;
-            if ((e === 'ALGO_UPDATE') && (this.safeInteger(messageValue, 'T') === undefined)) {
+            if ((e === 'ALGO_UPDATE') && (this.safeInteger(orderValue, 'T') === undefined)) {
                 // keep the outer event time, the algo payload carries no timestamps
-                messageValue = this.extend(messageValue, { 'T': this.safeInteger(message, 'T') });
+                messageValue = this.extend(orderValue, { 'T': this.safeInteger(message, 'T') });
             }
         }
         if ((e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE')) {

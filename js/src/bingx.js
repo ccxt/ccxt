@@ -4410,7 +4410,7 @@ export default class bingx extends Exchange {
         //
         const data = this.safeDict(response, 'data', {});
         const order = this.safeDict(data, 'order', data);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     /**
      * @method
@@ -4917,7 +4917,7 @@ export default class bingx extends Exchange {
         }
         const data = this.safeDict(response, 'data', {});
         const order = this.safeDict(data, 'order', data);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     /**
      * @method
@@ -7248,7 +7248,7 @@ export default class bingx extends Exchange {
                 commission = this.safeDict(data, 'commission', {});
             }
         }
-        return this.parseTradingFee(commission, market);
+        return this.parseTradingFee(this.extend({}, commission), market);
     }
     parseTradingFee(fee, market = undefined) {
         //

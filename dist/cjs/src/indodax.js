@@ -1088,7 +1088,7 @@ class indodax extends indodax$1["default"] {
         //    }
         //
         const data = this.safeDict(response, 'return');
-        return this.parseOrder(data);
+        return this.parseOrder(this.extend({}, data));
     }
     /**
      * @method

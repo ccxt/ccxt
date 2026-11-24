@@ -791,7 +791,7 @@ class bitbank extends bitbank$1["default"] {
         }
         const response = await this.privatePostUserSpotOrder(this.extend(request, params));
         const data = this.safeDict(response, 'data');
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend({}, data), market);
     }
     /**
      * @method
@@ -882,7 +882,7 @@ class bitbank extends bitbank$1["default"] {
         //    }
         //
         const data = this.safeDict(response, 'data');
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend({}, data), market);
     }
     /**
      * @method

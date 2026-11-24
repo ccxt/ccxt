@@ -1243,7 +1243,7 @@ class dydx extends dydx$1["default"] {
     retrieveCredentials() {
         let credentials = this.safeDict(this.options, 'dydxCredentials');
         if (credentials !== undefined) {
-            return credentials;
+            return this.safeDict(this.options, 'dydxCredentials', {});
         }
         const privateKeyOption = this.safeString(this.options, 'privateKey');
         if (privateKeyOption !== undefined) {
@@ -1258,7 +1258,7 @@ class dydx extends dydx$1["default"] {
             'publicKey': this.binaryToBase16(credentials['publicKey']),
         };
         this.options['dydxCredentials'] = credentials;
-        return credentials;
+        return this.safeDict(this.options, 'dydxCredentials', {});
     }
     async fetchDydxAccount() {
         // required in js

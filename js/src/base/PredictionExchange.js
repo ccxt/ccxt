@@ -1540,7 +1540,7 @@ export default class PredictionExchange extends BaseExchange {
         const rows = this.toArray(orders);
         let results = [];
         for (let i = 0; i < rows.length; i++) {
-            const parsed = this.parsePredictionOrder(rows[i], outcomeObj);
+            const parsed = this.parsePredictionOrder(this.safeDict(rows, i, {}), outcomeObj);
             const order = this.extend(parsed, params);
             results.push(order);
         }

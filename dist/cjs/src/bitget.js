@@ -5933,7 +5933,7 @@ class bitget extends bitget$1["default"] {
         //     }
         //
         const data = this.safeDict(response, 'data', {});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend({}, data), market);
     }
     createUtaOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         if (type === undefined) {
@@ -6756,7 +6756,7 @@ class bitget extends bitget$1["default"] {
         //     }
         //
         const data = this.safeDict(response, 'data', {});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend({}, data), market);
     }
     /**
      * @method
@@ -6942,13 +6942,13 @@ class bitget extends bitget$1["default"] {
         }
         else {
             if (isStockOrUta && (trigger === true)) {
-                order = response;
+                order = this.extend({}, response);
             }
             else {
                 order = data;
             }
         }
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     async cancelUtaOrders(ids, symbol = undefined, params = {}) {
         if (symbol === undefined) {
@@ -7383,7 +7383,7 @@ class bitget extends bitget$1["default"] {
         const data = this.safeDict(response, 'data');
         if ((data !== undefined)) {
             if (!Array.isArray(data)) {
-                return this.parseOrder(data, market);
+                return this.parseOrder(this.extend({}, data), market);
             }
         }
         const dataList = this.safeList(response, 'data', []);
@@ -7392,7 +7392,7 @@ class bitget extends bitget$1["default"] {
             throw new errors.OrderNotFound(this.id + ' fetchOrder() could not find order id ' + id + ' in ' + this.json(response));
         }
         const first = this.safeDict(dataList, 0, {});
-        return this.parseOrder(first, market);
+        return this.parseOrder(this.extend({}, first), market);
         // const first = this.safeDict (data, 0, data);
         // return this.parseOrder (first, market);
     }
@@ -11744,7 +11744,7 @@ class bitget extends bitget$1["default"] {
         }
         const data = this.safeDict(response, 'data', {});
         const order = this.safeList2(data, 'successList', 'list', []);
-        return this.parseOrder(this.safeDict(order, 0, {}), market);
+        return this.parseOrder(this.extend({}, this.safeDict(order, 0, {})), market);
     }
     /**
      * @method

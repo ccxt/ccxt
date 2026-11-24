@@ -3022,7 +3022,7 @@ class phemex extends phemex$1["default"] {
         //     }
         //
         const data = this.safeDict(response, 'data', {});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend({}, data), market);
     }
     /**
      * @method
@@ -3105,7 +3105,7 @@ class phemex extends phemex$1["default"] {
             response = await this.privatePutSpotOrders(this.extend(request, paramsOmitted3));
         }
         const data = this.safeDict(response, 'data', {});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend({}, data), market);
     }
     /**
      * @method
@@ -3153,7 +3153,7 @@ class phemex extends phemex$1["default"] {
             response = await this.privateDeleteSpotOrders(this.extend(request, paramsOmitted));
         }
         const data = this.safeDict(response, 'data', {});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend({}, data), market);
     }
     /**
      * @method

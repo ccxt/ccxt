@@ -2851,7 +2851,7 @@ class xt extends xt$1["default"] {
         //         "result": "206410760006650176"
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend({}, response), market);
     }
     /**
      * @method

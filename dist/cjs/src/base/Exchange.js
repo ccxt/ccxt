@@ -5529,13 +5529,15 @@ class BaseExchange {
         if (this.has['fetchTradingLimits'] !== undefined && this.has['fetchTradingLimits'] !== false) {
             if (reload || !('limitsLoaded' in this.options)) {
                 const response = await this.fetchTradingLimits(symbols);
-                const symbolsArray = this.requireValue(symbols, 'loadTradingLimits() requires a symbols argument');
+                if (symbols === undefined) {
+                    throw new errors.ArgumentsRequired(this.id + ' loadTradingLimits() requires a symbols argument');
+                }
                 const markets = this.markets;
                 if (markets === undefined) {
                     throw new errors.ExchangeError(this.id + ' markets not loaded');
                 }
-                for (let i = 0; i < symbolsArray.length; i++) {
-                    const symbol = symbolsArray[i];
+                for (let i = 0; i < symbols.length; i++) {
+                    const symbol = symbols[i];
                     markets[symbol] = this.deepExtend(markets[symbol], response[symbol]);
                 }
                 this.options['limitsLoaded'] = this.milliseconds();

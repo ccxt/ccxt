@@ -996,7 +996,7 @@ export default class poloniex extends poloniexRest {
         const orders = this.orders;
         const marketIds = [];
         for (let i = 0; i < data.length; i++) {
-            const order = this.safeDict(data, i);
+            const order = this.safeDict(data, i, {});
             const marketId = this.safeString(order, 'symbol');
             const eventType = this.safeString(order, 'eventType');
             if (marketId !== undefined) {

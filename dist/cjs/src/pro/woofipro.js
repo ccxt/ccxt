@@ -896,7 +896,7 @@ class woofipro extends woofipro$1["default"] {
         //         }
         //     }
         //
-        const topic = this.safeString(message, 'topic');
+        const topic = this.safeString(message, 'topic', '');
         const dataList = this.safeList(message, 'data');
         if (dataList !== undefined) {
             // algoexecutionreport

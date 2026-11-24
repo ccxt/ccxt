@@ -4409,7 +4409,7 @@ class bingx extends bingx$1["default"] {
         //
         const data = this.safeDict(response, 'data', {});
         const order = this.safeDict(data, 'order', data);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     /**
      * @method
@@ -4916,7 +4916,7 @@ class bingx extends bingx$1["default"] {
         }
         const data = this.safeDict(response, 'data', {});
         const order = this.safeDict(data, 'order', data);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     /**
      * @method
@@ -7247,7 +7247,7 @@ class bingx extends bingx$1["default"] {
                 commission = this.safeDict(data, 'commission', {});
             }
         }
-        return this.parseTradingFee(commission, market);
+        return this.parseTradingFee(this.extend({}, commission), market);
     }
     parseTradingFee(fee, market = undefined) {
         //

@@ -488,7 +488,7 @@ class extended extends extended$1["default"] {
         }
         const orders = this.orders;
         const data = this.safeDict(message, 'data', {});
-        const rawOrders = this.safeList(data, 'orders');
+        const rawOrders = this.safeList(data, 'orders', []);
         const symbols = {};
         const first = this.safeDict(rawOrders, 0);
         if (first === undefined) {

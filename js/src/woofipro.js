@@ -2376,7 +2376,7 @@ export default class woofipro extends Exchange {
         if (parsedOrders === undefined) {
             parsedOrders = {};
         }
-        return this.parseOrder(parsedOrders, market);
+        return this.parseOrder(this.extend({}, parsedOrders), market);
     }
     /**
      * @method

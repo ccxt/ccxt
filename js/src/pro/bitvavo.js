@@ -771,7 +771,7 @@ export default class bitvavo extends bitvavoRest {
             return;
         }
         if (this.safeInteger(orderbook, 'nonce') === undefined) {
-            const subscription = this.safeValue(client.subscriptions, messageHash, {});
+            const subscription = this.safeDict(client.subscriptions, messageHash, {});
             // multi-symbol watches share one subscription object, so the
             // snapshot-in-flight flag must be tracked per market
             const flagKey = 'watchingOrderBookSnapshot@' + this.safeString(message, 'market', '');
@@ -1658,7 +1658,7 @@ export default class bitvavo extends bitvavoRest {
         const market = this.safeMarket(marketId, undefined, '-');
         const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'order:' + symbol;
-        const order = this.parseOrder(message, market);
+        const order = this.parseOrder(this.extend({}, message), market);
         if (this.orders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById(limit);

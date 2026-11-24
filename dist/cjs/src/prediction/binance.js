@@ -862,7 +862,7 @@ class binance extends binance$1["default"] {
                 response = await this.sapiPrivateGetOrderBookLastTradePrice(this.extend(request, params));
                 responsesByMarketId[marketId] = response;
             }
-            const ticker = this.parsePredictionTicker(response, outcomeObj);
+            const ticker = this.parsePredictionTicker(this.extend({}, response), outcomeObj);
             const symbolKey = this.safeString(ticker, 'outcome', outcomes[i]);
             result[symbolKey] = ticker;
         }

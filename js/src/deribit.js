@@ -2077,7 +2077,7 @@ export default class deribit extends Exchange {
         //     }
         //
         const result = this.safeDict(response, 'result', {});
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend({}, result), market);
     }
     /**
      * @method
@@ -2324,7 +2324,7 @@ export default class deribit extends Exchange {
         };
         const response = await this.privateGetCancel(this.extend(request, params));
         const result = this.safeDict(response, 'result', {});
-        return this.parseOrder(result);
+        return this.parseOrder(this.extend({}, result));
     }
     /**
      * @method

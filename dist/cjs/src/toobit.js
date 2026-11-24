@@ -1808,7 +1808,7 @@ class toobit extends toobit$1["default"] {
         //         "priceType": "INPUT"                   // only in contract
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend({}, response), market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         if (type === undefined) {
@@ -2099,7 +2099,7 @@ class toobit extends toobit$1["default"] {
         if (status !== 'open') {
             throw new errors.OrderNotFound(this.id + ' order ' + id + ' can not be canceled, ' + this.json(response));
         }
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend({}, response), market);
     }
     /**
      * @method
@@ -2256,7 +2256,7 @@ class toobit extends toobit$1["default"] {
         //        "priceType": "INPUT"                 // only in CONTRACT
         //    }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend({}, response), market);
     }
     /**
      * @method

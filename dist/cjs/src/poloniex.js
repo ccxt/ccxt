@@ -2104,7 +2104,7 @@ class poloniex extends poloniex$1["default"] {
         //         "clientOrderId" : ""
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend({}, response), market);
     }
     /**
      * @method
@@ -2348,7 +2348,7 @@ class poloniex extends poloniex$1["default"] {
             'side': side,
             'type': type,
         });
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend({}, response), market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
         //
@@ -2406,7 +2406,7 @@ class poloniex extends poloniex$1["default"] {
         //       "message":""
         //   }
         //
-        return this.parseOrder(response);
+        return this.parseOrder(this.extend({}, response));
     }
     /**
      * @method
@@ -2602,7 +2602,7 @@ class poloniex extends poloniex$1["default"] {
         //         "updateTime": 1646196019020
         //     }
         //
-        const order = this.parseOrder(response);
+        const order = this.parseOrder(this.extend({}, response));
         order['id'] = idValue;
         return order;
     }

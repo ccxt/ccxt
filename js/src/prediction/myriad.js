@@ -2831,7 +2831,7 @@ export default class myriad extends Exchange {
         const responses = await Promise.all(promises);
         for (let i = 0; i < marketKeys.length; i++) {
             const key = marketKeys[i];
-            const response = responses[i];
+            const response = this.safeDict(responses, i, {});
             const grouped = outcomesByMarket[key];
             for (let j = 0; j < grouped.length; j++) {
                 const outcomeObj = grouped[j];
@@ -3029,7 +3029,7 @@ export default class myriad extends Exchange {
         const result = [];
         const rawQuestionsLength = rawQuestions.length;
         for (let i = 0; i < rawQuestionsLength; i++) {
-            const ev = this.parseEvent(this.safeDict(rawQuestions, i, {}));
+            const ev = this.parseEvent(this.extend({}, rawQuestions[i]));
             const evMarkets = this.safeList(ev, 'markets', []);
             const evMarketsLength = evMarkets.length;
             const filteredMarkets = [];

@@ -120,7 +120,7 @@ export default class interactivebrokers extends Exchange {
      * @param {string} [params.accountId] the account id to use
      * @returns {Array} the account id and the params without accountId
      */
-    loadAccountId(params?: Dict): Promise<[Str, Dict]>;
+    loadAccountId(params?: Dict): Promise<[string, Dict]>;
     /**
      * @method
      * @name interactivebrokers#fetchBalance
@@ -179,7 +179,7 @@ export default class interactivebrokers extends Exchange {
      * @returns {object[]} the markets with unique symbols
      */
     ibkrDisambiguateContractSymbols(markets: Market[]): Market[];
-    fetchSecWithDetails(plainEntries: Dict): Promise<Dict[]>;
+    fetchSecWithDetails(plainEntries: Dict): Promise<List>;
     fetchForexMarkets(params?: Dict): Promise<Market[]>;
     fetchCryptoMarkets(params?: Dict): Promise<Market[]>;
     /**

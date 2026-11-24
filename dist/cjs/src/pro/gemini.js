@@ -771,7 +771,7 @@ class gemini extends gemini$1["default"] {
         }
         const orders = this.orders;
         for (let i = 0; i < message.length; i++) {
-            const order = this.parseWsOrder(this.safeValue(message, i));
+            const order = this.parseWsOrder(this.safeDict(message, i, {}));
             orders.append(order);
         }
         client.resolve(this.orders, messageHash);

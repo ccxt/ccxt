@@ -775,7 +775,7 @@ class kalshi extends kalshi$1["default"] {
         //         }
         //     }
         //
-        const raw = this.safeDict(response, 'market', response);
+        const raw = this.extend({}, this.safeDict(response, 'market', response));
         return this.parsePredictionTicker(raw, outcomeObj);
     }
     /**
@@ -1034,7 +1034,7 @@ class kalshi extends kalshi$1["default"] {
             const response = await this.kalshiPublicGetMarkets(this.extend(request, params));
             const rawMarkets = this.safeList(response, 'markets', []);
             for (let i = 0; i < rawMarkets.length; i++) {
-                const raw = rawMarkets[i];
+                const raw = this.safeDict(rawMarkets, i, {});
                 const marketTicker = this.safeString(raw, 'ticker');
                 if ((marketTicker === undefined) || !(marketTicker in outcomesByTicker)) {
                     continue;
@@ -1858,7 +1858,7 @@ class kalshi extends kalshi$1["default"] {
             await this.loadOutcome(outcome);
         }
         const response = await this.kalshiPrivateGetPortfolioOrdersOrderId(this.extend({ 'order_id': id }, params));
-        return this.parsePredictionOrder(this.safeDict(response, 'order', response));
+        return this.parsePredictionOrder(this.extend({}, this.safeDict(response, 'order', response)));
     }
     /**
      * @ignore
@@ -2107,7 +2107,7 @@ class kalshi extends kalshi$1["default"] {
         const response = await this.kalshiPrivateDeletePortfolioEventsOrdersOrderId(this.extend({ 'order_id': id }, params));
         // the delete response is minimal (no ticker/action/id/status): pass the resolved outcome so
         // the parser can fill outcome/outcomeId/market/label, then backfill the id and canceled status
-        const order = this.parsePredictionOrder(this.safeDict(response, 'order', response), outcomeObj);
+        const order = this.parsePredictionOrder(this.extend({}, this.safeDict(response, 'order', response)), outcomeObj);
         if (this.safeString(order, 'id') === undefined) {
             order['id'] = id;
         }
@@ -2142,13 +2142,12 @@ class kalshi extends kalshi$1["default"] {
         const restingOrdersLength = restingOrders.length;
         const canceledOrders = [];
         for (let i = 0; i < restingOrdersLength; i++) {
-            const restingOrder = restingOrders[i];
-            const orderId = this.safeString(restingOrder, 'order_id');
+            const orderId = this.safeString(restingOrders[i], 'order_id');
             if (orderId !== undefined) {
                 await this.kalshiPrivateDeletePortfolioEventsOrdersOrderId(this.extend({ 'order_id': orderId }, params));
                 // the DELETE body is minimal — parse the already-fetched resting order instead, which
                 // carries the true side/outcome/price/count, then mark it canceled
-                const parsed = this.parsePredictionOrder(restingOrder);
+                const parsed = this.parsePredictionOrder(this.safeDict(restingOrders, i, {}));
                 parsed['status'] = 'canceled';
                 canceledOrders.push(parsed);
             }

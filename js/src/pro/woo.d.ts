@@ -184,7 +184,7 @@ export default class woo extends wooRest {
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     parseWsOrder(order: Dict, market?: Market): Order;
     handleOrderUpdate(client: Client, message: Dict): void;
-    handleOrder(client: Client, message: Dict, topic: Str): void;
+    handleOrder(client: Client, message: Dict, topic: string): void;
     handleMyTrade(client: Client, message: Dict): void;
     /**
      * @method

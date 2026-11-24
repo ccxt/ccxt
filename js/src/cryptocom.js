@@ -1348,7 +1348,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const order = this.safeDict(response, 'result', {});
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     createOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
         const market = this.market(symbol);
@@ -1498,7 +1498,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const result = this.safeDict(response, 'result', {});
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend({}, result), market);
     }
     /**
      * @method
@@ -1742,7 +1742,7 @@ export default class cryptocom extends Exchange {
         const request = this.editOrderRequest(id, symbol, amount, price, params);
         const response = await this.v1PrivatePostPrivateAmendOrder(request);
         const result = this.safeDict(response, 'result', {});
-        return this.parseOrder(result);
+        return this.parseOrder(this.extend({}, result));
     }
     editOrderRequest(id, symbol, amount = undefined, price = undefined, params = {}) {
         const request = {};
@@ -1823,7 +1823,7 @@ export default class cryptocom extends Exchange {
         //     }
         //
         const result = this.safeDict(response, 'result', {});
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend({}, result), market);
     }
     /**
      * @method
@@ -3479,7 +3479,7 @@ export default class cryptocom extends Exchange {
         //    }
         //
         const result = this.safeDict(response, 'result');
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend({}, result), market);
     }
     /**
      * @method

@@ -860,11 +860,9 @@ export default class bitrue extends Exchange {
             }
         }
         const promises = await Promise.all(promisesRaw);
-        const spotMarkets = this.safeList(this.safeDict(promises, 0), 'symbols', []);
         const futureMarkets = this.safeList(promises, 1, []);
         const deliveryMarkets = this.safeList(promises, 2, []);
-        let markets = spotMarkets;
-        markets = this.arrayConcat(markets, futureMarkets);
+        let markets = this.arrayConcat(this.safeList(this.safeDict(promises, 0), 'symbols', []), futureMarkets);
         markets = this.arrayConcat(markets, deliveryMarkets);
         //
         // spot

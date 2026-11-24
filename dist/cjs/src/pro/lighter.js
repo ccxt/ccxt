@@ -1213,7 +1213,7 @@ class lighter extends lighter$1["default"] {
             'id': requestId,
         };
         const rawMessage = await this.watch(url, messageHash, message, messageHash, subscription);
-        return this.parseOrder(this.deepExtend(rawMessage, order), market);
+        return this.parseOrder(this.extend({}, this.deepExtend(rawMessage, order)), market);
     }
     /**
      * @method

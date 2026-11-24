@@ -1649,7 +1649,7 @@ class bingx extends bingx$1["default"] {
             this.orders = new Cache.ArrayCacheBySymbolById(limit);
         }
         const stored = this.orders;
-        const parsedOrder = this.parseOrder(data);
+        const parsedOrder = this.parseOrder(this.extend({}, data));
         if (!isSpot) {
             // The envelope T is the order update time; o.T is the trade time.
             const updateTimestamp = this.safeInteger(message, 'T');

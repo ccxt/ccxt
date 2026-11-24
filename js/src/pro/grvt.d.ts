@@ -149,6 +149,6 @@ export default class grvt extends grvtRest {
      */
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     handleOrder(client: Client, message: Dict): void;
-    parseWsOrder(order: any, market?: Market): Order;
+    parseWsOrder(order: Dict, market?: Market): Order;
     handleErrorMessage(client: Client, response: Dict): boolean;
 }

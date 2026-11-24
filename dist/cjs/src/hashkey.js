@@ -3049,7 +3049,7 @@ class hashkey extends hashkey$1["default"] {
         else {
             throw new errors.NotSupported(this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
-        return this.parseOrder(response);
+        return this.parseOrder(this.extend({}, response));
     }
     /**
      * @method
@@ -3247,7 +3247,7 @@ class hashkey extends hashkey$1["default"] {
         else {
             throw new errors.NotSupported(this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
-        return this.parseOrder(response);
+        return this.parseOrder(this.extend({}, response));
     }
     /**
      * @method

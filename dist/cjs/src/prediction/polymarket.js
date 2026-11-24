@@ -2027,7 +2027,7 @@ class polymarket extends polymarket$1["default"] {
             }
         }
         else {
-            result.push(this.parsePredictionOrder(response));
+            result.push(this.parsePredictionOrder(this.safeDict(response, 0, {})));
         }
         return result;
     }
@@ -2668,7 +2668,7 @@ class polymarket extends polymarket$1["default"] {
     parseEvents(rawEvents) {
         const result = [];
         for (let i = 0; i < rawEvents.length; i++) {
-            result.push(this.parseEvent(this.safeDict(rawEvents, i, {})));
+            result.push(this.parseEvent(this.extend({}, rawEvents[i])));
         }
         return result;
     }
@@ -3338,7 +3338,7 @@ class polymarket extends polymarket$1["default"] {
             this.orders = new Cache.ArrayCacheByOutcomeById(limit);
         }
         const stored = this.orders;
-        const parsed = this.parsePredictionOrder(event);
+        const parsed = this.parsePredictionOrder(this.extend({}, event));
         stored.append(parsed);
         client.resolve(stored, 'orders');
         const outcome = this.safeString(parsed, 'outcome');

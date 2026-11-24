@@ -2901,7 +2901,7 @@ export default class mexc extends Exchange {
             //
             data = this.safeDict(response, 'data', {});
         }
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend({}, data), market);
     }
     /**
      * @method
@@ -3457,7 +3457,7 @@ export default class mexc extends Exchange {
                 throw new InvalidOrder(this.id + ' cancelOrder() the order with id ' + id + ' cannot be cancelled: ' + errorMsg);
             }
         }
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend({}, data), market);
     }
     /**
      * @method

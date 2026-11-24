@@ -1620,10 +1620,9 @@ export default class interactivebrokers extends Exchange {
         const allowedVenues = ['CME', 'CFE', 'COINDERIV'];
         const detailMarkets = [];
         for (let i = 0; i < details.length; i++) {
-            const detail = details[i];
-            const venue = this.safeString(detail, 'listingExchange');
+            const venue = this.safeString(details[i], 'listingExchange');
             if (this.inArray(venue, allowedVenues)) {
-                detailMarkets.push(detail);
+                detailMarkets.push(this.safeDict(details, i));
             }
         }
         const markets = this.parseMarkets(detailMarkets);
@@ -1682,10 +1681,9 @@ export default class interactivebrokers extends Exchange {
         for (let i = 0; i < cfdExchanges.length; i++) {
             const cfdExchange = this.safeString(cfdExchanges, i, '');
             for (let j = 0; j < detailMarketsLength; j++) {
-                const detail = detailMarkets[j];
-                const listingExchange = this.safeString(detail, 'listingExchange', '');
+                const listingExchange = this.safeString(detailMarkets[j], 'listingExchange', '');
                 if (listingExchange === cfdExchange) {
-                    result.push(detail);
+                    result.push(this.safeDict(detailMarkets, j));
                 }
             }
         }
@@ -3078,7 +3076,7 @@ export default class interactivebrokers extends Exchange {
         //
         //     { "msg": "Request was submitted", "order_id": 123456789, "conid": 265598, "account": "U1234567" }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend({}, response), market);
     }
     /**
      * @method
@@ -3142,7 +3140,7 @@ export default class interactivebrokers extends Exchange {
         if (response === undefined) {
             throw new NullResponse(this.id + ' fetchOrder() returned empty response');
         }
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend({}, response), market);
     }
     /**
      * @method

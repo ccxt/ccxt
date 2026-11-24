@@ -761,7 +761,7 @@ class hitbtc extends hitbtc$1["default"] {
                 stored = new Cache.ArrayCache(tradesLimit);
                 this.trades[symbol] = stored;
             }
-            const trades = this.parseWsTrades(data[marketId], market);
+            const trades = this.parseWsTrades(this.safeList(data, marketId, []), market);
             for (let j = 0; j < trades.length; j++) {
                 stored.append(trades[j]);
             }
@@ -1457,7 +1457,7 @@ class hitbtc extends hitbtc$1["default"] {
             const parsedOrders = [];
             const rowsLength = rows.length;
             for (let i = 0; i < rowsLength; i++) {
-                const parsedOrder = this.parseWsOrder(rows[i]);
+                const parsedOrder = this.parseWsOrder(this.safeDict(rows, i, {}));
                 parsedOrders.push(parsedOrder);
             }
             client.resolve(parsedOrders, messageHash);

@@ -1523,7 +1523,7 @@ class onetrading extends onetrading$1["default"] {
         //
         // responds with an empty body
         //
-        return this.parseOrder(response);
+        return this.parseOrder(this.extend({}, response));
     }
     /**
      * @method

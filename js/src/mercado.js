@@ -667,7 +667,7 @@ export default class mercado extends Exchange {
         //
         const responseData = this.safeDict(response, 'response_data', {});
         const order = this.safeDict(responseData, 'order', {});
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     parseOrderStatus(status) {
         const statuses = {
@@ -773,7 +773,7 @@ export default class mercado extends Exchange {
         const response = await this.privatePostGetOrder(this.extend(request, params));
         const responseData = this.safeDict(response, 'response_data', {});
         const order = this.safeDict(responseData, 'order');
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend({}, order), market);
     }
     /**
      * @method

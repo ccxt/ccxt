@@ -1650,7 +1650,7 @@ export default class bingx extends bingxRest {
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         const stored = this.orders;
-        const parsedOrder = this.parseOrder(data);
+        const parsedOrder = this.parseOrder(this.extend({}, data));
         if (!isSpot) {
             // The envelope T is the order update time; o.T is the trade time.
             const updateTimestamp = this.safeInteger(message, 'T');

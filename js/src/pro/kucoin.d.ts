@@ -262,7 +262,7 @@ export default class kucoin extends kucoinRest {
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     getOrdersMessageHashSuffix(topic: Str): string;
     parseWsOrderStatus(status: Str): Str;
-    parseWsOrder(order: any, market?: Market): Order;
+    parseWsOrder(order: Dict, market?: Market): Order;
     parseWsUtaOrder(order: Dict, market?: Market): Order;
     handleOrder(client: Client, message: Dict): void;
     handleUtaOrder(client: Client, message: Dict): void;
