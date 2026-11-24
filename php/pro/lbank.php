@@ -238,7 +238,8 @@ class lbank extends \ccxt\async\lbank {
             'topic' => 'ohlcv',
             'symbolsAndTimeframes' => array( array( $market['symbol'], $timeframe ) ),
         );
-        return Async\await($this->un_subscribe('ohlcv:' . $market['symbol'] . ':' . $timeframeId, $request, $subscription, $params));
+        $symbolValue = $this->safe_string($market, 'symbol', '');
+        return Async\await($this->un_subscribe('ohlcv:' . $symbolValue . ':' . $timeframeId, $request, $subscription, $params));
     }
 
     public function handle_ohlcv(Client $client, array $message) {
@@ -587,7 +588,8 @@ class lbank extends \ccxt\async\lbank {
             'topic' => 'trades',
             'symbols' => array( $market['symbol'] ),
         );
-        return Async\await($this->un_subscribe('trades:' . $market['symbol'], $request, $subscription, $params));
+        $symbolValue = $this->safe_string($market, 'symbol', '');
+        return Async\await($this->un_subscribe('trades:' . $symbolValue, $request, $subscription, $params));
     }
 
     public function handle_trades(Client $client, array $message) {

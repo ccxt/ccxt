@@ -869,7 +869,7 @@ class kraken extends \ccxt\async\kraken {
         $symbolsNormalized = $this->market_symbols($symbols, null, false, true, false);
         $unsubMessageHashes = array();
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
-            $unsubMessageHashes[] = 'unsubscribe:' . $this->get_message_hash('trade', null, $symbolsNormalized[$i]);
+            $unsubMessageHashes[] = 'unsubscribe:' . $this->get_message_hash('trade', null, $this->symbol($symbolsNormalized[$i]));
         }
         $request = array(
             'method' => 'unsubscribe',

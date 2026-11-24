@@ -1986,7 +1986,7 @@ class bybit extends Exchange {
         return $result;
     }
 
-    public function fetch_spot_markets(mixed $params): array {
+    public function fetch_spot_markets($params = array()): array {
         $request = array(
             'category' => 'spot',
         );
@@ -8557,7 +8557,8 @@ class bybit extends Exchange {
         //
         $result = array();
         for ($i = 0; $i < count($settlements); $i++) {
-            $result[] = $this->parse_settlement($this->extend(array(), $settlements[$i]), $market);
+            $settlementRow = $this->extend(array(), $settlements[$i]);
+            $result[] = $this->parse_settlement($settlementRow, $market);
         }
         return $result;
     }

@@ -8816,7 +8816,7 @@ class htx extends Exchange {
         //    }
         //
         $data = $this->safe_dict($response, 'data');
-        $tick = $this->safe_list($data, 'tick');
+        $tick = $this->safe_list($data, 'tick', array());
         return $this->parse_open_interests_history($tick, $market, $since, $limit);
     }
 

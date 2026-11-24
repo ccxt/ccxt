@@ -2371,6 +2371,7 @@ class blofin extends Exchange {
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
         }
+        $depositId = $this->safe_string($request, 'depositId', '');
         $response = $this->privateGetAssetDepositHistory($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         // only accept a row that matches the requested id, in case the
@@ -2378,11 +2379,11 @@ class blofin extends Exchange {
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
             $entry = $this->safe_dict($data, $i, array());
-            if ($this->safe_string($entry, 'depositId') === $id) {
+            if ($this->safe_string($entry, 'depositId') === $depositId) {
                 return $this->parse_transaction($entry, $currency);
             }
         }
-        throw new ExchangeError($this->id . ' fetchDeposit() could not find deposit ' . $id);
+        throw new ExchangeError($this->id . ' fetchDeposit() could not find deposit ' . $depositId);
     }
 
     public function fetch_withdrawal(string $id, ?string $code = null, $params = array()): array {
@@ -2406,13 +2407,16 @@ class blofin extends Exchange {
         $this->load_markets();
         $request = array();
         if ($hasId) {
-            $request['withdrawId'] = $id;
+            $request = array(
+                'withdrawId' => $id,
+            );
         }
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
         }
+        $withdrawId = $this->safe_string($request, 'withdrawId', '');
         $response = $this->privateGetAssetWithdrawalHistory($this->extend($request, $params));
         $data = $this->safe_list($response, 'data', array());
         // only accept a row that matches the requested id (or clientId), in
@@ -2422,7 +2426,7 @@ class blofin extends Exchange {
             $entry = $this->safe_dict($data, $i, array());
             $matches = false;
             if ($hasId) {
-                $matches = ($this->safe_string($entry, 'withdrawId') === $id);
+                $matches = ($this->safe_string($entry, 'withdrawId') === $withdrawId);
             } else {
                 $matches = ($this->safe_string($entry, 'clientId') === $clientId);
             }
@@ -2430,7 +2434,7 @@ class blofin extends Exchange {
                 return $this->parse_transaction($entry, $currency);
             }
         }
-        $reference = $hasId ? $id : $clientId;
+        $reference = $hasId ? $withdrawId : $clientId;
         throw new ExchangeError($this->id . ' fetchWithdrawal() could not find withdrawal ' . $reference);
     }
 

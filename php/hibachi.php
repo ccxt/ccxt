@@ -2206,7 +2206,8 @@ class hibachi extends Exchange {
     public function parse_settlements(array $settlements, ?array $market = null): array {
         $result = array();
         for ($i = 0; $i < count($settlements); $i++) {
-            $result[] = $this->parse_settlement($this->extend(array(), $settlements[$i]), $market);
+            $settlementRow = $this->extend(array(), $settlements[$i]);
+            $result[] = $this->parse_settlement($settlementRow, $market);
         }
         return $result;
     }

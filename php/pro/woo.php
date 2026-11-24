@@ -1313,12 +1313,12 @@ class woo extends \ccxt\async\woo {
             for ($i = 0; $i < count($dataList); $i++) {
                 $tradeId = $this->omit_zero($this->safe_string($dataList, 'tradeId'));
                 if ($tradeId !== null) {
-                    $this->handle_my_trade($client, $dataList[$i]);
+                    $this->handle_my_trade($client, $this->safe_dict($dataList, $i, array()));
                 }
-                $this->handle_order($client, $dataList[$i], $topic);
+                $this->handle_order($client, $this->safe_dict($dataList, $i, array()), $topic);
             }
         } else {
-            $data = $this->safe_value($message, 'data');
+            $data = $this->safe_dict($message, 'data', array());
             // executionreport
             $tradeId = $this->omit_zero($this->safe_string($data, 'tradeId'));
             if ($tradeId !== null) {

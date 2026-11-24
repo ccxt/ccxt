@@ -1980,7 +1980,8 @@ class coinsph extends Exchange {
         $result = array();
         $fees = $this->to_array($response);
         for ($i = 0; $i < count($fees); $i++) {
-            $fee = $this->parse_trading_fee($fees[$i]);
+            $feeRow = $this->safe_dict($fees, $i, array());
+            $fee = $this->parse_trading_fee($feeRow);
             $symbol = $this->safe_string($fee, 'symbol');
             if ($symbol !== null) {
                 $result[$symbol] = $fee;

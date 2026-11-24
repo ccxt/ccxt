@@ -3857,10 +3857,10 @@ class bitfinex extends Exchange {
         //     ]
         //
         $data = $this->safe_value($response, 0);
-        return $this->parse_margin_modification($data, $market);
+        return $this->parse_margin_modification_row($data, $market);
     }
 
-    public function parse_margin_modification(array $data, ?array $market = null): array {
+    public function parse_margin_modification_row(array $data, ?array $market = null): array {
         //
         // setMargin
         //

@@ -97,7 +97,7 @@ class paradex extends \ccxt\async\paradex {
         }
     }
 
-    public function get_order_book_channel(?string $marketId, bool $deltas = false): string {
+    public function get_order_book_channel(string $marketId, bool $deltas = false): string {
         if ($deltas) {
             // the docs list the channel as order_book.{market_symbol}.{feed_type}@15@{refresh_rate}, but the deltas feed
             // takes none of those parameters: it sends one full-depth snapshot on subscribe, then incremental updates
@@ -599,14 +599,16 @@ class paradex extends \ccxt\async\paradex {
             throw new ArgumentsRequired($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
         $channels = array();
+        $messageHashes = array();
         for ($i = 0; $i < $symbolsLength; $i++) {
             $market = $this->market($symbolsNormalized[$i]);
             $marketId = $this->safe_string($market, 'id', '');
             $channels[] = 'trades.' . $marketId;
+            $messageHashes[] = 'trades.' . $marketId;
         }
         $url = $this->get_ws_url();
         // handleTrade resolves the channel of each market
-        $trades = Async\await($this->subscribe_channels($url, $channels, $channels, $params));
+        $trades = Async\await($this->subscribe_channels($url, $messageHashes, $channels, $params));
         $first = $this->safe_dict($trades, 0);
         $tradeSymbol = $this->safe_string($first, 'symbol');
         $limitResolved = $limit;
@@ -656,13 +658,15 @@ class paradex extends \ccxt\async\paradex {
         }
         $symbolsNormalized = $this->market_symbols($symbols, null, false);
         $channels = array();
+        $subMessageHashes = array();
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $market = $this->market($symbolsNormalized[$i]);
             $marketId = $this->safe_string($market, 'id', '');
             $channels[] = 'trades.' . $marketId;
+            $subMessageHashes[] = 'trades.' . $marketId;
         }
         // the watchers of a market wait on its channel
-        return Async\await($this->unsubscribe_channels($this->get_ws_url(), 'trades', $channels, $channels, $symbolsNormalized, $params));
+        return Async\await($this->unsubscribe_channels($this->get_ws_url(), 'trades', $channels, $subMessageHashes, $symbolsNormalized, $params));
     }
 
     public function watch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -835,8 +839,8 @@ class paradex extends \ccxt\async\paradex {
         $feeds = array();
         for ($i = 0; $i < $symbolsLength; $i++) {
             $feedMarket = $this->market($symbolsNormalized[$i]);
-            $feeds[] = $this->get_order_book_channel($this->safe_string($feedMarket, 'id'), true);
-            $feeds[] = $this->get_order_book_channel($this->safe_string($feedMarket, 'id'), false);
+            $feeds[] = $this->get_order_book_channel($this->safe_string($feedMarket, 'id', ''), true);
+            $feeds[] = $this->get_order_book_channel($this->safe_string($feedMarket, 'id', ''), false);
         }
         Async\await($this->wait_for_pending_unsubscribe($url, $feeds));
         $client = $this->client($url);
@@ -844,8 +848,8 @@ class paradex extends \ccxt\async\paradex {
         $messageHashes = array();
         for ($i = 0; $i < $symbolsLength; $i++) {
             $market = $this->market($symbolsNormalized[$i]);
-            $deltasChannel = $this->get_order_book_channel($this->safe_string($market, 'id'), true);
-            $snapshotChannel = $this->get_order_book_channel($this->safe_string($market, 'id'), false);
+            $deltasChannel = $this->get_order_book_channel($this->safe_string($market, 'id', ''), true);
+            $snapshotChannel = $this->get_order_book_channel($this->safe_string($market, 'id', ''), false);
             // one feed per market on a connection: both send BookEvent frames, which do not name their channel,
             // and the 15-level snapshots would cut a full-depth book down. The deltas feed is a superset, it stays
             // the market stays on the deltas feed from the first call that asks for it, a call made while the
@@ -915,8 +919,8 @@ class paradex extends \ccxt\async\paradex {
         for ($i = 0; $i < count($symbolsNormalized); $i++) {
             $market = $this->market($symbolsNormalized[$i]);
             // the feed the market is on, a market is on one of them at a time
-            $deltasChannel = $this->get_order_book_channel($this->safe_string($market, 'id'), true);
-            $snapshotChannel = $this->get_order_book_channel($this->safe_string($market, 'id'), false);
+            $deltasChannel = $this->get_order_book_channel($this->safe_string($market, 'id', ''), true);
+            $snapshotChannel = $this->get_order_book_channel($this->safe_string($market, 'id', ''), false);
             $channel = ($deltasOption === true) ? $deltasChannel : $snapshotChannel;
             // a market switching to the deltas feed is on neither feed until its snapshot unsubscribe is acknowledged
             $requestedHash = $deltasChannel . ':requested';
@@ -1011,7 +1015,7 @@ class paradex extends \ccxt\async\paradex {
             }
         }
         if ($this->safe_string($data, 'update_type') === 'd') {
-            $deltasChannel = $this->get_order_book_channel($marketId, true);
+            $deltasChannel = $this->get_order_book_channel($this->safe_string($data, 'market', ''), true);
             $stored = $this->safe_value($this->orderbooks, $symbol);
             // a delta applies only to the book of the deltas feed
             if (($stored === null) || !(is_array($client->subscriptions) && array_key_exists($deltasChannel ?? '', $client->subscriptions))) {

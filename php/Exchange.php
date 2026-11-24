@@ -5691,11 +5691,12 @@ class BaseExchange {
     }
 
     public function parse_fee_numeric(mixed $fee) {
-        $fee['cost'] = $this->safe_number($fee, 'cost'); // ensure numeric
-        if (is_array($fee) && array_key_exists('rate' ?? '', $fee)) {
-            $fee['rate'] = $this->safe_number($fee, 'rate');
+        $result = $this->extend(array(), $fee);
+        $result['cost'] = $this->safe_number($result, 'cost'); // ensure numeric
+        if (is_array($result) && array_key_exists('rate' ?? '', $result)) {
+            $result['rate'] = $this->safe_number($result, 'rate');
         }
-        return $fee;
+        return $result;
     }
 
     public function find_nearest_ceiling(array $arr, float $providedValue) {

@@ -1970,12 +1970,13 @@ class aster extends \ccxt\async\aster {
         $rawOrder = $this->safe_dict($message, 'o', $message);
         $e = $this->safe_string($message, 'e');
         $isOrderUpdate = ($e === 'ORDER_TRADE_UPDATE') || ($e === 'ALGO_UPDATE');
-        $tradeMessage = $message;
-        if ($isOrderUpdate) {
-            $tradeMessage = $rawOrder;
-        }
+        $tradeOrder = $this->safe_dict($message, 'o');
         $this->handle_order($client, $rawOrder);
-        $this->handle_my_trade($client, $tradeMessage);
+        if ($isOrderUpdate && ($tradeOrder !== null)) {
+            $this->handle_my_trade($client, $tradeOrder);
+        } else {
+            $this->handle_my_trade($client, $message);
+        }
     }
 
     public function handle_my_trade(Client $client, array $message) {

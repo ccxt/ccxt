@@ -1525,7 +1525,8 @@ class bitstamp extends Exchange {
         $result = array( 'info' => $fees );
         $feesList = $this->to_array($fees);
         for ($i = 0; $i < count($feesList); $i++) {
-            $fee = $this->parse_trading_fee($feesList[$i]);
+            $feeRow = $this->safe_dict($feesList, $i, array());
+            $fee = $this->parse_trading_fee($feeRow);
             $symbol = $this->safe_string($fee, 'symbol');
             if ($symbol !== null) {
                 $result[$symbol] = $fee;

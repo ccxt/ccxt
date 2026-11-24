@@ -1134,9 +1134,10 @@ class gate extends \ccxt\async\gate {
         // }
         //
         $rawResult = $this->safe_value($message, 'result');
+        $tradeRows = $this->safe_list($message, 'result');
         $result = array();
-        if ((gettype($rawResult) === 'array' && array_keys($rawResult) === array_keys(array_keys($rawResult)))) {
-            $result = $this->safe_list($message, 'result', array());
+        if ($tradeRows !== null) {
+            $result = $tradeRows;
         } else {
             $result = array( $rawResult );
         }

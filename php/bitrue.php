@@ -3197,7 +3197,7 @@ class bitrue extends Exchange {
         return $response;
     }
 
-    public function parse_margin_modification(mixed $data, ?array $market = null): array {
+    public function parse_margin_modification(array $data, ?array $market = null): array {
         //
         // setMargin
         //
@@ -3240,16 +3240,10 @@ class bitrue extends Exchange {
         if (!$this->safe_bool($market, 'swap', false)) {
             throw new NotSupported($this->id . ' setMargin only support swap markets');
         }
-        $response = null;
         $request = array(
             'contractName' => $market['id'],
             'amount' => $this->parse_to_numeric($amount),
         );
-        if ($this->safe_bool($market, 'linear', false)) {
-            $response = $this->fapiV2PrivatePostPositionMargin($this->extend($request, $params));
-        } elseif ($this->safe_bool($market, 'inverse', false)) {
-            $response = $this->dapiV2PrivatePostPositionMargin($this->extend($request, $params));
-        }
         //
         //     {
         //         "code": 0,
@@ -3257,7 +3251,14 @@ class bitrue extends Exchange {
         //         "data": null
         //     }
         //
-        return $this->parse_margin_modification($response, $market);
+        if ($this->safe_bool($market, 'linear', false)) {
+            $response = $this->fapiV2PrivatePostPositionMargin($this->extend($request, $params));
+            return $this->parse_margin_modification($response, $market);
+        } elseif ($this->safe_bool($market, 'inverse', false)) {
+            $response = $this->dapiV2PrivatePostPositionMargin($this->extend($request, $params));
+            return $this->parse_margin_modification($response, $market);
+        }
+        throw new NotSupported($this->id . ' setMargin only support linear or inverse swap markets');
     }
 
     public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {

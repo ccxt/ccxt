@@ -212,7 +212,7 @@ class opinion extends Exchange {
                 $fetchedRawRows[] = $raw;
                 $marketType = $this->safe_integer($raw, 'marketType');
                 if ($marketType === 1) {
-                    $event = $this->parse_event($this->safe_dict($rawMarkets, $i, array()));
+                    $event = $this->parse_event($this->extend(array(), $rawMarkets[$i]));
                     $childMarkets = $this->safe_list($event, 'markets', array());
                     $childMarketsLength = count($childMarkets);
                     for ($ci = 0; $ci < $childMarketsLength; $ci++) {
@@ -474,7 +474,7 @@ class opinion extends Exchange {
             $this->markets = $this->create_safe_dictionary();
         }
         for ($i = 0; $i < $rawEventsLength; $i++) {
-            $event = $this->parse_event($this->safe_dict($rawEvents, $i, array()));
+            $event = $this->parse_event($this->extend(array(), $rawEvents[$i]));
             $parsedEvents[] = $event;
             // register the parsed markets so populateOutcomes can index their outcomes
             $eventMarkets = $this->safe_list($event, 'markets', array());

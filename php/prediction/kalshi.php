@@ -2563,7 +2563,7 @@ class kalshi extends Exchange {
          * @return {array} a [prediction $event structure](https://docs.ccxt.com/#/?$id=prediction-$event-structure)
          */
         $fullEvent = Async\await($this->fetch_raw_event_by_ticker($id, $params));
-        $event = $this->parse_event($fullEvent);
+        $event = $this->parse_event($this->extend(array(), $fullEvent));
         $this->index_event_outcomes($event);
         return $event;
     }

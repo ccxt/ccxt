@@ -12204,7 +12204,7 @@ class kucoin extends Exchange {
         }
         list($requestUntil, $paramsUntil) = $this->handle_until_option('endAt', $request, $paramsPaginate);
         $response = Async\await($this->utaGetMarketOpenInterest($this->extend($requestUntil, $paramsUntil)));
-        $data = $this->safe_list($response, 'data');
+        $data = $this->safe_list($response, 'data', array());
         return $this->parse_open_interests_history($data, $market, $since, $limit);
     }
 

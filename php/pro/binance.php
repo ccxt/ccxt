@@ -5189,9 +5189,10 @@ class binance extends \ccxt\async\binance {
             $this->handle_order($client, $message);
             return;
         }
+        $orderValue = $this->safe_dict($message, 'o', $message);
         $messageValue = $message;
         if (($e === 'ORDER_TRADE_UPDATE') || ($e === 'ALGO_UPDATE')) {
-            $messageValue = $this->safe_dict($message, 'o', $message);
+            $messageValue = $orderValue;
             if (($e === 'ALGO_UPDATE') && ($this->safe_integer($messageValue, 'T') === null)) {
                 // keep the outer event time, the algo payload carries no timestamps
                 $messageValue = $this->extend($messageValue, array( 'T' => $this->safe_integer($message, 'T') ));

@@ -989,11 +989,11 @@ class bingx extends Exchange {
         ));
     }
 
-    public function fetch_spot_markets(mixed $params): PromiseInterface {
+    public function fetch_spot_markets($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_spot_markets(...))($params);
     }
 
-    private function do_fetch_spot_markets(mixed $params) {
+    private function do_fetch_spot_markets($params = array()) {
         $response = Async\await($this->spotV1PublicGetCommonSymbols($params));
         //
         //    {
@@ -1027,11 +1027,11 @@ class bingx extends Exchange {
         return $this->parse_markets($markets);
     }
 
-    public function fetch_swap_markets(mixed $params): PromiseInterface {
+    public function fetch_swap_markets($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_swap_markets(...))($params);
     }
 
-    private function do_fetch_swap_markets(mixed $params) {
+    private function do_fetch_swap_markets($params = array()) {
         $response = Async\await($this->swapV2PublicGetQuoteContracts($params));
         //
         //    {
@@ -1068,11 +1068,11 @@ class bingx extends Exchange {
         return $this->parse_markets($markets);
     }
 
-    public function fetch_inverse_swap_markets(mixed $params): PromiseInterface {
+    public function fetch_inverse_swap_markets($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_inverse_swap_markets(...))($params);
     }
 
-    private function do_fetch_inverse_swap_markets(mixed $params) {
+    private function do_fetch_inverse_swap_markets($params = array()) {
         $response = Async\await($this->cswapV1PublicGetMarketContracts($params));
         //
         //     {
