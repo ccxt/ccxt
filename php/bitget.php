@@ -10329,7 +10329,7 @@ class bitget extends Exchange {
         return $response;
     }
 
-    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()): array {
         /**
          * set $hedged to true or false for a $market
          *

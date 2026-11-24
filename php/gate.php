@@ -7948,7 +7948,7 @@ class gate extends Exchange {
         return $this->safe_string($ledgerType, $type, $type);
     }
 
-    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()): array {
         /**
          * set dual/hedged mode to true or false for a swap $market, make sure all positions are closed and no orders are open before setting dual mode
          *

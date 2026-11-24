@@ -11794,7 +11794,7 @@ class kucoin extends Exchange {
         return $this->parse_margin_mode($data, $market); // widened to Dict to match the base setMarginMode return ({}) — narrowing it to MarginMode breaks the Go IExchange interface
     }
 
-    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_set_position_mode(...))($hedged, $symbol, $params);
     }
 

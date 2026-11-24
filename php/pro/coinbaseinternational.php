@@ -1469,7 +1469,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         }
     }
 
-    public function resubscribe_order_book(string $channel) {
+    public function resubscribe_order_book(string $channel): PromiseInterface {
         return Async\async(self::do_resubscribe_order_book(...))($channel);
     }
 
@@ -2207,7 +2207,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         return Async\await($this->request_ws($method, $paramsResolved, $isPrivate));
     }
 
-    public function logout_ws($params = array()) {
+    public function logout_ws($params = array()): PromiseInterface {
         return Async\async(self::do_logout_ws(...))($params);
     }
 
@@ -2235,6 +2235,5 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
             'params' => $paramsResolved,
         );
         Async\await($client->send($request));
-        return null;
     }
 }

@@ -2190,7 +2190,8 @@ class polymarket extends Exchange {
         $signatureType = $this->safe_integer_2($params, 'signatureType', 'signature_type', $this->safe_integer($this->options, 'signatureType', 3));
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
         $eoa = $this->eth_checksum_address($this->eth_get_address_from_private_key($this->privateKey));
-        $funder = $this->eth_checksum_address($this->safe_string_2($params, 'funder', 'maker', $this->safe_string($this->options, 'funder', $this->walletAddress)));
+        $funderAddress = $this->safe_string_2($params, 'funder', 'maker', $this->safe_string($this->options, 'funder', $this->walletAddress));
+        $funder = $this->eth_checksum_address($funderAddress);
         // the salt defaults to a strictly-increasing millisecond value and the timestamp to the current time; both can be pinned via params for idempotency
         $defaultSalt = $this->incrementing_nonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
         $salt = $this->safe_string($params, 'salt', $this->number_to_string($defaultSalt));

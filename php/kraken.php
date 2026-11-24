@@ -1856,7 +1856,7 @@ class kraken extends Exchange {
         return $market;
     }
 
-    public function get_delisted_market_by_id(?string $id): mixed {
+    public function get_delisted_market_by_id(?string $id): array {
         if ($id === null) {
             return null;
         }

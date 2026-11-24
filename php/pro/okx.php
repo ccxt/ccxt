@@ -990,7 +990,7 @@ class okx extends \ccxt\async\okx {
         //
         $rawLiquidations = $this->safe_list($message, 'data', array());
         for ($i = 0; $i < count($rawLiquidations); $i++) {
-            $liquidation = $this->parse_ws_liquidation($rawLiquidations[$i]);
+            $liquidation = $this->parse_ws_liquidation($this->safe_dict($rawLiquidations, $i, array()));
             $symbol = $this->safe_string($liquidation, 'symbol', '');
             if ($this->liquidations === null) {
                 $limit = $this->safe_integer($this->options, 'liquidationsLimit', 1000);

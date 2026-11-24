@@ -3391,7 +3391,7 @@ class btse extends Exchange {
         );
     }
 
-    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()): array {
         /**
          * NB!!! This method also sets margin mode to cross on btse. Set $hedged to true or false for a cross-margin $market->
          *

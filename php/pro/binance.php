@@ -525,7 +525,7 @@ class binance extends \ccxt\async\binance {
         $client->resolve(array( $liquidation ), 'liquidations::' . $symbol);
     }
 
-    public function parse_ws_liquidation(array $liquidation, ?array $market = null) {
+    public function parse_ws_liquidation(array $liquidation, ?array $market = null): array {
         //
         // future
         //    {
@@ -4003,11 +4003,13 @@ class binance extends \ccxt\async\binance {
         // stock keepalive fixes
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params($methodName, $market, $params);
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params($methodName, $market, $paramsMarketType);
-        $type = $marketType;
+        $linear = $this->isLinear($marketType, $subType);
+        $inverse = $this->isInverse($marketType, $subType);
+        $type = ($marketType !== null) ? $marketType : 'spot';
         if ($type !== 'option' && $type !== 'stock') {
-            if ($this->isLinear($type, $subType)) {
+            if ($linear) {
                 $type = 'linear';
-            } elseif ($this->isInverse($type, $subType)) {
+            } elseif ($inverse) {
                 $type = 'inverse';
             }
         }
@@ -5189,16 +5191,8 @@ class binance extends \ccxt\async\binance {
             $this->handle_order($client, $message);
             return;
         }
-        $orderValue = $this->safe_dict($message, 'o', $message);
-        $messageValue = $message;
-        if (($e === 'ORDER_TRADE_UPDATE') || ($e === 'ALGO_UPDATE')) {
-            $messageValue = $orderValue;
-            if (($e === 'ALGO_UPDATE') && ($this->safe_integer($orderValue, 'T') === null)) {
-                // keep the outer event time, the algo payload carries no timestamps
-                $messageValue = $this->extend($orderValue, array( 'T' => $this->safe_integer($message, 'T') ));
-            }
-        }
-        if (($e === 'ORDER_TRADE_UPDATE') || ($e === 'ALGO_UPDATE')) {
+        $isOrderEvent = ($e === 'ORDER_TRADE_UPDATE') || ($e === 'ALGO_UPDATE');
+        if ($isOrderEvent) {
             $oField = $this->safe_list($message, 'o');
             if ($oField !== null) {
                 // eOptions format: o is an array of orders with nested fi fills
@@ -5206,9 +5200,24 @@ class binance extends \ccxt\async\binance {
                 return;
             }
         }
-        $this->handle_my_trade($client, $messageValue);
-        $this->handle_order($client, $messageValue);
-        $this->handle_my_liquidation($client, $messageValue);
+        if (!$isOrderEvent) {
+            $this->handle_my_trade($client, $message);
+            $this->handle_order($client, $message);
+            $this->handle_my_liquidation($client, $message);
+            return;
+        }
+        $orderValue = $this->safe_dict($message, 'o', $message);
+        if (($e === 'ALGO_UPDATE') && ($this->safe_integer($orderValue, 'T') === null)) {
+            // keep the outer event time, the algo payload carries no timestamps
+            $algoOrder = $this->extend($orderValue, array( 'T' => $this->safe_integer($message, 'T') ));
+            $this->handle_my_trade($client, $algoOrder);
+            $this->handle_order($client, $algoOrder);
+            $this->handle_my_liquidation($client, $algoOrder);
+            return;
+        }
+        $this->handle_my_trade($client, $orderValue);
+        $this->handle_order($client, $orderValue);
+        $this->handle_my_liquidation($client, $orderValue);
     }
 
     public function handle_stock_price(Client $client, array $message) {

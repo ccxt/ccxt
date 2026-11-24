@@ -90,7 +90,8 @@ class bithumb extends \ccxt\async\bithumb {
         }
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'watchTicker', 'generation', 2);
         $isGenerationTwo = ($generation === 2);
-        $wsUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($urlsApi, 'ws', array());
         $url = $isGenerationTwo ? $this->safe_string($wsUrls, 'publicGen2', '') : $this->safe_string($wsUrls, 'public', '');
         $market = $this->market($symbol);
         $messageHash = 'ticker:' . $market['symbol'];
@@ -147,7 +148,8 @@ class bithumb extends \ccxt\async\bithumb {
             $symbolsResolved = $symbolsNormalized;
         }
         $symbolsLengthDefined = count($symbolsResolved);
-        $wsUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($urlsApi, 'ws', array());
         $url = $isGenerationTwo ? $this->safe_string($wsUrls, 'publicGen2', '') : $this->safe_string($wsUrls, 'public', '');
         $streamMarketIds = array();
         $messageHashes = array();
@@ -398,7 +400,8 @@ class bithumb extends \ccxt\async\bithumb {
         }
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'watchOrderBook', 'generation', 2);
         $isGenerationTwo = ($generation === 2);
-        $wsUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($urlsApi, 'ws', array());
         $url = $isGenerationTwo ? $this->safe_string($wsUrls, 'publicGen2', '') : $this->safe_string($wsUrls, 'public', '');
         $market = $this->market($symbol);
         $symbolValue = $this->safe_string($market, 'symbol', '');
@@ -577,7 +580,8 @@ class bithumb extends \ccxt\async\bithumb {
         }
         list($generation, $paramsGeneration) = $this->handle_option_integer_and_params($params, 'watchTrades', 'generation', 2);
         $isGenerationTwo = ($generation === 2);
-        $wsUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($urlsApi, 'ws', array());
         $url = $isGenerationTwo ? $this->safe_string($wsUrls, 'publicGen2', '') : $this->safe_string($wsUrls, 'public', '');
         $market = $this->market($symbol);
         $symbolValue = $this->safe_string($market, 'symbol', '');
@@ -805,7 +809,8 @@ class bithumb extends \ccxt\async\bithumb {
             throw new BadRequest($this->id . ' watchBalance() is only supported for the generation 2 API');
         }
         Async\await($this->authenticate());
-        $wsUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($urlsApi, 'ws', array());
         $url = $this->safe_string($wsUrls, 'privateGen2', '');
         $messageHash = 'myAsset';
         $request = $this->build_gen2_subscription_request($messageHash, array( 'type' => $messageHash ));
@@ -898,7 +903,8 @@ class bithumb extends \ccxt\async\bithumb {
             );
             $this->options['ws'] = $wsOptions;
         }
-        $wsUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($urlsApi, 'ws', array());
         $url = $this->safe_string($wsUrls, 'privateGen2', '');
         $client = $this->client($url);
         return $client;
@@ -930,7 +936,8 @@ class bithumb extends \ccxt\async\bithumb {
             throw new BadRequest($this->id . ' watchOrders() is only supported for the generation 2 API');
         }
         Async\await($this->authenticate());
-        $wsUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $wsUrls = $this->safe_dict($urlsApi, 'ws', array());
         $url = $this->safe_string($wsUrls, 'privateGen2', '');
         $messageHash = 'myOrder';
         $codes = $this->safe_list($params, 'codes', array());

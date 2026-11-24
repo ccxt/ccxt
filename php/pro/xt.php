@@ -91,7 +91,8 @@ class xt extends \ccxt\async\xt {
         if ($isContract) {
             $tradeType = 'contract';
         }
-        $apiUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $apiUrls = $this->safe_dict($urlsApi, 'ws', array());
         $url = $this->safe_string($apiUrls, $tradeType);
         if (!$isContract) {
             $url = $url . '/private';
@@ -254,7 +255,8 @@ class xt extends \ccxt\async\xt {
         $subscription = array(
             'id' => $id,
         );
-        $apiUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $apiUrls = $this->safe_dict($urlsApi, 'ws', array());
         $url = $this->safe_string($apiUrls, $tradeType, '') . '/' . $tail;
         return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
     }
@@ -312,7 +314,8 @@ class xt extends \ccxt\async\xt {
         if ($isContract) {
             $tail = $privateAccess ? 'user' : 'market';
         }
-        $apiUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $apiUrls = $this->safe_dict($urlsApi, 'ws', array());
         $url = $this->safe_string($apiUrls, $tradeType, '') . '/' . $tail;
         $subscription = array(
             'unsubscribe' => true,
@@ -739,7 +742,8 @@ class xt extends \ccxt\async\xt {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $apiUrls = $this->safe_dict($this->safe_dict($this->urls, 'api', array()), 'ws', array());
+        $urlsApi = $this->safe_dict($this->urls, 'api', array());
+        $apiUrls = $this->safe_dict($urlsApi, 'ws', array());
         $url = $this->safe_string($apiUrls, 'contract', '') . '/' . 'user';
         $client = $this->client($url);
         $this->set_positions_cache($client);

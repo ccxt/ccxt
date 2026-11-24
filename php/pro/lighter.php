@@ -1055,7 +1055,7 @@ class lighter extends \ccxt\async\lighter {
         $dataLength = count($data);
         for ($i = 0; $i < $dataLength; $i++) {
             $iReversed = $this->parse_to_int($dataLength - 1 - $i);
-            $liquidation = $this->parse_ws_liquidation($data[$iReversed], $market);
+            $liquidation = $this->parse_ws_liquidation($this->safe_dict($data, $iReversed, array()), $market);
             $stored->append($liquidation);
         }
         $messageHash = $this->get_message_hash('liquidations', $symbol);

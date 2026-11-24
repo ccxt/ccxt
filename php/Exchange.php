@@ -5667,12 +5667,13 @@ class BaseExchange {
                 $reducedFees = array();
             }
             $reducedLength = count($reducedFees);
+            $parsedFees = array();
             for ($i = 0; $i < $reducedLength; $i++) {
-                $reducedFees[$i] = $this->parse_fee_numeric($reducedFees[$i]);
+                $parsedFees[] = $this->parse_fee_numeric($reducedFees[$i]);
             }
-            $fees = $reducedFees;
+            $fees = $parsedFees;
             if ($reducedLength === 1) {
-                $fee = $reducedFees[0];
+                $fee = $this->parse_fee_numeric($reducedFees[0]);
             } elseif ($reducedLength === 0) {
                 $fee = null;
             }

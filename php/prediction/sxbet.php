@@ -2279,11 +2279,11 @@ class sxbet extends Exchange {
         return Async\await($client->future('centrifugoConnected'));
     }
 
-    public function pong(Client $client, mixed $message = null) {
-        return Async\async(self::do_pong(...))($client, $message);
+    public function pong(Client $client) {
+        return Async\async(self::do_pong(...))($client);
     }
 
-    private function do_pong(Client $client, mixed $message = null) {
+    private function do_pong(Client $client) {
         // Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
         Async\await($client->send('{}'));
     }

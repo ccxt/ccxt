@@ -1611,11 +1611,11 @@ class limitless extends Exchange {
         return Async\await($this->fetch_orders($outcome, $since, $limit, $paramsExtended));
     }
 
-    public function fetch_orders_by_ids(mixed $ids, ?string $outcome = null, $params = array()): PromiseInterface {
+    public function fetch_orders_by_ids(array $ids, ?string $outcome = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_orders_by_ids(...))($ids, $outcome, $params);
     }
 
-    private function do_fetch_orders_by_ids(mixed $ids, ?string $outcome = null, $params = array()) {
+    private function do_fetch_orders_by_ids(array $ids, ?string $outcome = null, $params = array()) {
         /**
          * fetch orders by the list of order $id
          *

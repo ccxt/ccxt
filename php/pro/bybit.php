@@ -1997,7 +1997,7 @@ class bybit extends \ccxt\async\bybit {
         }
     }
 
-    public function parse_ws_liquidation(?array $liquidation, ?array $market = null) {
+    public function parse_ws_liquidation(?array $liquidation, ?array $market = null): array {
         //
         //     {
         //         "price": "0.03803",

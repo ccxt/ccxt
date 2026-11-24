@@ -10551,7 +10551,7 @@ class bitget extends Exchange {
         return $response;
     }
 
-    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_set_position_mode(...))($hedged, $symbol, $params);
     }
 

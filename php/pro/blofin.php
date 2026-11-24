@@ -652,7 +652,7 @@ class blofin extends \ccxt\async\blofin {
             $marketBalance[$key] = $parsed[$key];
         }
         $this->balance[$marketType] = $marketBalance;
-        $this->balance[$marketType] = $this->safe_balance($this->balance[$marketType]);
+        $this->balance[$marketType] = $this->safe_balance($marketBalance);
         $messageHash = $marketType . ':balance';
         $client->resolve($this->balance[$marketType], $messageHash);
     }

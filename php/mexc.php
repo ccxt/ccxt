@@ -5905,7 +5905,7 @@ class mexc extends Exchange {
         return $this->parse_transaction($response, $currency);
     }
 
-    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()): array {
         /**
          * set $hedged to true or false for a market
          *

@@ -4051,7 +4051,7 @@ class okx extends Exchange {
         return $this->parse_order($this->safe_dict($data, 0, array()), $market);
     }
 
-    public function parse_ids(mixed $ids) {
+    public function parse_ids(mixed $ids): ?array {
         /**
          * @ignore
          * @param {string[]|string} $ids order $ids
@@ -4060,7 +4060,7 @@ class okx extends Exchange {
         if (($ids !== null) && gettype($ids) === 'string') {
             return explode(',', $ids);
         } else {
-            return $ids;
+            return $this->safe_string_list(array( $ids ), array( 0 ));
         }
     }
 
@@ -4111,17 +4111,19 @@ class okx extends Exchange {
                     );
                 }
             }
-            for ($i = 0; $i < count($orderIds); $i++) {
-                if (($trailing) || $isTrigger) {
-                    $request[] = array(
-                        'algoId' => $this->safe_string($orderIds, $i),
-                        'instId' => $market['id'],
-                    );
-                } else {
-                    $request[] = array(
-                        'ordId' => $this->safe_string($orderIds, $i),
-                        'instId' => $market['id'],
-                    );
+            if ($orderIds !== null) {
+                for ($i = 0; $i < count($orderIds); $i++) {
+                    if (($trailing) || $isTrigger) {
+                        $request[] = array(
+                            'algoId' => $this->safe_string($orderIds, $i),
+                            'instId' => $market['id'],
+                        );
+                    } else {
+                        $request[] = array(
+                            'ordId' => $this->safe_string($orderIds, $i),
+                            'instId' => $market['id'],
+                        );
+                    }
                 }
             }
         } else {

@@ -4104,7 +4104,7 @@ class woo extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbolValue, $since, $limit);
     }
 
-    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()) {
+    public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_set_position_mode(...))($hedged, $symbol, $params);
     }
 

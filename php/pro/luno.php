@@ -109,7 +109,7 @@ class luno extends \ccxt\async\luno {
         }
         $symbol = $this->safe_string($subscription, 'symbol', '');
         $market = $this->market($symbol);
-        $symbolValue = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $messageHash = 'trades:' . $symbolValue;
         $stored = $this->safe_value($this->trades, $symbolValue);
         if ($stored === null) {
