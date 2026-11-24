@@ -1660,6 +1660,7 @@ edit a trade order
 [bitget](/exchanges/bitget.md#editorder)
 [bitstamp](/exchanges/bitstamp.md#editorder)
 [bitvavo](/exchanges/bitvavo.md#editorder)
+[blofin](/exchanges/blofin.md#editorder)
 [btse](/exchanges/btse.md#editorder)
 [bullish](/exchanges/bullish.md#editorder)
 [bybit](/exchanges/bybit.md#editorder)
@@ -3345,7 +3346,7 @@ fetch the deposit and withdrawal limits for a currency
 <a name="fetchFundingRate" id="fetchfundingrate"></a>
 
 ## fetchFundingRate
-fetch the current funding rate
+fetches the current funding rate for a market
 
 **Kind**: instance   
 **Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
@@ -3353,10 +3354,11 @@ fetch the current funding rate
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 **Supported exchanges:**
+[apex](/exchanges/apex.md#fetchfundingrate)
 [aster](/exchanges/aster.md#fetchfundingrate)
 [backpack](/exchanges/backpack.md#fetchfundingrate)
 [binance](/exchanges/binance.md#fetchfundingrate)
@@ -3462,18 +3464,19 @@ fetches historical funding rate prices
 <a name="fetchFundingRates" id="fetchfundingrates"></a>
 
 ## fetchFundingRates
-fetch the current funding rate for multiple symbols
+fetches the current funding rates for multiple markets
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a dictionary of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure), indexed by market symbol
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the funding rates for, all markets are returned when not assigned |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 **Supported exchanges:**
+[apex](/exchanges/apex.md#fetchfundingrates)
 [aster](/exchanges/aster.md#fetchfundingrates)
 [binance](/exchanges/binance.md#fetchfundingrates)
 [bingx](/exchanges/bingx.md#fetchfundingrates)
@@ -4042,6 +4045,7 @@ retrieve information on the maximum leverage, for different trade sizes for a si
 **Supported exchanges:**
 [bingx](/exchanges/bingx.md#fetchmarketleveragetiers)
 [bitget](/exchanges/bitget.md#fetchmarketleveragetiers)
+[blofin](/exchanges/blofin.md#fetchmarketleveragetiers)
 [btse](/exchanges/btse.md#fetchmarketleveragetiers)
 [bybit](/exchanges/bybit.md#fetchmarketleveragetiers)
 [digifinex](/exchanges/digifinex.md#fetchmarketleveragetiers)

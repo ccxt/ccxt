@@ -3,8 +3,8 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { Precise } from './base/Precise.js';
 import Exchange from './abstract/apex.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
-import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, FundingRateHistory, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, NullableDict, Endpoint, FundingHistory, OpenInterest, Bool } from './base/types.js';
-import { ArgumentsRequired, BadRequest, ExchangeError, InvalidOrder, RateLimitExceeded } from './base/errors.js';
+import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, Endpoint, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, Market, MarketInterface, NullableDict, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int } from './base/types.js';
+import { ArgumentsRequired, BadRequest, BadResponse, ExchangeError, InvalidOrder, RateLimitExceeded } from './base/errors.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -72,9 +72,9 @@ export default class apex extends Exchange {
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
@@ -1078,6 +1078,109 @@ export default class apex extends Exchange {
 
     /**
      * @method
+     * @name apex#fetchFundingRate
+     * @description fetches the current funding rate for a market
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+     * @param {string} symbol unified symbol of the market to fetch the funding rate for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    override async fetchFundingRate (symbol: string, params: Dict = {}): Promise<FundingRate> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': this.safeString (market, 'id2'),
+        };
+        const response = await this.publicGetV3Ticker (this.extend (request, params));
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "oraclePrice": "97359.83490000976",
+        //                 "price": "97358.69511000479",
+        //                 "price24hPcnt": "0.025227663459253",
+        //                 "priceChange": "2386.4656100048",
+        //                 "markPrice": "97348.43100000975",
+        //                 "indexPrice": "97354.92100000469",
+        //                 "fundingRate": "0",
+        //                 "predictedFundingRate": "0",
+        //                 "nextFundingTime": "10:00:00",
+        //                 "turnover24h": "5126062036.262683868",
+        //                 "volume24h": "52429.97800000007",
+        //                 "openInterest": "44708.50649999985",
+        //                 "askPrice": "97346.8",
+        //                 "askSize": "0.05",
+        //                 "askVol": "4871.995",
+        //                 "bidPrice": "97329.9",
+        //                 "bidSize": "0.0397",
+        //                 "bidVol": "3861.227",
+        //                 "lastPrice": "97341.22950000488",
+        //                 "highPrice24h": "97492.40501000491",
+        //                 "lowPrice24h": "93419.04950000459",
+        //                 "change15m": "0.000035268322022",
+        //                 "change1h": "0.001633604768945",
+        //                 "change24h": "0.025227663459253",
+        //                 "volume5m": "163.43330000000053",
+        //                 "volume1h": "5662.860900000013"
+        //             }
+        //         ]
+        //     }
+        //
+        const tickers = this.safeList (response, 'data', []);
+        const rawTicker = this.safeDict (tickers, 0);
+        if (rawTicker === undefined) {
+            throw new BadResponse (this.id + ' fetchFundingRate() returned no data for ' + symbol);
+        }
+        const responseMarketId = this.safeString (rawTicker, 'symbol', '');
+        if (responseMarketId !== this.safeString (market, 'id2')) {
+            throw new BadResponse (this.id + ' fetchFundingRate() returned a ticker for ' + responseMarketId + ' while ' + symbol + ' was requested');
+        }
+        return this.parseFundingRate (rawTicker, market);
+    }
+
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "oraclePrice": "97359.83490000976",
+        //         "price": "97358.69511000479",
+        //         "markPrice": "97348.43100000975",
+        //         "indexPrice": "97354.92100000469",
+        //         "fundingRate": "0",
+        //         "predictedFundingRate": "0",
+        //         "nextFundingTime": "10:00:00",
+        //         ...
+        //     }
+        //
+        const marketId = this.safeString (contract, 'symbol');
+        const marketResolved = this.safeMarket (marketId, market);
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol (marketId, marketResolved),
+            'markPrice': this.safeNumber (contract, 'markPrice'),
+            'indexPrice': this.safeNumber (contract, 'indexPrice'),
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeNumber (contract, 'fundingRate'),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': undefined, // predictedFundingRate stays in info; the docs give no next-period definition
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': '1h',
+        };
+    }
+
+    /**
+     * @method
      * @name apex#fetchFundingRateHistory
      * @description fetches historical funding rate prices
      * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
@@ -1145,6 +1248,25 @@ export default class apex extends Exchange {
         }
         const sorted = this.sortBy (rates, 'timestamp');
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit) as FundingRateHistory[];
+    }
+
+    /**
+     * @method
+     * @name apex#fetchFundingRates
+     * @description fetches the current funding rates for multiple markets
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the funding rates for, all markets are returned when not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbol
+     */
+    override async fetchFundingRates (symbols: Strings = undefined, params: Dict = {}): Promise<FundingRates> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const unifiedSymbols = this.marketSymbols (symbols);
+        const response = await this.publicGetV3DataAllTickerInfo (params);
+        const data: Dict[] = this.safeList (response, 'data', []);
+        return this.parseFundingRates (data, unifiedSymbols);
     }
 
     override parseOrder (order: Dict, market: Market = undefined): Order {

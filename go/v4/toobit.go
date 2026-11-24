@@ -672,7 +672,7 @@ func (this *Toobit) Describe() map[string]any {
 				"sandbox": false,
 				"createOrder": map[string]any{
 					"marginMode":                 false,
-					"triggerPrice":               true,
+					"triggerPrice":               false,
 					"triggerPriceType":           nil,
 					"triggerDirection":           false,
 					"stopLossPrice":              false,
@@ -707,7 +707,7 @@ func (this *Toobit) Describe() map[string]any {
 					"marginMode":     false,
 					"trigger":        false,
 					"trailing":       false,
-					"symbolRequired": false,
+					"symbolRequired": true,
 				},
 				"fetchOpenOrders": map[string]any{
 					"marginMode":     false,

@@ -6,7 +6,7 @@ import Exchange from './abstract/blofin.js';
 import { ExchangeError, ExchangeNotAvailable, ArgumentsRequired, BadRequest, InvalidOrder, AuthenticationError, RateLimitExceeded, InsufficientFunds, NullResponse, PermissionDenied, InvalidNonce, InvalidAddress, OrderNotFound, DuplicateOrderId } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Bool, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Currencies, CurrencyInterface, DepositAddress, DepositWithdrawFees, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, Fee, FeeString, List, IndexType, PositionModeInfo, Endpoint, NullableDict } from './base/types.js';
+import type { Bool, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Strings, Currency, Currencies, CurrencyInterface, DepositAddress, DepositWithdrawFees, Position, TransferEntry, Leverage, Leverages, MarginMode, Num, TradingFeeInterface, Dict, int, LedgerEntry, FundingRate, ADL, Fee, FeeString, List, IndexType, PositionModeInfo, Endpoint, NullableDict, LeverageTier } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -51,7 +51,7 @@ export default class blofin extends Exchange {
                 'createStopOrder': false,
                 'createTakeProfitOrder': true,
                 'createTriggerOrder': true,
-                'editOrder': false,
+                'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
@@ -88,7 +88,7 @@ export default class blofin extends Exchange {
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': true,
                 'fetchMarginModes': false,
-                'fetchMarketLeverageTiers': false,
+                'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMySettlementHistory': false,
@@ -1817,6 +1817,60 @@ export default class blofin extends Exchange {
 
     /**
      * @method
+     * @name blofin#editOrder
+     * @description edit a trade order
+     * @see https://docs.blofin.com/index.html#amend-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    override async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'instId': market['id'],
+        };
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientOrderId'] = clientOrderId;
+        } else {
+            request['orderId'] = id;
+        }
+        if (amount !== undefined) {
+            request['newSize'] = this.amountToPrecision (symbol, amount);
+        }
+        if (price !== undefined) {
+            request['newPrice'] = this.priceToPrecision (symbol, price);
+        }
+        const response = await this.privatePostTradeAmendOrder (this.extend (request, this.omit (params, 'clientOrderId')));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Order modified",
+        //         "data": {
+        //             "orderId": "6000004088576",
+        //             "clientOrderId": "",
+        //             "requestId": "",
+        //             "msg": "Order modified",
+        //             "code": "0",
+        //             "ts": "1795184228537"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseOrder (data, market);
+    }
+
+    /**
+     * @method
      * @name blofin#fetchOrder
      * @description fetches information on an order made by the user
      * @see https://docs.blofin.com/index.html#get-order-detail
@@ -3134,6 +3188,66 @@ export default class blofin extends Exchange {
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
         });
+    }
+
+    /**
+     * @method
+     * @name blofin#fetchMarketLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+     * @see https://docs.blofin.com/index.html#get-position-tiers
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
+     * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+     */
+    override async fetchMarketLeverageTiers (symbol: string, params: Dict = {}): Promise<LeverageTier[]> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        const market = this.market (symbol);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchMarketLeverageTiers', params, 'cross');
+        const request: Dict = {
+            'instId': market['id'],
+            'marginMode': marginMode,
+        };
+        const response = await this.publicGetMarketPositionTiers (this.extend (request, query));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "symbol": "LTC-USDT",
+        //                 "marginMode": "cross",
+        //                 "minSize": "0",
+        //                 "maxSize": "500",
+        //                 "maintenanceMarginRate": "0.0065",
+        //                 "maxLeverage": "50"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseMarketLeverageTiers (data, market);
+    }
+
+    override parseMarketLeverageTiers (info: any, market: Market = undefined): LeverageTier[] {
+        const tiers: LeverageTier[] = [];
+        for (let i = 0; i < info.length; i++) {
+            const tier = this.safeDict (info, i);
+            const marketId = this.safeString (tier, 'symbol');
+            tiers.push ({
+                'tier': this.sum (i, 1),
+                'symbol': this.safeSymbol (marketId, market),
+                'currency': this.safeString (market, 'quote'),
+                'minNotional': this.safeNumber (tier, 'minSize'),
+                'maxNotional': this.safeNumber (tier, 'maxSize'),
+                'maintenanceMarginRate': this.safeNumber (tier, 'maintenanceMarginRate'),
+                'maxLeverage': this.safeNumber (tier, 'maxLeverage'),
+                'info': tier,
+            });
+        }
+        return tiers;
     }
 
     /**

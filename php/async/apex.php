@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\async\abstract\apex as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
+use ccxt\BadResponse;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -76,9 +77,9 @@ class apex extends Exchange {
                 'fetchDepositWithdrawFee' => false,
                 'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => true,
-                'fetchFundingRate' => false,
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
-                'fetchFundingRates' => false,
+                'fetchFundingRates' => true,
                 'fetchGreeks' => false,
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
@@ -1124,6 +1125,113 @@ class apex extends Exchange {
         ), $marketResolved);
     }
 
+    public function fetch_funding_rate(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_funding_rate(...))($symbol, $params);
+    }
+
+    private function do_fetch_funding_rate(string $symbol, $params = array()) {
+        /**
+         * fetches the current funding rate for a $market
+         *
+         * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+         *
+         * @param {string} $symbol unified $symbol of the $market to fetch the funding rate for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $this->safe_string($market, 'id2'),
+        );
+        $response = Async\await($this->publicGetV3Ticker($this->extend($request, $params)));
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "oraclePrice": "97359.83490000976",
+        //                 "price": "97358.69511000479",
+        //                 "price24hPcnt": "0.025227663459253",
+        //                 "priceChange": "2386.4656100048",
+        //                 "markPrice": "97348.43100000975",
+        //                 "indexPrice": "97354.92100000469",
+        //                 "fundingRate": "0",
+        //                 "predictedFundingRate": "0",
+        //                 "nextFundingTime": "10:00:00",
+        //                 "turnover24h": "5126062036.262683868",
+        //                 "volume24h": "52429.97800000007",
+        //                 "openInterest": "44708.50649999985",
+        //                 "askPrice": "97346.8",
+        //                 "askSize": "0.05",
+        //                 "askVol": "4871.995",
+        //                 "bidPrice": "97329.9",
+        //                 "bidSize": "0.0397",
+        //                 "bidVol": "3861.227",
+        //                 "lastPrice": "97341.22950000488",
+        //                 "highPrice24h": "97492.40501000491",
+        //                 "lowPrice24h": "93419.04950000459",
+        //                 "change15m": "0.000035268322022",
+        //                 "change1h": "0.001633604768945",
+        //                 "change24h": "0.025227663459253",
+        //                 "volume5m": "163.43330000000053",
+        //                 "volume1h": "5662.860900000013"
+        //             }
+        //         ]
+        //     }
+        //
+        $tickers = $this->safe_list($response, 'data', array());
+        $rawTicker = $this->safe_dict($tickers, 0);
+        if ($rawTicker === null) {
+            throw new BadResponse($this->id . ' fetchFundingRate() returned no data for ' . $symbol);
+        }
+        $responseMarketId = $this->safe_string($rawTicker, 'symbol', '');
+        if ($responseMarketId !== $this->safe_string($market, 'id2')) {
+            throw new BadResponse($this->id . ' fetchFundingRate() returned a ticker for ' . $responseMarketId . ' while ' . $symbol . ' was requested');
+        }
+        return $this->parse_funding_rate($rawTicker, $market);
+    }
+
+    public function parse_funding_rate(?array $contract, ?array $market = null): array {
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "oraclePrice": "97359.83490000976",
+        //         "price": "97358.69511000479",
+        //         "markPrice": "97348.43100000975",
+        //         "indexPrice": "97354.92100000469",
+        //         "fundingRate": "0",
+        //         "predictedFundingRate": "0",
+        //         "nextFundingTime": "10:00:00",
+        //         ...
+        //     }
+        //
+        $marketId = $this->safe_string($contract, 'symbol');
+        $marketResolved = $this->safe_market($marketId, $market);
+        return array(
+            'info' => $contract,
+            'symbol' => $this->safe_symbol($marketId, $marketResolved),
+            'markPrice' => $this->safe_number($contract, 'markPrice'),
+            'indexPrice' => $this->safe_number($contract, 'indexPrice'),
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => null,
+            'datetime' => null,
+            'fundingRate' => $this->safe_number($contract, 'fundingRate'),
+            'fundingTimestamp' => null,
+            'fundingDatetime' => null,
+            'nextFundingRate' => null, // predictedFundingRate stays in info; the docs give no next-period definition
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+            'interval' => '1h',
+        );
+    }
+
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_funding_rate_history(...))($symbol, $since, $limit, $params);
     }
@@ -1197,6 +1305,29 @@ class apex extends Exchange {
         }
         $sorted = $this->sort_by($rates, 'timestamp');
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+    }
+
+    public function fetch_funding_rates(?array $symbols = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_funding_rates(...))($symbols, $params);
+    }
+
+    private function do_fetch_funding_rates(?array $symbols = null, $params = array()) {
+        /**
+         * fetches the current funding rates for multiple markets
+         *
+         * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-$data-v3
+         *
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the funding rates for, all markets are returned when not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a dictionary of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~, indexed by market symbol
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $unifiedSymbols = $this->market_symbols($symbols);
+        $response = Async\await($this->publicGetV3DataAllTickerInfo($params));
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_funding_rates($data, $unifiedSymbols);
     }
 
     public function parse_order(array $order, ?array $market = null): array {

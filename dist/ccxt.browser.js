@@ -167364,9 +167364,9 @@ class apex extends _abstract_apex_js__rspack_import_0/* ["default"] */.A {
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchGreeks': false,
                 'fetchIndexOHLCV': false,
                 'fetchIsolatedBorrowRate': false,
@@ -168407,6 +168407,106 @@ class apex extends _abstract_apex_js__rspack_import_0/* ["default"] */.A {
     }
     /**
      * @method
+     * @name apex#fetchFundingRate
+     * @description fetches the current funding rate for a market
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+     * @param {string} symbol unified symbol of the market to fetch the funding rate for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */ async fetchFundingRate(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const request = {
+            'symbol': this.safeString(market, 'id2')
+        };
+        const response = await this.publicGetV3Ticker(this.extend(request, params));
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "oraclePrice": "97359.83490000976",
+        //                 "price": "97358.69511000479",
+        //                 "price24hPcnt": "0.025227663459253",
+        //                 "priceChange": "2386.4656100048",
+        //                 "markPrice": "97348.43100000975",
+        //                 "indexPrice": "97354.92100000469",
+        //                 "fundingRate": "0",
+        //                 "predictedFundingRate": "0",
+        //                 "nextFundingTime": "10:00:00",
+        //                 "turnover24h": "5126062036.262683868",
+        //                 "volume24h": "52429.97800000007",
+        //                 "openInterest": "44708.50649999985",
+        //                 "askPrice": "97346.8",
+        //                 "askSize": "0.05",
+        //                 "askVol": "4871.995",
+        //                 "bidPrice": "97329.9",
+        //                 "bidSize": "0.0397",
+        //                 "bidVol": "3861.227",
+        //                 "lastPrice": "97341.22950000488",
+        //                 "highPrice24h": "97492.40501000491",
+        //                 "lowPrice24h": "93419.04950000459",
+        //                 "change15m": "0.000035268322022",
+        //                 "change1h": "0.001633604768945",
+        //                 "change24h": "0.025227663459253",
+        //                 "volume5m": "163.43330000000053",
+        //                 "volume1h": "5662.860900000013"
+        //             }
+        //         ]
+        //     }
+        //
+        const tickers = this.safeList(response, 'data', []);
+        const rawTicker = this.safeDict(tickers, 0);
+        if (rawTicker === undefined) {
+            throw new _base_errors_js__rspack_import_1.BadResponse(this.id + ' fetchFundingRate() returned no data for ' + symbol);
+        }
+        const responseMarketId = this.safeString(rawTicker, 'symbol', '');
+        if (responseMarketId !== this.safeString(market, 'id2')) {
+            throw new _base_errors_js__rspack_import_1.BadResponse(this.id + ' fetchFundingRate() returned a ticker for ' + responseMarketId + ' while ' + symbol + ' was requested');
+        }
+        return this.parseFundingRate(rawTicker, market);
+    }
+    parseFundingRate(contract, market = undefined) {
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "oraclePrice": "97359.83490000976",
+        //         "price": "97358.69511000479",
+        //         "markPrice": "97348.43100000975",
+        //         "indexPrice": "97354.92100000469",
+        //         "fundingRate": "0",
+        //         "predictedFundingRate": "0",
+        //         "nextFundingTime": "10:00:00",
+        //         ...
+        //     }
+        //
+        const marketId = this.safeString(contract, 'symbol');
+        const marketResolved = this.safeMarket(marketId, market);
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol(marketId, marketResolved),
+            'markPrice': this.safeNumber(contract, 'markPrice'),
+            'indexPrice': this.safeNumber(contract, 'indexPrice'),
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeNumber(contract, 'fundingRate'),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': '1h'
+        };
+    }
+    /**
+     * @method
      * @name apex#fetchFundingRateHistory
      * @description fetches historical funding rate prices
      * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
@@ -168477,6 +168577,23 @@ class apex extends _abstract_apex_js__rspack_import_0/* ["default"] */.A {
         }
         const sorted = this.sortBy(rates, 'timestamp');
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+    }
+    /**
+     * @method
+     * @name apex#fetchFundingRates
+     * @description fetches the current funding rates for multiple markets
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the funding rates for, all markets are returned when not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbol
+     */ async fetchFundingRates(symbols = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const unifiedSymbols = this.marketSymbols(symbols);
+        const response = await this.publicGetV3DataAllTickerInfo(params);
+        const data = this.safeList(response, 'data', []);
+        return this.parseFundingRates(data, unifiedSymbols);
     }
     parseOrder(order, market = undefined) {
         //
@@ -278148,7 +278265,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
                 'createStopOrder': false,
                 'createTakeProfitOrder': true,
                 'createTriggerOrder': true,
-                'editOrder': false,
+                'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
@@ -278185,7 +278302,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': true,
                 'fetchMarginModes': false,
-                'fetchMarketLeverageTiers': false,
+                'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMySettlementHistory': false,
@@ -280120,6 +280237,58 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
     }
     /**
      * @method
+     * @name blofin#editOrder
+     * @description edit a trade order
+     * @see https://docs.blofin.com/index.html#amend-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */ async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const request = {
+            'instId': market['id']
+        };
+        const clientOrderId = this.safeString(params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientOrderId'] = clientOrderId;
+        } else {
+            request['orderId'] = id;
+        }
+        if (amount !== undefined) {
+            request['newSize'] = this.amountToPrecision(symbol, amount);
+        }
+        if (price !== undefined) {
+            request['newPrice'] = this.priceToPrecision(symbol, price);
+        }
+        const response = await this.privatePostTradeAmendOrder(this.extend(request, this.omit(params, 'clientOrderId')));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Order modified",
+        //         "data": {
+        //             "orderId": "6000004088576",
+        //             "clientOrderId": "",
+        //             "requestId": "",
+        //             "msg": "Order modified",
+        //             "code": "0",
+        //             "ts": "1795184228537"
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        return this.parseOrder(data, market);
+    }
+    /**
+     * @method
      * @name blofin#fetchOrder
      * @description fetches information on an order made by the user
      * @see https://docs.blofin.com/index.html#get-order-detail
@@ -281405,6 +281574,63 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined
         });
+    }
+    /**
+     * @method
+     * @name blofin#fetchMarketLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+     * @see https://docs.blofin.com/index.html#get-position-tiers
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
+     * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+     */ async fetchMarketLeverageTiers(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const [marginMode, query] = this.handleMarginModeAndParams('fetchMarketLeverageTiers', params, 'cross');
+        const request = {
+            'instId': market['id'],
+            'marginMode': marginMode
+        };
+        const response = await this.publicGetMarketPositionTiers(this.extend(request, query));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "symbol": "LTC-USDT",
+        //                 "marginMode": "cross",
+        //                 "minSize": "0",
+        //                 "maxSize": "500",
+        //                 "maintenanceMarginRate": "0.0065",
+        //                 "maxLeverage": "50"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList(response, 'data', []);
+        return this.parseMarketLeverageTiers(data, market);
+    }
+    parseMarketLeverageTiers(info, market = undefined) {
+        const tiers = [];
+        for(let i = 0; i < info.length; i++){
+            const tier = this.safeDict(info, i);
+            const marketId = this.safeString(tier, 'symbol');
+            tiers.push({
+                'tier': this.sum(i, 1),
+                'symbol': this.safeSymbol(marketId, market),
+                'currency': this.safeString(market, 'quote'),
+                'minNotional': this.safeNumber(tier, 'minSize'),
+                'maxNotional': this.safeNumber(tier, 'maxSize'),
+                'maintenanceMarginRate': this.safeNumber(tier, 'maintenanceMarginRate'),
+                'maxLeverage': this.safeNumber(tier, 'maxLeverage'),
+                'info': tier
+            });
+        }
+        return tiers;
     }
     /**
      * @method
@@ -641297,7 +641523,7 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': true,
+                        'triggerPrice': false,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
                         'stopLossPrice': false,
@@ -641332,7 +641558,7 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
-                        'symbolRequired': false
+                        'symbolRequired': true
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,

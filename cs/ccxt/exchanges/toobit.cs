@@ -662,7 +662,7 @@ public partial class toobit : Exchange
                     { "sandbox", false },
                     { "createOrder", new Dictionary<string, object>() {
                         { "marginMode", false },
-                        { "triggerPrice", true },
+                        { "triggerPrice", false },
                         { "triggerPriceType", null },
                         { "triggerDirection", false },
                         { "stopLossPrice", false },
@@ -697,7 +697,7 @@ public partial class toobit : Exchange
                         { "marginMode", false },
                         { "trigger", false },
                         { "trailing", false },
-                        { "symbolRequired", false },
+                        { "symbolRequired", true },
                     } },
                     { "fetchOpenOrders", new Dictionary<string, object>() {
                         { "marginMode", false },

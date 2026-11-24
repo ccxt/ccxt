@@ -56,7 +56,7 @@ class blofin extends Exchange {
                 'createStopOrder' => false,
                 'createTakeProfitOrder' => true,
                 'createTriggerOrder' => true,
-                'editOrder' => false,
+                'editOrder' => true,
                 'fetchAccounts' => false,
                 'fetchBalance' => true,
                 'fetchBidsAsks' => null,
@@ -93,7 +93,7 @@ class blofin extends Exchange {
                 'fetchLeverageTiers' => false,
                 'fetchMarginMode' => true,
                 'fetchMarginModes' => false,
-                'fetchMarketLeverageTiers' => false,
+                'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMySettlementHistory' => false,
@@ -1870,6 +1870,64 @@ class blofin extends Exchange {
         return $this->parse_orders($data);
     }
 
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
+        return Async\async(self::do_edit_order(...))($id, $symbol, $type, $side, $amount, $price, $params);
+    }
+
+    private function do_edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()) {
+        /**
+         * edit a trade order
+         *
+         * @see https://docs.blofin.com/index.html#amend-order
+         *
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} [$amount] how much of the currency you want to trade in units of the base currency
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->clientOrderId] client order $id, used instead of the $id argument
+         * @return {array} an ~@link https://docs.ccxt.com/?$id=order-structure order structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $request = array(
+            'instId' => $market['id'],
+        );
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['clientOrderId'] = $clientOrderId;
+        } else {
+            $request['orderId'] = $id;
+        }
+        if ($amount !== null) {
+            $request['newSize'] = $this->amount_to_precision($symbol, $amount);
+        }
+        if ($price !== null) {
+            $request['newPrice'] = $this->price_to_precision($symbol, $price);
+        }
+        $response = Async\await($this->privatePostTradeAmendOrder($this->extend($request, $this->omit($params, 'clientOrderId'))));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Order modified",
+        //         "data": {
+        //             "orderId": "6000004088576",
+        //             "clientOrderId": "",
+        //             "requestId": "",
+        //             "msg": "Order modified",
+        //             "code": "0",
+        //             "ts": "1795184228537"
+        //         }
+        //     }
+        //
+        $data = $this->safe_dict($response, 'data', array());
+        return $this->parse_order($data, $market);
+    }
+
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_order(...))($id, $symbol, $params);
     }
@@ -3251,6 +3309,70 @@ class blofin extends Exchange {
             'stopLossPrice' => null,
             'takeProfitPrice' => null,
         ));
+    }
+
+    public function fetch_market_leverage_tiers(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_market_leverage_tiers(...))($symbol, $params);
+    }
+
+    private function do_fetch_market_leverage_tiers(string $symbol, $params = array()) {
+        /**
+         * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
+         *
+         * @see https://docs.blofin.com/index.html#get-position-tiers
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross'
+         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structure~
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchMarketLeverageTiers', $params, 'cross');
+        $request = array(
+            'instId' => $market['id'],
+            'marginMode' => $marginMode,
+        );
+        $response = Async\await($this->publicGetMarketPositionTiers($this->extend($request, $query)));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "symbol": "LTC-USDT",
+        //                 "marginMode": "cross",
+        //                 "minSize": "0",
+        //                 "maxSize": "500",
+        //                 "maintenanceMarginRate": "0.0065",
+        //                 "maxLeverage": "50"
+        //             }
+        //         ]
+        //     }
+        //
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_market_leverage_tiers($data, $market);
+    }
+
+    public function parse_market_leverage_tiers(mixed $info, ?array $market = null): array {
+        $tiers = array();
+        for ($i = 0; $i < count($info); $i++) {
+            $tier = $this->safe_dict($info, $i);
+            $marketId = $this->safe_string($tier, 'symbol');
+            $tiers[] = array(
+                'tier' => $this->sum($i, 1),
+                'symbol' => $this->safe_symbol($marketId, $market),
+                'currency' => $this->safe_string($market, 'quote'),
+                'minNotional' => $this->safe_number($tier, 'minSize'),
+                'maxNotional' => $this->safe_number($tier, 'maxSize'),
+                'maintenanceMarginRate' => $this->safe_number($tier, 'maintenanceMarginRate'),
+                'maxLeverage' => $this->safe_number($tier, 'maxLeverage'),
+                'info' => $tier,
+            );
+        }
+        return $tiers;
     }
 
     public function fetch_leverages(?array $symbols = null, $params = array()): PromiseInterface {
