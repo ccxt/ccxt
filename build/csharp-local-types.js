@@ -1126,6 +1126,8 @@ Object.assign (CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION, {
     'compactSignable': 'List<object>',
     'parseSxbetMarket': 'Dictionary<string, object>',
     'parseOpinionMarket': 'Dictionary<string, object>',
+    // okx / blofin parseIds (`: Strings`): every return is a split list or safeStringList
+    'parseIds': 'List<object>',
 });
 
 // a venue declaration whose rows reach only consumers that accept List<Dictionary<string, object>>
@@ -1283,9 +1285,16 @@ function collectionReturnExpressionProves (csharp, expression, mapped) {
         return type === mapped || (mapped === 'IList<object>' && (type === 'List<object>' || arrayParameterIsList (csharp, node)));
     }
     case ts.SyntaxKind.CallExpression:
-        return callCollectionReturnType (csharp, node) === mapped;
+        return callCollectionReturnType (csharp, node) === mapped || thisCallHandWrittenReturnIs (node, mapped);
     }
     return false;
+}
+
+// `this.<name>(...)` of a hand-written base signature (CSHARP_LOCAL_THIS_RETURN_TYPES) that names `mapped`
+function thisCallHandWrittenReturnIs (call, mapped) {
+    const callee = call.expression;
+    return (callee?.kind === ts.SyntaxKind.PropertyAccessExpression) && (callee.expression?.kind === ts.SyntaxKind.ThisKeyword)
+        && Object.prototype.hasOwnProperty.call (CSHARP_LOCAL_THIS_RETURN_TYPES, callee.name?.text) && (CSHARP_LOCAL_THIS_RETURN_TYPES[callee.name.text] === mapped);
 }
 
 // true only when the PRINTED C# of a return expression is already statically a non-null

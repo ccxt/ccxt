@@ -2798,7 +2798,7 @@ export default class blofin extends Exchange {
         if (typeof ids === 'string') {
             return ids.split (',');
         } else {
-            return ids;
+            return this.safeStringList ([ ids ], [ 0 ]);
         }
     }
 
