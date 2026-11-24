@@ -5298,6 +5298,7 @@ function rustTypedParsePositionFamilies (content: string): string {
 const RUST_BORROWED_VENUE_ROWS: string[] = [
     'parse_option',
     'parse_isolated_borrow_rate',
+    'parse_long_short_ratio',
 ];
 function rustBorrowedParseRows (content: string): string {
     const optFns = [ 'parse_transaction', 'parse_order', 'parse_income', 'parse_account', 'parse_margin_mode', 'parse_ledger_entry', 'parse_position', 'parse_transfer', 'parse_deposit_address', 'parse_leverage', 'parse_borrow_interest' ];
@@ -5308,7 +5309,7 @@ function rustBorrowedParseRows (content: string): string {
     // an inherent override borrows `Option<&Dict>` too; its `self.X(` callers and dispatch arm in the same file lend
     const venue = RUST_BORROWED_VENUE_ROWS.filter ((f) => content.includes ('\n    pub fn ' + f + '(&self, '));
     for (const f of venue) {
-        content = content.replace (new RegExp ('(\\n    pub fn ' + f + '\\(&self, (\\w+): )impl Into<crate::Value>(,[^\\n]*\\{\\n        let \\2: Value = )\\2\\.into\\(\\);', 'g'), '$1Option<&crate::value::Dict>$3Value::from($2);');
+        content = content.replace (new RegExp ('(\\n    pub fn ' + f + '\\(&self, (\\w+): )impl Into<crate::Value>(,[^\\n]*\\{\\n        let (?:mut )?\\2: Value = )\\2\\.into\\(\\);', 'g'), '$1Option<&crate::value::Dict>$3$2.into();');
         optFns.push (f);
     }
     optFns.push ('parse_prediction_trade');
