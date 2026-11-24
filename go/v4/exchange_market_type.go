@@ -133,7 +133,7 @@ func (this *BaseExchange) HandleOptionStringAndParams(params any, methodName any
 
 // HandleMarginModeAndParams reads the marginMode option as a string (a present option of
 // another type panics in HandleOptionStringAndParams); the transpiled copy is dropped.
-func (this *BaseExchange) HandleMarginModeAndParams(methodName any, optionalArgs ...any) (*string, map[string]any) {
+func (this *BaseExchange) HandleMarginModeAndParams(methodName string, optionalArgs ...any) (*string, map[string]any) {
 	params := GetArgMap(optionalArgs, 0, map[string]any{})
 	defaultValue := GetArgStringPtr(optionalArgs, 1, nil)
 	return this.HandleOptionStringAndParams(params, methodName, "marginMode", defaultValue)
