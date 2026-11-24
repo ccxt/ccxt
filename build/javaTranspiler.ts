@@ -4710,6 +4710,9 @@ function javaBaseProducerLocalsSelfTest (): string[] {
         "    pos (d: any, t: any, p: any) { const enc = this.ethEncodeStructuredData (d, t, p); const bin = this.encode ('x'); const n = this.binaryLength (bin); const r = this.randNumber (6); const q = this.precisionFromString ('0.01'); return [ this.sink (enc, 'k'), this.hash (bin, undefined, 'hex'), this.numberToString (n), this.numberToString (r), q ]; }",
         "    str (x: string) { const pp = this.parsePrecision (x); return { 'p': pp }; }",
         "    b16 (h: string) { const hb = this.base16ToBinary (h); const hl = this.base16ToBinary (h); const hs = this.base16ToBinary (h); return [ this.sink (hb, 'k'), [ hl, 1 ], this.typed (hs as any) ]; }",
+        "    zzBytesJoin (h: string) { const a = this.base16ToBinary (h); const m = this.binaryConcat (a, a); return m; }",
+        "    zzBytesMixed (h: string) { if (h === '') { return h; } return this.base16ToBinary (h); }",
+        "    zzBytesUse (h: string) { const mm = this.zzBytesJoin (h); const mx = this.zzBytesJoin (h); return [ this.sink (mm, 'k'), this.typed (mx as any) ]; }",
         "    neg (d: any, t: any, p: any) { const enc2 = this.ethEncodeStructuredData (d, t, p); const r2 = this.randNumber (6); const u = (d === undefined) ? r2 : 0; return [ this.typed (enc2 as any), u ]; }",
         '}',
     ].join('\n');
@@ -4723,6 +4726,10 @@ function javaBaseProducerLocalsSelfTest (): string[] {
         }
         if (!/byte\[\] hb = this\.base16ToBinary\(/.test(out)) problems.push("bytes helpers: 'hb' (base16ToBinary into a venue Object slot) must print byte[]");
         if (!/byte\[\] hl = this\.base16ToBinary\(/.test(out)) problems.push("bytes helpers: 'hl' (base16ToBinary into a list literal) must print byte[]");
+        if (!/public byte\[\] zzBytesJoin\(/.test(out) || !/byte\[\] m = this\.binaryConcat\(/.test(out)) problems.push("bytes returns: 'zzBytesJoin' (returns a binaryConcat local) must print byte[]");
+        if (!/public Object zzBytesMixed\(/.test(out)) problems.push("bytes returns: 'zzBytesMixed' (a string return site) must stay Object");
+        if (!/byte\[\] mm = this\.zzBytesJoin\(/.test(out)) problems.push("bytes returns: 'mm' (byte[] method into an Object slot) must print byte[]");
+        if (!/\bObject mx = /.test(out)) problems.push("bytes returns: 'mx' feeds a typed String slot and must stay Object");
         if (!/\bObject hs = /.test(out)) problems.push("bytes helpers: 'hs' feeds a typed String slot and must stay Object");
         if (!/\bObject enc2 = /.test(out)) problems.push("base producers: 'enc2' feeds a typed String slot and must stay Object");
         if (!/\bObject r2 = /.test(out)) problems.push("base producers: 'r2' is a ternary arm and must stay Object");

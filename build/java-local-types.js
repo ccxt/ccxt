@@ -156,7 +156,7 @@ const JAVA_BYTES_CONSUMERS = new Set ([
     'hash', // BaseExchange.hash (Object, Object[, Object]): Crypto.Hash hashes a byte[] input as is
 ]);
 
-function javaBytesLocalIsSafe (declaration, printer) {
+function javaBytesLocalIsSafe (declaration, printer, returnsOk = false) {
     const scope = enclosingFunction (declaration);
     if (scope === undefined) {
         return false;
@@ -170,6 +170,10 @@ function javaBytesLocalIsSafe (declaration, printer) {
         if (ts.isArrayLiteralExpression (parent) && !(ts.isBinaryExpression (parent.parent) && parent.parent.left === parent)
             && !ts.isForOfStatement (parent.parent) && !ts.isForInStatement (parent.parent)) {
             continue; // a list literal element: Java prints it into `new ArrayList<Object>(Arrays.asList(..))`
+        }
+        if (ts.isReturnStatement (parent) && enclosingFunction (parent) === scope
+            && (returnsOk || printer.javaNativeReturnType?.(scope) === 'byte[]')) {
+            continue; // returned from a method that prints byte[] (javaBytesReturnType)
         }
         if (!(ts.isCallExpression (parent) && parent.arguments.includes (n) && isThisCall (parent)
             && (JAVA_BYTES_CONSUMERS.has (String (parent.expression.name.text))
@@ -196,12 +200,70 @@ function javaBytesHelperCall (printer, node) {
     return file !== undefined && HELPER_SOURCE_FILE.test (file);
 }
 
+function javaBytesReturnSite (printer, method, expression) {
+    const value = unwrapParens (expression);
+    if (value === undefined) {
+        return false;
+    }
+    if (javaBytesHelperCall (printer, value)) {
+        return true;
+    }
+    if (!ts.isIdentifier (value)) {
+        return false;
+    }
+    const declaration = printer.getChecker ().getSymbolAtLocation (value)?.valueDeclaration?.resolve ();
+    return declaration !== undefined && ts.isVariableDeclaration (declaration) && ts.isIdentifier (declaration.name)
+        && enclosingFunction (declaration) === method && ts.isVariableDeclarationList (declaration.parent)
+        && declaration.parent.declarations.length === 1
+        && javaBytesHelperCall (printer, declaration.initializer) && javaBytesLocalIsSafe (declaration, printer, true);
+}
+
+function javaBytesReturnType (printer, node) {
+    if (node === undefined || node.kind !== ts.SyntaxKind.MethodDeclaration || node.body === undefined
+        || !JAVA_VENUE_SOURCE_FILE.test (node.getSourceFile ().fileName) || printer.isAsyncFunction (node)
+        || (node.type !== undefined && !(ts.isTypeReferenceNode (node.type) && ts.isIdentifier (node.type.typeName)
+            && node.type.typeName.text === 'Uint8Array'))
+        || !printer.javaIsPrintedMethod (node) || printer.getMethodOverride (node) !== undefined
+        || javaRedeclaredByDescendant (node)) {
+        return undefined;
+    }
+    const uses = typeof printer.javaRepoMethodUses === 'function' ? printer.javaRepoMethodUses (String (node.name.text), node.getSourceFile ().fileName) : undefined;
+    if (uses === undefined || uses.handWritten) {
+        return undefined;
+    }
+    return printer.javaEveryReturn (node.body, (r) => r.expression !== undefined && javaBytesReturnSite (printer, node, r.expression))
+        ? 'byte[]' : undefined;
+}
+
 export function patchJavaBytesHelperLocals (transpiler) {
     const printer = transpiler?.javaTranspiler;
     if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaBytesHelperLocalsPatched) {
         return;
     }
     printer._javaBytesHelperLocalsPatched = true;
+    // a sync venue method whose every return is a bytes helper call, or a never-written local set from one,
+    // prints byte[]: the helpers' hand-written Java returns byte[] on every path
+    if (typeof printer.javaNativeReturnType === 'function') {
+        const upstreamReturnType = printer.javaNativeReturnType.bind (printer);
+        const memo = new Map ();
+        printer.javaNativeReturnType = function (node) {
+            const own = upstreamReturnType (node);
+            if (own !== undefined) {
+                return own;
+            }
+            if (!memo.has (node)) {
+                memo.set (node, undefined); // a recursive chain reads as unproven
+                let type;
+                try {
+                    type = javaBytesReturnType (printer, node);
+                } catch (e) {
+                    type = undefined;
+                }
+                memo.set (node, type);
+            }
+            return memo.get (node);
+        };
+    }
     const upstream = printer.printVariableDeclarationList.bind (printer);
     printer.printVariableDeclarationList = function (node, identation) {
         const printed = upstream (node, identation);
@@ -500,6 +562,11 @@ function internalReturnLocalType (printer, initializer) {
     const native = printer.javaNativeReturnType (declaration);
     if (native === undefined) {
         return undefined;
+    }
+    const local = initializer.parent;
+    if (native === 'byte[]' && !(ts.isVariableDeclaration (local) && local.initializer === initializer && ts.isIdentifier (local.name)
+        && javaBytesLocalIsSafe (local, printer))) {
+        return undefined; // a byte[] local may only feed an Object slot
     }
     return { type: native, valuePrefix: 'this.', strictPlus: native === 'String' };
 }
