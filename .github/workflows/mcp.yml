@@ -26,10 +26,17 @@ on:
 # against each other, hence the extra path filters above.
 jobs:
   build-test:
-    runs-on: ubuntu-latest
+    # the plugin targets desktop apps on all three systems, and the launcher, the config-file
+    # permissions and the browser launch are each OS-specific — so the whole suite runs on each
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest, macos-latest, windows-latest ]
+    runs-on: ${{ matrix.os }}
     defaults:
       run:
         working-directory: mcp
+        shell: bash
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
