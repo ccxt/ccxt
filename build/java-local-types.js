@@ -9960,7 +9960,10 @@ export function javaVenueDtoListInfo (spelling) {
 // local or parseTransactions, and the awaited locals are handed to slots of that type)
 const JAVA_VENUE_FILE_STRING_CORES = [ [ 'pro', 'hashkey', 'authenticate' ], [ 'pro', 'bitrue', 'authenticate' ], [ '', 'bullish', 'loadAccount' ],
     [ '', 'alpaca', 'fetchTransactionsHelper', 'Transaction[]', 'List<Object>' ], [ '', 'hitbtc', 'fetchTransactionsHelper', 'Transaction[]', 'List<Object>' ],
-    [ '', 'dydx', 'fetchTransactionsHelper', 'Dict[]', 'List<Object>' ], [ '', 'poloniex', 'fetchTransactionsHelper', 'Dict', 'Map<String, Object>' ] ];
+    [ '', 'dydx', 'fetchTransactionsHelper', 'Dict[]', 'List<Object>' ], [ '', 'poloniex', 'fetchTransactionsHelper', 'Dict', 'Map<String, Object>' ],
+    [ '', 'woo', 'getAssetHistoryRows', 'Dict[]', 'List<Object>' ],
+    [ '', 'woofipro', 'getAssetHistoryRows', 'Dict[]', 'List<Object>' ],
+    [ '', 'modetrade', 'getAssetHistoryRows', 'Dict[]', 'List<Object>' ] ];
 const javaVenueFileCoreCache = new Map ();
 
 export function javaVenueFileAsyncReturns (tsFile) {
