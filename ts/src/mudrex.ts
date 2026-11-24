@@ -967,8 +967,7 @@ export default class mudrex extends Exchange {
         } else {
             response = await this.privateGetFuturesOrders (request);
         }
-        const data = this.safeValue (response, 'data', []);
-        const rows = this.toArray (data);
+        const rows: Dict[] = this.safeList (response, 'data', []);
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1041,11 +1040,7 @@ export default class mudrex extends Exchange {
         }
         const q: Dict = {};
         const response = await this.privateGetFuturesPositions (this.extend (q, params));
-        const data = this.safeValue (response, 'data', []);
-        if (data === undefined) {
-            return [];
-        }
-        const rows: Dict[] = this.toArray (data);
+        const rows: Dict[] = this.safeList (response, 'data', []);
         const outPos: Position[] = [];
         for (let i = 0; i < rows.length; i++) {
             const symRaw = this.safeString (rows[i], 'symbol');
