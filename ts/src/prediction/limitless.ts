@@ -1602,7 +1602,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    async fetchOrdersByIds (ids: any, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
+    async fetchOrdersByIds (ids: string[], outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
         }
