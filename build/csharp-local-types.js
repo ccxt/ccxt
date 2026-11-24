@@ -6754,6 +6754,7 @@ const CSHARP_LOCAL_THIS_ARM_MEMBER_TYPES = {
     'tokenBucket': 'Dictionary<string, object>',
     // Exchange.Options.cs: `public Dictionary<string, object> timeframes`
     'timeframes': 'Dictionary<string, object>',
+    'timeframes': 'Dictionary<string, object>',
 };
 
 function thisMemberArmType (node) {
