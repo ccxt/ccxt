@@ -3052,24 +3052,24 @@ impl Exchange {
     }
     /// `ethGetAddressFromPrivateKey(pk)` — derive the Ethereum address
     /// (keccak256 of the uncompressed secp256k1 public key, last 20 bytes).
-    pub fn eth_get_address_from_private_key(&self, pk: Value, _optional_args: &[Value]) -> Value {
+    pub fn eth_get_address_from_private_key(&self, pk: Value, _optional_args: &[Value]) -> String {
         use k256::ecdsa::SigningKey;
         let pk_s = match &pk {
             Value::Str(s) => s.trim_start_matches("0x").to_string(),
-            _ => return Value::Str(String::new().into()),
+            _ => return String::new(),
         };
         let pk_bytes = match crate::exchange::hex_decode(&pk_s) {
             Some(b) => b,
-            None => return Value::Str(String::new().into()),
+            None => return String::new(),
         };
         let sk = match SigningKey::from_slice(&pk_bytes) {
             Ok(k) => k,
-            Err(_) => return Value::Str(String::new().into()),
+            Err(_) => return String::new(),
         };
         let point = sk.verifying_key().to_encoded_point(false); // 0x04 || X || Y
         let pubkey = &point.as_bytes()[1..]; // 64 bytes
         let hash = crate::exchange::hash_raw(pubkey, "keccak");
-        Value::Str(format!("0x{}", crate::exchange::hex_encode(&hash[12..32])).into())
+        format!("0x{}", crate::exchange::hex_encode(&hash[12..32]))
     }
     /// ensures the file path has a whitelisted extension, so users are safeguarded from arbitrary file access
     pub fn ensure_whitelisted_file(&self, p: &Value) {

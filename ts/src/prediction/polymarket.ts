@@ -2114,7 +2114,8 @@ export default class polymarket extends Exchange {
         const signatureType = this.safeInteger2 (params, 'signatureType', 'signature_type', this.safeInteger (this.options, 'signatureType', 3));
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
         const eoa = this.ethChecksumAddress (this.ethGetAddressFromPrivateKey (this.privateKey));
-        const funder = this.ethChecksumAddress (this.safeString2 (params, 'funder', 'maker', this.safeString (this.options, 'funder', this.walletAddress)));
+        const funderAddress: string = this.safeString2 (params, 'funder', 'maker', this.safeString (this.options, 'funder', this.walletAddress));
+        const funder = this.ethChecksumAddress (funderAddress);
         // the salt defaults to a strictly-increasing millisecond value and the timestamp to the current time; both can be pinned via params for idempotency
         const defaultSalt = this.incrementingNonce (); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
         const salt = this.safeString (params, 'salt', this.numberToString (defaultSalt));
