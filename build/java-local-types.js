@@ -1934,6 +1934,27 @@ function resolvesToBaseOrStrippedAccessor (printer, node, name) {
     return resolvesToBaseAccessor (printer, node, name, B15_STRIPPED_BASE_SOURCE_FILES);
 }
 
+// `super.describe ()` / `<local>.describe ()` (no arguments) in a pro file: the resolved
+// declaration is a `describe (): Dict` method, which every Java tier prints as Map<String, Object>
+function describeCallLocalType (printer, initializer) {
+    if (!ts.isCallExpression (initializer) || initializer.arguments.length !== 0
+        || !ts.isPropertyAccessExpression (initializer.expression) || initializer.expression.name.text !== 'describe'
+        || !/[\\/]ts[\\/]src[\\/]pro[\\/]/.test (initializer.getSourceFile ().fileName)) {
+        return undefined;
+    }
+    const receiver = initializer.expression.expression;
+    const prefix = receiver.kind === ts.SyntaxKind.SuperKeyword ? 'super' : (ts.isIdentifier (receiver) ? receiver.text : undefined);
+    if (prefix === undefined || !resolvesToMethodNamed (printer, initializer, 'describe')) {
+        return undefined;
+    }
+    const declaration = printer.getChecker ().getResolvedSignature (initializer)?.declaration?.resolve ();
+    const declared = declaration?.type;
+    if (declared === undefined || !ts.isTypeReferenceNode (declared) || !ts.isIdentifier (declared.typeName) || declared.typeName.text !== 'Dict') {
+        return undefined;
+    }
+    return { type: JAVA_STRUCTURE_TYPE, valuePrefixes: [ prefix + '.describe()' ] };
+}
+
 function resolvesToMethodNamed (printer, node, name) {
     let declaration;
     try {
@@ -2974,6 +2995,11 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
         && isThisCall (unwrapParens (initializer.expression)) && unwrapParens (initializer.expression).expression.name.text === 'findTimeframe'
         && venueCallJavaType (printer, unwrapParens (initializer.expression)) === 'String') {
         return { type: 'String', stringAsCast: true, valuePrefixes: [ '((String)this.' ] };
+    }
+    // `super.describe ()` / `restInstance.describe ()`: every describe () is declared Dict and prints Map<String, Object>
+    const describe = asserted ? undefined : describeCallLocalType (printer, initializer);
+    if (describe !== undefined) {
+        return describe;
     }
     if (!isThisCall (initializer) && !(asserted && isThisCall (assertedCall))) {
         return undefined;
