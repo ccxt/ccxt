@@ -1061,9 +1061,10 @@ export default class gate extends gateRest {
         // }
         //
         const rawResult = this.safeValue (message, 'result');
+        const tradeRows = this.safeList (message, 'result');
         let result: List = [];
-        if (Array.isArray (rawResult)) {
-            result = this.safeList (message, 'result', []);
+        if (tradeRows !== undefined) {
+            result = tradeRows;
         } else {
             result = [ rawResult ];
         }
