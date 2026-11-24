@@ -282,7 +282,7 @@ function rustBorrowWsHandlerParams (files: Map<string, string>, outside: string)
                 // a typed client handle slot is already lent
                 if (pm) params.push({ name: pm[1], idx: i, at: off, len: p.length, isRef: !p.endsWith(': Value') });
                 // a message the printer already typed as a borrowed map: same family slot, nothing to edit
-                else if (p === 'message: &indexmap::IndexMap<String,_Value>') typed.add(i);
+                else if (p === 'message: &indexmap::IndexMap<String,_Value>' || p === 'message: &crate::value::Dict') typed.add(i);
                 off += p.length;
             });
             (defs.get(name) ?? defs.set(name, []).get(name)!).push({ file, start: h.index!, bodyOpen, end, params, typed });
