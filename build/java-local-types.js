@@ -10035,7 +10035,11 @@ const JAVA_VENUE_FILE_STRING_CORES = [ [ 'pro', 'hashkey', 'authenticate' ], [ '
     [ '', 'dydx', 'fetchTransactionsHelper', 'Dict[]', 'List<Object>' ], [ '', 'poloniex', 'fetchTransactionsHelper', 'Dict', 'Map<String, Object>' ],
     [ '', 'woo', 'getAssetHistoryRows', 'Dict[]', 'List<Object>' ],
     [ '', 'woofipro', 'getAssetHistoryRows', 'Dict[]', 'List<Object>' ],
-    [ '', 'modetrade', 'getAssetHistoryRows', 'Dict[]', 'List<Object>' ] ];
+    [ '', 'modetrade', 'getAssetHistoryRows', 'Dict[]', 'List<Object>' ],
+    [ '', 'hyperliquid', 'initializeClient', 'boolean', 'Boolean' ],
+    [ '', 'pacifica', 'initializeClient', 'boolean', 'Boolean' ],
+    [ '', 'grvt', 'initializeClient', 'Bool', 'Boolean' ],
+    [ '', 'aster', 'initializeClient', 'Bool', 'Boolean' ] ];
 const javaVenueFileCoreCache = new Map ();
 
 export function javaVenueFileAsyncReturns (tsFile) {
