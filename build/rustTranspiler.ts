@@ -4743,7 +4743,8 @@ function rustTypedSafeOrder (content: string): string {
 function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'position' | 'transfer' | 'transaction' | 'balance' | 'margin_modification' | 'income' | 'margin_mode' | 'account' | 'funding_rate' | 'deposit_address' | 'leverage' | 'ledger_entry' | 'open_interest' | 'currency' | 'deposit_withdraw_fee' | 'market' | 'borrow_interest' | 'last_price' | 'prediction_order' | 'prediction_position' | 'adl_rank' | 'greeks' | 'liquidation' | 'funding_rate_history'
     | 'prediction_trade'
     | 'prediction_ticker'
-    | 'prediction_open_interest', p0: string | undefined = undefined, builder: string | undefined = undefined): string {
+    | 'prediction_open_interest'
+    | 'my_trade', p0: string | undefined = undefined, builder: string | undefined = undefined): string {
     const fn = 'parse_' + fam, Fn = 'parse' + fam.replace (/(?:^|_)(\w)/g, (_x, c: string) => c.toUpperCase ());
     // `parseBalance (response)` and `parseAccount (account)` have no second argument; p0 names a base parameter that differs from the family
     const sub = p0 ?? fam;
@@ -4815,6 +4816,8 @@ function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'posit
                 body = body.split ('return self.' + m[1] + '(').join ('return \u0000self.\u0001' + m[1] + '(');
             }
         }
+        // parseMyTrade answers undefined for a row it skips; kalshi builds through `safePredictionTrade` (a `Dict`)
+        if (fam === 'my_trade') body = body.replace (/\breturn Value::Null;/g, 'return \u0000None;').split ('return Value::Dict(self.safe_prediction_trade(').join ('return Some(self.safe_prediction_trade(');
         // a sub-parser whose every return is `safeOrder` returns `Dict`
         for (const m of [ ...body.matchAll (new RegExp ('\\breturn self\\.(parse_\\w+_' + fam + ')\\(', 'g')) ]) {
             const sig = '\n    pub fn ' + m[1] + '(&self, mut ' + sub + ': Value' + arg2 + ') -> Value {\n';
@@ -4884,6 +4887,8 @@ function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'posit
         const pre = content.slice (s, close + 1), after = content.slice (close + 1);
         const line = content.slice (content.lastIndexOf ('\n', s), s);
         if (/\breturn Some\($/.test (line) || /\bfn \w*$/.test (line)) continue;
+        // `self.parse_my_trade(` is the boxed by-name shim in exchange.rs
+        if (fam === 'my_trade' && pre.startsWith ('self.')) continue;
         if (pre.startsWith ('<Self as crate::exchange::DerivedExchange>::') || optFns.has (pre.slice (pre.indexOf ('parse_'), pre.indexOf ('(')))) {
             if (/: Option<crate::value::Dict> = $/.test (line)) continue;
             if (after.startsWith ('.into_dict()')) content = content.slice (0, close + 1) + '.unwrap_or_default()' + after.slice ('.into_dict()'.length);
@@ -5272,6 +5277,7 @@ function rustTypedParsePositionFamilies (content: string): string {
     box ('safe_market_structure');
     content = rustTypedParseFamily (content, 'market');
     content = rustTypedParseFamily (content, 'liquidation');
+    content = rustTypedParseFamily (content, 'my_trade', 'trade', 'safe_trade');
     content = rustTypedParseLeverageTiers (content);
     content = rustBorrowedParseRows (content);
     // a venue method whose every return is a map: `Value::Dict(e)` -> `e`, a literal -> `Arc::new`, `extend` -> `extend_t`

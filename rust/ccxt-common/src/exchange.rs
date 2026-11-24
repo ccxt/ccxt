@@ -247,7 +247,7 @@ pub trait DerivedExchange {
     fn parse_funding_rate_history(&self, entry: Value, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> { self.derived_parent().and_then(|p| DerivedExchange::parse_funding_rate_history(p, entry, market)) }
     fn parse_margin_modification(&self, data: impl Into<Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> { self.derived_parent().and_then(|p| DerivedExchange::parse_margin_modification(p, data, market)) }
     fn parse_account(&self, account: Option<&crate::value::Dict>) -> Option<crate::value::Dict> { self.derived_parent().and_then(|p| DerivedExchange::parse_account(p, account)) }
-    fn parse_my_trade(&self, trade: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_my_trade(p, trade, market)) }
+    fn parse_my_trade(&self, trade: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> { self.derived_parent().and_then(|p| DerivedExchange::parse_my_trade(p, trade, market)) }
     fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> { self.derived_parent().and_then(|p| DerivedExchange::parse_transaction(p, transaction, currency)) }
     fn parse_borrow_interest(&self, info: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> { self.derived_parent().and_then(|p| DerivedExchange::parse_borrow_interest(p, info, market)) }
     fn parse_adl_rank(&self, info: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> { self.derived_parent().and_then(|p| DerivedExchange::parse_adl_rank(p, info, market)) }
@@ -2114,7 +2114,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     fn parse_deposit(&self, tx: Value, currency: Option<&crate::types::Currency>) -> Value { DerivedExchange::parse_deposit(self, tx, currency) }
     fn parse_withdrawal(&self, tx: Value, currency: Option<&crate::types::Currency>) -> Value { DerivedExchange::parse_withdrawal(self, tx, currency) }
     fn parse_bid_ask(&self, bidask: Value, price_key: Value, amount_key: Value, market: Option<&crate::types::Market>) -> Value { DerivedExchange::parse_bid_ask(self, bidask, price_key, amount_key, market) }
-    fn parse_my_trade(&self, trade: Value, market: Option<&crate::types::Market>) -> Value { DerivedExchange::parse_my_trade(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(trade).as_ref(), market) }
+    fn parse_my_trade(&self, trade: Value, market: Option<&crate::types::Market>) -> Value { DerivedExchange::parse_my_trade(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(trade).as_ref(), market).map_or(Value::Null, Value::Dict) }
 }
 
 impl<T: crate::exchange_generated::ExchangeBase> ExchangeRuntime for T {}
