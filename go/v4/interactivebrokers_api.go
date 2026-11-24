@@ -9,965 +9,965 @@ package ccxt
 
 // WebapiGetV1ApiIserverAccountPnlPartitioned returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverAccountPnlPartitioned(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account/pnl/partitioned", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account/pnl/partitioned", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiAceswsAccountIdSignaturesAndOwners returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiAceswsAccountIdSignaturesAndOwners(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/acesws/:accountId/signatures-and-owners", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/acesws/:accountId/signatures-and-owners", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverAccounts returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverAccounts(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/accounts", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/accounts", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverAccountSearchSearchPattern returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverAccountSearchSearchPattern(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account/search/:searchPattern", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account/search/:searchPattern", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverAccountAccountIdSummaryBalances returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverAccountAccountIdSummaryBalances(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account/:accountId/summary/balances", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account/:accountId/summary/balances", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverAccountAccountIdSummaryMargins returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverAccountAccountIdSummaryMargins(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account/:accountId/summary/margins", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account/:accountId/summary/margins", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverAccountAccountIdSummaryMarketValue returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverAccountAccountIdSummaryMarketValue(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account/:accountId/summary/market_value", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account/:accountId/summary/market_value", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverAccountAccountIdSummary returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverAccountAccountIdSummary(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account/:accountId/summary", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account/:accountId/summary", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverAccountAccountIdSummaryAvailableFunds returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverAccountAccountIdSummaryAvailableFunds(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account/:accountId/summary/available_funds", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account/:accountId/summary/available_funds", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverAccountMta returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverAccountMta(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account/mta", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account/mta", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverAccountAlertAlertId returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverAccountAlertAlertId(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account/alert/:alertId", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account/alert/:alertId", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverAccountAccountIdAlerts returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverAccountAccountIdAlerts(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account/:accountId/alerts", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account/:accountId/alerts", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverCurrencyPairs returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverCurrencyPairs(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/currency/pairs", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/currency/pairs", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverExchangerate returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverExchangerate(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/exchangerate", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/exchangerate", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverContractConidInfo returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverContractConidInfo(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/contract/:conid/info", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/contract/:conid/info", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverSecdefInfo returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverSecdefInfo(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/secdef/info", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/secdef/info", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiTrsrvSecdef returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiTrsrvSecdef(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/trsrv/secdef", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/trsrv/secdef", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverContractConidInfoAndRules returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverContractConidInfoAndRules(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/contract/:conid/info-and-rules", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/contract/:conid/info-and-rules", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiTrsrvAllConids returns a channel that yields a JSON array.
 func (this *Interactivebrokers) WebapiGetV1ApiTrsrvAllConids(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "v1/api/trsrv/all-conids", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[[]any](this, "v1/api/trsrv/all-conids", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverContractConidAlgos returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverContractConidAlgos(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/contract/:conid/algos", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/contract/:conid/algos", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverSecdefBondFilters returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverSecdefBondFilters(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/secdef/bond-filters", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/secdef/bond-filters", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiTrsrvFutures returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiTrsrvFutures(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/trsrv/futures", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/trsrv/futures", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverSecdefSearch returns a channel that yields a JSON array.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverSecdefSearch(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "v1/api/iserver/secdef/search", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[[]any](this, "v1/api/iserver/secdef/search", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiTrsrvStocks returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiTrsrvStocks(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/trsrv/stocks", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/trsrv/stocks", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverSecdefStrikes returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverSecdefStrikes(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/secdef/strikes", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/secdef/strikes", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiTrsrvSecdefSchedule returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiTrsrvSecdefSchedule(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/trsrv/secdef/schedule", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/trsrv/secdef/schedule", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiForecastCategoryTree returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiForecastCategoryTree(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/forecast/category/tree", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/forecast/category/tree", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiForecastContractDetails returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiForecastContractDetails(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/forecast/contract/details", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/forecast/contract/details", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiForecastContractRules returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiForecastContractRules(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/forecast/contract/rules", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/forecast/contract/rules", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiForecastContractSchedules returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiForecastContractSchedules(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/forecast/contract/schedules", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/forecast/contract/schedules", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiForecastContractMarket returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiForecastContractMarket(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/forecast/contract/market", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/forecast/contract/market", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverAccountAllocationGroup returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverAccountAllocationGroup(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account/allocation/group", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account/allocation/group", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverAccountAllocationAccounts returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverAccountAllocationAccounts(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account/allocation/accounts", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account/allocation/accounts", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverAccountAllocationPresets returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverAccountAllocationPresets(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account/allocation/presets", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account/allocation/presets", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverAccountAllocationModels returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverAccountAllocationModels(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account/allocation/models", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account/allocation/models", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiFyiDeliveryoptions returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiFyiDeliveryoptions(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/fyi/deliveryoptions", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/fyi/deliveryoptions", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiFyiDisclaimerTypecode returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiFyiDisclaimerTypecode(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/fyi/disclaimer/:typecode", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/fyi/disclaimer/:typecode", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiFyiSettings returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiFyiSettings(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/fyi/settings", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/fyi/settings", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiFyiUnreadnumber returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiFyiUnreadnumber(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/fyi/unreadnumber", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/fyi/unreadnumber", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiFyiNotifications returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiFyiNotifications(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/fyi/notifications", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/fyi/notifications", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverMarketdataUnsubscribeall returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverMarketdataUnsubscribeall(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/marketdata/unsubscribeall", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/marketdata/unsubscribeall", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverMarketdataHistory returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverMarketdataHistory(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/marketdata/history", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/marketdata/history", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverMarketdataSnapshot returns a channel that yields a JSON array.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverMarketdataSnapshot(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "v1/api/iserver/marketdata/snapshot", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[[]any](this, "v1/api/iserver/marketdata/snapshot", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverAccountOrders returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverAccountOrders(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account/orders", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account/orders", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverAccountOrderStatusOrderId returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverAccountOrderStatusOrderId(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account/order/status/:orderId", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account/order/status/:orderId", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverAccountTrades returns a channel that yields a JSON array.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverAccountTrades(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "v1/api/iserver/account/trades", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[[]any](this, "v1/api/iserver/account/trades", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiPortfolioAccountIdAllocation returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiPortfolioAccountIdAllocation(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/portfolio/:accountId/allocation", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/portfolio/:accountId/allocation", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiPortfolioAccountIdMeta returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiPortfolioAccountIdMeta(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/portfolio/:accountId/meta", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/portfolio/:accountId/meta", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiPortfolioAccountIdLedger returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiPortfolioAccountIdLedger(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/portfolio/:accountId/ledger", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/portfolio/:accountId/ledger", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiPortfolioAccountIdSummary returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiPortfolioAccountIdSummary(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/portfolio/:accountId/summary", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/portfolio/:accountId/summary", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiPortfolioAccountIdPositionConid returns a channel that yields a JSON array.
 func (this *Interactivebrokers) WebapiGetV1ApiPortfolioAccountIdPositionConid(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "v1/api/portfolio/:accountId/position/:conid", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[[]any](this, "v1/api/portfolio/:accountId/position/:conid", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiPortfolioAccountIdPositionsPageId returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiPortfolioAccountIdPositionsPageId(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/portfolio/:accountId/positions/:pageId", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/portfolio/:accountId/positions/:pageId", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiPortfolio2AccountIdPositions returns a channel that yields a JSON array.
 func (this *Interactivebrokers) WebapiGetV1ApiPortfolio2AccountIdPositions(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "v1/api/portfolio2/:accountId/positions", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[[]any](this, "v1/api/portfolio2/:accountId/positions", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiPortfolioPositionsConid returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiPortfolioPositionsConid(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/portfolio/positions/:conid", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/portfolio/positions/:conid", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiPortfolioAccountIdComboPositions returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiPortfolioAccountIdComboPositions(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/portfolio/:accountId/combo/positions", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/portfolio/:accountId/combo/positions", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiPortfolioAccounts returns a channel that yields a JSON array.
 func (this *Interactivebrokers) WebapiGetV1ApiPortfolioAccounts(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "v1/api/portfolio/accounts", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[[]any](this, "v1/api/portfolio/accounts", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiPortfolioSubaccounts returns a channel that yields a JSON array.
 func (this *Interactivebrokers) WebapiGetV1ApiPortfolioSubaccounts(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "v1/api/portfolio/subaccounts", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[[]any](this, "v1/api/portfolio/subaccounts", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiPortfolioSubaccounts2 returns a channel that yields a JSON array.
 func (this *Interactivebrokers) WebapiGetV1ApiPortfolioSubaccounts2(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "v1/api/portfolio/subaccounts2", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[[]any](this, "v1/api/portfolio/subaccounts2", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiSsoValidate returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiSsoValidate(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/sso/validate", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/sso/validate", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverScannerParams returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverScannerParams(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/scanner/params", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/scanner/params", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverWatchlist returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverWatchlist(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/watchlist", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/watchlist", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiIserverWatchlists returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiIserverWatchlists(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/watchlists", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/watchlists", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1AccountsAccountIdDetails returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1AccountsAccountIdDetails(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/accounts/:accountId/details", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/accounts/:accountId/details", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1AccountsStatus returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1AccountsStatus(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/accounts/status", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/accounts/status", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1AccountsAccountIdLoginMessages returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1AccountsAccountIdLoginMessages(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/accounts/:accountId/login-messages", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/accounts/:accountId/login-messages", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1AccountsLoginMessages returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1AccountsLoginMessages(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/accounts/login-messages", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/accounts/login-messages", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1AccountsAccountIdTasks returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1AccountsAccountIdTasks(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/accounts/:accountId/tasks", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/accounts/:accountId/tasks", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1AccountsAccountIdStatus returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1AccountsAccountIdStatus(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/accounts/:accountId/status", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/accounts/:accountId/status", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1AccountsAccountIdKyc returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1AccountsAccountIdKyc(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/accounts/:accountId/kyc", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/accounts/:accountId/kyc", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1Accounts returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1Accounts(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/accounts", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/accounts", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1ClientInstructionsClientInstructionId returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1ClientInstructionsClientInstructionId(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/client-instructions/:clientInstructionId", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/client-instructions/:clientInstructionId", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1InstructionsInstructionId returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1InstructionsInstructionId(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/instructions/:instructionId", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/instructions/:instructionId", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1InstructionSetsInstructionSetId returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1InstructionSetsInstructionSetId(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/instruction-sets/:instructionSetId", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/instruction-sets/:instructionSetId", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1StatementsAvailable returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1StatementsAvailable(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/statements/available", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/statements/available", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1TaxDocumentsAvailable returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1TaxDocumentsAvailable(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/tax-documents/available", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/tax-documents/available", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1TradeConfirmationsAvailable returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1TradeConfirmationsAvailable(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/trade-confirmations/available", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/trade-confirmations/available", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1EnumerationsComplexAssetTransfer returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1EnumerationsComplexAssetTransfer(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/enumerations/complex-asset-transfer", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/enumerations/complex-asset-transfer", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1EnumerationsEnumerationType returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1EnumerationsEnumerationType(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/enumerations/:enumerationType", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/enumerations/:enumerationType", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1Forms returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1Forms(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/forms", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/forms", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1ParticipatingBanks returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1ParticipatingBanks(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/participating-banks", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/participating-banks", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1Requests returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1Requests(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/requests", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/requests", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1FormsRequiredForms returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1FormsRequiredForms(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/forms/required-forms", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/forms/required-forms", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1RequestsRequestIdStatus returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1RequestsRequestIdStatus(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/requests/:requestId/status", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/requests/:requestId/status", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1ValidationsUsernamesUsername returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1ValidationsUsernamesUsername(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/validations/usernames/:username", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/validations/usernames/:username", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1RestrictionsList returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1RestrictionsList(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/restrictions/list", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/restrictions/list", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1RestrictionsListsIds returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1RestrictionsListsIds(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/restrictions/lists/ids", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/restrictions/lists/ids", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1RestrictionsRestriction returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1RestrictionsRestriction(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/restrictions/restriction", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/restrictions/restriction", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1RestrictionsIds returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1RestrictionsIds(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/restrictions/ids", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/restrictions/ids", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1RestrictionsUser returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1RestrictionsUser(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/restrictions/user", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/restrictions/user", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1RestrictionsAccount returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1RestrictionsAccount(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/restrictions/account", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/restrictions/account", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1RestrictionsRestrictionScope returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1RestrictionsRestrictionScope(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/restrictions/restriction-scope", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/restrictions/restriction-scope", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1TaxVouchersRequestIdDownload returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1TaxVouchersRequestIdDownload(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/tax-vouchers/:requestId/download", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/tax-vouchers/:requestId/download", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1TaxVouchersDividends returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1TaxVouchersDividends(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/tax-vouchers/dividends", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/tax-vouchers/dividends", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1TaxVouchersActiveCountries returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1TaxVouchersActiveCountries(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/tax-vouchers/active-countries", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/tax-vouchers/active-countries", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1TaxVouchersYears returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1TaxVouchersYears(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/tax-vouchers/years", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/tax-vouchers/years", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1TaxVouchersRequestIdState returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1TaxVouchersRequestIdState(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/tax-vouchers/:requestId/state", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/tax-vouchers/:requestId/state", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetGwApiV1EchoHttps returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetGwApiV1EchoHttps(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/echo/https", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/echo/https", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiMdRegsnapshot returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiMdRegsnapshot(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/md/regsnapshot", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/md/regsnapshot", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiGetV1ApiContractTradingSchedule returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiGetV1ApiContractTradingSchedule(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/contract/trading-schedule", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/contract/trading-schedule", []string{"webapi"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiOauthRequestToken returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiOauthRequestToken(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/oauth/request_token", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/oauth/request_token", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiOauthAccessToken returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiOauthAccessToken(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/oauth/access_token", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/oauth/access_token", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiOauthLiveSessionToken returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiOauthLiveSessionToken(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/oauth/live_session_token", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/oauth/live_session_token", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1SsoBrowserSessions returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1SsoBrowserSessions(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/sso-browser-sessions", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/sso-browser-sessions", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1SsoSessions returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1SsoSessions(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/sso-sessions", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/sso-sessions", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostOauth2ApiV1Token returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostOauth2ApiV1Token(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "oauth2/api/v1/token", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "oauth2/api/v1/token", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiIserverDynaccount returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiIserverDynaccount(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/dynaccount", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/dynaccount", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiIserverAccount returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiIserverAccount(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiIserverAccountAccountIdAlertActivate returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiIserverAccountAccountIdAlertActivate(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account/:accountId/alert/activate", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account/:accountId/alert/activate", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiIserverAccountAccountIdAlert returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiIserverAccountAccountIdAlert(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account/:accountId/alert", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account/:accountId/alert", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiIserverContractRules returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiIserverContractRules(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/contract/rules", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/contract/rules", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiIserverSecdefSearch returns a channel that yields a JSON array.
 func (this *Interactivebrokers) WebapiPostV1ApiIserverSecdefSearch(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "v1/api/iserver/secdef/search", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[[]any](this, "v1/api/iserver/secdef/search", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiIserverAccountAllocationGroup returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiIserverAccountAllocationGroup(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account/allocation/group", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account/allocation/group", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiIserverAccountAllocationGroupDelete returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiIserverAccountAllocationGroupDelete(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account/allocation/group/delete", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account/allocation/group/delete", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiIserverAccountAllocationGroupSingle returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiIserverAccountAllocationGroupSingle(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account/allocation/group/single", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account/allocation/group/single", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiIserverAccountAllocationPresets returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiIserverAccountAllocationPresets(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account/allocation/presets", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account/allocation/presets", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiFaFaPresetGet returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiFaFaPresetGet(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/fa/fa-preset/get", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/fa/fa-preset/get", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiFaModelAccountsDetails returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiFaModelAccountsDetails(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/fa/model/accounts-details", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/fa/model/accounts-details", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiFaModelInvestDivest returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiFaModelInvestDivest(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/fa/model/invest-divest", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/fa/model/invest-divest", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiFaIsFullMaster returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiFaIsFullMaster(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/fa/is-full-master", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/fa/is-full-master", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiFaModelCashAnalyzer returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiFaModelCashAnalyzer(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/fa/model/cash-analyzer", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/fa/model/cash-analyzer", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiFaModelRebalanceToExistingTargets returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiFaModelRebalanceToExistingTargets(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/fa/model/rebalance/to-existing-targets", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/fa/model/rebalance/to-existing-targets", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiFaModelRebalanceToNewTargets returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiFaModelRebalanceToNewTargets(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/fa/model/rebalance/to-new-targets", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/fa/model/rebalance/to-new-targets", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiFaModelRebalanceToSpecificTargets returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiFaModelRebalanceToSpecificTargets(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/fa/model/rebalance/to-specific-targets", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/fa/model/rebalance/to-specific-targets", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiFaModelList returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiFaModelList(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/fa/model/list", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/fa/model/list", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiFaModelPositions returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiFaModelPositions(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/fa/model/positions", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/fa/model/positions", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiFaModelSummary returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiFaModelSummary(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/fa/model/summary", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/fa/model/summary", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiFaModelSave returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiFaModelSave(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/fa/model/save", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/fa/model/save", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiFaFaPresetSave returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiFaFaPresetSave(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/fa/fa-preset/save", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/fa/fa-preset/save", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiIserverAccountModelCodeOrders returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiIserverAccountModelCodeOrders(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account/:modelCode/orders", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account/:modelCode/orders", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiFaModelSubmitTransfers returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiFaModelSubmitTransfers(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/fa/model/submit-transfers", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/fa/model/submit-transfers", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiFaModelInvestDivestPositions returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiFaModelInvestDivestPositions(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/fa/model/invest-divest-positions", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/fa/model/invest-divest-positions", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiFaModelTwsInvestDivest returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiFaModelTwsInvestDivest(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/fa/model/tws-invest-divest", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/fa/model/tws-invest-divest", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiFyiSettingsTypecode returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiFyiSettingsTypecode(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/fyi/settings/:typecode", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/fyi/settings/:typecode", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiFyiDeliveryoptionsDevice returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiFyiDeliveryoptionsDevice(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/fyi/deliveryoptions/device", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/fyi/deliveryoptions/device", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiIserverMarketdataUnsubscribe returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiIserverMarketdataUnsubscribe(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/marketdata/unsubscribe", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/marketdata/unsubscribe", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiIserverReplyReplyId returns a channel that yields a JSON object or a JSON array.
 func (this *Interactivebrokers) WebapiPostV1ApiIserverReplyReplyId(args ...any) <-chan AsyncResult[any] {
-	return this.Fetch2Async("v1/api/iserver/reply/:replyId", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return this.RequestAsync("v1/api/iserver/reply/:replyId", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiIserverNotification returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiIserverNotification(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/notification", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/notification", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiIserverAccountAccountIdOrderOrderId returns a channel that yields a JSON object or a JSON array.
 func (this *Interactivebrokers) WebapiPostV1ApiIserverAccountAccountIdOrderOrderId(args ...any) <-chan AsyncResult[any] {
-	return this.Fetch2Async("v1/api/iserver/account/:accountId/order/:orderId", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return this.RequestAsync("v1/api/iserver/account/:accountId/order/:orderId", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiIserverAccountAccountIdOrdersWhatif returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiIserverAccountAccountIdOrdersWhatif(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account/:accountId/orders/whatif", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account/:accountId/orders/whatif", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiIserverQuestionsSuppressReset returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiIserverQuestionsSuppressReset(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/questions/suppress/reset", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/questions/suppress/reset", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiIserverAccountAccountIdOrders returns a channel that yields a JSON object or a JSON array.
 func (this *Interactivebrokers) WebapiPostV1ApiIserverAccountAccountIdOrders(args ...any) <-chan AsyncResult[any] {
-	return this.Fetch2Async("v1/api/iserver/account/:accountId/orders", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return this.RequestAsync("v1/api/iserver/account/:accountId/orders", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiIserverQuestionsSuppress returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiIserverQuestionsSuppress(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/questions/suppress", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/questions/suppress", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiPortfolioAccountIdPositionsInvalidate returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiPortfolioAccountIdPositionsInvalidate(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/portfolio/:accountId/positions/invalidate", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/portfolio/:accountId/positions/invalidate", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiPaPerformance returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiPaPerformance(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/pa/performance", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/pa/performance", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiPaAllperiods returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiPaAllperiods(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/pa/allperiods", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/pa/allperiods", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiPaAllocation returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiPaAllocation(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/pa/allocation", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/pa/allocation", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiPaTransactions returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiPaTransactions(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/pa/transactions", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/pa/transactions", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiIserverScannerRun returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiIserverScannerRun(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/scanner/run", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/scanner/run", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiTickle returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiTickle(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/tickle", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/tickle", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiIserverAuthStatus returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiIserverAuthStatus(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/auth/status", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/auth/status", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiIserverAuthSsodhInit returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiIserverAuthSsodhInit(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/auth/ssodh/init", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/auth/ssodh/init", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiIserverWatchlist returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiIserverWatchlist(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/watchlist", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/watchlist", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1AccountsAccountIdTasks returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1AccountsAccountIdTasks(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/accounts/:accountId/tasks", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/accounts/:accountId/tasks", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1Accounts returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1Accounts(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/accounts", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/accounts", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1AccountsDocuments returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1AccountsDocuments(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/accounts/documents", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/accounts/documents", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1InstructionsCancel returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1InstructionsCancel(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/instructions/cancel", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/instructions/cancel", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1BankInstructionsBulk returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1BankInstructionsBulk(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/bank-instructions:bulk", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/bank-instructions:bulk", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1InstructionsCancelBulk returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1InstructionsCancelBulk(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/instructions/cancel:bulk", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/instructions/cancel:bulk", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1ExternalAssetTransfersBulk returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1ExternalAssetTransfersBulk(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/external-asset-transfers:bulk", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/external-asset-transfers:bulk", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV2ExternalAssetTransfersBulk returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV2ExternalAssetTransfersBulk(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v2/external-asset-transfers:bulk", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v2/external-asset-transfers:bulk", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1ExternalCashTransfersBulk returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1ExternalCashTransfersBulk(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/external-cash-transfers:bulk", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/external-cash-transfers:bulk", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1InternalAssetTransfersBulk returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1InternalAssetTransfersBulk(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/internal-asset-transfers:bulk", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/internal-asset-transfers:bulk", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1InternalCashTransfersBulk returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1InternalCashTransfersBulk(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/internal-cash-transfers:bulk", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/internal-cash-transfers:bulk", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1InstructionsQuery returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1InstructionsQuery(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/instructions/query", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/instructions/query", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1BankInstructions returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1BankInstructions(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/bank-instructions", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/bank-instructions", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1ExternalCashTransfers returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1ExternalCashTransfers(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/external-cash-transfers", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/external-cash-transfers", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1InternalCashTransfers returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1InternalCashTransfers(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/internal-cash-transfers", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/internal-cash-transfers", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1ExternalAssetTransfers returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1ExternalAssetTransfers(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/external-asset-transfers", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/external-asset-transfers", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV2ExternalAssetTransfers returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV2ExternalAssetTransfers(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v2/external-asset-transfers", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v2/external-asset-transfers", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1InternalAssetTransfers returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1InternalAssetTransfers(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/internal-asset-transfers", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/internal-asset-transfers", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1BankInstructionsQuery returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1BankInstructionsQuery(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/bank-instructions/query", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/bank-instructions/query", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1ExternalCashTransfersQuery returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1ExternalCashTransfersQuery(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/external-cash-transfers/query", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/external-cash-transfers/query", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1TaxDocuments returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1TaxDocuments(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/tax-documents", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/tax-documents", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1TradeConfirmations returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1TradeConfirmations(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/trade-confirmations", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/trade-confirmations", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1Statements returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1Statements(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/statements", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/statements", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1Restrictions returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1Restrictions(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/restrictions", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/restrictions", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1RestrictionsVerify returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1RestrictionsVerify(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/restrictions/verify", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/restrictions/verify", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1BalancesQuery returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1BalancesQuery(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/balances/query", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/balances/query", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1TaxVouchers returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1TaxVouchers(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/tax-vouchers", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/tax-vouchers", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostGwApiV1EchoSignedJwt returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostGwApiV1EchoSignedJwt(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/echo/signed-jwt", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/echo/signed-jwt", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPostV1ApiLogout returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPostV1ApiLogout(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/logout", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/logout", []string{"webapi"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPutV1ApiIserverAccountAllocationGroup returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPutV1ApiIserverAccountAllocationGroup(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account/allocation/group", []string{"webapi"}, "PUT", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account/allocation/group", []string{"webapi"}, "PUT", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPutV1ApiFyiDisclaimerTypecode returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPutV1ApiFyiDisclaimerTypecode(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/fyi/disclaimer/:typecode", []string{"webapi"}, "PUT", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/fyi/disclaimer/:typecode", []string{"webapi"}, "PUT", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPutV1ApiFyiNotificationsNotificationId returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPutV1ApiFyiNotificationsNotificationId(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/fyi/notifications/:notificationId", []string{"webapi"}, "PUT", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/fyi/notifications/:notificationId", []string{"webapi"}, "PUT", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPutV1ApiFyiDeliveryoptionsEmail returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPutV1ApiFyiDeliveryoptionsEmail(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/fyi/deliveryoptions/email", []string{"webapi"}, "PUT", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/fyi/deliveryoptions/email", []string{"webapi"}, "PUT", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiDeleteV1ApiIserverAccountAccountIdAlertAlertId returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiDeleteV1ApiIserverAccountAccountIdAlertAlertId(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account/:accountId/alert/:alertId", []string{"webapi"}, "DELETE", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account/:accountId/alert/:alertId", []string{"webapi"}, "DELETE", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiDeleteV1ApiFyiDeliveryoptionsDeviceId returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiDeleteV1ApiFyiDeliveryoptionsDeviceId(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/fyi/deliveryoptions/:deviceId", []string{"webapi"}, "DELETE", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/fyi/deliveryoptions/:deviceId", []string{"webapi"}, "DELETE", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiDeleteV1ApiIserverAccountAccountIdOrderOrderId returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiDeleteV1ApiIserverAccountAccountIdOrderOrderId(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/account/:accountId/order/:orderId", []string{"webapi"}, "DELETE", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/account/:accountId/order/:orderId", []string{"webapi"}, "DELETE", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiDeleteV1ApiIserverWatchlist returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiDeleteV1ApiIserverWatchlist(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/api/iserver/watchlist", []string{"webapi"}, "DELETE", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "v1/api/iserver/watchlist", []string{"webapi"}, "DELETE", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPatchGwApiV1Accounts returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPatchGwApiV1Accounts(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/accounts", []string{"webapi"}, "PATCH", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/accounts", []string{"webapi"}, "PATCH", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPatchGwApiV1AccountsAccountIdStatus returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPatchGwApiV1AccountsAccountIdStatus(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/accounts/:accountId/status", []string{"webapi"}, "PATCH", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/accounts/:accountId/status", []string{"webapi"}, "PATCH", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPatchGwApiV1AccountsAccountIdTasks returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPatchGwApiV1AccountsAccountIdTasks(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/accounts/:accountId/tasks", []string{"webapi"}, "PATCH", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/accounts/:accountId/tasks", []string{"webapi"}, "PATCH", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // WebapiPatchGwApiV1RequestsRequestIdStatus returns a channel that yields a JSON object.
 func (this *Interactivebrokers) WebapiPatchGwApiV1RequestsRequestIdStatus(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "gw/api/v1/requests/:requestId/status", []string{"webapi"}, "PATCH", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return RequestResult[map[string]any](this, "gw/api/v1/requests/:requestId/status", []string{"webapi"}, "PATCH", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
