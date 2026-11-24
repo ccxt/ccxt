@@ -848,6 +848,11 @@ impl KeyRead for &crate::types::Market {
     fn key_read(&self, key: &str) -> Value { get_value_k(&self.raw, key) }
     fn read(&self, key: &Value) -> Value { get_value(&self.raw, key) }
 }
+/// A borrowed optional row reads its map, as `Value::from(row)` did (Null when absent).
+impl KeyRead for Option<&Dict> {
+    fn key_read(&self, key: &str) -> Value { self.map_or(Value::Null, |m| get_map_value_k(m, key)) }
+    fn read(&self, key: &Value) -> Value { self.map_or(Value::Null, |m| get_map_value(m, key)) }
+}
 /// An optional market argument reads its own map (Null when absent).
 impl KeyRead for Option<&crate::types::Market> {
     fn key_read(&self, key: &str) -> Value { if let Some(m) = self { get_value_k(&m.raw, key) } else { Value::Null } }

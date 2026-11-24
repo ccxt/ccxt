@@ -5793,24 +5793,27 @@ function rustTypedMarketIdsCodes (content: string): string {
 // typed accessor, an Option's null test or a re-box (`Value::from(x)`, also behind `&`) keeps the parameter: the copy held exactly
 // `Str` / `Int` / `Float` / `Bool` / `Null` of it, so each read answers the same.
 function rustStrParamCopyDrop (content: string): string {
-    const bindRe = /^([ \t]*)let mut ([A-Za-z_][A-Za-z0-9_]*): Value = \2\.into\(\);\n/gm;
+    const bindRe = /^([ \t]*)let (mut )?([A-Za-z_][A-Za-z0-9_]*): Value = \3\.into\(\);\n/gm;
     const masked = maskText (content).replace (/\/\*[\s\S]*?\*\//g, (c) => c.replace (/[^\n]/g, ' '));
     const edits: Array<{ start: number, end: number, text: string }> = [];
     const acc: Record<string, string> = { '&str': 'str', i64: 'i64', f64: 'f64', bool: 'bool' };
     let m: RegExpExecArray | null;
     while ((m = bindRe.exec (masked)) !== null) {
-        const name = m[2];
+        const name = m[3];
         let head = m.index;
         while (head > 0) {
             const prev = masked.lastIndexOf ('\n', head - 2) + 1;
-            if (!/^[ \t]*let mut \w+: Value = \w+\.into\(\);\n$/.test (masked.slice (prev, head))) { head = prev; break; }
+            if (!/^[ \t]*let (?:mut )?\w+: Value = \w+\.into\(\);\n$/.test (masked.slice (prev, head))) { head = prev; break; }
             head = prev;
         }
         const sig = masked.slice (head, masked.indexOf ('\n', head));
         if (!/\bfn \w+(?:<[^>]*>)?\(.*\{$/.test (sig)) continue;
-        const typeM = new RegExp ('[(,] ?' + name + ': (&str|i64|f64|bool|Option<(?:&str|i64|f64)>)[,)]').exec (sig);
+        const typeM = new RegExp ('[(,] ?' + name + ': (&str|i64|f64|bool|Option<(?:&str|i64|f64|&crate::value::Dict)>)[,)]').exec (sig);
         const ptype = typeM === null ? undefined : typeM[1];
         if (ptype === undefined) continue;
+        // a borrowed `Dict` row copy: `Value::from(row)` re-boxes the same shared map (or `Null`); an immutable copy only
+        const row = ptype === 'Option<&crate::value::Dict>';
+        if (m[2] === undefined && !row) continue;
         const bodyStart = m.index + m[0].length;
         let depth = 1, bodyEnd = bodyStart;
         for (; bodyEnd < masked.length && depth > 0; bodyEnd++) {
@@ -5827,18 +5830,24 @@ function rustStrParamCopyDrop (content: string): string {
             const after = body.slice (u.index + name.length);
             const at = bodyStart + u.index;
             const opt = ptype.startsWith ('Option<');
-            const kind = acc[opt ? ptype.slice (7, -1) : ptype];
+            const kind = row ? 'row' : acc[opt ? ptype.slice (7, -1) : ptype];
             const asAcc = new RegExp ('^\\.as_' + kind + '\\(\\)');
             // a re-box widens its line: keep the copy rather than push a line past 400 chars
             if (body.lastIndexOf ('\n', u.index) < 0 ? false : (body.indexOf ('\n', u.index) < 0 ? body.length : body.indexOf ('\n', u.index)) - body.lastIndexOf ('\n', u.index) > 386) { ok = false; break; }
             let r: RegExpExecArray | null;
+            if (row) {
+                // a key reader (`impl KeyRead` first slot) reads the borrowed row itself; any other use keeps the copy
+                const lead = body.slice (Math.max (0, u.index - 80), u.index);
+                if (!(/\bself\.safe_(?:string|integer|number|value|dict|list|bool|float|timestamp)[a-z0-9_]*\(&?$/.test (lead) && after.startsWith (','))) ok = false;
+                continue;
+            }
             // a whole argument or element re-boxes from the borrow, the same `Str` / `Null` the copy held
             if (/(?:\(|\[|, |\(&|\[&|, &)$/.test (body.slice (Math.max (0, u.index - 3), u.index)) && /^[,);\]]/.test (after)) local.push ({ start: at, end: at + name.length, text: `Value::from(${name})` });
             else if (kind === 'str' && (r = /^\.as_str\(\)\.unwrap_or_default\(\)/.exec (after)) !== null) local.push ({ start: at, end: at + name.length + r[0].length, text: opt ? `${name}.unwrap_or_default()` : name });
             else if (!opt && kind === 'str' && (r = /^\.as_str\(\) ([=!]=) Some\(("(?:[^"\\\n]|\\.)*")\)/.exec (content.slice (at + name.length))) !== null) local.push ({ start: at, end: at + name.length + r[0].length, text: `${name} ${r[1]} ${r[2]}` });
             // a by-value copy re-boxes from the borrow: `Value::from` builds the same `Str` / `Null`
             else if (body[u.index - 1] !== '&' && (r = /^\.clone\(\)(?=[,);\].])/.exec (after)) !== null) local.push ({ start: at, end: at + name.length + r[0].length, text: `Value::from(${name})` });
-            else if ((r = asAcc.exec (after)) !== null) local.push ({ start: at, end: at + name.length + r[0].length, text: opt ? name : `Some(${name})` });
+            else if (!row && (r = asAcc.exec (after)) !== null) local.push ({ start: at, end: at + name.length + r[0].length, text: opt ? name : `Some(${name})` });
             else if (opt && body[u.index - 1] !== '&' && (r = /^ ([=!])= Value::Null(?![\w:(])/.exec (after)) !== null) local.push ({ start: at, end: at + name.length + r[0].length, text: `${name}.${r[1] === '=' ? 'is_none' : 'is_some'}()` });
             // `Value::from` of a plain `&str` / i64 / f64 / bool is never `Null`: its null test is constant
             else if (!opt && body[u.index - 1] !== '&' && (r = /^ ([=!])= Value::Null(?![\w:(])/.exec (after)) !== null) local.push ({ start: at, end: at + name.length + r[0].length, text: r[1] === '=' ? 'false' : 'true' });
@@ -15722,6 +15731,8 @@ impl std::ops::DerefMut for ${coreName} {
             rustContent = rustTypedParseOhlcv(rustContent);
             rustContent = rustTypedRequestBuilders(rustContent);
             rustContent = rustTypedVenueBuilders(rustContent, (isPrediction ? 'prediction/' : '') + exchangeName);
+            // the typed row parsers above borrow `Option<&Dict>`: drop the row copies they leave
+            rustContent = rustStrParamCopyDrop(rustContent);
 
             // Phase 2 — lexical sanity check. A file with mismatched
             // delimiters would break the whole crate, so a failure here is
