@@ -1394,9 +1394,9 @@ export default class interactivebrokers extends Exchange {
         return result;
     }
 
-    async fetchSecWithDetails (plainEntries: Dict) {
+    async fetchSecWithDetails (plainEntries: Dict): Promise<List> {
         const detailIds = Object.keys (plainEntries);
-        const entries: Dict[] = [];
+        const entries: List = [];
         const numDetails = detailIds.length;
         if (numDetails === 0) {
             return entries;
@@ -1473,7 +1473,7 @@ export default class interactivebrokers extends Exchange {
                 }
             }
         }
-        const detailMarkets = await this.fetchSecWithDetails (entries);
+        const detailMarkets: List = await this.fetchSecWithDetails (entries);
         return this.parseMarkets (detailMarkets);
     }
 
@@ -1519,7 +1519,7 @@ export default class interactivebrokers extends Exchange {
                 }
             }
         }
-        const detailMarkets = await this.fetchSecWithDetails (entries);
+        const detailMarkets: List = await this.fetchSecWithDetails (entries);
         return this.parseMarkets (detailMarkets);
     }
 
@@ -1629,16 +1629,15 @@ export default class interactivebrokers extends Exchange {
                 }
             }
         }
-        const details = await this.fetchSecWithDetails (entries);
+        const details: List = await this.fetchSecWithDetails (entries);
         // generic tickers (e.g. SOL, XRP, ADA, XLM) are queried by bare symbol, so trsrv/futures can return
         // unrelated contracts listed on other venues (e.g. EUREX), only the crypto futures venues are kept
         const allowedVenues = [ 'CME', 'CFE', 'COINDERIV' ];
         const detailMarkets = [];
         for (let i = 0; i < details.length; i++) {
-            const detail = details[i];
-            const venue = this.safeString (detail, 'listingExchange');
+            const venue = this.safeString (details[i], 'listingExchange');
             if (this.inArray (venue, allowedVenues)) {
-                detailMarkets.push (detail);
+                detailMarkets.push (this.safeDict (details, i));
             }
         }
         const markets = this.parseMarkets (detailMarkets);
@@ -1690,17 +1689,16 @@ export default class interactivebrokers extends Exchange {
                 entries[conid] = cfd;
             }
         }
-        const detailMarkets = await this.fetchSecWithDetails (entries);
+        const detailMarkets: List = await this.fetchSecWithDetails (entries);
         // keep the order of options.fetchMarkets.cfdExchanges, the first exchange wins the plain symbol on collisions
         const result = [];
         const detailMarketsLength = detailMarkets.length;
         for (let i = 0; i < cfdExchanges.length; i++) {
             const cfdExchange: string = this.safeString (cfdExchanges, i, '');
             for (let j = 0; j < detailMarketsLength; j++) {
-                const detail = detailMarkets[j];
-                const listingExchange: string = this.safeString (detail, 'listingExchange', '');
+                const listingExchange: string = this.safeString (detailMarkets[j], 'listingExchange', '');
                 if (listingExchange === cfdExchange) {
-                    result.push (detail);
+                    result.push (this.safeDict (detailMarkets, j));
                 }
             }
         }
@@ -1805,7 +1803,7 @@ export default class interactivebrokers extends Exchange {
                 }
             }
         }
-        const detailMarkets = await this.fetchSecWithDetails (entries);
+        const detailMarkets: List = await this.fetchSecWithDetails (entries);
         const markets = this.parseMarkets (detailMarkets);
         // bonds sharing the issuer, coupon and maturity (e.g. a bill and a strip) are told apart by the conid, e.g. US-T-270215-265342934.SMART/USD
         const seen: Dict = {};
@@ -1855,7 +1853,7 @@ export default class interactivebrokers extends Exchange {
                 }
             }
         }
-        const markets = await this.fetchSecWithDetails (entries);
+        const markets: List = await this.fetchSecWithDetails (entries);
         return this.parseMarkets (markets);
     }
 

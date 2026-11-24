@@ -7309,6 +7309,8 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     // base parseOpenInterestsHistory / parseBorrowRateHistory (response: object[]): no override; every caller hands a `[]any` local
     'parseOpenInterestsHistory': { 0: '[]any' },
     'parseBorrowRateHistory': { 0: '[]any' },
+    // base parseMarkets (markets: List) and the bitvavo / xt overrides; every caller hands a row list
+    'parseMarkets': { 0: '[]any' },
 };
 
 // the typed wrapper's slice annotation -> the hand-written converter to the core's `[]any`
@@ -12548,9 +12550,9 @@ function goTypedRecvLocals (content: string): string {
 
 // `var x any = nil; if rN.Value != nil { x = <rN.Value | XsToList(rN.Value)> }` of a map/list receive: a nil map/slice
 // reads like the untyped nil through every use admitted here (Safe* readers, GetValue, GetArrayLength, native nil test,
-// the `[]any` slot of ParseOpenInterests),
+// the `[]any` slot of ParseOpenInterests / ParseMarkets),
 // so x takes the receive's type and the guard goes.
-const GO_NIL_FOLD_READERS = /^(?:this\.(?:Safe(?:String|Integer|Number|Bool|Float|Dict|List|Value|Timestamp)\w*|IsEmpty)|(?:ccxt\.)?(?:SafeMapTyped|SafeListTyped\w*|GetValue|GetArrayLength)|this\.ParseOpenInterests)\($/;
+const GO_NIL_FOLD_READERS = /^(?:this\.(?:Safe(?:String|Integer|Number|Bool|Float|Dict|List|Value|Timestamp)\w*|IsEmpty)|(?:ccxt\.)?(?:SafeMapTyped|SafeListTyped\w*|GetValue|GetArrayLength)|this\.(?:ParseOpenInterests|ParseMarkets))\($/;
 function goTypedNilFoldLocals (content: string): string {
     if (!/\n\t+var \w+ any = nil\n\t+if r\d*\.Value != nil \{\n/.test (content)) {
         return content;
