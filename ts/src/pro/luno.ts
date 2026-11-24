@@ -102,7 +102,7 @@ export default class luno extends lunoRest {
         }
         const symbol: string = this.safeString (subscription, 'symbol', '');
         const market = this.market (symbol);
-        const symbolValue: string = market['symbol'];
+        const symbolValue: string = this.safeString (market, 'symbol', '');
         const messageHash = 'trades:' + symbolValue;
         let stored = this.safeValue (this.trades, symbolValue);
         if (stored === undefined) {

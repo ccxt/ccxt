@@ -1911,7 +1911,7 @@ export default class gate extends Exchange {
         return result;
     }
 
-    async fetchOptionUnderlyings (): Promise<Str[]> {
+    async fetchOptionUnderlyings (): Promise<string[]> {
         const underlyingsResponse = await this.publicOptionsGetUnderlyings ();
         //
         //    [
@@ -1922,7 +1922,7 @@ export default class gate extends Exchange {
         //        }
         //    ]
         //
-        const underlyings: Str[] = [];
+        const underlyings: string[] = [];
         for (let i = 0; i < underlyingsResponse.length; i++) {
             const underlying = this.safeDict (underlyingsResponse, i, {});
             const name = this.safeString (underlying, 'name');
