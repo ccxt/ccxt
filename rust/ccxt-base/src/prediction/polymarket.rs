@@ -457,7 +457,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(path)).into()), " requires a privateKey")));
                 }
                 // the L1 signer/owner is the EOA behind the privateKey (walletAddress is the proxy/deposit wallet, not the signer)
-                let address: Value = self.eth_checksum_address(self.eth_get_address_from_private_key(self.privateKey.clone(), &[])).map(Value::from).unwrap_or(Value::Null);
+                let address: Value = self.eth_checksum_address(self.eth_get_address_from_private_key(self.privateKey.clone(), &[]).as_str()).map(Value::from).unwrap_or(Value::Null);
                 let timestamp: String = format!("{}", self.seconds());
                 let nonce: i64 = self.safe_integer_k(&params, "nonce", &[Value::Int(0)]).as_i64().unwrap_or(0);
                 let l1signature: Option<String> = self.sign_clob_auth(address.as_str().unwrap_or_default(), timestamp.as_str(), Value::from(nonce));
@@ -480,7 +480,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
                 // POLY_ADDRESS is the api-key owner = the signer EOA (derived from the privateKey when present)
                 let mut address: Value = Value::Null;
                 if (self.privateKey != Value::Null) {
-                    address = self.eth_checksum_address(self.eth_get_address_from_private_key(self.privateKey.clone(), &[])).map(Value::from).unwrap_or(Value::Null);
+                    address = self.eth_checksum_address(self.eth_get_address_from_private_key(self.privateKey.clone(), &[]).as_str()).map(Value::from).unwrap_or(Value::Null);
                 }  else {
                     address = self.walletAddress.clone();
                 }
@@ -573,7 +573,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "handle_list_message" => { self.handle_list_message(args.get(0).cloned().unwrap_or(crate::Value::Null), match args.get(1) { Some(crate::Value::Arr(__a)) => std::sync::Arc::clone(__a), _ => Default::default() }); crate::Value::Null },
-                "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+                "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
                 "load_api_credentials" => { self.load_api_credentials().await; crate::Value::Null },
                 "nonce" => crate::Value::from(self.nonce()),
@@ -592,7 +592,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "polymarket_order_raw_amounts" => crate::Value::Dict(self.polymarket_order_raw_amounts(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_f64), args.get(2).and_then(crate::Value::as_f64), args.get(3).and_then(crate::Value::as_text).as_deref(), args.get(4).and_then(crate::Value::as_f64))),
                 "set_api_credentials" => crate::Value::Dict(self.set_api_credentials(args.get(0).and_then(crate::Value::as_map).unwrap_or(&Default::default()))),
                 "sign" => Value::Dict(self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..])),
-                "sign_hash" => crate::Value::Dict(self.sign_hash(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null))),
+                "sign_hash" => crate::Value::Dict(self.sign_hash(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "sign_message" => crate::Value::Dict(self.sign_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "subscribe_user_channel" => self.subscribe_user_channel(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -3458,8 +3458,9 @@ impl Polymarket {
         // 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet, default); funder/maker holds the USDC
         let signatureType: Option<i64> = self.safe_integer2(&params, Value::Str("signatureType".into()), Value::Str("signature_type".into()), &[self.safe_integer_k(&self.options, "signatureType", &[Value::Int(3)])]).as_i64();
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
-        let eoa: Option<String> = self.eth_checksum_address(self.eth_get_address_from_private_key(self.privateKey.clone(), &[]));
-        let funder: Value = self.eth_checksum_address(self.safe_string2(&params, Value::Str("funder".into()), Value::Str("maker".into()), &[self.safe_string_k(&self.options, "funder", &[self.walletAddress.clone()])])).map(Value::from).unwrap_or(Value::Null);
+        let eoa: Option<String> = self.eth_checksum_address(self.eth_get_address_from_private_key(self.privateKey.clone(), &[]).as_str());
+        let funderAddress: Option<String> = self.safe_string2_opt(&params, Value::Str("funder".into()), Value::Str("maker".into()), &[&self.safe_string_k(&self.options, "funder", &[self.walletAddress.clone()])]);
+        let funder: Value = self.eth_checksum_address(funderAddress.as_deref().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
         // the salt defaults to a strictly-increasing millisecond value and the timestamp to the current time; both can be pinned via params for idempotency
         let defaultSalt: i64 = self.incrementing_nonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
         let salt: Option<String> = self.safe_string_k_opt(&params, "salt", &[&Value::from(self.number_to_string(Value::from(defaultSalt)))]);
@@ -4384,10 +4385,10 @@ impl Polymarket {
         return Some(format!("{}{}", Value::Str("0x".into()), self.hash(message, "keccak", &[Value::Str("hex".into())])));
 }
 
-    pub fn eth_checksum_address(&self, mut address: Value) -> Option<String> {
+    pub fn eth_checksum_address(&self, address: &str) -> Option<String> {
         // EIP-55 mixed-case checksum; the CLOB compares the order signer to the api-key owner
         // case-sensitively and stores addresses checksummed, so every address we send must be checksummed
-        let cleaned: Value = (self.remove0x_prefix(address)).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+        let cleaned: Value = (self.remove0x_prefix(Value::from(address))).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
         let hashHex: String = self.hash(self.encode(&cleaned), "keccak", &[Value::Str("hex".into())]);
         let addrChars: Vec<Value> = self.string_to_chars_array(cleaned).as_array().cloned().unwrap_or_default();
         let hashChars: Vec<Value> = self.string_to_chars_array(Value::from(hashHex)).as_array().cloned().unwrap_or_default();
@@ -4409,9 +4410,8 @@ impl Polymarket {
         return Some(format!("{}{}", "0x", result));
 }
 
-    pub fn sign_hash(&self, hash: &str, mut privateKey: Value) -> crate::value::Dict {
-        let signature: crate::value::Dict = ecdsa(Some(hash).map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null),
-            privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null), Value::Str("secp256k1".into()), Value::Null);
+    pub fn sign_hash(&self, hash: &str, privateKey: &str) -> crate::value::Dict {
+        let signature: crate::value::Dict = ecdsa(Value::from(hash.chars().skip(hash.chars().count().saturating_sub(64)).collect::<String>()), Value::from(privateKey.chars().skip(privateKey.chars().count().saturating_sub(64)).collect::<String>()), Value::Str("secp256k1".into()), Value::Null);
         // assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
         let rRaw: String = self.safe_string_k(&signature, "r", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let sRaw: String = self.safe_string_k(&signature, "s", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -4428,7 +4428,7 @@ impl Polymarket {
 
     pub fn sign_message(&self, message: impl Into<crate::Value>, privateKey: &str) -> crate::value::Dict {
         let message: Value = message.into();
-        return self.sign_hash(self.hash_message(message).as_deref().unwrap_or_default(), Some(privateKey).map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
+        return self.sign_hash(self.hash_message(message).as_deref().unwrap_or_default(), privateKey.chars().skip(privateKey.chars().count().saturating_sub(64)).collect::<String>().as_str());
 }
 
     pub fn sign_clob_auth(&self, address: &str, timestamp: &str, mut nonce: Value) -> Option<String> {
@@ -4601,8 +4601,8 @@ if _try_result.is_err() {
         crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
 }
 
-    pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
-        self.handle_message_event(client.as_value(), message);
+    pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
+        self.handle_message_event(client.as_value(), Value::from(message));
 }
 
     pub fn handle_list_message(&mut self, mut client: Value, message: crate::value::List) {

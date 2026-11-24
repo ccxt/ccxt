@@ -497,7 +497,7 @@ impl crate::exchange_generated::ExchangeBase for Predictfun {
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
-                "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+                "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "nonce" => crate::Value::from(self.nonce()),
                 "order_book_message_hashes" => self.order_book_message_hashes(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "outcome_for_token" => crate::types::IntoRaw::into_raw(self.outcome_for_token(args.get(0).and_then(crate::Value::as_text).as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -2567,10 +2567,7 @@ impl Predictfun {
  * @returns {string} the 65 byte signature, 0x prefixed
  */
     pub fn sign_hash(&self, hash: &str, privateKey: &str) -> Option<String> {
-        let hash: Value = hash.into();
-        let privateKey: Value = privateKey.into();
-        let signature: crate::value::Dict = ecdsa(hash.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null),
-            privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null), Value::Str("secp256k1".into()), Value::Null);
+        let signature: crate::value::Dict = ecdsa(Value::from(hash.chars().skip(hash.chars().count().saturating_sub(64)).collect::<String>()), Value::from(privateKey.chars().skip(privateKey.chars().count().saturating_sub(64)).collect::<String>()), Value::Str("secp256k1".into()), Value::Null);
         // assign before padStart so the php str_pad regex matches, it only handles a bare identifier
         let rRaw: String = self.safe_string_k(&signature, "r", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let sRaw: String = self.safe_string_k(&signature, "s", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -3687,7 +3684,7 @@ impl Predictfun {
         let rpcUrl: Option<String> = self.safe_string_k_opt(&params, "rpcUrl", &[&self.safe_string(&rpcUrls, Value::from(chainKey.as_deref()), &[])]);
         let mut owner: Option<String> = self.safe_string_k_opt(&params, "owner", &[&self.walletAddress.clone()]);
         if (owner.is_none()) {
-            owner = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]).as_str().map(str::to_owned);
+            owner = Some(self.eth_get_address_from_private_key(self.privateKey.clone(), &[]));
         }
         let gasLimit: String = self.safe_string_k(&params, "gasLimit", &[Value::Str("0x186a0".into())]).as_str().unwrap_or("0x186a0").to_string();
         // which of the four exchanges settles a market is a property of the market, so an
@@ -4900,9 +4897,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {Client} client the websocket client
  * @param {object} message the raw message
  */
-    pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+    pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         let messageType: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (messageType.as_deref() == Some("R")) {
             // a subscription reply - the venue reports a rejected topic here instead of closing.
@@ -4913,7 +4909,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let subscription: crate::value::Dict = (if let Some(Value::Dict(__m)) = subscriptionsById.get(id.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
             let success: bool = (match __pro_message.get("success").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(false) }).as_bool().unwrap_or(false);
             if !success {
-                self.handle_subscription_error(client.as_value(), message.as_map().unwrap_or(&Default::default()), &subscription);
+                self.handle_subscription_error(client.as_value(), message, &subscription);
                 return;
             }
             if matches!(self.safe_bool_k(&subscription, "unsubscribe", &[Value::Bool(false)]), Value::Bool(true)) {
@@ -4923,7 +4919,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let topic: Option<String> = (match __pro_message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (topic.as_deref() == Some("heartbeat")) {
-            self.handle_heartbeat(client.as_value(), message.clone());
+            self.handle_heartbeat(client.as_value(), Value::from(message));
             return;
         }
         if (topic.is_none()) {
@@ -4932,9 +4928,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let parts: crate::value::List = crate::value::List::new(if let Some(__s) = topic.as_deref() { __s.split("/").map(Value::from).collect() } else { Vec::new() });
         let channel: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
         if (channel.as_deref() == Some("predictOrderbook")) {
-            self.handle_order_book(client.as_value(), message.as_map().unwrap_or(&Default::default()));
+            self.handle_order_book(client.as_value(), message);
         }  else if (channel.as_deref() == Some("predictWalletEvents")) {
-            self.handle_wallet_event(client.as_value(), message.as_map().unwrap_or(&Default::default()));
+            self.handle_wallet_event(client.as_value(), message);
         }
 }
 

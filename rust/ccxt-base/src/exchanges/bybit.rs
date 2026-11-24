@@ -796,7 +796,7 @@ impl crate::exchange::DerivedExchange for Bybit {
             m
         });
         let responseResult: crate::value::Dict = self.safe_dict_k_t(response, "result");
-        let currencyList: Option<crate::value::List> = self.safe_list_n(&responseResult, Value::from(vec![Value::Str("loanAccountList".into()), Value::Str("list".into()), Value::Str("balance".into())]), &[]).into_opt_list();
+        let currencyList: Option<crate::value::List> = self.safe_list_n(&responseResult, Value::from(vec![Value::Str("loanAccountList".into()), Value::Str("list".into()), Value::Str("balance".into())]), &[]);
         if (currencyList.is_none()) {
             // usdc wallet
             let code: String = "USDC".to_string();
@@ -2321,7 +2321,7 @@ impl crate::exchange::DerivedExchange for Bybit {
         }
         if (method.as_str() == Some("POST")) {
             let brokerId: String = self.safe_string_k(&self.options, "brokerId", &[Value::Str("CCXT".into())]).as_str().unwrap_or("CCXT").to_string();
-            let headersBase: Value = requestHeaders.clone();
+            let headersBase: Value = requestHeaders;
             requestHeaders = (if (headersBase == Value::Null) { Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2353,7 +2353,7 @@ impl crate::exchange_generated::ExchangeBase for Bybit {
     {
         Box::pin(async move {
             match method {
-                "add_pagination_cursor_to_result" => Value::Arr(self.add_pagination_cursor_to_result(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "add_pagination_cursor_to_result" => crate::Value::Arr(self.add_pagination_cursor_to_result(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "borrow_cross_margin" => crate::types::IntoRaw::into_raw(self.borrow_cross_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_all_orders_after" => crate::types::IntoRaw::into_raw(self.cancel_all_orders_after(args.get(0).and_then(crate::Value::as_i64), args.get(1).cloned().unwrap_or_default()).await),
@@ -2486,7 +2486,7 @@ impl crate::exchange_generated::ExchangeBase for Bybit {
                 "safe_market" => crate::types::IntoRaw::into_raw(self.safe_market(args.get(0).and_then(crate::Value::as_text).as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_margin_mode" => crate::types::IntoRaw::into_raw(self.set_margin_mode(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "set_position_mode" => self.set_position_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "set_position_mode" => crate::types::IntoRaw::into_raw(self.set_position_mode(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "sign" => Value::Dict(self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..])),
                 "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
@@ -5858,7 +5858,7 @@ impl Bybit {
         let __response_empty = indexmap::IndexMap::new();
         let response = response.as_map().unwrap_or(&__response_empty);
         let result: crate::value::Dict = response.key_dict("result");
-        let mut data: crate::value::List = self.safe_list_n(&result, Value::from(vec![Value::Str("list".into()), Value::Str("rows".into()), Value::Str("data".into()), Value::Str("dataList".into())]), &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::List = self.safe_list_n(&result, Value::from(vec![Value::Str("list".into()), Value::Str("rows".into()), Value::Str("data".into()), Value::Str("dataList".into())]), &[Value::from(vec![])]).unwrap_or_default();
         let paginationCursor: Option<String> = self.safe_string2_opt(&result, Value::Str("nextPageCursor".into()), Value::Str("cursor".into()), &[]);
         let dataLength: i64 = data.len() as i64;
         if (paginationCursor.is_some()) && (dataLength > 0) {
@@ -5869,8 +5869,6 @@ impl Bybit {
 })]); std::sync::Arc::make_mut(&mut data)[0] = Value::from(__be_tmp); }
         }
         return data;
-
-    Default::default()
 }
 
 /*
@@ -11004,12 +11002,15 @@ impl Bybit {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-    pub async fn set_position_mode(&mut self, mut hedged: Value, optional_args: &[Value]) -> Value {
+    pub async fn set_position_mode(&mut self, hedged: bool, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Option<crate::value::Dict>> {
+        let __args: Vec<Value> = vec![Value::from(hedged), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let hedged = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -11033,22 +11034,22 @@ impl Bybit {
         }  else {
             request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
         }
-        let mut query: Value = params.clone();
+        let mut query: crate::value::Dict = params.clone();
         if (symbol != Value::Null) {
             let isLinear: bool = self.safe_bool_k_opt(&market, "linear", &[Value::Bool(false)]).unwrap_or(false);
             request.insert("category".into(), (if isLinear { Value::Str("linear".into()) } else { Value::Str("inverse".into()) }));
         }  else {
             let mut type_var: Option<String> = None;
-            { let __destr_tmp = self.get_bybit_type("setPositionMode", market.as_ref(), &[&params]); type_var = __destr_tmp.0.as_str().map(str::to_owned); query = Value::Dict(__destr_tmp.1); }
+            { let __destr_tmp = self.get_bybit_type("setPositionMode", market.as_ref(), &[&Value::Dict(params)]); type_var = __destr_tmp.0.as_str().map(str::to_owned); query = __destr_tmp.1; }
             request.insert("category".into(), type_var.map(Value::from).unwrap_or(Value::Null));
         }
-        let paramsOmitted: crate::value::Dict = self.omit_t(query, Value::Str("type".into()), &[]);
+        let paramsOmitted: crate::value::Dict = self.omit_t(&query, Value::Str("type".into()), &[]);
         let __ws_arg_54 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let response: crate::value::Dict = self.private_post_v5_position_switch_mode(&[&__ws_arg_54]).await.unwrap_or_default();
         return Value::Dict(response);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
     pub async fn fetch_derivatives_open_interest_history(&mut self, symbol: &str, optional_args: &[&Value]) -> Value {
         let timeframe = get_arg(optional_args, 0, Value::Str("1h".into()));

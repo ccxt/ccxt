@@ -386,7 +386,7 @@ impl crate::exchange_generated::ExchangeBase for Binance {
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_event" => crate::types::IntoRaw::into_raw(self.fetch_event(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_events" => crate::types::IntoRaw::into_raw(self.fetch_events(args.get(0).cloned().unwrap_or_default()).await),
-                "fetch_events_by_query" => crate::Value::Arr(self.fetch_events_by_query(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await),
+                "fetch_events_by_query" => crate::Value::Arr(self.fetch_events_by_query(args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "fetch_markets" => crate::types::IntoRaw::into_raw(self.fetch_markets(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_my_trades" => crate::types::IntoRaw::into_raw(self.fetch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_open_orders" => crate::types::IntoRaw::into_raw(self.fetch_open_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -966,7 +966,7 @@ impl Binance {
         }
         let mut rawTopics: crate::value::List = std::sync::Arc::new(Vec::new());
         if allQueriesLength > 0 {
-            rawTopics = self.fetch_events_by_query(Value::from(allQueries), Value::from(fetchCap), &[&Value::from(&rest)]).await;
+            rawTopics = self.fetch_events_by_query(&allQueries, Value::from(fetchCap), &[&Value::from(&rest)]).await;
         }  else if (eventId.is_some()) {
             let detail: crate::value::Dict = self.fetch_raw_topic_detail(eventId.as_deref().unwrap_or_default(), &[&Value::from(&rest)]).await.into_dict();
             rawTopics = std::sync::Arc::new(vec![Value::Dict(detail)]);
@@ -1051,7 +1051,7 @@ impl Binance {
  * @param {object} [rest] extra params forwarded verbatim to the search endpoint
  * @returns {object[]} raw market topic objects with usable nested markets
  */
-    pub async fn fetch_events_by_query(&mut self, mut queries: Value, mut limit: Value, optional_args: &[&Value]) -> crate::value::List {
+    pub async fn fetch_events_by_query(&mut self, queries: &[crate::Value], mut limit: Value, optional_args: &[&Value]) -> crate::value::List {
         let rest = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1076,7 +1076,7 @@ impl Binance {
             while { if !__for_first_11 { qi += 1; } __for_first_11 = false; qi < queriesLength } {
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("query".to_string(), self.safe_string(&queries, Value::Int(qi), &[]));
+                    m.insert("query".to_string(), self.safe_string(queries, Value::Int(qi), &[]));
                 m
             });
             request.insert("topK".into(), Value::from(limitResolved));

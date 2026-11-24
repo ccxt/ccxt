@@ -1049,12 +1049,12 @@ impl Hitbtc {
             request.insert("limit".into(), Value::from(limit));
         }
         let name: String = "trades".to_string();
-        let mut trades: Value = self.subscribe_public(name.as_str(), "trades", &[&Value::from(vec![symbol.clone()]), &self.deep_extend(Value::Map(request), &[params])]).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_public(name.as_str(), "trades", &[&Value::from(vec![symbol.clone()]), &self.deep_extend(Value::Map(request), &[params])]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbol.as_str(), limit);
         }
-        return Value::Arr(self.filter_by_since_limit(trades, since, limitResolved, &[Value::Str("timestamp".into())]));
+        return Value::Arr(self.filter_by_since_limit(&trades, since, limitResolved, &[Value::Str("timestamp".into())]));
         Value::Null
         }).await?))
     }
@@ -1260,12 +1260,12 @@ impl Hitbtc {
                 m.insert("params".to_string(), Value::Map(subscribeParams));
             m
         });
-        let mut ohlcv: Value = self.subscribe_public(name.as_str(), name.as_str(), &[&Value::from(vec![symbol.clone()]), &self.deep_extend(Value::Map(request), &[params])]).await;
+        let mut ohlcv: Option<crate::pro::cache::Cache> = self.subscribe_public(name.as_str(), name.as_str(), &[&Value::from(vec![symbol.clone()]), &self.deep_extend(Value::Map(request), &[params])]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol.as_str(), limit);
         }
-        return Value::Arr(self.filter_by_since_limit(ohlcv, since, limitResolved, &[Value::Int(0)]));
+        return Value::Arr(self.filter_by_since_limit(&ohlcv, since, limitResolved, &[Value::Int(0)]));
         Value::Null
         }).await?))
     }

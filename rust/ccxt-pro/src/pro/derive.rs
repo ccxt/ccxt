@@ -812,12 +812,12 @@ impl Derive {
                 m.insert("params".to_string(), params);
             m
         });
-        let mut trades: Value = self.watch_public(topic.as_str(), &request, &subscription).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch_public(topic.as_str(), &request, &subscription).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some((market).symbol.as_str()), limit);
         }
-        return Value::Arr(self.filter_by_symbol_since_limit(trades, symbol.as_str(), since, limitResolved, &[Value::Bool(true)]));
+        return Value::Arr(self.filter_by_symbol_since_limit(&trades, symbol.as_str(), since, limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -1516,10 +1516,10 @@ impl Derive {
                 m
             });
         }
-        let mut subBalance: Value = self.balance.get(subaccountIdKey.as_deref().unwrap_or("null")).filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Map({
+        let mut subBalance: indexmap::IndexMap<String, Value> = self.balance.get(subaccountIdKey.as_deref().unwrap_or("null")).filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Map({
             let m = indexmap::IndexMap::new();
             m
-        }));
+        })).as_map().cloned().unwrap_or_default();
         let mut updated: bool = false;
         let mut positionUpdates: crate::value::List = std::sync::Arc::new(Vec::new());
         {
@@ -1549,12 +1549,12 @@ impl Derive {
             // the margin requirements the rest free/used model needs are not part of the stream, so stale snapshot values are dropped instead of reporting free + used != total
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("free".into(), Value::Null); }
             if let Value::Dict(__d) = &mut account { std::sync::Arc::make_mut(__d).insert("used".into(), Value::Null); }
-            if let Value::Dict(__d) = &mut subBalance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), account); }
+            subBalance.insert(code.as_deref().unwrap_or("null").to_string(), account);
             updated = true;
         }
         }
         if updated {
-            { let __be_tmp = Value::Dict(self.safe_balance(subBalance)); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(subaccountIdKey.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
+            { let __be_tmp = Value::Dict(self.safe_balance(Value::Map(subBalance))); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(subaccountIdKey.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
             client.resolve(self.balance.get(subaccountIdKey.as_deref().unwrap_or("null")).filter(|__v| !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty())).cloned().unwrap_or(Value::Null), topic.as_str());
         }
         let positionUpdatesLength: i64 = positionUpdates.len() as i64;

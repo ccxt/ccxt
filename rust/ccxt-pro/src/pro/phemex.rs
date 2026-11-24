@@ -2073,7 +2073,7 @@ impl Phemex {
             if (__pro_message.contains_key("accounts_p")) {
                 type_var = "perpetual".to_string();
             }
-            let accounts: crate::value::List = self.safe_list_n(&message, Value::from(vec![Value::Str("accounts".into()), Value::Str("accounts_p".into()), Value::Str("wallets".into())]), &[Value::from(vec![])]).into_list();
+            let accounts: crate::value::List = self.safe_list_n(&message, Value::from(vec![Value::Str("accounts".into()), Value::Str("accounts_p".into()), Value::Str("wallets".into())]), &[Value::from(vec![])]).unwrap_or_default();
             self.handle_balance(&client, &accounts, type_var.as_str());
         }
 }

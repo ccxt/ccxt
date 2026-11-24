@@ -251,12 +251,12 @@ impl Whitebit {
         let messageHash: String = format!("{}{}", "candles:", symbolValue);
         let reqParams: Value = Value::from(vec![marketId.map(Value::from).unwrap_or(Value::Null), Value::from(interval)]);
         let method: String = "candles_subscribe".to_string();
-        let mut ohlcv: Value = self.watch_public(messageHash.as_str(), method.as_str(), &[reqParams, Value::Dict(params)]).await;
+        let mut ohlcv: Option<crate::pro::cache::Cache> = self.watch_public(messageHash.as_str(), method.as_str(), &[reqParams, Value::Dict(params)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit);
         }
-        return Value::Arr(self.filter_by_since_limit(ohlcv, since, limitResolved, &[Value::Int(0), Value::Bool(true)]));
+        return Value::Arr(self.filter_by_since_limit(&ohlcv, since, limitResolved, &[Value::Int(0), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -587,12 +587,12 @@ impl Whitebit {
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "trades", ":").into()), symbolValue);
         let method: String = "trades_subscribe".to_string();
         // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
-        let mut trades: Value = self.watch_multiple_subscription(messageHash.as_str(), method.as_str(), Some(symbolValue.as_str()), &[&Value::Bool(false), &Value::Dict(params)]).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch_multiple_subscription(messageHash.as_str(), method.as_str(), Some(symbolValue.as_str()), &[&Value::Bool(false), &Value::Dict(params)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit);
         }
-        return Value::Arr(self.filter_by_since_limit(trades, since, limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
+        return Value::Arr(self.filter_by_since_limit(&trades, since, limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -677,12 +677,12 @@ impl Whitebit {
         let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", "myTrades:", symbolValue);
         let method: String = "deals_subscribe".to_string();
-        let mut trades: Value = self.watch_multiple_subscription(messageHash.as_str(), method.as_str(), Some(symbolValue.as_str()), &[&Value::Bool(true), &Value::Dict(params)]).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch_multiple_subscription(messageHash.as_str(), method.as_str(), Some(symbolValue.as_str()), &[&Value::Bool(true), &Value::Dict(params)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit);
         }
-        return Value::Arr(self.filter_by_symbol_since_limit(trades, Some(symbolValue.as_str()), since, limitResolved, &[Value::Bool(true)]));
+        return Value::Arr(self.filter_by_symbol_since_limit(&trades, Some(symbolValue.as_str()), since, limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -828,12 +828,12 @@ impl Whitebit {
         let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", "orders:", symbolValue);
         let method: String = "ordersPending_subscribe".to_string();
-        let mut trades: Value = self.watch_multiple_subscription(messageHash.as_str(), method.as_str(), Some(symbolValue.as_str()), &[&Value::Bool(false), &Value::Dict(params)]).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch_multiple_subscription(messageHash.as_str(), method.as_str(), Some(symbolValue.as_str()), &[&Value::Bool(false), &Value::Dict(params)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit);
         }
-        return Value::Arr(self.filter_by_symbol_since_limit(trades, Some(symbolValue.as_str()), since, limitResolved, &[Value::Bool(true)]));
+        return Value::Arr(self.filter_by_symbol_since_limit(&trades, Some(symbolValue.as_str()), since, limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }

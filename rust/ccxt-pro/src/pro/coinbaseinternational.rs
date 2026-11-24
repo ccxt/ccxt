@@ -79,7 +79,7 @@ impl crate::exchange_generated::ExchangeBase for Coinbaseinternational {
                 "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null))),
                 "handle_heartbeat" => self.handle_heartbeat(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())).await,
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "logout_ws" => self.logout_ws(&args[..].iter().collect::<Vec<_>>()).await,
+                "logout_ws" => { self.logout_ws(&args[..].iter().collect::<Vec<_>>()).await; crate::Value::Null },
                 "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_ohlcv" => Value::Arr(self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -162,7 +162,7 @@ impl Coinbaseinternational {
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_my_trades" => { self.handle_my_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_order_book" => { self.handle_order_book(&mut crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_orders" => { self.handle_orders(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_positions" => { self.handle_positions(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -605,8 +605,8 @@ impl Coinbaseinternational {
             symbolResolved = Some((market).symbol.clone());
             channel = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("user.trades.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), ".").into()), interval.as_deref().unwrap_or("null"));
         }
-        let trades: Value = self.subscribe(Value::from(vec![Value::from(channel.as_str())]), Value::from(vec![Value::from(channel.as_str())]), &[Value::Bool(true), Value::Dict(paramsInterval)]).await;
-        return Value::Arr(self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since, limit, &[Value::Bool(true)]));
+        let trades: Option<crate::pro::cache::Cache> = self.subscribe(Value::from(vec![Value::from(channel.as_str())]), Value::from(vec![Value::from(channel.as_str())]), &[Value::Bool(true), Value::Dict(paramsInterval)]).await.into();
+        return Value::Arr(self.filter_by_symbol_since_limit(&trades, symbolResolved.as_deref(), since, limit, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -710,12 +710,12 @@ impl Coinbaseinternational {
             symbolResolved = Some((market).symbol.clone());
             channel = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("user.orders.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), ".").into()), interval.as_deref().unwrap_or("null"));
         }
-        let mut orders: Value = self.subscribe(Value::from(vec![Value::from(channel.as_str())]), Value::from(vec![Value::from(channel.as_str())]), &[Value::Bool(true), Value::Dict(paramsInterval)]).await;
+        let mut orders: Option<crate::pro::cache::Cache> = self.subscribe(Value::from(vec![Value::from(channel.as_str())]), Value::from(vec![Value::from(channel.as_str())]), &[Value::Bool(true), Value::Dict(paramsInterval)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit);
         }
-        return Value::Arr(self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since, limitResolved, &[Value::Bool(true)]));
+        return Value::Arr(self.filter_by_symbol_since_limit(&orders, symbolResolved.as_deref(), since, limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -764,12 +764,12 @@ impl Coinbaseinternational {
                 Value::Str("id".into()), &[Value::Str("".into())])).into()), ".").into()), interval.as_deref().unwrap_or("null")).into()));
         }
         }
-        let mut orders: Value = self.subscribe(Value::Arr(channels.clone()), Value::Arr(channels), &[Value::Bool(true), Value::Dict(paramsInterval)]).await;
+        let mut orders: Option<crate::pro::cache::Cache> = self.subscribe(Value::Arr(channels.clone()), Value::Arr(channels), &[Value::Bool(true), Value::Dict(paramsInterval)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(None::<&str>, limit);
         }
-        let ordersForSymbols: crate::value::List = self.filter_by_array_list(orders, Value::Str("symbol".into()), &symbolsResolved);
+        let ordersForSymbols: crate::value::List = self.filter_by_array_list(&orders, Value::Str("symbol".into()), &symbolsResolved);
         return Value::Arr(self.filter_by_since_limit(&ordersForSymbols, since, limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
@@ -1834,14 +1834,14 @@ impl Coinbaseinternational {
             std::sync::Arc::make_mut(&mut channels).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("trades.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), ".").into()), interval.as_deref().unwrap_or("null")).into()));
         }
         }
-        let mut trades: Value = self.subscribe(Value::Arr(channels.clone()), Value::Arr(channels), &[Value::Bool(isPrivate), Value::Dict(paramsInterval)]).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe(Value::Arr(channels.clone()), Value::Arr(channels), &[Value::Bool(isPrivate), Value::Dict(paramsInterval)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
-            let first: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(0));
+            let first: crate::value::Dict = self.safe_dict_t(Value::from(&trades), Value::Int(0));
             let tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit);
         }
-        return Value::Arr(self.filter_by_since_limit(trades, since, limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
+        return Value::Arr(self.filter_by_since_limit(&trades, since, limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -2131,8 +2131,7 @@ impl Coinbaseinternational {
         }).await?))
     }
 
-    pub fn handle_order_book(&mut self, mut client: Value, message: &indexmap::IndexMap<String, Value>) {
-        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
+    pub fn handle_order_book(&mut self, client: &mut crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         let params: crate::value::Dict = message.key_dict("params");
         let data: crate::value::Dict = self.safe_dict_k_t(&params, "data");
         let type_var: Option<String> = self.safe_string_k_opt(&data, "type", &[&Value::Str("snapshot".into())]);
@@ -2172,8 +2171,8 @@ impl Coinbaseinternational {
             if (type_var.as_deref() != Some("snapshot")) && (nonce.is_some()) && (previousChangeId != nonce) {
                 // drop the stale book and reject only this channels future
                 CacheStore::forget(&mut self.orderbooks, &symbol);
-                if (__ch.has_subscription(&(Value::from(channel.as_deref())))) {
-                    __ch.remove_subscription(&(channel.clone().map(Value::from).unwrap_or(Value::Null)));
+                if (client.has_subscription(&(Value::from(channel.as_deref())))) {
+                    client.remove_subscription(&(channel.clone().map(Value::from).unwrap_or(Value::Null)));
                 }
                 client.reject(crate::exchange_errors::exchange_error(format!("{}{}", self.id, " order book update has a nonce mismatch")), channel.as_deref());
                 self.spawn(&[Value::Str("resubscribe_order_book".into()), Value::from(channel.as_deref())]);
@@ -3155,7 +3154,7 @@ impl Coinbaseinternational {
  * @param {bool} [params.invalidate_token] whether to invalidate session tokens, default true
  * @returns {object} the exchange response
  */
-    pub async fn logout_ws(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn logout_ws(&mut self, optional_args: &[&Value]) {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -3173,8 +3172,5 @@ impl Coinbaseinternational {
             m
         });
         client.send(&[Value::Map(request)]);
-        return Value::Null;
-
-    Value::Null
 }
 }

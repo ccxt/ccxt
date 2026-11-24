@@ -479,10 +479,10 @@ impl crate::exchange_generated::ExchangeBase for Myriad {
                 "get_order_response_from_params" => self.get_order_response_from_params(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
-                "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+                "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
                 "hex_to_decimal_string" => crate::Value::from(self.hex_to_decimal_string(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
-                "order_to_trade" => self.order_to_trade(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "order_to_trade" => self.order_to_trade(args.get(0).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
                 "parse_amm_event_to_order" => self.parse_amm_event_to_order(&match args.get(0) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_event" => Value::Dict(self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_market_to_event" => Value::Dict(self.parse_market_to_event(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
@@ -1749,7 +1749,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let networkId: Option<String> = self.safe_string_k_opt(&info, "networkId", &[&self.safe_string_k(&self.options, "defaultNetworkId", &[Value::Str("56".into())])]);
         let marketId: Option<String> = self.safe_string_k_opt(&info, "marketId", &[]);
         let outcomeId: i64 = self.safe_integer_k(&info, "outcomeId", &[Value::Int(0)]).as_i64().unwrap_or(0);
-        let trader: Option<String> = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]).as_str().map(str::to_owned);
+        let trader: String = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);
         let typeStr: Option<String> = (if (type_var.is_none()) { Some("limit".to_string()) } else { type_var.map(str::to_owned).as_deref().map(str::to_lowercase) });
         let sideStr: Option<String> = side.map(str::to_owned).as_deref().map(str::to_lowercase);
         let sideInt: i64 = (if (sideStr.as_deref() == Some("buy")) { 0 } else { 1 });
@@ -1782,7 +1782,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let minFillAmount: String = self.safe_string_k(params, "minFillAmount", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         let order: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("trader".to_string(), trader.map(Value::from).unwrap_or(Value::Null));
+                m.insert("trader".to_string(), Value::from(trader));
                 m.insert("marketId".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("outcomeId".to_string(), self.parse_to_numeric(Value::from(outcomeId)));
                 m.insert("side".to_string(), self.parse_to_numeric(Value::from(sideInt)));
@@ -1956,12 +1956,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (calldata.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " createAmmOrder is missing calldata from fetchTradeQuote")));
         }
-        let fromAddress: Option<String> = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]).as_str().map(str::to_owned);
+        let fromAddress: String = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);
         let txHashParam: Option<String> = self.safe_string2_opt(&params, Value::Str("transactionHash".into()), Value::Str("txHash".into()), &[]);
         let hasPreBroadcastTxHash: Value = (Value::Bool(txHashParam.is_some()));
         let mut skipAllowance: Option<bool> = self.safe_bool_k(&params, "skipAllowance", &[hasPreBroadcastTxHash.clone()]).as_bool();
         if (sideStr == "buy") && (tokenAddress.is_some()) && (!(skipAllowance == Some(true))) {
-            self.ensure_erc20_allowance(rpcUrl.as_deref(), networkId.as_deref(), tokenAddress.as_deref(), fromAddress.as_deref(), predictionMarket.as_deref()).await;
+            self.ensure_erc20_allowance(rpcUrl.as_deref(), networkId.as_deref(), tokenAddress.as_deref(), Some(fromAddress.as_str()), predictionMarket.as_deref()).await;
         }
         let mut skipWaitForReceipt: Option<bool> = self.safe_bool_k(params, "skipWaitForReceipt", &[hasPreBroadcastTxHash]).as_bool();
         let mut txHash: Value = Value::Null;
@@ -1969,7 +1969,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             txHash = txHashParam.map(Value::from).unwrap_or(Value::Null);
         }  else {
             let __ws_arg_13 = self.parse_to_int(networkId.map(Value::from).unwrap_or(Value::Null));
-            txHash = self.send_evm_transaction(Value::from(rpcUrl.as_deref()), Value::from(__ws_arg_13), fromAddress.map(Value::from).unwrap_or(Value::Null), predictionMarket.map(Value::from).unwrap_or(Value::Null), Value::Str("0x0".into()), calldata.map(Value::from).unwrap_or(Value::Null), Value::from(gasLimit)).await;
+            txHash = self.send_evm_transaction(Value::from(rpcUrl.as_deref()), Value::from(__ws_arg_13), Value::from(fromAddress), predictionMarket.map(Value::from).unwrap_or(Value::Null), Value::Str("0x0".into()), calldata.map(Value::from).unwrap_or(Value::Null), Value::from(gasLimit)).await;
         }
         if !(skipWaitForReceipt == Some(true)) {
             self.wait_for_transaction_receipt(rpcUrl.map(Value::from).unwrap_or(Value::Null), txHash.clone(), &[]).await;
@@ -2155,7 +2155,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let rawOrder: Value = rawOrder.into();
         let mut signer: Option<String> = self.safe_string2_opt(&rawOrder, Value::Str("trader".into()), Value::Str("user".into()), &[]);
         if (self.privateKey != Value::Null) {
-            signer = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]).as_str().map(str::to_owned);
+            signer = Some(self.eth_get_address_from_private_key(self.privateKey.clone(), &[]));
         }  else {
             signer = self.wallet_address_or_undefined();
         }
@@ -2558,7 +2558,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.privateKey == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelAllOrders() requires a privateKey to sign the cancellation")));
         }
-        let trader: Option<String> = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]).as_str().map(str::to_owned);
+        let trader: String = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(&params, "market_id", &[&Value::Str("0".into())]);
         let mut networkId: Option<String> = self.safe_string_k_opt(&params, "network_id", &[&self.safe_string_k(&self.options, "defaultNetworkId", &[Value::Str("56".into())])]);
         if (outcome != Value::Null) {
@@ -2571,7 +2571,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let timestamp: Option<String> = self.safe_string_k_opt(&params, "timestamp", &[&Value::from(self.number_to_string(Value::Int(self.seconds())))]);
         let message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("trader".to_string(), Value::from(trader.as_deref()));
+                m.insert("trader".to_string(), Value::from(trader.as_str()));
                 m.insert("marketId".to_string(), Value::from(marketId.as_deref()));
                 m.insert("timestamp".to_string(), Value::from(timestamp.as_deref()));
             m
@@ -2579,7 +2579,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let signature: Option<String> = self.sign_cancel_all(Value::Map(message), networkId.as_deref().unwrap_or_default());
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("trader".to_string(), trader.map(Value::from).unwrap_or(Value::Null));
+                m.insert("trader".to_string(), Value::from(trader));
                 m.insert("market_id".to_string(), Value::from(self.parse_to_int(marketId.map(Value::from).unwrap_or(Value::Null))));
                 m.insert("timestamp".to_string(), timestamp.map(Value::from).unwrap_or(Value::Null));
                 m.insert("signature".to_string(), signature.map(Value::from).unwrap_or(Value::Null));
@@ -2788,7 +2788,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let trader: Option<String> = self.safe_string_k_opt(&params, "trader", &[]);
         if (trader.is_none()) {
             if (self.privateKey != Value::Null) {
-                request.insert("trader".into(), self.eth_get_address_from_private_key(self.privateKey.clone(), &[]));
+                request.insert("trader".into(), Value::from(self.eth_get_address_from_private_key(self.privateKey.clone(), &[])));
             }  else if (self.walletAddress != Value::Null) {
                 request.insert("trader".into(), self.walletAddress.clone());
             }
@@ -2988,7 +2988,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut __for_first_15: bool = true;
             while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < ordersLength } {
             let order: crate::value::Dict = orders.get(i as usize).map(crate::Value::from).unwrap_or_default().into_dict();
-            trades.push(self.order_to_trade(Value::Dict(order)));
+            trades.push(self.order_to_trade(&order));
         }
         }
         return Value::Arr(self.filter_by_value_since_limit(Value::from(trades), Value::Str("outcome".into()), outcome, since, limit, &[Value::Str("timestamp".into()), Value::Bool(true)]));
@@ -2996,7 +2996,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     }
 
-    pub fn order_to_trade(&self, mut order: Value) -> Value {
+    pub fn order_to_trade(&self, order: &indexmap::IndexMap<String, Value>) -> Value {
         let timestamp: Option<i64> = self.safe_integer_k(&order, "timestamp", &[]).as_i64();
         let orderType: Option<String> = self.safe_string_k_opt(&order, "type", &[]);
         // the REST filled-order response carries the order's limit price (= the fill price for limit
@@ -3023,7 +3023,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("side".to_string(), self.safe_string_k(&order, "side", &[]));
         m.insert("takerOrMaker".to_string(), Value::Null);
         m.insert("price".to_string(), Value::from(price));
-        m.insert("amount".to_string(), self.safe_number_k(order, "filled", &[]));
+        m.insert("amount".to_string(), self.safe_number_k(&order, "filled", &[]));
         m.insert("cost".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
     m
@@ -4395,10 +4395,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
 }
 
-    pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
+    pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
         // Centrifugo packs several commands per frame joined by \n; a multi-command frame fails the
         // base JSON.parse and arrives here as a raw string, a single command arrives already parsed
-        self.handle_centrifugo_frame(client.as_value(), message);
+        self.handle_centrifugo_frame(client.as_value(), Value::Dict(std::sync::Arc::clone(message)));
 }
 
     pub fn handle_centrifugo_frame(&mut self, mut client: Value, msg: impl Into<crate::Value>) {
@@ -4639,7 +4639,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             return (if let Some(__s) = self.walletAddress.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str().map(str::to_owned);
         }
         if (self.privateKey != Value::Null) {
-            return (self.eth_get_address_from_private_key(self.privateKey.clone(), &[])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str().map(str::to_owned);
+            return (Value::from(self.eth_get_address_from_private_key(self.privateKey.clone(), &[]))).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str().map(str::to_owned);
         }
         return None;
 }
@@ -5205,7 +5205,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.privateKey == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " requires a walletAddress or privateKey to watch private channels")));
         }
-        return (self.eth_get_address_from_private_key(self.privateKey.clone(), &[])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str().map(str::to_owned);
+        return (Value::from(self.eth_get_address_from_private_key(self.privateKey.clone(), &[]))).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null).as_str().map(str::to_owned);
 }
 
     pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {

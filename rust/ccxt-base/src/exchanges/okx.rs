@@ -2193,7 +2193,7 @@ impl crate::exchange_generated::ExchangeBase for Okx {
                 "safe_market" => crate::types::IntoRaw::into_raw(self.safe_market(args.get(0).and_then(crate::Value::as_text).as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_margin_mode" => crate::types::IntoRaw::into_raw(self.set_margin_mode(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "set_position_mode" => self.set_position_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "set_position_mode" => crate::types::IntoRaw::into_raw(self.set_position_mode(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_sandbox_mode" => crate::types::IntoRaw::into_raw(self.set_sandbox_mode(args.get(0).is_some_and(crate::Value::is_truthy))),
                 "sign" => Value::Dict(self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..])),
                 "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
@@ -7969,7 +7969,7 @@ impl Okx {
         if (ids != Value::Null) && matches!(&ids, Value::Str(_)) {
             return Value::Array(if let Some(__s) = ids.as_str() { __s.split(",").map(Value::from).collect() } else { Vec::new() });
         }  else {
-            return ids;
+            return self.safe_string_list(Value::from(vec![ids]), Value::from(vec![Value::Int(0)])).map_or(Value::Null, Value::Arr);
         }
 
     Value::Null
@@ -8025,7 +8025,7 @@ impl Okx {
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_13: bool = true;
-                    while { if !__for_first_13 { i += 1; } __for_first_13 = false; (i as f64) < Value::Int(algoIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (algoIds.len() as i64) } {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("algoId".to_string(), self.safe_string(&algoIds, Value::Int(i), &[]));
@@ -8035,32 +8035,34 @@ impl Okx {
                 }
                 }
             }
-            {
-                                let mut i: i64 = 0;
-                let mut __for_first_14: bool = true;
-                while { if !__for_first_14 { i += 1; } __for_first_14 = false; (i as f64) < Value::Int(orderIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                if trailing || isTrigger {
-                    request.push(Value::Map({
-                        let mut m = indexmap::IndexMap::new();
-                            m.insert("algoId".to_string(), self.safe_string(&orderIds, Value::Int(i), &[]));
-                            m.insert("instId".to_string(), Value::from((market).id.as_deref()));
-                        m
-                    }));
-                }  else {
-                    request.push(Value::Map({
-                        let mut m = indexmap::IndexMap::new();
-                            m.insert("ordId".to_string(), self.safe_string(&orderIds, Value::Int(i), &[]));
-                            m.insert("instId".to_string(), Value::from((market).id.as_deref()));
-                        m
-                    }));
+            if (orderIds != Value::Null) {
+                {
+                                        let mut i: i64 = 0;
+                    let mut __for_first_14: bool = true;
+                    while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (orderIds.len() as i64) } {
+                    if trailing || isTrigger {
+                        request.push(Value::Map({
+                            let mut m = indexmap::IndexMap::new();
+                                m.insert("algoId".to_string(), self.safe_string(&orderIds, Value::Int(i), &[]));
+                                m.insert("instId".to_string(), Value::from((market).id.as_deref()));
+                            m
+                        }));
+                    }  else {
+                        request.push(Value::Map({
+                            let mut m = indexmap::IndexMap::new();
+                                m.insert("ordId".to_string(), self.safe_string(&orderIds, Value::Int(i), &[]));
+                                m.insert("instId".to_string(), Value::from((market).id.as_deref()));
+                            m
+                        }));
+                    }
                 }
-            }
+                }
             }
         }  else {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_15: bool = true;
-                while { if !__for_first_15 { i += 1; } __for_first_15 = false; (i as f64) < Value::Int(clientOrderIds.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (clientOrderIds.len() as i64) } {
                 if trailing || isTrigger {
                     request.push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -10830,12 +10832,15 @@ impl Okx {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-    pub async fn set_position_mode(&mut self, mut hedged: Value, optional_args: &[Value]) -> Value {
+    pub async fn set_position_mode(&mut self, hedged: bool, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Option<crate::value::Dict>> {
+        let __args: Vec<Value> = vec![Value::from(hedged), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let hedged = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         let mut hedgeMode: Option<String> = None;
         if hedged.as_bool() == Some(true) {
             hedgeMode = Some("long_short_mode".to_string());
@@ -10847,12 +10852,12 @@ impl Okx {
                 m.insert("posMode".to_string(), hedgeMode.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_69 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_69 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.call_method_t("private_post_account_set_position_mode", &[&__ws_arg_69]).await;
         return Value::Dict(response);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method

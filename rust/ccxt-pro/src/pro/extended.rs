@@ -384,17 +384,17 @@ impl Extended {
             symbolResolved = Value::from((market).symbol.as_str()).as_str().map(str::to_owned);
             messageHash = format!("{}{}", Value::Str("orders:".into()), Value::from((market).symbol.as_str()));
         }
-        let mut orders: Value = self.watch_private(messageHash.as_str(), &[Value::Map({
+        let mut orders: Option<crate::pro::cache::Cache> = self.watch_private(messageHash.as_str(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), Value::from(symbolResolved.as_deref()));
         m.insert("limit".to_string(), Value::from(limit));
     m
-})]).await;
+})]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit);
         }
-        return Value::Arr(self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since, limitResolved, &[Value::Bool(true)]));
+        return Value::Arr(self.filter_by_symbol_since_limit(&orders, symbolResolved.as_deref(), since, limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -532,17 +532,17 @@ impl Extended {
             symbolResolved = Value::from((market).symbol.as_str()).as_str().map(str::to_owned);
             messageHash = format!("{}{}", Value::Str("myTrades:".into()), Value::from((market).symbol.as_str()));
         }
-        let mut trades: Value = self.watch_private(messageHash.as_str(), &[Value::Map({
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch_private(messageHash.as_str(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), Value::from(symbolResolved.as_deref()));
         m.insert("limit".to_string(), Value::from(limit));
     m
-})]).await;
+})]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit);
         }
-        return Value::Arr(self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since, limitResolved, &[Value::Bool(true)]));
+        return Value::Arr(self.filter_by_symbol_since_limit(&trades, symbolResolved.as_deref(), since, limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }

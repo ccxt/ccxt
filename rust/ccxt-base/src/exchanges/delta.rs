@@ -1183,14 +1183,13 @@ impl crate::exchange::DerivedExchange for Delta {
     None
 }
     fn parse_margin_mode(&self, marginMode: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let marginMode: Value = marginMode.into();
         let mut symbol: Option<String> = None;
         if (market.is_some()) {
             symbol = self.safe_string_k_opt(&market, "symbol", &[]);
         }
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), marginMode.clone());
+        m.insert("info".to_string(), Value::from(marginMode));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("marginMode".to_string(), self.safe_string_k(marginMode, "margin_mode", &[]));
     m

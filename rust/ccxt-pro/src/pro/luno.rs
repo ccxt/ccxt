@@ -100,7 +100,7 @@ impl crate::exchange_generated::ExchangeBase for Luno {
         Box::pin(async move {
             match method {
                 "custom_parse_bid_ask" => Value::Arr(self.custom_parse_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
-                "custom_parse_order_book" => crate::Value::Dict(self.custom_parse_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>())),
+                "custom_parse_order_book" => crate::Value::Dict(self.custom_parse_order_book(args.get(0).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>())),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "is_order_book_delta_in_sequence" => self.is_order_book_delta_in_sequence(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "parse_order_book_bids_asks" => Value::Arr(self.parse_order_book_bids_asks(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])),
@@ -122,7 +122,7 @@ impl Luno {
         let __n = match __name.strict() { Some(s) => s, None => return };
         match __n {
             "custom_parse_bid_ask" => { Value::Arr(self.custom_parse_bid_ask(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])); },
-            "custom_parse_order_book" => { self.custom_parse_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]); },
+            "custom_parse_order_book" => { self.custom_parse_order_book(args.get(0).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]); },
             "handle_book_delta" => { self.handle_book_delta(&mut <Option<crate::pro::order_book::Book>>::from(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, args.get(2).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -276,7 +276,7 @@ impl Luno {
         }
         let symbol: String = self.safe_string_k(&subscription, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut market: crate::types::Market = (match self.market(symbol.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let symbolValue: String = (market).symbol.clone();
+        let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", "trades:", symbolValue);
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbolValue);
         if (stored.is_none()) {
@@ -406,7 +406,7 @@ impl Luno {
             }
         }
         if (asks.is_some()) {
-            let snapshot: crate::value::Dict = self.custom_parse_order_book(Value::from(message), Value::from(symbol), &[&Value::from(timestamp), &Value::Str("bids".into()), &Value::Str("asks".into()), &Value::Str("price".into()), &Value::Str("volume".into()), &Value::Str("id".into())]);
+            let snapshot: crate::value::Dict = self.custom_parse_order_book(message, Value::from(symbol), &[&Value::from(timestamp), &Value::Str("bids".into()), &Value::Str("asks".into()), &Value::Str("price".into()), &Value::Str("volume".into()), &Value::Str("id".into())]);
             orderbook.reset(Value::Dict(snapshot));
         }  else {
             self.handle_book_delta(&mut orderbook, Value::from(message));
@@ -418,7 +418,7 @@ impl Luno {
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
-    pub fn custom_parse_order_book(&self, mut orderbook: Value, mut symbol: Value, optional_args: &[&Value]) -> crate::value::Dict {
+    pub fn custom_parse_order_book(&self, orderbook: &indexmap::IndexMap<String, Value>, mut symbol: Value, optional_args: &[&Value]) -> crate::value::Dict {
         let timestamp = get_arg(optional_args, 0, Value::Null);
         let bidsKey = get_arg(optional_args, 1, Value::Str("bids".into()));
         let asksKey = get_arg(optional_args, 2, Value::Str("asks".into()));
@@ -426,7 +426,7 @@ impl Luno {
         let amountKey = get_arg(optional_args, 4, Value::Str("volume".into()));
         let countOrIdKey = get_arg(optional_args, 5, Value::Int(2));
         let bids: crate::value::List = self.parse_order_book_bids_asks(self.safe_list(&orderbook, bidsKey, &[Value::from(vec![])]), &[priceKey.clone(), amountKey.clone(), countOrIdKey.clone()]);
-        let asks: crate::value::List = self.parse_order_book_bids_asks(self.safe_list(orderbook, asksKey, &[Value::from(vec![])]), &[priceKey, amountKey, countOrIdKey]);
+        let asks: crate::value::List = self.parse_order_book_bids_asks(self.safe_list(&orderbook, asksKey, &[Value::from(vec![])]), &[priceKey, amountKey, countOrIdKey]);
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);

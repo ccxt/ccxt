@@ -124,7 +124,7 @@ impl Cex {
             "handle_ohlcv1m" => { self.handle_ohlcv1m(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ohlcv24" => { self.handle_ohlcv24(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_order_book_snapshot" => { self.handle_order_book_snapshot(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_order_book_update" => { self.handle_order_book_update(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_order_book_update" => { self.handle_order_book_update(&mut crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order_update" => { self.handle_order_update(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_orders_snapshot" => { self.handle_orders_snapshot(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -1448,8 +1448,7 @@ impl Cex {
     Value::Null
 }
 
-    pub fn handle_order_book_update(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
-        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
+    pub fn handle_order_book_update(&self, client: &mut crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "e": "md_update",
@@ -1475,7 +1474,7 @@ impl Cex {
         let messageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
         let nonce: Option<i64> = self.safe_integer_k(Value::from(&storedOrderBook), "nonce", &[]).as_i64();
         if (nonce.is_none()) || (incrementalId != ((if let Some(__l) = nonce { Some(__l + 1) } else { None }))) {
-            __ch.remove_subscription(messageHash.as_str());
+            client.remove_subscription(messageHash.as_str());
             let error: crate::ExchangeError = crate::exchange_errors::invalid_nonce(format!("{}{}", self.id, " watchOrderBook() skipped a message"));
             client.reject(error, messageHash.as_str());
             return;

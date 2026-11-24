@@ -421,7 +421,6 @@ impl crate::exchange::DerivedExchange for Alpaca {
     None
 }
     fn parse_deposit_address(&self, depositAddress: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
-        let depositAddress: Value = depositAddress.into();
         //
         //     {
         //         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
@@ -435,7 +434,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
         }
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), depositAddress.clone());
+        m.insert("info".to_string(), Value::from(depositAddress));
         m.insert("currency".to_string(), parsedCurrency.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), self.safe_string_k(depositAddress, "address", &[]));
@@ -1866,7 +1865,7 @@ impl Alpaca {
         let mut paginate: bool = false;
         let mut query: Value = Value::Null;
         { let __destr_tmp = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]); paginate = __destr_tmp.0 == Some(true); query = Value::Dict(__destr_tmp.1); }
-        let paginationCallsqueryPaginationVariable = self.handle_option_integer_and_params(query.clone(), Value::Str("fetchOHLCV".into()), Value::Str("paginationCalls".into()), &[Value::Int(10)]);
+        let paginationCallsqueryPaginationVariable = self.handle_option_integer_and_params(query, Value::Str("fetchOHLCV".into()), Value::Str("paginationCalls".into()), &[Value::Int(10)]);
         let mut paginationCalls: Option<i64> = paginationCallsqueryPaginationVariable.0;
         let queryPagination: crate::value::Dict = paginationCallsqueryPaginationVariable.1;
         query = Value::Dict(queryPagination);

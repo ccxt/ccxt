@@ -1196,7 +1196,7 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
                 "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_orders" => crate::types::IntoRaw::into_raw(self.fetch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_orders_by_status_filter" => crate::Value::Arr(self.fetch_orders_by_status_filter(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..]).await),
-                "fetch_portfolio_accounts" => self.fetch_portfolio_accounts(&args[..]).await,
+                "fetch_portfolio_accounts" => crate::Value::Arr(self.fetch_portfolio_accounts(&args[..]).await),
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_positions_for_symbol" => crate::types::IntoRaw::into_raw(self.fetch_positions_for_symbol(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_sec_with_details" => crate::Value::Arr(self.fetch_sec_with_details(args.get(0).cloned().unwrap_or(crate::Value::Null)).await),
@@ -3476,7 +3476,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let end: Value = crate::runtime::Math::min(&self.sum(&[offset.clone(), Value::from(chunkSize)]), &Value::from(numDetails));
             let mut chunk: Vec<Value> = Vec::new();
             {
-                                let mut k: Value = offset.clone();
+                                let mut k: Value = offset;
                 let mut __for_first_7: bool = true;
                 while { if !__for_first_7 { k = (match (&(k), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
                     } __for_first_7 = false; k.as_f64().unwrap_or(f64::NAN) < end.as_f64().unwrap_or(f64::NAN) } {
@@ -4612,7 +4612,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let optional_args: &[Value] = &__optional_args;
         let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         // as required by IBKR, iserver/accounts must be called at least once before any other trading endpoint
-        let portfolioAccounts: crate::value::List = self.fetch_portfolio_accounts(&[Value::Dict(params)]).await.into_list();
+        let portfolioAccounts: crate::value::List = self.fetch_portfolio_accounts(&[Value::Dict(params)]).await;
         let accountIds: crate::value::List = crate::value::List::new((Value::Dict(self.index_by(Value::from(&portfolioAccounts), Value::Str("accountId".into())))).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
         let length: i64 = accountIds.len() as i64;
         if (length == 0) {
@@ -4674,7 +4674,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {string} [params.method] 'privateGetPortfolioAccounts' (default) or 'privateGetPortfolioSubaccounts'
  * @returns {object[]} the raw response from the exchange
  */
-    pub async fn fetch_portfolio_accounts(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_portfolio_accounts(&mut self, optional_args: &[Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -4685,12 +4685,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let query: crate::value::Dict = methodqueryVariable.1;
         if (method.as_deref() == Some("privateGetPortfolioSubaccounts")) {
             let subaccounts: crate::value::List = self.webapi_get_v1_api_portfolio_subaccounts(&[&Value::from(&query)]).await.unwrap_or_default();
-            return Value::Arr(subaccounts);
+            return subaccounts;
         }
         let response: crate::value::List = self.webapi_get_v1_api_portfolio_accounts(&[&Value::Dict(query)]).await.unwrap_or_default();
-        return Value::Arr(response);
-
-    Value::Null
+        return response;
 }
 
 /*

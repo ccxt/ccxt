@@ -1620,7 +1620,7 @@ impl crate::exchange::DerivedExchange for Gate {
                     m.insert("tier".to_string(), Value::Int((i + 1)));
                     m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
                     m.insert("currency".to_string(), self.safe_string_k(&market, "settle", &[]));
-                    m.insert("minNotional".to_string(), minNotional.clone());
+                    m.insert("minNotional".to_string(), minNotional);
                     m.insert("maxNotional".to_string(), Value::from(maxNotional));
                     m.insert("maintenanceMarginRate".to_string(), self.safe_number_k(&item, "maintenance_rate", &[]));
                     m.insert("maxLeverage".to_string(), self.safe_number_k(&item, "leverage_max", &[]));
@@ -2056,7 +2056,7 @@ impl crate::exchange_generated::ExchangeBase for Gate {
                 "repay_isolated_margin" => crate::types::IntoRaw::into_raw(self.repay_isolated_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
                 "safe_market" => crate::types::IntoRaw::into_raw(self.safe_market(args.get(0).and_then(crate::Value::as_text).as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "set_position_mode" => self.set_position_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "set_position_mode" => crate::types::IntoRaw::into_raw(self.set_position_mode(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_sandbox_mode" => crate::types::IntoRaw::into_raw(self.set_sandbox_mode(args.get(0).is_some_and(crate::Value::is_truthy))),
                 "sign" => Value::Dict(self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..])),
                 "spot_order_prepare_request" => { let __t = self.spot_order_prepare_request(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![Value::Dict(__t.0), Value::Dict(__t.1)]) },
@@ -9906,7 +9906,7 @@ if _try_result.is_err() {
                     m.insert("tier".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&cap, &riskLimitStep), &[]));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[Value::Null, Value::Str("contract".into())]));
                     m.insert("currency".to_string(), self.safe_string_k(&market, "settle", &[]));
-                    m.insert("minNotional".to_string(), self.parse_number(&floor, &[]));
+                    m.insert("minNotional".to_string(), self.parse_number(floor, &[]));
                     m.insert("maxNotional".to_string(), self.parse_number(Value::from(cap.as_deref()), &[]));
                     m.insert("maintenanceMarginRate".to_string(), self.parse_number(Value::from(maintenanceMarginRate.as_deref()), &[]));
                     m.insert("maxLeverage".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&Value::Str("1".into()), &initialMarginRatio), &[]));
@@ -10825,25 +10825,28 @@ if _try_result.is_err() {
  * @param {string} params.settle settle currency
  * @returns {object} response from the exchange
  */
-    pub async fn set_position_mode(&mut self, mut hedged: Value, optional_args: &[Value]) -> Value {
+    pub async fn set_position_mode(&mut self, hedged: bool, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Option<crate::value::Dict>> {
+        let __args: Vec<Value> = vec![Value::from(hedged), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let hedged = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let requestqueryVariable = self.prepare_request(market.as_ref(), &[&Value::Str("swap".into()), &params]);
+        let requestqueryVariable = self.prepare_request(market.as_ref(), &[&Value::Str("swap".into()), &Value::Dict(params)]);
         let mut request: crate::value::Dict = requestqueryVariable.0;
         let query: crate::value::Dict = requestqueryVariable.1;
         std::sync::Arc::make_mut(&mut request).insert("dual_mode".into(), hedged);
         let __ws_arg_106 = self.extend(request, &[&query]);
         return self.private_futures_post_settle_dual_mode(&[&__ws_arg_106]).await;
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method

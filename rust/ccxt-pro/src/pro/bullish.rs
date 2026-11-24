@@ -654,12 +654,12 @@ impl Bullish {
         if (tradingAccountId.is_some()) {
             request.insert("tradingAccountId".into(), tradingAccountId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut orders: Value = self.watch_private(messageHash.as_str(), subscribeHash.as_str(), &[Value::Map(request), Value::Dict(paramsOmitted)]).await;
+        let mut orders: Option<crate::pro::cache::Cache> = self.watch_private(messageHash.as_str(), subscribeHash.as_str(), &[Value::Map(request), Value::Dict(paramsOmitted)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit);
         }
-        return Value::Arr(self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since, limitResolved, &[Value::Bool(true)]));
+        return Value::Arr(self.filter_by_symbol_since_limit(&orders, symbolResolved.as_deref(), since, limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -802,12 +802,12 @@ impl Bullish {
         if (tradingAccountId.is_some()) {
             request.insert("tradingAccountId".into(), tradingAccountId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut trades: Value = self.watch_private(messageHash.as_str(), subscribeHash.as_str(), &[Value::Map(request), Value::Dict(paramsOmitted)]).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch_private(messageHash.as_str(), subscribeHash.as_str(), &[Value::Map(request), Value::Dict(paramsOmitted)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit);
         }
-        return Value::Arr(self.filter_by_since_limit(trades, since, limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
+        return Value::Arr(self.filter_by_since_limit(&trades, since, limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }

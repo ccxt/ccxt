@@ -838,7 +838,7 @@ impl crate::exchange_generated::ExchangeBase for Bithumb {
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_withdrawal" => crate::types::IntoRaw::into_raw(self.fetch_withdrawal(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "fetch_withdrawal_whitelist" => self.fetch_withdrawal_whitelist(&args[..].iter().collect::<Vec<_>>()).await,
+                "fetch_withdrawal_whitelist" => crate::Value::Arr(self.fetch_withdrawal_whitelist(&args[..].iter().collect::<Vec<_>>()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "get_gen2_market_id" => crate::Value::from(self.get_gen2_market_id(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref())),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
@@ -2890,7 +2890,7 @@ impl Bithumb {
                 typeRequest = Some("price".to_string());
                 // for market buy it requires the amount of quote currency to spend
                 let costParam: Option<String> = self.safe_string_k_opt(&paramsOrder, "cost", &[]);
-                let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = self.handle_option_bool_and_params(self.omit(&paramsOrder, Value::Str("cost".into()), &[]), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]);
+                let createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable = self.handle_option_bool_and_params(self.omit(paramsOrder, Value::Str("cost".into()), &[]), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]);
                 let createMarketBuyOrderRequiresPrice: bool = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.0 == Some(true);
                 let paramsRequiresPrice: crate::value::Dict = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.1;
                 paramsOrder = Value::Dict(paramsRequiresPrice);
@@ -3933,7 +3933,7 @@ impl Bithumb {
  * @param {int} [params.generation] *only generation 2 is supported* if you want to use the API generation 1 or 2, default is 2
  * @returns {object[]} a list response from the exchange
  */
-    pub async fn fetch_withdrawal_whitelist(&mut self, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_withdrawal_whitelist(&mut self, optional_args: &[&Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -3948,9 +3948,7 @@ impl Bithumb {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " fetchWithdrawalWhitelist() is only supported for the generation 2 API")));
         }
         let response: crate::value::List = self.private_get_v1_withdraws_coin_addresses(&[&Value::Dict(paramsGeneration)]).await.unwrap_or_default();
-        return Value::Arr(response);
-
-    Value::Null
+        return response;
 }
 
 /*

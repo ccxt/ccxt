@@ -1053,7 +1053,7 @@ impl crate::exchange_generated::ExchangeBase for Grvt {
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "handle_until_option_string" => { let __t = self.handle_until_option_string(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![Value::Dict(__t.0), Value::Dict(__t.1)]) },
-                "initialize_client" => self.initialize_client(&args[..]).await,
+                "initialize_client" => self.initialize_client(&args[..]).await.map_or(crate::Value::Null, crate::Value::Bool),
                 "internal_fetch_transfers" => Value::Arr(self.internal_fetch_transfers(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "load_account_infos" => self.load_account_infos().await,
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
@@ -2224,10 +2224,10 @@ impl Grvt {
     m
 });
         }
-        let walletAddress: Option<String> = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]).as_str().map(str::to_owned);
+        let walletAddress: String = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("address".to_string(), walletAddress.map(Value::from).unwrap_or(Value::Null));
+                m.insert("address".to_string(), Value::from(walletAddress));
                 m.insert("signature".to_string(), Value::Dict(self.default_signature()));
             m
         });
@@ -2245,18 +2245,18 @@ impl Grvt {
     Value::Null
 }
 
-    pub async fn initialize_client(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn initialize_client(&mut self, optional_args: &[Value]) -> Option<bool> {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
         let mut builderFee: Option<bool> = self.safe_bool_k(&params, "builderFee", &[self.safe_bool(&self.options, Value::Str("builderFee".into()), &[Value::Bool(true)])]).as_bool(); // we shouldn't omit here
         if !(builderFee == Some(true)) {
-            return Value::Bool(false);
+            return Some(false);
         }
         let approvedBuilderFee: bool = self.safe_bool_k_opt(&self.options, "approvedBuilderFee", &[Value::Bool(false)]).unwrap_or(false);
         if approvedBuilderFee {
-            return Value::Bool(true);
+            return Some(true);
         }
         self.load_account_infos().await;
         let results: Vec<crate::value::Dict> = crate::value::dict_rows(promise_all(&Value::from(vec![self.private_trading_post_full_v1_get_authorized_builders(&[]).await])).await);
@@ -2321,9 +2321,7 @@ if _try_result.is_err() {
                 { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("builderFee".into(), Value::Bool(false)); }; // disable builder fee if an error occurs
             }
         }
-        return Value::Null;
-
-    Value::Null
+        return None;
 }
 
 /*
@@ -4675,7 +4673,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             m
         });
         if (signerAddress == Value::Null) {
-            signatureEntry.insert("signer".into(), self.eth_get_address_from_private_key(Value::Str(format!("{}{}", "0x", privateKeyWithoutZero).into()), &[]));
+            signatureEntry.insert("signer".into(), Value::from(self.eth_get_address_from_private_key(Value::Str(format!("{}{}", "0x", privateKeyWithoutZero).into()), &[])));
         }  else {
             signatureEntry.insert("signer".into(), signerAddress);
         }

@@ -626,7 +626,7 @@ pub fn testWsCache() {
     Value::from(cacheSymbolId8.get_limit(None::<&str>, outsideLimit.as_i64())); // watch all orders
     cacheSymbolId8.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), symbol.clone());
+            m.insert("symbol".to_string(), symbol);
             m.insert("id".to_string(), Value::Str("twoId".into()));
             m.insert("i".to_string(), Value::Int(6));
         m
@@ -680,7 +680,7 @@ pub fn testWsCache() {
     })); // update second order
     cacheSymbolId9.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), symbol2.clone());
+            m.insert("symbol".to_string(), symbol2);
             m.insert("id".to_string(), Value::Str("three".into()));
             m.insert("i".to_string(), Value::Int(3));
         m
@@ -752,7 +752,7 @@ pub fn testWsCache() {
     })); // second position is reduced
     cacheSymbolSide2.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), symbol.clone());
+            m.insert("symbol".to_string(), symbol);
             m.insert("side".to_string(), Value::Str("long".into()));
             m.insert("contracts".to_string(), Value::Int(1));
         m
@@ -797,7 +797,7 @@ pub fn testWsCache() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(Value::from(cacheSymbolSide3.get_limit(None::<&str>, outsideLimit.as_i64())).as_f64() == Some(2.0))))); // watch all positions
     cacheSymbolSide3.append(Value::Map({
         let mut m = indexmap::IndexMap::new();
-            m.insert("symbol".to_string(), symbol2.clone());
+            m.insert("symbol".to_string(), symbol2);
             m.insert("side".to_string(), Value::Str("long".into()));
             m.insert("contracts".to_string(), Value::Int(3));
         m

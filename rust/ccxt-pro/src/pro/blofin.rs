@@ -975,7 +975,7 @@ impl Blofin {
         { let __be_tmp = self.balance.get(marketType.as_str()).filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Map({
     let m = indexmap::IndexMap::new();
     m
-})); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(marketType.clone(), __be_tmp); } }
+})); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(marketType.to_string(), __be_tmp); } }
         let parsed: crate::value::Dict = self.parse_ws_balance(Value::from(message));
         let mut marketBalance: indexmap::IndexMap<String, Value> = self.balance.get(marketType.as_str()).filter(|__v| matches!(__v, Value::Dict(_))).cloned().unwrap_or(Value::Map({
             let m = indexmap::IndexMap::new();
@@ -994,8 +994,8 @@ impl Blofin {
             marketBalance.insert(key.as_deref().unwrap_or("null").to_string(), crate::value::KeyRead::read(&&parsed, &Value::from(key)));
         }
         }
-        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(marketType.clone(), Value::Map(marketBalance)); }
-        { let __be_tmp = Value::Dict(self.safe_balance((if let Some(__k) = Some(marketType.as_str()) { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }))); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(marketType.clone(), __be_tmp); } }
+        { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(marketType.to_string(), Value::Map(marketBalance.clone())); }
+        { let __be_tmp = Value::Dict(self.safe_balance(Value::Map(marketBalance))); { let __d = &mut self.balance; std::sync::Arc::make_mut(__d).insert(marketType.to_string(), __be_tmp); } }
         let messageHash: String = format!("{}{}", marketType, ":balance");
         client.resolve((if let Some(__k) = Some(marketType.as_str()) { self.balance.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
 }

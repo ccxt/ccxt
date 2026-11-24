@@ -1054,10 +1054,9 @@ impl crate::exchange::DerivedExchange for Mexc {
     None
 }
     fn parse_leverage(&self, leverage: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let leverage: Value = leverage.into();
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), leverage);
+        m.insert("info".to_string(), Value::from(leverage));
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("marginMode".to_string(), Value::Null);
         m.insert("longLeverage".to_string(), Value::Null);
@@ -1139,7 +1138,7 @@ impl crate::exchange::DerivedExchange for Mexc {
                     m.insert("tier".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&cap, &riskIncrVol), &[]));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[Value::Null, Value::Str("contract".into())]));
                     m.insert("currency".to_string(), self.safe_currency_code(quoteId.as_deref(), None).map(Value::from).unwrap_or(Value::Null));
-                    m.insert("minNotional".to_string(), self.parse_number(&floor, &[]));
+                    m.insert("minNotional".to_string(), self.parse_number(floor, &[]));
                     m.insert("maxNotional".to_string(), self.parse_number(Value::from(cap.as_deref()), &[]));
                     m.insert("maintenanceMarginRate".to_string(), self.parse_number(Value::from(maintenanceMarginRate.as_deref()), &[]));
                     m.insert("maxLeverage".to_string(), Value::from(maxLev));
@@ -1435,13 +1434,13 @@ impl crate::exchange_generated::ExchangeBase for Mexc {
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_transaction" => Value::Dict(self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_transaction_fee" => crate::Value::Dict(self.parse_transaction_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
+                "parse_transaction_fee" => crate::Value::Dict(self.parse_transaction_fee(args.get(0).and_then(crate::Value::as_map).unwrap_or(&Default::default()), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "parse_transaction_fees" => crate::Value::Dict(self.parse_transaction_fees(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "parse_transfer" => Value::Dict(self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "reduce_margin" => crate::types::IntoRaw::into_raw(self.reduce_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_margin_mode" => crate::types::IntoRaw::into_raw(self.set_margin_mode(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "set_position_mode" => self.set_position_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "set_position_mode" => crate::types::IntoRaw::into_raw(self.set_position_mode(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "sign" => Value::Dict(self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..])),
                 "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
@@ -7607,23 +7606,26 @@ impl Mexc {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} response from the exchange
  */
-    pub async fn set_position_mode(&mut self, mut hedged: Value, optional_args: &[Value]) -> Value {
+    pub async fn set_position_mode(&mut self, hedged: bool, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<Option<crate::value::Dict>> {
+        let __args: Vec<Value> = vec![Value::from(hedged), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let hedged = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("positionMode".to_string(), (if hedged.as_bool() == Some(true) { Value::Int(1) } else { Value::Int(2) }));
             m
         });
-        let __ws_arg_63 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_63 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.contract_private_post_position_change_position_mode(&[&__ws_arg_63]).await.unwrap_or_default();
         return Value::Dict(response);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -7704,7 +7706,7 @@ impl Mexc {
             let currency: crate::types::Currency = self.safe_currency(currencyId.as_deref(), None);
             let code: Option<String> = self.safe_string_k_opt(&currency, "code", &[]);
             if (codes == Value::Null) || (self.in_array(&code, &codes)) {
-                withdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(self.parse_transaction_fee(Value::Dict(entry), &[&crate::Value::from(Some(&currency))])));
+                withdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(self.parse_transaction_fee(&entry, &[&crate::Value::from(Some(&currency))])));
             }
         }
         }
@@ -7720,10 +7722,8 @@ impl Mexc {
 });
 }
 
-    pub fn parse_transaction_fee(&self, mut transaction: Value, optional_args: &[&Value]) -> crate::value::Dict {
+    pub fn parse_transaction_fee(&self, transaction: &indexmap::IndexMap<String, Value>, optional_args: &[&Value]) -> crate::value::Dict {
         let currency = get_arg(optional_args, 0, Value::Null);
-        let __transaction_empty = indexmap::IndexMap::new();
-        let transaction = transaction.as_map().unwrap_or(&__transaction_empty);
         //
         //    {
         //        "coin": "AGLD",

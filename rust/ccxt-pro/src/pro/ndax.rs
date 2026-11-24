@@ -533,10 +533,7 @@ impl Ndax {
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (marketIds.len() as i64) } {
             let marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
-            let timeframes: Vec<Value> = object_keys(&self.safe_dict(&updates, Value::from(marketId.as_deref()), &[Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-})])).as_array().cloned().unwrap_or_default();
+            let timeframes: Vec<Value> = Value::Array(match updates.get(marketId.as_deref().unwrap_or("null")) { Some(Value::Dict(__m)) => __m.keys().cloned().map(Value::from).collect(), _ => Vec::new() }).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_4: bool = true;

@@ -997,12 +997,12 @@ impl Poloniex {
         self.authenticate(&[]).await;
         let symbolResolved: Option<String> = (if (symbol == Value::Null) { None } else { Some(self.symbol(symbol.as_str())) });
         let symbols: Value = (if (symbolResolved.is_none()) { Value::Null } else { Value::from(vec![Value::from(symbolResolved.as_deref())]) });
-        let mut orders: Value = self.subscribe(name.as_str(), name.as_str(), true, &[symbols, Value::Dict(params)]).await;
+        let mut orders: Option<crate::pro::cache::Cache> = self.subscribe(name.as_str(), name.as_str(), true, &[symbols, Value::Dict(params)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit);
         }
-        return Value::Arr(self.filter_by_since_limit(orders, since, limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
+        return Value::Arr(self.filter_by_since_limit(&orders, since, limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -1036,12 +1036,12 @@ impl Poloniex {
         self.authenticate(&[]).await;
         let symbolResolved: Option<String> = (if (symbol == Value::Null) { None } else { Some(self.symbol(symbol.as_str())) });
         let symbols: Value = (if (symbolResolved.is_none()) { Value::Null } else { Value::from(vec![Value::from(symbolResolved.as_deref())]) });
-        let mut trades: Value = self.subscribe(name.as_str(), messageHash.as_str(), true, &[symbols, Value::Dict(params)]).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe(name.as_str(), messageHash.as_str(), true, &[symbols, Value::Dict(params)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit);
         }
-        return Value::Arr(self.filter_by_since_limit(trades, since, limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
+        return Value::Arr(self.filter_by_since_limit(&trades, since, limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }

@@ -147,7 +147,7 @@ impl Kucoin {
             "handle_my_trade" => { self.handle_my_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order_book_subscription" => { self.handle_order_book_subscription(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_pong" => { self.handle_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_position" => { self.handle_position(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -161,7 +161,7 @@ impl Kucoin {
             "handle_uta_my_trade" => { self.handle_uta_my_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_uta_ohlcv" => { self.handle_uta_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_uta_order" => { self.handle_uta_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_uta_order_book" => { self.handle_uta_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_uta_order_book" => { self.handle_uta_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_uta_position" => { self.handle_uta_position(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_uta_ticker" => { self.handle_uta_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_uta_trade" => { self.handle_uta_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -2255,8 +2255,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     }
 
-    pub fn handle_order_book(&mut self, mut client: Value, message: &indexmap::IndexMap<String, Value>) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
+    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -2322,7 +2321,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let deltaEnd: Option<i64> = self.safe_integer2(&data, Value::Str("sequenceEnd".into()), Value::Str("timestamp".into()), &[]).as_i64();
             if (nonce.is_none()) {
                 let cacheLength: Option<i64> = self.parse_to_int(Value::Int(orderbook.book_field("cache").len() as i64));
-                let subscriptions: Vec<Value> = __ch.subscription_keys();
+                let subscriptions: Vec<Value> = client.subscription_keys();
                 let mut subscription: Value = Value::Null;
                 {
                                         let mut i: i64 = 0;
@@ -2330,7 +2329,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (subscriptions.len() as i64) } {
                     let key: Option<String> = subscriptions.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                     if (((if let (Some(__h), Some(__n)) = (key.as_deref(), topicSymbol.as_deref()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0) && (((if let (Some(__h), Some(__n)) = (key.as_deref(), topicChannel.as_deref()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0) {
-                        subscription = __ch.get_subscription(key.as_deref());
+                        subscription = client.get_subscription(key.as_deref());
                         break;
                     }
                 }
@@ -2338,7 +2337,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
                 let snapshotDelay: Option<i64> = self.parse_to_int(self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[Value::Int(5)]));
                 if (cacheLength == snapshotDelay) {
-                    self.spawn(&[Value::Str("load_order_book".into()), client.clone(), Value::from(messageHash.as_str()), Value::from(symbol.as_deref()), Value::from(limit), Value::Map({
+                    self.spawn(&[Value::Str("load_order_book".into()), client.as_value(), Value::from(messageHash.as_str()), Value::from(symbol.as_deref()), Value::from(limit), Value::Map({
                         let m = indexmap::IndexMap::new();
                         m
                     })]);
@@ -2354,8 +2353,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         client.resolve(Value::from(&book), messageHash.as_str());
 }
 
-    pub fn handle_uta_order_book(&mut self, mut client: Value, message: &indexmap::IndexMap<String, Value>) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
+    pub fn handle_uta_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         // snapshot
         //     {
@@ -2395,7 +2393,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let deltaEnd: Option<i64> = self.safe_integer_k(&data, "C", &[]).as_i64();
             if (nonce.is_none()) {
                 let cacheLength: Option<i64> = self.parse_to_int(Value::Int(orderbook.book_field("cache").len() as i64));
-                let subscription: crate::value::Dict = self.safe_dict_t(&__ch.subscriptions, Value::from(messageHash.as_str()));
+                let subscription: crate::value::Dict = self.safe_dict_t(&(client).subscriptions, Value::from(messageHash.as_str()));
                 let limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
                 let snapshotDelay: Option<i64> = self.parse_to_int(self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[Value::Int(5)]));
                 let utaParams: indexmap::IndexMap<String, Value> = ({
@@ -2404,7 +2402,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m
                 });
                 if (cacheLength == snapshotDelay) {
-                    self.spawn(&[Value::Str("load_order_book".into()), client.clone(), Value::from(messageHash.as_str()), Value::from(symbol.as_str()), Value::from(limit), Value::Map(utaParams)]);
+                    self.spawn(&[Value::Str("load_order_book".into()), client.as_value(), Value::from(messageHash.as_str()), Value::from(symbol.as_str()), Value::from(limit), Value::Map(utaParams)]);
                 }
                 orderbook.cache_push(Value::from(&data));
                 return;

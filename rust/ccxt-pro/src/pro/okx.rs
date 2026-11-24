@@ -78,7 +78,7 @@ impl crate::exchange_generated::ExchangeBase for Okx {
                 "order_to_trade" => self.order_to_trade(args.get(0).and_then(crate::Value::as_map).unwrap_or(&Default::default()), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_liquidation" => Value::Dict(self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_ws_my_liquidation" => Value::Dict(self.parse_ws_my_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_ws_my_liquidation" => Value::Dict(self.parse_ws_my_liquidation(&match args.get(0) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "request_id" => crate::Value::from(self.request_id()),
                 "subscribe" => self.subscribe(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref(), &args[4.min(args.len())..]).await,
@@ -166,7 +166,7 @@ impl Okx {
             "order_to_trade" => { self.order_to_trade(args.get(0).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default()), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref()); },
             "parse_ws_bid_ask" => { Value::Dict(self.parse_ws_bid_ask(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_liquidation" => { Value::Dict(self.parse_ws_liquidation(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
-            "parse_ws_my_liquidation" => { Value::Dict(self.parse_ws_my_liquidation(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
+            "parse_ws_my_liquidation" => { Value::Dict(self.parse_ws_my_liquidation(&match args.get(0).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "ping" => { self.ping(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)); },
             "request_id" => { self.request_id(); },
             "subscribe" => crate::exchange_stubs::enqueue_spawn("subscribe", args.iter().copied().cloned().collect::<Vec<_>>()),
@@ -1484,7 +1484,10 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_11: bool = true;
             while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (rawLiquidations.len() as i64) } {
-            let liquidation: crate::value::Dict = self.parse_ws_liquidation(rawLiquidations.get(i as usize).cloned().unwrap_or(Value::Null), None);
+            let liquidation: crate::value::Dict = self.parse_ws_liquidation(self.safe_dict(&rawLiquidations, Value::Int(i), &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })]), None);
             let symbol: String = self.safe_string_k(&liquidation, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (self.liquidations.is_none()) {
                 let limit: i64 = self.safe_integer_k(&self.options, "liquidationsLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -1617,7 +1620,7 @@ impl Okx {
             if (eventType.as_deref() != Some("liquidation")) {
                 return;
             }
-            let liquidation: crate::value::Dict = self.parse_ws_my_liquidation(Value::Dict(rawLiquidation), None);
+            let liquidation: crate::value::Dict = self.parse_ws_my_liquidation(&rawLiquidation, None);
             let symbol: String = self.safe_string_k(&liquidation, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (self.liquidations.is_none()) {
                 let limit: i64 = self.safe_integer_k(&self.options, "liquidationsLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -1630,7 +1633,7 @@ impl Okx {
         }
 }
 
-    pub fn parse_ws_my_liquidation(&self, mut liquidation: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
+    pub fn parse_ws_my_liquidation(&self, liquidation: &crate::value::Dict, market: Option<&crate::types::Market>) -> crate::value::Dict {
         //
         //    {
         //        "pTime": "1597026383085",
@@ -1666,11 +1669,11 @@ impl Okx {
         let timestamp: Option<i64> = self.safe_integer_k(&firstPosData, "uTIme", &[]).as_i64();
         return self.safe_liquidation(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), liquidation.clone());
+        m.insert("info".to_string(), Value::Dict(liquidation.clone()));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), Some(&marketResolved), &[]));
         m.insert("contracts".to_string(), self.safe_number_k(&firstPosData, "pos", &[]));
         m.insert("contractSize".to_string(), self.safe_number_k(&marketResolved, "contractSize", &[]));
-        m.insert("price".to_string(), self.safe_number_k(liquidation, "avgPx", &[]));
+        m.insert("price".to_string(), self.safe_number_k(&liquidation, "avgPx", &[]));
         m.insert("baseValue".to_string(), Value::Null);
         m.insert("quoteValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));

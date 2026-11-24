@@ -1066,7 +1066,7 @@ if _try_result.is_err() {
             }
             }
             if !pinFound {
-                dump(&[Value::Str("[INFO:MAIN] preferredPredictionOutcome".into()), outcomeSymbol.clone(), Value::Str("not in the live listing (stale pin?) - falling back to market scan".into())]);
+                dump(&[Value::Str("[INFO:MAIN] preferredPredictionOutcome".into()), outcomeSymbol, Value::Str("not in the live listing (stale pin?) - falling back to market scan".into())]);
                 outcomeSymbol = Value::Null;
             }
         }

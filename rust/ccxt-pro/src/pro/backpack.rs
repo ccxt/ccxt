@@ -2031,7 +2031,7 @@ impl Backpack {
         let query: crate::value::Dict = self.prepare_ws_stock_params("watchBalance", params).await;
         let stock: bool = self.safe_bool_k_opt(&query, "stock", &[Value::Bool(false)]).unwrap_or(false);
         if stock && (self.safe_list_k(&self.options, "securities", &[]) == Value::Null) {
-            self.parent.fetch_securities(&[]).await;
+            Value::Arr(self.parent.fetch_securities(&[]).await);
         }
         let response: Value = self.watch_private(Value::from(vec![Value::Str("account.balanceUpdate".into())]), Value::from(vec![Value::Str("balance".into())]), &[self.omit(&query, Value::Str("stock".into()), &[])]).await;
         let balances: crate::value::Dict = self.safe_dict_t(Value::Map({

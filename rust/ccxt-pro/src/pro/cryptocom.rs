@@ -128,9 +128,9 @@ impl Cryptocom {
             "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_orders" => { self.handle_orders(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
-            "handle_ping" => { self.handle_ping(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_ping" => { self.handle_ping(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_positions" => { self.handle_positions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_subscribe" => { self.handle_subscribe(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_subscribe" => { self.handle_subscribe(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
             "handle_unsubscribe" => { self.handle_unsubscribe(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -707,14 +707,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             std::sync::Arc::make_mut(&mut topics).push(Value::Str(format!("{}{}", Value::Str("trade.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
         }
         }
-        let mut trades: Value = self.watch_public_multiple(&topics, Value::Arr(topics.clone()), &[&Value::Dict(params)]).await;
-        let first: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(0));
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch_public_multiple(&topics, Value::Arr(topics.clone()), &[&Value::Dict(params)]).await.into();
+        let first: crate::value::Dict = self.safe_dict_t(Value::from(&trades), Value::Int(0));
         let tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit);
         }
-        return Value::Arr(self.filter_by_since_limit(trades, since, limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
+        return Value::Arr(self.filter_by_since_limit(&trades, since, limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -854,12 +854,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (market.is_some()) {
             messageHash = format!("{}{}", Value::Str("user.trade.".into()), self.safe_string_k(&market, "id", &[Value::Str("".into())]));
         }
-        let mut trades: Value = self.watch_private_subscribe(Some(messageHash.as_str()), &[&Value::Dict(params)]).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch_private_subscribe(Some(messageHash.as_str()), &[&Value::Dict(params)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit);
         }
-        return Value::Arr(self.filter_by_symbol_since_limit(trades, symbolResolved.as_deref(), since, limitResolved, &[Value::Bool(true)]));
+        return Value::Arr(self.filter_by_symbol_since_limit(&trades, symbolResolved.as_deref(), since, limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -1245,12 +1245,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let interval: Option<String> = self.safe_string_opt(&self.timeframes, &timeframe, &[&timeframe]);
-        let mut ohlcv: Value = self.watch_public(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candlestick.", interval.as_deref().unwrap_or("null")).into()), ".").into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), &[Value::Dict(params)]).await;
+        let mut ohlcv: Option<crate::pro::cache::Cache> = self.watch_public(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candlestick.", interval.as_deref().unwrap_or("null")).into()), ".").into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), &[Value::Dict(params)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some((market).symbol.as_str()), limit);
         }
-        return Value::Arr(self.filter_by_since_limit(ohlcv, since, limitResolved, &[Value::Int(0), Value::Bool(true)]));
+        return Value::Arr(self.filter_by_since_limit(&ohlcv, since, limitResolved, &[Value::Int(0), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -1367,12 +1367,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (market.is_some()) {
             messageHash = format!("{}{}", Value::Str("user.order.".into()), self.safe_string_k(&market, "id", &[Value::Str("".into())]));
         }
-        let mut orders: Value = self.watch_private_subscribe(Some(messageHash.as_str()), &[&Value::Dict(params)]).await;
+        let mut orders: Option<crate::pro::cache::Cache> = self.watch_private_subscribe(Some(messageHash.as_str()), &[&Value::Dict(params)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit);
         }
-        return Value::Arr(self.filter_by_symbol_since_limit(orders, symbolResolved.as_deref(), since, limitResolved, &[Value::Bool(true)]));
+        return Value::Arr(self.filter_by_symbol_since_limit(&orders, symbolResolved.as_deref(), since, limitResolved, &[Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -2059,7 +2059,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         } }
 }
 
-    pub fn handle_subscribe(&mut self, mut client: Value, message: &indexmap::IndexMap<String, Value>) {
+    pub fn handle_subscribe(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
         let methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("candlestick".to_string(), Value::Str("handle_ohlcv".into()));
@@ -2080,15 +2080,15 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let channel: Option<String> = self.safe_string_k_opt(&result, "channel", &[]);
         if (channel.is_some()) && channel.as_deref().unwrap_or_default().contains("user.trade") {
             // channel might be user.trade.BTC_USDT
-            self.handle_trades(&client, &result);
+            self.handle_trades(client, &result);
         }
         if (channel.is_some()) && (channel.as_deref().unwrap_or_default().starts_with("user.order")) {
             // channel might be user.order.BTC_USDT
-            self.handle_orders(&client, result.clone(), &[]);
+            self.handle_orders(client, result.clone(), &[]);
         }
         let method: Option<String> = self.safe_value(&methods, channel.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (method.is_some()) {
-            self.dispatch_ws_handler(&method, &[&client, &result]);
+            self.dispatch_ws_handler(&method, &[client, &result]);
         }
 }
 
@@ -2185,8 +2185,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub fn handle_ping(&mut self, mut client: Value, mut message: Value) {
-        self.spawn(&[Value::Str("pong".into()), client, message]);
+    pub fn handle_ping(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
+        self.spawn(&[Value::Str("pong".into()), client.as_value(), message]);
 }
 
     pub fn handle_authenticate(&self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {

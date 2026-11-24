@@ -138,7 +138,7 @@ impl Bitvavo {
             "fetch_orders_ws" => crate::exchange_stubs::enqueue_spawn("fetch_orders_ws", args.iter().copied().cloned().collect::<Vec<_>>()),
             "fetch_trading_fees_ws" => crate::exchange_stubs::enqueue_spawn("fetch_trading_fees_ws", args.iter().copied().cloned().collect::<Vec<_>>()),
             "fetch_withdrawals_ws" => crate::exchange_stubs::enqueue_spawn("fetch_withdrawals_ws", args.iter().copied().cloned().collect::<Vec<_>>()),
-            "handle_authentication_message" => { self.handle_authentication_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
+            "handle_authentication_message" => { self.handle_authentication_message(&mut crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_bid_ask" => { self.handle_bid_ask(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()); },
@@ -2620,8 +2620,7 @@ impl Bitvavo {
     Value::Null
 }
 
-    pub fn handle_authentication_message(&self, mut client: Value, message: &crate::value::Dict) {
-        let mut __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
+    pub fn handle_authentication_message(&self, client: &mut crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
         let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         //
         //     {
@@ -2638,8 +2637,8 @@ impl Bitvavo {
             let error: crate::ExchangeError = crate::exchange_errors::authentication_error(json_stringify(message));
             client.reject(error, messageHash.as_str());
             // allows further authentication attempts
-            if (__ch.has_subscription(messageHash.as_str())) {
-                __ch.remove_subscription(messageHash.as_str());
+            if (client.has_subscription(messageHash.as_str())) {
+                client.remove_subscription(messageHash.as_str());
             }
         }
 }

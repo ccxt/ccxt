@@ -668,14 +668,14 @@ impl Deribit {
         if (interval.as_deref() == Some("raw")) {
             self.authenticate(&[]).await;
         }
-        let mut trades: Value = self.watch_multiple_wrapper("trades", interval.as_deref(), &[&symbols, &Value::Dict(paramsInterval)]).await;
-        let first: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(0));
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch_multiple_wrapper("trades", interval.as_deref(), &[&symbols, &Value::Dict(paramsInterval)]).await.into();
+        let first: crate::value::Dict = self.safe_dict_t(Value::from(&trades), Value::Int(0));
         let tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit);
         }
-        return Value::Arr(self.filter_by_since_limit(trades, since, limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
+        return Value::Arr(self.filter_by_since_limit(&trades, since, limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }

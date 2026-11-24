@@ -1488,10 +1488,7 @@ impl Coinbase {
         let events: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("events"));
         let firstEvent: crate::value::Dict = events.get(0).cloned().unwrap_or_default();
         let isUnsub: bool = firstEvent.contains_key("subscriptions");
-        let subKeys: Vec<Value> = object_keys(&self.safe_dict_k(&firstEvent, "subscriptions", &[Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-})])).as_array().cloned().unwrap_or_default();
+        let subKeys: Vec<Value> = Value::Array(match firstEvent.get("subscriptions") { Some(Value::Dict(__m)) => __m.keys().cloned().map(Value::from).collect(), _ => Vec::new() }).as_array().cloned().unwrap_or_default();
         let subKeysLength: i64 = subKeys.len() as i64;
         if isUnsub && (subKeysLength == 0) {
             let unSubObject: crate::value::Dict = self.safe_dict_k_t(&self.options, "unSubscription");

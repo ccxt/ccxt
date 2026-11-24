@@ -601,7 +601,7 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn safe_list_n(&self, dictionaryOrList: impl KeyRead, mut keys: Value, optional_args: &[Value]) -> Value {
+    fn safe_list_n(&self, dictionaryOrList: impl KeyRead, mut keys: Value, optional_args: &[Value]) -> Option<crate::value::List> {
         let defaultValue = get_arg(optional_args, 0, Value::Null);
         /*
          * @ignore
@@ -611,14 +611,12 @@ pub trait ExchangeBase:
          */
         let value: Value = self.safe_value_n(&dictionaryOrList, keys, &[defaultValue.clone()]);
         if (value == Value::Null) {
-            return defaultValue;
+            return if let Value::Arr(__l) = defaultValue { Some(__l) } else { None }
         }
         if (matches!(&value, Value::Arr(_))) {
-            return value;
+            return if let Value::Arr(__l) = value { Some(__l) } else { None }
         }
-        return defaultValue;
-
-    Value::Null
+        return if let Value::Arr(__l) = defaultValue { Some(__l) } else { None }
 }
 
     fn safe_list2(&self, dictionaryOrList: impl KeyRead, mut key1: Value, mut key2: Value, optional_args: &[Value]) -> Value {
@@ -653,10 +651,7 @@ pub trait ExchangeBase:
         if (str_val.is_some()) {
             return Some(std::sync::Arc::new(vec![str_val.map(Value::from).unwrap_or(Value::Null)]));
         }
-        if let Value::Arr(list) = self.safe_list_n(&dictionaryOrList, keys, &[]) {
-        return Some(list);
-    }
-    None
+        return self.safe_list_n(&dictionaryOrList, keys, &[]);
 }
 
     fn safe_list(&self, dictionaryOrList: impl KeyRead, mut key: Value, optional_args: &[Value]) -> Value {
@@ -2013,21 +2008,26 @@ pub trait ExchangeBase:
         }).await?))
     } }
 
-    fn set_position_mode(&mut self, mut hedged: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn set_position_mode(&mut self, hedged: bool, symbol: Option<&str>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Option<crate::value::Dict>>> + Send { async move {
+        let __args: Vec<Value> = vec![Value::from(hedged), symbol.map(Value::from).unwrap_or_default(), params.into().into_value()];
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("set_position_mode", &{ let mut __args: Vec<crate::Value> = Vec::new(); __args.push(hedged); __args.extend_from_slice(optional_args); __args }).await {
-            if !matches!(__v, crate::Value::Null) { return __v; }
+        if let Some(__v) = self.dispatch_to_derived("set_position_mode", &__args).await {
+            if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); }
         }
-
+        let mut __it = __args.into_iter();
+        let hedged = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " setPositionMode() is not supported yet")));
-
-    Value::Null
-} }
+        Value::Null
+        }).await?))
+    } }
 
     fn add_margin(&mut self, symbol: &str, amount: f64, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::MarginModification>> + Send { async move {
         let __args: Vec<Value> = vec![Value::from(symbol), Value::from(amount), params.into().into_value()];
@@ -2974,20 +2974,20 @@ pub trait ExchangeBase:
                 }
             }
             }
-            let mut market: Value = self.deep_extend(Value::Dict(self.safe_market_structure(&[])), &[Value::Map({
+            let mut market: crate::value::Dict = self.deep_extend_t(Value::Dict(self.safe_market_structure(&[])), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("precision".to_string(), self.precision.clone());
                     m.insert("limits".to_string(), self.limits.clone());
                 m
             }), self.fees.get("trading").cloned().unwrap_or(Value::Null), Value::Map(valueDefined)]);
             if matches!(self.safe_bool_k(&market, "linear", &[Value::Bool(false)]), Value::Bool(true)) {
-                add_element_to_object(&mut market, &Value::Str("subType".into()), Value::Str("linear".into()));
+                std::sync::Arc::make_mut(&mut market).insert("subType".into(), Value::Str("linear".into()));
             }  else if matches!(self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
-                add_element_to_object(&mut market, &Value::Str("subType".into()), Value::Str("inverse".into()));
+                std::sync::Arc::make_mut(&mut market).insert("subType".into(), Value::Str("inverse".into()));
             }  else {
-                add_element_to_object(&mut market, &Value::Str("subType".into()), Value::Null);
+                std::sync::Arc::make_mut(&mut market).insert("subType".into(), Value::Null);
             }
-            values.push(market.clone());
+            values.push(Value::Dict(market));
         }
         }
         { let __t = self.map_to_safe_map(Value::Dict(self.index_by(Value::from(values.clone()), Value::Str("symbol".into())))); self.markets = if let Value::Dict(__m) = __t { Some(__m) } else { None }; }
@@ -3727,16 +3727,17 @@ pub trait ExchangeBase:
                 reducedFees = Value::from(vec![]);
             }
             let reducedLength: i64 = reducedFees.len() as i64;
+            let mut parsedFees: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_100: bool = true;
                 while { if !__for_first_100 { i += 1; } __for_first_100 = false; i < reducedLength } {
-                { let __be_tmp = self.parse_fee_numeric(reducedFees.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)); add_element_to_object(&mut reducedFees, &Value::Int(i), __be_tmp); }
+                std::sync::Arc::make_mut(&mut parsedFees).push(self.parse_fee_numeric(reducedFees.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)));
             }
             }
-            fees = reducedFees.clone();
+            fees = Value::Arr(parsedFees);
             if (reducedLength == 1) {
-                fee = reducedFees.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null);
+                fee = self.parse_fee_numeric(reducedFees.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
             }  else if (reducedLength == 0) {
                 fee = Value::Null;
             }
@@ -6639,10 +6640,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     fn handle_market_type_and_params(&self, mut methodName: Value, market: Option<&crate::types::Market>, optional_args: &[&Value]) -> (Value, crate::value::Dict) {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let defaultValue = get_arg(optional_args, 1, Value::Null);
         /*
          * @ignore
@@ -6664,32 +6662,29 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         // type from market
         if (market.is_some()) {
-            return (crate::value::KeyRead::key_read(&market, "type"), params.into_dict());
+            return (crate::value::KeyRead::key_read(&market, "type"), params);
         }
         // type from default-argument
         if (defaultValue != Value::Null) {
-            return (defaultValue, params.into_dict());
+            return (defaultValue, params);
         }
         let methodOptions: Value = self.safe_dict(&self.options, methodName, &[]);
         if (methodOptions != Value::Null) {
             if matches!(&methodOptions, Value::Str(_)) {
-                return (methodOptions, params.into_dict());
+                return (methodOptions, params);
             }  else {
                 let typeFromMethod: Option<String> = self.safe_string2_opt(&methodOptions, Value::Str("defaultType".into()), Value::Str("type".into()), &[]);
                 if (typeFromMethod.is_some()) {
-                    return (typeFromMethod.map(Value::from).unwrap_or(Value::Null), params.into_dict());
+                    return (typeFromMethod.map(Value::from).unwrap_or(Value::Null), params);
                 }
             }
         }
         let defaultType: String = self.safe_string2(&self.options, Value::Str("defaultType".into()), Value::Str("type".into()), &[Value::Str("spot".into())]).as_str().unwrap_or("spot").to_string();
-        return (Value::from(defaultType), params.into_dict());
+        return (Value::from(defaultType), params);
 }
 
     fn handle_sub_type_and_params(&self, mut methodName: Value, market: Option<&crate::types::Market>, optional_args: &[&Value]) -> (Value, crate::value::Dict) {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let defaultValue = get_arg(optional_args, 1, Value::Null);
         let mut subType: Value = Value::Null;
         // if set in params, it takes precedence
@@ -6719,7 +6714,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 subType = values.0;
             }
         }
-        return (subType, params.into_dict());
+        return (subType, params);
 }
 
     fn handle_margin_mode_and_params(&self, mut methodName: Value, optional_args: &[&Value]) -> (Value, crate::value::Dict) {
@@ -8467,10 +8462,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     fn handle_post_only(&self, mut isMarketOrder: Value, mut exchangeSpecificPostOnlyOption: Value, optional_args: &[Value]) -> (Value, crate::value::Dict) {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         /*
          * @ignore
          * @method
@@ -8500,7 +8492,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 return (Value::Bool(true), paramsOmitted);
             }
         }
-        return (Value::Bool(false), params.into_dict());
+        return (Value::Bool(false), params);
 }
 
     fn fetch_last_prices(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<crate::types::LastPrices>> + Send { async move {
@@ -13726,7 +13718,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "set_margin" => crate::types::IntoRaw::into_raw(self.set_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
             "set_margin_mode" => crate::types::IntoRaw::into_raw(self.set_margin_mode(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
             "set_markets" => self.set_markets(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "set_position_mode" => self.set_position_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+            "set_position_mode" => crate::types::IntoRaw::into_raw(self.set_position_mode(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
             "set_sandbox_mode" => crate::types::IntoRaw::into_raw(self.set_sandbox_mode(args.get(0).is_some_and(crate::Value::is_truthy))),
             "set_take_profit_and_stop_loss_params" => Value::Dict(self.set_take_profit_and_stop_loss_params(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..])),
             "sign" => Value::Dict(<Self as crate::exchange_generated::ExchangeBase>::sign(self, args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..])),

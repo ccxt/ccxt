@@ -292,7 +292,7 @@ pub fn testWsOrderBook() {
     indexedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(9), Value::Int(3), Value::Str("1231".into())]));
     indexedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(9), Value::Int(1), Value::Str("1232".into())]));
     indexedOrderBook.limit();
-    assert!(ccxt::runtime::is_true(&(equals(indexedOrderBook.clone(), overwrite1234))));
+    assert!(ccxt::runtime::is_true(&(equals(indexedOrderBook, overwrite1234))));
     indexedOrderBook = IndexedOrderBook::new(indexedOrderBookInput.clone(), Value::Null);
     indexedOrderBook.store_array_to_asks(Value::from(vec![Value::Float(13.5), Value::Int(13), Value::Str("1244".into())]));
     indexedOrderBook.limit();

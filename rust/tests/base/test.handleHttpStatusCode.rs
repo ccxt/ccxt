@@ -34,7 +34,7 @@ pub fn testHandleHttpStatusCode() {
 if _try_result.is_err() {
         caught = Value::Bool(true);
     }
-    assert!(ccxt::runtime::is_true(&(caught.clone())));
+    assert!(ccxt::runtime::is_true(&(caught)));
     caught = Value::Bool(false);
     let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         exchange.handle_http_status_code(Value::Int(418), Value::Str("reason".into()), Value::Str("url".into()), Value::Str("GET".into()), Value::Str("body".into()));
@@ -42,7 +42,7 @@ if _try_result.is_err() {
 if _try_result.is_err() {
         caught = Value::Bool(true);
     }
-    assert!(ccxt::runtime::is_true(&(caught.clone())));
+    assert!(ccxt::runtime::is_true(&(caught)));
     caught = Value::Bool(false);
     let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         exchange.handle_http_status_code(Value::Int(401), Value::Str("reason".into()), Value::Str("url".into()), Value::Str("GET".into()), Value::Str("body".into()));
@@ -50,7 +50,7 @@ if _try_result.is_err() {
 if _try_result.is_err() {
         caught = Value::Bool(true);
     }
-    assert!(ccxt::runtime::is_true(&(caught.clone())));
+    assert!(ccxt::runtime::is_true(&(caught)));
     caught = Value::Bool(false);
     let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         exchange.handle_http_status_code(Value::Int(408), Value::Str("reason".into()), Value::Str("url".into()), Value::Str("GET".into()), Value::Str("body".into()));
@@ -58,7 +58,7 @@ if _try_result.is_err() {
 if _try_result.is_err() {
         caught = Value::Bool(true);
     }
-    assert!(ccxt::runtime::is_true(&(caught.clone())));
+    assert!(ccxt::runtime::is_true(&(caught)));
     caught = Value::Bool(false);
     let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         exchange.handle_http_status_code(Value::Int(500), Value::Str("reason".into()), Value::Str("url".into()), Value::Str("GET".into()), Value::Str("body".into()));
@@ -66,7 +66,7 @@ if _try_result.is_err() {
 if _try_result.is_err() {
         caught = Value::Bool(true);
     }
-    assert!(ccxt::runtime::is_true(&(caught.clone())));
+    assert!(ccxt::runtime::is_true(&(caught)));
     caught = Value::Bool(false);
     let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         exchange.handle_http_status_code(Value::Int(422), Value::Str("reason".into()), Value::Str("url".into()), Value::Str("GET".into()), Value::Str("body".into()));

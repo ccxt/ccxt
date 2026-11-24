@@ -1493,7 +1493,7 @@ impl crate::exchange_generated::ExchangeBase for Coinbase {
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_orders" => crate::types::IntoRaw::into_raw(self.fetch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_orders_by_status" => Value::Arr(self.fetch_orders_by_status(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..]).await),
-                "fetch_portfolio_details" => self.fetch_portfolio_details(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "fetch_portfolio_details" => crate::Value::Arr(self.fetch_portfolio_details(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "fetch_portfolios" => self.fetch_portfolios(&args[..].iter().collect::<Vec<_>>()).await,
                 "fetch_position" => crate::types::IntoRaw::into_raw(self.fetch_position(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
@@ -6931,7 +6931,7 @@ if _try_result.is_err() {
  * @param {Dict} [params] Extra parameters specific to the exchange API endpoint
  * @returns {any[]} An account structure <https://docs.ccxt.com/?id=account-structure>
  */
-    pub async fn fetch_portfolio_details(&mut self, portfolioUuid: &str, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_portfolio_details(&mut self, portfolioUuid: &str, optional_args: &[&Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -6947,9 +6947,7 @@ if _try_result.is_err() {
         let __ws_arg_68 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.v3_private_get_brokerage_portfolios_portfolio_uuid(&[&__ws_arg_68]).await.unwrap_or_default();
         let result: crate::value::List = self.parse_portfolio_details(&response);
-        return Value::Arr(result);
-
-    Value::Null
+        return result;
 }
 
     pub fn parse_portfolio_details(&self, portfolioData: impl Into<crate::Value>) -> crate::value::List {

@@ -119,7 +119,7 @@ impl Htx {
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book_message" => { self.handle_order_book_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book_snapshot" => crate::exchange_stubs::enqueue_spawn("handle_order_book_snapshot", args.iter().copied().cloned().collect::<Vec<_>>()),
-            "handle_order_book_subscription" => { self.handle_order_book_subscription(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_book_subscription" => { self.handle_order_book_subscription(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ping" => { self.handle_ping(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_positions" => { self.handle_positions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_subject" => { self.handle_subject(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -516,12 +516,12 @@ impl Htx {
         let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "market.", marketId).into()), ".trade.detail");
         let url: Option<String> = self.get_url_by_market_type(Value::from((market).market_type.clone()), &[&(market).linear.map(Value::Bool).unwrap_or_default()]);
-        let mut trades: Value = self.subscribe_public(url.as_deref(), symbolValue.as_deref(), Some(messageHash.as_str()), &[&Value::Null, &Value::Dict(params)]).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_public(url.as_deref(), symbolValue.as_deref(), Some(messageHash.as_str()), &[&Value::Null, &Value::Dict(params)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue.as_deref(), limit);
         }
-        return Value::Arr(self.filter_by_since_limit(trades, since, limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
+        return Value::Arr(self.filter_by_since_limit(&trades, since, limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -1203,7 +1203,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
 }
 
-    pub fn handle_order_book_subscription(&mut self, mut client: Value, mut message: Value, mut subscription: Value) {
+    pub fn handle_order_book_subscription(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value, mut subscription: Value) {
         let symbol: Option<String> = self.safe_string_k_opt(&subscription, "symbol", &[]);
         let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
@@ -1219,7 +1219,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             orderbook.set_book_meta("cache", Value::from(vec![]));
         }
         if (market).spot {
-            self.spawn(&[Value::Str("watch_order_book_snapshot".into()), client, message, subscription]);
+            self.spawn(&[Value::Str("watch_order_book_snapshot".into()), client.as_value(), message, subscription]);
         }
 }
 
@@ -2728,7 +2728,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return;
         }
         let subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
-        let mut subscription: Option<crate::value::Dict> = self.safe_dict_o(&subscriptionsById, Value::from(id.as_deref()));
+        let mut subscription: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = subscriptionsById.get(id.as_deref().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
         if (subscription.is_some()) {
             let method: Option<String> = self.safe_value_k(&subscription, "method", &[]).as_str().map(str::to_owned);
             if (method.is_some()) {
@@ -3028,7 +3028,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 return false;
             }
             let subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
-            let subscription: Option<crate::value::Dict> = self.safe_dict_o(&subscriptionsById, Value::from(id.as_deref()));
+            let subscription: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = subscriptionsById.get(id.as_deref().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
             if (subscription.is_some()) {
                 let errorCode: Option<String> = (match __pro_message.get("err-code") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
                 let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> bool {

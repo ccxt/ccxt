@@ -1277,7 +1277,7 @@ impl Btcbox {
         let mut response: Value = self.fetch2(path, &[api, method, params, config]).await;
         if matches!(&response, Value::Str(_)) {
             // sometimes the exchange returns whitespace prepended to json
-            let strippedResponse: Value = self.strip(response.clone(), &[]);
+            let strippedResponse: Value = self.strip(response, &[]);
             if !self.is_json_encoded_object(&[strippedResponse.clone()]) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), strippedResponse)));
             }

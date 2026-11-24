@@ -1792,13 +1792,13 @@ impl Bitopro {
     }
 
     pub fn parse_cancel_orders(&self, data: &indexmap::IndexMap<String, Value>) -> crate::value::List {
-        let dataKeys: Vec<&str> = data.keys().map(String::as_str).collect();
+        let dataKeys: Vec<Value> = Value::Array(data.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (dataKeys.len() as i64) } {
-            let marketId: Option<&str> = dataKeys.get(i as usize).copied();
+            let marketId: Option<&str> = dataKeys.get(i as usize).and_then(Value::as_str);
             let orderIds: crate::value::List = self.safe_list_t(&data, Value::from(marketId.as_deref()));
             {
                                 let mut j: i64 = 0;

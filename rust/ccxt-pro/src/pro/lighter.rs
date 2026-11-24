@@ -1442,7 +1442,10 @@ impl Lighter {
             let mut __for_first_6: bool = true;
             while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < dataLength } {
             let iReversed: Option<i64> = self.parse_to_int(Value::Int((((dataLength - 1)) - i)));
-            let liquidation: Value = self.parse_ws_liquidation(crate::value::KeyRead::read(&&data, &Value::from(iReversed)), Some(&market));
+            let liquidation: Value = self.parse_ws_liquidation(self.safe_dict(&data, iReversed, &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })]), Some(&market));
             stored.append(liquidation);
         }
         }

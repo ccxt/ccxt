@@ -819,7 +819,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return;
         }
         let subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
-        let mut subscription: Option<crate::value::Dict> = self.safe_dict_o(&subscriptionsById, Value::from(id.as_deref()));
+        let mut subscription: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = subscriptionsById.get(id.as_deref().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
         if (subscription.is_some()) {
             let method: Option<String> = self.safe_string_k_opt(&subscription, "method", &[]);
             if (method.as_deref() == Some("handleOrderBookSnapshot")) {
@@ -923,7 +923,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 return false;
             }
             let subscriptionsById: crate::value::Dict = self.index_by(__ch.subscriptions.clone(), Value::Str("id".into()));
-            let subscription: Option<crate::value::Dict> = self.safe_dict_o(&subscriptionsById, Value::from(id.as_deref()));
+            let subscription: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = subscriptionsById.get(id.as_deref().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
             if (subscription.is_some()) {
                 let errorCode: Option<String> = (match __pro_message.get("err-code") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
                 let errorMessage: Option<String> = (match __pro_message.get("err-msg") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });

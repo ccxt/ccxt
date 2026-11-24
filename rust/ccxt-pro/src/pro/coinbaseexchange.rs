@@ -120,7 +120,7 @@ impl crate::exchange_generated::ExchangeBase for Coinbaseexchange {
             match method {
                 "authenticate" => crate::Value::Dict(self.authenticate()),
                 "handle_error_message" => crate::Value::from(self.handle_error_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()))),
-                "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
+                "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "handle_my_trade" => crate::Value::Dict(self.handle_my_trade(args.get(0).unwrap_or(&crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
                 "handle_subscription_status" => crate::Value::Dict(self.handle_subscription_status(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
                 "handle_ticker" => crate::Value::Dict(self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
@@ -157,7 +157,7 @@ impl Coinbaseexchange {
             "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()); },
             "handle_error_message" => { self.handle_error_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
+            "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_my_trade" => { self.handle_my_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
@@ -1337,8 +1337,7 @@ impl Coinbaseexchange {
         } }
 }
 
-    pub fn handle_message(&mut self, mut client: Value, message: &crate::value::Dict) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
+    pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
         let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         let type_var: Option<String> = (match __pro_message.get("type") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let methods: indexmap::IndexMap<String, Value> = ({
@@ -1354,19 +1353,19 @@ impl Coinbaseexchange {
                 m.insert("error".to_string(), Value::Str("handle_error_message".into()));
             m
         });
-        let authenticated: bool = __ch.url.as_str().unwrap_or("").ends_with("?");
+        let authenticated: bool = ((client).url).as_str().is_some_and(|__s| __s.ends_with("?"));
         let method: Option<String> = self.safe_value(&methods, Value::from(type_var.as_deref()), &[]).as_str().map(str::to_owned);
         if (method.is_none()) {
             if (type_var.as_deref() == Some("match")) {
                 if authenticated {
-                    Value::Dict(self.handle_my_trade(&client, message));
-                    self.handle_order(&client, Value::from(message));
+                    Value::Dict(self.handle_my_trade(&client.as_value(), message));
+                    self.handle_order(&client.as_value(), Value::from(message));
                 }  else {
-                    Value::Dict(self.handle_trade(&client, message));
+                    Value::Dict(self.handle_trade(&client.as_value(), message));
                 }
             }
         }  else {
-            self.dispatch_ws_handler(&method, &[&client, &Value::from(message)]);
+            self.dispatch_ws_handler(&method, &[&client.as_value(), &Value::from(message)]);
         }
 }
 }

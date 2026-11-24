@@ -154,7 +154,7 @@ impl Paradex {
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_my_trade" => { self.handle_my_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_positions" => { self.handle_positions(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_request_reply" => { self.handle_request_reply(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_stream_message" => { self.handle_stream_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -955,14 +955,14 @@ if _try_result.is_err() {
         }
         let url: Option<String> = self.get_ws_url().as_str().map(str::to_owned);
         // handleTrade resolves the channel of each market
-        let mut trades: Value = self.subscribe_channels(url.as_deref().unwrap_or_default(), &messageHashes, &channels, &[&Value::Dict(params)]).await;
-        let first: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(0));
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_channels(url.as_deref().unwrap_or_default(), &messageHashes, &channels, &[&Value::Dict(params)]).await.into();
+        let first: crate::value::Dict = self.safe_dict_t(Value::from(&trades), Value::Int(0));
         let tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit);
         }
-        return Value::Arr(self.filter_by_since_limit(trades, since, limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
+        return Value::Arr(self.filter_by_since_limit(&trades, since, limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]));
         Value::Null
         }).await?))
     }
@@ -1365,8 +1365,7 @@ if _try_result.is_err() {
         }).await?))
     }
 
-    pub fn handle_order_book(&mut self, mut client: Value, message: &indexmap::IndexMap<String, Value>) {
-        let __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
+    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         // a snapshot, the 15-level feed sends one every 100ms, the deltas feed sends a full-depth one on
         // subscribe and on a resync
@@ -1457,7 +1456,7 @@ if _try_result.is_err() {
             let deltasChannel: Option<String> = self.get_order_book_channel(self.safe_string_k(&data, "market", &[Value::Str("".into())]), &[&Value::Bool(true)]);
             let mut stored: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol);
             // a delta applies only to the book of the deltas feed
-            if (stored.is_none()) || !(__ch.has_subscription(deltasChannel.as_deref())) {
+            if (stored.is_none()) || !(client.has_subscription(deltasChannel.as_deref())) {
                 return;
             }
             let storedNonce: Option<i64> = self.safe_integer_k(Value::from(&stored), "nonce", &[]).as_i64();
@@ -1468,7 +1467,7 @@ if _try_result.is_err() {
             if (nonce != ((if let Some(__l) = storedNonce { Some(__l + 1) } else { None }))) {
                 // a skipped delta leaves the book wrong, the feed is subscribed again for a fresh snapshot
                 stored.set_book_meta("nonce", Value::Null);
-                self.spawn(&[Value::Str("resubscribe_order_book".into()), client, deltasChannel.map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.as_str())]);
+                self.spawn(&[Value::Str("resubscribe_order_book".into()), client.as_value(), deltasChannel.map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.as_str())]);
                 return;
             }
             let storedBids: crate::pro::order_book::Side = crate::pro::order_book::Side::of(stored.book_field("bids"));

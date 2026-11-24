@@ -3327,7 +3327,7 @@ impl Polymarket {
         self.check_required_credentials(&[]);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut currency: crate::types::Currency = self.currency(code.as_str());
-        let owner: Option<String> = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]).as_str().map(str::to_owned);
+        let owner: String = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);
         let collateral: crate::value::Dict = self.safe_dict_k_t(&self.options, "collateral");
         let tokenAddress: Option<String> = self.safe_string_k_opt(&collateral, "address", &[]);
         let decimals: String = self.safe_string_k(&collateral, "decimals", &[Value::Str("6".into())]).as_str().unwrap_or("6").to_string();
@@ -3389,7 +3389,7 @@ impl Polymarket {
         });
         let message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("account".to_string(), Value::from(owner.as_deref()));
+                m.insert("account".to_string(), Value::from(owner.as_str()));
                 m.insert("token".to_string(), Value::from(tokenAddress.as_deref()));
                 m.insert("amount".to_string(), Value::from(self.parse_to_int(Value::from(baseUnits.as_deref()))));
                 m.insert("fee".to_string(), Value::Int(0));
@@ -3407,7 +3407,7 @@ impl Polymarket {
         m.insert("type".to_string(), Value::Str("withdraw".into()));
         m.insert("args".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("account".to_string(), owner.map(Value::from).unwrap_or(Value::Null));
+        m.insert("account".to_string(), Value::from(owner));
         m.insert("token".to_string(), tokenAddress.map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), baseUnits.map(Value::from).unwrap_or(Value::Null));
         m.insert("to".to_string(), address);
@@ -3712,10 +3712,8 @@ impl Polymarket {
 }
 
     pub fn sign_hash(&self, hash: &str, privateKey: Option<&str>) -> Option<String> {
-        let hash: Value = hash.into();
-        let privateKey: Value = privateKey.into();
-        let signature: crate::value::Dict = ecdsa(hash.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null),
-            privateKey.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null), Value::Str("secp256k1".into()), Value::Null);
+        let signature: crate::value::Dict = ecdsa(Value::from(hash.chars().skip(hash.chars().count().saturating_sub(64)).collect::<String>()), privateKey.map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l;
+            if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null), Value::Str("secp256k1".into()), Value::Null);
         let r: String = self.safe_string_k(&signature, "r", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let sVal: String = self.safe_string_k(&signature, "s", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let v: String = self.int_to_base16(self.sum(&[Value::Int(27), crate::value::KeyRead::key_read(&&signature, "v")]), &[]);
@@ -3747,8 +3745,8 @@ impl Polymarket {
         let nonceMessage: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("polymarket-perps-proxy:".into()), Value::Str(format!("{}", Value::Int(self.milliseconds())).into())).into()), ":").into()), Value::Str(format!("{}", Value::Int(self.rand_number(Value::Int(9)))).into()));
         let seedSignature: Option<String> = self.sign_message(Value::from(nonceMessage), (self.privateKey.clone()).as_str());
         let proxyPrivateKey: String = self.hash(self.encode(seedSignature.map(Value::from).unwrap_or(Value::Null)), "keccak", &[Value::Str("hex".into())]);
-        let proxyAddress: Option<String> = self.eth_get_address_from_private_key(Value::from(proxyPrivateKey.as_str()), &[]).as_str().map(str::to_owned);
-        let owner: Option<String> = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]).as_str().map(str::to_owned);
+        let proxyAddress: String = self.eth_get_address_from_private_key(Value::from(proxyPrivateKey.as_str()), &[]);
+        let owner: String = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);
         let ts: i64 = self.milliseconds();
         let lifetime: i64 = self.safe_integer_k(&self.options, "proxyExpiry", &[Value::Int(604800000)]).as_i64().unwrap_or(604800000);
         let expiry: i64 = (ts + lifetime);
@@ -3788,7 +3786,7 @@ impl Polymarket {
         });
         let message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("addr".to_string(), Value::from(proxyAddress.as_deref()));
+                m.insert("addr".to_string(), Value::from(proxyAddress.as_str()));
                 m.insert("exp".to_string(), Value::from(expiry));
                 m.insert("salt".to_string(), Value::from(salt));
                 m.insert("ts".to_string(), Value::from(ts));
@@ -3804,8 +3802,8 @@ impl Polymarket {
         m.insert("args".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("expiry".to_string(), Value::from(expiry));
-        m.insert("owner".to_string(), owner.map(Value::from).unwrap_or(Value::Null));
-        m.insert("proxy".to_string(), Value::from(proxyAddress.as_deref()));
+        m.insert("owner".to_string(), Value::from(owner));
+        m.insert("proxy".to_string(), Value::from(proxyAddress.as_str()));
     m
 }));
     m
@@ -3822,7 +3820,7 @@ impl Polymarket {
         //
         let credentials: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("proxy".to_string(), proxyAddress.map(Value::from).unwrap_or(Value::Null));
+                m.insert("proxy".to_string(), Value::from(proxyAddress));
                 m.insert("privateKey".to_string(), Value::from(proxyPrivateKey));
                 m.insert("secret".to_string(), self.safe_string_k(&response, "secret", &[]));
                 m.insert("expires".to_string(), Value::from(expiry));
