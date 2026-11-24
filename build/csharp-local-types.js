@@ -99,7 +99,7 @@ export const CORE_NUMERIC_ARGS = {
     'createTakeProfitOrderWs': { 3: 'double', 4: 'double?' },
     'createTrailingAmountOrder': { 3: 'double', 4: 'double?' },
     'createTrailingAmountOrderWs': { 3: 'double', 4: 'double?' },
-    'createTrailingPercentOrder': { 3: 'double', 4: 'double?' },
+    'createTrailingPercentOrder': { 3: 'double', 4: 'double?', 5: 'double?', 6: 'double?' },
     'createTrailingPercentOrderWs': { 3: 'double', 4: 'double?' },
     'createTriggerOrderWs': { 3: 'double', 4: 'double?' },
     'createTwapOrder': { 2: 'double' },
