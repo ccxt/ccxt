@@ -319,7 +319,7 @@ func (this *Onetrading) HandleTicker(client ccxt.ClientInterface, message map[st
 	}
 	client.Resolve(ccxt.TickerMapToMap(this.Tickers), "tickers")
 }
-func (this *Onetrading) ParseWSTicker(ticker any, market any, timestamp *int64, datetime *string) any {
+func (this *Onetrading) ParseWSTicker(ticker any, market map[string]any, timestamp *int64, datetime *string) any {
 	//
 	//     {
 	//         "instrument": "ETH_BTC",
@@ -419,13 +419,13 @@ func (this *Onetrading) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade]
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	trades := r2.Value
+	var trades ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r2.Value)
 	var limitResolved any = limit
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(trades).GetLimit(symbolResolved, limit)
 	}
-	trades = this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved)
-	var numTrades int = ccxt.GetArrayLength(trades)
+	var filtered []any = this.FilterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved)
+	var numTrades int = len(filtered)
 	if numTrades == 0 {
 
 		r3 := <-this.WatchMyTradesAsync(symbolResolved, since, limitResolved, params)
@@ -436,17 +436,7 @@ func (this *Onetrading) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade]
 		return nil
 	}
 
-	var resolved []any
-	switch resolvedBox := trades.(type) {
-	case []any:
-		resolved = resolvedBox
-	case ccxt.IArrayCache:
-		resolved = resolvedBox.ToArray()
-	case nil:
-	default:
-		panic(ccxt.ExchangeError("resolved value is not []any"))
-	}
-	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(resolved)}
+	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(filtered)}
 	return nil
 }
 
@@ -656,13 +646,13 @@ func (this *Onetrading) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], 
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	orders := r2.Value
+	var orders ccxt.ArrayCacheInterface = ccxt.AsArrayCache(r2.Value)
 	var limitResolved any = limit
 	if this.NewUpdates {
 		limitResolved = ccxt.ToGetsLimit(orders).GetLimit(symbolResolved, limit)
 	}
-	orders = this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved)
-	var numOrders int = ccxt.GetArrayLength(orders)
+	var filtered []any = this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved)
+	var numOrders int = len(filtered)
 	if numOrders == 0 {
 
 		r3 := <-this.WatchOrdersAsync(symbolResolved, since, limitResolved, params)
@@ -673,17 +663,7 @@ func (this *Onetrading) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], 
 		return nil
 	}
 
-	var resolved []any
-	switch resolvedBox := orders.(type) {
-	case []any:
-		resolved = resolvedBox
-	case ccxt.IArrayCache:
-		resolved = resolvedBox.ToArray()
-	case nil:
-	default:
-		panic(ccxt.ExchangeError("resolved value is not []any"))
-	}
-	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(resolved)}
+	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(filtered)}
 	return nil
 }
 func (this *Onetrading) HandleTrading(client ccxt.ClientInterface, message map[string]any) {

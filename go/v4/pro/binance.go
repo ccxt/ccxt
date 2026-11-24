@@ -4611,12 +4611,12 @@ func (this *Binance) SetBalanceCache(client ccxt.ClientInterface, typeVar any, o
 		ccxt.AddElementToObject(this.Balance, typeVar, map[string]any{})
 	}
 }
-func (this *Binance) LoadBalanceSnapshotAsync(client ccxt.ClientInterface, messageHash any, typeVar any, isPortfolioMargin bool) <-chan ccxt.AsyncResult[bool] {
+func (this *Binance) LoadBalanceSnapshotAsync(client ccxt.ClientInterface, messageHash any, typeVar string, isPortfolioMargin bool) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadBalanceSnapshotBody(ch, client, messageHash, typeVar, isPortfolioMargin)
 	return ch
 }
-func (this *Binance) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, messageHash any, typeVar any, isPortfolioMargin bool) any {
+func (this *Binance) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, messageHash any, typeVar string, isPortfolioMargin bool) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = map[string]any{
@@ -4634,12 +4634,12 @@ func (this *Binance) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], cli
 	if !ccxt.StructAbsent(r.Value) {
 		response = ccxt.StructBox(r.Value, ccxt.BalancesToMap)
 	}
-	ccxt.AddElementToObject(this.Balance, typeVar, this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{})))
+	this.Balance[typeVar] = this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{}))
 	// don't remove the future from the .futures cache
 	if client.FutureHas(messageHash) {
 		var future *ccxt.Future = client.FutureTyped(messageHash)
 		future.Resolve()
-		client.Resolve(ccxt.GetValue(this.Balance, typeVar), ccxt.Add(typeVar, ":balance"))
+		client.Resolve(this.Balance[typeVar], typeVar+":balance")
 	}
 	return nil
 }
@@ -5113,7 +5113,11 @@ func (this *Binance) HandleBalance(client ccxt.ClientInterface, message map[stri
 	if entry, ok := this.Balance[accountType].(map[string]any); ok && (entry != nil) {
 		entry["info"] = message
 	}
-	var balance map[string]any = this.SafeDictMap(this.Balance, accountType, map[string]any{})
+	var balance map[string]any
+	balance, _ = this.Balance[accountType].(map[string]any)
+	if balance == nil {
+		balance = map[string]any{}
+	}
 	var event *string = this.SafeString(message, "e")
 	// balanceUpdate carries the asset code (a string) under 'a', so it reads as the message itself
 	var balanceMessage map[string]any
@@ -6976,12 +6980,12 @@ func (this *Binance) SetPositionsCache(client ccxt.ClientInterface, typeVar any,
 		}
 	}
 }
-func (this *Binance) LoadPositionsSnapshotAsync(client ccxt.ClientInterface, messageHash any, typeVar any, isPortfolioMargin bool) <-chan ccxt.AsyncResult[bool] {
+func (this *Binance) LoadPositionsSnapshotAsync(client ccxt.ClientInterface, messageHash any, typeVar string, isPortfolioMargin bool) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadPositionsSnapshotBody(ch, client, messageHash, typeVar, isPortfolioMargin)
 	return ch
 }
-func (this *Binance) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, messageHash any, typeVar any, isPortfolioMargin bool) any {
+func (this *Binance) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, messageHash any, typeVar string, isPortfolioMargin bool) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = map[string]any{
@@ -7007,10 +7011,8 @@ func (this *Binance) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], c
 
 		return nil
 	}
-	if wsKey, ok := typeVar.(string); ok {
-		this.PositionsByType[wsKey] = ccxt.NewArrayCacheBySymbolBySide()
-	}
-	var cache ccxt.WsArrayCache = this.PositionsByType[typeVar.(string)]
+	this.PositionsByType[typeVar] = ccxt.NewArrayCacheBySymbolBySide()
+	var cache ccxt.WsArrayCache = this.PositionsByType[typeVar]
 	for i := 0; i < len(positions); i++ {
 		var position any = positions[i]
 		var contracts *float64 = this.SafeNumber(position, "contracts", 0)
@@ -7022,7 +7024,7 @@ func (this *Binance) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], c
 	if client.FutureHas(messageHash) {
 		var future *ccxt.Future = client.FutureTyped(messageHash)
 		future.Resolve(cache)
-		client.Resolve(cache, ccxt.Add(typeVar, ":position"))
+		client.Resolve(cache, typeVar+":position")
 	}
 	return nil
 }
@@ -7715,7 +7717,11 @@ func (this *Binance) HandleOptionsAccountUpdate(client ccxt.ClientInterface, mes
 	if this.Balance[accountType] == nil {
 		this.Balance[accountType] = map[string]any{}
 	}
-	var balance map[string]any = this.SafeDictMap(this.Balance, accountType, map[string]any{})
+	var balance map[string]any
+	balance, _ = this.Balance[accountType].(map[string]any)
+	if balance == nil {
+		balance = map[string]any{}
+	}
 	balance["info"] = message
 	var B, _ = message["B"].([]any)
 	for i := 0; i < len(B); i++ {

@@ -229,7 +229,7 @@ func (this *Xt) getListenKeyBody(ch chan ccxt.AsyncResult[*string], isContract b
 	ch <- ccxt.AsyncResult[*string]{Value: resolved1}
 	return nil
 }
-func (this *Xt) GetCacheIndex(orderbook any, cache []any) int64 {
+func (this *Xt) GetCacheIndex(orderbook map[string]any, cache []any) int64 {
 	// return the first index of the cache that can be applied to the orderbook or -1 if not possible
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 	var firstDelta map[string]any
@@ -2262,7 +2262,7 @@ func (this *Xt) HandleUnSubscription(client ccxt.ClientInterface, subscription m
 	}
 	this.CleanCache(subscription)
 }
-func (this *Xt) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) {
+func (this *Xt) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	//    {
 	//        "id": "123",
@@ -2276,10 +2276,11 @@ func (this *Xt) HandleErrorMessage(client ccxt.ClientInterface, message map[stri
 			client.SubscriptionDel("token")
 		}
 		this.GetListenKeyAsync(true)
-		return
+		return false
 	}
 	error := ccxt.ExchangeError(this.Id + " " + this.Json(message))
 	client.Reject(error)
+	return false
 }
 
 func NewXt(userConfig map[string]any) *Xt {

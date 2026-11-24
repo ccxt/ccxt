@@ -251,7 +251,7 @@ func (this *Opinion) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInte
 			fetchedRawRows = append(fetchedRawRows, raw)
 			var marketType *int64 = this.SafeInteger(raw, "marketType")
 			if marketType != nil && *marketType == 1 {
-				var event map[string]any = this.ParseEvent(raw)
+				var event map[string]any = this.ParseEvent(this.SafeDict(rawMarkets, i, map[string]any{}))
 				var childMarkets []any = ccxt.SafeListTyped(event, "markets")
 				var childMarketsLength int = len(childMarkets)
 				for ci := 0; ci < childMarketsLength; ci++ {
@@ -588,7 +588,7 @@ func (this *Opinion) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionE
 		this.Markets = map[string]any{}
 	}
 	for i := 0; i < rawEventsLength; i++ {
-		var event map[string]any = this.ParseEvent(rawEvents[i])
+		var event map[string]any = this.ParseEvent(this.SafeDict(rawEvents, i, map[string]any{}))
 		parsedEvents = append(parsedEvents, event)
 		// register the parsed markets so populateOutcomes can index their outcomes
 		var eventMarkets []any = ccxt.SafeListTyped(event, "markets")

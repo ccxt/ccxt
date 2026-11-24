@@ -1373,7 +1373,7 @@ func (this *Poloniex) fetchTimeBody(ch chan AsyncResult[*int64], optionalArgs ..
 	ch <- AsyncResult[*int64]{Value: this.SafeInteger(response, "serverTime")}
 	return nil
 }
-func (this *Poloniex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Poloniex) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//  spot:
 	//

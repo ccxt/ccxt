@@ -6258,7 +6258,7 @@ func (this *Binance) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(orderbook)}
 	return nil
 }
-func (this *Binance) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Binance) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	// markPrices
 	//
 	//     {
@@ -6931,7 +6931,11 @@ func (this *Binance) ParseTickersForRolling(response []any, symbols []string) ma
 	for i := 0; i < len(response); i++ {
 		var marketId *string = this.SafeString(this.SafeDict(response, i), "symbol")
 		var tickerMarket map[string]any = this.SafeMarket(marketId, nil, nil, "spot")
-		var parsedTicker map[string]any = TickerToMap(this.ParseTicker(this.SafeDict(response, i, map[string]any{})))
+		responseDict501351, _ := response[i].(map[string]any)
+		if responseDict501351 == nil {
+			responseDict501351 = map[string]any{}
+		}
+		var parsedTicker map[string]any = TickerToMap(this.ParseTicker(responseDict501351))
 		parsedTicker["symbol"] = tickerMarket["symbol"]
 		results = append(results, parsedTicker)
 	}
@@ -6982,7 +6986,14 @@ func (this *Binance) fetchMarkPriceBody(ch chan AsyncResult[Ticker], symbol stri
 		}
 		var optionResponse []any = optionResponseRecv.Value
 
-		ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.SafeDict(optionResponse, 0, map[string]any{}), market)}
+		var optionResponseDict504537 map[string]any
+		if len(optionResponse) > 0 {
+			optionResponseDict504537, _ = optionResponse[0].(map[string]any)
+		}
+		if optionResponseDict504537 == nil {
+			optionResponseDict504537 = map[string]any{}
+		}
+		ch <- AsyncResult[Ticker]{Value: this.ParseTicker(optionResponseDict504537, market)}
 		return nil
 	} else if this.IsLinear(typeVar, subType) {
 
@@ -7000,7 +7011,14 @@ func (this *Binance) fetchMarkPriceBody(ch chan AsyncResult[Ticker], symbol stri
 		}
 		var inverseResponse []any = inverseResponseRecv.Value
 
-		ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.SafeDict(inverseResponse, 0, map[string]any{}), market)}
+		var inverseResponseDict505137 map[string]any
+		if len(inverseResponse) > 0 {
+			inverseResponseDict505137, _ = inverseResponse[0].(map[string]any)
+		}
+		if inverseResponseDict505137 == nil {
+			inverseResponseDict505137 = map[string]any{}
+		}
+		ch <- AsyncResult[Ticker]{Value: this.ParseTicker(inverseResponseDict505137, market)}
 		return nil
 	} else {
 		panic(NotSupported(this.Id + " fetchMarkPrice() does not support " + *typeVar + " markets yet"))
@@ -13107,7 +13125,10 @@ func (this *Binance) ParseTransactionStatusByType(status *string, optionalArgs .
 			"Refund Failed": "failed",
 		},
 	}
-	var statuses map[string]any = SafeMapTyped(statusesByType, typeVar)
+	var statuses map[string]any
+	if typeVar != nil {
+		statuses, _ = statusesByType[*typeVar].(map[string]any)
+	}
 	return this.SafeString(statuses, status, status)
 }
 func (this *Binance) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {
@@ -18275,7 +18296,7 @@ func (this *Binance) ParseBorrowRate(info any, optionalArgs ...any) map[string]a
 		"info":      info,
 	}
 }
-func (this *Binance) ParseIsolatedBorrowRate(info any, optionalArgs ...any) map[string]any {
+func (this *Binance) ParseIsolatedBorrowRate(info map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "vipLevel": 0,
@@ -20797,7 +20818,7 @@ func (this *Binance) fetchLongShortRatioHistoryBody(ch chan AsyncResult[[]LongSh
 	ch <- AsyncResult[[]LongShortRatio]{Value: LongShortRatiosFromList(this.ParseLongShortRatioHistory(response, market))}
 	return nil
 }
-func (this *Binance) ParseLongShortRatio(info any, optionalArgs ...any) LongShortRatio {
+func (this *Binance) ParseLongShortRatio(info map[string]any, optionalArgs ...any) LongShortRatio {
 	//
 	// linear
 	//

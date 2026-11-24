@@ -1600,10 +1600,14 @@ func (this *Digifinex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol strin
 		return nil
 	}
 
-	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.SafeDict(response, "data", map[string]any{}), market)}
+	responseDict119533, _ := response["data"].(map[string]any)
+	if responseDict119533 == nil {
+		responseDict119533 = map[string]any{}
+	}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(responseDict119533, market)}
 	return nil
 }
-func (this *Digifinex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Digifinex) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// spot: fetchTicker, fetchTickers
 	//
@@ -5827,7 +5831,7 @@ func (this *Digifinex) ParseMarketLeverageTiers(info any, optionalArgs ...any) [
 	}
 	return tiers
 }
-func (this *Digifinex) HandleMarginModeAndParams(methodName any, optionalArgs ...any) (*string, map[string]any) {
+func (this *Digifinex) HandleMarginModeAndParams(methodName string, optionalArgs ...any) (*string, map[string]any) {
 	/**
 	 * @ignore
 	 * @method

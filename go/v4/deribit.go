@@ -1739,7 +1739,7 @@ func (this *Deribit) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress]
 	})}
 	return nil
 }
-func (this *Deribit) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Deribit) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// fetchTicker /public/ticker
 	//
@@ -1998,7 +1998,11 @@ func (this *Deribit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	result, _ = response["result"].([]any)
 	var tickers map[string]any = map[string]any{}
 	for i := 0; i < len(result); i++ {
-		var ticker map[string]any = TickerToMap(this.ParseTicker(this.SafeDict(result, i, map[string]any{})))
+		resultDict147145, _ := result[i].(map[string]any)
+		if resultDict147145 == nil {
+			resultDict147145 = map[string]any{}
+		}
+		var ticker map[string]any = TickerToMap(this.ParseTicker(resultDict147145))
 		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			tickers[*symbol] = ticker

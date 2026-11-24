@@ -4352,7 +4352,7 @@ func (this *Gate) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.Extend(map[string]any{}, ticker), market)}
 	return nil
 }
-func (this *Gate) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Gate) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// SPOT
 	//

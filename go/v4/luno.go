@@ -1216,7 +1216,7 @@ func (this *Luno) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	}
 	return nil
 }
-func (this *Luno) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Luno) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	// {
 	//     "pair":"XBTAUD",
 	//     "timestamp":1642201439301,
@@ -1306,7 +1306,11 @@ func (this *Luno) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optio
 		var id string = ids[i]
 		var market map[string]any = this.SafeMarket(id)
 		var symbol string = *this.SafeString(market, "symbol", "")
-		result[symbol] = TickerToMap(this.ParseTicker(this.SafeDict(tickers, id, map[string]any{}), market))
+		tickersDict100247, _ := tickers[id].(map[string]any)
+		if tickersDict100247 == nil {
+			tickersDict100247 = map[string]any{}
+		}
+		result[symbol] = TickerToMap(this.ParseTicker(tickersDict100247, market))
 	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(result, "symbol", symbolsNormalized))}

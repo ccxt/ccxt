@@ -3035,7 +3035,7 @@ func (this *Pacifica) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(result, "symbol", symbolsNormalized))}
 	return nil
 }
-func (this *Pacifica) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Pacifica) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//       "funding": "0.00010529",

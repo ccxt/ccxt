@@ -1308,7 +1308,7 @@ func (this *Grvt) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(result, market)}
 	return nil
 }
-func (this *Grvt) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Grvt) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//  {
 	//            "event_time": "1764774730025055205",

@@ -2344,7 +2344,14 @@ func (this *Xt) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, opti
 		var tickers []any
 		tickers, _ = response["result"].([]any)
 
-		ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.SafeDict(tickers, 0, map[string]any{}), market)}
+		var tickersDict178537 map[string]any
+		if len(tickers) > 0 {
+			tickersDict178537, _ = tickers[0].(map[string]any)
+		}
+		if tickersDict178537 == nil {
+			tickersDict178537 = map[string]any{}
+		}
+		ch <- AsyncResult[Ticker]{Value: this.ParseTicker(tickersDict178537, market)}
 		return nil
 	}
 	var ticker map[string]any
@@ -2472,7 +2479,11 @@ func (this *Xt) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optiona
 	tickers, _ = response["result"].([]any)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(tickers); i++ {
-		var ticker map[string]any = TickerToMap(this.ParseTicker(this.SafeDict(tickers, i, map[string]any{}), market))
+		tickersDict187545, _ := tickers[i].(map[string]any)
+		if tickersDict187545 == nil {
+			tickersDict187545 = map[string]any{}
+		}
+		var ticker map[string]any = TickerToMap(this.ParseTicker(tickersDict187545, market))
 		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			result[*symbol] = ticker
@@ -2590,16 +2601,19 @@ func (this *Xt) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], option
 	tickers, _ = response["result"].([]any)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(tickers); i++ {
-		var rawTicker, _ = tickers[i].(map[string]any)
 		// the spot and contract payloads share the same field names, so
 		// the market type cannot be inferred from the entry itself
-		var marketId *string = this.SafeString(rawTicker, "s")
+		var marketId *string = this.SafeString(tickers[i], "s")
 		var marketType string = "spot"
 		if isContract {
 			marketType = "contract"
 		}
 		var marketInner map[string]any = this.SafeMarket(marketId, market, "_", marketType)
-		var ticker map[string]any = TickerToMap(this.ParseTicker(tickers[i], marketInner))
+		tickersDict196845, _ := tickers[i].(map[string]any)
+		if tickersDict196845 == nil {
+			tickersDict196845 = map[string]any{}
+		}
+		var ticker map[string]any = TickerToMap(this.ParseTicker(tickersDict196845, marketInner))
 		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			result[*symbol] = ticker
@@ -2609,7 +2623,7 @@ func (this *Xt) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], option
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(result, "symbol", symbolsNormalized))}
 	return nil
 }
-func (this *Xt) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Xt) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// spot: fetchTicker, fetchTickers
 	//
@@ -3163,7 +3177,7 @@ func (this *Xt) ParseTrade(trade any, optionalArgs ...any) Trade {
 			amount = Precise.StringMul(quantity, this.NumberToString(marketResolved["contractSize"]))
 		}
 	}
-	var literal242031 map[string]any = map[string]any{
+	var literal241931 map[string]any = map[string]any{
 		"info":         trade,
 		"id":           this.SafeStringN(trade, []any{"i", "tradeId", "execId"}),
 		"timestamp":    timestamp,
@@ -3182,9 +3196,9 @@ func (this *Xt) ParseTrade(trade any, optionalArgs ...any) Trade {
 		},
 	}
 	if amount != nil {
-		literal242031["amount"] = *amount
+		literal241931["amount"] = *amount
 	}
-	return this.SafeTrade(literal242031, marketResolved)
+	return this.SafeTrade(literal241931, marketResolved)
 }
 
 /**
@@ -4713,11 +4727,11 @@ func (this *Xt) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs .
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes354815 []any = OrdersToList(r.Value)
-	if retRes354815 == nil {
+	var retRes354715 []any = OrdersToList(r.Value)
+	if retRes354715 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes354815)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes354715)}
 	}
 	return nil
 }
@@ -4761,11 +4775,11 @@ func (this *Xt) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes357015 []any = OrdersToList(r.Value)
-	if retRes357015 == nil {
+	var retRes356915 []any = OrdersToList(r.Value)
+	if retRes356915 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes357015)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes356915)}
 	}
 	return nil
 }
@@ -4809,11 +4823,11 @@ func (this *Xt) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes359215 []any = OrdersToList(r.Value)
-	if retRes359215 == nil {
+	var retRes359115 []any = OrdersToList(r.Value)
+	if retRes359115 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes359215)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes359115)}
 	}
 	return nil
 }
@@ -5394,7 +5408,7 @@ func (this *Xt) ParseOrder(order any, optionalArgs ...any) Order {
 			}
 		}
 	}
-	var literal400831 map[string]any = map[string]any{
+	var literal400731 map[string]any = map[string]any{
 		"info":                order,
 		"id":                  this.SafeStringN(order, []any{"orderId", "result", "cancelId", "entrustId", "profitId", "trackId"}),
 		"clientOrderId":       this.SafeString2(order, "clientOrderId", "clientModifyId"),
@@ -5424,9 +5438,9 @@ func (this *Xt) ParseOrder(order any, optionalArgs ...any) Order {
 		"trades": nil,
 	}
 	if remaining != nil {
-		literal400831["remaining"] = *remaining
+		literal400731["remaining"] = *remaining
 	}
-	return this.SafeOrder(literal400831, marketResolved)
+	return this.SafeOrder(literal400731, marketResolved)
 }
 func (this *Xt) ParseOrderType(typeVar *string) *string {
 	var types map[string]any = map[string]any{
@@ -6541,11 +6555,11 @@ func (this *Xt) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHis
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes482519 []any = r1.Value
-		if retRes482519 == nil {
+		var retRes482419 []any = r1.Value
+		if retRes482419 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes482519)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes482419)}
 		}
 		return nil
 	}

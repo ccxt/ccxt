@@ -1953,7 +1953,7 @@ func (this *Backpack) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(response, market)}
 	return nil
 }
-func (this *Backpack) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Backpack) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// fetchTicker/fetchTickers
 	//

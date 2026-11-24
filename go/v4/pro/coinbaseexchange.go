@@ -1195,7 +1195,7 @@ func (this *Coinbaseexchange) HandleTicker(client ccxt.ClientInterface, message 
 	}
 	return message
 }
-func (this *Coinbaseexchange) ParseTicker(ticker any, optionalArgs ...any) ccxt.Ticker {
+func (this *Coinbaseexchange) ParseTicker(ticker map[string]any, optionalArgs ...any) ccxt.Ticker {
 	//
 	//     {
 	//         "type": "ticker",

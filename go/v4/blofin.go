@@ -1023,7 +1023,7 @@ func (this *Blofin) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(first, symbol, timestamp))}
 	return nil
 }
-func (this *Blofin) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Blofin) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// response similar for REST & WS
 	//

@@ -1389,7 +1389,7 @@ func (this *Lbank) HandleOrderBook(client ccxt.ClientInterface, message map[stri
 	messageHash = "fetchOrderbook:" + *symbol
 	client.Resolve(orderbook, messageHash)
 }
-func (this *Lbank) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) {
+func (this *Lbank) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	//    {
 	//        SERVER: 'V2',
@@ -1401,6 +1401,7 @@ func (this *Lbank) HandleErrorMessage(client ccxt.ClientInterface, message map[s
 	var errMsg string = *this.SafeString(message, "message", "")
 	error := ccxt.ExchangeError(this.Id + " " + errMsg)
 	client.Reject(error)
+	return false
 }
 func (this *Lbank) HandlePingAsync(client ccxt.ClientInterface, message any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)

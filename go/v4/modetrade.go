@@ -1128,7 +1128,7 @@ func (this *Modetrade) ParseCurrency(rawCurrency any) map[string]any {
 		"info": rawCurrency,
 	})
 }
-func (this *Modetrade) ParseTokenAndFeeTemp(item any, feeTokenKey string, feeAmountKey string) any {
+func (this *Modetrade) ParseTokenAndFeeTemp(item map[string]any, feeTokenKey string, feeAmountKey string) any {
 	var feeCost *string = this.SafeString(item, feeAmountKey)
 	var fee any = nil
 	if feeCost != nil {
@@ -1180,7 +1180,7 @@ func (this *Modetrade) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var price *string = this.SafeString(trade, "executed_price")
 	var amount *string = this.SafeString(trade, "executed_quantity")
 	var order_id *string = this.SafeString(trade, "order_id")
-	var fee any = this.ParseTokenAndFeeTemp(trade, "fee_asset", "fee")
+	var fee any = this.ParseTokenAndFeeTemp(this.Extend(map[string]any{}, trade), "fee_asset", "fee")
 	var cost *string = Precise.StringMul(price, amount)
 	var side *string = this.SafeStringLower(trade, "side")
 	var takerOrMaker *string = nil
@@ -1599,7 +1599,7 @@ func (this *Modetrade) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Funding
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.FilterBySymbolSinceLimit(this.SortBy(rates, "timestamp"), symbolResolved, since, limit))}
 	return nil
 }
-func (this *Modetrade) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Modetrade) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "symbol": "PERP_BTC_USDC",

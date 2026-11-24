@@ -778,7 +778,7 @@ func (this *Cex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], option
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(data, symbols))}
 	return nil
 }
-func (this *Cex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Cex) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "id")

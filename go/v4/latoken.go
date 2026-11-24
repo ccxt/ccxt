@@ -1051,7 +1051,7 @@ func (this *Latoken) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(filtered, symbol, nil, "bid", "ask", "price", "quantity"))}
 	return nil
 }
-func (this *Latoken) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Latoken) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//    {
 	//        "symbol": "BTC/USDT",

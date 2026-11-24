@@ -480,7 +480,7 @@ func (this *Mercado) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market["symbol"]))}
 	return nil
 }
-func (this *Mercado) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Mercado) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "high":"103.96000000",

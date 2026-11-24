@@ -1791,7 +1791,7 @@ func (this *Deepcoin) HandleUnSubscription(client ccxt.ClientInterface, subscrip
 	this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 	this.CleanCache(subscription)
 }
-func (this *Deepcoin) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) {
+func (this *Deepcoin) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	//     {
 	//         "a": "RecvTopicAction",
@@ -1844,6 +1844,7 @@ func (this *Deepcoin) HandleErrorMessage(client ccxt.ClientInterface, message ma
 		}(this)
 
 	}
+	return false
 }
 
 func NewDeepcoin(userConfig map[string]any) *Deepcoin {

@@ -1071,7 +1071,7 @@ func (this *Bullish) HandlePositions(client ccxt.ClientInterface, message map[st
 	}
 	client.Resolve(positions, "positions")
 }
-func (this *Bullish) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) {
+func (this *Bullish) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	//     {
 	//         "data": {
@@ -1114,6 +1114,7 @@ func (this *Bullish) HandleErrorMessage(client ccxt.ClientInterface, message map
 		}(this)
 
 	}
+	return false
 }
 func (this *Bullish) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var dataType *string = this.SafeString(message, "dataType")

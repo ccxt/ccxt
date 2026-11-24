@@ -959,7 +959,7 @@ func (this *Coinone) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(ticker, market)}
 	return nil
 }
-func (this *Coinone) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Coinone) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "quote_currency": "krw",

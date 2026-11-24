@@ -913,7 +913,7 @@ func (this *Krakenfutures) fetchTickersBody(ch chan AsyncResult[map[string]Ticke
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(tickers, symbols))}
 	return nil
 }
-func (this *Krakenfutures) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Krakenfutures) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//    {
 	//        "symbol": "PF_XBTUSD",

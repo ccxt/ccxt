@@ -3155,14 +3155,15 @@ func (this *Paradex) SbeReadDecimal(frameHex string, offset int64) any {
 	}
 	return ccxt.Precise.StringDiv(mantissa, "100000000", 8)
 }
-func (this *Paradex) SbeReadTimestamp(frameHex string, offset int64) any {
+func (this *Paradex) SbeReadTimestamp(frameHex string, offset int64) *int64 {
 	// timestamps are microseconds, truncated to milliseconds with ccxt.Precise: a float
 	// quotient like 1791906071000.999 is rounded up when php converts it to an int
 	var microseconds any = this.SbeReadInt64(frameHex, offset)
 	if microseconds == nil {
 		return nil
 	}
-	return this.ParseToInt(ccxt.Precise.StringDiv(microseconds, "1000", 0))
+	retIntVal := this.ParseToInt(ccxt.Precise.StringDiv(microseconds, "1000", 0))
+	return &retIntVal
 }
 func (this *Paradex) SbeReadEnum(frameHex string, offset int64, values map[string]any) *string {
 	var value int64 = this.ParseToInt(this.SbeReadUint(frameHex, offset, 1))

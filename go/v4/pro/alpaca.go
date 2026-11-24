@@ -142,7 +142,7 @@ func (this *Alpaca) HandleTicker(client ccxt.ClientInterface, message map[string
 	}
 	client.Resolve(ticker, messageHash)
 }
-func (this *Alpaca) ParseTicker(ticker any, optionalArgs ...any) ccxt.Ticker {
+func (this *Alpaca) ParseTicker(ticker map[string]any, optionalArgs ...any) ccxt.Ticker {
 	//
 	//    {
 	//         "T": "q",

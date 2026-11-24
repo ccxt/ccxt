@@ -2749,7 +2749,7 @@ func (this *Mexc) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.Extend(map[string]any{}, ticker), market)}
 	return nil
 }
-func (this *Mexc) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Mexc) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
@@ -6851,7 +6851,10 @@ func (this *Mexc) ParseTransactionStatusByType(status *string, optionalArgs ...a
 			"10": "pending",
 		},
 	}
-	var statuses map[string]any = SafeMapTyped(statusesByType, typeVar)
+	var statuses map[string]any
+	if typeVar != nil {
+		statuses, _ = statusesByType[*typeVar].(map[string]any)
+	}
 	return this.SafeString(statuses, status, status)
 }
 
@@ -8114,7 +8117,7 @@ func (this *Mexc) ParseLeverage(leverage map[string]any, optionalArgs ...any) Le
 		"shortLeverage": nil,
 	})
 }
-func (this *Mexc) HandleMarginModeAndParams(methodName any, optionalArgs ...any) (*string, map[string]any) {
+func (this *Mexc) HandleMarginModeAndParams(methodName string, optionalArgs ...any) (*string, map[string]any) {
 	/**
 	 * @ignore
 	 * @method

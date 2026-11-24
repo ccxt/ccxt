@@ -545,7 +545,7 @@ func (this *Bitbns) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market.Symbol, timestamp))}
 	return nil
 }
-func (this *Bitbns) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Bitbns) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "symbol":"BTC/INR",
@@ -1609,7 +1609,10 @@ func (this *Bitbns) ParseTransactionStatusByType(status *string, optionalArgs ..
 			"6": "ok",
 		},
 	}
-	var statuses map[string]any = SafeMapTyped(statusesByType, typeVar)
+	var statuses map[string]any
+	if typeVar != nil {
+		statuses, _ = statusesByType[*typeVar].(map[string]any)
+	}
 	return this.SafeString(statuses, status, status)
 }
 func (this *Bitbns) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {

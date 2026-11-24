@@ -593,7 +593,7 @@ func (this *Btcturk) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(data, market.Symbol, timestamp, "bids", "asks", 0, 1))}
 	return nil
 }
-func (this *Btcturk) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Btcturk) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//   {
 	//     "pair": "BTCTRY",

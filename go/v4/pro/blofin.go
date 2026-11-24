@@ -519,7 +519,11 @@ func (this *Blofin) HandleTicker(client ccxt.ClientInterface, message map[string
 	var data []any
 	data, _ = message["data"].([]any)
 	for i := 0; i < len(data); i++ {
-		var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(this.SafeDict(data, i, map[string]any{})))
+		dataDict33845, _ := data[i].(map[string]any)
+		if dataDict33845 == nil {
+			dataDict33845 = map[string]any{}
+		}
+		var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(dataDict33845))
 		var symbol string = *this.SafeString(ticker, "symbol", "")
 		this.Tickers[symbol] = ccxt.TickerFromMap(ticker)
 		if channelName != nil {
@@ -919,7 +923,11 @@ func (this *Blofin) HandleBalance(client ccxt.ClientInterface, message map[strin
 	// the merged currencies by safeBalance
 	this.Balance[marketType] = this.SafeDict(this.Balance, marketType, map[string]any{})
 	var parsed map[string]any = ccxt.MapTyped(this.ParseWsBalance(message))
-	var marketBalance map[string]any = this.SafeDictMap(this.Balance, marketType, map[string]any{})
+	var marketBalance map[string]any
+	marketBalance, _ = this.Balance[marketType].(map[string]any)
+	if marketBalance == nil {
+		marketBalance = map[string]any{}
+	}
 	var reserved []string = []string{"free", "used", "total"}
 	var keys []string = nil
 	if parsed != nil {

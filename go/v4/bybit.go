@@ -3579,7 +3579,7 @@ func (this *Bybit) fetchOptionMarketsBody(ch chan AsyncResult[[]MarketInterface]
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
-func (this *Bybit) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Bybit) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// spot
 	//
@@ -11065,7 +11065,7 @@ func (this *Bybit) fetchMarketLeverageTiersBody(ch chan AsyncResult[[]LeverageTi
 	}
 	return nil
 }
-func (this *Bybit) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInterface {
+func (this *Bybit) ParseTradingFee(fee map[string]any, optionalArgs ...any) TradingFeeInterface {
 	//
 	//     {
 	//         "symbol": "ETHUSDT",
@@ -11219,7 +11219,11 @@ func (this *Bybit) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFe
 	fees, _ = feeRates["list"].([]any)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(fees); i++ {
-		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(fees[i]))
+		var feeRow, _ = fees[i].(map[string]any)
+		if feeRow == nil {
+			feeRow = map[string]any{}
+		}
+		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(feeRow))
 		var symbol *string = this.SafeString(fee, "symbol")
 		if symbol != nil {
 			result[*symbol] = fee
@@ -12000,11 +12004,11 @@ func (this *Bybit) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation], o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes885619 []any = r1.Value
-		if retRes885619 == nil {
+		var retRes885719 []any = r1.Value
+		if retRes885719 == nil {
 			ch <- AsyncResult[[]Liquidation]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes885619)}
+			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes885719)}
 		}
 		return nil
 	}
@@ -12157,11 +12161,11 @@ func (this *Bybit) getLeverageTiersPaginatedBody(ch chan AsyncResult[[]LeverageT
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes898019 []any = r1.Value
-		if retRes898019 == nil {
+		var retRes898119 []any = r1.Value
+		if retRes898119 == nil {
 			ch <- AsyncResult[[]LeverageTier]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(retRes898019)}
+			ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(retRes898119)}
 		}
 		return nil
 	}
@@ -12233,11 +12237,11 @@ func (this *Bybit) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], op
 	}
 	var symbol *string = nil
 	if symbols != nil {
-		var symbolsElem902540 *string = nil
+		var symbolsElem902640 *string = nil
 		if 0 >= 0 && 0 < len(symbols) {
-			symbolsElem902540 = &symbols[0]
+			symbolsElem902640 = &symbols[0]
 		}
-		var market map[string]any = this.Market(symbolsElem902540)
+		var market map[string]any = this.Market(symbolsElem902640)
 		if *this.SafeBool(market, "spot", false) {
 			panic(NotSupported(this.Id + " fetchLeverageTiers() is not supported for spot market"))
 		}
@@ -12388,11 +12392,11 @@ func (this *Bybit) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory]
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes912419 []any = r1.Value
-		if retRes912419 == nil {
+		var retRes912519 []any = r1.Value
+		if retRes912519 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes912419)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes912519)}
 		}
 		return nil
 	}
@@ -13459,7 +13463,7 @@ func (this *Bybit) fetchLongShortRatioHistoryBody(ch chan AsyncResult[[]LongShor
 	ch <- AsyncResult[[]LongShortRatio]{Value: LongShortRatiosFromList(this.ParseLongShortRatioHistory(data, market))}
 	return nil
 }
-func (this *Bybit) ParseLongShortRatio(info any, optionalArgs ...any) LongShortRatio {
+func (this *Bybit) ParseLongShortRatio(info map[string]any, optionalArgs ...any) LongShortRatio {
 	//
 	//     {
 	//         "symbol": "BTCUSDT",

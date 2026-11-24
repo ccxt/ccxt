@@ -1298,7 +1298,7 @@ func (this *Woo) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var price *string = this.SafeString2(trade, "executed_price", "executedPrice")
 	var amount *string = this.SafeString2(trade, "executed_quantity", "executedQuantity")
 	var order_id *string = this.SafeString2(trade, "order_id", "orderId")
-	var fee any = this.ParseTokenAndFeeTemp(trade, []any{"fee_asset", "feeAsset"}, []any{"fee"})
+	var fee any = this.ParseTokenAndFeeTemp(this.Extend(map[string]any{}, trade), []any{"fee_asset", "feeAsset"}, []any{"fee"})
 	var cost *string = Precise.StringMul(price, amount)
 	var side *string = this.SafeStringLower(trade, "side")
 	var id *string = this.SafeString(trade, "id")
@@ -1329,7 +1329,7 @@ func (this *Woo) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"info":         trade,
 	}, marketResolved)
 }
-func (this *Woo) ParseTokenAndFeeTemp(item any, feeTokenKeys any, feeAmountKeys any) any {
+func (this *Woo) ParseTokenAndFeeTemp(item map[string]any, feeTokenKeys any, feeAmountKeys any) any {
 	var feeCost *string = this.SafeStringN(item, feeAmountKeys)
 	var fee any = nil
 	if feeCost != nil {
@@ -3003,7 +3003,7 @@ func (this *Woo) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity"))}
 	return nil
 }
-func (this *Woo) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Woo) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "symbol": "PERP_BTC_USDT",

@@ -634,7 +634,7 @@ func (this *Polymarket) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketI
 		for mi := 0; mi < len(ccxtMarkets); mi++ {
 			flatMarkets = append(flatMarkets, ccxtMarkets[mi])
 		}
-		var parsedEvent map[string]any = this.ParseEvent(rawEvent)
+		var parsedEvent map[string]any = this.ParseEvent(this.Extend(map[string]any{}, rawEvent))
 		var eventSlug *string = this.SafeString(rawEvent, "slug")
 		if (eventSlug != nil) && (eventSlug == nil || *eventSlug != "") {
 			var eventKey string = this.ShortenSlug(eventSlug)
@@ -3742,7 +3742,7 @@ func (this *Polymarket) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 			}
 			this.AddMarketsEntry(ccxt.GetValue(m, "market"), m)
 		}
-		var parsedEvent map[string]any = this.ParseEvent(eventForParsing)
+		var parsedEvent map[string]any = this.ParseEvent(this.Extend(map[string]any{}, eventForParsing))
 		result = append(result, parsedEvent)
 	}
 	// populateOutcomes rebuilds the outcome cache from the markets registered above; the
@@ -3810,7 +3810,7 @@ func (this *Polymarket) fetchEventBody(ch chan ccxt.AsyncResult[ccxt.PredictionE
 	if eventForParsing == nil {
 		eventForParsing = map[string]any{}
 	}
-	var event map[string]any = this.ParseEvent(eventForParsing)
+	var event map[string]any = this.ParseEvent(this.Extend(map[string]any{}, eventForParsing))
 	this.IndexEventOutcomes(event)
 
 	ch <- ccxt.AsyncResult[ccxt.PredictionEvent]{Value: ccxt.PredictionEventFromMap(event)}
@@ -3941,7 +3941,7 @@ func (this *Polymarket) ParseEvent(rawEvent any) map[string]any {
 func (this *Polymarket) ParseEvents(rawEvents []any) []any {
 	var result []any = []any{}
 	for i := 0; i < len(rawEvents); i++ {
-		result = append(result, this.ParseEvent(ccxt.DerefScalar(rawEvents[i])))
+		result = append(result, this.ParseEvent(this.SafeDict(rawEvents, i, map[string]any{})))
 	}
 	return result
 }
@@ -4445,7 +4445,7 @@ func (this *Polymarket) HandleOrderBookSnapshot(client ccxt.ClientInterface, eve
 		}
 	}
 	var orderbook ccxt.OrderBookInterface = this.Orderbooks[outcome.(string)]
-	var timestamp any = this.ParsePolyTimestamp(this.SafeString(event, "timestamp"))
+	var timestamp *int64 = this.ParsePolyTimestamp(this.SafeString(event, "timestamp"))
 	var rawBids []any = ccxt.SafeListTyped(event, "bids")
 	var rawAsks []any = ccxt.SafeListTyped(event, "asks")
 	var bids []any = []any{}
@@ -4472,7 +4472,7 @@ func (this *Polymarket) HandleOrderBookSnapshot(client ccxt.ClientInterface, eve
 	client.Resolve(orderbook, ccxt.Add("ticker::", outcome))
 }
 func (this *Polymarket) HandleOrderBookDelta(client ccxt.ClientInterface, event any) {
-	var timestamp any = this.ParsePolyTimestamp(this.SafeString(event, "timestamp"))
+	var timestamp *int64 = this.ParsePolyTimestamp(this.SafeString(event, "timestamp"))
 	var changes []any = ccxt.SafeListTyped(event, "price_changes")
 	var updated map[string]any = map[string]any{}
 	for i := 0; i < len(changes); i++ {
@@ -4495,7 +4495,7 @@ func (this *Polymarket) HandleOrderBookDelta(client ccxt.ClientInterface, event 
 		// storeArray([price, size]) inserts/updates or removes (size=0) the level
 		var sideRef any = side
 		sideRef.(ccxt.IOrderBookSide).StoreArray([]any{price, size})
-		ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
+		orderbook.SetTimestamp(timestamp)
 		orderbook.SetDatetime(this.Iso8601(timestamp))
 		ccxt.AddElementToObject(updated, outcome, true)
 	}
@@ -4519,7 +4519,7 @@ func (this *Polymarket) HandleTrade(client ccxt.ClientInterface, event any) {
 	if outcome == nil {
 		return
 	}
-	var timestamp any = this.ParsePolyTimestamp(this.SafeString(event, "timestamp"))
+	var timestamp *int64 = this.ParsePolyTimestamp(this.SafeString(event, "timestamp"))
 	var price *float64 = this.SafeNumber(event, "price")
 	var amount *float64 = this.SafeNumber(event, "size")
 	var market map[string]any = this.SafeOutcome(tokenId)
@@ -4978,11 +4978,12 @@ func (this *Polymarket) TokenIdToSymbol(tokenId *string) any {
 	var market map[string]any = ccxt.SafeMapTyped(this.Markets_by_id, tokenId)
 	return this.SafeString2(market, "market", "symbol")
 }
-func (this *Polymarket) ParsePolyTimestamp(raw *string) any {
+func (this *Polymarket) ParsePolyTimestamp(raw *string) *int64 {
 	if raw == nil {
 		return nil
 	}
-	return this.ParseToInt(raw)
+	retIntVal := this.ParseToInt(raw)
+	return &retIntVal
 }
 
 func NewPolymarket(userConfig map[string]any) *Polymarket {

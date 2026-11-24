@@ -704,7 +704,7 @@ func (this *Bitflyer) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(orderbook, market.Symbol, nil, "bids", "asks", "price", "size"))}
 	return nil
 }
-func (this *Bitflyer) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Bitflyer) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = this.SafeSymbol(nil, market)

@@ -2501,16 +2501,16 @@ func (this *Foxbit) ParseTradingFee(entry any, optionalArgs ...any) TradingFeeIn
 		"tierBased":  true,
 	})
 }
-func (this *Foxbit) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Foxbit) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "market_symbol")
 	var symbol *string = this.SafeSymbol(marketId, market, nil, "spot")
-	var rolling_24h map[string]any = SafeMapTyped(ticker, "rolling_24h")
-	var best map[string]any = SafeMapTyped(ticker, "best")
+	var rolling_24h, _ = ticker["rolling_24h"].(map[string]any)
+	var best, _ = ticker["best"].(map[string]any)
 	var bestAsk, _ = best["ask"].(map[string]any)
 	var bestBid, _ = best["bid"].(map[string]any)
-	var lastTrade map[string]any = SafeMapTyped(ticker, "last_trade")
+	var lastTrade, _ = ticker["last_trade"].(map[string]any)
 	var lastPrice *string = this.SafeString(lastTrade, "price")
 	var change *string = this.SafeString(rolling_24h, "price_change")
 	var percentage *string = this.SafeString(rolling_24h, "price_change_percent")

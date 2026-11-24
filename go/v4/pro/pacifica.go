@@ -1129,11 +1129,14 @@ func (this *Pacifica) HandleWsTickers(client ccxt.ClientInterface, message map[s
 	var parsedTickers []any = []any{}
 	var data, _ = message["data"].([]any)
 	for i := 0; i < len(data); i++ {
-		var info, _ = data[i].(map[string]any)
-		var marketId *string = this.SafeString(info, "symbol")
+		var marketId *string = this.SafeString(data[i], "symbol")
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol string = *this.SafeString(market, "symbol", "")
-		var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(data[i], market))
+		dataDict79745, _ := data[i].(map[string]any)
+		if dataDict79745 == nil {
+			dataDict79745 = map[string]any{}
+		}
+		var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(dataDict79745, market))
 		this.Tickers[symbol] = ccxt.TickerFromMap(ticker)
 		parsedTickers = append(parsedTickers, ticker)
 	}

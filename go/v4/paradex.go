@@ -1827,7 +1827,7 @@ func (this *Paradex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(ticker, market)}
 	return nil
 }
-func (this *Paradex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Paradex) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "symbol": "BTC-USD-PERP",

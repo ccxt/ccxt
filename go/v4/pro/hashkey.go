@@ -83,12 +83,12 @@ func (this *Hashkey) wathPublicBody(ch chan ccxt.AsyncResult[any], market map[st
 	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Hashkey) WatchPrivateAsync(messageHash any) <-chan ccxt.AsyncResult[[]any] {
+func (this *Hashkey) WatchPrivateAsync(messageHash string) <-chan ccxt.AsyncResult[[]any] {
 	ch := make(chan ccxt.AsyncResult[[]any], 1)
 	go this.watchPrivateBody(ch, messageHash)
 	return ch
 }
-func (this *Hashkey) watchPrivateBody(ch chan ccxt.AsyncResult[[]any], messageHash any) any {
+func (this *Hashkey) watchPrivateBody(ch chan ccxt.AsyncResult[[]any], messageHash string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -106,7 +106,7 @@ func (this *Hashkey) watchPrivateBody(ch chan ccxt.AsyncResult[[]any], messageHa
 	ch <- ccxt.AsyncResult[[]any]{Value: r1.Value}
 	return nil
 }
-func (this *Hashkey) GetPrivateUrl(listenKey any) any {
+func (this *Hashkey) GetPrivateUrl(listenKey *string) any {
 	var wsUrl *string = this.SafeString(this.UrlsApi["ws"], "private")
 	if wsUrl == nil {
 		panic(ccxt.ExchangeError(this.Id + " getPrivateUrl() has no private websocket url"))
@@ -315,7 +315,14 @@ func (this *Hashkey) HandleTicker(client ccxt.ClientInterface, message any) {
 	//     }
 	//
 	var data []any = ccxt.SafeListTyped(message, "data")
-	var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(this.SafeDict(data, 0, map[string]any{})))
+	var dataDict23741 map[string]any
+	if len(data) > 0 {
+		dataDict23741, _ = data[0].(map[string]any)
+	}
+	if dataDict23741 == nil {
+		dataDict23741 = map[string]any{}
+	}
+	var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(dataDict23741))
 	var symbol string = *this.SafeString(ticker, "symbol", "")
 	var messageHash string = "ticker:" + symbol
 	this.Tickers[symbol] = ccxt.TickerFromMap(ticker)
@@ -550,7 +557,7 @@ func (this *Hashkey) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 			panic(r.Err)
 		}
 	}
-	var messageHash any = "orders"
+	var messageHash string = "orders"
 	var symbolResolved *string
 	if symbol != nil {
 		symbolResolvedValue := this.Symbol(symbol)
@@ -559,11 +566,7 @@ func (this *Hashkey) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 		symbolResolved = symbol
 	}
 	if symbol != nil {
-		if symbolResolved != nil {
-			messageHash = "orders" + ":" + *symbolResolved
-		} else {
-			messageHash = nil
-		}
+		messageHash = "orders" + ":" + this.Symbol(symbol)
 	}
 
 	r1 := <-this.WatchPrivateAsync(messageHash)
@@ -714,7 +717,7 @@ func (this *Hashkey) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 			panic(r.Err)
 		}
 	}
-	var messageHash any = "myTrades"
+	var messageHash string = "myTrades"
 	var symbolResolved *string
 	if symbol != nil {
 		symbolResolvedValue := this.Symbol(symbol)
@@ -723,11 +726,7 @@ func (this *Hashkey) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 		symbolResolved = symbol
 	}
 	if symbol != nil {
-		if symbolResolved != nil {
-			messageHash = "myTrades" + ":" + *symbolResolved
-		} else {
-			messageHash = nil
-		}
+		messageHash = "myTrades" + ":" + this.Symbol(symbol)
 	}
 
 	r1 := <-this.WatchPrivateAsync(messageHash)
@@ -1131,7 +1130,11 @@ func (this *Hashkey) HandleBalance(client ccxt.ClientInterface, message any) {
 	if isSpot {
 		typeVar = "spot"
 	}
-	var balance map[string]any = this.SafeDictMap(this.Balance, typeVar, map[string]any{})
+	var balance map[string]any
+	balance, _ = this.Balance[typeVar].(map[string]any)
+	if balance == nil {
+		balance = map[string]any{}
+	}
 	ccxt.AddElementToObject(balance, "info", message)
 	var currencyId *string = this.SafeString(balanceUpdate, "a")
 	var code *string = this.SafeCurrencyCode(currencyId)
@@ -1245,17 +1248,17 @@ func (this *Hashkey) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 	ch <- ccxt.AsyncResult[*string]{Value: listenKey}
 	return nil
 }
-func (this *Hashkey) KeepAliveListenKeyAsync(listenKey any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Hashkey) KeepAliveListenKeyAsync(listenKey *string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.keepAliveListenKeyBody(ch, listenKey, optionalArgs...)
 	return ch
 }
-func (this *Hashkey) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], listenKey any, optionalArgs ...any) any {
+func (this *Hashkey) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], listenKey *string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(listenKey, nil) {
+	if listenKey == nil {
 
 		return nil
 	}

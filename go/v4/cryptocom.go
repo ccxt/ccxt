@@ -3282,7 +3282,7 @@ func (this *Cryptocom) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(withdrawalList, currency, since, limit))}
 	return nil
 }
-func (this *Cryptocom) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Cryptocom) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// fetchTicker
 	//

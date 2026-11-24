@@ -1032,7 +1032,7 @@ func (this *Onetrading) ParseFeeTiers(feeTiers []any, optionalArgs ...any) map[s
 		"taker": takerFees,
 	}
 }
-func (this *Onetrading) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Onetrading) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// fetchTicker, fetchTickers
 	//
@@ -1204,7 +1204,11 @@ func (this *Onetrading) fetchTickersBody(ch chan AsyncResult[map[string]Ticker],
 	var result map[string]any = map[string]any{}
 	var rawTickers []any = this.ToArray(response)
 	for i := 0; i < len(rawTickers); i++ {
-		var ticker map[string]any = TickerToMap(this.ParseTicker(this.SafeDict(rawTickers, i, map[string]any{})))
+		rawTickersDict96345, _ := rawTickers[i].(map[string]any)
+		if rawTickersDict96345 == nil {
+			rawTickersDict96345 = map[string]any{}
+		}
+		var ticker map[string]any = TickerToMap(this.ParseTicker(rawTickersDict96345))
 		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			result[*symbol] = ticker

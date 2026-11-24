@@ -1035,7 +1035,7 @@ func (this *Phemex) ParseSwapMarket(market any) map[string]any {
 	}
 	return this.SafeMarketStructure(literal75341)
 }
-func (this *Phemex) ParseSpotMarket(market any) map[string]any {
+func (this *Phemex) ParseSpotMarket(market map[string]any) map[string]any {
 	//
 	//     {
 	//         "symbol":"sBTCUSDT",
@@ -1393,10 +1393,9 @@ func (this *Phemex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 				currencyValues, _ = currenciesByCode[*baseCurrency].(map[string]any)
 			}
 			var valueScale *string = this.SafeString(currencyValues, "valueScale", "8")
-			market = this.Extend(market, map[string]any{
+			market = this.ParseSpotMarket(this.Extend(market, map[string]any{
 				"valueScale": valueScale,
-			})
-			market = this.ParseSpotMarket(market)
+			}))
 		}
 		if !IsEqual(market, nil) {
 			result = append(result, market)
@@ -1866,7 +1865,7 @@ func (this *Phemex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(rows, market, timeframe, sinceResolved, userLimit))}
 	return nil
 }
-func (this *Phemex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Phemex) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// spot
 	//
@@ -2540,7 +2539,7 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) Trade {
 			"currency": feeCurrencyCode,
 		}
 	}
-	var literal202831 map[string]any = map[string]any{
+	var literal202731 map[string]any = map[string]any{
 		"info":         trade,
 		"id":           nil,
 		"symbol":       symbol,
@@ -2556,15 +2555,15 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) Trade {
 		"fee":          fee,
 	}
 	if id != nil {
-		literal202831["id"] = *id
+		literal202731["id"] = *id
 	}
 	if orderId != nil {
-		literal202831["order"] = *orderId
+		literal202731["order"] = *orderId
 	}
 	if typeVar != nil {
-		literal202831["type"] = *typeVar
+		literal202731["type"] = *typeVar
 	}
-	return this.SafeTrade(literal202831, marketResolved)
+	return this.SafeTrade(literal202731, marketResolved)
 }
 func (this *Phemex) ParseSpotBalance(response map[string]any) map[string]any {
 	//
@@ -5327,9 +5326,9 @@ func (this *Phemex) ParsePosition(position map[string]any, optionalArgs ...any) 
 	var isCross *bool = this.SafeBool(position, "crossMargin", false)
 	var timestamp *int64 = this.SafeInteger(position, "openedTimeNs")
 	var lastUpdateTimestamp *int64 = this.SafeInteger(position, "updatedTimeNs", this.SafeIntegerProduct(position, "transactTimeNs", 0.000001))
-	var ternaryStr426426 string = "isolated"
+	var ternaryStr426326 string = "isolated"
 	if isCross != nil && *isCross {
-		ternaryStr426426 = "cross"
+		ternaryStr426326 = "cross"
 	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
@@ -5355,7 +5354,7 @@ func (this *Phemex) ParsePosition(position map[string]any, optionalArgs ...any) 
 		"marginRatio":                 this.ParseNumber(marginRatio),
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
-		"marginMode":                  ternaryStr426426,
+		"marginMode":                  ternaryStr426326,
 		"side":                        side,
 		"hedged":                      (this.SafeString(position, "posMode") != nil && *this.SafeString(position, "posMode") == "Hedged"),
 		"percentage":                  nil,
@@ -6090,16 +6089,16 @@ func (this *Phemex) Sign(path string, optionalArgs ...any) map[string]any {
 	} else {
 		requestHeaders = nil
 	}
-	var literal482315 map[string]any = map[string]any{
+	var literal482215 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if bodyResolved != nil {
-		literal482315["body"] = *bodyResolved
+		literal482215["body"] = *bodyResolved
 	}
-	return literal482315
+	return literal482215
 }
 
 /**
@@ -6528,11 +6527,11 @@ func (this *Phemex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes511519 []any = r1.Value
-		if retRes511519 == nil {
+		var retRes511419 []any = r1.Value
+		if retRes511419 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes511519)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes511419)}
 		}
 		return nil
 	}

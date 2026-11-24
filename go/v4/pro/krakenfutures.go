@@ -1893,7 +1893,11 @@ func (this *Krakenfutures) HandleBalance(client ccxt.ClientInterface, message ma
 			}
 		} // cashAccount
 		this.Balance["cash"] = this.SafeDict(this.Balance, "cash", map[string]any{})
-		var cashBalance map[string]any = this.SafeDictMap(this.Balance, "cash", map[string]any{})
+		var cashBalance map[string]any
+		cashBalance, _ = this.Balance["cash"].(map[string]any)
+		if cashBalance == nil {
+			cashBalance = map[string]any{}
+		}
 		cashBalance["info"] = message
 		if timestamp != nil {
 			cashBalance["timestamp"] = *timestamp
@@ -1928,7 +1932,11 @@ func (this *Krakenfutures) HandleBalance(client ccxt.ClientInterface, message ma
 			}
 		} // marginAccount
 		this.Balance["margin"] = this.SafeDict(this.Balance, "margin", map[string]any{})
-		var marginBalance map[string]any = this.SafeDictMap(this.Balance, "margin", map[string]any{})
+		var marginBalance map[string]any
+		marginBalance, _ = this.Balance["margin"].(map[string]any)
+		if marginBalance == nil {
+			marginBalance = map[string]any{}
+		}
 		marginBalance["info"] = message
 		if timestamp != nil {
 			marginBalance["timestamp"] = *timestamp
@@ -1974,7 +1982,11 @@ func (this *Krakenfutures) HandleBalance(client ccxt.ClientInterface, message ma
 			}
 		} // multi-collateral margin account
 		this.Balance["flex"] = this.SafeDict(this.Balance, "flex", map[string]any{})
-		var flexBalance map[string]any = this.SafeDictMap(this.Balance, "flex", map[string]any{})
+		var flexBalance map[string]any
+		flexBalance, _ = this.Balance["flex"].(map[string]any)
+		if flexBalance == nil {
+			flexBalance = map[string]any{}
+		}
 		flexBalance["info"] = message
 		if timestamp != nil {
 			flexBalance["timestamp"] = *timestamp

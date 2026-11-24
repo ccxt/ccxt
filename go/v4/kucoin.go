@@ -3505,14 +3505,14 @@ func (this *Kucoin) ParseSpotOrUtaTicker(ticker any, optionalArgs ...any) map[st
 		"info":          ticker,
 	}, marketResolved))
 }
-func (this *Kucoin) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Kucoin) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	// wrapper for parseTickers
 	// parseTickers used only in methods for contract markets
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return this.ParseContractTicker(ticker, market)
 }
-func (this *Kucoin) ParseContractTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Kucoin) ParseContractTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "symbol": "LTCUSDTM",

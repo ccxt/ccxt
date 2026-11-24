@@ -1203,7 +1203,7 @@ func (this *Delta) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
-func (this *Delta) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Delta) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// spot: fetchTicker, fetchTickers
 	//
@@ -1326,7 +1326,7 @@ func (this *Delta) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var last *string = this.SafeString(ticker, "close")
-	var quotes map[string]any = SafeMapTyped(ticker, "quotes")
+	var quotes, _ = ticker["quotes"].(map[string]any)
 	// turnover_symbol names the currency turnover is denominated in, and on
 	// spot markets that is the base currency rather than the quote
 	var turnoverSymbol *string = this.SafeStringUpper(ticker, "turnover_symbol")
@@ -1699,12 +1699,15 @@ func (this *Delta) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 	tickers, _ = response["result"].([]any)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(tickers); i++ {
-		var rawTicker, _ = tickers[i].(map[string]any)
-		var contractType *string = this.SafeString(rawTicker, "contract_type")
+		var contractType *string = this.SafeString(tickers[i], "contract_type")
 		if (contractType != nil && *contractType == "options_combos") || (contractType != nil && *contractType == "binary_call_options") || (contractType != nil && *contractType == "binary_put_options") {
 			continue
 		}
-		var ticker map[string]any = TickerToMap(this.ParseTicker(tickers[i]))
+		tickersDict144045, _ := tickers[i].(map[string]any)
+		if tickersDict144045 == nil {
+			tickersDict144045 = map[string]any{}
+		}
+		var ticker map[string]any = TickerToMap(this.ParseTicker(tickersDict144045))
 		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			result[*symbol] = ticker
@@ -2456,7 +2459,7 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) Order {
 			"currency": feeCurrencyCode,
 		}
 	}
-	var literal202431 map[string]any = map[string]any{
+	var literal202331 map[string]any = map[string]any{
 		"info":               order,
 		"id":                 id,
 		"clientOrderId":      clientOrderId,
@@ -2477,9 +2480,9 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) Order {
 		"trades":             nil,
 	}
 	if symbol != nil {
-		literal202431["symbol"] = *symbol
+		literal202331["symbol"] = *symbol
 	}
-	return this.SafeOrder(literal202431, marketValue)
+	return this.SafeOrder(literal202331, marketValue)
 }
 
 /**
@@ -2928,11 +2931,11 @@ func (this *Delta) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes234915 []any = OrdersToList(r.Value)
-	if retRes234915 == nil {
+	var retRes234815 []any = OrdersToList(r.Value)
+	if retRes234815 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes234915)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes234815)}
 	}
 	return nil
 }
@@ -2969,11 +2972,11 @@ func (this *Delta) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes236415 []any = OrdersToList(r.Value)
-	if retRes236415 == nil {
+	var retRes236315 []any = OrdersToList(r.Value)
+	if retRes236315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes236415)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes236315)}
 	}
 	return nil
 }

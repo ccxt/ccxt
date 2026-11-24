@@ -3099,7 +3099,7 @@ func (this *Exchange) CancelUnifiedOrder(order Order, options ...CancelUnifiedOr
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CancelUnifiedOrderAsync(order, opts.Params)
+	r := <-this.CancelUnifiedOrderAsync(OrderToMap(order), opts.Params)
 	if r.Err != nil {
 		return Order{}, r.Err
 	}

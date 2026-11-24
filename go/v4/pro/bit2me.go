@@ -1131,7 +1131,7 @@ func (this *Bit2me) HandleSubscriptionStatus(client ccxt.ClientInterface, messag
 	//
 	return message
 }
-func (this *Bit2me) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) {
+func (this *Bit2me) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	//     { "event": "added-order", "symbol": "BTC/USDC", "error": { "code": "PRICE_LOWER_MARKET_MIN", "minPrice": 0.001, "message": "The price can not be lower than 0.001" } }
 	//     { "event": "canceled-order", "orderId": "73352609-a885-4dc6-99c4-8a03e5df6bda", "error": { "code": "ORDER_NOT_FOUND", "message": "The order with ID 73352609-a885-4dc6-99c4-8a03e5df6bda was not found" } }
@@ -1225,6 +1225,7 @@ func (this *Bit2me) HandleErrorMessage(client ccxt.ClientInterface, message map[
 			}
 		}
 	}
+	return false
 }
 func (this *Bit2me) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	var event *string = this.SafeString(message, "event")

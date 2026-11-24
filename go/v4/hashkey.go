@@ -2015,7 +2015,7 @@ func (this *Hashkey) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(response, symbolsNormalized))}
 	return nil
 }
-func (this *Hashkey) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Hashkey) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "t": 1721685896846,
@@ -5393,9 +5393,9 @@ func (this *Hashkey) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		response = r2.Raw
+		var swapResponse map[string]any = r2.Value
 
-		ch <- AsyncResult[TradingFeeInterface]{Value: this.ParseTradingFee(response, market)}
+		ch <- AsyncResult[TradingFeeInterface]{Value: this.ParseTradingFee(swapResponse, market)}
 		return nil
 	} else {
 		var marketTypeValue string = *this.SafeString(market, "type", "")
@@ -5472,7 +5472,7 @@ func (this *Hashkey) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
 	return nil
 }
-func (this *Hashkey) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInterface {
+func (this *Hashkey) ParseTradingFee(fee map[string]any, optionalArgs ...any) TradingFeeInterface {
 	//
 	// spot
 	//     {

@@ -278,7 +278,7 @@ func (this *Bitstamp) HandleBidAsks(bookSide any, bidAsks []any) {
 		bookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 	}
 }
-func (this *Bitstamp) GetCacheIndex(orderbook any, deltas []any) int64 {
+func (this *Bitstamp) GetCacheIndex(orderbook map[string]any, deltas []any) int64 {
 	// we will consider it a fail
 	var firstElement map[string]any
 	if 0 < len(deltas) {

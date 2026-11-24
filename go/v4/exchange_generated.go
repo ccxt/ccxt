@@ -545,7 +545,7 @@ func (this *BaseExchange) HandleDeltasWithKeys(bookSide any, deltas []any, optio
 		(bookSide.(*OrderBookSide)).StoreArray(bidAsk)
 	}
 }
-func (this *BaseExchange) GetCacheIndex(orderbook any, deltas []any) int64 {
+func (this *BaseExchange) GetCacheIndex(orderbook map[string]any, deltas []any) int64 {
 	// return the first index of the cache that can be applied to the orderbook or -1 if not possible.
 	return int64(-1)
 }
@@ -1344,7 +1344,7 @@ func (this *BaseExchange) ParseMarkets(markets any) []any {
 	}
 	return result
 }
-func (this *BaseExchange) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *BaseExchange) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parseTicker() is not supported yet"))
@@ -1440,7 +1440,7 @@ func (this *BaseExchange) ParseBorrowInterest(info map[string]any, optionalArgs 
 	_ = market
 	panic(NotSupported(this.Id + " parseBorrowInterest() is not supported yet"))
 }
-func (this *BaseExchange) ParseIsolatedBorrowRate(info any, optionalArgs ...any) map[string]any {
+func (this *BaseExchange) ParseIsolatedBorrowRate(info map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parseIsolatedBorrowRate() is not supported yet"))
@@ -7054,7 +7054,11 @@ func (this *BaseExchange) ParseTickersList(tickers any, optionalArgs ...any) map
 	var results []any = []any{}
 	var tickersArray []any = this.ToArray(tickers)
 	for i := 0; i < len(tickersArray); i++ {
-		var ticker map[string]any = this.Extend(TickerToMap(this.DerivedExchange.ParseTicker(this.SafeDict(tickersArray, i, map[string]any{}))), params)
+		tickersArrayDict810458, _ := tickersArray[i].(map[string]any)
+		if tickersArrayDict810458 == nil {
+			tickersArrayDict810458 = map[string]any{}
+		}
+		var ticker map[string]any = this.Extend(TickerToMap(this.DerivedExchange.ParseTicker(tickersArrayDict810458)), params)
 		results = append(results, ticker)
 	}
 	return this.FilterByArrayTickers(results, "symbol", this.MarketSymbols(symbols))
@@ -7206,7 +7210,7 @@ func (this *BaseExchange) ParseFundingRates(response []any, optionalArgs ...any)
 	}
 	return this.IndexBy(this.FilterByArray(fundingRates, "symbol", symbols, false), "symbol")
 }
-func (this *BaseExchange) ParseLongShortRatio(info any, optionalArgs ...any) LongShortRatio {
+func (this *BaseExchange) ParseLongShortRatio(info map[string]any, optionalArgs ...any) LongShortRatio {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parseLongShortRatio() is not supported yet"))
@@ -8820,7 +8824,7 @@ func (this *BaseExchange) ParseMarginMode(marginMode map[string]any, optionalArg
 	_ = market
 	panic(NotSupported(this.Id + " parseMarginMode () is not supported yet"))
 }
-func (this *BaseExchange) ParseLeverages(response any, optionalArgs ...any) map[string]any {
+func (this *BaseExchange) ParseLeverages(response []any, optionalArgs ...any) map[string]any {
 	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var symbolKey *string = GetArgStringPtr(optionalArgs, 1, nil)
@@ -8834,7 +8838,7 @@ func (this *BaseExchange) ParseLeverages(response any, optionalArgs ...any) map[
 	} else {
 		marketTypeResolved = marketType
 	} // default to swap
-	for i := 0; i < GetArrayLength(response); i++ {
+	for i := 0; i < len(response); i++ {
 		var info any = GetValue(response, i)
 		var marketId *string
 		if symbolKey == nil {
@@ -11595,12 +11599,12 @@ func (this *Exchange) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 	_ = params
 	panic(NotSupported(this.Id + " cancelAllOrders() is not supported yet"))
 }
-func (this *Exchange) CancelUnifiedOrderAsync(order any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Exchange) CancelUnifiedOrderAsync(order map[string]any, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelUnifiedOrderBody(ch, order, optionalArgs...)
 	return ch
 }
-func (this *Exchange) cancelUnifiedOrderBody(ch chan AsyncResult[Order], order any, optionalArgs ...any) any {
+func (this *Exchange) cancelUnifiedOrderBody(ch chan AsyncResult[Order], order map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})

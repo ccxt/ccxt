@@ -530,7 +530,7 @@ func (this *Zaif) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market.Symbol))}
 	return nil
 }
-func (this *Zaif) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Zaif) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// {
 	//     "last": 9e-08,

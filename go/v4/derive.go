@@ -1915,7 +1915,7 @@ func (this *Derive) ParseSettlements(settlements []any, optionalArgs ...any) []a
 	}
 	return result
 }
-func (this *Derive) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Derive) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//     v3 slim format; the payload does not carry the instrument name, so the symbol comes from the market argument
 	//
@@ -1946,7 +1946,7 @@ func (this *Derive) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp any = this.SafeIntegerOmitZero(ticker, "t")
-	var stats map[string]any = SafeMapTyped(ticker, "stats")
+	var stats, _ = ticker["stats"].(map[string]any)
 	var change *string = this.SafeString(stats, "p")
 	var percentage *string = nil
 	if change != nil {

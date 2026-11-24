@@ -1046,7 +1046,7 @@ func (this *Gate) HandleOrderBook(client ccxt.ClientInterface, message map[strin
 	}
 	client.Resolve(storedOrderBook, messageHash)
 }
-func (this *Gate) GetCacheIndex(orderBook any, cache []any) int64 {
+func (this *Gate) GetCacheIndex(orderBook map[string]any, cache []any) int64 {
 	var nonce *int64 = this.SafeInteger(orderBook, "nonce")
 	var firstDelta map[string]any
 	if 0 < len(cache) {
@@ -1339,10 +1339,13 @@ func (this *Gate) HandleTickerAndBidAsk(objectName string, client ccxt.ClientInt
 	}
 	var isTicker bool = (objectName == "ticker") // whether ticker or bid-ask
 	for i := 0; i < len(results); i++ {
-		var rawTicker any = results[i]
-		var marketId *string = this.SafeString(rawTicker, "s")
+		var marketId *string = this.SafeString(results[i], "s")
 		var market map[string]any = this.SafeMarket(marketId, nil, "_", marketType)
-		var parsedItem map[string]any = ccxt.TickerToMap(this.ParseTicker(rawTicker, market))
+		resultsDict93249, _ := results[i].(map[string]any)
+		if resultsDict93249 == nil {
+			resultsDict93249 = map[string]any{}
+		}
+		var parsedItem map[string]any = ccxt.TickerToMap(this.ParseTicker(resultsDict93249, market))
 		var symbol *string = ccxt.SafeStringPtr(parsedItem["symbol"])
 		if isTicker {
 			if symbol != nil {
@@ -1436,11 +1439,11 @@ func (this *Gate) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.Trad
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var marketIds []string = this.MarketIds(symbolsNormalized)
-	var symbolsNormalizedElem98736 *string = nil
+	var symbolsNormalizedElem98636 *string = nil
 	if 0 >= 0 && 0 < len(symbolsNormalized) {
-		symbolsNormalizedElem98736 = &symbolsNormalized[0]
+		symbolsNormalizedElem98636 = &symbolsNormalized[0]
 	}
-	var market map[string]any = this.Market(symbolsNormalizedElem98736)
+	var market map[string]any = this.Market(symbolsNormalizedElem98636)
 	var messageType string = this.GetTypeByMarket(market)
 	var channel string = messageType + ".trades"
 	var messageHashes []string = []string{}
@@ -1499,11 +1502,11 @@ func (this *Gate) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], sy
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	var marketIds []string = this.MarketIds(symbolsNormalized)
-	var symbolsNormalizedElem102036 *string = nil
+	var symbolsNormalizedElem101936 *string = nil
 	if 0 >= 0 && 0 < len(symbolsNormalized) {
-		symbolsNormalizedElem102036 = &symbolsNormalized[0]
+		symbolsNormalizedElem101936 = &symbolsNormalized[0]
 	}
-	var market map[string]any = this.Market(symbolsNormalizedElem102036)
+	var market map[string]any = this.Market(symbolsNormalizedElem101936)
 	var messageType string = this.GetTypeByMarket(market)
 	var channel string = messageType + ".trades"
 	var subMessageHashes []string = []string{}
@@ -2195,22 +2198,20 @@ func (this *Gate) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 	if !this.IsEmpty(symbolsNormalized) {
 		market = this.GetMarketFromSymbols(symbolsNormalized)
 	}
-	var typeVar any = nil
-	var query map[string]any = nil
-	var typeVarPtr *string = nil
-	typeVarPtr, query = this.HandleMarketTypeAndParams("watchPositions", market, params)
-	if typeVarPtr != nil {
-		typeVar = *typeVarPtr
-	}
-	if typeVar == "spot" {
-		typeVar = "swap"
+	marketType, marketQuery := this.HandleMarketTypeAndParams("watchPositions", market, params)
+	var query any = marketQuery
+	var typeVar *string = marketType
+	var messageHash any = ccxt.Add(marketType, ":positions")
+	if marketType != nil && *marketType == "spot" {
+		typeVarStr := "swap"
+		typeVar = &typeVarStr
+		messageHash = "swap:positions"
 	}
 	var typeId string = this.GetSupportedMapping(typeVar, map[string]any{
 		"future": "futures",
 		"swap":   "futures",
 		"option": "options",
 	})
-	var messageHash any = ccxt.Add(typeVar, ":positions")
 	if !this.IsEmpty(symbolsNormalized) {
 		if symbolsNormalized == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " watchPositions() symbols is required"))
@@ -2223,13 +2224,13 @@ func (this *Gate) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 	var isInverse bool = (subType != nil && *subType == "inverse")
 	var url *string = this.GetUrlByMarketType(typeVar, isInverse)
 	var client ccxt.ClientInterface = this.Client(url)
-	this.SetPositionsCache(client, typeVar, symbolsNormalized)
+	this.SetPositionsCache(client, *typeVar, symbolsNormalized)
 	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true) == true
 	var awaitPositionsSnapshot bool = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true) == true
-	var cache ccxt.WsArrayCache = this.PositionsByType[typeVar.(string)]
+	var cache ccxt.WsArrayCache = this.PositionsByType[*typeVar]
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (cache == nil) {
 
-		r1 := <-client.Future(ccxt.Add(typeVar, ":fetchPositionsSnapshot"))
+		r1 := <-client.Future(*typeVar + ":fetchPositionsSnapshot")
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -2268,34 +2269,32 @@ func (this *Gate) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.PositionsByType[typeVar.(string)], symbolsNormalized, since, limit, true))}
+	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.PositionsByType[*typeVar], symbolsNormalized, since, limit, true))}
 	return nil
 }
-func (this *Gate) SetPositionsCache(client ccxt.ClientInterface, typeVar any, optionalArgs ...any) {
+func (this *Gate) SetPositionsCache(client ccxt.ClientInterface, typeVar string, optionalArgs ...any) {
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
-	if this.PositionsByType[typeVar.(string)] != nil {
+	if this.PositionsByType[typeVar] != nil {
 		return
 	}
 	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false) == true
 	if fetchPositionsSnapshot == true {
-		var messageHash any = ccxt.Add(typeVar, ":fetchPositionsSnapshot")
-		if !(client.FutureHas(messageHash)) {
+		var messageHash string = typeVar + ":fetchPositionsSnapshot"
+		if _, ok := client.GetFutures()[messageHash]; !ok {
 			client.Future(messageHash)
 			this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash, typeVar)
 		}
 	} else {
-		if wsKey, ok := typeVar.(string); ok {
-			this.PositionsByType[wsKey] = ccxt.NewArrayCacheBySymbolBySide()
-		}
+		this.PositionsByType[typeVar] = ccxt.NewArrayCacheBySymbolBySide()
 	}
 }
-func (this *Gate) LoadPositionsSnapshotAsync(client ccxt.ClientInterface, messageHash any, typeVar any) <-chan ccxt.AsyncResult[bool] {
+func (this *Gate) LoadPositionsSnapshotAsync(client ccxt.ClientInterface, messageHash string, typeVar string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadPositionsSnapshotBody(ch, client, messageHash, typeVar)
 	return ch
 }
-func (this *Gate) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, messageHash any, typeVar any) any {
+func (this *Gate) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, messageHash string, typeVar string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -2306,10 +2305,8 @@ func (this *Gate) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 		panic(r.Err)
 	}
 	var positions []any = ccxt.PositionsToList(r.Value)
-	if wsKey, ok := typeVar.(string); ok {
-		this.PositionsByType[wsKey] = ccxt.NewArrayCacheBySymbolBySide()
-	}
-	var cache ccxt.WsArrayCache = this.PositionsByType[typeVar.(string)]
+	this.PositionsByType[typeVar] = ccxt.NewArrayCacheBySymbolBySide()
+	var cache ccxt.WsArrayCache = this.PositionsByType[typeVar]
 	for i := 0; i < len(positions); i++ {
 		var position any = positions[i]
 		var contracts *float64 = this.SafeNumber(position, "contracts", 0)
@@ -2318,10 +2315,10 @@ func (this *Gate) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 		}
 	}
 	// don't remove the future from the .futures cache
-	if client.FutureHas(messageHash) {
-		var future *ccxt.Future = client.FutureTyped(messageHash)
+	if _, ok := client.GetFutures()[messageHash]; ok {
+		var future *ccxt.Future = client.GetFutures()[messageHash]
 		future.Resolve(cache)
-		client.Resolve(cache, ccxt.Add(typeVar, ":position"))
+		client.Resolve(cache, typeVar+":position")
 	}
 	return nil
 }

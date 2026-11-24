@@ -1635,7 +1635,7 @@ func (this *Bullish) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(response, market)}
 	return nil
 }
-func (this *Bullish) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Bullish) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "createdAtDatetime": "2021-05-20T01:01:01.000Z",

@@ -231,7 +231,7 @@ func (this *Binance) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInte
 	var flatMarkets []any = []any{}
 	var rawTopicsLength int = len(rawTopics)
 	for i := 0; i < rawTopicsLength; i++ {
-		var parsedEvent map[string]any = this.ParseEvent(rawTopics[i])
+		var parsedEvent map[string]any = this.ParseEvent(this.Extend(map[string]any{}, rawTopics[i]))
 		parsedEvents = append(parsedEvents, parsedEvent)
 		var eventMarkets []any = ccxt.SafeListTyped(parsedEvent, "markets")
 		var eventMarketsLength int = len(eventMarkets)
@@ -562,7 +562,7 @@ func (this *Binance) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionE
 	var rawTopicsLength int = len(rawTopics)
 	var result []any = []any{}
 	for i := 0; i < rawTopicsLength; i++ {
-		var parsedEvent map[string]any = this.ParseEvent(rawTopics[i])
+		var parsedEvent map[string]any = this.ParseEvent(this.Extend(map[string]any{}, rawTopics[i]))
 		result = append(result, parsedEvent)
 		var parsedMarkets []any = ccxt.SafeListTyped(parsedEvent, "markets")
 		var parsedMarketsLength int = len(parsedMarkets)
@@ -716,7 +716,7 @@ func (this *Binance) fetchEventBody(ch chan ccxt.AsyncResult[ccxt.PredictionEven
  * @param {object} rawTopic the raw market topic object
  * @returns {object} an event structure
  */
-func (this *Binance) ParseEvent(rawTopic any) map[string]any {
+func (this *Binance) ParseEvent(rawTopic map[string]any) map[string]any {
 	//
 	//     {
 	//         "marketTopicId": 4229564,
@@ -806,7 +806,7 @@ func (this *Binance) ParseEvent(rawTopic any) map[string]any {
  * @param {object} rawTopic the enclosing raw market topic (carries slug/vendor/fees/dates)
  * @returns {object} a market structure
  */
-func (this *Binance) ParseTopicMarket(rawMarket any, rawTopic any) map[string]any {
+func (this *Binance) ParseTopicMarket(rawMarket any, rawTopic map[string]any) map[string]any {
 	//
 	//     {
 	//         "marketId": 5567895,

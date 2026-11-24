@@ -891,7 +891,7 @@ func (this *Bigone) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
-func (this *Bigone) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Bigone) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// spot
 	//
@@ -947,8 +947,8 @@ func (this *Bigone) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var marketId *string = this.SafeString2(ticker, "asset_pair_name", "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market, "-", marketType)
 	var close *string = this.SafeString2(ticker, "close", "latestPrice")
-	var bid map[string]any = SafeMapTyped(ticker, "bid")
-	var ask map[string]any = SafeMapTyped(ticker, "ask")
+	var bid, _ = ticker["bid"].(map[string]any)
+	var ask, _ = ticker["ask"].(map[string]any)
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     nil,

@@ -1521,7 +1521,7 @@ func (this *Hitbtc) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(result, "symbol", symbolsNormalized))}
 	return nil
 }
-func (this *Hitbtc) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Hitbtc) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//       "ask": "62756.01",
@@ -5265,7 +5265,7 @@ func (this *Hitbtc) closePositionBody(ch chan AsyncResult[Order], symbol string,
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
-func (this *Hitbtc) HandleMarginModeAndParams(methodName any, optionalArgs ...any) (*string, map[string]any) {
+func (this *Hitbtc) HandleMarginModeAndParams(methodName string, optionalArgs ...any) (*string, map[string]any) {
 	/**
 	 * @ignore
 	 * @method

@@ -1863,7 +1863,11 @@ func (this *Bitteam) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 		rawTickers = response
 	}
 	for i := 0; i < len(rawTickers); i++ {
-		var ticker map[string]any = TickerToMap(this.ParseTicker(this.SafeDict(rawTickers, i, map[string]any{})))
+		rawTickersDict147145, _ := rawTickers[i].(map[string]any)
+		if rawTickersDict147145 == nil {
+			rawTickersDict147145 = map[string]any{}
+		}
+		var ticker map[string]any = TickerToMap(this.ParseTicker(rawTickersDict147145))
 		tickers = append(tickers, ticker)
 	}
 
@@ -2100,7 +2104,7 @@ func (this *Bitteam) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(pair, market)}
 	return nil
 }
-func (this *Bitteam) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Bitteam) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// fetchTicker
 	//     {

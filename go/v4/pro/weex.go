@@ -2477,7 +2477,11 @@ func (this *Weex) HandleBalance(client ccxt.ClientInterface, message map[string]
 		accountType = "swap"
 	}
 	var messageHash string = accountType + ":balance"
-	var balance map[string]any = this.SafeDictMap(this.Balance, accountType, map[string]any{})
+	var balance map[string]any
+	balance, _ = this.Balance[accountType].(map[string]any)
+	if balance == nil {
+		balance = map[string]any{}
+	}
 	balance["info"] = message
 	var balanceUpdates, _ = message["d"].([]any)
 	for i := 0; i < len(balanceUpdates); i++ {

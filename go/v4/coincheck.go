@@ -638,7 +638,7 @@ func (this *Coincheck) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market.Symbol))}
 	return nil
 }
-func (this *Coincheck) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Coincheck) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// {
 	//     "last":4192632.0,

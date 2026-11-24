@@ -607,7 +607,7 @@ func (this *P2b) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, opt
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(result, market)}
 	return nil
 }
-func (this *P2b) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *P2b) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// parseTickers
 	//

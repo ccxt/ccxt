@@ -840,7 +840,7 @@ func (this *Bit2me) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(ticker, market)}
 	return nil
 }
-func (this *Bit2me) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Bit2me) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "timestamp": 1793711134437,

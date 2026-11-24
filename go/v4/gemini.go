@@ -1519,7 +1519,7 @@ func (this *Gemini) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 	ch <- AsyncResult[Ticker]{Value: r2.Value}
 	return nil
 }
-func (this *Gemini) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Gemini) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// fetchTickers
 	//
@@ -1558,7 +1558,7 @@ func (this *Gemini) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var volume map[string]any = SafeMapTyped(ticker, "volume")
+	var volume, _ = ticker["volume"].(map[string]any)
 	var timestamp *int64 = this.SafeInteger(volume, "timestamp")
 	var symbol any = nil
 	var marketId *string = this.SafeStringLower(ticker, "pair")

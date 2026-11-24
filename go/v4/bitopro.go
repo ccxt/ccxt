@@ -579,7 +579,7 @@ func (this *Bitopro) ParseMarket(market any) map[string]any {
 		"info":    market,
 	})
 }
-func (this *Bitopro) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Bitopro) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "pair":"btc_twd",

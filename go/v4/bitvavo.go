@@ -879,7 +879,7 @@ func (this *Bitvavo) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.Extend(map[string]any{}, response), market)}
 	return nil
 }
-func (this *Bitvavo) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Bitvavo) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// fetchTicker
 	//

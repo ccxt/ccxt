@@ -2265,7 +2265,11 @@ func (this *Aster) HandleBalance(client ccxt.ClientInterface, message map[string
 	if this.Balance[accountType] == nil {
 		this.Balance[accountType] = map[string]any{}
 	}
-	var balance map[string]any = this.SafeDictMap(this.Balance, accountType, map[string]any{})
+	var balance map[string]any
+	balance, _ = this.Balance[accountType].(map[string]any)
+	if balance == nil {
+		balance = map[string]any{}
+	}
 	balance["info"] = message
 	var messageValue map[string]any
 	messageValue, _ = message["a"].(map[string]any)

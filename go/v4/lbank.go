@@ -914,7 +914,7 @@ func (this *Lbank) fetchSwapMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
-func (this *Lbank) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Lbank) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// spot: fetchTicker, fetchTickers
 	//
@@ -954,9 +954,13 @@ func (this *Lbank) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	}
 	var marketId *string = this.SafeString(ticker, "symbol")
 	var symbol *string = this.SafeSymbol(marketId, market)
-	var tickerData map[string]any = this.SafeDictMap(ticker, "ticker", map[string]any{})
+	var tickerData map[string]any
+	tickerData, _ = ticker["ticker"].(map[string]any)
+	if tickerData == nil {
+		tickerData = map[string]any{}
+	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var data any
+	var data map[string]any
 	if *this.SafeBool(marketResolved, "contract", false) {
 		data = ticker
 	} else {

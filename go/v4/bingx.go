@@ -3212,7 +3212,11 @@ func (this *Bingx) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], opt
 	}
 	var results []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		results = append(results, TickerToMap(this.ParseTicker(this.SafeDict(rows, i, map[string]any{}), rowMarket)))
+		rowsDict225544, _ := rows[i].(map[string]any)
+		if rowsDict225544 == nil {
+			rowsDict225544 = map[string]any{}
+		}
+		results = append(results, TickerToMap(this.ParseTicker(rowsDict225544, rowMarket)))
 	}
 
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(results, "symbol", symbolsNormalized))}
@@ -3360,7 +3364,6 @@ func (this *Bingx) fetchMarkPriceBody(ch chan AsyncResult[Ticker], symbol string
 			panic(r1.Err)
 		}
 		response = r1.Value
-
 		//
 		// {
 		//     "code": 0,
@@ -3377,7 +3380,17 @@ func (this *Bingx) fetchMarkPriceBody(ch chan AsyncResult[Ticker], symbol string
 		//     ]
 		// }
 		//
-		ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.SafeDict(response["data"], 0, map[string]any{}), market)}
+		var rows []any
+		rows, _ = response["data"].([]any)
+
+		var rowsDict236737 map[string]any
+		if len(rows) > 0 {
+			rowsDict236737, _ = rows[0].(map[string]any)
+		}
+		if rowsDict236737 == nil {
+			rowsDict236737 = map[string]any{}
+		}
+		ch <- AsyncResult[Ticker]{Value: this.ParseTicker(rowsDict236737, market)}
 		return nil
 	} else {
 
@@ -3388,7 +3401,11 @@ func (this *Bingx) fetchMarkPriceBody(ch chan AsyncResult[Ticker], symbol string
 		response = r2.Value
 	}
 
-	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.SafeDict(response, "data", map[string]any{}), market)}
+	responseDict238433, _ := response["data"].(map[string]any)
+	if responseDict238433 == nil {
+		responseDict238433 = map[string]any{}
+	}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(responseDict238433, market)}
 	return nil
 }
 
@@ -3481,7 +3498,7 @@ func (this *Bingx) fetchMarkPricesBody(ch chan AsyncResult[map[string]Ticker], o
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(tickers, symbolsNormalized))}
 	return nil
 }
-func (this *Bingx) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Bingx) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// mark price
 	// {
@@ -4378,14 +4395,14 @@ func (this *Bingx) CreateOrderRequest(symbol string, typeVar *string, side *stri
 		}
 	} else {
 		if isTwapOrder {
-			var ternaryStr334236 string = "SHORT"
+			var ternaryStr334336 string = "SHORT"
 			if side != nil && *side == "buy" {
-				ternaryStr334236 = "LONG"
+				ternaryStr334336 = "LONG"
 			}
 			var twapRequest map[string]any = map[string]any{
 				"symbol":       request["symbol"],
 				"side":         request["side"],
-				"positionSide": ternaryStr334236,
+				"positionSide": ternaryStr334336,
 				"triggerPrice": this.ParseToNumeric(this.PriceToPrecision(symbol, triggerPrice)),
 				"totalAmount":  this.ParseToNumeric(this.AmountToPrecision(symbol, amount)),
 			}
@@ -5753,9 +5770,9 @@ func (this *Bingx) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any],
 		}
 	}
 	var isActive bool = (timeout > 0)
-	var ternaryStr468020 string = "CLOSE"
+	var ternaryStr468120 string = "CLOSE"
 	if isActive {
-		ternaryStr468020 = "ACTIVATE"
+		ternaryStr468120 = "ACTIVATE"
 	}
 	var timeOutValue int64
 	if isActive {
@@ -5764,7 +5781,7 @@ func (this *Bingx) cancelAllOrdersAfterBody(ch chan AsyncResult[map[string]any],
 		timeOutValue = int64(0)
 	}
 	var request map[string]any = map[string]any{
-		"type":    ternaryStr468020,
+		"type":    ternaryStr468120,
 		"timeOut": timeOutValue,
 	}
 	var response map[string]any = nil
@@ -6660,11 +6677,11 @@ func (this *Bingx) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes554019 []any = r1.Value
-		if retRes554019 == nil {
+		var retRes554119 []any = r1.Value
+		if retRes554119 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes554019)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes554119)}
 		}
 		return nil
 	}
@@ -7179,7 +7196,10 @@ func (this *Bingx) ParseTransactionStatus(status *string, optionalArgs ...any) *
 			"6": "ok",
 		},
 	}
-	var directional map[string]any = SafeMapTyped(statusesByType, typeVar)
+	var directional map[string]any
+	if typeVar != nil {
+		directional, _ = statusesByType[*typeVar].(map[string]any)
+	}
 	var statuses map[string]any = map[string]any{
 		"0":  "pending",
 		"1":  "ok",
@@ -7444,14 +7464,14 @@ func (this *Bingx) ParseMarginModification(data any, optionalArgs ...any) map[st
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var typeVar *string = this.SafeString(data, "type")
-	var ternaryStr611320 string = "reduce"
+	var ternaryStr611420 string = "reduce"
 	if typeVar != nil && *typeVar == "1" {
-		ternaryStr611320 = "add"
+		ternaryStr611420 = "add"
 	}
 	return map[string]any{
 		"info":       data,
 		"symbol":     this.SafeString(market, "symbol"),
-		"type":       ternaryStr611320,
+		"type":       ternaryStr611420,
 		"marginMode": "isolated",
 		"amount":     this.SafeNumber(data, "amount"),
 		"total":      this.SafeNumber(data, "margin"),
@@ -8896,16 +8916,16 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) map[string]any {
 			url += "?" + query + "&" + "signature=" + signature
 		}
 	}
-	var literal744815 map[string]any = map[string]any{
+	var literal744915 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal744815["body"] = *requestBody
+		literal744915["body"] = *requestBody
 	}
-	return literal744815
+	return literal744915
 }
 func (this *Bingx) Nonce() int64 {
 	return this.Milliseconds()

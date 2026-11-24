@@ -258,17 +258,20 @@ func (this *Bitvavo) HandleTicker(client ccxt.ClientInterface, message map[strin
 	var tickers, _ = message["data"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(tickers); i++ {
-		var data any = tickers[i]
-		var marketId *string = this.SafeString(data, "market")
+		var marketId *string = this.SafeString(tickers[i], "market")
 		var market map[string]any = this.SafeMarket(marketId, nil, "-")
-		var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(data, market))
+		tickersDict18445, _ := tickers[i].(map[string]any)
+		if tickersDict18445 == nil {
+			tickersDict18445 = map[string]any{}
+		}
+		var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(tickersDict18445, market))
 		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 		}
 		result = append(result, ticker)
 		if event != nil {
-			var messageHash string = *event + "@" + *this.SafeString(data, "market", "")
+			var messageHash string = *event + "@" + *this.SafeString(tickers[i], "market", "")
 			client.Resolve(ticker, messageHash)
 		}
 	}
@@ -2824,7 +2827,7 @@ func (this *Bitvavo) HandleAuthenticationMessage(client ccxt.ClientInterface, me
 		}
 	}
 }
-func (this *Bitvavo) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) any {
+func (this *Bitvavo) HandleErrorMessage(client ccxt.ClientInterface, message map[string]any) bool {
 	//
 	//    {
 	//        action: 'privateCreateOrder',
@@ -2842,7 +2845,7 @@ func (this *Bitvavo) HandleErrorMessage(client ccxt.ClientInterface, message map
 	//
 	var error *string = this.SafeString(message, "error")
 	if error == nil {
-		return nil
+		return false
 	}
 	var code *int64 = this.SafeInteger(error, "errorCode")
 	var action *string = this.SafeString(message, "action")
@@ -2876,7 +2879,7 @@ func (this *Bitvavo) HandleErrorMessage(client ccxt.ClientInterface, message map
 		client.Reject(feedback, messageHash)
 		return true
 	}
-	return nil
+	return false
 }
 func (this *Bitvavo) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	//

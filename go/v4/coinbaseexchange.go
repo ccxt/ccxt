@@ -1124,7 +1124,7 @@ func (this *Coinbaseexchange) fetchOrderBookBody(ch chan AsyncResult[OrderBook],
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(orderbook)}
 	return nil
 }
-func (this *Coinbaseexchange) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Coinbaseexchange) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// fetchTickers
 	//

@@ -585,7 +585,7 @@ func (this *Blockchaincom) fetchL2OrderBookBody(ch chan AsyncResult[OrderBook], 
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market.Symbol, nil, "bids", "asks", "px", "qty"))}
 	return nil
 }
-func (this *Blockchaincom) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Blockchaincom) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//     "symbol": "BTC-USD",

@@ -1027,7 +1027,7 @@ func (this *Bithumb) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity"))}
 	return nil
 }
-func (this *Bithumb) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Bithumb) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// generation 1: fetchTicker, fetchTickers
 	//
@@ -1315,7 +1315,11 @@ func (this *Bithumb) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], op
 				if symbol == nil {
 					continue
 				}
-				result[*symbol] = TickerToMap(this.ParseTicker(this.SafeDict(tickers, j, map[string]any{}), market))
+				tickersDict110355, _ := tickers[j].(map[string]any)
+				if tickersDict110355 == nil {
+					tickersDict110355 = map[string]any{}
+				}
+				result[*symbol] = TickerToMap(this.ParseTicker(tickersDict110355, market))
 			}
 		}
 	} else {
@@ -3348,12 +3352,12 @@ func (this *Bithumb) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market))}
 	return nil
 }
-func (this *Bithumb) CancelUnifiedOrderAsync(order any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bithumb) CancelUnifiedOrderAsync(order map[string]any, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelUnifiedOrderBody(ch, order, optionalArgs...)
 	return ch
 }
-func (this *Bithumb) cancelUnifiedOrderBody(ch chan AsyncResult[Order], order any, optionalArgs ...any) any {
+func (this *Bithumb) cancelUnifiedOrderBody(ch chan AsyncResult[Order], order map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -4912,7 +4916,7 @@ func (this *Bithumb) CancelUnifiedOrder(order Order, options ...CancelUnifiedOrd
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.CancelUnifiedOrderAsync(order, opts.Params)
+	r := <-this.CancelUnifiedOrderAsync(OrderToMap(order), opts.Params)
 	if r.Err != nil {
 		return Order{}, r.Err
 	}

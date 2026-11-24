@@ -3567,7 +3567,7 @@ func (this *Interactivebrokers) IbkrParseValue(value *string) any {
 	}
 	return result
 }
-func (this *Interactivebrokers) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Interactivebrokers) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "conid")

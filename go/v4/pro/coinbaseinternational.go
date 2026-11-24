@@ -176,12 +176,12 @@ func (this *Coinbaseinternational) Ping(client ccxt.ClientInterface) any {
  * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
  * @returns {object} the subscription result
  */
-func (this *Coinbaseinternational) SubscribeAsync(channels []any, messageHashes any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Coinbaseinternational) SubscribeAsync(channels []string, messageHashes []string, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribeBody(ch, channels, messageHashes, optionalArgs...)
 	return ch
 }
-func (this *Coinbaseinternational) subscribeBody(ch chan ccxt.AsyncResult[any], channels []any, messageHashes any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) subscribeBody(ch chan ccxt.AsyncResult[any], channels []string, messageHashes []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var isPrivate bool = ccxt.GetArgBool(optionalArgs, 0, false)
@@ -207,7 +207,7 @@ func (this *Coinbaseinternational) subscribeBody(ch chan ccxt.AsyncResult[any], 
 		"jsonrpc": "2.0",
 		"method":  method,
 		"params": map[string]any{
-			"channels": channels,
+			"channels": ccxt.StringSliceToList(channels),
 		},
 		"id": this.RequestId(),
 	}
@@ -316,7 +316,7 @@ func (this *Coinbaseinternational) watchBalanceBody(ch chan ccxt.AsyncResult[ccx
 	currency, paramsCurrency := this.HandleOptionStringAndParams(paramsResolved, "watchBalance", "currency", "any")
 	var channel string = "user.portfolio." + *currency
 
-	r := <-this.SubscribeAsync([]any{channel}, []any{"balance"}, true, paramsCurrency)
+	r := <-this.SubscribeAsync([]string{channel}, []string{"balance"}, true, paramsCurrency)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -382,7 +382,7 @@ func (this *Coinbaseinternational) watchMyTradesBody(ch chan ccxt.AsyncResult[[]
 		channel = "user.trades." + *this.SafeString(market, "id", "") + "." + *interval
 	}
 
-	r1 := <-this.SubscribeAsync([]any{channel}, []any{channel}, true, paramsInterval)
+	r1 := <-this.SubscribeAsync([]string{channel}, []string{channel}, true, paramsInterval)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -503,7 +503,7 @@ func (this *Coinbaseinternational) watchOrdersBody(ch chan ccxt.AsyncResult[[]cc
 		channel = "user.orders." + *this.SafeString(market, "id", "") + "." + *interval
 	}
 
-	r1 := <-this.SubscribeAsync([]any{channel}, []any{channel}, true, paramsInterval)
+	r1 := <-this.SubscribeAsync([]string{channel}, []string{channel}, true, paramsInterval)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -554,7 +554,7 @@ func (this *Coinbaseinternational) watchOrdersForSymbolsBody(ch chan ccxt.AsyncR
 	}
 	var symbolsResolved []string = this.MarketSymbols(symbols, nil, false)
 	interval, paramsInterval := this.HandleOptionStringAndParams(paramsResolved, "watchOrders", "interval", "raw")
-	var channels []any = []any{}
+	var channels []string = []string{}
 	var symbolsLength int = len(symbolsResolved)
 	for i := 0; i < symbolsLength; i++ {
 		channels = append(channels, "user.orders."+*this.SafeString(this.Market(symbolsResolved[i]), "id", "")+"."+*interval)
@@ -685,7 +685,7 @@ func (this *Coinbaseinternational) watchPositionsBody(ch chan ccxt.AsyncResult[[
 	}
 	var symbolsResolved []string = this.MarketSymbols(symbols)
 	interval, paramsInterval := this.HandleOptionStringAndParams(paramsResolved, "watchPositions", "interval", "raw")
-	var channels []any = []any{}
+	var channels []string = []string{}
 	var symbolsLength int = 0
 	if symbolsResolved != nil {
 		symbolsLength = len(symbolsResolved)
@@ -1000,7 +1000,7 @@ func (this *Coinbaseinternational) watchTickerBody(ch chan ccxt.AsyncResult[ccxt
 	var isPrivate bool = (interval != nil && *interval == "raw")
 	var channel string = "ticker." + *this.SafeString(market, "id", "") + "." + *interval
 
-	r1 := <-this.SubscribeAsync([]any{channel}, []any{channel}, isPrivate, paramsInterval)
+	r1 := <-this.SubscribeAsync([]string{channel}, []string{channel}, isPrivate, paramsInterval)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1074,7 +1074,7 @@ func (this *Coinbaseinternational) watchTickersBody(ch chan ccxt.AsyncResult[map
 	var symbolsResolved []string = this.MarketSymbols(symbols, nil, false)
 	interval, paramsInterval := this.HandleOptionStringAndParams(paramsResolved, "watchTickers", "interval", "100ms")
 	var isPrivate bool = (interval != nil && *interval == "raw")
-	var channels []any = []any{}
+	var channels []string = []string{}
 	var symbolsLength int = len(symbolsResolved)
 	for i := 0; i < symbolsLength; i++ {
 		var market map[string]any = this.Market(symbolsResolved[i])
@@ -1310,7 +1310,7 @@ func (this *Coinbaseinternational) watchBidsAsksBody(ch chan ccxt.AsyncResult[ma
 		}
 	}
 	var symbolsResolved []string = this.MarketSymbols(symbols, nil, false)
-	var channels []any = []any{}
+	var channels []string = []string{}
 	var symbolsLength int = len(symbolsResolved)
 	for i := 0; i < symbolsLength; i++ {
 		var market map[string]any = this.Market(symbolsResolved[i])
@@ -1526,7 +1526,7 @@ func (this *Coinbaseinternational) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncRe
 			panic(r.Err)
 		}
 	}
-	var channels []any = []any{}
+	var channels []string = []string{}
 	for i := 0; i < symbolsAndTimeframesLength; i++ {
 		var current any = symbolsAndTimeframes[i]
 		var currentTimeframe *string = this.SafeString(current, 1, "")
@@ -1752,7 +1752,7 @@ func (this *Coinbaseinternational) watchTradesForSymbolsBody(ch chan ccxt.AsyncR
 	var symbolsResolved []string = this.MarketSymbols(symbols, nil, false)
 	interval, paramsInterval := this.HandleOptionStringAndParams(paramsResolved, "watchTradesForSymbols", "interval", "100ms")
 	var isPrivate bool = (interval != nil && *interval == "raw")
-	var channels []any = []any{}
+	var channels []string = []string{}
 	var symbolsLength int = len(symbolsResolved)
 	for i := 0; i < symbolsLength; i++ {
 		var market map[string]any = this.Market(symbolsResolved[i])
@@ -1960,7 +1960,7 @@ func (this *Coinbaseinternational) watchOrderBookForSymbolsBody(ch chan ccxt.Asy
 		paramsChannel = paramsGroup
 		descriptor = "." + *groupKey + "." + *depth + "." + *interval
 	}
-	var channels []any = []any{}
+	var channels []string = []string{}
 	var symbolsLength int = len(symbols)
 	for i := 0; i < symbolsLength; i++ {
 		var market map[string]any = this.Market(this.SafeString(symbols, i, ""))
@@ -2072,6 +2072,9 @@ func (this *Coinbaseinternational) HandleOrderBook(client ccxt.ClientInterface, 
 	var symbol *string = this.SafeSymbol(marketId)
 	var timestamp *int64 = this.SafeInteger(data, "timestamp")
 	var channel *string = this.SafeString(params, "channel")
+	if channel == nil {
+		panic(ccxt.ExchangeError(this.Id + " order book update has no channel"))
+	}
 	var channelParts []string = strings.Split(*channel, ".")
 	var channelPartsLength int = len(channelParts)
 	var isGrouped bool = (channelPartsLength == 5)
@@ -2105,21 +2108,21 @@ func (this *Coinbaseinternational) HandleOrderBook(client ccxt.ClientInterface, 
 				client.SubscriptionDel(channel)
 			}
 			client.Reject(ccxt.ExchangeError(this.Id+" order book update has a nonce mismatch"), channel)
-			this.Spawn(this.ResubscribeOrderBookAsync, channel)
+			this.Spawn(this.ResubscribeOrderBookAsync, *channel)
 			return
 		}
-		var deltas130412 []any
-		deltas130412, _ = data["asks"].([]any)
-		if deltas130412 == nil {
-			deltas130412 = []any{}
+		var deltas130712 []any
+		deltas130712, _ = data["asks"].([]any)
+		if deltas130712 == nil {
+			deltas130712 = []any{}
 		}
-		this.HandleDeltas(orderbook.GetAsks(), deltas130412)
-		var deltas130512 []any
-		deltas130512, _ = data["bids"].([]any)
-		if deltas130512 == nil {
-			deltas130512 = []any{}
+		this.HandleDeltas(orderbook.GetAsks(), deltas130712)
+		var deltas130812 []any
+		deltas130812, _ = data["bids"].([]any)
+		if deltas130812 == nil {
+			deltas130812 = []any{}
 		}
-		this.HandleDeltas(orderbook.GetBids(), deltas130512)
+		this.HandleDeltas(orderbook.GetBids(), deltas130812)
 	}
 	orderbook.SetSymbol(symbol)
 	orderbook.SetNonce(this.SafeInteger(data, "change_id"))
@@ -2132,15 +2135,15 @@ func (this *Coinbaseinternational) HandleOrderBook(client ccxt.ClientInterface, 
 		client.Resolve(orderbook, channel)
 	}
 }
-func (this *Coinbaseinternational) ResubscribeOrderBookAsync(channel any) <-chan ccxt.AsyncResult[any] {
+func (this *Coinbaseinternational) ResubscribeOrderBookAsync(channel string) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.resubscribeOrderBookBody(ch, channel)
 	return ch
 }
-func (this *Coinbaseinternational) resubscribeOrderBookBody(ch chan ccxt.AsyncResult[any], channel any) any {
+func (this *Coinbaseinternational) resubscribeOrderBookBody(ch chan ccxt.AsyncResult[any], channel string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var channelParts []string = ccxt.Split(channel, ".")
+	var channelParts []string = strings.Split(channel, ".")
 	var channelPartsLength int = len(channelParts)
 	var isPrivate bool = (this.SafeString(channelParts, channelPartsLength-1) != nil && *this.SafeString(channelParts, channelPartsLength-1) == "raw")
 	var url string = this.GetWsUrl(isPrivate)
@@ -2151,13 +2154,13 @@ func (this *Coinbaseinternational) resubscribeOrderBookBody(ch chan ccxt.AsyncRe
 			panic(r.Err)
 		}
 	}
-	var ternaryStr132722 string = "public/unsubscribe"
+	var ternaryStr133022 string = "public/unsubscribe"
 	if isPrivate {
-		ternaryStr132722 = "private/unsubscribe"
+		ternaryStr133022 = "private/unsubscribe"
 	}
 	var request map[string]any = map[string]any{
 		"jsonrpc": "2.0",
-		"method":  ternaryStr132722,
+		"method":  ternaryStr133022,
 		"params": map[string]any{
 			"channels": []any{channel},
 		},
@@ -2173,7 +2176,7 @@ func (this *Coinbaseinternational) resubscribeOrderBookBody(ch chan ccxt.AsyncRe
 		client.SubscriptionDel(channel)
 	}
 
-	r2 := <-this.SubscribeAsync([]any{channel}, []any{channel}, isPrivate, map[string]any{})
+	r2 := <-this.SubscribeAsync([]string{channel}, []string{channel}, isPrivate, map[string]any{})
 	if r2.Err != nil {
 		panic(r2.Err)
 	}

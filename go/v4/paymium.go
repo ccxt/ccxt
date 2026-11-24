@@ -322,7 +322,7 @@ func (this *Paymium) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market.Symbol, nil, "bids", "asks", "price", "amount"))}
 	return nil
 }
-func (this *Paymium) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Paymium) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// {
 	//     "high":"33740.82",

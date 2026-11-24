@@ -1700,7 +1700,7 @@ func (this *Btse) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(data, market)}
 	return nil
 }
-func (this *Btse) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Btse) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// spot rows carry the fields up to askQty, contract rows additionally carry
 	// openInterest, fundingRate, nextFundingTime and fundingIntervalMinutes

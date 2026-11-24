@@ -443,7 +443,11 @@ func (this *Lighter) HandleTicker(client ccxt.ClientInterface, message map[strin
 			var marketId string = marketIds[i]
 			var market map[string]any = this.SafeMarket(marketId)
 			var symbol *string = ccxt.SafeStringPtr(market["symbol"])
-			var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(this.SafeDict(data, marketId, map[string]any{}), market))
+			dataDict29849, _ := data[marketId].(map[string]any)
+			if dataDict29849 == nil {
+				dataDict29849 = map[string]any{}
+			}
+			var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(dataDict29849, market))
 			if symbol != nil {
 				this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 			}
@@ -1591,7 +1595,11 @@ func (this *Lighter) HandleBalance(client ccxt.ClientInterface, message map[stri
 	if strings.Index(channel, "user_stats:") >= 0 {
 		typeVar = "swap"
 	}
-	var balance map[string]any = this.SafeDictMap(this.Balance, typeVar, map[string]any{})
+	var balance map[string]any
+	balance, _ = this.Balance[typeVar].(map[string]any)
+	if balance == nil {
+		balance = map[string]any{}
+	}
 	if typeVar == "spot" {
 		var assets, _ = message["assets"].(map[string]any)
 		var assetIds []string = nil

@@ -1018,7 +1018,7 @@ func (this *Btcmarkets) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbo
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(orderbook)}
 	return nil
 }
-func (this *Btcmarkets) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Btcmarkets) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// fetchTicker
 	//

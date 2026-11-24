@@ -3367,7 +3367,7 @@ func (this *Okx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(first, symbol, timestamp))}
 	return nil
 }
-func (this *Okx) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Okx) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "instType": "SPOT", // SPOT, SWAP, etc
@@ -3668,7 +3668,14 @@ func (this *Okx) fetchMarkPriceBody(ch chan AsyncResult[Ticker], symbol string, 
 	var data []any
 	data, _ = response["data"].([]any)
 
-	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.SafeDict(data, 0, map[string]any{}), market)}
+	var dataDict246133 map[string]any
+	if len(data) > 0 {
+		dataDict246133, _ = data[0].(map[string]any)
+	}
+	if dataDict246133 == nil {
+		dataDict246133 = map[string]any{}
+	}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(dataDict246133, market)}
 	return nil
 }
 
@@ -11975,7 +11982,7 @@ func (this *Okx) ParseSettlement(settlement map[string]any, market any) map[stri
 		"datetime":  this.Iso8601(timestamp),
 	}
 }
-func (this *Okx) ParseSettlements(settlements []any, market any) []any {
+func (this *Okx) ParseSettlements(settlements []any, market map[string]any) []any {
 	//
 	//     {
 	//         "details": [
@@ -13479,7 +13486,7 @@ func (this *Okx) fetchLongShortRatioHistoryBody(ch chan AsyncResult[[]LongShortR
 	ch <- AsyncResult[[]LongShortRatio]{Value: LongShortRatiosFromList(this.ParseLongShortRatioHistory(result, market, since, limit))}
 	return nil
 }
-func (this *Okx) ParseLongShortRatio(info any, optionalArgs ...any) LongShortRatio {
+func (this *Okx) ParseLongShortRatio(info map[string]any, optionalArgs ...any) LongShortRatio {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(info, "timestamp")

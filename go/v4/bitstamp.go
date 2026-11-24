@@ -1568,7 +1568,7 @@ func (this *Bitstamp) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(orderbook)}
 	return nil
 }
-func (this *Bitstamp) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Bitstamp) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// {
 	//     "timestamp": "1686068944",

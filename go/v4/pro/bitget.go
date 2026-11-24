@@ -1812,7 +1812,7 @@ func (this *Bitget) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 		}
 	}
 	var market any = nil
-	var messageHash any = ""
+	var messageHash string = ""
 	var subscriptionHash string = "positions"
 	var instType any = "USDT-FUTURES"
 	uta, paramsUta := this.HandleOptionBoolAndParams(params, "watchPositions", "uta", false)
@@ -1833,10 +1833,10 @@ func (this *Bitget) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 	if uta {
 		instType = "UTA"
 	}
-	messageHash = ccxt.Add(ccxt.Add(instType, ":positions"), messageHash)
 	var args map[string]any = map[string]any{
 		"instType": instType,
 	}
+	messageHash = *this.SafeString(args, "instType", "") + ":positions" + messageHash
 	var topicOrChannel string = "channel"
 	if uta {
 		topicOrChannel = "topic"
@@ -3481,12 +3481,12 @@ func (this *Bitget) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	ch <- ccxt.AsyncResult[*string]{Value: resolved}
 	return nil
 }
-func (this *Bitget) WatchPrivateAsync(uta any, messageHash any, subscriptionHash any, args map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Bitget) WatchPrivateAsync(uta any, messageHash string, subscriptionHash any, args map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.watchPrivateBody(ch, uta, messageHash, subscriptionHash, args, optionalArgs...)
 	return ch
 }
-func (this *Bitget) watchPrivateBody(ch chan ccxt.AsyncResult[any], uta any, messageHash any, subscriptionHash any, args map[string]any, optionalArgs ...any) any {
+func (this *Bitget) watchPrivateBody(ch chan ccxt.AsyncResult[any], uta any, messageHash string, subscriptionHash any, args map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})

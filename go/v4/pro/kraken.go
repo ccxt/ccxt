@@ -2358,7 +2358,11 @@ func (this *Kraken) HandleBalance(client ccxt.ClientInterface, message map[strin
 		this.Balance = map[string]any{}
 	}
 	this.Balance[typeVar] = this.SafeDict(this.Balance, typeVar, map[string]any{})
-	var balance map[string]any = this.SafeDictMap(this.Balance, typeVar, map[string]any{})
+	var balance map[string]any
+	balance, _ = this.Balance[typeVar].(map[string]any)
+	if balance == nil {
+		balance = map[string]any{}
+	}
 	balance["info"] = message
 	var data, _ = message["data"].([]any)
 	for i := 0; i < len(data); i++ {

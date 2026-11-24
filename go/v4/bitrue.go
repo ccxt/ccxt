@@ -1455,7 +1455,7 @@ func (this *Bitrue) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(orderbook)}
 	return nil
 }
-func (this *Bitrue) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Bitrue) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// fetchBidsAsks
 	//
@@ -1560,7 +1560,7 @@ func (this *Bitrue) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 	}
 	var market map[string]any = this.Market(symbol)
 	var response any = nil
-	var data any = map[string]any{}
+	var data map[string]any = map[string]any{}
 	if *this.SafeBool(market, "swap", false) {
 		var request map[string]any = map[string]any{
 			"contractName": market["id"],
@@ -1580,7 +1580,7 @@ func (this *Bitrue) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 			}
 			response = r2.Value
 		}
-		data = response
+		data = this.Extend(data, response)
 	} else if *this.SafeBool(market, "spot", false) {
 		var request map[string]any = map[string]any{
 			"symbol": market["id"],
@@ -1591,7 +1591,7 @@ func (this *Bitrue) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 			panic(r3.Err)
 		}
 		response = r3.Raw
-		data = this.SafeDict(response, 0, map[string]any{})
+		data = this.Extend(data, this.SafeDict(response, 0, map[string]any{}))
 	} else {
 		panic(NotSupported(this.Id + " fetchTicker only support spot & swap markets"))
 	}
@@ -3413,7 +3413,10 @@ func (this *Bitrue) ParseTransactionStatusByType(status *string, optionalArgs ..
 			"6": "canceled",
 		},
 	}
-	var statuses map[string]any = SafeMapTyped(statusesByType, typeVar)
+	var statuses map[string]any
+	if typeVar != nil {
+		statuses, _ = statusesByType[*typeVar].(map[string]any)
+	}
 	return this.SafeString(statuses, status, status)
 }
 func (this *Bitrue) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {

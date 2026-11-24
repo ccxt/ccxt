@@ -653,7 +653,7 @@ func (this *Predictfun) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	var rawTopicsLength int = len(rawTopics)
 	var result []any = []any{}
 	for i := 0; i < rawTopicsLength; i++ {
-		var parsedEvent map[string]any = this.ParseEvent(rawTopics[i])
+		var parsedEvent map[string]any = this.ParseEvent(this.Extend(map[string]any{}, rawTopics[i]))
 		result = append(result, parsedEvent)
 		var parsedMarkets []any = ccxt.SafeListTyped(parsedEvent, "markets")
 		var parsedMarketsLength int = len(parsedMarkets)
@@ -885,7 +885,7 @@ func (this *Predictfun) fetchRawTopicsByQueriesBody(ch chan ccxt.AsyncResult[[]m
  * @param {object} rawTopic the raw market topic object
  * @returns {object} an event structure
  */
-func (this *Predictfun) ParseEvent(rawTopic any) map[string]any {
+func (this *Predictfun) ParseEvent(rawTopic map[string]any) map[string]any {
 	//
 	//     {
 	//         "createdAt": "2026-08-26T14:00:02.000Z",
@@ -1172,7 +1172,7 @@ func (this *Predictfun) TitleForMarketSymbol(topicSlug *string, title *string, o
  * @param {object} rawTopic the enclosing raw market topic (carries slug/vendor/fees/dates)
  * @returns {object} a market structure
  */
-func (this *Predictfun) ParseTopicMarket(rawMarket any, rawTopic any) map[string]any {
+func (this *Predictfun) ParseTopicMarket(rawMarket any, rawTopic map[string]any) map[string]any {
 	//
 	//     {
 	//         "boostEndsAt": "2026-08-27T14:15:00.000Z",

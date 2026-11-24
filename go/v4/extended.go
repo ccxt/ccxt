@@ -1104,7 +1104,7 @@ func (this *Extended) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(tickers, "symbol", symbolsNormalized))}
 	return nil
 }
-func (this *Extended) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Extended) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//       "dailyVolume": "231216165.666600",

@@ -945,7 +945,7 @@ func (this *Bitso) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(orderbook, market.Symbol, timestamp, "bids", "asks", "price", "amount"))}
 	return nil
 }
-func (this *Bitso) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Bitso) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "high":"37446.85",

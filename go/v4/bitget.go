@@ -5859,7 +5859,7 @@ func (this *Bitget) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(data, market["symbol"], timestamp, bidsKey, asksKey))}
 	return nil
 }
-func (this *Bitget) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Bitget) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//   {
 	//       "symbol": "BTCUSDT",
@@ -6200,7 +6200,14 @@ func (this *Bitget) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 	var data []any
 	data, _ = response["data"].([]any)
 
-	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.SafeDict(data, 0, map[string]any{}), market)}
+	var dataDict401733 map[string]any
+	if len(data) > 0 {
+		dataDict401733, _ = data[0].(map[string]any)
+	}
+	if dataDict401733 == nil {
+		dataDict401733 = map[string]any{}
+	}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(dataDict401733, market)}
 	return nil
 }
 
@@ -6250,7 +6257,14 @@ func (this *Bitget) fetchMarkPriceBody(ch chan AsyncResult[Ticker], symbol strin
 	var data []any
 	data, _ = response["data"].([]any)
 
-	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.SafeDict(data, 0, map[string]any{}), market)}
+	var dataDict404633 map[string]any
+	if len(data) > 0 {
+		dataDict404633, _ = data[0].(map[string]any)
+	}
+	if dataDict404633 == nil {
+		dataDict404633 = map[string]any{}
+	}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(dataDict404633, market)}
 	return nil
 }
 
@@ -7082,7 +7096,10 @@ func (this *Bitget) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 		rows, _ = utaResponse["data"].([]any)
 		var utaResult map[string]any = map[string]any{}
 		for i := 0; i < len(rows); i++ {
-			var entry any = rows[i]
+			var entry, _ = rows[i].(map[string]any)
+			if entry == nil {
+				entry = map[string]any{}
+			}
 			var entryMarketId *string = this.SafeString(entry, "symbol")
 			var entryMarketIdKnown bool
 			if entryMarketId != nil {
@@ -7210,7 +7227,10 @@ func (this *Bitget) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 	data, _ = response["data"].([]any)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var entry any = data[i]
+		var entry, _ = data[i].(map[string]any)
+		if entry == nil {
+			entry = map[string]any{}
+		}
 		var marketId *string = this.SafeString(entry, "symbol")
 		var symbol *string = this.SafeSymbol(marketId, nil, nil, marketType)
 		var market map[string]any = this.Market(symbol)
@@ -7223,7 +7243,7 @@ func (this *Bitget) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
 	return nil
 }
-func (this *Bitget) ParseTradingFee(data any, optionalArgs ...any) TradingFeeInterface {
+func (this *Bitget) ParseTradingFee(data map[string]any, optionalArgs ...any) TradingFeeInterface {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(data, "symbol")
@@ -15430,7 +15450,7 @@ func (this *Bitget) fetchIsolatedBorrowRateBody(ch chan AsyncResult[IsolatedBorr
 	ch <- AsyncResult[IsolatedBorrowRate]{Value: IsolatedBorrowRateFromMap(this.ParseIsolatedBorrowRate(first, market))}
 	return nil
 }
-func (this *Bitget) ParseIsolatedBorrowRate(info any, optionalArgs ...any) map[string]any {
+func (this *Bitget) ParseIsolatedBorrowRate(info map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol": "BTCUSDT",
@@ -16695,7 +16715,7 @@ func (this *Bitget) fetchLongShortRatioHistoryBody(ch chan AsyncResult[[]LongSho
 	ch <- AsyncResult[[]LongShortRatio]{Value: LongShortRatiosFromList(this.ParseLongShortRatioHistory(data, market))}
 	return nil
 }
-func (this *Bitget) ParseLongShortRatio(info any, optionalArgs ...any) LongShortRatio {
+func (this *Bitget) ParseLongShortRatio(info map[string]any, optionalArgs ...any) LongShortRatio {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(info, "symbol")

@@ -2643,7 +2643,7 @@ func (this *Kucoin) HandleUtaOrderBook(client ccxt.ClientInterface, message map[
 	this.HandleBookDelta(book, data)
 	client.Resolve(book, messageHash)
 }
-func (this *Kucoin) GetCacheIndex(orderbook any, cache []any) int64 {
+func (this *Kucoin) GetCacheIndex(orderbook map[string]any, cache []any) int64 {
 	var firstDelta map[string]any
 	if 0 < len(cache) {
 		firstDelta, _ = cache[0].(map[string]any)
@@ -3909,7 +3909,11 @@ func (this *Kucoin) HandleUtaBalance(client ccxt.ClientInterface, message map[st
 	if _, ok := this.Balance[typeVar]; !ok {
 		this.Balance[typeVar] = map[string]any{}
 	}
-	var balance map[string]any = this.SafeDictMap(this.Balance, typeVar, map[string]any{})
+	var balance map[string]any
+	balance, _ = this.Balance[typeVar].(map[string]any)
+	if balance == nil {
+		balance = map[string]any{}
+	}
 	balance["info"] = data
 	var timestamp *int64 = this.SafeIntegerProduct(data, "U", 0.000001)
 	if timestamp != nil {

@@ -1803,7 +1803,7 @@ func (this *Hyperliquid) ParseFundingRate(info map[string]any, optionalArgs ...a
 		"interval":                 "1h",
 	})
 }
-func (this *Hyperliquid) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Hyperliquid) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "prevDayPx": "3400.5",

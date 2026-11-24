@@ -1721,18 +1721,18 @@ func (this *Bingx) SetPositionsCache(client ccxt.ClientInterface, typeVar *strin
 		var messageHash string = *typeVar + ":fetchPositionsSnapshot"
 		if _, ok := client.GetFutures()[messageHash]; !ok {
 			client.Future(messageHash)
-			this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash, typeVar)
+			this.Spawn(this.LoadPositionsSnapshotAsync, client, messageHash, *typeVar)
 		}
 	} else {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 }
-func (this *Bingx) LoadPositionsSnapshotAsync(client ccxt.ClientInterface, messageHash string, typeVar any) <-chan ccxt.AsyncResult[bool] {
+func (this *Bingx) LoadPositionsSnapshotAsync(client ccxt.ClientInterface, messageHash string, typeVar string) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.loadPositionsSnapshotBody(ch, client, messageHash, typeVar)
 	return ch
 }
-func (this *Bingx) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, messageHash string, typeVar any) any {
+func (this *Bingx) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, messageHash string, typeVar string) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 
@@ -2394,7 +2394,11 @@ func (this *Bingx) HandleBalance(client ccxt.ClientInterface, message map[string
 	if _, ok := this.Balance[typeVar]; !ok {
 		this.Balance[typeVar] = map[string]any{}
 	}
-	var typeBalance map[string]any = this.SafeDictMap(this.Balance, typeVar, map[string]any{})
+	var typeBalance map[string]any
+	typeBalance, _ = this.Balance[typeVar].(map[string]any)
+	if typeBalance == nil {
+		typeBalance = map[string]any{}
+	}
 	typeBalance["info"] = data
 	if timestamp != nil {
 		typeBalance["timestamp"] = *timestamp

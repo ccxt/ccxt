@@ -800,7 +800,11 @@ func (this *Zebpay) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 	fees, _ = response["data"].([]any)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(fees); i++ {
-		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(fees[i]))
+		var feeRow, _ = fees[i].(map[string]any)
+		if feeRow == nil {
+			feeRow = map[string]any{}
+		}
+		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(feeRow))
 		var symbol *string = this.SafeString(fee, "symbol")
 		if symbol != nil {
 			result[*symbol] = fee
@@ -2702,7 +2706,7 @@ func (this *Zebpay) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInte
 		"tierBased":  nil,
 	})
 }
-func (this *Zebpay) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Zebpay) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//     [
 	//        {

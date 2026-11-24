@@ -3162,7 +3162,7 @@ func (this *Kalshi) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
 	var rawEventsLength int = len(rawEvents)
 	var result []any = []any{}
 	for di := 0; di < rawEventsLength; di++ {
-		var parsedEvent map[string]any = this.ParseEvent(rawEvents[di])
+		var parsedEvent map[string]any = this.ParseEvent(this.Extend(map[string]any{}, rawEvents[di]))
 		result = append(result, parsedEvent)
 		// register the parsed markets so populateOutcomes can index their outcomes
 		var parsedMarkets []any = ccxt.ArrayTyped(parsedEvent["markets"])

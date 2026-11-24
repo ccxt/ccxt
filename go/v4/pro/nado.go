@@ -2211,7 +2211,7 @@ func (this *Nado) unWatchPublicMultipleBody(ch chan ccxt.AsyncResult[bool], stre
 	ch <- ccxt.AsyncResult[bool]{Value: true}
 	return nil
 }
-func (this *Nado) ParseWsTimestamp(message any, key string) any {
+func (this *Nado) ParseWsTimestamp(message any, key string) *int64 {
 	var value *string = this.SafeString(message, key)
 	if value == nil {
 		return nil
@@ -2220,7 +2220,8 @@ func (this *Nado) ParseWsTimestamp(message any, key string) any {
 	// local is the regex transpiler's ARRAY hint and would emit php count()
 	// on a string, breaking every ws parser with a TypeError
 	if len(*value) > 13 {
-		return this.ParseToInt((*value)[:len((*value))-6])
+		retIntVal := this.ParseToInt((*value)[:len((*value))-6])
+		return &retIntVal
 	}
 	return this.SafeInteger(message, key)
 }
@@ -2240,7 +2241,7 @@ func (this *Nado) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 	_ = market
 	var marketId *string = this.SafeString(trade, "product_id")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var timestamp any = this.ParseWsTimestamp(trade, "timestamp")
+	var timestamp *int64 = this.ParseWsTimestamp(trade, "timestamp")
 	var isTakerBuyer *bool = this.SafeBool(trade, "is_taker_buyer")
 	var side *string = nil
 	if isTakerBuyer != nil {
@@ -2292,7 +2293,7 @@ func (this *Nado) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) map[
 	_ = market
 	var marketId *string = this.SafeString(trade, "product_id")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var timestamp any = this.ParseWsTimestamp(trade, "timestamp")
+	var timestamp *int64 = this.ParseWsTimestamp(trade, "timestamp")
 	var isBid *bool = this.SafeBool(trade, "is_bid")
 	var side *string = nil
 	if isBid != nil {
@@ -2422,7 +2423,7 @@ func (this *Nado) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	_ = market
 	var marketId *string = this.SafeString(order, "product_id")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var timestamp any = this.ParseWsTimestamp(order, "timestamp")
+	var timestamp *int64 = this.ParseWsTimestamp(order, "timestamp")
 	var id *string = this.SafeString(order, "digest")
 	var amountString *string = this.SafeString(order, "amount")
 	var remaining any = nil
@@ -2506,7 +2507,7 @@ func (this *Nado) ParseWsPosition(position map[string]any, optionalArgs ...any) 
 	_ = market
 	var marketId *string = this.SafeString(position, "product_id")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var timestamp any = this.ParseWsTimestamp(position, "timestamp")
+	var timestamp *int64 = this.ParseWsTimestamp(position, "timestamp")
 	var amountString *string = this.SafeString(position, "amount")
 	var vQuoteAmount *string = this.SafeString(position, "v_quote_amount")
 	var side *string = nil
@@ -2594,7 +2595,7 @@ func (this *Nado) ParseWsBidAsk(bidask map[string]any, optionalArgs ...any) map[
 	_ = market
 	var marketId *string = this.SafeString(bidask, "product_id")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var timestamp any = this.ParseWsTimestamp(bidask, "timestamp")
+	var timestamp *int64 = this.ParseWsTimestamp(bidask, "timestamp")
 	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":    marketResolved["symbol"],
 		"timestamp": timestamp,
@@ -2750,9 +2751,9 @@ func (this *Nado) HandleOrderBook(client ccxt.ClientInterface, message map[strin
 	}
 	this.HandleDeltas(orderbook.GetAsks(), asks)
 	this.HandleDeltas(orderbook.GetBids(), bids)
-	var timestamp any = this.ParseWsTimestamp(message, "max_timestamp")
+	var timestamp *int64 = this.ParseWsTimestamp(message, "max_timestamp")
 	orderbook.SetSymbol(symbol)
-	ccxt.AddElementToObject(orderbook, "timestamp", timestamp)
+	orderbook.SetTimestamp(timestamp)
 	orderbook.SetDatetime(this.Iso8601(timestamp))
 	ccxt.AddElementToObject(orderbook, "maxTimestamp", this.SafeString(message, "max_timestamp"))
 	client.Resolve(orderbook, messageHash)

@@ -1839,7 +1839,7 @@ func (this *Backpack) HandleBidAsks(bookSide any, bidAsks []any) {
 		bookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
 	}
 }
-func (this *Backpack) GetCacheIndex(orderbook any, cache []any) int64 {
+func (this *Backpack) GetCacheIndex(orderbook map[string]any, cache []any) int64 {
 	//
 	// {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
 	var firstDelta map[string]any

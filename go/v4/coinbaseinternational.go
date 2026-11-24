@@ -1564,7 +1564,7 @@ func (this *Coinbaseinternational) fetchTickerBody(ch chan AsyncResult[Ticker], 
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(ticker, market)}
 	return nil
 }
-func (this *Coinbaseinternational) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Coinbaseinternational) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "timestamp": 1788867258984,
@@ -1592,7 +1592,7 @@ func (this *Coinbaseinternational) ParseTicker(ticker any, optionalArgs ...any) 
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(ticker, "timestamp")
-	var stats map[string]any = SafeMapTyped(ticker, "stats")
+	var stats, _ = ticker["stats"].(map[string]any)
 	var last *float64 = this.SafeNumber(ticker, "last_price")
 	var marketId *string = this.SafeString(ticker, "instrument_name")
 	var quoteVolume *float64 = this.SafeNumber(stats, "volume_notional")

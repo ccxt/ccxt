@@ -1102,7 +1102,7 @@ func (this *Ndax) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, symbol))}
 	return nil
 }
-func (this *Ndax) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Ndax) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// fetchTicker
 	//

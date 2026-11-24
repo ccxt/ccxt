@@ -1759,7 +1759,7 @@ func (this *Toobit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(rows, symbolsNormalized, paramsMarketType))}
 	return nil
 }
-func (this *Toobit) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Toobit) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "s")
@@ -3675,7 +3675,10 @@ func (this *Toobit) ParseTransactionStatus(status *string, optionalArgs ...any) 
 	if status == nil {
 		return nil
 	}
-	var statuses map[string]any = SafeMapTyped(statusesByType, typeVar)
+	var statuses map[string]any
+	if typeVar != nil {
+		statuses, _ = statusesByType[*typeVar].(map[string]any)
+	}
 	return this.SafeString(statuses, status, status)
 }
 

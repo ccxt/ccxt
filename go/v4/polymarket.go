@@ -904,7 +904,7 @@ func (this *Polymarket) fetchTickersBody(ch chan AsyncResult[map[string]Ticker],
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(result, symbolsNormalized))}
 	return nil
 }
-func (this *Polymarket) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Polymarket) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// merged row assembled by fetchTickers from the tickers, statistics and bbo endpoints
 	//

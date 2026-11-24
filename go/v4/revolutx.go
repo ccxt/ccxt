@@ -601,7 +601,7 @@ func (this *Revolutx) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
  * @param {object} [market] the market the ticker is for
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-func (this *Revolutx) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Revolutx) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var tickerSymbol *string = this.SafeString(ticker, "symbol")

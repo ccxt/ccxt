@@ -627,7 +627,7 @@ func (this *Independentreserve) fetchOrderBookBody(ch chan AsyncResult[OrderBook
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, market.Symbol, timestamp, "BuyOrders", "SellOrders", "Price", "Volume"))}
 	return nil
 }
-func (this *Independentreserve) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Independentreserve) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	// {
 	//     "DayHighestPrice":43489.49,
 	//     "DayLowestPrice":41998.32,

@@ -1774,10 +1774,13 @@ func (this *Poloniex) HandleTicker(client ccxt.ClientInterface, message map[stri
 	var data, _ = message["data"].([]any)
 	var newTickers map[string]any = map[string]any{}
 	for i := 0; i < len(data); i++ {
-		var item, _ = data[i].(map[string]any)
-		var marketId *string = this.SafeString(item, "symbol")
+		var marketId *string = this.SafeString(data[i], "symbol")
 		if marketId != nil {
-			var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(data[i]))
+			dataDict120749, _ := data[i].(map[string]any)
+			if dataDict120749 == nil {
+				dataDict120749 = map[string]any{}
+			}
+			var ticker map[string]any = ccxt.TickerToMap(this.ParseTicker(dataDict120749))
 			var symbol *string = this.SafeString(ticker, "symbol")
 			if symbol != nil {
 				this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)

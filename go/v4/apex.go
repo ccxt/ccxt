@@ -907,7 +907,7 @@ func (this *Apex) ParseMarket(market any) map[string]any {
 	}
 	return this.SafeMarketStructure(literal67241)
 }
-func (this *Apex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Apex) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// {
 	//     "symbol": "BTCUSDT",

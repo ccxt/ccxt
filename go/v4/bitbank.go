@@ -449,7 +449,7 @@ func (this *Bitbank) ParseMarket(entry any) map[string]any {
 		"info":    entry,
 	})
 }
-func (this *Bitbank) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Bitbank) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = this.SafeSymbol(nil, market)

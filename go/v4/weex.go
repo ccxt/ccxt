@@ -1524,7 +1524,7 @@ func (this *Weex) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], opti
 	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(results, "symbol", symbolsNormalized))}
 	return nil
 }
-func (this *Weex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Weex) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// spot
 	//     {

@@ -748,7 +748,7 @@ func (this *Coinspot) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(orderbook, market.Symbol, nil, "buyorders", "sellorders", "rate", "amount"))}
 	return nil
 }
-func (this *Coinspot) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Coinspot) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "btc":{
@@ -912,7 +912,11 @@ func (this *Coinspot) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		var market map[string]any = this.SafeMarket(id)
 		if *this.SafeBool(market, "spot", false) {
 			var symbol string = *this.SafeString(market, "symbol", "")
-			result[symbol] = TickerToMap(this.ParseTicker(this.SafeDict(prices, id, map[string]any{}), market))
+			pricesDict49851, _ := prices[id].(map[string]any)
+			if pricesDict49851 == nil {
+				pricesDict49851 = map[string]any{}
+			}
+			result[symbol] = TickerToMap(this.ParseTicker(pricesDict49851, market))
 		}
 	}
 

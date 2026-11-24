@@ -489,7 +489,7 @@ func (this *Myriad) fetchEventBody(ch chan ccxt.AsyncResult[ccxt.PredictionEvent
 		if r.Value != nil {
 			rawQuestion = r.Value
 		}
-		var orderBookEvent map[string]any = this.ParseEvent(rawQuestion)
+		var orderBookEvent map[string]any = this.ParseEvent(this.Extend(map[string]any{}, rawQuestion))
 		this.IndexEventOutcomes(orderBookEvent)
 
 		ch <- ccxt.AsyncResult[ccxt.PredictionEvent]{Value: ccxt.PredictionEventFromMap(orderBookEvent)}
@@ -4269,8 +4269,7 @@ func (this *Myriad) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
 	var result []any = []any{}
 	var rawQuestionsLength int = len(rawQuestions)
 	for i := 0; i < rawQuestionsLength; i++ {
-		var rawQuestion any = rawQuestions[i]
-		var ev map[string]any = this.ParseEvent(rawQuestion)
+		var ev map[string]any = this.ParseEvent(this.SafeDict(rawQuestions, i, map[string]any{}))
 		var evMarkets []any = ccxt.SafeListTyped(ev, "markets")
 		var evMarketsLength int = len(evMarkets)
 		var filteredMarkets []any = []any{}
@@ -4343,7 +4342,7 @@ func (this *Myriad) ParseEvent(rawEvent any) map[string]any {
 		marketsList = append(marketsList, this.ParseMyriadMarket(rawMarket, questionSlug))
 	}
 	var endDate *string = this.SafeString(rawEvent, "expiresAt", this.SafeString(rawEvent, "endDate"))
-	var literal314238 map[string]any = map[string]any{
+	var literal314138 map[string]any = map[string]any{
 		"id":               this.SafeString(rawEvent, "id"),
 		"slug":             questionSlug,
 		"title":            this.SafeString(rawEvent, "title"),
@@ -4365,16 +4364,16 @@ func (this *Myriad) ParseEvent(rawEvent any) map[string]any {
 		"info":             rawEvent,
 	}
 	if (questionSlug != nil) && (questionSlug == nil || *questionSlug != "") {
-		literal314238["event"] = this.ShortenSlug(questionSlug)
+		literal314138["event"] = this.ShortenSlug(questionSlug)
 	} else {
-		literal314238["event"] = nil
+		literal314138["event"] = nil
 	}
 	if (endDate != nil) && (endDate == nil || *endDate != "") {
-		literal314238["end"] = this.Parse8601(endDate)
+		literal314138["end"] = this.Parse8601(endDate)
 	} else {
-		literal314238["end"] = nil
+		literal314138["end"] = nil
 	}
-	return this.Extend(rawEvent, literal314238)
+	return this.Extend(rawEvent, literal314138)
 }
 func (this *Myriad) RequestId(url *string) int64 {
 	var existing any = this.SafeValue(this.Options, "requestId")
@@ -5256,9 +5255,9 @@ func (this *Myriad) HandleOrder(client ccxt.ClientInterface, data any) {
 	var tif *string = this.SafeStringUpper(data, "timeInForce")
 	var isMarketTif bool = (tif != nil && *tif == "FOK") || (tif != nil && *tif == "FAK")
 	var timestamp *int64 = this.Parse8601(this.SafeString2(data, "updatedAt", "createdAt"))
-	var ternaryStr372320 string = "limit"
+	var ternaryStr372220 string = "limit"
 	if isMarketTif {
-		ternaryStr372320 = "market"
+		ternaryStr372220 = "market"
 	}
 	var parsed map[string]any = this.SafePredictionOrder(map[string]any{
 		"id":            this.SafeString(data, "orderHash"),
@@ -5270,7 +5269,7 @@ func (this *Myriad) HandleOrder(client ccxt.ClientInterface, data any) {
 		"outcomeId":     this.SafeString2(outcomeObj, "outcomeId", "id"),
 		"label":         this.SafeString(outcomeObj, "label"),
 		"market":        this.SafeString(outcomeObj, "market"),
-		"type":          ternaryStr372320,
+		"type":          ternaryStr372220,
 		"timeInForce":   tif,
 		"side":          this.SafeStringLower(data, "side"),
 		"price":         price,
@@ -5572,16 +5571,16 @@ func (this *Myriad) Sign(path string, optionalArgs ...any) map[string]any {
 		headersKey[headerKey] = this.ApiKey
 		headersValue = this.Extend(headersValue, headersKey)
 	}
-	var literal392615 map[string]any = map[string]any{
+	var literal392515 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": headersValue,
 	}
 	if bodyValue != nil {
-		literal392615["body"] = *bodyValue
+		literal392515["body"] = *bodyValue
 	}
-	return literal392615
+	return literal392515
 }
 
 func NewMyriad(userConfig map[string]any) *Myriad {

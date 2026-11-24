@@ -942,7 +942,7 @@ func (this *Bittrade) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
-func (this *Bittrade) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Bittrade) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// fetchTicker
 	//
@@ -1234,7 +1234,11 @@ func (this *Bittrade) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		var marketId *string = this.SafeString(tickers[i], "symbol")
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol string = *this.SafeString(market, "symbol", "")
-		var ticker map[string]any = TickerToMap(this.ParseTicker(this.SafeDict(tickers, i, map[string]any{}), market))
+		tickersDict85545, _ := tickers[i].(map[string]any)
+		if tickersDict85545 == nil {
+			tickersDict85545 = map[string]any{}
+		}
+		var ticker map[string]any = TickerToMap(this.ParseTicker(tickersDict85545, market))
 		ticker["timestamp"] = timestamp
 		ticker["datetime"] = this.Iso8601(timestamp)
 		result[symbol] = ticker

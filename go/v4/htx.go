@@ -3018,7 +3018,7 @@ func (this *Htx) TryGetSymbolFromFutureMarkets(symbolOrMarketId any) any {
 	this.Options["futureMarketIdsForSymbols"] = futureMarketIdsForSymbolsDict2
 	return symbolOrMarketId
 }
-func (this *Htx) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Htx) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// fetchTicker
 	//
@@ -3077,19 +3077,19 @@ func (this *Htx) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var bidVolume *string = nil
 	var ask *string = nil
 	var askVolume *string = nil
-	if InOp(ticker, "bid") {
-		if IsArray(GetValue(ticker, "bid")) {
-			bid = this.SafeString(GetValue(ticker, "bid"), 0)
-			bidVolume = this.SafeString(GetValue(ticker, "bid"), 1)
+	if _, ok := ticker["bid"]; ok {
+		if IsArray(ticker["bid"]) {
+			bid = this.SafeString(ticker["bid"], 0)
+			bidVolume = this.SafeString(ticker["bid"], 1)
 		} else {
 			bid = this.SafeString(ticker, "bid")
 			bidVolume = this.SafeString(ticker, "bidSize")
 		}
 	}
-	if InOp(ticker, "ask") {
-		if IsArray(GetValue(ticker, "ask")) {
-			ask = this.SafeString(GetValue(ticker, "ask"), 0)
-			askVolume = this.SafeString(GetValue(ticker, "ask"), 1)
+	if _, ok := ticker["ask"]; ok {
+		if IsArray(ticker["ask"]) {
+			ask = this.SafeString(ticker["ask"], 0)
+			askVolume = this.SafeString(ticker["ask"], 1)
 		} else {
 			ask = this.SafeString(ticker, "ask")
 			askVolume = this.SafeString(ticker, "askSize")
@@ -9731,7 +9731,7 @@ func (this *Htx) fetchIsolatedBorrowRatesBody(ch chan AsyncResult[map[string]Iso
 	ch <- AsyncResult[map[string]IsolatedBorrowRate]{Value: IsolatedBorrowRateMapFromMap(this.ParseIsolatedBorrowRates(data))}
 	return nil
 }
-func (this *Htx) ParseIsolatedBorrowRate(info any, optionalArgs ...any) map[string]any {
+func (this *Htx) ParseIsolatedBorrowRate(info map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol": "1inchusdt",

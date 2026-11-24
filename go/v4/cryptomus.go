@@ -627,7 +627,7 @@ func (this *Cryptomus) fetchTickerBody(ch chan AsyncResult[Ticker], symbol strin
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(response, market)}
 	return nil
 }
-func (this *Cryptomus) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Cryptomus) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "price": "78450.4"

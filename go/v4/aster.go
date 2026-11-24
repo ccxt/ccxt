@@ -2023,7 +2023,7 @@ func (this *Aster) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, symbol, timestamp, "bids", "asks"))}
 	return nil
 }
-func (this *Aster) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Aster) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// fetchTicker & fetchTickers: both SPOT & PERP has similar format
 	//

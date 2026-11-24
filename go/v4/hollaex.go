@@ -928,7 +928,7 @@ func (this *Hollaex) ParseTickers(tickers any, optionalArgs ...any) map[string]a
 	}
 	return this.FilterByArrayTickers(result, "symbol", symbols)
 }
-func (this *Hollaex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Hollaex) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// fetchTicker
 	//

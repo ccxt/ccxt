@@ -1178,7 +1178,7 @@ func (this *Woofipro) ParseCurrency(rawCurrency any) map[string]any {
 		"info": token,
 	})
 }
-func (this *Woofipro) ParseTokenAndFeeTemp(item any, feeTokenKey string, feeAmountKey string) any {
+func (this *Woofipro) ParseTokenAndFeeTemp(item map[string]any, feeTokenKey string, feeAmountKey string) any {
 	var feeCost *string = this.SafeString(item, feeAmountKey)
 	var fee any = nil
 	if feeCost != nil {
@@ -1229,7 +1229,7 @@ func (this *Woofipro) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var price *string = this.SafeString(trade, "executed_price")
 	var amount *string = this.SafeString(trade, "executed_quantity")
 	var order_id *string = this.SafeString(trade, "order_id")
-	var fee any = this.ParseTokenAndFeeTemp(trade, "fee_asset", "fee")
+	var fee any = this.ParseTokenAndFeeTemp(this.Extend(map[string]any{}, trade), "fee_asset", "fee")
 	var side *string = this.SafeStringLower(trade, "side")
 	var id *string = this.SafeString(trade, "id")
 	var takerOrMaker *string = nil
@@ -1535,7 +1535,7 @@ func (this *Woofipro) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fundi
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(rows, symbolsNormalized))}
 	return nil
 }
-func (this *Woofipro) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Woofipro) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "symbol": "PERP_BTC_USDC",

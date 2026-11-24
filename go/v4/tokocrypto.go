@@ -1423,7 +1423,7 @@ func (this *Tokocrypto) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol str
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(responseList, market, since, limit))}
 	return nil
 }
-func (this *Tokocrypto) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Tokocrypto) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	//     {
 	//         "symbol": "ETHBTC",
@@ -3122,7 +3122,10 @@ func (this *Tokocrypto) ParseTransactionStatusByType(status *string, optionalArg
 			"10": "ok",
 		},
 	}
-	var statuses map[string]any = SafeMapTyped(statusesByType, typeVar)
+	var statuses map[string]any
+	if typeVar != nil {
+		statuses, _ = statusesByType[*typeVar].(map[string]any)
+	}
 	return this.SafeString(statuses, status, status)
 }
 func (this *Tokocrypto) ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction {

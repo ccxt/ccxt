@@ -2117,7 +2117,7 @@ func (this *Lighter) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(result)}
 	return nil
 }
-func (this *Lighter) ParseTicker(ticker any, optionalArgs ...any) Ticker {
+func (this *Lighter) ParseTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	//
 	// fetchTicker, fetchTickers
 	//     {
@@ -2310,7 +2310,14 @@ func (this *Lighter) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string,
 	}
 	var tickers []any = this.ArrayConcat(spotTickers, swapTickers)
 
-	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.SafeDict(tickers, 0, map[string]any{}), market)}
+	var tickersDict163833 map[string]any
+	if len(tickers) > 0 {
+		tickersDict163833, _ = tickers[0].(map[string]any)
+	}
+	if tickersDict163833 == nil {
+		tickersDict163833 = map[string]any{}
+	}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(tickersDict163833, market)}
 	return nil
 }
 

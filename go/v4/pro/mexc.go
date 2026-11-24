@@ -406,7 +406,11 @@ func (this *Mexc) HandleTickers(client ccxt.ClientInterface, message map[string]
 		if isSpot == true {
 			ticker = this.ParseWsTicker(entry, market)
 		} else {
-			ticker = ccxt.TickerToMap(this.ParseTicker(this.SafeDict(data, i, map[string]any{})))
+			dataDict35243, _ := data[i].(map[string]any)
+			if dataDict35243 == nil {
+				dataDict35243 = map[string]any{}
+			}
+			ticker = ccxt.TickerToMap(this.ParseTicker(dataDict35243))
 		}
 		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
@@ -1059,7 +1063,7 @@ func (this *Mexc) HandleOrderBookSubscription(client ccxt.ClientInterface, messa
 	orderbook.Fields().Nonce = nil
 	orderbook.SetCache([]any{})
 }
-func (this *Mexc) GetCacheIndex(orderbook any, cache []any) int64 {
+func (this *Mexc) GetCacheIndex(orderbook map[string]any, cache []any) int64 {
 	// return the first index of the cache that can be applied to the orderbook or -1 if not possible
 	var nonce *int64 = this.SafeInteger(orderbook, "nonce")
 	var firstDelta map[string]any
@@ -2047,7 +2051,11 @@ func (this *Mexc) HandleBalance(client ccxt.ClientInterface, message any) {
 	if entry, ok := this.Balance[typeVar].(map[string]any); ok && (entry != nil) {
 		entry["info"] = data
 	}
-	var balance map[string]any = this.SafeDictMap(this.Balance, typeVar, map[string]any{})
+	var balance map[string]any
+	balance, _ = this.Balance[typeVar].(map[string]any)
+	if balance == nil {
+		balance = map[string]any{}
+	}
 	if timestamp != nil {
 		balance["timestamp"] = *timestamp
 	} else {
@@ -2638,17 +2646,17 @@ func (this *Mexc) authenticateBody(ch chan ccxt.AsyncResult[*string], subscripti
 	ch <- ccxt.AsyncResult[*string]{Value: listenKey}
 	return nil
 }
-func (this *Mexc) KeepAliveListenKeyAsync(listenKey any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Mexc) KeepAliveListenKeyAsync(listenKey *string, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.keepAliveListenKeyBody(ch, listenKey, optionalArgs...)
 	return ch
 }
-func (this *Mexc) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], listenKey any, optionalArgs ...any) any {
+func (this *Mexc) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], listenKey *string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	if ccxt.IsEqual(listenKey, nil) {
+	if listenKey == nil {
 
 		return nil
 	}
@@ -2669,7 +2677,7 @@ func (this *Mexc) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], listenK
 						if wsUrl == nil {
 							panic(ccxt.ExchangeError(this.Id + " keepAliveListenKey() has no spot websocket url"))
 						}
-						var url *string = ccxt.SafeStringPtr(ccxt.Add(*wsUrl+"?listenKey=", listenKey))
+						var url string = *wsUrl + "?listenKey=" + *listenKey
 						var client ccxt.ClientInterface = this.Client(url)
 						this.Options["listenKey"] = nil
 						client.Reject(error)
