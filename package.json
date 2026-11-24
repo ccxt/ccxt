@@ -115,6 +115,7 @@
     "cli.go": "go run -C go ./cli/main.go",
     "cli.rs": "./build/utils/cargo-runner.sh run --manifest-path examples/rust/Cargo.toml --features ws,all-venues --bin cli --",
     "cli.java": "./build/utils/java-cli.sh",
+    "cli.java.ts": "tsx ./build/utils/java-cli.ts",
     "ti-rs": "./build/utils/cargo-runner.sh run --quiet --manifest-path rust/tests/Cargo.toml --bin ti-rust --",
     "request-rs": "npm run ti-rs -- --requestTests",
     "response-rs": "npm run ti-rs -- --responseTests",
