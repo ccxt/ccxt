@@ -685,17 +685,22 @@ public partial class BaseExchange
             elems = GetIntegerSize(binr);
             IQ = binr.ReadBytes(elems);
 
+            // GetIntegerSize strips every leading zero byte, but ImportParameters requires D to be exactly
+            // as long as the modulus and P/Q/DP/DQ/InverseQ exactly half of it, so a key whose D (or a CRT value)
+            // happens to start with 0x00 (~1 in 256 keys) would otherwise fail to import; left-pad them back
+            int modulusLength = MODULUS.Length;
+            int halfLength = (modulusLength + 1) / 2;
             // ------- create RSACryptoServiceProvider instance and initialize with public key -----
             RSACryptoServiceProvider RSA = new RSACryptoServiceProvider();
             RSAParameters RSAparams = new RSAParameters();
             RSAparams.Modulus = MODULUS;
             RSAparams.Exponent = E;
-            RSAparams.D = D;
-            RSAparams.P = P;
-            RSAparams.Q = Q;
-            RSAparams.DP = DP;
-            RSAparams.DQ = DQ;
-            RSAparams.InverseQ = IQ;
+            RSAparams.D = LeftPadBytes(D, modulusLength);
+            RSAparams.P = LeftPadBytes(P, halfLength);
+            RSAparams.Q = LeftPadBytes(Q, halfLength);
+            RSAparams.DP = LeftPadBytes(DP, halfLength);
+            RSAparams.DQ = LeftPadBytes(DQ, halfLength);
+            RSAparams.InverseQ = LeftPadBytes(IQ, halfLength);
             RSA.ImportParameters(RSAparams);
             return RSA;
         }
@@ -704,6 +709,17 @@ public partial class BaseExchange
             return null;
         }
         finally { binr.Close(); }
+    }
+
+    private static byte[] LeftPadBytes(byte[] value, int length)
+    {
+        if (value.Length >= length)
+        {
+            return value;
+        }
+        var padded = new byte[length];
+        Array.Copy(value, 0, padded, length - value.Length, value.Length);
+        return padded;
     }
 
     private static int GetIntegerSize(BinaryReader binr)
