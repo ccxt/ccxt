@@ -2253,6 +2253,20 @@ function wsCacheAnnotatedWatchType (declaration) {
     return csharpWsCacheAnnotation (annotated);
 }
 
+// `const t: Dict = await this.watch|watchMultiple (..)`: the TypeScript declaration names a dict;
+// every handler of a dict-annotated watch resolves a Dictionary (FromTicker / a dict literal), so
+// the identity cast only checks it
+function wsDictAnnotatedWatchType (declaration) {
+    const name = wsWatchAwaitMethodName (declaration);
+    const type = declaration?.type;
+    if ((name !== 'watch' && name !== 'watchMultiple') || !(declaration.parent?.flags & ts.NodeFlags.Const)
+        || type?.kind !== ts.SyntaxKind.TypeReference || type.typeName?.kind !== ts.SyntaxKind.Identifier
+        || type.typeName.text !== 'Dict' || type.typeArguments !== undefined) {
+        return undefined;
+    }
+    return 'Dictionary<string, object>';
+}
+
 // ArrayCache subclasses print as their base: every member the consumers read is on ArrayCache, and
 // the cast then holds for any ArrayCache-family box the handlers store
 const CSHARP_WS_WATCH_CACHE_SUBCLASSES = [ 'ArrayCacheBySymbolById', 'ArrayCacheBySymbolBySide', 'ArrayCacheByOutcomeById' ];
@@ -11921,7 +11935,8 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         const wsCacheFieldElement = (elementType === undefined) ? wsCacheFieldElementBoxType (declaration.initializer) : undefined;
         // the ws order book subscriber core (`const orderbook = await this.watch (...)` +
         // `return orderbook.limit ()`): the resolve proof is wsOrderBookWatchType above
-        const wsOrderBookType = wsOrderBookWatchType (declaration) ?? wsCacheAnnotatedWatchType (declaration) ?? wsResolvedCacheWatchType (csharp, declaration);
+        const wsOrderBookType = wsOrderBookWatchType (declaration) ?? wsCacheAnnotatedWatchType (declaration) ?? wsResolvedCacheWatchType (csharp, declaration)
+            ?? wsDictAnnotatedWatchType (declaration);
         if (wsOrderBookType !== undefined) {
             csharpType = wsOrderBookType;
             cast = wsOrderBookType;
