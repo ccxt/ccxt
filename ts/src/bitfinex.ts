@@ -1,6 +1,6 @@
 // ---------------------------------------------------------------------------
 import { sha384 } from '@noble/hashes/sha2.js';
-import { ExchangeError, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported, PermissionDenied, ExchangeNotAvailable, RateLimitExceeded } from './base/errors.js';
+import { ExchangeError, ArgumentsRequired, InsufficientFunds, AuthenticationError, OrderNotFound, InvalidOrder, BadRequest, InvalidNonce, BadSymbol, OnMaintenance, NotSupported, PermissionDenied, ExchangeNotAvailable, RateLimitExceeded, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import Exchange from './abstract/bitfinex.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
@@ -489,6 +489,7 @@ export default class bitfinex extends Exchange {
                     'not enough exchange balance': InsufficientFunds,
                     'Order not found': OrderNotFound,
                     'symbol: invalid': BadSymbol,
+                    'Min price step': InvalidOrder, // {"code":33,"errors":{"price":["Min price step = 0.00001"]},"message":"Validation failed"}
                 },
             },
             'commonCurrencies': {
