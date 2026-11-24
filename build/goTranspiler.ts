@@ -12579,6 +12579,8 @@ const GO_NIL_FOLD_READERS = /^(?:this\.(?:Safe(?:String|Integer|Number|Bool|Floa
 // Readers that only hand their first argument to ToArray: a nil []any and the untyped nil both give a nil slice (a nil
 // map would give []any{}), so they are admitted for a []any fold only.
 const GO_NIL_FOLD_LIST_READERS = /^this\.(?:ParseLedger|ParseTransactions|ParseCurrencies|FilterBySymbolSinceLimit|FilterByArray)\($/;
+// Readers that touch their first argument only through GetArrayLength and in-loop element reads (0 for both nils).
+const GO_NIL_FOLD_LENGTH_READERS = /^this\.(?:FilterTransactionsByKind|FilterTransfersByType|SetEvents)\($/;
 function goTypedNilFoldLocals (content: string): string {
     if (!/\n\t+var \w+ any = nil\n\t+if r\d*\.Value != nil \{\n/.test (content)) {
         return content;
@@ -12615,7 +12617,7 @@ function goTypedNilFoldLocals (content: string): string {
             const after = rest.substring (u.index + name.length, u.index + name.length + 8);
             const reader = /((?:this\.|ccxt\.)?\w+\()$/.exec (before);
             const nilTest = /^ [!=]= nil\b/.test (after) && !/IsEqual\($/.test (before);
-            const listReader = (reader !== null) && (type === '[]any') && GO_NIL_FOLD_LIST_READERS.test (reader[1]);
+            const listReader = (reader !== null) && (type === '[]any') && (GO_NIL_FOLD_LIST_READERS.test (reader[1]) || GO_NIL_FOLD_LENGTH_READERS.test (reader[1]));
             safe = nilTest || ((reader !== null) && (GO_NIL_FOLD_READERS.test (reader[1]) || listReader) && /^[,)]/.test (after));
         }
         if (!safe || new RegExp ('&' + name + '\\b|var ' + name + '\\b|' + name + '\\s*[-+*/]?:?=(?!=)').test (rest)) {
@@ -12773,6 +12775,8 @@ function goTypedNilFoldLocalsCheck (ok: SelfTestOk): void {
     ok (arr.includes ('\tvar e []any = OrdersToList(r.Value)\n'), 'ToArray-read fold typed: ' + arr);
     const led = goTypedNilFoldLocals ('package ccxt\n\nfunc (this *Zz) h() any {\n' + fold ('r', 'FetchOrdersAsync()', 'g', 'OrdersToList(r.Value)') + fold ('r1', 'FetchOrdersAsync()', 'k', 'OrdersToList(r1.Value)') + '\treturn []any{this.ParseLedger(g, nil), this.FilterBy(k, "s", "o")}\n}\n');
     ok (led.includes ('\tvar g []any = OrdersToList(r.Value)\n') && led.includes ('\tvar k any = nil\n'), 'ToArray-only reader fold typed, FilterBy kept: ' + led);
+    const len = goTypedNilFoldLocals ('package ccxt\n\nfunc (this *Zz) l() any {\n' + fold ('r', 'FetchOrdersAsync()', 'q', 'OrdersToList(r.Value)') + '\treturn this.SetEvents(q)\n}\n');
+    ok (len.includes ('\tvar q []any = OrdersToList(r.Value)\n'), 'length-only reader fold typed: ' + len);
 }
 
 // `var x map[string]any = SafeMapTyped(m, k)` with `m` one map[string]any declaration and a literal or string key: the
@@ -21215,6 +21219,7 @@ function goBaseNativePasses (content: string): string {
     content = goTypedLenNative (goNativeStringAdds (goIntegralBoxComparisons (goGuardedDivide (goFloatFieldComparisons (goTupleTruthyComparisons (goNativeCompare (goInt64RetypeArith (content))))))));
     content = nativeGuardedListElementReads (content);  // the guard literals in the base files too
     content = goTypedFieldNilFold (content);  // RateLimit/Id are never nil
+    content = goTypedNilFoldLocals (content);  // the venue-file nil-fold retype, on the base tier too
     return goMapTypedOfMapLocal (gb09CredentialStrings (content));  // the credential fields are plain strings
 }
 
