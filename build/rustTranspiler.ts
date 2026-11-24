@@ -5308,6 +5308,7 @@ const RUST_BORROWED_VENUE_ROWS: string[] = [
     'parse_isolated_borrow_rate',
     'parse_long_short_ratio',
     'parse_ws_order_trade',
+    'parse_funding_history',
 ];
 // a venue whose own caller lends a local that is not a `Dict` (a boxed `Value` parameter) keeps the `Value` slot
 function rustBorrowedRowBoxedCaller (content: string, f: string): boolean {
@@ -5332,6 +5333,8 @@ function rustBorrowedParseRows (content: string): string {
     optFns.push ('parse_my_trade');
     // an inherent override borrows `Option<&Dict>` too; its `self.X(` callers and dispatch arm in the same file lend
     const venue = RUST_BORROWED_VENUE_ROWS.filter ((f) => content.includes ('\n    pub fn ' + f + '(&self, ') && !rustBorrowedRowBoxedCaller (content, f));
+    // only the `impl Into<Value>` slot is borrowed; a `mut x: Value` slot (a `Dict` declaration) keeps its callers boxed
+    venue.splice (0, venue.length, ...venue.filter ((f) => !new RegExp ('\\n    pub fn ' + f + '\\(&self, mut \\w+: Value,').test (content)));
     for (const f of venue) {
         content = content.replace (new RegExp ('(\\n    pub fn ' + f + '\\(&self, (\\w+): )impl Into<crate::Value>(,[^\\n]*\\{\\n        let (?:mut )?\\2: Value = )\\2\\.into\\(\\);', 'g'), '$1Option<&crate::value::Dict>$3$2.into();');
         optFns.push (f);
