@@ -16939,7 +16939,8 @@ function nativeArithmeticOperandKind (csharp, node) {
         // the `<type> x = ` prefix the declaration prints (this module's decision first,
         // then the printer's own getCSharpLocalType); a local with no proven type has none,
         // and a parameter read is the type the emitted signature carries for it
-        return nativeArithmeticKindOfType (identifierType (csharp, node) ?? localIdentifierType (csharp, node) ?? parameterArithmeticType (csharp, node));
+        return nativeArithmeticKindOfType (identifierType (csharp, node) ?? localIdentifierType (csharp, node) ?? parameterArithmeticType (csharp, node)
+            ?? printedNonNullNumericParameterType (csharp, node));
     case ts.SyntaxKind.CallExpression:
         if (isProvablyStringOperand (csharp, node)) {
             return 'string'; // `<recv>.toString ()` prints `((object)recv).ToString ()`
@@ -16949,6 +16950,13 @@ function nativeArithmeticOperandKind (csharp, node) {
         return nativeArithmeticResultKind (csharp, node);
     }
     return undefined;
+}
+
+// an unwritten parameter whose printed signature is a non-nullable number (`Int64 seconds` from `int`):
+// C# cannot hand it a null or another kind, so every read is that value
+function printedNonNullNumericParameterType (csharp, node) {
+    const type = printedUnwrittenParameterType (csharp, node);
+    return [ 'Int64', 'double', 'int' ].includes (type) ? type : undefined;
 }
 
 // the C# static kind of an already-printed arithmetic sub-expression: the native operator
