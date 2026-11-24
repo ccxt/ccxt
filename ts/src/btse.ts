@@ -3407,7 +3407,7 @@ export default class btse extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    override async setPositionMode (hedged: boolean, symbol: Str = undefined, params: Dict = {}) {
+    override async setPositionMode (hedged: boolean, symbol: Str = undefined, params: Dict = {}): Promise<Dict> {
         // NB!!! This method also sets margin mode to cross on btse
         // btse do not have specific endpoint for marginMode
         // both marginMode and positionMode are set and get with the same endpoints
