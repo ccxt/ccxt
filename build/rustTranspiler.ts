@@ -6959,11 +6959,14 @@ const RUST_PARSE_LIST_FNS = [
     'fetch_raw_events_list',
     'fetch_settlement_history',
     'fetch_my_settlement_history',
+    'fetch_borrow_rate_history',
+    'parse_borrow_rate_history',
 ];
 // venue-declared members of the list above: typed only in a file whose own declaration passes the proof
 const RUST_VENUE_LIST_FNS = new Set(RUST_PARSE_LIST_FNS.slice(RUST_PARSE_LIST_FNS.indexOf('get_asset_history_rows')));
 // declared once, in a base tier: typed in every file
 for (const n of [ 'parse_prediction_trades', 'convert_trading_view_to_ohlcv' ]) RUST_VENUE_LIST_FNS.delete(n);
+RUST_VENUE_LIST_FNS.delete('parse_borrow_rate_history');
 function typeParseListReturns(content: string): string {
     const typed = new Set<string>();
     const failed = new Set<string>();
