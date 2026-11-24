@@ -187075,7 +187075,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     }
 }
 // this is updated by vss.js when building
-_define_property(BaseExchange, "ccxtVersion", '4.5.93');
+_define_property(BaseExchange, "ccxtVersion", '4.5.94');
 class Exchange extends BaseExchange {
     async closePosition(symbol, side = undefined, params = {}) {
         throw new _errors_js__rspack_import_2.NotSupported(this.id + ' closePosition() is not supported yet');
@@ -277951,7 +277951,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': true,
                 'fetchMarginModes': false,
-                'fetchMarketLeverageTiers': false,
+                'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMySettlementHistory': false,
@@ -281160,6 +281160,63 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined
         });
+    }
+    /**
+     * @method
+     * @name blofin#fetchMarketLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+     * @see https://docs.blofin.com/index.html#get-position-tiers
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
+     * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+     */ async fetchMarketLeverageTiers(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const [marginMode, query] = this.handleMarginModeAndParams('fetchMarketLeverageTiers', params, 'cross');
+        const request = {
+            'instId': market['id'],
+            'marginMode': marginMode
+        };
+        const response = await this.publicGetMarketPositionTiers(this.extend(request, query));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "symbol": "LTC-USDT",
+        //                 "marginMode": "cross",
+        //                 "minSize": "0",
+        //                 "maxSize": "500",
+        //                 "maintenanceMarginRate": "0.0065",
+        //                 "maxLeverage": "50"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList(response, 'data', []);
+        return this.parseMarketLeverageTiers(data, market);
+    }
+    parseMarketLeverageTiers(info, market = undefined) {
+        const tiers = [];
+        for(let i = 0; i < info.length; i++){
+            const tier = this.safeDict(info, i);
+            const marketId = this.safeString(tier, 'symbol');
+            tiers.push({
+                'tier': this.sum(i, 1),
+                'symbol': this.safeSymbol(marketId, market),
+                'currency': this.safeString(market, 'quote'),
+                'minNotional': this.safeNumber(tier, 'minSize'),
+                'maxNotional': this.safeNumber(tier, 'maxSize'),
+                'maintenanceMarginRate': this.safeNumber(tier, 'maintenanceMarginRate'),
+                'maxLeverage': this.safeNumber(tier, 'maxLeverage'),
+                'info': tier
+            });
+        }
+        return tiers;
     }
     /**
      * @method

@@ -4042,6 +4042,7 @@ retrieve information on the maximum leverage, for different trade sizes for a si
 **Supported exchanges:**
 [bingx](/exchanges/bingx.md#fetchmarketleveragetiers)
 [bitget](/exchanges/bitget.md#fetchmarketleveragetiers)
+[blofin](/exchanges/blofin.md#fetchmarketleveragetiers)
 [btse](/exchanges/btse.md#fetchmarketleveragetiers)
 [bybit](/exchanges/bybit.md#fetchmarketleveragetiers)
 [digifinex](/exchanges/digifinex.md#fetchmarketleveragetiers)

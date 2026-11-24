@@ -35,6 +35,7 @@
 * [fetchPosition](#fetchposition)
 * [fetchPositions](#fetchpositions)
 * [fetchPositionsHistory](#fetchpositionshistory)
+* [fetchMarketLeverageTiers](#fetchmarketleveragetiers)
 * [fetchLeverages](#fetchleverages)
 * [fetchLeverage](#fetchleverage)
 * [setLeverage](#setleverage)
@@ -797,6 +798,28 @@ fetches historical positions
 
 ```javascript
 blofin.fetchPositionsHistory (symbols?, since?, limit?, params)
+```
+
+
+<a name="fetchMarketLeverageTiers" id="fetchmarketleveragetiers"></a>
+
+### fetchMarketLeverageTiers{docsify-ignore}
+retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - a [leverage tiers structure](https://docs.ccxt.com/?id=leverage-tiers-structure)
+
+**See**: https://docs.blofin.com/index.html#get-position-tiers  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.marginMode | <code>string</code> | No | 'cross' or 'isolated', default is 'cross' |
+
+
+```javascript
+blofin.fetchMarketLeverageTiers (symbol, params?)
 ```
 
 
