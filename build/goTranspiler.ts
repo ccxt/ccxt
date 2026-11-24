@@ -8200,8 +8200,16 @@ function goAnyLocalNilCompareText (fn: string, isEqualFn: string): string {
         verdict.set (name, ok);
         return ok;
     };
-    return fn.replace (new RegExp ('(!?)(?<![.\\w])' + helper + '(\\w+), nil\\)', 'g'), ((m: string, not: string, name: string) => {
-        if (!provable (name)) {
+    // a compare on the line right after its own one-line declaration, in the same block, sees only that value
+    const seededAbove = (name: string, at: number): boolean => {
+        const i = fn.slice (0, at).split ('\n').length - 1;
+        const decl = (i > 0) ? new RegExp ('^(\\s*)var ' + name + ' any = (.*)$').exec (lines[i - 1]) : null;
+        return (decl !== null) && lines[i].startsWith (decl[1]) && !/^\s/.test (lines[i].slice (decl[1].length))
+            && (code.filter ((line) => new RegExp ('\\bvar ' + name + '\\b').test (line)).length === 1)
+            && !new RegExp ('[(,]\\s*' + name + ' ').test (signature) && goAnyNilSafeWrite (decl[2], scalarLocals, provable, stringSlices);
+    };
+    return fn.replace (new RegExp ('(!?)(?<![.\\w])' + helper + '(\\w+), nil\\)', 'g'), ((m: string, not: string, name: string, at: number) => {
+        if (!provable (name) && !seededAbove (name, at)) {
             return m;
         }
         return '(' + name + ((not === '!') ? ' != nil)' : ' == nil)');
@@ -8263,6 +8271,10 @@ function goAnyLocalNilSelfTest (ok: SelfTestOk): void {
     ok (f ('\tvar v any = this.SafeValue(p, "a")\n\tv = this.ParseIds(v)\n\tif IsEqual(v, nil) {\n\t}\n').indexOf ('IsEqual(v, nil)') >= 0, 'an unproven write keeps the helper');
     ok (f ('\tvar s any = client.(ccxt.ClientInterface).SubscriptionGet("a")\n\tif IsEqual(s, nil) {\n\t}\n').indexOf ('if (s == nil) {') >= 0, 'a ws subscription read is dereferenced, so it compares natively');
     ok (f ('\tvar d any = client.(ccxt.ClientInterface).SubscriptionDict("a")\n\tif IsEqual(d, nil) {\n\t}\n').indexOf ('if (d == nil) {') >= 0, 'a ws subscription dictionary read compares natively');
+    ok (f ('\tvar s any = client.SubscriptionSafe("a")\n\tif IsEqual(s, nil) {\n\t\ts = this.ParseIds(p)\n\t}\n').indexOf ('if (s == nil) {') >= 0, 'a compare right under its safe seed compares natively despite a later write');
+    ok (f ('\tvar s any = client.SubscriptionSafe("a")\n\ts = this.ParseIds(p)\n\tif IsEqual(s, nil) {\n\t}\n').indexOf ('IsEqual(s, nil)') >= 0, 'a compare after a later unproven write keeps the helper');
+    ok (f ('\tvar s any = this.SafeString(p, "a")\n\tif IsEqual(s, nil) {\n\t\ts = this.ParseIds(p)\n\t}\n').indexOf ('IsEqual(s, nil)') >= 0, 'an unsafe seed keeps the helper on the next line');
+    ok (f ('\tvar s any = client.SubscriptionSafe("a")\n\tif true {\n\t\tvar s any = this.ParseIds(p)\n\t\t_ = s\n\t}\n\tif IsEqual(s, nil) {\n\t}\n').indexOf ('IsEqual(s, nil)') >= 0, 'a shadowed name keeps the helper');
     const keep = [
         '\tvar v any = this.SafeString(p, "v")\n\tif IsEqual(v, nil) {\n\t}\n',
         '\tvar v any = MapTyped(p)\n\tif IsEqual(v, nil) {\n\t}\n',
