@@ -5586,7 +5586,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    async def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}):
+    async def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}) -> dict:
         """
         set hedged to True or False for a market
 

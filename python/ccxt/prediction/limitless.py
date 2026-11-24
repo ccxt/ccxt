@@ -1478,7 +1478,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         })
         return await self.fetch_orders(outcome, since, limit, paramsExtended)
 
-    async def fetch_orders_by_ids(self, ids: object, outcome: Str = None, params: dict = {}) -> list[PredictionOrder]:
+    async def fetch_orders_by_ids(self, ids: list[str], outcome: Str = None, params: dict = {}) -> list[PredictionOrder]:
         """
         fetch orders by the list of order id
 

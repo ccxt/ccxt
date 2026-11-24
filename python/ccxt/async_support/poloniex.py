@@ -3669,7 +3669,7 @@ class poloniex(Exchange, ImplicitAPI):
             'hedged': hedged,
         }
 
-    async def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}):
+    async def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}) -> dict:
         """
         set hedged to True or False for a market
 

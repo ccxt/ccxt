@@ -2617,7 +2617,7 @@ class blofin(Exchange, ImplicitAPI):
         if isinstance(ids, str):
             return ids.split(',')
         else:
-            return ids
+            return self.safe_string_list([ids], [0])
 
     def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -3324,7 +3324,7 @@ class blofin(Exchange, ImplicitAPI):
             'hedged': positionMode == 'long_short_mode',
         }
 
-    def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}):
+    def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}) -> dict:
         """
         set hedged to True or False for a market
 

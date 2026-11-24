@@ -99,7 +99,7 @@ class luno(ccxt.async_support.luno):
             return
         symbol = self.safe_string(subscription, 'symbol', '')
         market = self.market(symbol)
-        symbolValue = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         messageHash = 'trades:' + symbolValue
         stored = self.safe_value(self.trades, symbolValue)
         if stored is None:

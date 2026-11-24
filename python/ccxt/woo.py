@@ -3696,7 +3696,7 @@ class woo(Exchange, ImplicitAPI):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbolValue, since, limit)
 
-    def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}):
+    def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}) -> dict:
         """
         set hedged to True or False for a market
 

@@ -908,7 +908,7 @@ class lighter(ccxt.async_support.lighter):
         dataLength = len(data)
         for i in range(0, dataLength):
             iReversed = self.parse_to_int(dataLength - 1 - i)
-            liquidation = self.parse_ws_liquidation(data[iReversed], market)
+            liquidation = self.parse_ws_liquidation(self.safe_dict(data, iReversed, {}), market)
             stored.append(liquidation)
         messageHash = self.get_message_hash('liquidations', symbol)
         client.resolve(stored, messageHash)

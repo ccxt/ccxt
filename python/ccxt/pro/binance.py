@@ -472,7 +472,7 @@ class binance(ccxt.async_support.binance):
         client.resolve([liquidation], 'liquidations')
         client.resolve([liquidation], 'liquidations::' + symbol)
 
-    def parse_ws_liquidation(self, liquidation: dict, market: Market = None):
+    def parse_ws_liquidation(self, liquidation: dict, market: Market = None) -> Liquidation:
         #
         # future
         #    {
@@ -3468,11 +3468,13 @@ class binance(ccxt.async_support.binance):
         # stock keepalive fixes
         marketType, paramsMarketType = self.handle_market_type_and_params(methodName, market, params)
         subType, paramsSubType = self.handle_sub_type_and_params(methodName, market, paramsMarketType)
-        type = marketType
+        linear = self.isLinear(marketType, subType)
+        inverse = self.isInverse(marketType, subType)
+        type = marketType if (marketType is not None) else 'spot'
         if type != 'option' and type != 'stock':
-            if self.isLinear(type, subType):
+            if linear:
                 type = 'linear'
-            elif self.isInverse(type, subType):
+            elif inverse:
                 type = 'inverse'
         # sites consuming every element unpack this; the two that skip subType
         # index it positionally instead, so no receiver is declared-but-unread
@@ -4538,22 +4540,29 @@ class binance(ccxt.async_support.binance):
         if e == 'orderReport':
             self.handle_order(client, message)
             return
-        orderValue = self.safe_dict(message, 'o', message)
-        messageValue = message
-        if (e == 'ORDER_TRADE_UPDATE') or (e == 'ALGO_UPDATE'):
-            messageValue = orderValue
-            if (e == 'ALGO_UPDATE') and (self.safe_integer(orderValue, 'T') is None):
-                # keep the outer event time, the algo payload carries no timestamps
-                messageValue = self.extend(orderValue, {'T': self.safe_integer(message, 'T')})
-        if (e == 'ORDER_TRADE_UPDATE') or (e == 'ALGO_UPDATE'):
+        isOrderEvent = (e == 'ORDER_TRADE_UPDATE') or (e == 'ALGO_UPDATE')
+        if isOrderEvent:
             oField = self.safe_list(message, 'o')
             if oField is not None:
                 # eOptions format: o is an array of orders with nested fi fills
                 self.handle_options_order_update(client, message)
                 return
-        self.handle_my_trade(client, messageValue)
-        self.handle_order(client, messageValue)
-        self.handle_my_liquidation(client, messageValue)
+        if not isOrderEvent:
+            self.handle_my_trade(client, message)
+            self.handle_order(client, message)
+            self.handle_my_liquidation(client, message)
+            return
+        orderValue = self.safe_dict(message, 'o', message)
+        if (e == 'ALGO_UPDATE') and (self.safe_integer(orderValue, 'T') is None):
+            # keep the outer event time, the algo payload carries no timestamps
+            algoOrder = self.extend(orderValue, {'T': self.safe_integer(message, 'T')})
+            self.handle_my_trade(client, algoOrder)
+            self.handle_order(client, algoOrder)
+            self.handle_my_liquidation(client, algoOrder)
+            return
+        self.handle_my_trade(client, orderValue)
+        self.handle_order(client, orderValue)
+        self.handle_my_liquidation(client, orderValue)
 
     def handle_stock_price(self, client: Client, message: dict):
         #

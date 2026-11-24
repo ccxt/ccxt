@@ -1188,7 +1188,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         if channel is not None:
             client.resolve(orderbook, channel)
 
-    async def resubscribe_order_book(self, channel: str):
+    async def resubscribe_order_book(self, channel: str) -> None:
         channelParts = channel.split('.')
         channelPartsLength = len(channelParts)
         isPrivate = self.safe_string(channelParts, channelPartsLength - 1) == 'raw'
@@ -1774,7 +1774,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         method = 'private/unsubscribe_all' if isPrivate else 'public/unsubscribe_all'
         return await self.request_ws(method, paramsResolved, isPrivate)
 
-    async def logout_ws(self, params: dict = {}):
+    async def logout_ws(self, params: dict = {}) -> None:
         """
  @ignore
         gracefully logs out of the private websocket session
@@ -1798,4 +1798,3 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             'params': paramsResolved,
         }
         await client.send(request)
-        return None

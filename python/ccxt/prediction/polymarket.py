@@ -1937,7 +1937,8 @@ class polymarket(PredictionExchange, ImplicitAPI):
         signatureType = self.safe_integer_2(params, 'signatureType', 'signature_type', self.safe_integer(self.options, 'signatureType', 3))
         # the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
         eoa = self.eth_checksum_address(self.eth_get_address_from_private_key(self.privateKey))
-        funder = self.eth_checksum_address(self.safe_string_2(params, 'funder', 'maker', self.safe_string(self.options, 'funder', self.walletAddress)))
+        funderAddress = self.safe_string_2(params, 'funder', 'maker', self.safe_string(self.options, 'funder', self.walletAddress))
+        funder = self.eth_checksum_address(funderAddress)
         # the salt defaults to a strictly-increasing millisecond value and the timestamp to the current time; both can be pinned via params for idempotency
         defaultSalt = self.incrementing_nonce()  # hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
         salt = self.safe_string(params, 'salt', self.number_to_string(defaultSalt))

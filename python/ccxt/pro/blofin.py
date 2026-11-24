@@ -540,7 +540,7 @@ class blofin(ccxt.async_support.blofin):
                 continue
             marketBalance[key] = parsed[key]
         self.balance[marketType] = marketBalance
-        self.balance[marketType] = self.safe_balance(self.balance[marketType])
+        self.balance[marketType] = self.safe_balance(marketBalance)
         messageHash = marketType + ':balance'
         client.resolve(self.balance[marketType], messageHash)
 

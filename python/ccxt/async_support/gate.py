@@ -1887,7 +1887,7 @@ class gate(Exchange, ImplicitAPI):
                 })
         return result
 
-    async def fetch_option_underlyings(self) -> list[Str]:
+    async def fetch_option_underlyings(self) -> list[str]:
         underlyingsResponse = await self.publicOptionsGetUnderlyings()
         #
         #    [
@@ -7456,7 +7456,7 @@ class gate(Exchange, ImplicitAPI):
         }
         return self.safe_string(ledgerType, type, type)
 
-    async def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}):
+    async def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}) -> dict:
         """
         set dual/hedged mode to True or False for a swap market, make sure all positions are closed and no orders are open before setting dual mode
 

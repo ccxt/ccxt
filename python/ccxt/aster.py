@@ -2092,7 +2092,7 @@ class aster(Exchange, ImplicitAPI):
             'hedged': self.safe_bool(response, 'dualSidePosition'),
         }
 
-    def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}):
+    def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}) -> dict:
         """
         set hedged to True or False for a market
 

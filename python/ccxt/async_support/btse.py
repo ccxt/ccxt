@@ -3203,7 +3203,7 @@ class btse(Exchange, ImplicitAPI):
             'hedged': hedged,
         }
 
-    async def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}):
+    async def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}) -> dict:
         """
         NBnot !! This method also sets margin mode to cross on btse. Set hedged to True or False for a cross-margin market.
 

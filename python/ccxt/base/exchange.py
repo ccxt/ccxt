@@ -4900,11 +4900,12 @@ class BaseExchange(object):
             if reducedFees is None:
                 reducedFees = []
             reducedLength = len(reducedFees)
+            parsedFees = []
             for i in range(0, reducedLength):
-                reducedFees[i] = self.parse_fee_numeric(reducedFees[i])
-            fees = reducedFees
+                parsedFees.append(self.parse_fee_numeric(reducedFees[i]))
+            fees = parsedFees
             if reducedLength == 1:
-                fee = reducedFees[0]
+                fee = self.parse_fee_numeric(reducedFees[0])
             elif reducedLength == 0:
                 fee = None
         # in case `fee & fees` are undefined, set `fees` as empty array

@@ -1998,7 +1998,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         # connect is in flight, sent by a concurrent subscribe - wait on the shared reply future
         return await client.future('centrifugoConnected')
 
-    async def pong(self, client: Client, message: object = None):
+    async def pong(self, client: Client):
         # Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
         await client.send('{}')
 

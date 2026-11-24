@@ -1731,7 +1731,7 @@ class bybit(ccxt.async_support.bybit):
             client.resolve([liquidation], 'liquidations')
             client.resolve([liquidation], 'liquidations::' + symbol)
 
-    def parse_ws_liquidation(self, liquidation: dict, market: Market = None):
+    def parse_ws_liquidation(self, liquidation: dict, market: Market = None) -> Liquidation:
         #
         #     {
         #         "price": "0.03803",

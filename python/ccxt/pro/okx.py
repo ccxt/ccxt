@@ -836,7 +836,7 @@ class okx(ccxt.async_support.okx):
         #
         rawLiquidations = self.safe_list(message, 'data', [])
         for i in range(0, len(rawLiquidations)):
-            liquidation = self.parse_ws_liquidation(rawLiquidations[i])
+            liquidation = self.parse_ws_liquidation(self.safe_dict(rawLiquidations, i, {}))
             symbol = self.safe_string(liquidation, 'symbol', '')
             if self.liquidations is None:
                 limit = self.safe_integer(self.options, 'liquidationsLimit', 1000)

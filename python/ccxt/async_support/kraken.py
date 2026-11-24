@@ -1785,7 +1785,7 @@ class kraken(Exchange, ImplicitAPI):
             return self.get_delisted_market_by_id(marketId)
         return market
 
-    def get_delisted_market_by_id(self, id: Str) -> object:
+    def get_delisted_market_by_id(self, id: Str) -> Market:
         if id is None:
             return None
         market = self.safe_dict(self.options['delistedMarketsById'], id)

@@ -75,7 +75,8 @@ class bithumb(ccxt.async_support.bithumb):
             await self.load_markets()
         generation, paramsGeneration = self.handle_option_integer_and_params(params, 'watchTicker', 'generation', 2)
         isGenerationTwo = (generation == 2)
-        wsUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsUrls = self.safe_dict(urlsApi, 'ws', {})
         url = self.safe_string(wsUrls, 'publicGen2', '') if isGenerationTwo else self.safe_string(wsUrls, 'public', '')
         market = self.market(symbol)
         messageHash = 'ticker:' + market['symbol']
@@ -123,7 +124,8 @@ class bithumb(ccxt.async_support.bithumb):
         if symbolsNormalized is not None:
             symbolsResolved = symbolsNormalized
         symbolsLengthDefined = len(symbolsResolved)
-        wsUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsUrls = self.safe_dict(urlsApi, 'ws', {})
         url = self.safe_string(wsUrls, 'publicGen2', '') if isGenerationTwo else self.safe_string(wsUrls, 'public', '')
         streamMarketIds = []
         messageHashes = []
@@ -356,7 +358,8 @@ class bithumb(ccxt.async_support.bithumb):
             await self.load_markets()
         generation, paramsGeneration = self.handle_option_integer_and_params(params, 'watchOrderBook', 'generation', 2)
         isGenerationTwo = (generation == 2)
-        wsUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsUrls = self.safe_dict(urlsApi, 'ws', {})
         url = self.safe_string(wsUrls, 'publicGen2', '') if isGenerationTwo else self.safe_string(wsUrls, 'public', '')
         market = self.market(symbol)
         symbolValue = self.safe_string(market, 'symbol', '')
@@ -515,7 +518,8 @@ class bithumb(ccxt.async_support.bithumb):
             await self.load_markets()
         generation, paramsGeneration = self.handle_option_integer_and_params(params, 'watchTrades', 'generation', 2)
         isGenerationTwo = (generation == 2)
-        wsUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsUrls = self.safe_dict(urlsApi, 'ws', {})
         url = self.safe_string(wsUrls, 'publicGen2', '') if isGenerationTwo else self.safe_string(wsUrls, 'public', '')
         market = self.market(symbol)
         symbolValue = self.safe_string(market, 'symbol', '')
@@ -719,7 +723,8 @@ class bithumb(ccxt.async_support.bithumb):
         if generation != 2:
             raise BadRequest(self.id + ' watchBalance() is only supported for the generation 2 API')
         await self.authenticate()
-        wsUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsUrls = self.safe_dict(urlsApi, 'ws', {})
         url = self.safe_string(wsUrls, 'privateGen2', '')
         messageHash = 'myAsset'
         request = self.build_gen2_subscription_request(messageHash, {'type': messageHash})
@@ -804,7 +809,8 @@ class bithumb(ccxt.async_support.bithumb):
                 },
             }
             self.options['ws'] = wsOptions
-        wsUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsUrls = self.safe_dict(urlsApi, 'ws', {})
         url = self.safe_string(wsUrls, 'privateGen2', '')
         client = self.client(url)
         return client
@@ -829,7 +835,8 @@ class bithumb(ccxt.async_support.bithumb):
         if generation != 2:
             raise BadRequest(self.id + ' watchOrders() is only supported for the generation 2 API')
         await self.authenticate()
-        wsUrls = self.safe_dict(self.safe_dict(self.urls, 'api', {}), 'ws', {})
+        urlsApi = self.safe_dict(self.urls, 'api', {})
+        wsUrls = self.safe_dict(urlsApi, 'ws', {})
         url = self.safe_string(wsUrls, 'privateGen2', '')
         messageHash = 'myOrder'
         codes = self.safe_list(params, 'codes', [])

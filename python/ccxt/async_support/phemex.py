@@ -4328,7 +4328,7 @@ class phemex(Exchange, ImplicitAPI):
         request['leverage'] = leverage
         return await self.privatePutPositionsLeverage(self.extend(request, params))
 
-    async def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}):
+    async def set_position_mode(self, hedged: bool, symbol: Str = None, params: dict = {}) -> dict:
         """
         set hedged to True or False for a market
 

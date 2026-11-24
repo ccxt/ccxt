@@ -1392,8 +1392,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 if code is not None:
                     holdingCodes[code] = True
                     cashBalance[code] = newAccount
-            self.balance['cash'] = self.prune_stale_balance_keys(cashBalance, holdingCodes)
-            self.balance['cash'] = self.safe_balance(self.balance['cash'])
+            self.balance['cash'] = self.safe_balance(self.prune_stale_balance_keys(cashBalance, holdingCodes))
         if futures is not None:
             futuresKeys = list(futures.keys())                  # marginAccount
             self.balance['margin'] = self.safe_dict(self.balance, 'margin', {})
@@ -1417,8 +1416,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                     futuresSymbols[symbol] = True
                     symbolAccounts[code] = newAccount
                 marginBalance[symbol] = symbolAccounts
-            self.balance['margin'] = self.prune_stale_balance_keys(marginBalance, futuresSymbols)
-            self.balance['margin'] = self.safe_balance(self.balance['margin'])
+            self.balance['margin'] = self.safe_balance(self.prune_stale_balance_keys(marginBalance, futuresSymbols))
             client.resolve(self.balance['margin'], messageHash + ':futures')
         if flexFutures is not None:
             flexFutureCurrencies = self.safe_dict(flexFutures, 'currencies', {})
@@ -1440,8 +1438,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
                 if code is not None:
                     flexCodes[code] = True
                     flexBalance[code] = newAccount
-            self.balance['flex'] = self.prune_stale_balance_keys(flexBalance, flexCodes)
-            self.balance['flex'] = self.safe_balance(self.balance['flex'])
+            self.balance['flex'] = self.safe_balance(self.prune_stale_balance_keys(flexBalance, flexCodes))
             client.resolve(self.balance['flex'], messageHash + ':flex_futures')
         # resolve the plain hash exactly once per message, with the unified
         # balance of the account the message updated (cash first, matching the

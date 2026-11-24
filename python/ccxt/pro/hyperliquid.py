@@ -1199,7 +1199,8 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         self.balance[account]['info'] = info
         self.balance[account]['timestamp'] = timestamp
         self.balance[account]['datetime'] = self.iso8601(timestamp)
-        self.balance[account] = self.safe_balance(self.balance[account])
+        accountEntry = self.safe_dict(self.balance, account, {})
+        self.balance[account] = self.safe_balance(accountEntry)
         if topic is not None:
             messageHash = topic + '::balance'
             client.resolve(self.balance[account], messageHash)

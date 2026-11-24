@@ -3763,7 +3763,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_order(self.safe_dict(data, 0, {}), market)
 
-    def parse_ids(self, ids: object):
+    def parse_ids(self, ids: object) -> Strings:
         """
  @ignore
         :param string[]|str ids: order ids
@@ -3772,7 +3772,7 @@ class okx(Exchange, ImplicitAPI):
         if (ids is not None) and isinstance(ids, str):
             return ids.split(',')
         else:
-            return ids
+            return self.safe_string_list([ids], [0])
 
     async def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -3812,17 +3812,18 @@ class okx(Exchange, ImplicitAPI):
                         'algoId': self.safe_string(algoIds, i),
                         'instId': market['id'],
                     })
-            for i in range(0, len(orderIds)):
-                if (trailing) or isTrigger:
-                    request.append({
-                        'algoId': self.safe_string(orderIds, i),
-                        'instId': market['id'],
-                    })
-                else:
-                    request.append({
-                        'ordId': self.safe_string(orderIds, i),
-                        'instId': market['id'],
-                    })
+            if orderIds is not None:
+                for i in range(0, len(orderIds)):
+                    if (trailing) or isTrigger:
+                        request.append({
+                            'algoId': self.safe_string(orderIds, i),
+                            'instId': market['id'],
+                        })
+                    else:
+                        request.append({
+                            'ordId': self.safe_string(orderIds, i),
+                            'instId': market['id'],
+                        })
         else:
             for i in range(0, len(clientOrderIds)):
                 if (trailing) or isTrigger:
