@@ -200,7 +200,7 @@ export default class opinion extends Exchange {
                 fetchedRawRows.push (raw);
                 const marketType = this.safeInteger (raw, 'marketType');
                 if (marketType === 1) {
-                    const event: any = this.parseEvent (raw);
+                    const event: any = this.parseEvent (this.safeDict (rawMarkets, i, {}));
                     const childMarkets = this.safeList (event, 'markets', []);
                     const childMarketsLength = childMarkets.length;
                     for (let ci = 0; ci < childMarketsLength; ci++) {
@@ -458,7 +458,7 @@ export default class opinion extends Exchange {
             this.markets = this.createSafeDictionary ();
         }
         for (let i = 0; i < rawEventsLength; i++) {
-            const event: any = this.parseEvent (rawEvents[i]);
+            const event: any = this.parseEvent (this.safeDict (rawEvents, i, {}));
             parsedEvents.push (event);
             // register the parsed markets so populateOutcomes can index their outcomes
             const eventMarkets = this.safeList (event, 'markets', []);

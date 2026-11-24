@@ -554,7 +554,7 @@ export default class predictfun extends Exchange {
         const rawTopicsLength = rawTopics.length;
         const result: any[] = [];
         for (let i = 0; i < rawTopicsLength; i++) {
-            const parsedEvent = this.parseEvent (rawTopics[i]);
+            const parsedEvent = this.parseEvent (this.extend ({}, rawTopics[i]));
             result.push (parsedEvent);
             const parsedMarkets: Dict[] = this.safeList (parsedEvent, 'markets', []);
             const parsedMarketsLength = parsedMarkets.length;
