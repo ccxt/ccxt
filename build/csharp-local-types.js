@@ -19044,10 +19044,10 @@ export const CSHARP_STRING_PARAMS = {
     'derive.hashMessage': { 0: 'string?' },
     'derive.signMessage': { 0: 'string?' },
     'hibachi.signMessage': { 1: 'string?' },
-    'hyperliquid.signHash': { 0: 'string?' },
-    'prediction/hyperliquid.signHash': { 0: 'string?' },
+    'hyperliquid.signHash': { 0: 'string?', 1: 'string?' },
+    'prediction/hyperliquid.signHash': { 0: 'string?', 1: 'string?' },
     'polymarket.signHash': { 0: 'string?' },
-    'prediction/polymarket.signHash': { 0: 'string?' },
+    'prediction/polymarket.signHash': { 0: 'string?', 1: 'string?' },
     'signEvmTransaction': { 1: 'string?' },
 };
 
