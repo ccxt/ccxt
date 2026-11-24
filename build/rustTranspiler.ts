@@ -12211,7 +12211,7 @@ export class RustTranspilerBuilder {
      * same statement, so the paren pair is accepted and dropped here.
      */
     narrowBoolLocals(content: string): string {
-        const declRe = /^([ \t]*)let mut ([a-zA-Z_][a-zA-Z0-9_]*): Value = \(?Value::Bool\(/gm;
+        const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = \(?Value::Bool\(/gm;
         // Returns the index just past the `)` that closes the paren at `open`,
         // or -1 if unbalanced. String-literal aware.
         const closeOf = (src: string, open: number): number => {
@@ -12257,7 +12257,7 @@ export class RustTranspilerBuilder {
         let group = 0;
         while ((m = declRe.exec(content)) !== null) {
             const declStart = m.index;
-            const name = m[2];
+            const name = m[3];
             const boolOpen = declStart + m[0].length - 1;       // index of `(` after Value::Bool
             const boolClose = closeOf(content, boolOpen);        // index just past matching `)`
             if (boolClose < 0) continue;
@@ -12318,6 +12318,10 @@ export class RustTranspilerBuilder {
                         continue;
                     }
                 }
+                // a map-entry value or a `Value::Bool(true)` match re-boxes / reads the same bool
+                const ins = /\.insert\([^,()\n]*\.to_string\(\), $/.exec(masked.slice(Math.max(0, s - 80), s)) !== null ? /^(?:\.clone\(\))?(?=\);)/.exec(after) : null;
+                if (ins !== null) { boolCmp.push({ start: stmtEnd + s, end: stmtEnd + e + ins[0].length, text: `Value::Bool(${name})` }); continue; }
+                if (before.endsWith('matches!(&') && !/[A-Za-z0-9_]/.test(before[before.length - 11] ?? '') && after.startsWith(', Value::Bool(true))')) { boolCmp.push({ start: stmtEnd + s - 'matches!(&'.length, end: stmtEnd + e + ', Value::Bool(true))'.length, text: name }); continue; }
                 // `x.is_truthy()` on a bool local is the bool itself.
                 if (after.startsWith('.is_truthy()')) {
                     boolCmp.push({ start: stmtEnd + s, end: stmtEnd + e + '.is_truthy()'.length, text: name });
@@ -12350,7 +12354,7 @@ export class RustTranspilerBuilder {
             }
             if (!ok) continue;
             group += 1;
-            rewrites.push({ start: declStart, end: stmtEnd, text: `${m[1]}let mut ${name}: bool = ${inner};`, group });
+            rewrites.push({ start: declStart, end: stmtEnd, text: `${m[1]}let ${m[2] ?? ''}${name}: bool = ${inner};`, group });
             for (const a of assigns) {
                 rewrites.push({ start: a.start, end: a.end, text: ` = ${a.expr}`, group });
             }
