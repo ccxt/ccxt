@@ -67,8 +67,7 @@ public static class Program
             // then the build output dir (bin/Debug/net10.0) for IDE/debugger runs, same anchor as exchangesPath
             var candidatePaths = new string[] {
                 fileName,
-                "./../../" + fileName,
-                System.AppDomain.CurrentDomain.BaseDirectory + "../../../../../" + fileName,
+                "./../../" + fileName
             };
             foreach (var candidatePath in candidatePaths)
             {
