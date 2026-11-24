@@ -1492,7 +1492,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         mapLiteral1.put("cost", this.safeString(trade, "amount"));
         mapLiteral1.put("fee", new HashMap<String, Object>() {{
                 put( "cost", feeAmount );
-                put( "currency", Mexc.this.safeCurrencyCode((String) (feeCurrencyId), null) );
+                put( "currency", Mexc.this.safeCurrencyCode(feeCurrencyId, null) );
             }});
         return this.safeTrade(mapLiteral1, market);
     }
@@ -1754,10 +1754,10 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         mapLiteral2.put("timestamp", timestamp);
         mapLiteral2.put("datetime", this.iso8601(timestamp));
         mapLiteral2.put("lastTradeTimestamp", null);
-        mapLiteral2.put("status", this.parseWsOrderStatus((String) (status), market));
+        mapLiteral2.put("status", this.parseWsOrderStatus(status, market));
         mapLiteral2.put("symbol", this.safeSymbol(null, market, null, null));
-        mapLiteral2.put("type", this.parseWsOrderType((String) (type)));
-        mapLiteral2.put("timeInForce", this.parseWsTimeInForce((String) (type)));
+        mapLiteral2.put("type", this.parseWsOrderType(type));
+        mapLiteral2.put("timeInForce", this.parseWsTimeInForce(type));
         mapLiteral2.put("side", (((java.util.Objects.equals(side, "1")))) ? "buy" : "sell");
         mapLiteral2.put("price", this.safeString(order, "price"));
         mapLiteral2.put("stopPrice", this.safeString2(order, "triggerPrice", "P"));
@@ -1911,7 +1911,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         balance.put("timestamp", timestamp);
         balance.put("datetime", this.iso8601(timestamp));
         String currencyId = this.safeString2(data, "currency", "vcoinName");
-        String code = this.safeCurrencyCode((String) (currencyId), null);
+        String code = this.safeCurrencyCode(currencyId, null);
         Map<String, Object> account = this.account();
         account.put("free", this.safeString2(data, "balanceAmount", "availableBalance"));
         account.put("used", this.safeString2(data, "frozenBalance", "frozenAmount"));
@@ -2320,7 +2320,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         {
             String messageHash = this.safeString(messageHashes, i, "");
             String subMessageHash = messageHash.replaceFirst("unsubscribe:", "");
-            this.cleanUnsubscription(client, subMessageHash, (String) (messageHash), false);
+            this.cleanUnsubscription(client, subMessageHash, messageHash, false);
             if (((String)messageHash).indexOf("ticker") >= 0)
             {
                 String symbol = messageHash.replaceFirst("unsubscribe:ticker:", "");
@@ -2430,7 +2430,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         this.options.put("listenKey", listenKey);
         client.resolve(listenKey, messageHash);
         Long listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 1200000);
-        this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", (String) (listenKey), parameters);
+        this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", listenKey, parameters);
         return listenKey;
 
     }

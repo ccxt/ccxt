@@ -1715,7 +1715,7 @@ public class Bitstamp extends BitstampApi
         return null;
     }
 
-    public Object getMarketFromTrade(Map<String, Object> trade)
+    public Map<String, Object> getMarketFromTrade(Map<String, Object> trade)
     {
         Map<String, Object> tradeOmitted = this.omit(trade, new ArrayList<Object>(Arrays.asList("fee", "price", "datetime", "tid", "type", "order_id", "side")));
         List<String> currencyIds = new ArrayList<String>(tradeOmitted.keySet());
@@ -1803,7 +1803,7 @@ public class Bitstamp extends BitstampApi
                 if (!java.util.Objects.equals(currentKey, "order_id") && currentKey.indexOf("_") >= 0)
                 {
                     rawMarketId = currentKey;
-                    marketResolved = this.safeMarket(rawMarketId, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })), "_", null);
+                    marketResolved = this.safeMarket(rawMarketId, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })), "_", null);
                 }
             }
         }
@@ -1916,7 +1916,7 @@ public class Bitstamp extends BitstampApi
         mapLiteral2.put("amount", amountString);
         mapLiteral2.put("cost", costString);
         mapLiteral2.put("fee", fee);
-        return this.safeTrade(mapLiteral2, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
+        return this.safeTrade(mapLiteral2, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
     }
 
     /**
@@ -2221,7 +2221,7 @@ public class Bitstamp extends BitstampApi
         for (var i = 0; i < feesList.size(); i++)
         {
             Map<String, Object> feeRow = this.safeDict(feesList, i, new HashMap<String, Object>() {{}});
-            Map<String, Object> fee = this.parseTradingFee(feeRow, null);
+            Map<String, Object> fee = this.parseTradingFee(feeRow, (Map<String, Object>) null);
             String symbol = this.safeString(fee, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -2304,7 +2304,7 @@ public class Bitstamp extends BitstampApi
         //         ...
         //     ]
         //
-        return this.parseTransactionFees(response, null);
+        return this.parseTransactionFees(response, (List<String>) null);
 
     }
 
@@ -3291,7 +3291,7 @@ public class Bitstamp extends BitstampApi
         if (java.util.Objects.equals(type, "trade"))
         {
             Map<String, Object> parsedTrade = (Map<String, Object>) this.parseTrade(item, null);
-            Object market = null;
+            Map<String, Object> market = null;
             Map<String, Object> itemDict = this.extend(new HashMap<String, Object>() {{}}, item);
             List<String> keys = new ArrayList<String>(itemDict.keySet());
             for (var i = 0; i < keys.size(); i++)
@@ -3300,7 +3300,7 @@ public class Bitstamp extends BitstampApi
                 if (currentKey.indexOf("_") >= 0)
                 {
                     String marketId = (currentKey == null ? null : ((String)currentKey).replaceFirst("_", ""));
-                    market = this.safeMarket(marketId, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })), null, null);
+                    market = this.safeMarket(marketId, market, null, null);
                 }
             }
             // if the market is still not defined

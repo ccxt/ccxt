@@ -2378,7 +2378,7 @@ public class Kucoin extends KucoinApi
             j39v1.put("swap", false);
             j39v1.put("future", false);
             j39v1.put("option", false);
-            j39v1.put("active", this.safeBool(market, "enableTrading", null));
+            j39v1.put("active", this.safeBool(market, "enableTrading", (Object) null));
             j39v1.put("contract", false);
             j39v1.put("linear", null);
             j39v1.put("inverse", null);
@@ -2525,7 +2525,7 @@ public class Kucoin extends KucoinApi
                 symbol = (symbol + expirySuffix);
                 type = "future";
             }
-            Boolean inverse = (Boolean) this.safeBool(market, "isInverse", null);
+            Boolean inverse = (Boolean) this.safeBool(market, "isInverse", (Object) null);
             String status = this.safeString(market, "status");
             String multiplier = this.safeString(market, "multiplier");
             Double tickSize = this.safeNumber(market, "tickSize", null);
@@ -2829,10 +2829,10 @@ public class Kucoin extends KucoinApi
     private Boolean loadMigrationStatusCore(Boolean force)
     {
 
-        if (!(((Map<?, ?>)this.options).containsKey("hf")) || (java.util.Objects.equals(this.safeBool(this.options, "hf", null), null)) || java.util.Objects.requireNonNullElse(force, false))
+        if (!(((Map<?, ?>)this.options).containsKey("hf")) || (java.util.Objects.equals(this.safeBool(this.options, "hf", (Object) null), null)) || java.util.Objects.requireNonNullElse(force, false))
         {
             Map<String, Object> result = (this.privateGetHfAccountsOpened(new HashMap<String, Object>() {{}})).join();
-            this.options.put("hf", this.safeBool(result, "data", null));
+            this.options.put("hf", this.safeBool(result, "data", (Object) null));
         }
         return true;
 
@@ -2954,8 +2954,8 @@ public class Kucoin extends KucoinApi
                 mapLiteral1.put("code", networkCode);
                 mapLiteral1.put("active", null);
                 mapLiteral1.put("fee", this.safeNumber2(chain, "withdrawalMinFee", "minWithdrawFee", null));
-                mapLiteral1.put("deposit", this.safeBool(chain, "isDepositEnabled", null));
-                mapLiteral1.put("withdraw", this.safeBool(chain, "isWithdrawEnabled", null));
+                mapLiteral1.put("deposit", this.safeBool(chain, "isDepositEnabled", (Object) null));
+                mapLiteral1.put("withdraw", this.safeBool(chain, "isWithdrawEnabled", (Object) null));
                 mapLiteral1.put("precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "withdrawPrecision"))));
                 mapLiteral1.put("limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
@@ -7613,7 +7613,7 @@ public class Kucoin extends KucoinApi
 
     public String handleTradeType(Object isContractMarket, String marginMode, Boolean isUnified, Map<String, Object> parameters)
     {
-        Object tradeType = this.safeString(parameters, "tradeType");
+        String tradeType = this.safeString(parameters, "tradeType");
         if (java.util.Objects.equals(tradeType, null))
         {
             if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(isContractMarket, false)))
@@ -7637,7 +7637,7 @@ public class Kucoin extends KucoinApi
                 tradeType = "SPOT";
             }
         }
-        return (String) (tradeType);
+        return tradeType;
     }
 
     public Order parseOrder(Map<String, Object> order, Map<String, Object> market)
@@ -7756,7 +7756,7 @@ public class Kucoin extends KucoinApi
         // precision reported by their api is 8 d.p.
         // const average = Precise.stringDiv (cost, Precise.stringMul (filled, market['contractSize']));
         // bool
-        Boolean isActive = (Boolean) this.safeBool(order, "isActive", null);
+        Boolean isActive = (Boolean) this.safeBool(order, "isActive", (Object) null);
         Boolean cancelExist = (Boolean) this.safeBool(order, "cancelExist", false);
         Object status = null;
         if (!java.util.Objects.equals(isActive, null))
@@ -7776,8 +7776,8 @@ public class Kucoin extends KucoinApi
         }
         String clientOrderId = this.safeString(order, "clientOid");
         String timeInForce = this.safeString(order, "timeInForce");
-        Boolean postOnly = (Boolean) this.safeBool(order, "postOnly", null);
-        Boolean reduceOnly = (Boolean) this.safeBool(order, "reduceOnly", null);
+        Boolean postOnly = (Boolean) this.safeBool(order, "postOnly", (Object) null);
+        Boolean reduceOnly = (Boolean) this.safeBool(order, "reduceOnly", (Object) null);
         Long lastUpdateTimestamp = this.safeInteger(order, "updatedAt");
         HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
         mapLiteral8.put("id", orderId);
@@ -7974,7 +7974,7 @@ public class Kucoin extends KucoinApi
         mapLiteral9.put("symbol", this.safeSymbol(marketId, market, "-", null));
         mapLiteral9.put("type", this.safeString(order, "type"));
         mapLiteral9.put("timeInForce", this.safeString(order, "timeInForce"));
-        mapLiteral9.put("postOnly", this.safeBool(order, "postOnly", null));
+        mapLiteral9.put("postOnly", this.safeBool(order, "postOnly", (Object) null));
         mapLiteral9.put("side", this.safeString(order, "side"));
         mapLiteral9.put("amount", this.safeString(order, "size"));
         mapLiteral9.put("price", this.safeString(order, "price"));
@@ -8076,8 +8076,8 @@ public class Kucoin extends KucoinApi
         mapLiteral10.put("symbol", symbol);
         mapLiteral10.put("type", this.safeStringLower(order, "orderType"));
         mapLiteral10.put("timeInForce", this.parseOrderTimeInForce(rawTimeInForce));
-        mapLiteral10.put("postOnly", this.safeBool(order, "postOnly", null));
-        mapLiteral10.put("reduceOnly", this.safeBool(order, "reduceOnly", null));
+        mapLiteral10.put("postOnly", this.safeBool(order, "postOnly", (Object) null));
+        mapLiteral10.put("reduceOnly", this.safeBool(order, "reduceOnly", (Object) null));
         mapLiteral10.put("side", this.safeStringLower(order, "side"));
         mapLiteral10.put("amount", amount);
         mapLiteral10.put("price", this.safeString(order, "price"));
@@ -9397,7 +9397,7 @@ public class Kucoin extends KucoinApi
         Object updatedAtMs = (((java.util.Objects.equals(updatedAt, null)))) ? null : (updatedAt * 1000L);
         Object timestamp = ((Boolean.TRUE.equals(isV1))) ? createdAtMs : createdAt;
         Object updated = ((Boolean.TRUE.equals(isV1))) ? updatedAtMs : updatedAt;
-        Boolean intern = (Boolean) this.safeBool(transaction, "isInner", null);
+        Boolean intern = (Boolean) this.safeBool(transaction, "isInner", (Object) null);
         String tag = this.safeString(transaction, "memo");
         String chainId = this.safeString(transaction, "chain");
         {
@@ -13073,7 +13073,7 @@ public class Kucoin extends KucoinApi
         String initialMarginPercentage = Precise.stringDiv(initialMargin, notional);
         // const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
         String unrealisedPnl = this.safeString2(position, "unrealisedPnl", "unrealizedPnL");
-        Boolean crossMode = (Boolean) this.safeBool(position, "crossMode", null);
+        Boolean crossMode = (Boolean) this.safeBool(position, "crossMode", (Object) null);
         // currently crossMode is always set to false and only isolated positions are supported
         String marginMode = this.safeStringLower(position, "marginMode");
         if (!java.util.Objects.equals(crossMode, null))
@@ -14091,14 +14091,14 @@ public class Kucoin extends KucoinApi
     private Boolean isUTAEnabledCore(Map<String, Object> parameters)
     {
 
-        if (java.util.Objects.equals(this.safeBool(this.options, "uta", null), null))
+        if (java.util.Objects.equals(this.safeBool(this.options, "uta", (Object) null), null))
         {
             Map<String, Object> response = (this.utaPrivateGetAccountMode(parameters)).join();
             Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             String accountMode = this.safeString(data, "selfAccountMode");
             this.options.put("uta", (java.util.Objects.equals(accountMode, "UNIFIED")));
         }
-        Boolean uta = java.util.Objects.equals(this.safeBool(this.options, "uta", null), true);
+        Boolean uta = java.util.Objects.equals(this.safeBool(this.options, "uta", (Object) null), true);
         return uta;
 
     }

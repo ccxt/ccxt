@@ -650,7 +650,7 @@ public class Krakenfutures extends KrakenfuturesApi
             j39v1.put("future", future);
             j39v1.put("option", false);
             j39v1.put("index", index);
-            j39v1.put("active", this.safeBool(market, "tradeable", null));
+            j39v1.put("active", this.safeBool(market, "tradeable", (Object) null));
             j39v1.put("contract", contract);
             j39v1.put("linear", linear);
             j39v1.put("inverse", inverse);
@@ -2734,7 +2734,7 @@ public class Krakenfutures extends KrakenfuturesApi
             mapLiteral4.put("type", null);
             mapLiteral4.put("timeInForce", null);
             mapLiteral4.put("postOnly", null);
-            mapLiteral4.put("reduceOnly", this.safeBool(orderDictFromFetchOrder, "reduceOnly", null));
+            mapLiteral4.put("reduceOnly", this.safeBool(orderDictFromFetchOrder, "reduceOnly", (Object) null));
             mapLiteral4.put("side", this.safeString(orderDictFromFetchOrder, "side"));
             mapLiteral4.put("price", null);
             mapLiteral4.put("triggerPrice", fetchOrderTriggerPrice);

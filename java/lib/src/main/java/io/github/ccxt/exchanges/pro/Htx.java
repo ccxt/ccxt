@@ -198,7 +198,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             put( "marketId", market.get("id") );
         }});
         String url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, false, false);
-        return (this.subscribePublic(url, (String) (symbolValue), (String) (messageHash), (Object) null, parameters)).join();
+        return (this.subscribePublic(url, symbolValue, messageHash, (Object) null, parameters)).join();
 
     }
 
@@ -325,7 +325,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String marketId = this.safeString(market, "id", "");
         String messageHash = (("market." + marketId) + ".trade.detail");
         String url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, false, false);
-        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.subscribePublic(url, (String) (symbolValue), messageHash, (Object) null, parameters)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.subscribePublic(url, symbolValue, messageHash, (Object) null, parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -450,7 +450,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String marketId = this.safeString(market, "id", "");
         String messageHash = ((("market." + marketId) + ".kline.") + interval);
         String url = this.getUrlByMarketType(market.get("type"), market.get("linear"), false, false, false);
-        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) (this.subscribePublic(url, (String) (symbolValue), messageHash, (Object) null, parameters)).join();
+        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) (this.subscribePublic(url, symbolValue, messageHash, (Object) null, parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -605,7 +605,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             method = null;
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic(url, (String) (symbolValue), messageHash, method, paramsExtended)).join();
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic(url, symbolValue, messageHash, method, paramsExtended)).join();
         return orderbook.limit();
 
     }
@@ -913,7 +913,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             boolean checksum = Boolean.TRUE.equals(this.handleOption("watchOrderBook", "checksum", true));
             if (checksum)
             {
-                throw new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage((String) (symbol)))) ;
+                throw new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage(symbol))) ;
             }
         }
         Long currentNonce = this.safeInteger(orderbook, "nonce");
@@ -1745,7 +1745,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
                 hx4NewMap0.put("cost", feeCost);
-                hx4NewMap0.put("currency", this.safeCurrencyCode((String) (feeCurrencyId), null));
+                hx4NewMap0.put("currency", this.safeCurrencyCode(feeCurrencyId, null));
                 fee = hx4NewMap0;
             }
         }
@@ -1795,7 +1795,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         mapLiteral2.put("fee", fee);
         mapLiteral2.put("average", avgPrice);
         mapLiteral2.put("trades", rawTrades);
-        mapLiteral2.put("reduceOnly", this.safeBool(order, "reduce_only", null));
+        mapLiteral2.put("reduceOnly", this.safeBool(order, "reduce_only", (Object) null));
         mapLiteral2.put("stopPrice", null);
         mapLiteral2.put("triggerPrice", null);
         mapLiteral2.put("takeProfitPrice", this.safeString2(order, "tp_trigger_price", "tp_order_price"));
@@ -1841,7 +1841,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             side = this.safeString(typeParts, 0);
             type = this.safeString(typeParts, 1);
         }
-        Boolean aggressor = (Boolean) this.safeBool(trade, "aggressor", null);
+        Boolean aggressor = (Boolean) this.safeBool(trade, "aggressor", (Object) null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(aggressor, null))
         {
@@ -2072,7 +2072,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Long timestamp = this.safeInteger(message, "ts");
         for (var i = 0; i < rawPositions.size(); i++)
         {
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition(this.safeDict(rawPositions, i, new HashMap<String, Object>() {{}}), null);
+            Map<String, Object> position = this.parsePosition(this.safeDict(rawPositions, i, new HashMap<String, Object>() {{}}), null);
             position.put("timestamp", timestamp);
             position.put("datetime", this.iso8601(timestamp));
             String marginMode = this.safeStringLower(position, "marginMode", defaultMarginMode);
@@ -2174,7 +2174,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Map<String, Object> currencyCode = null;
             if (!java.util.Objects.equals(currency, null))
             {
-                currencyCode = this.currency((String) (currency));
+                currencyCode = this.currency(currency);
             }
             marginMode = this.safeString(paramsOmitted, "margin", "cross");
             String prefix = "accounts";
@@ -2386,7 +2386,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         {
             // spot balance
             String currencyId = this.safeString(data, "currency");
-            String code = this.safeCurrencyCode((String) (currencyId), null);
+            String code = this.safeCurrencyCode(currencyId, null);
             Map<String, Object> account = this.account();
             account.put("free", this.safeString(data, "available"));
             account.put("total", this.safeString(data, "balance"));
@@ -2413,7 +2413,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 {
                     Map<String, Object> detail = this.safeDict(details, i, null);
                     String currencyId = this.safeString(detail, "currency");
-                    String code = this.safeCurrencyCode((String) (currencyId), null);
+                    String code = this.safeCurrencyCode(currencyId, null);
                     if (java.util.Objects.equals(code, null))
                     {
                         continue;
@@ -2468,7 +2468,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 //     "isolated_swap": []
                 // }
                 String marginAsset = this.safeString(first, "margin_asset");
-                String code = this.safeCurrencyCode((String) (marginAsset), null);
+                String code = this.safeCurrencyCode(marginAsset, null);
                 String marginFrozen = this.safeString(first, "margin_frozen");
                 Map<String, Object> unifiedAccount = this.account();
                 unifiedAccount.put("free", this.safeString(first, "withdraw_available"));
@@ -2486,7 +2486,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 {
                     // the cross account is one shared margin balance, keyed by the settle currency
                     String currencyId = this.safeString2(first, "margin_asset", "margin_account");
-                    String code = this.safeCurrencyCode((String) (currencyId), null);
+                    String code = this.safeCurrencyCode(currencyId, null);
                     if (!java.util.Objects.equals(code, null))
                     {
                         Map<String, Object> account = this.account();
@@ -2506,7 +2506,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                         account.put("free", this.safeString(isolatedBalance, "margin_balance", "margin_available"));
                         account.put("used", this.safeString(isolatedBalance, "margin_frozen"));
                         String currencyId = this.safeString2(isolatedBalance, "margin_asset", "symbol");
-                        String code = this.safeCurrencyCode((String) (currencyId), null);
+                        String code = this.safeCurrencyCode(currencyId, null);
                         if (!java.util.Objects.equals(code, null))
                         {
                             this.balance.put(code, account);
@@ -2521,7 +2521,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 {
                     Map<String, Object> balance = this.safeDict(data, i, null);
                     String currencyId = this.safeString(balance, "symbol");
-                    String code = this.safeCurrencyCode((String) (currencyId), null);
+                    String code = this.safeCurrencyCode(currencyId, null);
                     Map<String, Object> account = this.account();
                     account.put("free", this.safeString(balance, "margin_available"));
                     account.put("used", this.safeString(balance, "margin_frozen"));
@@ -2902,7 +2902,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 String errorCode = this.safeString(message, "err-code");
                 try
                 {
-                    this.throwExactlyMatchedException(this.safeDict(wsExceptions, "exact", new HashMap<String, Object>() {{}}), (String) (errorCode), (String) (this.json(message)));
+                    this.throwExactlyMatchedException(this.safeDict(wsExceptions, "exact", new HashMap<String, Object>() {{}}), errorCode, (String) (this.json(message)));
                     throw new ExchangeError((String)this.json(message)) ;
                 } catch(Exception e)
                 {
@@ -2934,7 +2934,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String feedback = ((this.id + " ") + this.json(message));
             try
             {
-                this.throwExactlyMatchedException((Map<String, Object>) (wsExceptions.get("exact")), (String) (code), feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (wsExceptions.get("exact")), code, feedback);
                 throw new ExchangeError(feedback) ;
             } catch(Exception e)
             {
@@ -3276,7 +3276,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String order = this.safeString2(trade, "orderId", "order_id");
         Long timestamp = this.safeIntegerN(trade, new ArrayList<Object>(Arrays.asList("tradeTime", "updated_time", "created_time")));
         String orderType = this.safeString2(trade, "orderType", "type");
-        Boolean aggressor = (Boolean) this.safeBool(trade, "aggressor", null);
+        Boolean aggressor = (Boolean) this.safeBool(trade, "aggressor", (Object) null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(aggressor, null))
         {

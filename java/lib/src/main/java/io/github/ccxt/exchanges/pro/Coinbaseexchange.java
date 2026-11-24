@@ -171,7 +171,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             put( "channels", new ArrayList<Object>(Arrays.asList(name)) );
         }};
         Map<String, Object> request = this.extend(subscribe, parameters);
-        return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
+        return (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
 
     }
 
@@ -934,7 +934,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
         String time = this.safeString(order, "time");
         Long timestamp = this.parse8601(time);
         String reason = this.safeString(order, "reason");
-        String status = this.parseWsOrderStatus((String) (reason));
+        String status = this.parseWsOrderStatus(reason);
         String orderType = this.safeString(order, "order_type");
         String remaining = this.safeString(order, "remaining_size");
         String type = this.safeString(order, "type");

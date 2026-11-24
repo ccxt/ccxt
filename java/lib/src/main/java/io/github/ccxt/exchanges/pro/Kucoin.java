@@ -1676,7 +1676,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         if (!java.util.Objects.equals(feeCost, null))
         {
             String feeCurrencyId = this.safeString(trade, "fC");
-            String feeCurrencyCode = this.safeCurrencyCode((String) (feeCurrencyId), null);
+            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, null);
             {
                 HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
                 hx4NewMap0.put("cost", feeCost);
@@ -2248,12 +2248,12 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         }
     }
 
-    public void handleBidAsks(Object bookSide, List<Object> bidAsks)
+    public void handleBidAsks(io.github.ccxt.ws.OrderBookSide bookSide, List<Object> bidAsks)
     {
         for (var i = 0; i < bidAsks.size(); i++)
         {
             List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk((bidAsks == null || i < 0 || i >= bidAsks.size() ? null : bidAsks.get(i)), 0, 1, 2);
-            ((io.github.ccxt.ws.OrderBookSide) bookSide).storeArray(bidAsk);
+            bookSide.storeArray(bidAsk);
         }
     }
 
@@ -2324,7 +2324,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
                 {
                     String messageHash = this.safeString(messageHashes, i);
                     String subHash = this.safeString(subMessageHashes, i);
-                    this.cleanUnsubscription(client, (String) (subHash), (String) (messageHash), false);
+                    this.cleanUnsubscription(client, subHash, messageHash, false);
                 }
             }
             String topic = this.safeString(subscription, "topic");
@@ -2569,7 +2569,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         //     }
         //
         String rawType = this.safeString(order, "type");
-        String status = this.parseWsOrderStatus((String) (rawType));
+        String status = this.parseWsOrderStatus(rawType);
         Long timestamp = this.safeInteger2(order, "orderTime", "createdAt");
         String marketId = this.safeString(order, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
@@ -2578,7 +2578,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             timestamp = this.safeIntegerProduct(order, "orderTime", 0.000001);
         }
         String triggerPrice = this.safeString(order, "stopPrice");
-        Boolean triggerSuccess = (Boolean) this.safeBool(order, "triggerSuccess", null);
+        Boolean triggerSuccess = (Boolean) this.safeBool(order, "triggerSuccess", (Object) null);
         Boolean triggerFail = (!java.util.Objects.equals(triggerSuccess, true)) && (!java.util.Objects.equals(triggerSuccess, null)); // TODO: updated to triggerSuccess === False once transpiler transpiles it correctly
         if ((java.util.Objects.equals(status, "triggered")) && Boolean.TRUE.equals(triggerFail))
         {
@@ -2675,10 +2675,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             put( "timestamp", timestamp );
             put( "lastTradeTimestamp", null );
             put( "lastUpdateTimestamp", Kucoin.this.safeIntegerProduct(order, "U", 0.000001) );
-            put( "status", Kucoin.this.parseOrderStatus((String) (rawStatus)) );
+            put( "status", Kucoin.this.parseOrderStatus(rawStatus) );
             put( "symbol", marketResolved.get("symbol") );
             put( "type", Kucoin.this.safeStringLower(order, "oT") );
-            put( "timeInForce", Kucoin.this.parseOrderTimeInForce((String) (rawTimeInForce)) );
+            put( "timeInForce", Kucoin.this.parseOrderTimeInForce(rawTimeInForce) );
             put( "side", Kucoin.this.safeStringLower(order, "S") );
             put( "price", Kucoin.this.safeString(order, "p") );
             put( "average", Kucoin.this.safeString(order, "aP") );
@@ -2691,8 +2691,8 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             put( "cost", Kucoin.this.safeString(order, "c") );
             put( "trades", null );
             put( "fee", fee );
-            put( "reduceOnly", Kucoin.this.safeBool(order, "rO", null) );
-            put( "postOnly", Kucoin.this.safeBool(order, "pO", null) );
+            put( "reduceOnly", Kucoin.this.safeBool(order, "rO", (Object) null) );
+            put( "postOnly", Kucoin.this.safeBool(order, "pO", (Object) null) );
         }}, marketResolved);
     }
 
@@ -2780,7 +2780,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         cachedOrders.append(parsed);
         String messageHash = "orders";
         String topic = this.safeString(message, "topic");
-        String suffix = this.getOrdersMessageHashSuffix((String) (topic));
+        String suffix = this.getOrdersMessageHashSuffix(topic);
         String typeSpecificMessageHash = (messageHash + suffix);
         client.resolve(cachedOrders, typeSpecificMessageHash);
         String symbolSpecificMessageHash = ((messageHash + ":") + this.safeString(parsed, "symbol", ""));
@@ -2994,7 +2994,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         myTrades.append(parsed);
         String messageHash = "myTrades";
         String topic = this.safeString(message, "topic", "");
-        String suffix = this.getMyTradesMessageHashSuffix((String) (topic));
+        String suffix = this.getMyTradesMessageHashSuffix(topic);
         String typeSpecificMessageHash = (messageHash + suffix);
         client.resolve(this.myTrades, typeSpecificMessageHash);
         String symbolSpecificMessageHash = ((messageHash + ":") + this.safeString(parsed, "symbol", ""));
@@ -3176,7 +3176,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             url = (this.negotiate(true, isClassicFuturesMethod, new HashMap<String, Object>() {{}})).join();
         }
         Client client = this.client(url);
-        this.setBalanceCache(client, (String) (uniformType));
+        this.setBalanceCache(client, uniformType);
         Map<String, Object> options = this.safeDict(this.options, "watchBalance", null);
         Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
         Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
@@ -3353,7 +3353,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             Long timestamp = (Long) this.safeInteger2(data, "time", "timestamp");
             balance.put("timestamp", timestamp);
             balance.put("datetime", this.iso8601(timestamp));
-            String code = this.safeCurrencyCode((String) (currencyId), null);
+            String code = this.safeCurrencyCode(currencyId, null);
             Map<String, Object> account = this.account();
             String used = this.safeString2(data, "hold", "holdBalance");
             String isolatedPosMargin = this.omitZero(this.safeString(data, "isolatedPosMargin"));
@@ -3393,7 +3393,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         String type = "unified";
         Map<String, Object> data = this.safeDict(message, "d", new HashMap<String, Object>() {{}});
         String currencyId = this.safeString(data, "c");
-        String code = this.safeCurrencyCode((String) (currencyId), null);
+        String code = this.safeCurrencyCode(currencyId, null);
         if (!(((Map<?, ?>)this.balance).containsKey(type)))
         {
             this.balance.put(type, new HashMap<String, Object>() {{}});
@@ -3452,8 +3452,8 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         this.setPositionCache(client, symbol);
         boolean fetchPositionSnapshot = Boolean.TRUE.equals(this.handleOption("watchPosition", "fetchPositionSnapshot", true));
         boolean awaitPositionSnapshot = Boolean.TRUE.equals(this.handleOption("watchPosition", "awaitPositionSnapshot", true));
-        boolean currentPosition = (this.getCurrentPosition(symbol)) != null;
-        if ((fetchPositionSnapshot) && (awaitPositionSnapshot) && (!currentPosition))
+        Map<String, Object> currentPosition = this.getCurrentPosition(symbol);
+        if ((fetchPositionSnapshot) && (awaitPositionSnapshot) && (java.util.Objects.equals(currentPosition, null)))
         {
             Object snapshot = client.future(("fetchPositionSnapshot:" + symbol)).getFuture().join();
             return snapshot;
@@ -3533,7 +3533,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
 
     }
 
-    public Object getCurrentPosition(String symbol)
+    public Map<String, Object> getCurrentPosition(String symbol)
     {
         if (java.util.Objects.equals(this.positions, null))
         {
@@ -3734,10 +3734,10 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         String marketId = this.safeString(parts, 1);
         String symbol = this.safeSymbol(marketId, null, "", null);
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
-        Object currentPosition = this.getCurrentPosition(symbol);
+        Map<String, Object> currentPosition = this.getCurrentPosition(symbol);
         String messageHash = ("position:" + symbol);
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> newPosition = (Map<String, Object>) this.parsePosition(data, null);
+        Map<String, Object> newPosition = this.parsePosition(data, null);
         List<String> keys = new ArrayList<String>(newPosition.keySet());
         for (var i = 0; i < keys.size(); i++)
         {
@@ -3791,7 +3791,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         String marketId = this.safeString(data, "s");
         String symbol = this.safeSymbol(marketId, null, null, null);
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
-        Object currentPosition = this.getCurrentPosition(symbol);
+        Map<String, Object> currentPosition = this.getCurrentPosition(symbol);
         Map<String, Object> newPosition = this.parseWsUtaPosition(data, null);
         List<String> keys = new ArrayList<String>(newPosition.keySet());
         for (var i = 0; i < keys.size(); i++)
@@ -4002,7 +4002,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             put( "previousFundingRate", null );
             put( "previousFundingTimestamp", null );
             put( "previousFundingDatetime", null );
-            put( "interval", Kucoin.this.parseFundingInterval((String) (granularity)) );
+            put( "interval", Kucoin.this.parseFundingInterval(granularity) );
         }};
     }
 

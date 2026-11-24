@@ -3375,7 +3375,7 @@ public class Pacifica extends PacificaApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> parsedPosition = (Map<String, Object>) this.parsePosition(this.safeDict(data, i, new HashMap<String, Object>() {{}}), null);
+            Map<String, Object> parsedPosition = this.parsePosition(this.safeDict(data, i, new HashMap<String, Object>() {{}}), null);
             ((List<Object>)result).add(parsedPosition);
         }
         return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
@@ -3401,7 +3401,7 @@ public class Pacifica extends PacificaApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String symbol = this.safeString(marketResolved, "symbol");
         String margin = this.safeString(position, "margin");
-        Boolean rawIsolated = (Boolean) this.safeBool(position, "isolated", null);
+        Boolean rawIsolated = (Boolean) this.safeBool(position, "isolated", (Object) null);
         Boolean isIsolated = (!java.util.Objects.equals(margin, null)) && (!java.util.Objects.equals(margin, "0"));
         if (!java.util.Objects.equals(rawIsolated, null))
         {
@@ -4218,7 +4218,7 @@ public class Pacifica extends PacificaApi
         //   "code": null
         // }
         //
-        Boolean success = (Boolean) this.safeBool(transfer, "success", null);
+        Boolean success = (Boolean) this.safeBool(transfer, "success", (Object) null);
         String status = null;
         if (!java.util.Objects.equals(success, null))
         {

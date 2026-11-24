@@ -516,8 +516,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         {
             quoteId = this.safeString(pair, 1);
         }
-        String base = this.safeCurrencyCode((String) (baseId), null);
-        String quote = this.safeCurrencyCode((String) (quoteId), null);
+        String base = this.safeCurrencyCode(baseId, null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         String symbol = null;
         if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
         {
@@ -775,8 +775,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         String datetime = this.safeString(trade, "time");
         String baseId = this.safeString(trade, "symbol");
         String quoteId = this.safeString(trade, "symbol2");
-        String base = this.safeCurrencyCode((String) (baseId), null);
-        String quote = this.safeCurrencyCode((String) (quoteId), null);
+        String base = this.safeCurrencyCode(baseId, null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         String symbol = null;
         if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
         {
@@ -899,15 +899,15 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             baseId = this.safeString(pair, "symbol1");
             quoteId = this.safeString(pair, "symbol2");
         }
-        String base = this.safeCurrencyCode((String) (baseId), null);
-        String quote = this.safeCurrencyCode((String) (quoteId), null);
+        String base = this.safeCurrencyCode(baseId, null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return;
         }
         String symbol = ((base + "/") + quote);
         Map<String, Object> market = this.safeMarket(symbol, null, null, null);
-        String remains = this.currencyFromPrecision((String) (base), (String) (remainsPrecision));
+        String remains = this.currencyFromPrecision(base, remainsPrecision);
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -997,7 +997,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             {
                 return null;
             }
-            remaining = this.currencyFromPrecision((String) (market.get("base")), (String) (remainsPrecision));
+            remaining = this.currencyFromPrecision((String) (market.get("base")), remainsPrecision);
         }
         String amount = this.safeString(order, "amount");
         if (!Boolean.TRUE.equals(isTransaction))
@@ -1006,7 +1006,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             {
                 return null;
             }
-            this.currencyFromPrecision((String) (market.get("base")), (String) (amount));
+            this.currencyFromPrecision((String) (market.get("base")), amount);
         }
         String baseId = this.safeString(order, "symbol");
         String quoteId = this.safeString(order, "symbol2");
@@ -1016,8 +1016,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             baseId = this.safeString(order, "symbol1");
             quoteId = this.safeString(order, "symbol2");
         }
-        String base = this.safeCurrencyCode((String) (baseId), null);
-        String quote = this.safeCurrencyCode((String) (quoteId), null);
+        String base = this.safeCurrencyCode(baseId, null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         String symbol = null;
         if (!java.util.Objects.equals(base, null) && !java.util.Objects.equals(quote, null))
         {
@@ -1200,7 +1200,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         //
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String pair = this.safeString(data, "pair");
-        String symbol = this.pairToSymbol((String) (pair));
+        String symbol = this.pairToSymbol(pair);
         if (java.util.Objects.equals(symbol, ""))
         {
             return;
@@ -1230,8 +1230,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)((String)pair)).split(java.util.regex.Pattern.quote(":"))));
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
-        String base = this.safeCurrencyCode((String) (baseId), null);
-        String quote = this.safeCurrencyCode((String) (quoteId), null);
+        String base = this.safeCurrencyCode(baseId, null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return "";
@@ -1259,7 +1259,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         Long incrementalId = this.safeInteger(data, "id");
         String pair = this.safeString(data, "pair", "");
-        String symbol = this.pairToSymbol((String) (pair));
+        String symbol = this.pairToSymbol(pair);
         if (java.util.Objects.equals(symbol, ""))
         {
             return;
@@ -1371,8 +1371,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)pair).split(java.util.regex.Pattern.quote(":"))));
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
-        String base = this.safeCurrencyCode((String) (baseId), null);
-        String quote = this.safeCurrencyCode((String) (quoteId), null);
+        String base = this.safeCurrencyCode(baseId, null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return;
@@ -1435,7 +1435,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         //
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String pair = this.safeString(data, "pair");
-        String symbol = this.pairToSymbol((String) (pair));
+        String symbol = this.pairToSymbol(pair);
         if (java.util.Objects.equals(symbol, ""))
         {
             return;
@@ -1460,7 +1460,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         //
         List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         String pair = this.safeString(message, "pair");
-        String symbol = this.pairToSymbol((String) (pair));
+        String symbol = this.pairToSymbol(pair);
         if (java.util.Objects.equals(symbol, ""))
         {
             return;
@@ -1810,8 +1810,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             String error = this.safeString(data, "error");
             String eventVar = this.safeString(message, "e", "");
             String feedback = ((((this.id + " ") + eventVar) + " ") + error);
-            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (error), feedback);
-            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (error), feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), error, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), error, feedback);
             throw new ExchangeError(feedback) ;
         } catch(Exception error)
         {

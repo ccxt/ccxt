@@ -928,7 +928,7 @@ public class Digifinex extends DigifinexApi
             {
                 type = "swap";
                 symbol = ((((base + "/") + quote) + ":") + settle);
-                isInverse = this.safeBool(market, "is_inverse", null);
+                isInverse = this.safeBool(market, "is_inverse", (Object) null);
                 isLinear = (((!java.util.Objects.equals(isInverse, true)))) ? true : false;
                 Boolean isTrading = (Boolean) this.safeBool(market, "isTrading", false);
                 if (Boolean.TRUE.equals(isTrading))
@@ -4742,7 +4742,7 @@ public class Digifinex extends DigifinexApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < positions.size(); i++)
         {
-            Map<String, Object> parsedPosition = (Map<String, Object>) this.parsePosition(this.safeDict(positions, i, new HashMap<String, Object>() {{}}), market);
+            Map<String, Object> parsedPosition = this.parsePosition(this.safeDict(positions, i, new HashMap<String, Object>() {{}}), market);
             ((List<Object>)result).add(parsedPosition);
         }
         return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
@@ -4859,7 +4859,7 @@ public class Digifinex extends DigifinexApi
             dataRequest = "data";
         }
         List<Object> data = this.safeList(response, dataRequest, new ArrayList<Object>(Arrays.asList()));
-        Map<String, Object> position = (Map<String, Object>) this.parsePosition(this.safeDict(data, 0, new HashMap<String, Object>() {{}}), market);
+        Map<String, Object> position = this.parsePosition(this.safeDict(data, 0, new HashMap<String, Object>() {{}}), market);
         if (java.util.Objects.equals(marketType, "swap"))
         {
             return position;

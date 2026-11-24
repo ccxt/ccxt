@@ -2422,8 +2422,8 @@ public class Bybit extends BybitApi
         // The API key of user id must own one of permissions will be allowed to call following API endpoints:
         // SUB UID: "Account Transfer"
         // MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
-        Boolean enableUnifiedMargin = (Boolean) this.safeBool(this.options, "enableUnifiedMargin", null);
-        Boolean enableUnifiedAccount = (Boolean) this.safeBool(this.options, "enableUnifiedAccount", null);
+        Boolean enableUnifiedMargin = (Boolean) this.safeBool(this.options, "enableUnifiedMargin", (Object) null);
+        Boolean enableUnifiedAccount = (Boolean) this.safeBool(this.options, "enableUnifiedAccount", (Object) null);
         if (java.util.Objects.equals(enableUnifiedMargin, null) || java.util.Objects.equals(enableUnifiedAccount, null))
         {
             if (Boolean.TRUE.equals(this.safeBool(this.options, "enableDemoTrading", false)))
@@ -4556,8 +4556,8 @@ public class Bybit extends BybitApi
                 side = ((((isBuyer == null || isBuyer != 0)))) ? "buy" : "sell";
             }
         }
-        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", null);
-        Object takerOrMaker = null;
+        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", (Object) null);
+        String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
             takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
@@ -5397,7 +5397,7 @@ public class Bybit extends BybitApi
         String rawTimeInForce = this.safeString(order, "timeInForce");
         String timeInForce = this.parseTimeInForce(rawTimeInForce);
         String triggerPrice = this.omitZero(this.safeString(order, "triggerPrice"));
-        Boolean reduceOnly = (Boolean) this.safeBool(order, "reduceOnly", null);
+        Boolean reduceOnly = (Boolean) this.safeBool(order, "reduceOnly", (Object) null);
         String takeProfitPrice = this.omitZero(this.safeString(order, "takeProfit"));
         String stopLossPrice = this.omitZero(this.safeString(order, "stopLoss"));
         String triggerDirection = this.safeString(order, "triggerDirection");
@@ -5443,7 +5443,7 @@ public class Bybit extends BybitApi
         mapLiteral8.put("type", type);
         mapLiteral8.put("timeInForce", timeInForce);
         mapLiteral8.put("postOnly", null);
-        mapLiteral8.put("reduceOnly", this.safeBool(order, "reduceOnly", null));
+        mapLiteral8.put("reduceOnly", this.safeBool(order, "reduceOnly", (Object) null));
         mapLiteral8.put("side", side);
         mapLiteral8.put("price", price);
         mapLiteral8.put("triggerPrice", triggerPrice);
@@ -8542,7 +8542,7 @@ public class Bybit extends BybitApi
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         List<Object> positions = (List<Object>) this.safeList2(result, "list", "dataList", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(response, "time");
-        Map<String, Object> position = (Map<String, Object>) this.parsePosition(this.safeDict(positions, 0, new HashMap<String, Object>() {{}}), market);
+        Map<String, Object> position = this.parsePosition(this.safeDict(positions, 0, new HashMap<String, Object>() {{}}), market);
         position.put("timestamp", timestamp);
         position.put("datetime", this.iso8601(timestamp));
         return position;
@@ -8683,11 +8683,11 @@ public class Bybit extends BybitApi
             {
                 // futures only
                 Map<String, Object> futuresData = this.safeDict(rawPosition, "data", new HashMap<String, Object>() {{}});
-                Map<String, Object> futuresPosition = (Map<String, Object>) this.parsePosition(futuresData, null);
+                Map<String, Object> futuresPosition = this.parsePosition(futuresData, null);
                 ((List<Object>)results).add(futuresPosition);
             } else
             {
-                Map<String, Object> parsedPosition = (Map<String, Object>) this.parsePosition(this.safeDict(positions, i, new HashMap<String, Object>() {{}}), null);
+                Map<String, Object> parsedPosition = this.parsePosition(this.safeDict(positions, i, new HashMap<String, Object>() {{}}), null);
                 ((List<Object>)results).add(parsedPosition);
             }
         }
@@ -10303,7 +10303,7 @@ public class Bybit extends BybitApi
         for (var i = 0; i < fees.size(); i++)
         {
             Map<String, Object> feeRow = this.safeDict(fees, i, new HashMap<String, Object>() {{}});
-            Map<String, Object> fee = this.parseTradingFee(feeRow, null);
+            Map<String, Object> fee = this.parseTradingFee(feeRow, (Map<String, Object>) null);
             String symbol = this.safeString(fee, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {

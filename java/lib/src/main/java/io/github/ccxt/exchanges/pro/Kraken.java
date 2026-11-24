@@ -2023,7 +2023,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         for (var i = 0; i < data.size(); i++)
         {
             String currencyId = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "asset");
-            String code = ((String)this.safeCurrencyCode((String) (currencyId), null));
+            String code = ((String)this.safeCurrencyCode(currencyId, null));
             Map<String, Object> account = this.account();
             String eq = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "balance");
             account.put("total", eq);
@@ -2152,7 +2152,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         {
             String requestId = this.safeString2(message, "reqid", "req_id");
             Object broad = ((Map<String, Object>)this.exceptions.get("ws")).get("broad");
-            Object broadKey = this.findBroadlyMatchedKey((Map<String, Object>) (broad), (String) (errorMessage));
+            Object broadKey = this.findBroadlyMatchedKey((Map<String, Object>) (broad), errorMessage);
             Object exception = null;
             if (java.util.Objects.equals(broadKey, null))
             {

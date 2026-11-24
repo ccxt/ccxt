@@ -187,7 +187,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         Map<String, Object> data = this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         this.balance.put("info", data);
         String currencyId = this.safeString(data, "currency");
-        String currencyCode = this.safeCurrencyCode((String) (currencyId), null);
+        String currencyCode = this.safeCurrencyCode(currencyId, null);
         Map<String, Object> balance = (Map<String, Object>) this.parseBalance(data);
         if (!java.util.Objects.equals(currencyCode, null))
         {

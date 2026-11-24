@@ -1057,7 +1057,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "channel", ("account_all_trades/" + Lighter.this.numberToString(accountIndex)) );
         }};
-        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.subscribePublic((String) (messageHash), this.extend(request, paramsAccountIndex))).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.subscribePublic(messageHash, this.extend(request, paramsAccountIndex))).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -1216,7 +1216,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         for (var i = 0; (dataLength != null && i < dataLength); i++)
         {
             Long iReversed = this.parseToInt(((((long) dataLength) - 1L) - ((long) i)));
-            Object liquidation = this.parseWsLiquidation((Map<String, Object>) ((data == null || iReversed == null || iReversed.intValue() < 0 || iReversed.intValue() >= data.size() ? null : data.get(iReversed.intValue()))), market);
+            Object liquidation = this.parseWsLiquidation(this.safeDict(data, iReversed, new HashMap<String, Object>() {{}}), market);
             ((io.github.ccxt.ws.ArrayCache) stored).append(liquidation);
         }
         String messageHash = this.getMessageHash("liquidations", symbol, null);
@@ -1369,7 +1369,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 String assetId = (assetIds == null || i < 0 || i >= assetIds.size() ? null : assetIds.get(i));
                 Map<String, Object> asset = this.safeDict(assets, assetId, new HashMap<String, Object>() {{}});
                 String codeId = this.safeString(asset, "symbol");
-                String code = this.safeCurrencyCode((String) (codeId), null);
+                String code = this.safeCurrencyCode(codeId, null);
                 Map<String, Object> account = this.account();
                 account.put("used", this.safeString(asset, "locked_balance"));
                 account.put("total", this.safeString(asset, "balance"));
@@ -1763,8 +1763,8 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
                 String code = this.safeString(error, "code");
                 String errorMessage = this.safeString(error, "message");
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (code), feedback);
-                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (errorMessage), feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), code, feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), errorMessage, feedback);
                 throw new ExchangeError(feedback) ;
             }
         } catch(Exception e)
@@ -1896,19 +1896,19 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
         String channelId = this.safeString(parts, 1);
         if (java.util.Objects.equals(name, "order_book"))
         {
-            this.handleOrderBookUnSubscription(client, (String) (channelId));
+            this.handleOrderBookUnSubscription(client, channelId);
         } else if (java.util.Objects.equals(name, "market_stats"))
         {
-            this.handleTickerUnSubscription(client, (String) (channelId));
+            this.handleTickerUnSubscription(client, channelId);
         } else if (java.util.Objects.equals(name, "trade"))
         {
-            this.handleTradesUnSubscription(client, (String) (channelId));
+            this.handleTradesUnSubscription(client, channelId);
         } else if (java.util.Objects.equals(name, "account_all_trades"))
         {
             this.handleMyTradesUnSubscription(client);
         } else if (java.util.Objects.equals(name, "account_orders"))
         {
-            this.handleOrdersUnSubscription(client, (String) (channelId));
+            this.handleOrdersUnSubscription(client, channelId);
         } else if (java.util.Objects.equals(name, "account_all_orders"))
         {
             this.handleAllOrdersUnSubscription(client);

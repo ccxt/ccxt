@@ -568,11 +568,11 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.safeInteger(order, "O");
         String rawSide = this.safeStringLower(order, "S");
-        String side = this.parseOrderSideValue((String) (rawSide));
+        String side = this.parseOrderSideValue(rawSide);
         String rawType = this.parseOrderType(this.safeString(order, "o"));
         String rawTimeInForce = this.safeString(order, "f");
-        String timeInForce = this.parseOrderTimeInForceValue((String) (rawType), (String) (rawTimeInForce));
-        String type = this.parseOrderType((String) (rawType));
+        String timeInForce = this.parseOrderTimeInForceValue(rawType, rawTimeInForce);
+        String type = this.parseOrderType(rawType);
         if (Boolean.TRUE.equals(this.safeBool(marketResolved, "contract", false)))
         {
             type = null;
@@ -604,8 +604,8 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
                 put( "currency", Hashkey.this.safeCurrencyCode(Hashkey.this.safeString(order, "N"), null) );
                 put( "amount", Hashkey.this.omitZero(Hashkey.this.safeString(order, "n")) );
             }});
-        mapLiteral1.put("reduceOnly", this.parseOrderReduceOnlyValue((String) (rawSide)));
-        mapLiteral1.put("postOnly", this.parseOrderPostOnlyValue((String) (rawType), (String) (rawTimeInForce)));
+        mapLiteral1.put("reduceOnly", this.parseOrderReduceOnlyValue(rawSide));
+        mapLiteral1.put("postOnly", this.parseOrderPostOnlyValue(rawType, rawTimeInForce));
         mapLiteral1.put("info", order);
         return this.safeOrder(mapLiteral1, marketResolved);
     }
@@ -714,7 +714,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         String marketId = this.safeString(trade, "s");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.safeInteger(trade, "t");
-        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "m", null);
+        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "m", (Object) null);
         Boolean isPublicTrade = java.util.Objects.equals(this.safeString(trade, "e"), null);
         String side = null;
         String takerOrMaker = null;
@@ -786,7 +786,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             }
         }
         String url = this.getPrivateUrl(listenKey);
-        Object positions = (this.watchMultiple((String) (url), messageHashes, null, messageHashes, null)).join();
+        Object positions = (this.watchMultiple(url, messageHashes, null, messageHashes, null)).join();
         if (this.newUpdates)
         {
             return positions;
@@ -983,7 +983,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         Map<String, Object> balance = this.safeDict(this.balance, type, new HashMap<String, Object>() {{}});
         balance.put("info", message);
         String currencyId = this.safeString(balanceUpdate, "a");
-        String code = this.safeCurrencyCode((String) (currencyId), null);
+        String code = this.safeCurrencyCode(currencyId, null);
         Map<String, Object> account = this.account();
         account.put("free", this.safeString(balanceUpdate, "f"));
         account.put("used", this.safeString(balanceUpdate, "l"));
@@ -1045,7 +1045,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             }
             this.options.put("listenKey", listenKey);
             Long listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000);
-            this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", (String) (listenKey), parameters);
+            this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", listenKey, parameters);
             // settle the flight: client.resolve () wakes every waiter and
             // drops the future from the map
             client.resolve(listenKey, messageHash);

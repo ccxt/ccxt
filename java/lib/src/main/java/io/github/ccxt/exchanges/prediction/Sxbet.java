@@ -410,8 +410,8 @@ public class Sxbet extends SxbetApi
         // slug isn't guaranteed unique. suffix with the market hash instead (always unique,
         // letters+digits only so it survives shortenSlug in one atomic word)
         String hashSuffix = (marketHash == null ? null : ((String)marketHash).substring(Math.max(((String)marketHash).length() - 6, 0)));
-        String marketSlug = ((this.shortenSlug((String) (outcomeOneName)) + "_") + hashSuffix);
-        String marketSymbol = this.slugToMarketSymbol((String) (eventSlug), marketSlug);
+        String marketSlug = ((this.shortenSlug(outcomeOneName) + "_") + hashSuffix);
+        String marketSymbol = this.slugToMarketSymbol(eventSlug, marketSlug);
         String status = this.safeStringUpper(raw, "status");
         Boolean active = (java.util.Objects.equals(status, "ACTIVE"));
         // guard against a zero sentinel for "no scheduled game time" - safeTimestamp would
@@ -426,7 +426,7 @@ public class Sxbet extends SxbetApi
         for (var oi = 0; oi < outcomeLabels.size(); oi++)
         {
             String label = (outcomeLabels == null || oi < 0 || oi >= outcomeLabels.size() ? null : outcomeLabels.get(oi));
-            String outcomeHandle = this.slugToOutcomeSymbol((String) (eventSlug), marketSlug, label);
+            String outcomeHandle = this.slugToOutcomeSymbol(eventSlug, marketSlug, label);
             String outcomeSuffix = "";
             if (oi > 0)
             {
@@ -1014,10 +1014,10 @@ public class Sxbet extends SxbetApi
         HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
         mapLiteral6.put("to", tokenAddress);
         mapLiteral6.put("data", nonceCallData);
-        Object nonceResult = (this.ethRpc((String) (rpcUrl), "eth_call", new ArrayList<Object>(Arrays.asList(mapLiteral6, "latest")))).join();
+        Object nonceResult = (this.ethRpc(rpcUrl, "eth_call", new ArrayList<Object>(Arrays.asList(mapLiteral6, "latest")))).join();
         String nonceHex = this.hexToRlpBytes((String) (nonceResult));
         String nonce = (((java.util.Objects.equals(nonceHex, "")))) ? "0" : this.numberToString(this.hexToInt(nonceHex));
-        String tokenName = (this.fetchErc20Name((String) (rpcUrl), tokenAddress)).join();
+        String tokenName = (this.fetchErc20Name(rpcUrl, tokenAddress)).join();
         Long defaultDeadlineSeconds = this.safeInteger(this.options, "approveDeadlineSeconds", 7200);
         Long deadline = this.safeInteger(paramsSpender, "deadline", this.sum(this.seconds(), defaultDeadlineSeconds));
         String value = this.decimalToPrecision(Precise.stringMul(this.numberToString(amount), "1000000"), ROUND, 0, DECIMAL_PLACES);
@@ -1222,7 +1222,7 @@ public class Sxbet extends SxbetApi
         }
         // useBetCredits and externalUserId are per-order fields - route them into the order item,
         // not the top-level body, where the venue would silently ignore them
-        Boolean useBetCredits = (Boolean) this.safeBool(paramsTimeInForce, "useBetCredits", null);
+        Boolean useBetCredits = (Boolean) this.safeBool(paramsTimeInForce, "useBetCredits", (Object) null);
         if (!java.util.Objects.equals(useBetCredits, null))
         {
             orderItem.put("useBetCredits", useBetCredits);
@@ -1247,7 +1247,7 @@ public class Sxbet extends SxbetApi
         {
             String reason = this.safeString(first, "reason", "FAILED");
             String feedback = ((this.id + " createOrder() rejected: ") + reason);
-            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (reason), feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), reason, feedback);
             throw new InvalidOrder(feedback) ;
         }
         // with waitForOutcome the venue reports the matching result inline:
@@ -1879,7 +1879,7 @@ public class Sxbet extends SxbetApi
         Double amount = this.parseNumber(Precise.stringDiv(fillAmount, usdcDecimals, 6));
         Long timestamp = this.parse8601(this.safeString(fill, "createdAt"));
         // isMaker: true when the account's order was the resting one - absent on older rows
-        Boolean isMaker = (Boolean) this.safeBool(fill, "isMaker", null);
+        Boolean isMaker = (Boolean) this.safeBool(fill, "isMaker", (Object) null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
@@ -2011,7 +2011,7 @@ public class Sxbet extends SxbetApi
             String marketHash = this.safeString(raw, "marketHash", "");
             if ((outcomesLength != null && outcomesLength > 0))
             {
-                if (java.util.Objects.equals(this.safeBool(wantedMarkets, marketHash, null), null))
+                if (java.util.Objects.equals(this.safeBool(wantedMarkets, marketHash, (Object) null), null))
                 {
                     continue;
                 }
@@ -2276,7 +2276,7 @@ public class Sxbet extends SxbetApi
         String marketHash = this.safeString(outcomeObj.get("info"), "marketHash");
         // the book snapshot is public and carries the same top of book - the batched best-odds
         // route needs an apiKey, so it only pays off for the multi-market path
-        Map<String, Object> snapshot = (this.fetchSxbetBookSnapshot((String) (marketHash))).join();
+        Map<String, Object> snapshot = (this.fetchSxbetBookSnapshot(marketHash)).join();
         Map<String, Object> raw = this.parseSxbetSnapshotBestOdds(snapshot);
         return this.parsePredictionTicker(raw, outcomeObj);
 
@@ -2365,7 +2365,7 @@ public class Sxbet extends SxbetApi
             (this.loadOutcome((String) ((outcomesList == null || i < 0 || i >= outcomesList.size() ? null : outcomesList.get(i))), false)).join();
             Map<String, Object> outcomeObj = this.outcome((String) ((outcomesList == null || i < 0 || i >= outcomesList.size() ? null : outcomesList.get(i))));
             String marketHash = this.safeString(outcomeObj.get("info"), "marketHash", "");
-            if (java.util.Objects.equals(this.safeBool(seenHashes, marketHash, null), null))
+            if (java.util.Objects.equals(this.safeBool(seenHashes, marketHash, (Object) null), null))
             {
                 seenHashes.put(marketHash, true);
                 hashesOrder.add(marketHash);
@@ -2382,7 +2382,7 @@ public class Sxbet extends SxbetApi
             for (var i = 0; (hashesLength != null && i < hashesLength); i++)
             {
                 String marketHash = this.safeString(hashesOrder, i, "");
-                Map<String, Object> snapshot = (this.fetchSxbetBookSnapshot((String) (marketHash))).join();
+                Map<String, Object> snapshot = (this.fetchSxbetBookSnapshot(marketHash)).join();
                 rowsByHash.put(marketHash, this.parseSxbetSnapshotBestOdds(snapshot));
             }
             return this.parseSxbetTickersByHash(outcomesList, rowsByHash);
@@ -2734,12 +2734,12 @@ public class Sxbet extends SxbetApi
 
     }
 
-    public CompletableFuture<Void> pong(Client client, Object message)
+    public CompletableFuture<Void> pong(Client client)
     {
-        return BaseExchange.supplyAsync(() -> this.pongCore(client, message));
+        return BaseExchange.supplyAsync(() -> this.pongCore(client));
     }
 
-    private Void pongCore(Client client, Object message)
+    private Void pongCore(Client client)
     {
 
         // Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
@@ -2758,8 +2758,8 @@ public class Sxbet extends SxbetApi
 
         String url = this.safeString(this.urls.get("api"), "ws");
         // finish the connect handshake first so the subscribe frame follows the connect reply
-        (this.connectSxbetCentrifugo((String) (url))).join();
-        Long requestId = this.requestId((String) (url));
+        (this.connectSxbetCentrifugo(url)).join();
+        Long requestId = this.requestId(url);
         this.registerSxbetWsRequest(requestId, messageHash, channel);
         Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
             put( "subscribe", new HashMap<String, Object>() {{
@@ -2799,7 +2799,7 @@ public class Sxbet extends SxbetApi
         Integer keysLength = keys.size();
         if (java.util.Objects.equals(keysLength, 0))
         {
-            this.pong(client, (Object) null);
+            this.pong(client);
             return;
         }
         String requestIdString = this.safeString(msg, "id");
@@ -2921,14 +2921,14 @@ public class Sxbet extends SxbetApi
         String channel = ("orderbook_v3:" + marketHash);
         String messageHash = ("orderbook::" + sym);
         String url = this.safeString(this.urls.get("api"), "ws");
-        (this.connectSxbetCentrifugo((String) (url))).join();
+        (this.connectSxbetCentrifugo(url)).join();
         Client client = this.client(url);
         Boolean isNewSubscription = java.util.Objects.equals(this.safeValue(client.subscriptions, channel), null);
         if (java.util.Objects.equals(this.safeValue(this.orderbooks, sym), null))
         {
             // seed from the REST snapshot so the book is served before the first publication
             this.setWsOption("wsWatchedBooks", sym, marketHash);
-            Map<String, Object> snapshot = (this.fetchSxbetBookSnapshot((String) (marketHash))).join();
+            Map<String, Object> snapshot = (this.fetchSxbetBookSnapshot(marketHash)).join();
             this.applySxbetWsSnapshot(snapshot);
             if (java.util.Objects.equals(this.safeValue(this.orderbooks, sym), null))
             {
@@ -2936,7 +2936,7 @@ public class Sxbet extends SxbetApi
                 this.orderbooks.put(sym, emptyBook);
             }
         }
-        Long requestId = this.requestId((String) (url));
+        Long requestId = this.requestId(url);
         this.registerSxbetWsRequest(requestId, messageHash, channel);
         Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
             put( "subscribe", new HashMap<String, Object>() {{
@@ -3060,7 +3060,7 @@ public class Sxbet extends SxbetApi
         String messageHash = ("ticker::" + sym);
         this.setWsOption("wsWatchedTickers", sym, marketHash);
         String url = this.safeString(this.urls.get("api"), "ws");
-        (this.connectSxbetCentrifugo((String) (url))).join();
+        (this.connectSxbetCentrifugo(url)).join();
         Client client = this.client(url);
         String channel = "best_odds_v3:global";
         Boolean hydrated = false;
@@ -3071,13 +3071,13 @@ public class Sxbet extends SxbetApi
             // hydrate from the REST snapshot so the first call does not hang until the
             // market's next top-of-book change - the channel is global, so the seed must fire
             // for every newly watched market, not only on a fresh subscription
-            Map<String, Object> snapshot = (this.fetchSxbetBookSnapshot((String) (marketHash))).join();
+            Map<String, Object> snapshot = (this.fetchSxbetBookSnapshot(marketHash)).join();
             Map<String, Object> raw = this.parseSxbetSnapshotBestOdds(snapshot);
             Map<String, Object> ticker = this.parsePredictionTicker(raw, outcomeObj);
             this.setWsOption("wsTickers", sym, ((Object)ticker));
             hydrated = true;
         }
-        Long requestId = this.requestId((String) (url));
+        Long requestId = this.requestId(url);
         this.registerSxbetWsRequest(requestId, messageHash, channel);
         Map<String, Object> subscribeMsg = new HashMap<String, Object>() {{
             put( "subscribe", new HashMap<String, Object>() {{

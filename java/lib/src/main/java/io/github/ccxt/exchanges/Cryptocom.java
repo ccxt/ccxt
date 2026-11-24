@@ -1141,7 +1141,7 @@ public class Cryptocom extends CryptocomApi
             j39v1.put("swap", swap);
             j39v1.put("future", future);
             j39v1.put("option", option);
-            j39v1.put("active", this.safeBool(market, "tradable", null));
+            j39v1.put("active", this.safeBool(market, "tradable", (Object) null));
             j39v1.put("contract", contract);
             j39v1.put("linear", isLinear);
             j39v1.put("inverse", isInverse);
@@ -4145,7 +4145,7 @@ public class Cryptocom extends CryptocomApi
         {
             String marketId = this.safeString((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i)), "instrument_name");
             Map<String, Object> marketInner = this.safeMarket(marketId, null, null, "contract");
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition(this.safeDict(positions, i, new HashMap<String, Object>() {{}}), marketInner);
+            Map<String, Object> position = this.parsePosition(this.safeDict(positions, i, new HashMap<String, Object>() {{}}), marketInner);
             ((List<Object>)result).add(position);
         }
         return this.filterByArrayPositions(result, "symbol", null);

@@ -499,7 +499,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             }});
         }
         Map<String, Object> request = this.getSubscriptionRequest(args);
-        Object ticker = (this.watchMultiple((String) (url), messageHashes, this.deepExtend(request, paramsMarketType), messageHashes, null)).join();
+        Object ticker = (this.watchMultiple(url, messageHashes, this.deepExtend(request, paramsMarketType), messageHashes, null)).join();
         if (this.newUpdates)
         {
             Map<String, Object> tickers = new HashMap<String, Object>() {{}};
@@ -776,7 +776,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             marketBalance.put(key, (parsed == null || key == null ? null : parsed.get(key)));
         }
         this.balance.put(marketType, marketBalance);
-        this.balance.put(marketType, this.safeBalance((this.balance == null ? null : ((Map<?, ?>)this.balance).get(marketType))));
+        this.balance.put(marketType, this.safeBalance(marketBalance));
         String messageHash = (marketType + ":balance");
         client.resolve((this.balance == null ? null : ((Map<?, ?>)this.balance).get(marketType)), messageHash);
     }
@@ -992,7 +992,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition(this.safeDict(data, i, new HashMap<String, Object>() {{}}), null);
+            Map<String, Object> position = this.parsePosition(this.safeDict(data, i, new HashMap<String, Object>() {{}}), null);
             ((List<Object>)newPositions).add(position);
             cache.append(position);
             if (!java.util.Objects.equals(channelName, null))
@@ -1146,7 +1146,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         }
         Map<String, Object> typeUrls = this.safeDict(((Map<String, Object>)this.urls.get("api")).get("ws"), marketType, new HashMap<String, Object>() {{}});
         String url = this.safeString(typeUrls, privateOrPublic);
-        return (this.watchMultiple((String) (url), messageHashes, this.deepExtend(request, paramsMarketType), messageHashes, null)).join();
+        return (this.watchMultiple(url, messageHashes, this.deepExtend(request, paramsMarketType), messageHashes, null)).join();
 
     }
 

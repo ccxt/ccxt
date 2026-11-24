@@ -679,7 +679,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         {
             Long requestId = this.requestId(url);
             String now = this.numberToString(this.nonce());
-            String signature = this.signMessage((String) (now), (String) (this.privateKey));
+            String signature = this.signMessage(now, (String) (this.privateKey));
             String configuredWalletAddress = this.safeString(this.options, "deriveWalletAddress");
             // v3: the owner wallet is the user's own EOA
             Object deriveWalletAddress = ((((java.util.Objects.equals(configuredWalletAddress, null)) || (java.util.Objects.equals(configuredWalletAddress, ""))))) ? this.walletAddress : configuredWalletAddress;
@@ -1279,7 +1279,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 }
                 continue;
             }
-            String code = this.safeCurrencyCode((String) (name), null);
+            String code = this.safeCurrencyCode(name, null);
             if (java.util.Objects.equals(code, null))
             {
                 continue;
@@ -1299,7 +1299,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         }
         if (Boolean.TRUE.equals(updated))
         {
-            this.balance.put(subaccountIdKey, this.safeBalance(((Object)subBalance)));
+            this.balance.put(subaccountIdKey, this.safeBalance(subBalance));
             client.resolve(this.safeValue(this.balance, subaccountIdKey), topic);
         }
         Integer positionUpdatesLength = positionUpdates.size();
@@ -1328,7 +1328,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             if (!java.util.Objects.equals(errorCode, null))
             {
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorCode), feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
                 throw new ExchangeError(feedback) ;
             }
             return false;

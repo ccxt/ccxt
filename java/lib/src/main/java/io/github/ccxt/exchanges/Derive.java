@@ -1235,7 +1235,7 @@ public class Derive extends DeriveApi
         mapLiteral1.put("swap", swap);
         mapLiteral1.put("future", false);
         mapLiteral1.put("option", option);
-        mapLiteral1.put("active", this.safeBool(market, "is_active", null));
+        mapLiteral1.put("active", this.safeBool(market, "is_active", (Object) null));
         mapLiteral1.put("contract", (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(option)));
         mapLiteral1.put("linear", linear);
         mapLiteral1.put("inverse", inverse);
@@ -1637,7 +1637,7 @@ public class Derive extends DeriveApi
         //
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         List<Object> expiries = this.safeList(result, "expiries", new ArrayList<Object>(Arrays.asList()));
-        List<Object> settlements = this.parseSettlements(expiries, null);
+        List<Object> settlements = this.parseSettlements(expiries, (Map<String, Object>) null);
         List<Object> sorted = this.sortBy(settlements, "timestamp");
         return this.filterBySinceLimit(sorted, since, limit, "timestamp", false);
 
@@ -2476,7 +2476,7 @@ public class Derive extends DeriveApi
         Boolean test = (Boolean) this.safeBool(paramsDeriveSubaccountId, "test", false);
         Boolean reduceOnly = (Boolean) this.safeBool2(paramsDeriveSubaccountId, "reduceOnly", "reduce_only", null);
         String timeInForce = this.safeStringLower2(paramsDeriveSubaccountId, "timeInForce", "time_in_force");
-        Boolean postOnly = (Boolean) this.safeBool(paramsDeriveSubaccountId, "postOnly", null);
+        Boolean postOnly = (Boolean) this.safeBool(paramsDeriveSubaccountId, "postOnly", (Object) null);
         String orderType = type.toLowerCase();
         String orderSide = ((String)((String)side)).toLowerCase();
         Boolean orderSideIsBuy = (java.util.Objects.equals(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
@@ -2653,7 +2653,7 @@ public class Derive extends DeriveApi
         var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
         Boolean reduceOnly = (Boolean) this.safeBool2(paramsDeriveSubaccountId, "reduceOnly", "reduce_only", null);
         String timeInForce = this.safeStringLower2(paramsDeriveSubaccountId, "timeInForce", "time_in_force");
-        Boolean postOnly = (Boolean) this.safeBool(paramsDeriveSubaccountId, "postOnly", null);
+        Boolean postOnly = (Boolean) this.safeBool(paramsDeriveSubaccountId, "postOnly", (Object) null);
         String orderType = type.toLowerCase();
         String orderSide = ((String)((String)side)).toLowerCase();
         Boolean orderSideIsBuy = (java.util.Objects.equals(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
@@ -3415,7 +3415,7 @@ public class Derive extends DeriveApi
         mapLiteral5.put("type", orderType);
         mapLiteral5.put("timeInForce", this.parseTimeInForce(timeInForce));
         mapLiteral5.put("postOnly", null);
-        mapLiteral5.put("reduceOnly", this.safeBool(order, "reduce_only", null));
+        mapLiteral5.put("reduceOnly", this.safeBool(order, "reduce_only", (Object) null));
         mapLiteral5.put("side", side);
         mapLiteral5.put("price", price);
         mapLiteral5.put("triggerPrice", triggerPrice);

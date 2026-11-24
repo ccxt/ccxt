@@ -151,7 +151,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         {
             Map<String, Object> entry = this.safeDict(balances, i, null);
             String currencyId = this.safeString(entry, "currency");
-            String code = this.safeCurrencyCode((String) (currencyId), null);
+            String code = this.safeCurrencyCode(currencyId, null);
             Map<String, Object> account = this.account();
             account.put("free", this.safeString(entry, "available"));
             account.put("total", this.safeString(entry, "balance"));
@@ -706,7 +706,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             put( "clientOrderId", Blockchaincom.this.safeString(order, "clOrdID") );
             put( "datetime", datetime );
             put( "timestamp", Blockchaincom.this.parse8601(datetime) );
-            put( "status", Blockchaincom.this.parseWsOrderStatus((String) (status)) );
+            put( "status", Blockchaincom.this.parseWsOrderStatus(status) );
             put( "symbol", Blockchaincom.this.safeSymbol(marketId, marketResolved, null, null) );
             put( "type", Blockchaincom.this.safeString(order, "ordType") );
             put( "timeInForce", Blockchaincom.this.safeString(order, "timeInForce") );

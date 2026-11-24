@@ -263,7 +263,7 @@ public Map<String, Object> describe()
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
             Map<String, Object> eventVar = this.safeDict(events, i, null);
-            Boolean isActive = (Boolean) this.safeBool(eventVar, "active", null);
+            Boolean isActive = (Boolean) this.safeBool(eventVar, "active", (Object) null);
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if ((java.util.Objects.equals(isActive, null)) || (java.util.Objects.equals(isActive, wantActive)))
             {
@@ -1705,7 +1705,7 @@ public Map<String, Object> describe()
         String orderType = this.safeString(outcomeOrder, "type");
         String timeInForce = this.safeString(outcomeOrder, "timeInForce");
         // the venue flag and the derived one are each written once, so neither local widens
-        Boolean postOnlyValue = (Boolean) this.safeBool(outcomeOrder, "postOnly", null);
+        Boolean postOnlyValue = (Boolean) this.safeBool(outcomeOrder, "postOnly", (Object) null);
         Boolean derivedPostOnly = null;
         if (java.util.Objects.equals(timeInForce, null))
         {
@@ -1745,7 +1745,7 @@ public Map<String, Object> describe()
         result.put("remaining", this.parseNumber(remaining));
         result.put("cost", this.parseNumber(cost));
         result.put("fee", fee);
-        result.put("reduceOnly", this.safeBool(outcomeOrder, "reduceOnly", null));
+        result.put("reduceOnly", this.safeBool(outcomeOrder, "reduceOnly", (Object) null));
         result.put("postOnly", (((!java.util.Objects.equals(postOnlyValue, null)))) ? postOnlyValue : derivedPostOnly);
         result.put("trades", trades);
         result.put("outcome", this.safeString(outcomeOrder, "outcome"));
@@ -1875,8 +1875,8 @@ public Map<String, Object> describe()
         result.put("markPrice", this.safeNumber(position, "markPrice", null));
         result.put("lastPrice", this.safeNumber(position, "lastPrice", null));
         result.put("percentage", this.safeNumber(position, "percentage", null));
-        result.put("resolved", this.safeBool(position, "resolved", null));
-        result.put("won", this.safeBool(position, "won", null));
+        result.put("resolved", this.safeBool(position, "resolved", (Object) null));
+        result.put("won", this.safeBool(position, "won", (Object) null));
         result.put("settleFraction", this.safeNumber(position, "settleFraction", null));
         result.put("payout", this.safeNumber(position, "payout", null));
         result.put("outcome", this.safeString(position, "outcome"));
@@ -1949,7 +1949,7 @@ public Map<String, Object> describe()
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rows.size(); i++)
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionTrade(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
+            Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionTrade(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
             Map<String, Object> trade = this.extend(parsed, parameters);
             ((List<Object>)results).add(trade);
         }
@@ -1977,7 +1977,7 @@ public Map<String, Object> describe()
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rows.size(); i++)
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionOrder(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
+            Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionOrder(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
             Map<String, Object> order = this.extend(parsed, parameters);
             ((List<Object>)results).add(order);
         }
@@ -2137,14 +2137,14 @@ public Map<String, Object> describe()
         return ((this.intToBase16((247L + lengthOfLength)) + lengthHex) + concatenated);
     }
 
-    public String intToRlpHex(Object value)
+    public String intToRlpHex(Long value)
     {
         if (java.util.Objects.equals(value, null))
         {
             throw new ArgumentsRequired((this.id + " intToRlpHex() requires a value argument")) ;
         }
         // an integer as its minimal big-endian byte hex; 0 is the empty byte string
-        if (Helpers.isEqual(value, 0))
+        if ((value != null && value == 0))
         {
             return "";
         }

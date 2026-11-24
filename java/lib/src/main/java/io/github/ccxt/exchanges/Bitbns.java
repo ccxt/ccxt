@@ -446,7 +446,7 @@ public class Bitbns extends BitbnsApi
             j39v1.put("swap", false);
             j39v1.put("future", false);
             j39v1.put("option", false);
-            j39v1.put("active", this.safeBool(market, "active", null));
+            j39v1.put("active", this.safeBool(market, "active", (Object) null));
             j39v1.put("contract", false);
             j39v1.put("linear", null);
             j39v1.put("inverse", null);

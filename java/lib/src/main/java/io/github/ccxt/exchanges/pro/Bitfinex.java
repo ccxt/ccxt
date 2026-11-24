@@ -692,7 +692,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         if (!java.util.Objects.equals(feeValue, null))
         {
             String currencyId = this.safeString(trade, 10);
-            String code = this.safeCurrencyCode((String) (currencyId), null);
+            String code = this.safeCurrencyCode(currencyId, null);
             {
                 HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
                 hx4NewMap0.put("cost", feeValue);
@@ -1001,7 +1001,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
             boolean checksum = Boolean.TRUE.equals(this.handleOption("watchOrderBook", "checksum", true));
             if (checksum)
             {
-                var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage((String) (symbol))));
+                var error = new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage(symbol)));
                 client.reject(error, messageHash);
             }
         }
@@ -1111,7 +1111,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         {
             Object rawBalance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String currencyId = this.safeString(rawBalance, 1);
-            String code = this.safeCurrencyCode((String) (currencyId), null);
+            String code = this.safeCurrencyCode(currencyId, null);
             Map<String, Object> balance = (Map<String, Object>) this.parseWsBalance(rawBalance);
             String balanceType = this.safeString(rawBalance, 0);
             Map<String, Object> oldBalance = this.safeDict(this.balance, balanceType, new HashMap<String, Object>() {{}});
@@ -1500,7 +1500,7 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
         String rawState = this.safeString(order, 13, "");
         List<Object> stateParts = new ArrayList<Object>(Arrays.asList(((String)rawState).split(java.util.regex.Pattern.quote(" "))));
         String trimmedStatus = this.safeString(stateParts, 0);
-        String status = this.parseWsOrderStatus((String) (trimmedStatus));
+        String status = this.parseWsOrderStatus(trimmedStatus);
         String price = this.safeString(order, 16);
         Long timestamp = (Long) this.safeInteger2(order, 5, 4);
         String average = this.safeString(order, 17);

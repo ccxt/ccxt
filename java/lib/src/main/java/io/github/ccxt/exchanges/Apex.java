@@ -662,7 +662,7 @@ public class Apex extends ApexApi
                         mapLiteral1.put("network", networkCode);
                         mapLiteral1.put("active", null);
                         mapLiteral1.put("deposit", (!Boolean.TRUE.equals(this.safeBool(chain, "depositDisable", false))));
-                        mapLiteral1.put("withdraw", this.safeBool(token, "withdrawEnable", null));
+                        mapLiteral1.put("withdraw", this.safeBool(token, "withdrawEnable", (Object) null));
                         mapLiteral1.put("fee", this.safeNumber(token, "minFee", null));
                         mapLiteral1.put("precision", this.parseNumber(this.parsePrecision(this.safeString(token, "decimals"))));
                         mapLiteral1.put("limits", new HashMap<String, Object>() {{
@@ -825,7 +825,7 @@ public class Apex extends ApexApi
         mapLiteral2.put("swap", true);
         mapLiteral2.put("future", false);
         mapLiteral2.put("option", false);
-        mapLiteral2.put("active", this.safeBool(market, "enableTrade", null));
+        mapLiteral2.put("active", this.safeBool(market, "enableTrade", (Object) null));
         mapLiteral2.put("contract", true);
         mapLiteral2.put("linear", true);
         mapLiteral2.put("inverse", false);
@@ -1580,8 +1580,8 @@ public class Apex extends ApexApi
             put( "symbol", symbol );
             put( "type", Apex.this.parseOrderType(orderType) );
             put( "timeInForce", Apex.this.parseTimeInForce(Apex.this.safeString(order, "timeInForce")) );
-            put( "postOnly", Apex.this.safeBool(order, "postOnly", null) );
-            put( "reduceOnly", Apex.this.safeBool(order, "reduceOnly", null) );
+            put( "postOnly", Apex.this.safeBool(order, "postOnly", (Object) null) );
+            put( "reduceOnly", Apex.this.safeBool(order, "reduceOnly", (Object) null) );
             put( "side", side );
             put( "price", price );
             put( "triggerPrice", Apex.this.safeString(order, "triggerPrice") );

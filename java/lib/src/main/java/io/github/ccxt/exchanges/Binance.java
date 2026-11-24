@@ -4818,7 +4818,7 @@ public class Binance extends BinanceApi
             {
                 throw new ExchangeError((this.id + " parseCurrenciesCustom() could not resolve parsed")) ;
             }
-            parsed.put("margin", this.safeBool(marginEntry, "isBorrowable", null));
+            parsed.put("margin", this.safeBool(marginEntry, "isBorrowable", (Object) null));
             result.put(code, parsed);
         }
         return result;
@@ -4933,7 +4933,7 @@ public class Binance extends BinanceApi
         String id = this.safeString(entry, "coin");
         String name = this.safeString(entry, "name");
         String code = this.safeCurrencyCode(id, null);
-        Boolean isFiat = (Boolean) this.safeBool(entry, "isLegalMoney", null);
+        Boolean isFiat = (Boolean) this.safeBool(entry, "isLegalMoney", (Object) null);
         List<Object> networkList = this.safeList(entry, "networkList", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> fees = new HashMap<String, Object>() {{}};
         Double fee = null;
@@ -4947,8 +4947,8 @@ public class Binance extends BinanceApi
             isETF = (java.util.Objects.equals(network, "ETF")); // ETF currencies (e.g. BTCUP, ETHDOWN) have only 1 "network" entry and are deterministic to set
             // const name = this.safeString (networkItem, 'name');
             Double withdrawFee = this.safeNumber(networkItem, "withdrawFee", null);
-            Boolean depositEnable = (Boolean) this.safeBool(networkItem, "depositEnable", null);
-            Boolean withdrawEnable = (Boolean) this.safeBool(networkItem, "withdrawEnable", null);
+            Boolean depositEnable = (Boolean) this.safeBool(networkItem, "depositEnable", (Object) null);
+            Boolean withdrawEnable = (Boolean) this.safeBool(networkItem, "withdrawEnable", (Object) null);
             if (!java.util.Objects.equals(networkCode, null))
             {
                 fees.put(networkCode, withdrawFee);
@@ -5003,7 +5003,7 @@ public class Binance extends BinanceApi
         {
             type = "crypto";
         }
-        Boolean trading = (Boolean) this.safeBool(entry, "trading", null);
+        Boolean trading = (Boolean) this.safeBool(entry, "trading", (Object) null);
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("id", id);
         mapLiteral3.put("name", name);
@@ -6816,7 +6816,7 @@ public class Binance extends BinanceApi
 
     }
 
-    public Object parseTickersForRolling(List<Object> response, Object symbols)
+    public Map<String, Object> parseTickersForRolling(List<Object> response, Object symbols)
     {
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < response.size(); i++)
@@ -7169,7 +7169,7 @@ public class Binance extends BinanceApi
 
     public Trade parseTrade(Object trade, Map<String, Object> market)
     {
-        if (!java.util.Objects.equals(this.safeBool(trade, "isDustTrade", null), null))
+        if (!java.util.Objects.equals(this.safeBool(trade, "isDustTrade", (Object) null), null))
         {
             return this.parseDustTrade((Map<String, Object>) (trade), market);
         }
@@ -7389,7 +7389,7 @@ public class Binance extends BinanceApi
         String amount = this.safeString2(trade, "q", "qty");
         amount = this.safeString(trade, "quantity", amount);
         String marketId = this.safeString(trade, "symbol");
-        Boolean isSpotTrade = (!java.util.Objects.equals(this.safeBool(trade, "isIsolated", null), null)) || (!java.util.Objects.equals(this.safeBool(trade, "M", null), null)) || (!java.util.Objects.equals(this.safeInteger(trade, "orderListId"), null)) || (!java.util.Objects.equals(this.safeBool(trade, "isMaker", null), null));
+        Boolean isSpotTrade = (!java.util.Objects.equals(this.safeBool(trade, "isIsolated", (Object) null), null)) || (!java.util.Objects.equals(this.safeBool(trade, "M", (Object) null), null)) || (!java.util.Objects.equals(this.safeInteger(trade, "orderListId"), null)) || (!java.util.Objects.equals(this.safeBool(trade, "isMaker", (Object) null), null));
         String marketType = "contract";
         if (Boolean.TRUE.equals(isSpotTrade))
         {
@@ -7408,7 +7408,7 @@ public class Binance extends BinanceApi
             side = this.safeStringLower(trade, "side");
         } else
         {
-            if (!java.util.Objects.equals(this.safeBool(trade, "isBuyer", null), null))
+            if (!java.util.Objects.equals(this.safeBool(trade, "isBuyer", (Object) null), null))
             {
                 side = ((Boolean.TRUE.equals((this.safeBool(trade, "isBuyer", false))))) ? "buy" : "sell"; // this is a true side
             }
@@ -7421,11 +7421,11 @@ public class Binance extends BinanceApi
                 put( "currency", Binance.this.safeCurrencyCode(Binance.this.safeString(trade, "commissionAsset"), null) );
             }};
         }
-        if (!java.util.Objects.equals(this.safeBool(trade, "isMaker", null), null))
+        if (!java.util.Objects.equals(this.safeBool(trade, "isMaker", (Object) null), null))
         {
             takerOrMaker = ((Boolean.TRUE.equals((this.safeBool(trade, "isMaker", false))))) ? "maker" : "taker";
         }
-        if (!java.util.Objects.equals(this.safeBool(trade, "maker", null), null))
+        if (!java.util.Objects.equals(this.safeBool(trade, "maker", (Object) null), null))
         {
             takerOrMaker = ((Boolean.TRUE.equals((this.safeBool(trade, "maker", false))))) ? "maker" : "taker";
         }
@@ -8948,7 +8948,7 @@ public class Binance extends BinanceApi
         mapLiteral6.put("type", this.parseOrderTypeByMarket(type, marketType));
         mapLiteral6.put("timeInForce", timeInForce);
         mapLiteral6.put("postOnly", postOnly);
-        mapLiteral6.put("reduceOnly", this.safeBool(order, "reduceOnly", null));
+        mapLiteral6.put("reduceOnly", this.safeBool(order, "reduceOnly", (Object) null));
         mapLiteral6.put("side", side);
         mapLiteral6.put("price", price);
         mapLiteral6.put("triggerPrice", triggerPrice);
@@ -10671,8 +10671,8 @@ public class Binance extends BinanceApi
             }
         } else if (!Boolean.TRUE.equals(stock))
         {
-            Boolean warnWithoutSymbol = (Boolean) this.safeBool(this.options.get("fetchOpenOrders"), "warnWithoutSymbol", null);
-            Boolean optValue = (Boolean) this.safeBool(this.options, "warnOnFetchOpenOrdersWithoutSymbol", null); // for backward compatibility
+            Boolean warnWithoutSymbol = (Boolean) this.safeBool(this.options.get("fetchOpenOrders"), "warnWithoutSymbol", (Object) null);
+            Boolean optValue = (Boolean) this.safeBool(this.options, "warnOnFetchOpenOrdersWithoutSymbol", (Object) null); // for backward compatibility
             if ((java.util.Objects.equals(optValue, true)) || (java.util.Objects.equals(optValue, null) && (java.util.Objects.equals(warnWithoutSymbol, true))))
             {
                 throw new ExchangeError((((this.id + " fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set ") + this.id) + ".options[\"fetchOpenOrders\"][\"warnWithoutSymbol\"] = false to suppress this warning message.")) ;
@@ -13642,7 +13642,7 @@ public class Binance extends BinanceApi
             List<Object> fees = this.toArray(response);
             for (var i = 0; i < fees.size(); i++)
             {
-                Map<String, Object> fee = this.parseTradingFee(this.extend(new HashMap<String, Object>() {{}}, (fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))), null);
+                Map<String, Object> fee = this.parseTradingFee(this.extend(new HashMap<String, Object>() {{}}, (fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))), (Map<String, Object>) null);
                 String symbol = this.safeString(fee, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -14258,7 +14258,7 @@ public class Binance extends BinanceApi
         {
             timestamp = null;
         }
-        Boolean isolatedRaw = (Boolean) this.safeBool(position, "isolated", null);
+        Boolean isolatedRaw = (Boolean) this.safeBool(position, "isolated", (Object) null);
         Boolean isolated = false;
         if (java.util.Objects.equals(isolatedRaw, null))
         {
@@ -14394,7 +14394,7 @@ public class Binance extends BinanceApi
         }
     }
 
-    public Object parsePositionRisk(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePositionRisk(Map<String, Object> position, Map<String, Object> market)
     {
         //
         // usdm
@@ -15020,7 +15020,7 @@ public class Binance extends BinanceApi
 
     }
 
-    public Object parseOptionPosition(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parseOptionPosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         //     {
@@ -15819,7 +15819,7 @@ public class Binance extends BinanceApi
     public Map<String, Object> parseLeverage(Map<String, Object> leverage, Map<String, Object> market)
     {
         String marketId = this.safeString(leverage, "symbol");
-        Boolean marginModeRaw = (Boolean) this.safeBool(leverage, "isolated", null);
+        Boolean marginModeRaw = (Boolean) this.safeBool(leverage, "isolated", (Object) null);
         String marginMode = null;
         if (!java.util.Objects.equals(marginModeRaw, null))
         {
@@ -16578,7 +16578,7 @@ public class Binance extends BinanceApi
         }
     }
 
-    public Object getExceptionsByUrl(String url, String exactOrBroad)
+    public Map<String, Object> getExceptionsByUrl(String url, String exactOrBroad)
     {
         // the only callers pass handleErrors' url, which is a non-nullable string everywhere
         String marketType = null;
@@ -18407,7 +18407,7 @@ public class Binance extends BinanceApi
         //        dualSidePosition: false
         //    }
         //
-        Boolean dualSidePosition = (Boolean) this.safeBool(response, "dualSidePosition", null);
+        Boolean dualSidePosition = (Boolean) this.safeBool(response, "dualSidePosition", (Object) null);
         {
             HashMap<String, Object> h2kMap10 = new HashMap<String, Object>();
             h2kMap10.put("info", response);
@@ -18534,7 +18534,7 @@ public class Binance extends BinanceApi
     {
         String marketId = this.safeString(marginMode, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
-        Boolean marginModeRaw = (Boolean) this.safeBool(marginMode, "isolated", null);
+        Boolean marginModeRaw = (Boolean) this.safeBool(marginMode, "isolated", (Object) null);
         String reMarginMode = null;
         if (!java.util.Objects.equals(marginModeRaw, null))
         {

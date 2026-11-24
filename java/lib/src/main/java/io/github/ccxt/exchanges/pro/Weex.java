@@ -686,7 +686,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         {
             symbol = this.safeString(market, "symbol");
         }
-        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "m", null); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
+        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "m", (Object) null); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         String side = null;
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isBuyerMaker, null))
@@ -1046,7 +1046,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         String callerMethodName = this.safeString(parameters, "callerMethodName", "watchOrderBookForSymbols");
         Map<String, Object> paramsOmitted = this.omit(parameters, "callerMethodName");
         String depth = "200";
-        Pair<String, Map<String, Object>> depthOptionparamsDepthVariable = this.handleOptionStringAndParams(paramsOmitted, (String) (callerMethodName), "depth", depth);
+        Pair<String, Map<String, Object>> depthOptionparamsDepthVariable = this.handleOptionStringAndParams(paramsOmitted, callerMethodName, "depth", depth);
         String depthOption = depthOptionparamsDepthVariable.first();
         Map<String, Object> paramsDepth = depthOptionparamsDepthVariable.second();
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
@@ -1122,7 +1122,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         String callerMethodName = this.safeString(parameters, "callerMethodName", "unWatchOrderBookForSymbols");
         Map<String, Object> paramsOmitted = this.omit(parameters, "callerMethodName");
         String depth = "200";
-        Pair<String, Map<String, Object>> depthOptionparamsDepthVariable = this.handleOptionStringAndParams(paramsOmitted, (String) (callerMethodName), "depth", depth);
+        Pair<String, Map<String, Object>> depthOptionparamsDepthVariable = this.handleOptionStringAndParams(paramsOmitted, callerMethodName, "depth", depth);
         String depthOption = depthOptionparamsDepthVariable.first();
         Map<String, Object> paramsDepth = depthOptionparamsDepthVariable.second();
         List<String> subHashes = new ArrayList<String>(Arrays.asList());
@@ -1586,7 +1586,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         if (!java.util.Objects.equals(commission, null))
         {
             String commissionAsset = this.safeString(trade, "coin");
-            String feeCurrency = this.safeCurrencyCode((String) (commissionAsset), null);
+            String feeCurrency = this.safeCurrencyCode(commissionAsset, null);
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 if (java.util.Objects.equals(side, "buy"))
@@ -1907,7 +1907,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         if (!java.util.Objects.equals(commission, null))
         {
             String commissionAsset = this.safeString(order, "coin");
-            String feeCurrency = this.safeCurrencyCode((String) (commissionAsset), null);
+            String feeCurrency = this.safeCurrencyCode(commissionAsset, null);
             if (java.util.Objects.equals(marketType, "spot"))
             {
                 if (java.util.Objects.equals(side, "buy"))
@@ -1941,10 +1941,10 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         mapLiteral8.put("id", this.safeString(order, "id"));
         mapLiteral8.put("clientOrderId", this.safeString(order, "clientOrderId"));
         mapLiteral8.put("symbol", marketResolved.get("symbol"));
-        mapLiteral8.put("type", this.parseOrderType((String) (rawType)));
+        mapLiteral8.put("type", this.parseOrderType(rawType));
         mapLiteral8.put("timeInForce", this.safeString(order, "timeInForce"));
         mapLiteral8.put("postOnly", null);
-        mapLiteral8.put("reduceOnly", this.safeBool(order, "reduceOnly", null));
+        mapLiteral8.put("reduceOnly", this.safeBool(order, "reduceOnly", (Object) null));
         mapLiteral8.put("side", side);
         mapLiteral8.put("amount", this.safeString(order, "size"));
         mapLiteral8.put("price", this.safeString(order, "price"));
@@ -1955,7 +1955,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         mapLiteral8.put("timestamp", timestamp);
         mapLiteral8.put("datetime", this.iso8601(timestamp));
         mapLiteral8.put("fee", fee);
-        mapLiteral8.put("status", this.parseOrderStatus((String) (rawStatus)));
+        mapLiteral8.put("status", this.parseOrderStatus(rawStatus));
         mapLiteral8.put("lastTradeTimestamp", null);
         mapLiteral8.put("lastUpdateTimestamp", this.safeInteger(order, "updatedTime"));
         mapLiteral8.put("average", null);
@@ -2134,7 +2134,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         {
             Map<String, Object> entry = this.safeDict(balanceUpdates, i, null);
             String currencyId = this.safeString(entry, "coin");
-            String code = this.safeCurrencyCode((String) (currencyId), null);
+            String code = this.safeCurrencyCode(currencyId, null);
             Map<String, Object> account = this.account();
             account.put("free", this.safeString2(entry, "available", "amount"));
             account.put("used", this.safeString(entry, "frozen"));
@@ -2415,7 +2415,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
                 {
                     String unSubHash = this.safeString(messageHashes, i);
                     String subHash = this.safeString(subHashes, i);
-                    this.cleanUnsubscription(client, (String) (subHash), (String) (unSubHash), subHashIsPrefix);
+                    this.cleanUnsubscription(client, subHash, unSubHash, subHashIsPrefix);
                 }
             }
             this.cleanCache(subscription);
@@ -2439,8 +2439,8 @@ public class Weex extends io.github.ccxt.exchanges.Weex
             String feedback = ((this.id + " ") + this.json(message));
             try
             {
-                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (msg), feedback);
-                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (msg), feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), msg, feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), msg, feedback);
                 throw new ExchangeError(feedback) ;
             } catch(Exception error)
             {

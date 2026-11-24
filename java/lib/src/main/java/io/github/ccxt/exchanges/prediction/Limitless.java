@@ -451,7 +451,7 @@ public class Limitless extends LimitlessApi
         {
             Object raw = (expandedRaw == null || i < 0 || i >= expandedRaw.size() ? null : expandedRaw.get(i));
             String groupId = this.safeStringN(raw, new ArrayList<Object>(Arrays.asList("groupSlug", "groupId")), this.safeString(raw, "slug"));
-            String eventKey = this.shortenSlug((String) (groupId));
+            String eventKey = this.shortenSlug(groupId);
             MarketInterface m = this.parseMarket(raw);
             ((List<Object>)markets).add(m);
             if (!java.util.Objects.equals(eventKey, ""))
@@ -584,7 +584,7 @@ public class Limitless extends LimitlessApi
         Long winningOutcomeIndex = this.safeInteger(raw, "winningOutcomeIndex");
         Boolean marketResolved = (!java.util.Objects.equals(winningOutcomeIndex, null));
         String resolvedOutcome = null;
-        String marketSymbol = this.slugToMarketSymbol((String) (groupId), (String) (slug));
+        String marketSymbol = this.slugToMarketSymbol(groupId, slug);
         // amount precision comes from the collateral token decimals (USDC, 6); limitless does not
         // expose a price tick, so 0.001 is the platform convention
         Map<String, Object> collateralToken = this.safeDict(raw, "collateralToken", new HashMap<String, Object>() {{}});
@@ -599,7 +599,7 @@ public class Limitless extends LimitlessApi
         {
             String outcomeLabel = (tokenEntries == null || i < 0 || i >= tokenEntries.size() ? null : tokenEntries.get(i));
             String tokenId = this.safeString(tokens, outcomeLabel);
-            String outcomeHandle = this.slugToOutcomeSymbol((String) (groupId), (String) (slug), outcomeLabel);
+            String outcomeHandle = this.slugToOutcomeSymbol(groupId, slug, outcomeLabel);
             // winningOutcomeIndex indexes the API's canonical outcome order (yes=0, no=1 for
             // limitless's binary yes/no markets). Object.keys iteration order is NOT stable across
             // languages (Go randomizes map iteration), so map the leg to its canonical index by
@@ -1022,7 +1022,7 @@ public class Limitless extends LimitlessApi
         String eventSlug = null;
         if (Boolean.TRUE.equals(hasGroupId))
         {
-            eventSlug = this.shortenSlug((String) (groupId));
+            eventSlug = this.shortenSlug(groupId);
         }
         Boolean hasEndDate = (!java.util.Objects.equals(endDate, null)) && (!java.util.Objects.equals(endDate, ""));
         Long endTimestamp = ((Boolean.TRUE.equals(hasEndDate))) ? this.parse8601(endDate) : null;
@@ -1933,19 +1933,19 @@ public class Limitless extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<List<PredictionOrder>> fetchOrdersByIds(Object ids, String outcome, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionOrder>> fetchOrdersByIds(List<?> ids, String outcome, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrdersByIdsCore(ids, outcome, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
     }
 
-    private Object fetchOrdersByIdsCore(Object ids, String outcome, Map<String, Object> parameters)
+    private Object fetchOrdersByIdsCore(List<?> ids, String outcome, Map<String, Object> parameters)
     {
 
         if (!java.util.Objects.equals(outcome, null))
         {
             (this.loadOutcome(outcome, false)).join();
         }
-        Integer length = (switch ((Object)(ids)) { case null -> 0; case List<?> j39v2 -> j39v2.size(); case String j39v3 -> j39v3.length(); case Object j39v4 -> j39v4.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v4) : 0; });
+        Integer length = ids.size();
         if ((length != null && length > 50))
         {
             throw new BadRequest((this.id + " fetchOrdersByIds can only fetch up to 50 orders at a time")) ;
@@ -2236,10 +2236,10 @@ public class Limitless extends LimitlessApi
         }
         String id = this.safeString(rawOrder, "id");
         String tokenId = this.safeString2(rawOrder, "token", "tokenId");
-        Map<String, Object> mkt = this.safeOutcome((String) (tokenId), market);
+        Map<String, Object> mkt = this.safeOutcome(tokenId, market);
         String outcomeSymbol = this.safeString(mkt, "outcome");
         String rawSide = this.safeString(rawOrder, "side");
-        String side = this.parseOrderSide((String) (rawSide));
+        String side = this.parseOrderSide(rawSide);
         String price = this.safeString(rawOrder, "price");
         // todo check
         String amountKey = "makerAmount";
@@ -2280,7 +2280,7 @@ public class Limitless extends LimitlessApi
             }
             {
                 HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
-                hx4NewMap0.put("cost", this.parseNumber(this.applyScale((String) (feeCost), false)));
+                hx4NewMap0.put("cost", this.parseNumber(this.applyScale(feeCost, false)));
                 hx4NewMap0.put("currency", feeCurrency);
                 fee = hx4NewMap0;
             }
@@ -2292,23 +2292,23 @@ public class Limitless extends LimitlessApi
         mapLiteral7.put("timestamp", ts);
         mapLiteral7.put("datetime", datetime);
         mapLiteral7.put("lastTradeTimestamp", null);
-        mapLiteral7.put("status", this.parseOrderStatus((String) (rawStatus)));
+        mapLiteral7.put("status", this.parseOrderStatus(rawStatus));
         mapLiteral7.put("outcome", outcomeSymbol);
         mapLiteral7.put("outcomeId", this.safeString(mkt, "outcomeId"));
         mapLiteral7.put("label", this.safeString(mkt, "label"));
         mapLiteral7.put("market", this.safeString(mkt, "market"));
         mapLiteral7.put("type", type);
-        mapLiteral7.put("timeInForce", this.parseOrderTimeInForce((String) (timeInForce)));
+        mapLiteral7.put("timeInForce", this.parseOrderTimeInForce(timeInForce));
         mapLiteral7.put("postOnly", null);
         mapLiteral7.put("side", side);
         mapLiteral7.put("price", price);
         mapLiteral7.put("stopPrice", null);
         mapLiteral7.put("triggerPrice", null);
         mapLiteral7.put("average", null);
-        mapLiteral7.put("amount", this.applyScale((String) (amount), false));
+        mapLiteral7.put("amount", this.applyScale(amount, false));
         mapLiteral7.put("cost", this.applyScale(cost, false));
         mapLiteral7.put("filled", this.applyScale(filled, false));
-        mapLiteral7.put("remaining", this.applyScale((String) (remaining), false));
+        mapLiteral7.put("remaining", this.applyScale(remaining, false));
         mapLiteral7.put("fee", fee);
         mapLiteral7.put("trades", new ArrayList<Object>(Arrays.asList()));
         return this.safePredictionOrder(mapLiteral7, null);
@@ -2597,7 +2597,7 @@ public class Limitless extends LimitlessApi
         // amounts must be integers (uint256): parseNumber yields a float that the Python EIP-712 encoder rejects
         signRequest.put("makerAmount", this.parseToInt(this.applyScale(makerAmount, true)));
         signRequest.put("takerAmount", ((Boolean.TRUE.equals(isMarket))) ? 1 : ((Object) this.parseToInt(this.applyScale(takerAmount, true))));
-        String signature = this.signOrderRequest(signRequest, (String) (marketSymbol));
+        String signature = this.signOrderRequest(signRequest, marketSymbol);
         signRequest.put("signature", signature);
         // price is an unsigned hint required by the API for GTC/FAK orders (not part of the EIP-712 struct)
         if (!Boolean.TRUE.equals(isMarket) && (!java.util.Objects.equals(price, null)))
@@ -2712,7 +2712,7 @@ public class Limitless extends LimitlessApi
     {
         // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex
         String accessList = this.rlpEncodeList(new ArrayList<Object>(Arrays.asList()));
-        List<Object> fields = new ArrayList<Object>(Arrays.asList(this.rlpEncodeBytes((String) (this.intToRlpHex(this.safeInteger(tx, "chainId")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "nonce")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "gasLimit")))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "to"))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "value", "0x0")))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "data", "0x"))), accessList));
+        List<Object> fields = new ArrayList<Object>(Arrays.asList(this.rlpEncodeBytes((String) (this.intToRlpHex((Long) (this.safeInteger(tx, "chainId"))))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "nonce")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "gasLimit")))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "to"))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "value", "0x0")))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "data", "0x"))), accessList));
         String payload = ("02" + this.rlpEncodeList(fields));
         Object hashHex = this.hash(this.base16ToBinary(payload), keccak(), "hex");
         Map<String,Object> signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1(), null);
@@ -2725,8 +2725,8 @@ public class Limitless extends LimitlessApi
             ((List<Object>)signedFields).add((fields == null || i < 0 || i >= fields.size() ? null : fields.get(i)));
         }
         ((List<Object>)signedFields).add(this.rlpEncodeBytes((String) (this.intToRlpHex(yParity))));
-        ((List<Object>)signedFields).add(this.rlpEncodeBytes((String) (rHex)));
-        ((List<Object>)signedFields).add(this.rlpEncodeBytes((String) (sHex)));
+        ((List<Object>)signedFields).add(this.rlpEncodeBytes(rHex));
+        ((List<Object>)signedFields).add(this.rlpEncodeBytes(sHex));
         return ("0x02" + this.rlpEncodeList(signedFields));
     }
 
@@ -2779,9 +2779,9 @@ public class Limitless extends LimitlessApi
             amountHex = (((String)amountBase16).length() >= 64 ? ((String)amountBase16).substring(((String)amountBase16).length() - 64) : String.format("%" + (64 - ((String)amountBase16).length()) + "s", "").replace(' ', '0') + ((String)amountBase16));
         }
         // approve(spender, amount) -> selector 0x095ea7b3
-        String approveData = (("0x095ea7b3" + this.padHexAddress((String) (spender))) + amountHex);
-        String txHash = (this.sendEvmTransaction((String) (rpcUrl), chainId, (String) (owner), (String) (token), "0x0", approveData, (String) (gasLimit))).join();
-        return (this.waitForTransactionReceipt((String) (rpcUrl), txHash, 60000L)).join();
+        String approveData = (("0x095ea7b3" + this.padHexAddress(spender)) + amountHex);
+        String txHash = (this.sendEvmTransaction(rpcUrl, chainId, owner, token, "0x0", approveData, gasLimit)).join();
+        return (this.waitForTransactionReceipt(rpcUrl, txHash, 60000L)).join();
 
     }
 
@@ -3217,7 +3217,7 @@ public class Limitless extends LimitlessApi
         {
             label = "yes";
         }
-        Map<String, Object> outcome = this.getOutcomeBySlugAndLabel((String) (slug), label, market);
+        Map<String, Object> outcome = this.getOutcomeBySlugAndLabel(slug, label, market);
         String tradeOutcome = this.safeString(outcome, "outcome");
         HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
         mapLiteral9.put("id", id);
@@ -3373,7 +3373,7 @@ public class Limitless extends LimitlessApi
             for (var j = 0; j < labels.size(); j++)
             {
                 String label = this.safeString(labels, j);
-                Object position = this.getPositionFromClobEntry((String) (label), entry);
+                Object position = this.getPositionFromClobEntry(label, entry);
                 if (!java.util.Objects.equals(position, null))
                 {
                     ((List<Object>)result).add(position);
@@ -3400,9 +3400,9 @@ public class Limitless extends LimitlessApi
         Map<String, Object> position = this.safeDict(positions, label, new HashMap<String, Object>() {{}});
         Map<String, Object> rawMarket = this.safeDict(entry, "market", null);
         String slug = this.safeString(rawMarket, "slug");
-        Map<String, Object> outcomeObj = this.getOutcomeBySlugAndLabel((String) (slug), label, null);
+        Map<String, Object> outcomeObj = this.getOutcomeBySlugAndLabel(slug, label, null);
         Map<String, Object> parsed = this.parsePredictionPosition(position, outcomeObj);
-        parsed.put("contracts", this.parseNumber(this.applyScale((String) (contracts), false)));
+        parsed.put("contracts", this.parseNumber(this.applyScale(contracts, false)));
         Map<String, Object> latestTrade = this.safeDict(entry, "latestTrade", null);
         String key = "latestYesPrice";
         if (java.util.Objects.equals(label, "no"))
@@ -3573,7 +3573,7 @@ public class Limitless extends LimitlessApi
         {
             Object raw = (expandedMarkets == null || i < 0 || i >= expandedMarkets.size() ? null : expandedMarkets.get(i));
             String groupId = this.safeStringN(raw, new ArrayList<Object>(Arrays.asList("groupSlug", "groupId")), this.safeString(raw, "slug"));
-            String eventKey = this.shortenSlug((String) (groupId));
+            String eventKey = this.shortenSlug(groupId);
             Map<String, Object> m = (Map<String, Object>) this.parseMarket(raw);
             if (java.util.Objects.equals(m, null))
             {
@@ -3849,7 +3849,7 @@ public class Limitless extends LimitlessApi
         String message = this.safeString(response, "message");
         if (!java.util.Objects.equals(message, null))
         {
-            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (message), feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, feedback);
         }
         this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), body, feedback);
         // a 400 is a client-side bad request (bad params, or a business rule like "market not

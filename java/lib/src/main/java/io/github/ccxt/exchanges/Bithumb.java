@@ -3911,7 +3911,7 @@ public class Bithumb extends BithumbApi
     {
         String apiName = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         Map<String, Object> requestHeaders = new HashMap<String, Object>() {{}};
-        Object requestBody = null;
+        String requestBody = null;
         String endpoint = ("/" + this.implodeParams(path, parameters));
         String apiUrl = this.safeString(this.urls.get("api"), apiName);
         if (java.util.Objects.equals(apiUrl, null))
@@ -4018,11 +4018,11 @@ public class Bithumb extends BithumbApi
             String feedback = ((this.id + " ") + message);
             if (!java.util.Objects.equals(errorName, null))
             {
-                this.throwExactlyMatchedException(this.exceptions, errorName, (String) (feedback));
+                this.throwExactlyMatchedException(this.exceptions, errorName, feedback);
             }
             if (!java.util.Objects.equals(message, null))
             {
-                this.throwExactlyMatchedException(this.exceptions, message, (String) (feedback));
+                this.throwExactlyMatchedException(this.exceptions, message, feedback);
             }
             throw new ExchangeError((String)feedback) ;
         }
@@ -4043,8 +4043,8 @@ public class Bithumb extends BithumbApi
                 return null;  // no error
             }
             String feedback = ((this.id + " ") + message);
-            this.throwExactlyMatchedException(this.exceptions, status, (String) (feedback));
-            this.throwExactlyMatchedException(this.exceptions, message, (String) (feedback));
+            this.throwExactlyMatchedException(this.exceptions, status, feedback);
+            this.throwExactlyMatchedException(this.exceptions, message, feedback);
             throw new ExchangeError((String)feedback) ;
         }
         return null;

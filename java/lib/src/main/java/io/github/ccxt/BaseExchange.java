@@ -6360,7 +6360,7 @@ public Map<String, Object> describe()
                 }
             }
             // default 'GTC' to true
-            if (java.util.Objects.equals(this.safeBool(createOrder.get("timeInForce"), "GTC", null), null))
+            if (java.util.Objects.equals(this.safeBool(createOrder.get("timeInForce"), "GTC", (Object) null), null))
             {
                 Helpers.addElementToObject(createOrder.get("timeInForce"), "GTC", true);
             }
@@ -6594,14 +6594,14 @@ public Map<String, Object> describe()
             {
                 String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Map<String, Object> network = this.safeDict(networks, key, new HashMap<String, Object>() {{}});
-                Boolean deposit = (Boolean) this.safeBool(network, "deposit", null);
-                Boolean currencyDeposit = (Boolean) this.safeBool(currency, "deposit", null);
+                Boolean deposit = (Boolean) this.safeBool(network, "deposit", (Object) null);
+                Boolean currencyDeposit = (Boolean) this.safeBool(currency, "deposit", (Object) null);
                 if (java.util.Objects.equals(currencyDeposit, null) || (java.util.Objects.equals(deposit, true)))
                 {
                     currency.put("deposit", deposit);
                 }
-                Boolean withdraw = (Boolean) this.safeBool(network, "withdraw", null);
-                Boolean currencyWithdraw = (Boolean) this.safeBool(currency, "withdraw", null);
+                Boolean withdraw = (Boolean) this.safeBool(network, "withdraw", (Object) null);
+                Boolean currencyWithdraw = (Boolean) this.safeBool(currency, "withdraw", (Object) null);
                 if (java.util.Objects.equals(currencyWithdraw, null) || (java.util.Objects.equals(withdraw, true)))
                 {
                     currency.put("withdraw", withdraw);
@@ -7554,7 +7554,7 @@ public Map<String, Object> describe()
     public Object parsedFeeAndFees(Object container)
     {
         Object fee = this.safeDict(container, "fee", null);
-        Object fees = this.safeList(container, "fees", null);
+        List<Object> fees = (List<Object>) this.safeList(container, "fees", null);
         Boolean feeDefined = !java.util.Objects.equals(fee, null);
         Boolean feesDefined = !java.util.Objects.equals(fees, null);
         // parsing only if at least one of them is defined
@@ -7571,24 +7571,25 @@ public Map<String, Object> describe()
                 fees = new ArrayList<Object>(Arrays.asList(fee));
             }
             // 'fees' were set, so reparse them
-            Object reducedFees = fees;
+            List<Object> reducedFees = fees;
             if (this.reduceFees)
             {
-                reducedFees = this.reduceFeesByCurrency((List<Object>) (fees));
+                reducedFees = this.reduceFeesByCurrency(fees);
             }
             if (java.util.Objects.equals(reducedFees, null))
             {
                 reducedFees = new ArrayList<Object>(Arrays.asList());
             }
-            Integer reducedLength = ((List<?>)reducedFees).size();
+            Integer reducedLength = reducedFees.size();
+            List<Object> parsedFees = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; (reducedLength != null && i < reducedLength); i++)
             {
-                Helpers.addElementToObject(reducedFees, i, this.parseFeeNumeric((reducedFees == null || i < 0 || i >= ((List<?>)reducedFees).size() ? null : ((List<?>)reducedFees).get(i))));
+                ((List<Object>)parsedFees).add(this.parseFeeNumeric((reducedFees == null || i < 0 || i >= reducedFees.size() ? null : reducedFees.get(i))));
             }
-            fees = reducedFees;
+            fees = parsedFees;
             if (java.util.Objects.equals(reducedLength, 1))
             {
-                fee = (reducedFees == null || 0 >= ((List<?>)reducedFees).size() ? null : ((List<?>)reducedFees).get(0));
+                fee = this.parseFeeNumeric((reducedFees == null || 0 >= ((List<?>)reducedFees).size() ? null : ((List<?>)reducedFees).get(0)));
             } else if (java.util.Objects.equals(reducedLength, 0))
             {
                 fee = null;
@@ -8220,7 +8221,7 @@ public Map<String, Object> describe()
             marketType = this.safeString(market, "type");
             if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
-                isLinearSubType = this.safeBool(market, "linear", null);
+                isLinearSubType = this.safeBool(market, "linear", (Object) null);
             }
             String symbol = this.safeString(market, "symbol", (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
             result.add(symbol);
@@ -8298,8 +8299,8 @@ public Map<String, Object> describe()
 
     public Object safeNetwork(Map<String, Object> network)
     {
-        Boolean withdrawEnabled = (Boolean) this.safeBool(network, "withdraw", null);
-        Boolean depositEnabled = (Boolean) this.safeBool(network, "deposit", null);
+        Boolean withdrawEnabled = (Boolean) this.safeBool(network, "withdraw", (Object) null);
+        Boolean depositEnabled = (Boolean) this.safeBool(network, "deposit", (Object) null);
         Map<String, Object> limits = this.safeDict(network, "limits", null);
         Map<String, Object> withdraw = this.safeDict(limits, "withdraw", null);
         Map<String, Object> deposit = this.safeDict(limits, "deposit", null);
@@ -11064,7 +11065,7 @@ public Map<String, Object> describe()
         throw new NotSupported((this.id + " parseBorrowRate() is not supported yet")) ;
     }
 
-    public Object parseBorrowRateHistory(List<Object> response, String code, Object since, Object limit)
+    public Object parseBorrowRateHistory(List<Object> response, String code, Long since, Long limit)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < response.size(); i++)
@@ -11072,7 +11073,7 @@ public Map<String, Object> describe()
             ((List<Object>)result).add(this.parseBorrowRate(this.safeDict(response, i, null), null));
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
-        return this.filterByCurrencySinceLimit(sorted, code, ((Long) (switch ((Object) (since)) { case null -> (Long) null; case Long hx4J40v7 -> hx4J40v7; case Number hx4J40v7 -> Long.valueOf(hx4J40v7.longValue()); case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v7.getClass().getName()); })), ((Long) (switch ((Object) (limit)) { case null -> (Long) null; case Long hx4J40v6 -> hx4J40v6; case Number hx4J40v6 -> Long.valueOf(hx4J40v6.longValue()); case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v6.getClass().getName()); })), false);
+        return this.filterByCurrencySinceLimit(sorted, code, since, limit, false);
     }
 
     public Map<String, Object> parseIsolatedBorrowRates(Object info)

@@ -2369,7 +2369,7 @@ public class Delta extends DeltaApi
         {
             request.put("client_order_id", clientOrderId);
         }
-        Boolean reduceOnly = (Boolean) this.safeBool(paramsOmitted, "reduceOnly", null);
+        Boolean reduceOnly = (Boolean) this.safeBool(paramsOmitted, "reduceOnly", (Object) null);
         if (java.util.Objects.equals(reduceOnly, true))
         {
             request.put("reduce_only", reduceOnly);
@@ -4019,7 +4019,7 @@ public class Delta extends DeltaApi
         // {"result":{},"success":true}
         //
         Map<String, Object> positionRow = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-        Map<String, Object> position = (Map<String, Object>) this.parsePosition(positionRow, null);
+        Map<String, Object> position = this.parsePosition(positionRow, null);
         return new ArrayList<Object>(Arrays.asList(position));
 
     }

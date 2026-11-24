@@ -981,9 +981,9 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         mapLiteral4.put("timestamp", timestamp);
         mapLiteral4.put("datetime", this.iso8601(timestamp));
         mapLiteral4.put("lastTradeTimestamp", null);
-        mapLiteral4.put("status", this.parseWsOrderStatus((String) (status)));
+        mapLiteral4.put("status", this.parseWsOrderStatus(status));
         mapLiteral4.put("symbol", this.safeSymbol(marketId, market, null, null));
-        mapLiteral4.put("type", this.parseWsOrderType((String) (typeId)));
+        mapLiteral4.put("type", this.parseWsOrderType(typeId));
         mapLiteral4.put("timeInForce", timeInForce);
         mapLiteral4.put("postOnly", postOnly);
         mapLiteral4.put("side", this.safeString(order, "side"));

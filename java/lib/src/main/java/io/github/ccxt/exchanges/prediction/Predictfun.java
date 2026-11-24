@@ -849,9 +849,9 @@ public class Predictfun extends PredictfunApi
                 mapLiteral3.put("description", this.safeString(first, "description"));
                 mapLiteral3.put("imageUrl", this.safeString(first, "imageUrl"));
                 mapLiteral3.put("marketVariant", this.safeString(first, "marketVariant"));
-                mapLiteral3.put("isNegRisk", this.safeBool(first, "isNegRisk", null));
-                mapLiteral3.put("isYieldBearing", this.safeBool(first, "isYieldBearing", null));
-                mapLiteral3.put("isVisible", this.safeBool(first, "isVisible", null));
+                mapLiteral3.put("isNegRisk", this.safeBool(first, "isNegRisk", (Object) null));
+                mapLiteral3.put("isYieldBearing", this.safeBool(first, "isYieldBearing", (Object) null));
+                mapLiteral3.put("isVisible", this.safeBool(first, "isVisible", (Object) null));
                 mapLiteral3.put("status", topicStatus);
                 mapLiteral3.put("createdAt", this.safeString(first, "createdAt"));
                 mapLiteral3.put("markets", markets);
@@ -1063,7 +1063,7 @@ public class Predictfun extends PredictfunApi
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
             h2kMap0.put("id", slug);
             h2kMap0.put("slug", slug);
-            h2kMap0.put("event", (((!java.util.Objects.equals(slug, null)))) ? this.shortenSlug((String) (slug)) : null);
+            h2kMap0.put("event", (((!java.util.Objects.equals(slug, null)))) ? this.shortenSlug(slug) : null);
             h2kMap0.put("title", title);
             h2kMap0.put("description", this.safeString(rawTopic, "description"));
             h2kMap0.put("markets", marketsList);
@@ -1262,13 +1262,13 @@ public class Predictfun extends PredictfunApi
         String eventHandle = null;
         if (!java.util.Objects.equals(topicSlug, null))
         {
-            eventHandle = this.shortenSlug((String) (topicSlug));
+            eventHandle = this.shortenSlug(topicSlug);
         }
         String title = this.safeString(rawMarket, "title", marketId);
         List<Object> topicMarkets = this.safeList(rawTopic, "markets", new ArrayList<Object>(Arrays.asList()));
         Integer marketCount = topicMarkets.size();
-        String symbolTitle = this.titleForMarketSymbol((String) (topicSlug), (String) (title), ((long) marketCount));
-        String marketSymbol = this.slugToMarketSymbol((String) (topicSlug), (String) (symbolTitle));
+        String symbolTitle = this.titleForMarketSymbol(topicSlug, title, ((long) marketCount));
+        String marketSymbol = this.slugToMarketSymbol(topicSlug, symbolTitle);
         String tradingStatus = this.safeString(rawMarket, "tradingStatus");
         String status = this.safeString(rawMarket, "status");
         Boolean active = (java.util.Objects.equals(tradingStatus, "OPEN"));
@@ -1296,7 +1296,7 @@ public class Predictfun extends PredictfunApi
             // a label can carry a formatted price ("$1,800+"), and it goes into the outcome
             // handle verbatim - strip the same formatting the title gets
             String rawLabel = this.safeStringUpper(rawOutcome, "name");
-            String label = this.stripPriceFormatting((String) (rawLabel));
+            String label = this.stripPriceFormatting(rawLabel);
             String tokenId = this.safeString(rawOutcome, "onChainId");
             String outcomeHandle = ((marketSymbol + ":") + label);
             Boolean winner = null;
@@ -1865,7 +1865,7 @@ public class Predictfun extends PredictfunApi
         // it carries rather than from the outcome the caller asked for
         Map<String, Object> partyOutcome = this.safeDict(party, "outcome", new HashMap<String, Object>() {{}});
         String tokenId = this.safeString(partyOutcome, "onChainId");
-        Object outcomeObj = this.outcomeForToken((String) (tokenId), market);
+        Object outcomeObj = this.outcomeForToken(tokenId, market);
         String role = this.safeString(party, "role");
         // a resting maker fills at its own price, so the party price is the execution price for
         // that leg. the taker's party price is only its limit: the settlement records what it
@@ -2051,7 +2051,7 @@ public class Predictfun extends PredictfunApi
         {
             throw new AuthenticationError((this.id + " authenticate() got an auth reply without the \"message\" field to sign")) ;
         }
-        String signature = this.signHash((String) (this.hashMessage((String) (message))), (String) (this.privateKey));
+        String signature = this.signHash((String) (this.hashMessage(message)), (String) (this.privateKey));
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("signer", this.walletAddress);
         request.put("message", message);
@@ -2516,7 +2516,7 @@ public class Predictfun extends PredictfunApi
         Map<String, Object> rawOutcome = this.safeDict(position, "outcome", new HashMap<String, Object>() {{}});
         Map<String, Object> rawMarket = this.safeDict(position, "market", new HashMap<String, Object>() {{}});
         String tokenId = this.safeString(rawOutcome, "onChainId");
-        Object outcomeObj = this.outcomeForToken((String) (tokenId), market);
+        Object outcomeObj = this.outcomeForToken(tokenId, market);
         // shares are collateral wei, the usd figures come back already scaled
         String contracts = Precise.stringDiv(this.safeString(position, "amount"), "1000000000000000000");
         String entryPrice = this.safeString(position, "averageBuyPriceUsd");
@@ -2943,7 +2943,7 @@ public class Predictfun extends PredictfunApi
         String topLevelHash = this.safeString2(order, "hash", "orderHash");
         String orderHash = this.safeString(data, "hash", topLevelHash);
         String tokenId = this.safeString(data, "tokenId");
-        Object outcomeObj = this.outcomeForToken((String) (tokenId), market);
+        Object outcomeObj = this.outcomeForToken(tokenId, market);
         // the contract order carries the economics: a buy offers collateral for shares while a
         // sell offers shares for collateral, so which leg is the size depends on the side
         String rawSide = this.safeString(data, "side");
@@ -2993,9 +2993,9 @@ public class Predictfun extends PredictfunApi
         mapLiteral9.put("remaining", null);
         mapLiteral9.put("cost", filledCost);
         mapLiteral9.put("fee", null);
-        mapLiteral9.put("postOnly", this.safeBool(order, "isPostOnly", null));
+        mapLiteral9.put("postOnly", this.safeBool(order, "isPostOnly", (Object) null));
         mapLiteral9.put("trades", null);
-        mapLiteral9.put("outcome", this.safeOutcomeSymbol((String) (tokenId), outcomeObj));
+        mapLiteral9.put("outcome", this.safeOutcomeSymbol(tokenId, outcomeObj));
         mapLiteral9.put("outcomeId", this.safeString(outcomeObj, "outcomeId", tokenId));
         mapLiteral9.put("label", this.safeString(outcomeObj, "label"));
         mapLiteral9.put("market", this.safeString(outcomeObj, "market"));
@@ -3059,7 +3059,7 @@ public class Predictfun extends PredictfunApi
         // distinct failures share a generic slug, notably 'unauthorized', which the venue also
         // returns for a hash belonging to another wallet, and 'not_found' for an unknown market
         String message = this.safeString(response, "message");
-        this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (message), feedback);
+        this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
         // the venue also answers 401 when the request was authorised but acted on someone else's
         // order - that case is matched above and has already thrown, so reaching here with a 401
         // means the credential itself was refused. drop the cached JWT, otherwise a token revoked
@@ -3070,7 +3070,7 @@ public class Predictfun extends PredictfunApi
             this.options.put("jwtTokenExpiresAt", 0);
         }
         String error = this.safeString(response, "error");
-        this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (error), feedback);
+        this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), error, feedback);
         // a 400 is a rejected request or a business rule, not a transport outage - the base would
         // otherwise map the bare status onto a retryable network error
         if ((code != null && code == 400))
@@ -3169,16 +3169,16 @@ public class Predictfun extends PredictfunApi
     public String signEvmTransaction(Map<String, Object> tx, String privateKey)
     {
         String accessList = this.rlpEncodeList(new ArrayList<Object>(Arrays.asList()));
-        List<Object> fields = new ArrayList<Object>(Arrays.asList(this.rlpEncodeBytes((String) (this.intToRlpHex(this.safeInteger(tx, "chainId")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "nonce")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "gasLimit")))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "to"))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "value", "0x0")))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "data", "0x"))), accessList));
+        List<Object> fields = new ArrayList<Object>(Arrays.asList(this.rlpEncodeBytes((String) (this.intToRlpHex((Long) (this.safeInteger(tx, "chainId"))))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "nonce")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "gasLimit")))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "to"))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "value", "0x0")))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "data", "0x"))), accessList));
         String payload = ("02" + this.rlpEncodeList(fields));
         Object hashHex = this.hash(this.base16ToBinary(payload), keccak(), "hex");
         Map<String,Object> signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1(), null);
         String rHex = this.safeString(signature, "r");
         String sHex = this.safeString(signature, "s");
-        rHex = this.padHexToEven((String) (rHex));
-        sHex = this.padHexToEven((String) (sHex));
+        rHex = this.padHexToEven(rHex);
+        sHex = this.padHexToEven(sHex);
         Long yParity = this.safeInteger(signature, "v");
-        List<Object> signedFields = this.arrayConcat(fields, new ArrayList<Object>(Arrays.asList(this.rlpEncodeBytes((String) (this.intToRlpHex(yParity))), this.rlpEncodeBytes((String) (rHex)), this.rlpEncodeBytes((String) (sHex)))));
+        List<Object> signedFields = this.arrayConcat(fields, new ArrayList<Object>(Arrays.asList(this.rlpEncodeBytes((String) (this.intToRlpHex(yParity))), this.rlpEncodeBytes(rHex), this.rlpEncodeBytes(sHex))));
         return ("0x02" + this.rlpEncodeList(signedFields));
     }
 
@@ -3277,11 +3277,11 @@ public class Predictfun extends PredictfunApi
                     throw new ArgumentsRequired(((this.id + " approve() could not resolve the operator to approve for chain ") + chainKey)) ;
                 }
                 // setApprovalForAll(operator, approved) -> selector 0xa22cb465
-                String approvalData = (("0xa22cb465" + this.padHexAddress((String) (operatorAddress))) + approvedHex);
+                String approvalData = (("0xa22cb465" + this.padHexAddress(operatorAddress)) + approvedHex);
                 // each receipt is awaited before the next transaction goes out, so the nonce the
                 // second one looks up already counts the first
-                String approvalHash = (this.sendEvmTransaction((String) (rpcUrl), chainId, (String) (owner), (String) (ctfToken), "0x0", approvalData, (String) (gasLimit))).join();
-                Object receipt = (this.waitForTransactionReceipt((String) (rpcUrl), approvalHash, 60000L)).join();
+                String approvalHash = (this.sendEvmTransaction(rpcUrl, chainId, owner, ctfToken, "0x0", approvalData, gasLimit)).join();
+                Object receipt = (this.waitForTransactionReceipt(rpcUrl, approvalHash, 60000L)).join();
                 ((List<Object>)receipts).add(receipt);
             }
             return receipts;
@@ -3313,9 +3313,9 @@ public class Predictfun extends PredictfunApi
             amountHex = (((String)amountBase16).length() >= 64 ? ((String)amountBase16).substring(((String)amountBase16).length() - 64) : String.format("%" + (64 - ((String)amountBase16).length()) + "s", "").replace(' ', '0') + ((String)amountBase16));
         }
         // approve(spender, amount) -> selector 0x095ea7b3
-        String approveData = (("0x095ea7b3" + this.padHexAddress((String) (spender))) + amountHex);
-        String txHash = (this.sendEvmTransaction((String) (rpcUrl), chainId, (String) (owner), (String) (token), "0x0", approveData, (String) (gasLimit))).join();
-        return (this.waitForTransactionReceipt((String) (rpcUrl), txHash, 60000L)).join();
+        String approveData = (("0x095ea7b3" + this.padHexAddress(spender)) + amountHex);
+        String txHash = (this.sendEvmTransaction(rpcUrl, chainId, owner, token, "0x0", approveData, gasLimit)).join();
+        return (this.waitForTransactionReceipt(rpcUrl, txHash, 60000L)).join();
 
     }
 
@@ -3364,7 +3364,7 @@ public class Predictfun extends PredictfunApi
         subscription.put("id", this.numberToString(requestId));
         subscription.put("topic", topic);
         subscription.put("subscribeHash", topic);
-        subscription.put("messageHashes", this.orderBookMessageHashes((String) (marketId)));
+        subscription.put("messageHashes", this.orderBookMessageHashes(marketId));
         String url = this.socketUrl();
         io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watch(url, messageHash, this.extend(request, parameters), topic, subscription)).join();
         return orderbook.limit();
@@ -3397,7 +3397,7 @@ public class Predictfun extends PredictfunApi
             throw new ArgumentsRequired(((this.id + " unWatchOrderBook() could not resolve the market id of ") + outcome)) ;
         }
         String topic = ("predictOrderbook/" + marketId);
-        List<Object> outcomes = this.outcomesByMarketId((String) (marketId));
+        List<Object> outcomes = this.outcomesByMarketId(marketId);
         Integer outcomesLength = outcomes.size();
         List<String> handles = new ArrayList<String>(Arrays.asList());
         List<String> subMessageHashes = new ArrayList<String>(Arrays.asList());
@@ -3982,7 +3982,7 @@ public class Predictfun extends PredictfunApi
             ((List<Object>)yesAsks).add(new ArrayList<Object>(Arrays.asList(this.parseNumber(askPrice), askSize)));
             ((List<Object>)noBids).add(new ArrayList<Object>(Arrays.asList(this.parseNumber(Precise.stringSub("1", askPrice)), askSize)));
         }
-        List<Object> outcomes = this.outcomesByMarketId((String) (marketId));
+        List<Object> outcomes = this.outcomesByMarketId(marketId);
         Integer outcomesLength = outcomes.size();
         for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
         {
@@ -4146,7 +4146,7 @@ public class Predictfun extends PredictfunApi
     {
         String marketId = this.safeString(details, "marketId");
         Long outcomeIndex = this.safeInteger(details, "outcomeIndex");
-        List<Object> outcomes = this.outcomesByMarketId((String) (marketId));
+        List<Object> outcomes = this.outcomesByMarketId(marketId);
         Integer outcomesLength = outcomes.size();
         for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
         {
@@ -4170,7 +4170,7 @@ public class Predictfun extends PredictfunApi
         String eventHandle = null;
         if (!java.util.Objects.equals(topicSlug, null))
         {
-            eventHandle = this.shortenSlug((String) (topicSlug));
+            eventHandle = this.shortenSlug(topicSlug);
         }
         String label = this.stripPriceFormatting(this.safeStringUpper(details, "outcomeName"));
         {
@@ -4319,7 +4319,7 @@ public class Predictfun extends PredictfunApi
         String price = Precise.stringDiv(this.safeString(fill, "executedPriceWei"), "1000000000000000000");
         String amount = Precise.stringDiv(this.safeString(fill, "executedSizeWei"), "1000000000000000000");
         String cost = Precise.stringDiv(this.safeString(fill, "executedValueWei"), "1000000000000000000");
-        Boolean isMaker = (Boolean) this.safeBool(eventVar, "isMaker", null);
+        Boolean isMaker = (Boolean) this.safeBool(eventVar, "isMaker", (Object) null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {

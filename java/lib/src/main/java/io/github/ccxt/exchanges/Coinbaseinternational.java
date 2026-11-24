@@ -889,7 +889,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         Double tickSize = this.safeNumber(market, "tick_size", null);
         Boolean isFutureOrOption = Boolean.TRUE.equals(isFuture) || Boolean.TRUE.equals(isOption);
         Long expiry = ((Boolean.TRUE.equals(isFutureOrOption))) ? this.safeInteger(market, "expiration_timestamp") : null;
-        Boolean active = (Boolean) this.safeBool(market, "is_active", null);
+        Boolean active = (Boolean) this.safeBool(market, "is_active", (Object) null);
         Double strike = this.safeNumber(market, "strike", null);
         String optionType = this.safeString(market, "option_type");
         if (!Boolean.TRUE.equals(isComboMarket) && (Boolean.TRUE.equals(isOption) || Boolean.TRUE.equals(isFuture)))
@@ -2954,7 +2954,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         mapLiteral5.put("symbol", marketResolved.get("symbol"));
         mapLiteral5.put("type", this.parseOrderType(orderType));
         mapLiteral5.put("timeInForce", this.parseTimeInForce(this.safeString(order, "time_in_force")));
-        mapLiteral5.put("postOnly", this.safeBool(order, "post_only", null));
+        mapLiteral5.put("postOnly", this.safeBool(order, "post_only", (Object) null));
         mapLiteral5.put("reduceOnly", reduceOnly);
         mapLiteral5.put("side", this.safeString(order, "direction"));
         mapLiteral5.put("price", price);
@@ -4052,7 +4052,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         String route = routeparamsResolvedVariable.first();
         Map<String, Object> paramsResolved = routeparamsResolvedVariable.second();
         Boolean deribit = this.resolveRoute(route);
-        Boolean previousBackend = (Boolean) this.safeBool(this.options, "routeBackend", null);
+        Boolean previousBackend = (Boolean) this.safeBool(this.options, "routeBackend", (Object) null);
         Boolean configuredBackend = this.isNativeDeribitCredentials();
         String currentToken = this.getV2AccessToken();
         Boolean hasToken = (!java.util.Objects.equals(currentToken, null)) && (!java.util.Objects.equals(currentToken, ""));

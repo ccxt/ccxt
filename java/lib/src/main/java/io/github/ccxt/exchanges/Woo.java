@@ -2679,7 +2679,7 @@ public class Woo extends WooApi
         mapLiteral5.put("type", orderType);
         mapLiteral5.put("timeInForce", this.parseTimeInForce(orderType));
         mapLiteral5.put("postOnly", postOnly);
-        mapLiteral5.put("reduceOnly", this.safeBool(order, "reduceOnly", null));
+        mapLiteral5.put("reduceOnly", this.safeBool(order, "reduceOnly", (Object) null));
         mapLiteral5.put("side", side);
         mapLiteral5.put("price", price);
         mapLiteral5.put("triggerPrice", triggerPrice);
@@ -3639,7 +3639,7 @@ public class Woo extends WooApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object getCurrencyFromChaincode(String networkizedCode, Map<String, Object> currency)
+    public Map<String, Object> getCurrencyFromChaincode(String networkizedCode, Map<String, Object> currency)
     {
         if (!java.util.Objects.equals(currency, null))
         {
@@ -3767,7 +3767,7 @@ public class Woo extends WooApi
         //     }
         //
         String networkizedCode = this.safeString(transaction, "token", "");
-        Object currencyDefined = this.getCurrencyFromChaincode(networkizedCode, currency);
+        Map<String, Object> currencyDefined = this.getCurrencyFromChaincode(networkizedCode, currency);
         String code = this.safeString(currencyDefined, "code");
         String movementDirection = this.safeStringLowerN(transaction, new ArrayList<Object>(Arrays.asList("token_side", "tokenSide", "type")));
         if (java.util.Objects.equals(movementDirection, "withdraw"))
@@ -3994,7 +3994,7 @@ public class Woo extends WooApi
         //
         String code = this.safeCurrencyCode(this.safeString(transfer, "token"), currency);
         Long timestamp = this.safeTimestamp2(transfer, "createdTime", "timestamp");
-        Boolean success = (Boolean) this.safeBool(transfer, "success", null);
+        Boolean success = (Boolean) this.safeBool(transfer, "success", (Object) null);
         String status = null;
         if (!java.util.Objects.equals(success, null))
         {

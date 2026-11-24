@@ -1123,8 +1123,8 @@ public class Dydx extends DydxApi
             put( "symbol", symbol );
             put( "type", type );
             put( "timeInForce", timeInForce );
-            put( "postOnly", Dydx.this.safeBool(order, "postOnly", null) );
-            put( "reduceOnly", Dydx.this.safeBool(order, "reduceOnly", null) );
+            put( "postOnly", Dydx.this.safeBool(order, "postOnly", (Object) null) );
+            put( "reduceOnly", Dydx.this.safeBool(order, "reduceOnly", (Object) null) );
             put( "side", side );
             put( "price", price );
             put( "triggerPrice", null );
@@ -1532,7 +1532,7 @@ public class Dydx extends DydxApi
         return this.encodeDydxTxRaw((Map<String, Object>) (signDoc), (signatureR + signatureS));
     }
 
-    public Object retrieveCredentials()
+    public Map<String, Object> retrieveCredentials()
     {
         Object credentials = this.safeDict(this.options, "dydxCredentials", null);
         if (!java.util.Objects.equals(credentials, null))
@@ -1875,7 +1875,7 @@ public class Dydx extends DydxApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Object credentials = this.retrieveCredentials();
+        Map<String, Object> credentials = this.retrieveCredentials();
         Map<String, Object> account = (this.fetchDydxAccount()).join();
         Long lastBlockHeight = (this.fetchLatestBlockHeight(new HashMap<String, Object>() {{}})).join();
         // params['latestBlockHeight'] = lastBlockHeight;
@@ -1997,7 +1997,7 @@ public class Dydx extends DydxApi
                 goodTillBlock = (Long) (latestBlockHeight + 20L);
             }
         }
-        Object credentials = this.retrieveCredentials();
+        Map<String, Object> credentials = this.retrieveCredentials();
         Map<String, Object> account = (this.fetchDydxAccount()).join();
         Map<String, Object> marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
         Map<String, Object> cancelPayload = new HashMap<String, Object>();
@@ -2081,7 +2081,7 @@ public class Dydx extends DydxApi
             Long latestBlockHeight = (this.fetchLatestBlockHeight(new HashMap<String, Object>() {{}})).join();
             goodTillBlock = (Long) (latestBlockHeight + 20L);
         }
-        Object credentials = this.retrieveCredentials();
+        Map<String, Object> credentials = this.retrieveCredentials();
         Map<String, Object> account = (this.fetchDydxAccount()).join();
         Map<String, Object> marketInfo = this.safeDict(market, "info", new HashMap<String, Object>() {{}});
         Map<String, Object> cancelOrders = new HashMap<String, Object>();
@@ -2385,7 +2385,7 @@ public class Dydx extends DydxApi
                 throw new ArgumentsRequired((this.id + " transfer requires fromSubaccountId and toSubaccountId.")) ;
             }
         }
-        Object credentials = this.retrieveCredentials();
+        Map<String, Object> credentials = this.retrieveCredentials();
         Map<String, Object> account = (this.fetchDydxAccount()).join();
         Long usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
         Map<String, Object> payload = null;
@@ -2636,7 +2636,7 @@ public class Dydx extends DydxApi
             throw new ArgumentsRequired((this.id + " withdraw requires subaccountId.")) ;
         }
         Map<String, Object> currency = this.currency(code);
-        Object credentials = this.retrieveCredentials();
+        Map<String, Object> credentials = this.retrieveCredentials();
         Map<String, Object> account = (this.fetchDydxAccount()).join();
         Long usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
         Map<String, Object> payload = new HashMap<String, Object>();

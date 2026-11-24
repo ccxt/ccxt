@@ -838,7 +838,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
             Map<String, Object> account = this.account();
             account.put("total", this.safeString(data, "availableQuantity"));
             account.put("used", this.safeString(data, "lockedQuantity"));
-            String code = this.safeCurrencyCode((String) (assetId), null);
+            String code = this.safeCurrencyCode(assetId, null);
             Map<String, Object> deltaBalance = this.safeDict(this.balance, tradingAccountId, new HashMap<String, Object>() {{}});
             deltaBalance.put("info", message);
             if ((!java.util.Objects.equals(tradingAccountId, null)) && (!java.util.Objects.equals(code, null)))
@@ -920,7 +920,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rawPositions.size(); i++)
         {
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition(this.safeDict(rawPositions, i, new HashMap<String, Object>() {{}}), null);
+            Map<String, Object> position = this.parsePosition(this.safeDict(rawPositions, i, new HashMap<String, Object>() {{}}), null);
             positions.append(position);
             ((List<Object>)newPositions).add(position);
         }
@@ -959,8 +959,8 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         {
             String errorCode = this.safeString(data, "errorCode");
             String errorCodeName = this.safeString(data, "errorCodeName");
-            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorCode), feedback);
-            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (errorCodeName), feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), errorCodeName, feedback);
             throw new ExchangeError(feedback) ;
         } catch(Exception e)
         {

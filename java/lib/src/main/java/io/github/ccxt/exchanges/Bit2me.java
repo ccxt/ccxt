@@ -975,7 +975,7 @@ public class Bit2me extends Bit2meApi
         String marketId = this.safeString(trade, "symbol");
         Map<String, Object> privateMarket = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.parse8601(this.safeString(trade, "createdAt"));
-        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", null);
+        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", (Object) null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
@@ -1793,7 +1793,7 @@ public class Bit2me extends Bit2meApi
         mapLiteral5.put("symbol", resolvedMarket.get("symbol"));
         mapLiteral5.put("type", this.parseOrderType(rawType));
         mapLiteral5.put("timeInForce", this.safeString(order, "timeInForce"));
-        mapLiteral5.put("postOnly", this.safeBool(order, "postOnly", null));
+        mapLiteral5.put("postOnly", this.safeBool(order, "postOnly", (Object) null));
         mapLiteral5.put("reduceOnly", null);
         mapLiteral5.put("side", this.safeStringLower(order, "side"));
         mapLiteral5.put("price", this.omitZero(this.safeString(order, "price")));

@@ -1807,7 +1807,7 @@ public class Kraken extends KrakenApi
             symbol = resolvedSymbol;
         }
         String cost = this.safeString(trade, "cost");
-        Boolean maker = (Boolean) this.safeBool(trade, "maker", null);
+        Boolean maker = (Boolean) this.safeBool(trade, "maker", (Object) null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(maker, null))
         {
@@ -1834,7 +1834,7 @@ public class Kraken extends KrakenApi
         mapLiteral5.put("amount", amount);
         mapLiteral5.put("cost", cost);
         mapLiteral5.put("fee", fee);
-        return this.safeTrade(mapLiteral5, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
+        return this.safeTrade(mapLiteral5, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
     }
 
     /**
@@ -2177,7 +2177,7 @@ public class Kraken extends KrakenApi
 
     }
 
-    public Object findMarketByAltnameOrId(Object id)
+    public Map<String, Object> findMarketByAltnameOrId(Object id)
     {
         Map<String, Object> marketsByAltname = this.safeDict(this.options, "marketsByAltname", new HashMap<String, Object>() {{}});
         if ((id != null && marketsByAltname.containsKey(id)))
@@ -2189,9 +2189,9 @@ public class Kraken extends KrakenApi
         }
     }
 
-    public Object resolveMarketByAltnameOrId(String marketId, Map<String, Object> market)
+    public Map<String, Object> resolveMarketByAltnameOrId(String marketId, Map<String, Object> market)
     {
-        Object foundMarket = this.findMarketByAltnameOrId(marketId);
+        Map<String, Object> foundMarket = this.findMarketByAltnameOrId(marketId);
         if (!java.util.Objects.equals(foundMarket, null))
         {
             return foundMarket;
@@ -2435,7 +2435,7 @@ public class Kraken extends KrakenApi
         }
         String rawType = this.safeString(description, "ordertype", descriptionType); // orderType has dash, e.g. trailing-stop
         marketId = this.safeString(description, "pair", marketId);
-        Object marketResolved = this.resolveMarketByAltnameOrId(marketId, market);
+        Map<String, Object> marketResolved = this.resolveMarketByAltnameOrId(marketId, market);
         String symbol = null;
         Long timestamp = this.safeTimestamp(orderOmitted, "opentm");
         String orderAmount = this.safeString(orderOmitted, "vol");
@@ -2587,7 +2587,7 @@ public class Kraken extends KrakenApi
         mapLiteral7.put("reduceOnly", this.safeBool2(orderOmitted, "reduceOnly", "reduce_only", null));
         mapLiteral7.put("fee", fee);
         mapLiteral7.put("trades", trades);
-        return this.safeOrder(mapLiteral7, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
+        return this.safeOrder(mapLiteral7, marketResolved);
     }
 
     public Pair<Map<String, Object>, Map<String, Object>> orderRequest(String method, String symbol, String type, Map<String, Object> request, Double amount, Object price, Map<String, Object> parameters)

@@ -450,7 +450,7 @@ public class Cryptomus extends CryptomusApi
         mapLiteral1.put("inverse", null);
         mapLiteral1.put("taker", this.safeNumber(fees, "taker", null));
         mapLiteral1.put("maker", this.safeNumber(fees, "maker", null));
-        mapLiteral1.put("percentage", this.safeBool(fees, "percentage", null));
+        mapLiteral1.put("percentage", this.safeBool(fees, "percentage", (Object) null));
         mapLiteral1.put("tierBased", null);
         mapLiteral1.put("feeSide", this.safeString(fees, "feeSide"));
         mapLiteral1.put("expiry", null);
@@ -559,8 +559,8 @@ public class Cryptomus extends CryptomusApi
         }} );
     }});
                 mapLiteral2.put("active", null);
-                mapLiteral2.put("deposit", this.safeBool(networkEntry, "can_deposit", null));
-                mapLiteral2.put("withdraw", this.safeBool(networkEntry, "can_withdraw", null));
+                mapLiteral2.put("deposit", this.safeBool(networkEntry, "can_deposit", (Object) null));
+                mapLiteral2.put("withdraw", this.safeBool(networkEntry, "can_withdraw", (Object) null));
                 mapLiteral2.put("fee", null);
                 mapLiteral2.put("precision", null);
                 mapLiteral2.put("info", networkEntry);

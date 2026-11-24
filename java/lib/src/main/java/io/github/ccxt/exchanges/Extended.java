@@ -923,7 +923,7 @@ public class Extended extends ExtendedApi
         }
         String name = this.safeString(currency, "name");
         Long precision = this.safeInteger(currency, "precision", 0);
-        Boolean isActive = (Boolean) this.safeBool(currency, "isActive", null);
+        Boolean isActive = (Boolean) this.safeBool(currency, "isActive", (Object) null);
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
         mapLiteral2.put("id", currencyId);
         mapLiteral2.put("code", code);
@@ -934,7 +934,7 @@ public class Extended extends ExtendedApi
         mapLiteral2.put("withdraw", true);
         mapLiteral2.put("precision", Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(java.util.Objects.toString((precision * -1L), null))));
         mapLiteral2.put("type", "other");
-        mapLiteral2.put("margin", this.safeBool(currency, "canBeUsedAsCollateral", null));
+        mapLiteral2.put("margin", this.safeBool(currency, "canBeUsedAsCollateral", (Object) null));
         mapLiteral2.put("info", currency);
         return this.safeCurrencyStructure(mapLiteral2);
     }
@@ -1507,7 +1507,7 @@ public class Extended extends ExtendedApi
             }
             fee = feeDict;
         }
-        Boolean isTaker = (Boolean) this.safeBool(trade, "isTaker", null);
+        Boolean isTaker = (Boolean) this.safeBool(trade, "isTaker", (Object) null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isTaker, null))
         {
@@ -2437,7 +2437,7 @@ public class Extended extends ExtendedApi
         //     }
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        Boolean validSignature = (Boolean) this.safeBool(data, "validSignature", null);
+        Boolean validSignature = (Boolean) this.safeBool(data, "validSignature", (Object) null);
         Long now = this.milliseconds();
         String status = "pending";
         if (!java.util.Objects.equals(validSignature, null))
@@ -2476,7 +2476,7 @@ public class Extended extends ExtendedApi
             fromAccount = counterpartyAccountId;
             toAccount = accountId;
         }
-        Boolean validSignature = (Boolean) this.safeBool(transfer, "validSignature", null);
+        Boolean validSignature = (Boolean) this.safeBool(transfer, "validSignature", (Object) null);
         String status = null;
         if (!java.util.Objects.equals(validSignature, null))
         {
@@ -2686,7 +2686,7 @@ public class Extended extends ExtendedApi
         for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> fee = this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            Map<String, Object> parsed = this.parseTradingFee(fee, null);
+            Map<String, Object> parsed = this.parseTradingFee(fee, (Map<String, Object>) null);
             String symbol = this.safeString(parsed, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -3534,7 +3534,7 @@ public class Extended extends ExtendedApi
         Double amountValue = amount;
         Double priceValue = price;
         Long expiryEpochMillis = this.safeInteger(parameters, "expiryEpochMillis");
-        Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", null);
+        Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", (Object) null);
         Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", null);
         String cancelId = this.safeString2(parameters, "cancelId", "previousOrderId");
         if ((java.util.Objects.equals(amountValue, null)) || (java.util.Objects.equals(priceValue, null)) || (java.util.Objects.equals(expiryEpochMillis, null)) || (java.util.Objects.equals(postOnly, null)) || (java.util.Objects.equals(reduceOnly, null)) || (java.util.Objects.equals(cancelId, null)))
@@ -4140,8 +4140,8 @@ public class Extended extends ExtendedApi
         mapLiteral18.put("symbol", marketResolved.get("symbol"));
         mapLiteral18.put("type", type);
         mapLiteral18.put("timeInForce", this.safeString(order, "timeInForce"));
-        mapLiteral18.put("postOnly", this.safeBool(order, "postOnly", null));
-        mapLiteral18.put("reduceOnly", this.safeBool(order, "reduceOnly", null));
+        mapLiteral18.put("postOnly", this.safeBool(order, "postOnly", (Object) null));
+        mapLiteral18.put("reduceOnly", this.safeBool(order, "reduceOnly", (Object) null));
         mapLiteral18.put("side", side);
         mapLiteral18.put("price", this.safeString(order, "price"));
         mapLiteral18.put("triggerPrice", this.safeString(trigger, "triggerPrice"));

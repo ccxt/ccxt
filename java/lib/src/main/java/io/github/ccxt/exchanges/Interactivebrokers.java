@@ -1504,12 +1504,12 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @param {string} [params.accountId] the account id to use
      * @returns {Array} the account id and the params without accountId
      */
-    public CompletableFuture<Object> loadAccountId(Map<String, Object> parameters)
+    public CompletableFuture<Pair<String, Map<String, Object>>> loadAccountId(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.loadAccountIdCore(parameters));
     }
 
-    private Object loadAccountIdCore(Map<String, Object> parameters)
+    private Pair<String, Map<String, Object>> loadAccountIdCore(Map<String, Object> parameters)
     {
 
         Pair<String, Map<String, Object>> accountIdFromParamsqueryVariable = this.handleOptionStringAndParams(parameters, "loadAccountId", "accountId", null);
@@ -1525,7 +1525,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         {
             throw new ArgumentsRequired((this.id + " requires an accountId in params[\"accountId\"] or options[\"accountId\"], fetchAccounts() returned no accounts")) ;
         }
-        return new ArrayList<Object>(Arrays.asList(accountId, query));
+        return new Pair<>(accountId, query);
 
     }
 
@@ -1551,9 +1551,9 @@ public class Interactivebrokers extends InteractivebrokersApi
     {
 
         (this.authenticate(new HashMap<String, Object>() {{}})).join();
-        var accountIdaccountQueryVariable = (this.loadAccountId(parameters)).join();
-        var accountId = ((List<Object>) accountIdaccountQueryVariable).get(0);
-        var accountQuery = ((List<Object>) accountIdaccountQueryVariable).get(1);
+        Pair<String, Map<String, Object>> accountIdaccountQueryVariable = (this.loadAccountId(parameters)).join();
+        String accountId = accountIdaccountQueryVariable.first();
+        Map<String, Object> accountQuery = accountIdaccountQueryVariable.second();
         Map<String, Object> accountParams = this.extend(new HashMap<String, Object>() {{}}, accountQuery);
         Pair<Boolean, Map<String, Object>> withPositionspositionsQueryVariable = this.handleOptionBoolAndParams(accountParams, "fetchBalance", "positions", true);
         Boolean withPositions = withPositionspositionsQueryVariable.first();
@@ -1956,7 +1956,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         {
             Object end = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(this.sum(offset, chunkSize), numDetails);
             List<String> chunk = new ArrayList<String>(Arrays.asList());
-            for (long k = ((long) (switch ((Object) (offset)) { case null -> Long.parseLong("null"); case Long hx4J40v7 -> hx4J40v7.longValue(); case Integer hx4J40v7 -> hx4J40v7.longValue(); case Double hx4J40v7 -> hx4J40v7.longValue(); case Float hx4J40v7 -> hx4J40v7.longValue(); case java.math.BigDecimal hx4J40v7 -> hx4J40v7.longValue(); case String hx4J40v7 -> Long.parseLong(hx4J40v7); case Object hx4J40v7 -> Long.parseLong(String.valueOf(hx4J40v7)); })); ((end != null && !(k >= ((Number) end).doubleValue()))); k++)
+            for (long k = ((long) (switch ((Object) (offset)) { case null -> Long.parseLong("null"); case Long hx4J40v4 -> hx4J40v4.longValue(); case Integer hx4J40v4 -> hx4J40v4.longValue(); case Double hx4J40v4 -> hx4J40v4.longValue(); case Float hx4J40v4 -> hx4J40v4.longValue(); case java.math.BigDecimal hx4J40v4 -> hx4J40v4.longValue(); case String hx4J40v4 -> Long.parseLong(hx4J40v4); case Object hx4J40v4 -> Long.parseLong(String.valueOf(hx4J40v4)); })); ((end != null && !(k >= ((Number) end).doubleValue()))); k++)
             {
                 String detailId = this.safeString(detailIds, k, "");
                 chunk.add(detailId);
@@ -3141,7 +3141,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         Map<String, Object> cryptoCmeFutureSymbols = this.safeDict(options, "cryptoCmeFutureSymbols", new HashMap<String, Object>() {{}});
         Map<String, Object> cryptoCboeFutureSymbols = this.safeDict(options, "cryptoCboeFutureSymbols", new HashMap<String, Object>() {{}});
         String microNanoPrefix = "";
-        Object base = this.safeCurrencyCode(baseTickerId, null);
+        String base = this.safeCurrencyCode(baseTickerId, null);
         String contractSize = null;
         Long expiry = null;
         if (Boolean.TRUE.equals(isFut))
@@ -3317,7 +3317,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         var query = ((List<Object>) fieldsqueryVariable).get(1);
         String fieldsString = String.join(",", (List<String>)fields);
         List<String> readyFields = new ArrayList<String>(Arrays.asList("31", "84", "86"));
-        Object response = (this.ibkrFetchSnapshot(symbolsNormalized, fieldsString, readyFields, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })))).join();
+        Object response = (this.ibkrFetchSnapshot(symbolsNormalized, fieldsString, readyFields, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })))).join();
         //
         //     [
         //         {
@@ -4148,10 +4148,10 @@ public class Interactivebrokers extends InteractivebrokersApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        var accountIdparamsWithoutAccoundIdVariable = (this.loadAccountId(parameters)).join();
-        var accountId = ((List<Object>) accountIdparamsWithoutAccoundIdVariable).get(0);
-        var paramsWithoutAccoundId = ((List<Object>) accountIdparamsWithoutAccoundIdVariable).get(1);
-        Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, ((Map<String, Object>) (switch ((Object) (paramsWithoutAccoundId)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })));
+        Pair<String, Map<String, Object>> accountIdparamsWithoutAccoundIdVariable = (this.loadAccountId(parameters)).join();
+        String accountId = accountIdparamsWithoutAccoundIdVariable.first();
+        Map<String, Object> paramsWithoutAccoundId = accountIdparamsWithoutAccoundIdVariable.second();
+        Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, paramsWithoutAccoundId);
         orderRequest.put("acctId", accountId);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "accountId", accountId );
@@ -4179,10 +4179,10 @@ public class Interactivebrokers extends InteractivebrokersApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        var accountIdparamsWithoutAccoundIdVariable = (this.loadAccountId(parameters)).join();
-        var accountId = ((List<Object>) accountIdparamsWithoutAccoundIdVariable).get(0);
-        var paramsWithoutAccoundId = ((List<Object>) accountIdparamsWithoutAccoundIdVariable).get(1);
-        Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, ((Map<String, Object>) (switch ((Object) (paramsWithoutAccoundId)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })));
+        Pair<String, Map<String, Object>> accountIdparamsWithoutAccoundIdVariable = (this.loadAccountId(parameters)).join();
+        String accountId = accountIdparamsWithoutAccoundIdVariable.first();
+        Map<String, Object> paramsWithoutAccoundId = accountIdparamsWithoutAccoundIdVariable.second();
+        Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, paramsWithoutAccoundId);
         orderRequest.put("acctId", accountId);
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "accountId", accountId );
@@ -4404,10 +4404,10 @@ public class Interactivebrokers extends InteractivebrokersApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        var accountIdqueryVariable = (this.loadAccountId(parameters)).join();
-        var accountId = ((List<Object>) accountIdqueryVariable).get(0);
-        var query = ((List<Object>) accountIdqueryVariable).get(1);
-        Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
+        Pair<String, Map<String, Object>> accountIdqueryVariable = (this.loadAccountId(parameters)).join();
+        String accountId = accountIdqueryVariable.first();
+        Map<String, Object> query = accountIdqueryVariable.second();
+        Map<String, Object> orderRequest = this.createOrderRequest(symbol, type, side, amount, price, query);
         orderRequest.put("acctId", accountId);
         orderRequest.put("accountId", accountId);
         orderRequest.put("orderId", id);
@@ -4451,9 +4451,9 @@ public class Interactivebrokers extends InteractivebrokersApi
         {
             market = this.market(symbol);
         }
-        var accountIdqueryVariable = (this.loadAccountId(parameters)).join();
-        var accountId = ((List<Object>) accountIdqueryVariable).get(0);
-        var query = ((List<Object>) accountIdqueryVariable).get(1);
+        Pair<String, Map<String, Object>> accountIdqueryVariable = (this.loadAccountId(parameters)).join();
+        String accountId = accountIdqueryVariable.first();
+        Map<String, Object> query = accountIdqueryVariable.second();
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "accountId", accountId );
             put( "orderId", id );
@@ -5052,9 +5052,9 @@ public class Interactivebrokers extends InteractivebrokersApi
             throw new ArgumentsRequired((this.id + " fetchMyTrades() requires a symbol argument when fetching trades from pa/transactions")) ;
         }
         Map<String, Object> options = this.safeDict(this.options, "fetchMyTrades", new HashMap<String, Object>() {{}});
-        var accountIdaccountQueryVariable = (this.loadAccountId(parameters)).join();
-        var accountId = ((List<Object>) accountIdaccountQueryVariable).get(0);
-        var accountQuery = ((List<Object>) accountIdaccountQueryVariable).get(1);
+        Pair<String, Map<String, Object>> accountIdaccountQueryVariable = (this.loadAccountId(parameters)).join();
+        String accountId = accountIdaccountQueryVariable.first();
+        Map<String, Object> accountQuery = accountIdaccountQueryVariable.second();
         List<Object> currencyqueryVariable = (List<Object>) this.handleOptionAndParams(accountQuery, "fetchMyTrades", "currency", this.safeString(options, "transactionsCurrency", "USD"));
         var currency = ((List<Object>) currencyqueryVariable).get(0);
         Map<String, Object> query = (Map<String, Object>) ((List<Object>) currencyqueryVariable).get(1);
@@ -5263,9 +5263,9 @@ public class Interactivebrokers extends InteractivebrokersApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        var accountIdqueryVariable = (this.loadAccountId(parameters)).join();
-        var accountId = ((List<Object>) accountIdqueryVariable).get(0);
-        var query = ((List<Object>) accountIdqueryVariable).get(1);
+        Pair<String, Map<String, Object>> accountIdqueryVariable = (this.loadAccountId(parameters)).join();
+        String accountId = accountIdqueryVariable.first();
+        Map<String, Object> query = accountIdqueryVariable.second();
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "accountId", accountId );
         }};
@@ -5321,9 +5321,9 @@ public class Interactivebrokers extends InteractivebrokersApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        var accountIdqueryVariable = (this.loadAccountId(parameters)).join();
-        var accountId = ((List<Object>) accountIdqueryVariable).get(0);
-        var query = ((List<Object>) accountIdqueryVariable).get(1);
+        Pair<String, Map<String, Object>> accountIdqueryVariable = (this.loadAccountId(parameters)).join();
+        String accountId = accountIdqueryVariable.first();
+        Map<String, Object> query = accountIdqueryVariable.second();
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "accountId", accountId );
             put( "conid", market.get("id") );
@@ -5352,7 +5352,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < positions.size(); i++)
         {
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition(this.safeDict(positions, i, new HashMap<String, Object>() {{}}), market);
+            Map<String, Object> position = this.parsePosition(this.safeDict(positions, i, new HashMap<String, Object>() {{}}), market);
             if (Precise.stringGt(this.safeString(position, "contracts", "0"), "0"))
             {
                 ((List<Object>)result).add(position);

@@ -292,7 +292,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                     put( "params", topics );
                 }}, payload);
                 String messageHash = ("unsubscribe:marketData:" + String.join(",", (List<String>)topics));
-                this.watchMultiple((String) (url), new ArrayList<Object>(Arrays.asList(messageHash)), request, null, null);
+                this.watchMultiple(url, new ArrayList<Object>(Arrays.asList(messageHash)), request, null, null);
                 client.resolve(true, messageHash);
             }
         } else
@@ -333,10 +333,10 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Map<String,Object> message = this.deepExtend(request, parameters);
         if (java.util.Objects.requireNonNullElse(unwatch, false))
         {
-            this.handleUnsubscriptions((String) (url), messageHashes, message);
+            this.handleUnsubscriptions(url, messageHashes, message);
             return null;
         }
-        return (this.watchMultiple((String) (url), messageHashes, message, messageHashes, null)).join();
+        return (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
 
     }
 
@@ -371,10 +371,10 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         Map<String,Object> message = this.deepExtend(request, parameters);
         if (java.util.Objects.requireNonNullElse(unwatch, false))
         {
-            this.handleUnsubscriptions((String) (url), messageHashes, message);
+            this.handleUnsubscriptions(url, messageHashes, message);
             return null;
         }
-        return (this.watchMultiple((String) (url), messageHashes, message, messageHashes, null)).join();
+        return (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
 
     }
 
@@ -386,7 +386,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         {
             String messageHash = this.safeString(messageHashes, i, "");
             String subMessageHash = messageHash.replaceFirst("unsubscribe:", "");
-            this.cleanUnsubscription(client, subMessageHash, (String) (messageHash), false);
+            this.cleanUnsubscription(client, subMessageHash, messageHash, false);
             if (((String)messageHash).indexOf("ticker") >= 0)
             {
                 String symbol = messageHash.replaceFirst("unsubscribe:ticker:", "");
@@ -1277,7 +1277,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         String id = this.safeString(trade, "t");
         String marketId = this.safeString(trade, "s");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
-        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "m", null);
+        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "m", (Object) null);
         String side = null;
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isBuyerMaker, null))
@@ -1524,12 +1524,12 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         this.handleBidAsks(storedAsks, asks);
     }
 
-    public void handleBidAsks(Object bookSide, List<Object> bidAsks)
+    public void handleBidAsks(io.github.ccxt.ws.OrderBookSide bookSide, List<Object> bidAsks)
     {
         for (var i = 0; i < bidAsks.size(); i++)
         {
             List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk((bidAsks == null || i < 0 || i >= bidAsks.size() ? null : bidAsks.get(i)), 0, 1, 2);
-            ((io.github.ccxt.ws.OrderBookSide) bookSide).storeArray(bidAsk);
+            bookSide.storeArray(bidAsk);
         }
     }
 

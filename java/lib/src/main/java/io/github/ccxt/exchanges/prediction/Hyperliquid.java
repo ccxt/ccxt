@@ -408,7 +408,7 @@ public class Hyperliquid extends HyperliquidApi
         String questionName = this.safeString(question, "name");
         if ((!java.util.Objects.equals(questionName, null)) && (!java.util.Objects.equals(questionName, "")))
         {
-            String questionSlug = this.shortenSlug((String) (questionName));
+            String questionSlug = this.shortenSlug(questionName);
             if ((!java.util.Objects.equals(questionSlug, null)) && (!java.util.Objects.equals(questionSlug, "")))
             {
                 String outcomeSlug = this.shortenSlug((String) (java.util.Objects.requireNonNullElse(name, "")));
@@ -1369,7 +1369,7 @@ public class Hyperliquid extends HyperliquidApi
         return null;
     }
 
-    public Object resolveOutcomeInput(String outcomeInput)
+    public Map<String, Object> resolveOutcomeInput(String outcomeInput)
     {
         if (java.util.Objects.equals(outcomeInput, null))
         {
@@ -1954,7 +1954,7 @@ public class Hyperliquid extends HyperliquidApi
         Map<String, Object> entry = (Map<String, Object>) this.safeDict(order, "order", order); // eslint-disable-line
         String status = this.parseOrderStatus(this.safeString2(order, "ccxtStatus", "status"));
         String coin = this.safeString(entry, "coin");
-        Map<String, Object> outcomeObj = this.safeOutcome((String) (coin), market);
+        Map<String, Object> outcomeObj = this.safeOutcome(coin, market);
         String marketSymbol = this.safeString(outcomeObj, "outcome");
         Map<String, Object> resolvedMarket = market;
         if (!java.util.Objects.equals(marketSymbol, null) && !java.util.Objects.equals(marketSymbol, ""))
@@ -1976,7 +1976,7 @@ public class Hyperliquid extends HyperliquidApi
         }
         Long timestamp = this.safeInteger(entry, "timestamp");
         String tifRaw = this.safeString(entry, "tif");
-        String tif = this.parseTimeInForce((String) (tifRaw));
+        String tif = this.parseTimeInForce(tifRaw);
         Boolean postOnly = (java.util.Objects.equals(tif, "PO"));
         Boolean isTrigger = (Boolean) this.safeBool(entry, "isTrigger", false);
         Double triggerPrice = ((Boolean.TRUE.equals(isTrigger))) ? this.safeNumber(entry, "triggerPx", null) : null;
@@ -2184,7 +2184,7 @@ public class Hyperliquid extends HyperliquidApi
         String price = this.safeString(trade, "px");
         String amount = this.safeString(trade, "sz");
         String coin = this.safeString(trade, "coin");
-        Map<String, Object> outcomeObj = this.safeOutcome((String) (coin), market);
+        Map<String, Object> outcomeObj = this.safeOutcome(coin, market);
         String marketSymbol = this.safeString(outcomeObj, "outcome");
         Map<String, Object> resolvedMarket = market;
         if (!java.util.Objects.equals(marketSymbol, null) && !java.util.Objects.equals(marketSymbol, ""))
@@ -2662,7 +2662,7 @@ public class Hyperliquid extends HyperliquidApi
             // the default feeRate is '0%': the builder is approved and attached for statistics
             // purposes only and the user is not charged; set options.feeRate/feeInt to charge a fee
             String maxFeeRate = this.safeString(this.options, "feeRate", "0%");
-            (this.approveBuilderFee((String) (builder), (String) (maxFeeRate))).join();
+            (this.approveBuilderFee(builder, maxFeeRate)).join();
             this.options.put("approvedBuilderFee", true);
         } catch(Exception e)
         {
@@ -2750,8 +2750,8 @@ public class Hyperliquid extends HyperliquidApi
         {
             String message = this.safeString(response, "response", body);
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (message), feedback);
-            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (message), feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
             throw new ExchangeError(feedback) ;
         }
         // Check for error statuses in order responses
@@ -2764,8 +2764,8 @@ public class Hyperliquid extends HyperliquidApi
             if (!java.util.Objects.equals(message, null))
             {
                 String feedback = ((this.id + " ") + body);
-                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (message), feedback);
-                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (message), feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
                 throw new ExchangeError(feedback) ;
             }
         }

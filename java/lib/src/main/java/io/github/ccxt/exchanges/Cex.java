@@ -503,8 +503,8 @@ public class Cex extends CexApi
         mapLiteral2.put("name", null);
         mapLiteral2.put("type", type);
         mapLiteral2.put("active", null);
-        mapLiteral2.put("deposit", this.safeBool(rawCurrency, "walletDeposit", null));
-        mapLiteral2.put("withdraw", this.safeBool(rawCurrency, "walletWithdrawal", null));
+        mapLiteral2.put("deposit", this.safeBool(rawCurrency, "walletDeposit", (Object) null));
+        mapLiteral2.put("withdraw", this.safeBool(rawCurrency, "walletWithdrawal", (Object) null));
         mapLiteral2.put("fee", null);
         mapLiteral2.put("precision", currencyPrecision);
         mapLiteral2.put("limits", new HashMap<String, Object>() {{

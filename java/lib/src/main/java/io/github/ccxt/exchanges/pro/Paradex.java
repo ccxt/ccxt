@@ -1030,7 +1030,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 // the snapshot feed is unsubscribed before the deltas one is subscribed, no snapshot of it
                 // arrives once the reply is in
-                Map<String, Object> unsubscribe = this.unsubscribeRequest((String) (snapshotChannel));
+                Map<String, Object> unsubscribe = this.unsubscribeRequest(snapshotChannel);
                 client.subscriptions.remove((String)snapshotChannel);
                 (this.sendRequest(url, unsubscribe, null)).join();
             }
@@ -1221,7 +1221,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 // a skipped delta leaves the book wrong, the feed is subscribed again for a fresh snapshot
                 stored.put("nonce", null);
-                this.resubscribeOrderBook(client, (String) (deltasChannel), messageHash);
+                this.resubscribeOrderBook(client, deltasChannel, messageHash);
                 return;
             }
             Object storedBids = (stored == null ? null : stored.get("bids"));
@@ -2097,7 +2097,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
-        Map<String, Object> position = (Map<String, Object>) this.parsePosition(data, null);
+        Map<String, Object> position = this.parsePosition(data, null);
         String symbol = this.safeString(position, "symbol");
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         // one position per market, so a fill through zero flips its side: the cache keys by
@@ -3237,12 +3237,12 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             String errorCode = this.safeString(error, "code");
             if (!java.util.Objects.equals(errorCode, null))
             {
-                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorCode), feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
             }
             String messageString = this.safeString(error, "message");
             if (!java.util.Objects.equals(messageString, null))
             {
-                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (messageString), feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), messageString, feedback);
             }
             throw new ExchangeError(feedback) ;
         } catch(Exception e)

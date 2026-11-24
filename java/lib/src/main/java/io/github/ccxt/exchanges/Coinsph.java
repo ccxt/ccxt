@@ -812,8 +812,8 @@ public class Coinsph extends CoinsphApi
                 mapLiteral1.put("id", network);
                 mapLiteral1.put("network", networkCode);
                 mapLiteral1.put("active", null);
-                mapLiteral1.put("deposit", this.safeBool(networkItem, "depositEnable", null));
-                mapLiteral1.put("withdraw", this.safeBool(networkItem, "withdrawEnable", null));
+                mapLiteral1.put("deposit", this.safeBool(networkItem, "depositEnable", (Object) null));
+                mapLiteral1.put("withdraw", this.safeBool(networkItem, "withdrawEnable", (Object) null));
                 mapLiteral1.put("fee", this.safeNumber(networkItem, "withdrawFee", null));
                 mapLiteral1.put("precision", this.safeNumber(networkItem, "withdrawIntegerMultiple", null));
                 mapLiteral1.put("limits", new HashMap<String, Object>() {{
@@ -837,8 +837,8 @@ public class Coinsph extends CoinsphApi
             put( "precision", Coinsph.this.parseNumber(Coinsph.this.parsePrecision(Coinsph.this.safeString(rawCurrency, "transferPrecision"))) );
             put( "info", rawCurrency );
             put( "active", null );
-            put( "deposit", Coinsph.this.safeBool(rawCurrency, "depositAllEnable", null) );
-            put( "withdraw", Coinsph.this.safeBool(rawCurrency, "withdrawAllEnable", null) );
+            put( "deposit", Coinsph.this.safeBool(rawCurrency, "depositAllEnable", (Object) null) );
+            put( "withdraw", Coinsph.this.safeBool(rawCurrency, "withdrawAllEnable", (Object) null) );
             put( "networks", networks );
             put( "fee", null );
             put( "fees", null );
@@ -2301,7 +2301,7 @@ public class Coinsph extends CoinsphApi
         for (var i = 0; i < fees.size(); i++)
         {
             Map<String, Object> feeRow = this.safeDict(fees, i, new HashMap<String, Object>() {{}});
-            Map<String, Object> fee = this.parseTradingFee(feeRow, null);
+            Map<String, Object> fee = this.parseTradingFee(feeRow, (Map<String, Object>) null);
             String symbol = this.safeString(fee, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {

@@ -424,7 +424,7 @@ public class Bitbank extends BitbankApi
         mapLiteral1.put("swap", false);
         mapLiteral1.put("future", false);
         mapLiteral1.put("option", false);
-        mapLiteral1.put("active", this.safeBool(entry, "is_enabled", null));
+        mapLiteral1.put("active", this.safeBool(entry, "is_enabled", (Object) null));
         mapLiteral1.put("contract", false);
         mapLiteral1.put("linear", null);
         mapLiteral1.put("inverse", null);

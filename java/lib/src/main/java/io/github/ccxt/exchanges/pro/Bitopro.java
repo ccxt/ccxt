@@ -332,8 +332,8 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String baseId = this.safeString(data, "base");
         String quoteId = this.safeString(data, "quote");
-        String base = this.safeCurrencyCode((String) (baseId), null);
-        String quote = this.safeCurrencyCode((String) (quoteId), null);
+        String base = this.safeCurrencyCode(baseId, null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return;
@@ -380,8 +380,8 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         Long timestamp = this.safeTimestamp(trade, "transactionTimestamp");
         String baseId = this.safeString(trade, "base");
         String quoteId = this.safeString(trade, "quote");
-        String base = this.safeCurrencyCode((String) (baseId), null);
-        String quote = this.safeCurrencyCode((String) (quoteId), null);
+        String base = this.safeCurrencyCode(baseId, null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         String symbol = null;
         if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
         {
@@ -415,7 +415,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
                 fee = hx4NewMap0;
             }
         }
-        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", null);
+        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", (Object) null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
@@ -626,7 +626,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             String currency = this.safeString(currencies, i);
             Map<String, Object> balance = this.safeDict(data, currency, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "currency");
-            String code = this.safeCurrencyCode((String) (currencyId), null);
+            String code = this.safeCurrencyCode(currencyId, null);
             Map<String, Object> account = this.account();
             account.put("free", this.safeString(balance, "available"));
             account.put("total", this.safeString(balance, "amount"));

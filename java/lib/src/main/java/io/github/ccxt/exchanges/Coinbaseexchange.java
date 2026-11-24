@@ -897,7 +897,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             j39v1.put("settleId", null);
             j39v1.put("type", "spot");
             j39v1.put("spot", true);
-            j39v1.put("margin", this.safeBool(market, "margin_enabled", null));
+            j39v1.put("margin", this.safeBool(market, "margin_enabled", (Object) null));
             j39v1.put("swap", false);
             j39v1.put("future", false);
             j39v1.put("option", false);
@@ -1767,7 +1767,7 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
         String type = this.safeString(order, "type");
         String side = this.safeString(order, "side");
         String timeInForce = this.safeString(order, "time_in_force");
-        Boolean postOnly = (Boolean) this.safeBool(order, "post_only", null);
+        Boolean postOnly = (Boolean) this.safeBool(order, "post_only", (Object) null);
         Double triggerPrice = this.safeNumber(order, "stop_price", null);
         String clientOrderId = this.safeString(order, "client_oid");
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();

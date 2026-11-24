@@ -680,7 +680,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         String side = this.safeStringLower(trade, "side");
         Long timestamp = this.safeInteger(trade, "timestamp");
         String takerOrMaker = null;
-        Boolean maker = (Boolean) this.safeBool(trade, "maker", null);
+        Boolean maker = (Boolean) this.safeBool(trade, "maker", (Object) null);
         if (!java.util.Objects.equals(maker, null))
         {
             takerOrMaker = ((Boolean.TRUE.equals(maker))) ? "maker" : "taker";
@@ -1027,7 +1027,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             remaining = Precise.stringSub(remaining, totalExecQuantity);
         }
         String rawStatus = this.safeString(order, "status");
-        String status = this.parseOrderStatus((String) (rawStatus));
+        String status = this.parseOrderStatus(rawStatus);
         List<String> trades = null;
         String clientOrderId = this.safeString(order, "clientOrderId");
         Double triggerPrice = this.safeNumber(order, "triggerPrice", null);
@@ -1099,7 +1099,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 {
                     this.handleMyTrade(client, this.safeDict(dataList, i, new HashMap<String, Object>() {{}}));
                 }
-                this.handleOrder(client, this.safeDict(dataList, i, new HashMap<String, Object>() {{}}), (String) (topic));
+                this.handleOrder(client, this.safeDict(dataList, i, new HashMap<String, Object>() {{}}), topic);
             }
         } else
         {
@@ -1110,7 +1110,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             {
                 this.handleMyTrade(client, data);
             }
-            this.handleOrder(client, data, (String) (topic));
+            this.handleOrder(client, data, topic);
         }
     }
 
@@ -1563,7 +1563,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
             if (!java.util.Objects.equals(errorMessage, null))
             {
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorMessage), feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorMessage, feedback);
             }
             return false;
         } catch(Exception error)

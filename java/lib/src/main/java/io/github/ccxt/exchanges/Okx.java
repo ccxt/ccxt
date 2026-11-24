@@ -3171,8 +3171,8 @@ public class Okx extends OkxApi
                 mapLiteral2.put("id", networkId);
                 mapLiteral2.put("network", networkCode);
                 mapLiteral2.put("active", null);
-                mapLiteral2.put("deposit", this.safeBool(chain, "canDep", null));
-                mapLiteral2.put("withdraw", this.safeBool(chain, "canWd", null));
+                mapLiteral2.put("deposit", this.safeBool(chain, "canDep", (Object) null));
+                mapLiteral2.put("withdraw", this.safeBool(chain, "canWd", (Object) null));
                 mapLiteral2.put("fee", this.safeNumber(chain, "fee", null));
                 mapLiteral2.put("precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "wdTickSz"))));
                 mapLiteral2.put("limits", new HashMap<String, Object>() {{
@@ -4447,7 +4447,7 @@ public class Okx extends OkxApi
             request.put("sz", this.amountToPrecision(symbol, amount));
         }
         Boolean spot = (Boolean) this.safeBool(market, "spot", false);
-        Boolean contract = (Boolean) this.safeBool(market, "contract", null);
+        Boolean contract = (Boolean) this.safeBool(market, "contract", (Object) null);
         String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "triggerPx")));
         String timeInForce = this.safeString(parameters, "timeInForce", "GTC");
         // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
@@ -5332,7 +5332,7 @@ public class Okx extends OkxApi
             return new ArrayList<Object>(Arrays.asList(((String)ids).split(java.util.regex.Pattern.quote(","))));
         } else
         {
-            return ids;
+            return this.safeStringList(new ArrayList<Object>(Arrays.asList(ids)), new ArrayList<Object>(Arrays.asList(0)));
         }
     }
 
@@ -5384,7 +5384,7 @@ public class Okx extends OkxApi
             Object orderIds = this.parseIds(ids);
             if (!java.util.Objects.equals(algoIds, null))
             {
-                for (var i = 0; i < (switch ((Object)(algoIds)) { case null -> 0; case List<?> j39v16 -> j39v16.size(); case String j39v17 -> j39v17.length(); case Object j39v18 -> j39v18.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v18) : 0; }); i++)
+                for (var i = 0; i < ((List<?>)algoIds).size(); i++)
                 {
                     HashMap<String, Object> j39v5 = new HashMap<String, Object>();
                     j39v5.put("algoId", this.safeString(algoIds, i));
@@ -5392,25 +5392,28 @@ public class Okx extends OkxApi
                     ((List<Object>)request).add(j39v5);
                 }
             }
-            for (var i = 0; i < (switch ((Object)(orderIds)) { case null -> 0; case List<?> j39v13 -> j39v13.size(); case String j39v14 -> j39v14.length(); case Object j39v15 -> j39v15.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v15) : 0; }); i++)
+            if (!java.util.Objects.equals(orderIds, null))
             {
-                if (Boolean.TRUE.equals(trailing) || Boolean.TRUE.equals(isTrigger))
+                for (var i = 0; i < ((List<?>)orderIds).size(); i++)
                 {
-                    HashMap<String, Object> j39v6 = new HashMap<String, Object>();
-                    j39v6.put("algoId", this.safeString(orderIds, i));
-                    j39v6.put("instId", market.get("id"));
-                    ((List<Object>)request).add(j39v6);
-                } else
-                {
-                    HashMap<String, Object> j39v7 = new HashMap<String, Object>();
-                    j39v7.put("ordId", this.safeString(orderIds, i));
-                    j39v7.put("instId", market.get("id"));
-                    ((List<Object>)request).add(j39v7);
+                    if (Boolean.TRUE.equals(trailing) || Boolean.TRUE.equals(isTrigger))
+                    {
+                        HashMap<String, Object> j39v6 = new HashMap<String, Object>();
+                        j39v6.put("algoId", this.safeString(orderIds, i));
+                        j39v6.put("instId", market.get("id"));
+                        ((List<Object>)request).add(j39v6);
+                    } else
+                    {
+                        HashMap<String, Object> j39v7 = new HashMap<String, Object>();
+                        j39v7.put("ordId", this.safeString(orderIds, i));
+                        j39v7.put("instId", market.get("id"));
+                        ((List<Object>)request).add(j39v7);
+                    }
                 }
             }
         } else
         {
-            for (var i = 0; i < (switch ((Object)(clientOrderIds)) { case null -> 0; case List<?> j39v10 -> j39v10.size(); case String j39v11 -> j39v11.length(); case Object j39v12 -> j39v12.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v12) : 0; }); i++)
+            for (var i = 0; i < ((List<?>)clientOrderIds).size(); i++)
             {
                 if (Boolean.TRUE.equals(trailing) || Boolean.TRUE.equals(isTrigger))
                 {
@@ -8080,7 +8083,7 @@ public class Okx extends OkxApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < positions.size(); i++)
         {
-            Map<String, Object> parsedPosition = (Map<String, Object>) this.parsePosition(this.safeDict(positions, i, new HashMap<String, Object>() {{}}), null);
+            Map<String, Object> parsedPosition = this.parsePosition(this.safeDict(positions, i, new HashMap<String, Object>() {{}}), null);
             ((List<Object>)result).add(parsedPosition);
         }
         return this.filterByArrayPositions(result, "symbol", this.marketSymbols(symbols, null, true, false, false));
@@ -9025,15 +9028,15 @@ public class Okx extends OkxApi
             {
                 amount = positionBalanceChange;
             }
-            HashMap<String, Object> j39v19 = new HashMap<String, Object>();
-            j39v19.put("info", entry);
-            j39v19.put("symbol", marketInner.get("symbol"));
-            j39v19.put("code", code);
-            j39v19.put("timestamp", timestamp);
-            j39v19.put("datetime", this.iso8601(timestamp));
-            j39v19.put("id", this.safeString(entry, "billId"));
-            j39v19.put("amount", this.parseNumber(amount));
-            ((List<Object>)result).add(j39v19);
+            HashMap<String, Object> j39v10 = new HashMap<String, Object>();
+            j39v10.put("info", entry);
+            j39v10.put("symbol", marketInner.get("symbol"));
+            j39v10.put("code", code);
+            j39v10.put("timestamp", timestamp);
+            j39v10.put("datetime", this.iso8601(timestamp));
+            j39v10.put("id", this.safeString(entry, "billId"));
+            j39v10.put("amount", this.parseNumber(amount));
+            ((List<Object>)result).add(j39v10);
         }
         List<Object> sorted = this.sortBy(result, "timestamp");
         return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit, false);
@@ -9573,9 +9576,9 @@ public class Okx extends OkxApi
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> entry = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
         String errorCode = this.safeString(response, "code");
-        HashMap<String, Object> j39v20 = new HashMap<String, Object>();
-        j39v20.put("status", (((java.util.Objects.equals(errorCode, "0")))) ? "ok" : "failed");
-        return this.extend(this.parseMarginModification(entry, market), j39v20);
+        HashMap<String, Object> j39v11 = new HashMap<String, Object>();
+        j39v11.put("status", (((java.util.Objects.equals(errorCode, "0")))) ? "ok" : "failed");
+        return this.extend(this.parseMarginModification(entry, market), j39v11);
 
     }
 
@@ -9803,7 +9806,7 @@ public class Okx extends OkxApi
         //    ]
         //
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(info)) { case null -> 0; case List<?> j39v21 -> j39v21.size(); case String j39v22 -> j39v22.length(); case Object j39v23 -> j39v23.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v23) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(info)) { case null -> 0; case List<?> j39v12 -> j39v12.size(); case String j39v13 -> j39v13.length(); case Object j39v14 -> j39v14.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v14) : 0; }); i++)
         {
             Map<String, Object> tier = this.safeDict(info, i, null);
             String marketId = this.safeString(tier, "instId");
@@ -10558,7 +10561,7 @@ public class Okx extends OkxApi
         //
         Map<String, Object> depositWithdrawFees = new HashMap<String, Object>() {{}};
         List<Object> codesValue = this.marketCodes(codes);
-        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v24 -> j39v24.size(); case String j39v25 -> j39v25.length(); case Object j39v26 -> j39v26.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v26) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(response)) { case null -> 0; case List<?> j39v15 -> j39v15.size(); case String j39v16 -> j39v16.length(); case Object j39v17 -> j39v17.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v17) : 0; }); i++)
         {
             Object feeInfo = Helpers.GetValue(response, i);
             String currencyId = this.safeString(feeInfo, "ccy");
@@ -10683,7 +10686,7 @@ public class Okx extends OkxApi
         //
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         // rows cover every contract of the instrument family, including expired ids missing from markets
-        List<Object> settlements = this.parseSettlements(data, null);
+        List<Object> settlements = this.parseSettlements(data, (Map<String, Object>) (null));
         List<Object> sorted = this.sortBy(settlements, "timestamp");
         return this.filterBySinceLimit(sorted, since, limit, "timestamp", false);
 

@@ -908,8 +908,8 @@ public class Phemex extends PhemexApi
             return value;
         }
         List<String> parts = new ArrayList<String>(Arrays.asList(((String)((String)value)).split(java.util.regex.Pattern.quote(","))));
-        Object valueOption = String.join("", parts);
-        parts = new ArrayList<String>(Arrays.asList(((String)((String)valueOption)).split(java.util.regex.Pattern.quote(" "))));
+        String valueOption = String.join("", parts);
+        parts = new ArrayList<String>(Arrays.asList(((String)valueOption).split(java.util.regex.Pattern.quote(" "))));
         return this.safeNumber(parts, 0, null);
     }
 
@@ -3077,7 +3077,7 @@ public class Phemex extends PhemexApi
         String timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
         String triggerPrice = this.omitZero(this.safeString2(order, "stopPx", "stopPxRp"));
         Boolean postOnly = (java.util.Objects.equals(timeInForce, "PO"));
-        Boolean reduceOnly = (Boolean) this.safeBool(order, "reduceOnly", null);
+        Boolean reduceOnly = (Boolean) this.safeBool(order, "reduceOnly", (Object) null);
         String execInst = this.safeString(order, "execInst");
         if (java.util.Objects.equals(execInst, "ReduceOnly"))
         {

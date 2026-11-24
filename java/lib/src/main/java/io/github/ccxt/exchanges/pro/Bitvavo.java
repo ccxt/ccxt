@@ -153,7 +153,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
 }})) );
         }};
         Map<String, Object> message = this.extend(request, parameters);
-        return (this.watchMultiple((String) (url), messageHashes, message, messageHashes, null)).join();
+        return (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
 
     }
 
@@ -336,7 +336,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         String symbolValue = this.symbol(symbol);
-        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.watchPublic("trades", (String) (symbolValue), parameters)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.watchPublic("trades", symbolValue, parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -417,7 +417,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         mapLiteral2.put("markets", marketIds);
         request.put("channels", new ArrayList<Object>(Arrays.asList(mapLiteral2)));
         Map<String, Object> message = this.extend(request, parameters);
-        List<Object> trades = (this.<List<Object>>watchMultiple((String) (url), messageHashes, message, messageHashes, null)).join();
+        List<Object> trades = (this.<List<Object>>watchMultiple(url, messageHashes, message, messageHashes, null)).join();
         Map<String, Object> first = this.safeDict(trades, 0, null);
         String tradeSymbol = this.safeString(first, "symbol");
         Long limitResolved = limit;
@@ -661,7 +661,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             put( "channels", channels );
         }};
         Map<String, Object> message = this.extend(request, parameters);
-        var symboltimeframecandlesVariable = (this.watchMultiple((String) (url), messageHashes, message, messageHashes, null)).join();
+        var symboltimeframecandlesVariable = (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
         var symbol = ((List<Object>) symboltimeframecandlesVariable).get(0);
         var timeframe = ((List<Object>) symboltimeframecandlesVariable).get(1);
         var candles = ((List<Object>) symboltimeframecandlesVariable).get(2);
@@ -848,7 +848,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         subscription.put("limit", limit);
         subscription.put("params", parameters);
         Map<String, Object> message = this.extend(request, parameters);
-        io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple((String) (url), messageHashes, message, messageHashes, subscription)).join();
+        io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple(url, messageHashes, message, messageHashes, subscription)).join();
         return orderbook.limit();
 
     }
@@ -988,7 +988,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             // multi-symbol watches share one subscription object, so the
             // snapshot-in-flight flag must be tracked per market
             String flagKey = ("watchingOrderBookSnapshot@" + this.safeString(message, "market", ""));
-            Boolean watchingOrderBookSnapshot = (Boolean) this.safeBool(subscription, flagKey, null);
+            Boolean watchingOrderBookSnapshot = (Boolean) this.safeBool(subscription, flagKey, (Object) null);
             if (java.util.Objects.equals(watchingOrderBookSnapshot, null))
             {
                 subscription.put(flagKey, true);
@@ -1161,7 +1161,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             put( "unsubHashes", unsubHashes );
         }}, subscriptionArgs);
         Map<String, Object> message = this.extend(request, parameters);
-        return (this.watchMultiple((String) (url), unsubHashes, message, unsubHashes, subscription)).join();
+        return (this.watchMultiple(url, unsubHashes, message, unsubHashes, subscription)).join();
 
     }
 
@@ -2301,7 +2301,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         }
         Long code = this.safeInteger(error, "errorCode");
         String action = this.safeString(message, "action");
-        String buildMessage = this.buildMessageHash((String) (action), message);
+        String buildMessage = this.buildMessageHash(action, message);
         String messageHash = this.safeString(message, "requestId", buildMessage);
         Boolean rejected = false;
         try

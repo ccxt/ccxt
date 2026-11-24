@@ -1040,7 +1040,7 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Map<String, Object> data = this.safeDict(message, "feed", new HashMap<String, Object>() {{}});
-        Map<String, Object> position = (Map<String, Object>) this.parsePosition(data, null);
+        Map<String, Object> position = this.parsePosition(data, null);
         ((io.github.ccxt.ws.ArrayCache) this.positions).append(position);
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         ((List<Object>)newPositions).add(position);
@@ -1203,9 +1203,9 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
             String body = this.json(response);
             String feedback = ((this.id + " ") + body);
             String message = this.safeString(error, "message");
-            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorCode), feedback);
-            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (message), feedback);
-            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (message), feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), message, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
             throw new ExchangeError(((this.id + " ") + body)) ;
         }
         return false;

@@ -1217,7 +1217,7 @@ public class Hashkey extends HashkeyApi
         Boolean active = java.util.Objects.equals(status, "TRADING");
         Boolean isLinear = null;
         String subType = null;
-        Boolean isInverse = (Boolean) this.safeBool(market, "inverse", null);
+        Boolean isInverse = (Boolean) this.safeBool(market, "inverse", (Object) null);
         if (!java.util.Objects.equals(isInverse, null))
         {
             if (Boolean.TRUE.equals(isInverse))
@@ -1283,7 +1283,7 @@ public class Hashkey extends HashkeyApi
         mapLiteral1.put("type", marketType);
         mapLiteral1.put("subType", subType);
         mapLiteral1.put("spot", isSpot);
-        mapLiteral1.put("margin", this.safeBool(market, "allowMargin", null));
+        mapLiteral1.put("margin", this.safeBool(market, "allowMargin", (Object) null));
         mapLiteral1.put("swap", isSwap);
         mapLiteral1.put("future", false);
         mapLiteral1.put("option", false);
@@ -1295,8 +1295,8 @@ public class Hashkey extends HashkeyApi
         mapLiteral1.put("inverse", isInverse);
         mapLiteral1.put("taker", this.safeNumber(fees, "taker", null));
         mapLiteral1.put("maker", this.safeNumber(fees, "maker", null));
-        mapLiteral1.put("percentage", this.safeBool(fees, "percentage", null));
-        mapLiteral1.put("tierBased", this.safeBool(fees, "tierBased", null));
+        mapLiteral1.put("percentage", this.safeBool(fees, "percentage", (Object) null));
+        mapLiteral1.put("tierBased", this.safeBool(fees, "tierBased", (Object) null));
         mapLiteral1.put("feeSide", this.safeString(fees, "feeSide"));
         mapLiteral1.put("expiry", null);
         mapLiteral1.put("expiryDatetime", null);
@@ -1405,8 +1405,8 @@ public class Hashkey extends HashkeyApi
         }} );
     }});
                 mapLiteral6.put("active", null);
-                mapLiteral6.put("deposit", this.safeBool(network, "allowDeposit", null));
-                mapLiteral6.put("withdraw", this.safeBool(network, "allowWithdraw", null));
+                mapLiteral6.put("deposit", this.safeBool(network, "allowDeposit", (Object) null));
+                mapLiteral6.put("withdraw", this.safeBool(network, "allowWithdraw", (Object) null));
                 mapLiteral6.put("fee", this.safeNumber(network, "withdrawFee", null));
                 mapLiteral6.put("precision", null);
                 mapLiteral6.put("info", network);
@@ -1426,8 +1426,8 @@ public class Hashkey extends HashkeyApi
         mapLiteral7.put("type", type);
         mapLiteral7.put("name", this.safeString(rawCurrency, "coinFullName"));
         mapLiteral7.put("active", null);
-        mapLiteral7.put("deposit", this.safeBool(rawCurrency, "allowDeposit", null));
-        mapLiteral7.put("withdraw", this.safeBool(rawCurrency, "allowWithdraw", null));
+        mapLiteral7.put("deposit", this.safeBool(rawCurrency, "allowDeposit", (Object) null));
+        mapLiteral7.put("withdraw", this.safeBool(rawCurrency, "allowWithdraw", (Object) null));
         mapLiteral7.put("fee", null);
         mapLiteral7.put("limits", new HashMap<String, Object>() {{
                 put( "deposit", new HashMap<String, Object>() {{
@@ -1699,7 +1699,7 @@ public class Hashkey extends HashkeyApi
         {
             side = this.safeString(new ArrayList<Object>(Arrays.asList(((String)side).split(java.util.regex.Pattern.quote("_")))), 0);
         }
-        Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer", null);
+        Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer", (Object) null);
         if (!java.util.Objects.equals(isBuyer, null))
         {
             side = ((Boolean.TRUE.equals(isBuyer))) ? "buy" : "sell";
@@ -1710,7 +1710,7 @@ public class Hashkey extends HashkeyApi
         {
             takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
         }
-        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "ibm", null);
+        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "ibm", (Object) null);
         // if public trade
         if (!java.util.Objects.equals(isBuyerMaker, null))
         {
@@ -4938,7 +4938,7 @@ public class Hashkey extends HashkeyApi
         for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> fee = this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            Map<String, Object> parsedFee = this.parseTradingFee(fee, null);
+            Map<String, Object> parsedFee = this.parseTradingFee(fee, (Map<String, Object>) null);
             String feeSymbol = this.safeString(parsedFee, "symbol", "");
             result.put(feeSymbol, parsedFee);
         }

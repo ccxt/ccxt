@@ -2032,7 +2032,7 @@ public class Blofin extends BlofinApi
         Boolean isCombinedSlTp = (Boolean.TRUE.equals(isStopLossPriceDefined) && Boolean.TRUE.equals(isTakeProfitPriceDefined)) || Boolean.TRUE.equals(isTpslEndpoint);
         Boolean isSlOrTp = Boolean.TRUE.equals(isStopLossPriceDefined) || Boolean.TRUE.equals(isTakeProfitPriceDefined);
         Map<String, Object> response = null;
-        Boolean reduceOnly = (Boolean) this.safeBool(paramsTpsl, "reduceOnly", null);
+        Boolean reduceOnly = (Boolean) this.safeBool(paramsTpsl, "reduceOnly", (Object) null);
         if (!java.util.Objects.equals(reduceOnly, null))
         {
             ((Map<String, Object>)paramsTpsl).put("reduceOnly", ((Boolean.TRUE.equals(reduceOnly))) ? "true" : "false");
@@ -3454,7 +3454,7 @@ public class Blofin extends BlofinApi
             return new ArrayList<Object>(Arrays.asList(((String)ids).split(java.util.regex.Pattern.quote(","))));
         } else
         {
-            return ids;
+            return this.safeStringList(new ArrayList<Object>(Arrays.asList(ids)), new ArrayList<Object>(Arrays.asList(0)));
         }
     }
 

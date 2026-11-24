@@ -800,8 +800,8 @@ public class Ndax extends NdaxApi
         mapLiteral1.put("precision", this.safeNumber(rawCurrency, "TickSize", null));
         mapLiteral1.put("info", rawCurrency);
         mapLiteral1.put("active", (!Boolean.TRUE.equals(this.safeBool(rawCurrency, "IsDisabled", false))));
-        mapLiteral1.put("deposit", this.safeBool(rawCurrency, "DepositEnabled", null));
-        mapLiteral1.put("withdraw", this.safeBool(rawCurrency, "WithdrawEnabled", null));
+        mapLiteral1.put("deposit", this.safeBool(rawCurrency, "DepositEnabled", (Object) null));
+        mapLiteral1.put("withdraw", this.safeBool(rawCurrency, "WithdrawEnabled", (Object) null));
         mapLiteral1.put("fee", null);
         mapLiteral1.put("limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
@@ -814,7 +814,7 @@ public class Ndax extends NdaxApi
                 }} );
             }});
         mapLiteral1.put("networks", new HashMap<String, Object>() {{}});
-        mapLiteral1.put("margin", this.safeBool(rawCurrency, "MarginEnabled", null));
+        mapLiteral1.put("margin", this.safeBool(rawCurrency, "MarginEnabled", (Object) null));
         return this.safeCurrencyStructure(mapLiteral1);
     }
 

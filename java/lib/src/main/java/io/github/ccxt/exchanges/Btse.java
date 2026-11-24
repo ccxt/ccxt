@@ -866,7 +866,7 @@ public class Btse extends BtseApi
         String minPriceString = this.safeString(market, "minOrderPrice");
         String pricePrecision = this.safeString(market, "minPriceIncrement");
         String amountPrecision = this.safeString(market, "minSizeIncrement");
-        Boolean active = (Boolean) this.safeBool(market, "active", null);
+        Boolean active = (Boolean) this.safeBool(market, "active", (Object) null);
         String type = "spot";
         Long expiry = null;
         String contractSize = null;
@@ -3205,8 +3205,8 @@ public class Btse extends BtseApi
         mapLiteral4.put("symbol", marketResolved.get("symbol"));
         mapLiteral4.put("type", orderType);
         mapLiteral4.put("timeInForce", this.parseTimeInForce(rawTimeInForce));
-        mapLiteral4.put("postOnly", this.safeBool(order, "postOnly", null));
-        mapLiteral4.put("reduceOnly", this.safeBool(order, "reduceOnly", null));
+        mapLiteral4.put("postOnly", this.safeBool(order, "postOnly", (Object) null));
+        mapLiteral4.put("reduceOnly", this.safeBool(order, "reduceOnly", (Object) null));
         mapLiteral4.put("side", this.safeStringLower2(order, "side", "orderSide"));
         mapLiteral4.put("price", this.safeString2(order, "price", "orderPrice"));
         mapLiteral4.put("triggerPrice", this.omitZero(this.safeString2(order, "triggerOriginalPrice", "triggerPrice")));

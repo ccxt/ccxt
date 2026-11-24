@@ -322,7 +322,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         String method = "market_subscribe";
         String messageHash = ("ticker:" + symbolValue);
         // every time we want to subscribe to another market we have to "re-subscribe" sending it all again
-        return (this.watchMultipleSubscription(messageHash, method, (String) (symbolValue), false, parameters)).join();
+        return (this.watchMultipleSubscription(messageHash, method, symbolValue, false, parameters)).join();
 
     }
 
@@ -364,7 +364,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             put( "method", method );
             put( "params", args );
         }};
-        (this.watchMultiple((String) (url), messageHashes, this.extend(request, parameters), messageHashes, null)).join();
+        (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
         return this.filterByArray(this.tickers, "symbol", symbolsNormalized, true);
 
     }
@@ -450,7 +450,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         String messageHash = (("trades" + ":") + symbolValue);
         String method = "trades_subscribe";
         // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
-        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.watchMultipleSubscription(messageHash, method, (String) (symbolValue), false, parameters)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.watchMultipleSubscription(messageHash, method, symbolValue, false, parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -539,7 +539,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         String symbolValue = this.safeString(market, "symbol", "");
         String messageHash = ("myTrades:" + symbolValue);
         String method = "deals_subscribe";
-        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.watchMultipleSubscription(messageHash, method, (String) (symbolValue), true, parameters)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.watchMultipleSubscription(messageHash, method, symbolValue, true, parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -616,7 +616,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             String feeCurrencyCode = null;
             if (!java.util.Objects.equals(feeCurrencyId, null))
             {
-                feeCurrencyCode = this.safeCurrencyCode((String) (feeCurrencyId), null);
+                feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, null);
             } else
             {
                 feeCurrencyCode = java.util.Objects.toString(marketResolved.get("quote"), null);
@@ -695,7 +695,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         String symbolValue = this.safeString(market, "symbol", "");
         String messageHash = ("orders:" + symbolValue);
         String method = "ordersPending_subscribe";
-        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.watchMultipleSubscription(messageHash, method, (String) (symbolValue), false, parameters)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.watchMultipleSubscription(messageHash, method, symbolValue, false, parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -785,7 +785,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         String cost = this.safeString(order, "deal_money");
         String stopPrice = this.safeString(order, "activation_price");
         String rawType = this.safeString(order, "type");
-        String type = this.parseWsOrderType((String) (rawType));
+        String type = this.parseWsOrderType(rawType);
         String amount = null;
         String remaining = null;
         if (java.util.Objects.equals(type, "market"))
@@ -1023,7 +1023,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             if (Boolean.TRUE.equals(isMargin))
             {
                 String currencyId = this.safeString(balanceDict, "a");
-                String code = this.safeCurrencyCode((String) (currencyId), null);
+                String code = this.safeCurrencyCode(currencyId, null);
                 Map<String, Object> account = this.account();
                 account.put("free", this.safeString(balanceDict, "av"));
                 account.put("total", this.safeString(balanceDict, "B"));
@@ -1309,7 +1309,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             {
                 String code = this.safeString(message, "code");
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((Map<String, Object>) (((Map<String, Object>)this.exceptions.get("ws")).get("exact")), (String) (code), feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (((Map<String, Object>)this.exceptions.get("ws")).get("exact")), code, feedback);
             }
         } catch(Exception e)
         {

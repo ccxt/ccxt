@@ -1066,7 +1066,7 @@ public class Polymarket extends PolymarketApi
         {
             side = "sell";
         }
-        Boolean isTaker = (Boolean) this.safeBool(trade, "taker", null);
+        Boolean isTaker = (Boolean) this.safeBool(trade, "taker", (Object) null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isTaker, null))
         {
@@ -2066,7 +2066,7 @@ public class Polymarket extends PolymarketApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = (Long) this.safeInteger2(order, "created_timestamp", "cts");
         Long lastUpdateTimestamp = (Long) this.safeInteger2(order, "updated_timestamp", "uts");
-        Boolean isBuy = (Boolean) this.safeBool(order, "buy", null);
+        Boolean isBuy = (Boolean) this.safeBool(order, "buy", (Object) null);
         String side = null;
         if (!java.util.Objects.equals(isBuy, null))
         {
@@ -2106,7 +2106,7 @@ public class Polymarket extends PolymarketApi
         mapLiteral4.put("type", type);
         mapLiteral4.put("timeInForce", this.safeStringUpper(order, "tif"));
         mapLiteral4.put("postOnly", this.safeBool2(order, "post_only", "po", null));
-        mapLiteral4.put("reduceOnly", this.safeBool(order, "ro", null));
+        mapLiteral4.put("reduceOnly", this.safeBool(order, "ro", (Object) null));
         mapLiteral4.put("side", side);
         mapLiteral4.put("price", price);
         mapLiteral4.put("triggerPrice", null);
@@ -2262,7 +2262,7 @@ public class Polymarket extends PolymarketApi
             Object isLong = Precise.stringGt(size, "0");
             side = ((Boolean.TRUE.equals(isLong))) ? "long" : "short";
         }
-        Boolean isCross = (Boolean) this.safeBool(position, "cross", null);
+        Boolean isCross = (Boolean) this.safeBool(position, "cross", (Object) null);
         String marginMode = null;
         if (!java.util.Objects.equals(isCross, null))
         {
@@ -2914,7 +2914,7 @@ public class Polymarket extends PolymarketApi
     {
         String marketId = this.safeString(leverage, "instrument_id");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
-        Boolean isCross = (Boolean) this.safeBool(leverage, "cross", null);
+        Boolean isCross = (Boolean) this.safeBool(leverage, "cross", (Object) null);
         String marginMode = null;
         if (!java.util.Objects.equals(isCross, null))
         {

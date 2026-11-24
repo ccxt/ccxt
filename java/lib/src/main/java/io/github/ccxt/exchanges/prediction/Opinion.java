@@ -373,7 +373,7 @@ public class Opinion extends OpinionApi
         {
             effectiveEventSlug = null;
         }
-        String marketSymbol = this.slugToMarketSymbol(effectiveEventSlug, (String) (slug));
+        String marketSymbol = this.slugToMarketSymbol(effectiveEventSlug, slug);
         String statusEnum = this.safeString(raw, "statusEnum");
         Boolean active = (java.util.Objects.equals(statusEnum, "Activated"));
         Boolean resolved = (java.util.Objects.equals(statusEnum, "Resolved"));
@@ -387,7 +387,7 @@ public class Opinion extends OpinionApi
         {
             String label = this.safeString(outcomeLabels, i);
             String tokenId = this.safeString(outcomeTokenIds, i);
-            String outcomeHandle = this.slugToOutcomeSymbol(effectiveEventSlug, (String) (slug), (String) (label));
+            String outcomeHandle = this.slugToOutcomeSymbol(effectiveEventSlug, slug, label);
             Boolean winner = null;
             Integer settleFraction = null;
             if (Boolean.TRUE.equals(hasResult))
@@ -734,10 +734,10 @@ public class Opinion extends OpinionApi
         String eventHandle = null;
         if (!java.util.Objects.equals(title, null))
         {
-            eventHandle = this.shortenSlug((String) (title));
+            eventHandle = this.shortenSlug(title);
         } else
         {
-            eventHandle = this.shortenSlug((String) (slug));
+            eventHandle = this.shortenSlug(slug);
         }
         List<Object> rawChildren = this.safeList(rawEvent, "childMarkets", new ArrayList<Object>(Arrays.asList()));
         Integer rawChildrenLength = rawChildren.size();
@@ -1297,7 +1297,7 @@ public class Opinion extends OpinionApi
         Map<String, Object> info = this.safeDict(outcomeObj, "info", new HashMap<String, Object>() {{}});
         Long topicId = this.safeInteger(info, "marketId");
         String quoteTokenAddress = this.safeString(info, "quoteToken");
-        Map<String, Object> quoteToken = (this.loadQuoteToken((String) (quoteTokenAddress))).join();
+        Map<String, Object> quoteToken = (this.loadQuoteToken(quoteTokenAddress)).join();
         Map<String, Object> amounts = this.opinionOrderRawAmounts(isMarket, sideStr, amount, price, this.safeInteger(quoteToken, "decimal", 18));
         String makerAmount = this.safeString(amounts, "makerAmount");
         String takerAmount = this.safeString(amounts, "takerAmount");
@@ -1451,7 +1451,7 @@ public class Opinion extends OpinionApi
         String id = this.safeString(order, "orderId");
         Object marketAny = ((Object)market);
         String statusEnum = this.safeString(order, "statusEnum");
-        String status = this.parseOrderStatus((String) (statusEnum));
+        String status = this.parseOrderStatus(statusEnum);
         String sideEnum = this.safeStringLower(order, "sideEnum");
         String tradingMethodEnum = this.safeStringLower(order, "tradingMethodEnum");
         Long timestamp = this.safeTimestamp(order, "createdAt");
@@ -1725,7 +1725,7 @@ public class Opinion extends OpinionApi
     public Map<String, Object> parsePredictionTrade(Map<String, Object> trade, Map<String, Object> market)
     {
         String tokenId = this.safeString(trade, "tokenId");
-        Map<String, Object> outcomeObj = this.safeOutcome((String) (tokenId), market);
+        Map<String, Object> outcomeObj = this.safeOutcome(tokenId, market);
         Long timestamp = this.safeTimestamp(trade, "createdAt");
         String side = this.safeStringLower(trade, "side");
         return this.safePredictionTrade(new HashMap<String, Object>() {{
@@ -1774,7 +1774,7 @@ public class Opinion extends OpinionApi
         {
             Map<String, Object> rawBalance = (Map<String, Object>) (rawBalances == null || i < 0 || i >= rawBalances.size() ? null : rawBalances.get(i));
             String quoteTokenAddress = this.safeString(rawBalance, "quoteToken");
-            Map<String, Object> quoteToken = (this.loadQuoteToken((String) (quoteTokenAddress))).join();
+            Map<String, Object> quoteToken = (this.loadQuoteToken(quoteTokenAddress)).join();
             rawBalance.put("symbol", this.safeString(quoteToken, "symbol", "USDT"));
         }
         return this.parseBalance(response);
@@ -1888,7 +1888,7 @@ public class Opinion extends OpinionApi
     public Map<String, Object> parsePredictionPosition(Map<String, Object> position, Map<String, Object> market)
     {
         String tokenId = this.safeString(position, "tokenId");
-        Map<String, Object> outcomeObj = this.safeOutcome((String) (tokenId), market);
+        Map<String, Object> outcomeObj = this.safeOutcome(tokenId, market);
         String outcomeSideEnum = this.safeStringLower(position, "outcomeSideEnum");
         return this.safePredictionPosition(new HashMap<String, Object>() {{
             put( "contracts", Opinion.this.safeNumber(position, "sharesOwned", null) );
@@ -2185,7 +2185,7 @@ public class Opinion extends OpinionApi
      * @param {int} outcomeSide 1 for the yes token, 2 for the no token
      * @returns {object} the outcome object, or undefined
      */
-    public Object opinionOutcomeByMarketIdSide(Long marketId, Long outcomeSide)
+    public Map<String, Object> opinionOutcomeByMarketIdSide(Long marketId, Long outcomeSide)
     {
         if ((java.util.Objects.equals(marketId, null)) || (java.util.Objects.equals(this.markets, null)))
         {
@@ -2242,7 +2242,7 @@ public class Opinion extends OpinionApi
         Boolean isNewSubscription = java.util.Objects.equals(this.safeValue(client.subscriptions, subscriptionKey), null);
         if (Boolean.TRUE.equals(isNewSubscription))
         {
-            (this.seedOrderBook(outcome, (String) (sym), limit)).join();
+            (this.seedOrderBook(outcome, sym, limit)).join();
         }
         Object future = this.watch(url, messageHash, subscribeMsg, subscriptionKey, null);
         if (Boolean.TRUE.equals(isNewSubscription))
@@ -2545,7 +2545,7 @@ public class Opinion extends OpinionApi
         //
         Long marketId = this.safeInteger(message, "marketId");
         Long outcomeSide = this.safeInteger(message, "outcomeSide");
-        Object outcomeObj = this.opinionOutcomeByMarketIdSide(marketId, outcomeSide);
+        Map<String, Object> outcomeObj = this.opinionOutcomeByMarketIdSide(marketId, outcomeSide);
         Long timestamp = this.safeTimestamp(message, "createdAt");
         // unlike the REST order body (0 buy / 1 sell), the websocket channel uses 1 buy / 2 sell
         // per the docs and confirmed live
@@ -2650,7 +2650,7 @@ public class Opinion extends OpinionApi
         //
         Long marketId = this.safeInteger(message, "marketId");
         Long outcomeSide = this.safeInteger(message, "outcomeSide");
-        Object outcomeObj = this.opinionOutcomeByMarketIdSide(marketId, outcomeSide);
+        Map<String, Object> outcomeObj = this.opinionOutcomeByMarketIdSide(marketId, outcomeSide);
         String sym = this.safeString(outcomeObj, "outcome");
         Long timestamp = this.safeTimestamp(message, "createdAt");
         Map<String,Object> trade = this.safePredictionTrade(new HashMap<String, Object>() {{
@@ -2696,7 +2696,7 @@ public class Opinion extends OpinionApi
             String errmsg = this.safeString(response, "errmsg", "");
             String feedback = ((this.id + " ") + body);
             this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), this.numberToString(errno), feedback);
-            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (errmsg), feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), errmsg, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

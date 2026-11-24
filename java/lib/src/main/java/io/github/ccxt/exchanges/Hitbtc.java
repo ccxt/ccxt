@@ -1117,8 +1117,8 @@ public class Hitbtc extends HitbtcApi
                 mapLiteral1.put("network", networkCode);
                 mapLiteral1.put("active", null);
                 mapLiteral1.put("fee", this.safeNumber(rawNetwork, "payout_fee", null));
-                mapLiteral1.put("deposit", this.safeBool(rawNetwork, "payin_enabled", null));
-                mapLiteral1.put("withdraw", this.safeBool(rawNetwork, "payout_enabled", null));
+                mapLiteral1.put("deposit", this.safeBool(rawNetwork, "payin_enabled", (Object) null));
+                mapLiteral1.put("withdraw", this.safeBool(rawNetwork, "payout_enabled", (Object) null));
                 mapLiteral1.put("precision", this.safeNumber(rawNetwork, "precision_payout", null));
                 mapLiteral1.put("limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
@@ -1136,8 +1136,8 @@ public class Hitbtc extends HitbtcApi
             put( "precision", Hitbtc.this.safeNumber(currency, "precision_transfer", null) );
             put( "name", Hitbtc.this.safeString(currency, "full_name") );
             put( "active", !Boolean.TRUE.equals(Hitbtc.this.safeBool(currency, "delisted", false)) );
-            put( "deposit", Hitbtc.this.safeBool(currency, "payin_enabled", null) );
-            put( "withdraw", Hitbtc.this.safeBool(currency, "payout_enabled", null) );
+            put( "deposit", Hitbtc.this.safeBool(currency, "payin_enabled", (Object) null) );
+            put( "withdraw", Hitbtc.this.safeBool(currency, "payout_enabled", (Object) null) );
             put( "networks", networks );
             put( "fee", null );
             put( "limits", new HashMap<String, Object>() {{
@@ -1678,7 +1678,7 @@ public class Hitbtc extends HitbtcApi
         String symbol = this.safeSymbol(marketId, marketResolved, null, null);
         Map<String, Object> fee = null;
         String feeCostString = this.safeString(trade, "fee");
-        Boolean taker = (Boolean) this.safeBool(trade, "taker", null);
+        Boolean taker = (Boolean) this.safeBool(trade, "taker", (Object) null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(taker, null))
         {
@@ -2166,7 +2166,7 @@ public class Hitbtc extends HitbtcApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Map<String, Object> fee = this.parseTradingFee(this.extend(new HashMap<String, Object>() {{}}, this.safeDict(response, i, new HashMap<String, Object>() {{}})), null);
+            Map<String, Object> fee = this.parseTradingFee(this.extend(new HashMap<String, Object>() {{}}, this.safeDict(response, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
             String symbol = this.safeString(fee, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -2973,7 +2973,7 @@ public class Hitbtc extends HitbtcApi
     public Pair<Map<String, Object>, Map<String, Object>> createOrderRequest(Map<String, Object> market, String marketType, String type, String side, Object amount, Object price, String marginMode, Map<String, Object> parameters)
     {
         Boolean isLimit = (java.util.Objects.equals(type, "limit"));
-        Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", null);
+        Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", (Object) null);
         String timeInForce = this.safeString(parameters, "timeInForce");
         Double triggerPrice = this.safeNumberN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stop_price")), (Object) null);
         Boolean isPostOnly = this.isPostOnly(java.util.Objects.equals(type, "market"), null, parameters);
@@ -3148,7 +3148,7 @@ public class Hitbtc extends HitbtcApi
         String marketId = this.safeString(order, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String symbol = this.safeSymbol(marketId, marketResolved, null, null);
-        Boolean postOnly = (Boolean) this.safeBool(order, "post_only", null);
+        Boolean postOnly = (Boolean) this.safeBool(order, "post_only", (Object) null);
         String timeInForce = this.safeString(order, "time_in_force");
         List<Object> rawTrades = this.safeList(order, "trades", null);
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
@@ -3166,7 +3166,7 @@ public class Hitbtc extends HitbtcApi
         mapLiteral3.put("side", side);
         mapLiteral3.put("timeInForce", timeInForce);
         mapLiteral3.put("postOnly", postOnly);
-        mapLiteral3.put("reduceOnly", this.safeBool(order, "reduce_only", null));
+        mapLiteral3.put("reduceOnly", this.safeBool(order, "reduce_only", (Object) null));
         mapLiteral3.put("filled", filled);
         mapLiteral3.put("remaining", null);
         mapLiteral3.put("cost", null);
@@ -3692,7 +3692,7 @@ public class Hitbtc extends HitbtcApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < response.size(); i++)
         {
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition(this.safeDict(response, i, new HashMap<String, Object>() {{}}), null);
+            Map<String, Object> position = this.parsePosition(this.safeDict(response, i, new HashMap<String, Object>() {{}}), null);
             ((List<Object>)result).add(position);
         }
         return result;

@@ -217,7 +217,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
             }
             marketIds = this.marketIds(symbols);
         }
-        Object symbolsSuffix = (((java.util.Objects.equals(symbols, null)))) ? "" : String.join((String)",", (List<String>)symbols);
+        String symbolsSuffix = (((java.util.Objects.equals(symbols, null)))) ? "" : String.join((String)",", (List<String>)symbols);
         String symbolsHash = messageHash;
         if (!this.isEmpty(symbols))
         {
@@ -526,7 +526,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         {
             throw new BadRequest(((this.id + " watchOHLCV cannot take a timeframe of ") + java.util.Objects.requireNonNullElse(timeframe, "1m"))) ;
         }
-        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) (this.subscribe((String) (channel), (String) (channel), false, new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
+        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) (this.subscribe(channel, channel, false, new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -566,7 +566,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         }
         Map<String, Object> market = this.market(symbol);
         String messageHash = ((("unsubscribe:" + channel) + "::") + market.get("symbol"));
-        return (this.unSubscribe((String) (channel), new ArrayList<Object>(Arrays.asList(market.get("symbol"))), new ArrayList<Object>(Arrays.asList(messageHash)), parameters)).join();
+        return (this.unSubscribe(channel, new ArrayList<Object>(Arrays.asList(market.get("symbol"))), new ArrayList<Object>(Arrays.asList(messageHash)), parameters)).join();
 
     }
 
@@ -692,7 +692,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 messageHashes.add(((name + "::") + (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i))));
             }
         }
-        List<Object> trades = (this.<List<Object>>watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
+        List<Object> trades = (this.<List<Object>>watchMultiple(url, messageHashes, request, messageHashes, null)).join();
         Map<String, Object> first = this.safeDict(trades, 0, null);
         String tradeSymbol = this.safeString(first, "symbol");
         Long limitResolved = limit;
@@ -1348,7 +1348,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                         Helpers.addElementToObject(previousOrder.get("fee"), "cost", Precise.stringAdd(stringOrderCost, stringTradeCost));
                     }
                     String rawState = this.safeString(order, "state");
-                    String state = this.parseStatus((String) (rawState));
+                    String state = this.parseStatus(rawState);
                     previousOrder.put("status", state);
                     // update the newUpdates count
                     orders.append(previousOrder);
@@ -1431,7 +1431,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         mapLiteral1.put("average", null);
         mapLiteral1.put("filled", filledAmount);
         mapLiteral1.put("remaining", this.safeString(order, "remaining_size"));
-        mapLiteral1.put("status", this.parseStatus((String) (status)));
+        mapLiteral1.put("status", this.parseStatus(status));
         mapLiteral1.put("fee", new HashMap<String, Object>() {{
                 put( "rate", null );
                 put( "cost", Poloniex.this.safeString(order, "tradeFee") );
@@ -1660,7 +1660,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         {
             Map<String, Object> balance = this.safeDict(data, i, null);
             String currencyId = this.safeString(balance, "currency");
-            String code = this.safeCurrencyCode((String) (currencyId), null);
+            String code = this.safeCurrencyCode(currencyId, null);
             Map<String, Object> newAccount = this.account();
             newAccount.put("free", this.safeString(balance, "available"));
             newAccount.put("used", this.safeString(balance, "hold"));
@@ -1861,8 +1861,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 String error = this.safeString(first, "message");
                 String code = this.safeString(first, "code");
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (code), feedback);
-                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (error), feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), code, feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), error, feedback);
                 throw new ExchangeError(feedback) ;
             } catch(Exception e)
             {

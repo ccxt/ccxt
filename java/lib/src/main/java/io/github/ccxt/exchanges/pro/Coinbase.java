@@ -326,7 +326,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             if (java.util.Objects.equals(currentToken, null) || (seconds != null && (tokenExpiry == null || tokenExpiry < seconds)))
             {
                 // we should generate new token
-                String token = this.createAuthToken(seconds, "", null, this.isEddsaApiKey());
+                String token = this.createAuthToken(seconds, "", (String) null, this.isEddsaApiKey());
                 this.options.put("wsToken", token);
                 this.options.put("wsTokenTimestamp", seconds);
             }

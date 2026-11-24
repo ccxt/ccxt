@@ -617,7 +617,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             Map<String, Object> market = this.market(symbol);
             messageHash = (messageHash + (":" + market.get("symbol")));
         }
-        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.subscribePrivate((String) (name), messageHash, paramsVerbose)).join();
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.subscribePrivate(name, messageHash, paramsVerbose)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -1248,7 +1248,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //        "reduce_only": false
         //    }
         //
-        Boolean isCancelled = (Boolean) this.safeBool(order, "is_cancel", null);
+        Boolean isCancelled = (Boolean) this.safeBool(order, "is_cancel", (Object) null);
         Map<String, Object> unparsedOrder = order;
         String status = null;
         if (!java.util.Objects.equals(isCancelled, null))
@@ -1727,8 +1727,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                     cashBalance.put(code, newAccount);
                 }
             }
-            this.balance.put("cash", this.pruneStaleBalanceKeys(cashBalance, holdingCodes));
-            this.balance.put("cash", this.safeBalance(this.balance.get("cash")));
+            this.balance.put("cash", this.safeBalance(this.pruneStaleBalanceKeys(cashBalance, holdingCodes)));
         }
         if (!java.util.Objects.equals(futures, null))
         {
@@ -1746,7 +1745,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 Map<String, Object> newAccount = this.account();
                 Map<String, Object> future = this.safeDict(futures, key, null);
                 String currencyId = this.safeString(future, "unit");
-                String code = this.safeCurrencyCode((String) (currencyId), null);
+                String code = this.safeCurrencyCode(currencyId, null);
                 newAccount.put("free", this.safeString(future, "available"));
                 newAccount.put("used", this.safeString(future, "initial_margin"));
                 newAccount.put("total", this.safeString(future, "balance"));
@@ -1758,8 +1757,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 }
                 marginBalance.put(symbol, symbolAccounts);
             }
-            this.balance.put("margin", this.pruneStaleBalanceKeys(marginBalance, futuresSymbols));
-            this.balance.put("margin", this.safeBalance(this.balance.get("margin")));
+            this.balance.put("margin", this.safeBalance(this.pruneStaleBalanceKeys(marginBalance, futuresSymbols)));
             client.resolve(this.balance.get("margin"), (messageHash + ":futures"));
         }
         if (!java.util.Objects.equals(flexFutures, null))
@@ -1787,8 +1785,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                     flexBalance.put(code, newAccount);
                 }
             }
-            this.balance.put("flex", this.pruneStaleBalanceKeys(flexBalance, flexCodes));
-            this.balance.put("flex", this.safeBalance(this.balance.get("flex")));
+            this.balance.put("flex", this.safeBalance(this.pruneStaleBalanceKeys(flexBalance, flexCodes)));
             client.resolve(this.balance.get("flex"), (messageHash + ":flex_futures"));
         }
         // resolve the plain hash exactly once per message, with the unified
@@ -1926,7 +1923,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
             put( "amount", Krakenfutures.this.safeString(trade, "qty") );
             put( "cost", null );
             put( "fee", new HashMap<String, Object>() {{
-                put( "currency", Krakenfutures.this.safeCurrencyCode((String) (feeCurrencyId), null) );
+                put( "currency", Krakenfutures.this.safeCurrencyCode(feeCurrencyId, null) );
                 put( "cost", Krakenfutures.this.safeString(trade, "fee_paid") );
                 put( "rate", null );
             }} );

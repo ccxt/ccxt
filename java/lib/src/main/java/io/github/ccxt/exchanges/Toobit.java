@@ -1003,8 +1003,8 @@ public class Toobit extends ToobitApi
                 mapLiteral1.put("id", networkId);
                 mapLiteral1.put("network", networkCode);
                 mapLiteral1.put("margin", null);
-                mapLiteral1.put("deposit", this.safeBool(rawNetwork, "allowDeposit", null));
-                mapLiteral1.put("withdraw", this.safeBool(rawNetwork, "allowWithdraw", null));
+                mapLiteral1.put("deposit", this.safeBool(rawNetwork, "allowDeposit", (Object) null));
+                mapLiteral1.put("withdraw", this.safeBool(rawNetwork, "allowWithdraw", (Object) null));
                 mapLiteral1.put("active", null);
                 mapLiteral1.put("fee", this.safeNumber(rawNetwork, "withdrawFee", null));
                 mapLiteral1.put("precision", null);
@@ -1028,8 +1028,8 @@ public class Toobit extends ToobitApi
             put( "name", Toobit.this.safeString(rawCurrency, "coinFullName") );
             put( "type", null );
             put( "active", null );
-            put( "deposit", Toobit.this.safeBool(rawCurrency, "allowDeposit", null) );
-            put( "withdraw", Toobit.this.safeBool(rawCurrency, "allowWithdraw", null) );
+            put( "deposit", Toobit.this.safeBool(rawCurrency, "allowDeposit", (Object) null) );
+            put( "withdraw", Toobit.this.safeBool(rawCurrency, "allowWithdraw", (Object) null) );
             put( "fee", null );
             put( "precision", null );
             put( "limits", new HashMap<String, Object>() {{
@@ -1461,8 +1461,8 @@ public class Toobit extends ToobitApi
         String amountString = this.safeString2(trade, "q", "qty");
         Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer", false);
         String side = null;
-        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "ibm", null);
-        Boolean isBuyerTaker = (Boolean) this.safeBool(trade, "m", null);
+        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "ibm", (Object) null);
+        Boolean isBuyerTaker = (Boolean) this.safeBool(trade, "m", (Object) null);
         if (!java.util.Objects.equals(isBuyerMaker, null))
         {
             side = ((Boolean.TRUE.equals(isBuyerMaker))) ? "sell" : "buy";
@@ -1491,7 +1491,7 @@ public class Toobit extends ToobitApi
                 fee = hx4NewMap0;
             }
         }
-        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", null);
+        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", (Object) null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
@@ -1840,7 +1840,7 @@ public class Toobit extends ToobitApi
 
     }
 
-    public Object parseBidsAsksCustom(List<Object> tickers, Object symbols, Map<String, Object> parameters)
+    public Map<String, Object> parseBidsAsksCustom(List<Object> tickers, Object symbols, Map<String, Object> parameters)
     {
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < tickers.size(); i++)
@@ -3315,7 +3315,7 @@ public class Toobit extends ToobitApi
         String addressTo = this.safeString(transaction, "address");
         String addressFrom = this.safeString(transaction, "fromAddress");
         String arriveQuantity = this.safeString(transaction, "arriveQuantity");
-        Boolean success = (Boolean) this.safeBool(transaction, "success", null);
+        Boolean success = (Boolean) this.safeBool(transaction, "success", (Object) null);
         Boolean isWithdraw = (!java.util.Objects.equals(arriveQuantity, null)) || (!java.util.Objects.equals(success, null));
         String type = ((Boolean.TRUE.equals(isWithdraw))) ? "withdrawal" : "deposit";
         {

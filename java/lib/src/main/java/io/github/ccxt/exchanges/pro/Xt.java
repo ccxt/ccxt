@@ -114,7 +114,8 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         {
             tradeType = "contract";
         }
-        Map<String, Object> apiUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> apiUrls = this.safeDict(urlsApi, "ws", new HashMap<String, Object>() {{}});
         String url = this.safeString(apiUrls, tradeType);
         if (!Boolean.TRUE.equals(isContract))
         {
@@ -299,7 +300,8 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         Map<String, Object> subscription = new HashMap<String, Object>() {{
             put( "id", id );
         }};
-        Map<String, Object> apiUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> apiUrls = this.safeDict(urlsApi, "ws", new HashMap<String, Object>() {{}});
         String url = ((this.safeString(apiUrls, tradeType, "") + "/") + tail);
         return (this.watch(url, messageHash, request, messageHash, subscription)).join();
 
@@ -368,7 +370,8 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         {
             tail = ((Boolean.TRUE.equals(privateAccess))) ? "user" : "market";
         }
-        Map<String, Object> apiUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> apiUrls = this.safeDict(urlsApi, "ws", new HashMap<String, Object>() {{}});
         String url = ((this.safeString(apiUrls, tradeType, "") + "/") + tail);
         Map<String, Object> subscription = new HashMap<String, Object>() {{
             put( "unsubscribe", true );
@@ -448,7 +451,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         String method = this.safeString(parameters, "method", defaultMethod);
         String name = ((method + "@") + this.safeString(market, "id", ""));
         String messageHash = ("unsubscribe::" + name);
-        return (this.unSubscribe(messageHash, name, "public", "unWatchTicker", (String) (defaultMethod), market, null, parameters, new HashMap<String, Object>() {{}})).join();
+        return (this.unSubscribe(messageHash, name, "public", "unWatchTicker", defaultMethod, market, null, parameters, new HashMap<String, Object>() {{}})).join();
 
     }
 
@@ -489,7 +492,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         }
         if (!java.util.Objects.equals(name, null))
         {
-            Object tickers = (this.subscribe((String) (name), "public", "watchTickers", market, symbols, parameters)).join();
+            Object tickers = (this.subscribe(name, "public", "watchTickers", market, symbols, parameters)).join();
             if (this.newUpdates)
             {
                 return tickers;
@@ -536,7 +539,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         if (!java.util.Objects.equals(name, null))
         {
             String messageHash = ("unsubscribe::" + name);
-            return (this.unSubscribe(messageHash, (String) (name), "public", "unWatchTickers", "ticker", null, symbols, parameters, new HashMap<String, Object>() {{}})).join();
+            return (this.unSubscribe(messageHash, name, "public", "unWatchTickers", "ticker", null, symbols, parameters, new HashMap<String, Object>() {{}})).join();
         }
         return null;
 
@@ -883,7 +886,8 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Map<String, Object> apiUrls = this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
+        Map<String, Object> urlsApi = this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}});
+        Map<String, Object> apiUrls = this.safeDict(urlsApi, "ws", new HashMap<String, Object>() {{}});
         String url = ((this.safeString(apiUrls, "contract", "") + "/") + "user");
         Client client = this.client(url);
         this.setPositionsCache(client);
@@ -1090,7 +1094,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         }
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        Map<String, Object> position = (Map<String, Object>) this.parsePosition(data, null);
+        Map<String, Object> position = this.parsePosition(data, null);
         cache.append(position);
         List<Object> messageHashes = this.findMessageHashes(client, "position::contract");
         for (var i = 0; i < messageHashes.size(); i++)
@@ -1816,7 +1820,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         //
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String currencyId = this.safeString2(data, "c", "coin");
-        String code = this.safeCurrencyCode((String) (currencyId), null);
+        String code = this.safeCurrencyCode(currencyId, null);
         Map<String, Object> account = this.account();
         account.put("free", this.safeString(data, "availableBalance"));
         account.put("used", this.safeString(data, "f"));

@@ -1772,7 +1772,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             if (!java.util.Objects.equals(code, null))
             {
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (code), feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), code, feedback);
             }
         } catch(Exception e)
         {
@@ -2205,7 +2205,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         {
             Object balance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String currencyId = this.safeString(balance, "a");
-            String code = this.safeCurrencyCode((String) (currencyId), null);
+            String code = this.safeCurrencyCode(currencyId, null);
             Map<String, Object> account = this.account();
             account.put("info", balance);
             account.put("used", this.safeString(balance, "lk"));
@@ -2340,7 +2340,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         {
             String unsubHash = this.safeString(messageHashes, i, "");
             String subHash = this.safeString(subMessageHashes, i, "");
-            this.cleanUnsubscription(client, (String) (subHash), (String) (unsubHash), false);
+            this.cleanUnsubscription(client, subHash, unsubHash, false);
         }
         this.cleanCache(subscription);
     }

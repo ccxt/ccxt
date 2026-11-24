@@ -1569,8 +1569,8 @@ public class Bittrade extends BittradeApi
     {
         String id = this.safeString(currency, "name");
         String code = this.safeCurrencyCode(id, null);
-        Boolean depositEnabled = (Boolean) this.safeBool(currency, "deposit-enabled", null);
-        Boolean withdrawEnabled = (Boolean) this.safeBool(currency, "withdraw-enabled", null);
+        Boolean depositEnabled = (Boolean) this.safeBool(currency, "deposit-enabled", (Object) null);
+        Boolean withdrawEnabled = (Boolean) this.safeBool(currency, "withdraw-enabled", (Object) null);
         Boolean countryDisabled = (Boolean) this.safeBool(currency, "country-disabled", false);
         Boolean visible = (Boolean) this.safeBool(currency, "visible", false);
         String state = this.safeString(currency, "state");

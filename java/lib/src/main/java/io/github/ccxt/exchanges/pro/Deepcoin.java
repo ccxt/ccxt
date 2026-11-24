@@ -623,8 +623,8 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         mapLiteral3.put("id", this.safeString2(trade, "TradeID", "TI"));
         mapLiteral3.put("order", this.safeString(trade, "OS"));
         mapLiteral3.put("type", null);
-        mapLiteral3.put("takerOrMaker", this.handleTakerOrMaker((String) (matchRole)));
-        mapLiteral3.put("side", this.parseTradeSide((String) (direction)));
+        mapLiteral3.put("takerOrMaker", this.handleTakerOrMaker(matchRole));
+        mapLiteral3.put("side", this.parseTradeSide(direction));
         mapLiteral3.put("price", this.safeString(trade, "P"));
         mapLiteral3.put("amount", this.safeString(trade, "V"));
         mapLiteral3.put("cost", this.safeString(trade, "T"));
@@ -1260,11 +1260,11 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             put( "timestamp", timestamp );
             put( "lastTradeTimestamp", null );
             put( "lastUpdateTimestamp", Deepcoin.this.safeTimestamp(order, "U") );
-            put( "status", Deepcoin.this.parseWsOrderStatus((String) (state)) );
+            put( "status", Deepcoin.this.parseWsOrderStatus(state) );
             put( "symbol", Deepcoin.this.safeString(market, "symbol") );
             put( "type", null );
             put( "timeInForce", null );
-            put( "side", Deepcoin.this.parseTradeSide((String) (direction)) );
+            put( "side", Deepcoin.this.parseTradeSide(direction) );
             put( "price", Deepcoin.this.safeString(order, "P") );
             put( "average", Deepcoin.this.safeString(order, "t") );
             put( "amount", Deepcoin.this.safeString(order, "V") );
@@ -1415,7 +1415,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             put( "datetime", Deepcoin.this.iso8601(timestamp) );
             put( "contracts", Deepcoin.this.safeString(position, "Po") );
             put( "contractSize", null );
-            put( "side", Deepcoin.this.parsePositionSide((String) (direction)) );
+            put( "side", Deepcoin.this.parsePositionSide(direction) );
             put( "notional", null );
             put( "leverage", Deepcoin.this.omitZero(Deepcoin.this.safeString(position, "l")) );
             put( "unrealizedPnl", null );
@@ -1424,7 +1424,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             put( "entryPrice", Deepcoin.this.safeString(position, "OP") );
             put( "markPrice", null );
             put( "liquidationPrice", null );
-            put( "marginMode", Deepcoin.this.parseWsMarginMode((String) (marginMode)) );
+            put( "marginMode", Deepcoin.this.parseWsMarginMode(marginMode) );
             put( "hedged", true );
             put( "maintenanceMargin", Deepcoin.this.safeString(position, "u") );
             put( "maintenanceMarginPercentage", null );
@@ -1548,7 +1548,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
     {
         String subHash = this.safeString(subscription, "subHash");
         String unsubHash = this.safeString(subscription, "unsubHash");
-        this.cleanUnsubscription(client, (String) (subHash), (String) (unsubHash), false);
+        this.cleanUnsubscription(client, subHash, unsubHash, false);
         this.cleanCache(subscription);
     }
 
@@ -1582,8 +1582,8 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         String feedback = ((this.id + " ") + this.json(message));
         try
         {
-            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (messageText), feedback);
-            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (messageText), feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), messageText, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), messageText, feedback);
             throw new ExchangeError(feedback) ;
         } catch(Exception e)
         {

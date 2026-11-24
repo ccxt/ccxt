@@ -639,7 +639,7 @@ public class Lbank extends LbankApi
     }});
                 mapLiteral1.put("active", null);
                 mapLiteral1.put("deposit", null);
-                mapLiteral1.put("withdraw", this.safeBool(networkEntry, "canWithDraw", null));
+                mapLiteral1.put("withdraw", this.safeBool(networkEntry, "canWithDraw", (Object) null));
                 mapLiteral1.put("fee", this.safeNumber(networkEntry, "fee", null));
                 mapLiteral1.put("precision", this.parseNumber(this.parsePrecision(this.safeString(networkEntry, "transferAmtScale"))));
                 mapLiteral1.put("info", networkEntry);
@@ -1907,7 +1907,7 @@ public class Lbank extends LbankApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < fees.size(); i++)
         {
-            Map<String, Object> fee = this.parseTradingFee(this.extend(new HashMap<String, Object>() {{}}, (fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))), null);
+            Map<String, Object> fee = this.parseTradingFee(this.extend(new HashMap<String, Object>() {{}}, (fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))), (Map<String, Object>) null);
             String symbol = this.safeString(fee, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {

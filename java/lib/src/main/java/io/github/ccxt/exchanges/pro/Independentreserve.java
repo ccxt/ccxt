@@ -242,8 +242,8 @@ public class Independentreserve extends io.github.ccxt.exchanges.Independentrese
         String depth = this.safeString(parts, 1, "");
         String baseId = this.safeString(parts, 2);
         String quoteId = this.safeString(parts, 3);
-        String base = this.safeCurrencyCode((String) (baseId), null);
-        String quote = this.safeCurrencyCode((String) (quoteId), null);
+        String base = this.safeCurrencyCode(baseId, null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return;

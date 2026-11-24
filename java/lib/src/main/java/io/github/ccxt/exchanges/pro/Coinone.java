@@ -138,8 +138,8 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String baseId = this.safeStringUpper(data, "target_currency");
         String quoteId = this.safeStringUpper(data, "quote_currency");
-        String base = this.safeCurrencyCode((String) (baseId), null);
-        String quote = this.safeCurrencyCode((String) (quoteId), null);
+        String base = this.safeCurrencyCode(baseId, null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
         {
             return;
@@ -283,8 +283,8 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         String last = this.safeString(ticker, "last");
         String baseId = this.safeString(ticker, "target_currency");
         String quoteId = this.safeString(ticker, "quote_currency");
-        String base = this.safeCurrencyCode((String) (baseId), null);
-        String quote = this.safeCurrencyCode((String) (quoteId), null);
+        String base = this.safeCurrencyCode(baseId, null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         String symbol = null;
         if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
         {
@@ -406,8 +406,8 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         //
         String baseId = this.safeStringUpper(trade, "target_currency");
         String quoteId = this.safeStringUpper(trade, "quote_currency");
-        String base = this.safeCurrencyCode((String) (baseId), null);
-        String quote = this.safeCurrencyCode((String) (quoteId), null);
+        String base = this.safeCurrencyCode(baseId, null);
+        String quote = this.safeCurrencyCode(quoteId, null);
         String symbol = null;
         if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
         {
@@ -415,7 +415,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
         }
         Long timestamp = this.safeInteger(trade, "timestamp");
         Map<String, Object> marketResolved = this.safeMarket(symbol, market, null, null);
-        Boolean isSellerMaker = (Boolean) this.safeBool(trade, "is_seller_maker", null);
+        Boolean isSellerMaker = (Boolean) this.safeBool(trade, "is_seller_maker", (Object) null);
         String side = null;
         if (!java.util.Objects.equals(isSellerMaker, null))
         {

@@ -27,7 +27,7 @@ public class Bybitid extends io.github.ccxt.exchanges.Bybitid
     {
         // eslint-disable-next-line new-cap
         var restInstance = new io.github.ccxt.exchanges.Bybitid();
-        Object restDescribe = restInstance.describe();
+        Map<String, Object> restDescribe = restInstance.describe();
         Object parentWsDescribe = new io.github.ccxt.exchanges.pro.Binance().describeData();
         Map<String,Object> extended = this.deepExtend(restDescribe, parentWsDescribe);
         return this.deepExtend(extended, new HashMap<String, Object>() {{

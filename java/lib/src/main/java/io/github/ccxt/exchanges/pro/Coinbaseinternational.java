@@ -169,7 +169,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             {
                 parameters = new HashMap<String, Object>() {{
                     put( "grant_type", "coinbase_cdp" );
-                    put( "token", Coinbaseinternational.this.createAuthToken(Coinbaseinternational.this.seconds(), null, null, Coinbaseinternational.this.isEddsaSecret()) );
+                    put( "token", Coinbaseinternational.this.createAuthToken(Coinbaseinternational.this.seconds(), (String) null, (String) null, Coinbaseinternational.this.isEddsaSecret()) );
                 }};
             }
             {
@@ -238,7 +238,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         {
             return (this.watch(url, this.safeString(messageHashes, 0, ""), extendedRequest, this.safeString(channels, 0, ""), extendedRequest)).join();
         }
-        return (this.watchMultiple((String) (url), messageHashes, extendedRequest, channels, extendedRequest)).join();
+        return (this.watchMultiple(url, messageHashes, extendedRequest, channels, extendedRequest)).join();
 
     }
 
@@ -286,7 +286,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             }});
         request.put("id", this.requestId());
         Client client = this.client(url);
-        this.watchMultiple((String) (url), unWatchMessageHashes, this.deepExtend(request, paramsResolved), unWatchMessageHashes, null);
+        this.watchMultiple(url, unWatchMessageHashes, this.deepExtend(request, paramsResolved), unWatchMessageHashes, null);
         for (var i = 0; (channelsLength != null && i < channelsLength); i++)
         {
             this.cleanUnsubscription(client, this.safeString(channels, i, ""), this.safeString(unWatchMessageHashes, i, ""), false);
@@ -1759,7 +1759,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
                     client.subscriptions.remove((String)((String)channel));
                 }
                 client.reject(new ExchangeError((this.id + " order book update has a nonce mismatch")), channel);
-                this.resubscribeOrderBook((String) (channel));
+                this.resubscribeOrderBook(channel);
                 return;
             }
             this.handleDeltas((orderbook == null ? null : orderbook.asks), (List<Object>) (this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()))));
@@ -1845,8 +1845,8 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         String feedback = ((this.id + " ") + this.json(message));
         try
         {
-            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorCode), feedback);
-            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (errorMessage), feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), errorMessage, feedback);
             throw new ExchangeError(feedback) ;
         } catch(Exception e)
         {
@@ -2030,7 +2030,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             {
                 paramsAuth = new HashMap<String, Object>() {{
                     put( "grant_type", "coinbase_cdp" );
-                    put( "token", Coinbaseinternational.this.createAuthToken(Coinbaseinternational.this.seconds(), null, null, Coinbaseinternational.this.isEddsaSecret()) );
+                    put( "token", Coinbaseinternational.this.createAuthToken(Coinbaseinternational.this.seconds(), (String) null, (String) null, Coinbaseinternational.this.isEddsaSecret()) );
                 }};
             }
             Map<String, Object> request = new HashMap<String, Object>();

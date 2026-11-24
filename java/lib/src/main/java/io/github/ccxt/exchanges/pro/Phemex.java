@@ -408,7 +408,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         {
             Map<String, Object> balance = this.safeDict(message, i, null);
             String currencyId = this.safeString(balance, "currency");
-            String code = this.safeCurrencyCode((String) (currencyId), null);
+            String code = this.safeCurrencyCode(currencyId, null);
             Map<String, Object> currency = this.safeDict(this.currencies, code, new HashMap<String, Object>() {{}});
             Long scale = this.safeInteger(currency, "valueScale", 8);
             Map<String, Object> account = this.account();
@@ -423,14 +423,14 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                     String lockedWithdrawEv = this.safeString2(balance, "lockedWithdrawEv", "lockedWithdrawRv");
                     usedEv = Precise.stringAdd(lockedTradingBalanceEv, lockedWithdrawEv);
                 }
-                used = this.fromEn((String) (usedEv), scale);
+                used = this.fromEn(usedEv, scale);
             }
             String totalRv = this.safeString(balance, "accountBalanceRv");
             String total = totalRv;
             if (java.util.Objects.equals(totalRv, null))
             {
                 String totalEv = this.safeString2(balance, "accountBalanceEv", "balanceEv");
-                total = this.fromEn((String) (totalEv), scale);
+                total = this.fromEn(totalEv, scale);
             }
             account.put("used", used);
             account.put("total", total);
@@ -959,7 +959,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                     client.reject(new ExchangeError(((this.id + " ") + this.json(error))), subscriptionHash);
                     return;
                 }
-                this.cleanUnsubscription(client, (String) (subMessageHash), (String) (messageHash), false);
+                this.cleanUnsubscription(client, subMessageHash, messageHash, false);
                 this.cleanCache(subscription);
                 return;
             }
@@ -1037,7 +1037,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         if (java.util.Objects.equals(type, "snapshot"))
         {
             Map<String, Object> book = (Map<String, Object>) this.safeDict2(message, "book", "orderbook_p", new HashMap<String, Object>() {{}});
-            Map<String, Object> snapshot = this.customParseOrderBook(book, (String) (symbol), timestamp, "bids", "asks", 0, 1, market);
+            Map<String, Object> snapshot = this.customParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market);
             snapshot.put("nonce", nonce);
             // reset the existing orderbook instead of replacing it: a consumer
             // holds a reference to the old object and would never see updates

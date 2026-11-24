@@ -247,16 +247,16 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         orderbook.put("nonce", this.safeInteger(delta, "microtimestamp"));
         List<Object> bids = this.safeList(delta, "bids", new ArrayList<Object>(Arrays.asList()));
         List<Object> asks = this.safeList(delta, "asks", new ArrayList<Object>(Arrays.asList()));
-        this.handleBidAsks((orderbook == null ? null : orderbook.get("bids")), bids);
-        this.handleBidAsks((orderbook == null ? null : orderbook.get("asks")), asks);
+        this.handleBidAsks((orderbook == null ? null : orderbook.bids), bids);
+        this.handleBidAsks((orderbook == null ? null : orderbook.asks), asks);
     }
 
-    public void handleBidAsks(Object bookSide, List<Object> bidAsks)
+    public void handleBidAsks(io.github.ccxt.ws.OrderBookSide bookSide, List<Object> bidAsks)
     {
         for (var i = 0; i < bidAsks.size(); i++)
         {
             List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk((bidAsks == null || i < 0 || i >= bidAsks.size() ? null : bidAsks.get(i)), 0, 1, 2);
-            ((io.github.ccxt.ws.OrderBookSide) bookSide).storeArray(bidAsk);
+            bookSide.storeArray(bidAsk);
         }
     }
 
@@ -1018,7 +1018,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         {
             this.cleanCache(subscription);
         }
-        this.cleanUnsubscription(client, (String) (subHash), unsubHash, false);
+        this.cleanUnsubscription(client, subHash, unsubHash, false);
     }
 
     /**
@@ -1139,7 +1139,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             String feedback = ((this.id + " ") + this.json(message));
             Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
             String code = this.safeString(data, "code");
-            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (code), feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), code, feedback);
         }
         return true;
     }

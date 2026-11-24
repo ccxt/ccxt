@@ -238,7 +238,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             ((List<Object>)subscriptionArgs).add((this.safeStringLower(market, "id", "") + "@ticker"));
             messageHashes.add(("ticker:" + this.safeString(market, "symbol", "")));
         }
-        Object newTicker = (this.watchMultiple((String) (url), messageHashes, this.extend(request, this.omit(paramsCallerMethodName, "callerMethodName")), messageHashes, null)).join();
+        Object newTicker = (this.watchMultiple(url, messageHashes, this.extend(request, this.omit(paramsCallerMethodName, "callerMethodName")), messageHashes, null)).join();
         if (this.newUpdates)
         {
             Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -309,7 +309,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             ((List<Object>)subscriptionArgs).add((this.safeStringLower(market, "id", "") + "@ticker"));
             messageHashes.add(("unsubscribe:ticker:" + this.safeString(market, "symbol", "")));
         }
-        return (this.watchMultiple((String) (url), messageHashes, this.extend(request, this.omit(paramsCallerMethodName, "callerMethodName")), messageHashes, null)).join();
+        return (this.watchMultiple(url, messageHashes, this.extend(request, this.omit(paramsCallerMethodName, "callerMethodName")), messageHashes, null)).join();
 
     }
 
@@ -429,7 +429,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             ((List<Object>)subscriptionArgs).add(((this.safeStringLower(market, "id", "") + "@markPrice") + suffix));
             messageHashes.add(("ticker:" + this.safeString(market, "symbol", "")));
         }
-        Object newTicker = (this.watchMultiple((String) (url), messageHashes, this.extend(request, paramsOmitted), messageHashes, null)).join();
+        Object newTicker = (this.watchMultiple(url, messageHashes, this.extend(request, paramsOmitted), messageHashes, null)).join();
         if (this.newUpdates)
         {
             Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -506,7 +506,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             ((List<Object>)subscriptionArgs).add(((this.safeStringLower(market, "id", "") + "@markPrice") + suffix));
             messageHashes.add(("unsubscribe:ticker:" + this.safeString(market, "symbol", "")));
         }
-        return (this.watchMultiple((String) (url), messageHashes, this.extend(request, paramsOmitted), messageHashes, null)).join();
+        return (this.watchMultiple(url, messageHashes, this.extend(request, paramsOmitted), messageHashes, null)).join();
 
     }
 
@@ -545,7 +545,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         //     }
         //
         String marketType = this.getAccountTypeFromUrl((String) (client.url));
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsTicker(message, (String) (marketType));
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsTicker(message, marketType);
         String symbol = this.safeString(parsed, "symbol");
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -650,7 +650,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             ((List<Object>)subscriptionArgs).add((this.safeStringLower(market, "id", "") + "@bookTicker"));
             messageHashes.add(("bidask:" + this.safeString(market, "symbol", "")));
         }
-        Object newTicker = (this.watchMultiple((String) (url), messageHashes, this.extend(request, parameters), messageHashes, null)).join();
+        Object newTicker = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
         if (this.newUpdates)
         {
             Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -718,7 +718,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             ((List<Object>)subscriptionArgs).add((this.safeStringLower(market, "id", "") + "@bookTicker"));
             messageHashes.add(("unsubscribe:bidask:" + this.safeString(market, "symbol", "")));
         }
-        return (this.watchMultiple((String) (url), messageHashes, this.extend(request, parameters), messageHashes, null)).join();
+        return (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
 
     }
 
@@ -879,7 +879,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             ((List<Object>)subscriptionArgs).add((marketId + "@aggTrade"));
             messageHashes.add(("trade::" + this.safeString(market, "symbol", "")));
         }
-        List<Object> trades = (this.<List<Object>>watchMultiple((String) (url), messageHashes, this.extend(request, this.omit(paramsCallerMethodName, "callerMethodName")), messageHashes, null)).join();
+        List<Object> trades = (this.<List<Object>>watchMultiple(url, messageHashes, this.extend(request, this.omit(paramsCallerMethodName, "callerMethodName")), messageHashes, null)).join();
         Map<String, Object> first = this.safeDict(trades, 0, null);
         String tradeSymbol = this.safeString(first, "symbol");
         Long limitResolved = limit;
@@ -941,7 +941,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             ((List<Object>)subscriptionArgs).add((this.safeStringLower(market, "id", "") + "@aggTrade"));
             messageHashes.add(("unsubscribe:trade:" + this.safeString(market, "symbol", "")));
         }
-        return (this.watchMultiple((String) (url), messageHashes, this.extend(request, this.omit(paramsCallerMethodName, "callerMethodName")), messageHashes, null)).join();
+        return (this.watchMultiple(url, messageHashes, this.extend(request, this.omit(paramsCallerMethodName, "callerMethodName")), messageHashes, null)).join();
 
     }
 
@@ -1107,7 +1107,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         String side = this.safeStringLower(trade, "S");
         String takerOrMaker = null;
         String orderId = this.safeString(trade, "i");
-        Boolean isMaker = (Boolean) this.safeBool(trade, "m", null);
+        Boolean isMaker = (Boolean) this.safeBool(trade, "m", (Object) null);
         if (!java.util.Objects.equals(isMaker, null))
         {
             if (java.util.Objects.equals(side, null))
@@ -1121,7 +1121,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         if (!java.util.Objects.equals(feeCost, null))
         {
             String feeCurrencyId = this.safeString(trade, "N");
-            String feeCurrencyCode = this.safeCurrencyCode((String) (feeCurrencyId), null);
+            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, null);
             {
                 HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
                 hx4NewMap0.put("cost", feeCost);
@@ -1260,7 +1260,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             ((List<Object>)subscriptionArgs).add((this.safeStringLower(market, "id", "") + depthSuffix));
             messageHashes.add(("orderbook:" + this.safeString(market, "symbol", "")));
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple((String) (url), messageHashes, this.extend(request, this.omit(paramsCallerMethodName, "callerMethodName")), messageHashes, null)).join();
+        io.github.ccxt.ws.WsOrderBook orderbook = (this.<io.github.ccxt.ws.WsOrderBook>watchMultiple(url, messageHashes, this.extend(request, this.omit(paramsCallerMethodName, "callerMethodName")), messageHashes, null)).join();
         return orderbook.limit();
 
     }
@@ -1328,7 +1328,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             ((List<Object>)subscriptionArgs).add((this.safeStringLower(market, "id", "") + depthSuffix));
             messageHashes.add(("unsubscribe:orderbook:" + this.safeString(market, "symbol", "")));
         }
-        return (this.watchMultiple((String) (url), messageHashes, this.extend(request, this.omit(paramsOmitted, "limit")), messageHashes, null)).join();
+        return (this.watchMultiple(url, messageHashes, this.extend(request, this.omit(paramsOmitted, "limit")), messageHashes, null)).join();
 
     }
 
@@ -1493,7 +1493,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             ((List<Object>)subscriptionArgs).add(((this.safeStringLower(market, "id", "") + "@kline_") + timeframeId));
             messageHashes.add(((("ohlcv:" + this.safeString(market, "symbol", "")) + ":") + unfiedTimeframe));
         }
-        var symboltimeframestoredVariable = (this.watchMultiple((String) (url), messageHashes, this.extend(request, this.omit(paramsCallerMethodName, "callerMethodName")), messageHashes, null)).join();
+        var symboltimeframestoredVariable = (this.watchMultiple(url, messageHashes, this.extend(request, this.omit(paramsCallerMethodName, "callerMethodName")), messageHashes, null)).join();
         var symbol = ((List<Object>) symboltimeframestoredVariable).get(0);
         var timeframe = ((List<Object>) symboltimeframestoredVariable).get(1);
         var stored = ((List<Object>) symboltimeframestoredVariable).get(2);
@@ -1567,7 +1567,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             ((List<Object>)subscriptionArgs).add(((this.safeStringLower(market, "id", "") + "@kline_") + timeframeId));
             messageHashes.add(((("unsubscribe:ohlcv:" + this.safeString(market, "symbol", "")) + ":") + unfiedTimeframe));
         }
-        return (this.watchMultiple((String) (url), messageHashes, this.extend(request, this.omit(paramsCallerMethodName, "callerMethodName")), messageHashes, null)).join();
+        return (this.watchMultiple(url, messageHashes, this.extend(request, this.omit(paramsCallerMethodName, "callerMethodName")), messageHashes, null)).join();
 
     }
 
@@ -1927,7 +1927,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         {
             Object entry = (B == null || i < 0 || i >= B.size() ? null : B.get(i));
             String currencyId = this.safeString(entry, "a");
-            String code = this.safeCurrencyCode((String) (currencyId), null);
+            String code = this.safeCurrencyCode(currencyId, null);
             Map<String, Object> account = this.account();
             account.put("free", this.safeString(entry, "f"));
             account.put("used", this.safeString(entry, "l"));
@@ -1994,7 +1994,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
             return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true);
         }
-        List<Object> newPositions = (List<Object>) (this.watchMultiple((String) (url), messageHashes, null, new ArrayList<Object>(Arrays.asList(type)), null)).join();
+        List<Object> newPositions = (List<Object>) (this.watchMultiple(url, messageHashes, null, new ArrayList<Object>(Arrays.asList(type)), null)).join();
         if (this.newUpdates)
         {
             return newPositions;
@@ -2228,7 +2228,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         String url = this.getPrivateUrl(typeMarketType);
         Client client = this.client(url);
         this.setBalanceCache(client, (String) (typeMarketType));
-        List<Object> orders = (this.<List<Object>>watchMultiple((String) (url), new ArrayList<Object>(Arrays.asList(messageHash)), null, new ArrayList<Object>(Arrays.asList(typeMarketType)), null)).join();
+        List<Object> orders = (this.<List<Object>>watchMultiple(url, new ArrayList<Object>(Arrays.asList(messageHash)), null, new ArrayList<Object>(Arrays.asList(typeMarketType)), null)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -2286,7 +2286,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         String url = this.getPrivateUrl(typeMarketType);
         Client client = this.client(url);
         this.setBalanceCache(client, (String) (typeMarketType));
-        List<Object> trades = (this.<List<Object>>watchMultiple((String) (url), new ArrayList<Object>(Arrays.asList(messageHash)), null, new ArrayList<Object>(Arrays.asList(typeMarketType)), null)).join();
+        List<Object> trades = (this.<List<Object>>watchMultiple(url, new ArrayList<Object>(Arrays.asList(messageHash)), null, new ArrayList<Object>(Arrays.asList(typeMarketType)), null)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -2355,7 +2355,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                                 if (Boolean.TRUE.equals(insertNewFeeCurrency) && java.util.Objects.equals(this.safeString(orderFee, "currency"), tradeFeeCurrency))
                                 {
                                     Object feeCost = this.sum(tradeFeeCost, this.safeNumber(orderFee, "cost", null));
-                                    String feeCostString = (String) this.currencyToPrecision((String) (tradeFeeCurrency), feeCost, null);
+                                    String feeCostString = (String) this.currencyToPrecision(tradeFeeCurrency, feeCost, null);
                                     if (!java.util.Objects.equals(feeCostString, null))
                                     {
                                         orderFee.put("cost", Double.parseDouble(feeCostString));
@@ -2378,7 +2378,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                             if (java.util.Objects.equals(feeCurrency, tradeFeeCurrency))
                             {
                                 Object feeCost = this.sum(this.safeNumber(fee, "cost", null), tradeFeeCost);
-                                String feeCostString = (String) this.currencyToPrecision((String) (tradeFeeCurrency), feeCost, null);
+                                String feeCostString = (String) this.currencyToPrecision(tradeFeeCurrency, feeCost, null);
                                 Map<String, Object> newFee = this.extend(new HashMap<String, Object>() {{}}, fee);
                                 if (!java.util.Objects.equals(feeCostString, null))
                                 {
@@ -2497,14 +2497,14 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         //     }
         //
         String messageHash = "orders";
-        Object market = this.getMarketFromOrder(client, message);
+        Map<String, Object> market = this.getMarketFromOrder(client, message);
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.orders;
-        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(message, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
+        Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(message, market);
         String symbol = this.safeString(market, "symbol", "");
         cache.append(parsed);
         List<Object> messageHashes = this.findMessageHashes(client, messageHash);
@@ -2540,7 +2540,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         if ((!java.util.Objects.equals(feeCost, null)) && (Precise.stringGt(feeCost, "0")))
         {
             String feeCurrencyId = this.safeString(order, "N");
-            String feeCurrency = this.safeCurrencyCode((String) (feeCurrencyId), null);
+            String feeCurrency = this.safeCurrencyCode(feeCurrencyId, null);
             {
                 HashMap<String, Object> hx4NewMap1 = new HashMap<String, Object>();
                 hx4NewMap1.put("cost", feeCost);
@@ -2549,7 +2549,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             }
         }
         String rawStatus = this.safeString(order, "X");
-        String status = this.parseOrderStatus((String) (rawStatus));
+        String status = this.parseOrderStatus(rawStatus);
         String clientOrderId = this.safeString2(order, "C", "caid");
         if ((java.util.Objects.equals(clientOrderId, null)) || ((clientOrderId.length() == 0)))
         {
@@ -2574,7 +2574,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         mapLiteral6.put("type", this.parseOrderType(this.safeStringLower(order, "o")));
         mapLiteral6.put("timeInForce", timeInForce);
         mapLiteral6.put("postOnly", null);
-        mapLiteral6.put("reduceOnly", this.safeBool(order, "R", null));
+        mapLiteral6.put("reduceOnly", this.safeBool(order, "R", (Object) null));
         mapLiteral6.put("side", this.safeStringLower(order, "S"));
         mapLiteral6.put("price", this.safeString(order, "p"));
         mapLiteral6.put("stopPrice", stopPrice);
@@ -2590,7 +2590,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         return this.safeOrder(mapLiteral6, null);
     }
 
-    public Object getMarketFromOrder(Client client, Map<String, Object> order)
+    public Map<String, Object> getMarketFromOrder(Client client, Map<String, Object> order)
     {
         String marketId = this.safeString(order, "s");
         String marketType = this.getAccountTypeFromUrl((String) (client.url));

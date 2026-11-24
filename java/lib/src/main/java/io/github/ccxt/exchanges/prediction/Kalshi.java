@@ -464,7 +464,7 @@ public class Kalshi extends KalshiApi
                     ((List<Object>)flatMarkets).add(m);
                     if (!java.util.Objects.equals(eventTitle, null) && !java.util.Objects.equals(eventTitle, ""))
                     {
-                        String eventKey = this.shortenSlug((String) (eventTitle));
+                        String eventKey = this.shortenSlug(eventTitle);
                         if (!(eventsDict.containsKey(eventKey)))
                         {
                             HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
@@ -689,7 +689,7 @@ public class Kalshi extends KalshiApi
         for (var i = 0; (outcomeSymbolsLength != null && i < outcomeSymbolsLength); i++)
         {
             String pendingSymbol = this.safeString(outcomeSymbols, i, "");
-            if (!this.hasOutcome((String) (pendingSymbol)))
+            if (!this.hasOutcome(pendingSymbol))
             {
                 (this.fetchOutcome(pendingSymbol)).join();
             }
@@ -713,8 +713,8 @@ public class Kalshi extends KalshiApi
         {
             String errorCode = this.safeString(error, "code");
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorCode), feedback);
-            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (errorCode), feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), errorCode, feedback);
         }
         // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
         // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
@@ -813,7 +813,7 @@ public class Kalshi extends KalshiApi
         Double liquidity = this.safeNumber2(raw, "liquidity_dollars", "liquidity", null);
         Double openInt = this.safeNumber2(raw, "open_interest_fp", "open_interest", null);
         // Derive series ticker: drop last hyphen-segment from event_ticker
-        Object seriesTicker = eventTicker;
+        String seriesTicker = eventTicker;
         if ((!java.util.Objects.equals(eventTicker, null)) && (!java.util.Objects.equals(eventTicker, "")))
         {
             List<Object> eventParts = new ArrayList<Object>(Arrays.asList(((String)eventTicker).split(java.util.regex.Pattern.quote("-"))));
@@ -835,7 +835,7 @@ public class Kalshi extends KalshiApi
         {
             subtitleOrTicker = subtitle;
         }
-        String marketSymbol = this.slugToMarketSymbol((String) (eventTicker), subtitleOrTicker);
+        String marketSymbol = this.slugToMarketSymbol(eventTicker, subtitleOrTicker);
         // kalshi exposes the per-market price tick via price_ranges[].step (a dollar value,
         // e.g. "0.0010" for deci-cent markets, "0.0100" for cent markets); older responses
         // used tick_size (in cents). amount is a whole number of contracts
@@ -858,7 +858,7 @@ public class Kalshi extends KalshiApi
         for (var oi = 0; oi < outcomeLabels.size(); oi++)
         {
             String label = (String) (outcomeLabels == null || oi < 0 || oi >= outcomeLabels.size() ? null : outcomeLabels.get(oi));
-            String outcomeHandle = this.slugToOutcomeSymbol((String) (eventTicker), subtitleOrTicker, label);
+            String outcomeHandle = this.slugToOutcomeSymbol(eventTicker, subtitleOrTicker, label);
             Boolean winnerRaw = null;
             Integer settleFractionRaw = null;
             if (Boolean.TRUE.equals(resolved) && (!java.util.Objects.equals(result, null)) && (!java.util.Objects.equals(result, "")))
@@ -2179,7 +2179,7 @@ public class Kalshi extends KalshiApi
     public Map<String, Object> parsePredictionPosition(Map<String, Object> position, Map<String, Object> market)
     {
         String ticker = this.safeString(position, "ticker");
-        Map<String, Object> outcomeObj = this.safeOutcome((String) (ticker), market);
+        Map<String, Object> outcomeObj = this.safeOutcome(ticker, market);
         Double yesContracts = this.safeNumber(position, "position", null); // positive = long YES
         String positionSide = null;
         Double contractsValue = null;
@@ -2807,7 +2807,7 @@ public class Kalshi extends KalshiApi
         } else if (!java.util.Objects.equals(eventId, null))
         {
             // kalshi's event id (and slug) is the event_ticker — fetch it directly
-            Map<String, Object> fullEvent = (this.fetchRawEventByTicker((String) (eventId), rest)).join();
+            Map<String, Object> fullEvent = (this.fetchRawEventByTicker(eventId, rest)).join();
             rawEvents = new ArrayList<Object>(Arrays.asList(fullEvent));
         } else
         {
@@ -3265,7 +3265,7 @@ public class Kalshi extends KalshiApi
         {
             active = anyActive;
         }
-        Boolean resolved = (Boolean) this.safeBool(rawEvent, "resolved", null);
+        Boolean resolved = (Boolean) this.safeBool(rawEvent, "resolved", (Object) null);
         if ((java.util.Objects.equals(resolved, null)) && ((marketsCount != null && marketsCount > 0)))
         {
             resolved = allResolved;
@@ -3281,7 +3281,7 @@ public class Kalshi extends KalshiApi
         String eventSlug = null;
         if (Boolean.TRUE.equals(hasTitle))
         {
-            eventSlug = this.shortenSlug((String) (title));
+            eventSlug = this.shortenSlug(title);
         }
         Long created = this.parse8601(this.safeString(rawEvent, "created_date_iso"));
         if (java.util.Objects.equals(created, null))

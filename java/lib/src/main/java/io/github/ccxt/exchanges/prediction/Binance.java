@@ -729,7 +729,7 @@ public class Binance extends BinanceApi
             HashMap<String, Object> h2kMap0 = new HashMap<String, Object>();
             h2kMap0.put("id", topicId);
             h2kMap0.put("slug", slug);
-            h2kMap0.put("event", (((!java.util.Objects.equals(slug, null)))) ? this.shortenSlug((String) (slug)) : null);
+            h2kMap0.put("event", (((!java.util.Objects.equals(slug, null)))) ? this.shortenSlug(slug) : null);
             h2kMap0.put("title", title);
             h2kMap0.put("description", this.safeString(rawTopic, "description"));
             h2kMap0.put("markets", marketsList);
@@ -784,7 +784,7 @@ public class Binance extends BinanceApi
         String vendor = this.safeString(rawTopic, "vendor");
         String collateral = this.safeString(rawTopic, "collateral", "USDT");
         String title = this.safeString(rawMarket, "title", marketId);
-        String marketSymbol = this.slugToMarketSymbol((String) (topicSlug), (String) (title));
+        String marketSymbol = this.slugToMarketSymbol(topicSlug, title);
         String tradingStatus = this.safeString(rawMarket, "tradingStatus");
         String status = this.safeString(rawMarket, "status");
         Boolean active = (java.util.Objects.equals(tradingStatus, "OPEN"));
@@ -2276,8 +2276,8 @@ public class Binance extends BinanceApi
         {
             String message = this.safeString(response, "msg", "");
             String feedback = ((this.id + " ") + body);
-            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorCode), feedback);
-            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (message), feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
             throw new ExchangeError(feedback) ;
         }
         return null;

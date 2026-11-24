@@ -2821,7 +2821,7 @@ public class Nado extends NadoApi
             }
         }
         String takerOrMaker = null;
-        Boolean isTaker = (Boolean) this.safeBool(trade, "is_taker", null);
+        Boolean isTaker = (Boolean) this.safeBool(trade, "is_taker", (Object) null);
         if (!java.util.Objects.equals(isTaker, null))
         {
             if (Boolean.TRUE.equals(isTaker))

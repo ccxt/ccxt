@@ -1155,7 +1155,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         List<Object> rawLiquidations = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < rawLiquidations.size(); i++)
         {
-            Map<String, Object> liquidation = this.parseWsLiquidation((Map<String, Object>) ((rawLiquidations == null || i < 0 || i >= rawLiquidations.size() ? null : rawLiquidations.get(i))), null);
+            Map<String, Object> liquidation = this.parseWsLiquidation(this.safeDict(rawLiquidations, i, new HashMap<String, Object>() {{}}), null);
             String symbol = this.safeString(liquidation, "symbol", "");
             if (java.util.Objects.equals(this.liquidations, null))
             {
@@ -1408,7 +1408,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         String symbolValue = this.symbol(symbol);
         String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
         String name = ("candle" + interval);
-        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) (this.subscribe("public", name, name, (String) (symbolValue), parameters)).join();
+        io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) (this.subscribe("public", name, name, symbolValue, parameters)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -1474,7 +1474,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         {
             String sym = this.safeString((symbolsAndTimeframes == null || i < 0 || i >= symbolsAndTimeframes.size() ? null : symbolsAndTimeframes.get(i)), 0, "");
             String tf = this.safeString((symbolsAndTimeframes == null || i < 0 || i >= symbolsAndTimeframes.size() ? null : symbolsAndTimeframes.get(i)), 1, "");
-            String marketId = this.marketId((String) (sym));
+            String marketId = this.marketId(sym);
             String interval = this.safeString(this.timeframes, tf, tf);
             String channel = ("candle" + interval);
             Map<String, Object> topic = new HashMap<String, Object>() {{
@@ -1535,7 +1535,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         {
             String sym = this.safeString((symbolsAndTimeframes == null || i < 0 || i >= symbolsAndTimeframes.size() ? null : symbolsAndTimeframes.get(i)), 0, "");
             String tf = this.safeString((symbolsAndTimeframes == null || i < 0 || i >= symbolsAndTimeframes.size() ? null : symbolsAndTimeframes.get(i)), 1, "");
-            String marketId = this.marketId((String) (sym));
+            String marketId = this.marketId(sym);
             String interval = this.safeString(this.timeframes, tf, tf);
             String channel = ("candle" + interval);
             Map<String, Object> topic = new HashMap<String, Object>() {{
@@ -2282,7 +2282,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             put( "cost", Okx.this.safeNumber(order, "cost", null) );
             put( "fee", new HashMap<String, Object>() {{
                 put( "cost", Okx.this.safeNumber(info, "fillFee", null) );
-                put( "currency", Okx.this.safeCurrencyCode((String) (feeMarketId), null) );
+                put( "currency", Okx.this.safeCurrencyCode(feeMarketId, null) );
             }} );
         }}, market);
     }
@@ -2516,7 +2516,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> rawPosition = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition, null);
+            Map<String, Object> position = this.parsePosition(rawPosition, null);
             Double contracts = this.safeNumber(position, "contracts", null);
             if ((contracts != null && contracts == 0) && java.util.Objects.equals(this.safeString(rawPosition, "posSide"), "net"))
             {
@@ -3225,12 +3225,12 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 String feedback = ((this.id + " ") + this.json(message));
                 if (!java.util.Objects.equals(errorCode, "1"))
                 {
-                    this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorCode), feedback);
+                    this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
                 }
                 String messageString = this.safeString(message, "msg");
                 if (!java.util.Objects.equals(messageString, null))
                 {
-                    this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (messageString), feedback);
+                    this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), messageString, feedback);
                 } else
                 {
                     List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
@@ -3240,12 +3240,12 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                         errorCode = this.safeString(d, "sCode");
                         if (!java.util.Objects.equals(errorCode, null))
                         {
-                            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorCode), feedback);
+                            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
                         }
                         messageString = this.safeString(d, "sMsg");
                         if (!java.util.Objects.equals(messageString, null))
                         {
-                            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (messageString), feedback);
+                            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), messageString, feedback);
                         }
                     }
                 }

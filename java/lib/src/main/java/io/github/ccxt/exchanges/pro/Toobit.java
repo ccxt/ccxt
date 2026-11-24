@@ -988,7 +988,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         {
             Object balance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String currencyId = this.safeString(balance, "a");
-            String code = this.safeCurrencyCode((String) (currencyId), null);
+            String code = this.safeCurrencyCode(currencyId, null);
             Map<String, Object> account = this.account();
             account.put("info", balance);
             account.put("used", this.safeString(balance, "l"));

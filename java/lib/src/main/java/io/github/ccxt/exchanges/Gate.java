@@ -2000,7 +2000,7 @@ public class Gate extends GateApi
     private Boolean loadUnifiedStatusCore(Map<String, Object> parameters)
     {
 
-        Boolean unifiedAccount = (Boolean) this.safeBool(this.options, "unifiedAccount", null);
+        Boolean unifiedAccount = (Boolean) this.safeBool(this.options, "unifiedAccount", (Object) null);
         if (java.util.Objects.equals(unifiedAccount, null))
         {
             try
@@ -2027,7 +2027,7 @@ public class Gate extends GateApi
                 this.options.put("unifiedAccount", false);
             }
         }
-        Boolean unified = java.util.Objects.equals(this.safeBool(this.options, "unifiedAccount", null), true);
+        Boolean unified = java.util.Objects.equals(this.safeBool(this.options, "unifiedAccount", (Object) null), true);
         return unified;
 
     }
@@ -5824,7 +5824,7 @@ public class Gate extends GateApi
         }
         (this.loadUnifiedStatus(new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
-        Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", null);
+        Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", (Object) null);
         Double triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice", null);
         Double stopLossPrice = this.safeNumber(parameters, "stopLossPrice", triggerPrice);
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
@@ -6050,7 +6050,7 @@ public class Gate extends GateApi
         }
         Map<String, Object> market = this.market(symbol);
         Boolean contract = (Boolean) market.get("contract");
-        Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", null);
+        Boolean trigger = (Boolean) this.safeBool(parameters, "trigger", (Object) null);
         Double triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice", null);
         Double stopLossPrice = this.safeNumber(parameters, "stopLossPrice", triggerPrice);
         Double takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice", null);
@@ -6061,7 +6061,7 @@ public class Gate extends GateApi
         {
             throw new ExchangeError((this.id + " createOrder() stopLossPrice and takeProfitPrice cannot both be defined")) ;
         }
-        Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", null);
+        Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", (Object) null);
         String exchangeSpecificTimeInForce = this.safeStringLowerN(parameters, new ArrayList<Object>(Arrays.asList("timeInForce", "tif", "time_in_force")));
         Pair<Boolean, Map<String, Object>> postOnlyparamsPostOnlyVariable = this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(exchangeSpecificTimeInForce, "poc"), parameters);
         Boolean postOnly = postOnlyparamsPostOnlyVariable.first();
@@ -6888,7 +6888,7 @@ public class Gate extends GateApi
             lastTradeTimestamp = this.parseToInt(lastTradeTimestampStr);
         }
         Map<String, Object> initial = this.safeDict(order, "initial", new HashMap<String, Object>() {{}});
-        Boolean reduceOnlyInitial = (Boolean) this.safeBool(initial, "is_reduce_only", null);
+        Boolean reduceOnlyInitial = (Boolean) this.safeBool(initial, "is_reduce_only", (Object) null);
         Boolean reduceOnly = (Boolean) this.safeBool(order, "is_reduce_only", reduceOnlyInitial);
         String clientOrderId = this.safeString(order, "text");
         if (java.util.Objects.equals(clientOrderId, null))

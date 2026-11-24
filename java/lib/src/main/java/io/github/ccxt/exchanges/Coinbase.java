@@ -990,7 +990,7 @@ public class Coinbase extends CoinbaseApi
         //         }
         //     }
         //
-        Boolean active = (Boolean) this.safeBool(account, "active", null);
+        Boolean active = (Boolean) this.safeBool(account, "active", (Object) null);
         String currencyIdV3 = this.safeString(account, "currency");
         Map<String, Object> currency = this.safeDict(account, "currency", new HashMap<String, Object>() {{}});
         String currencyId = this.safeString(currency, "code", currencyIdV3);
@@ -1169,9 +1169,9 @@ public class Coinbase extends CoinbaseApi
     private Object fetchTransactionsWithMethodCore(String method, String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        var requestparamsValueVariable = (this.prepareAccountRequestWithCurrencyCode(code, limit, parameters)).join();
-        var request = ((List<Object>) requestparamsValueVariable).get(0);
-        var paramsValue = ((List<Object>) requestparamsValueVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestparamsValueVariable = (this.prepareAccountRequestWithCurrencyCode(code, limit, parameters)).join();
+        Map<String, Object> request = requestparamsValueVariable.first();
+        Map<String, Object> paramsValue = requestparamsValueVariable.second();
         if (java.util.Objects.equals(this.markets, null))
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
@@ -2247,7 +2247,7 @@ public class Coinbase extends CoinbaseApi
             return null;
         }
         Boolean isDisabled = (Boolean) this.safeBool(market, "is_disabled", false);
-        Boolean tradingDisabled = Boolean.TRUE.equals(isDisabled) || (java.util.Objects.equals(this.safeBool(market, "trading_disabled", null), true));
+        Boolean tradingDisabled = Boolean.TRUE.equals(isDisabled) || (java.util.Objects.equals(this.safeBool(market, "trading_disabled", (Object) null), true));
         String symbol = ((base + "/") + quote);
         String type = null;
         if (Boolean.TRUE.equals(isSwap))
@@ -3209,9 +3209,9 @@ public class Coinbase extends CoinbaseApi
         {
             currency = this.currency(code);
         }
-        var requestparamsValueVariable = (this.prepareAccountRequestWithCurrencyCode(code, limit, paramsPaginate)).join();
-        var request = ((List<Object>) requestparamsValueVariable).get(0);
-        var paramsValue = ((List<Object>) requestparamsValueVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestparamsValueVariable = (this.prepareAccountRequestWithCurrencyCode(code, limit, paramsPaginate)).join();
+        Map<String, Object> request = requestparamsValueVariable.first();
+        Map<String, Object> paramsValue = requestparamsValueVariable.second();
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
         // eg: instance.last_http_response -> pagination.next_starting_after
@@ -3618,12 +3618,12 @@ public class Coinbase extends CoinbaseApi
         return request;
     }
 
-    public CompletableFuture<Object> prepareAccountRequestWithCurrencyCode(String code, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Pair<Map<String, Object>, Map<String, Object>>> prepareAccountRequestWithCurrencyCode(String code, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.prepareAccountRequestWithCurrencyCodeCore(code, limit, parameters));
     }
 
-    private Object prepareAccountRequestWithCurrencyCodeCore(String code, Long limit, Map<String, Object> parameters)
+    private Pair<Map<String, Object>, Map<String, Object>> prepareAccountRequestWithCurrencyCodeCore(String code, Long limit, Map<String, Object> parameters)
     {
 
         String accountId = this.safeString2(parameters, "account_id", "accountId");
@@ -3647,7 +3647,7 @@ public class Coinbase extends CoinbaseApi
             }
             request.put("account_id", foundAccountId);
         }
-        return new ArrayList<Object>(Arrays.asList(request, paramsOmitted));
+        return new Pair<>(request, paramsOmitted);
 
     }
 
@@ -4078,7 +4078,7 @@ public class Coinbase extends CoinbaseApi
             }
             price = this.safeString(target, "limit_price");
             amount = this.safeString(target, "base_size");
-            postOnly = this.safeBool(target, "post_only", null);
+            postOnly = this.safeBool(target, "post_only", (Object) null);
         } else if (Boolean.TRUE.equals(isStop))
         {
             Map<String, Object> stopTarget = null;
@@ -4091,7 +4091,7 @@ public class Coinbase extends CoinbaseApi
             }
             price = this.safeString(stopTarget, "limit_price");
             amount = this.safeString(stopTarget, "base_size");
-            postOnly = this.safeBool(stopTarget, "post_only", null);
+            postOnly = this.safeBool(stopTarget, "post_only", (Object) null);
             triggerPrice = this.safeString(stopTarget, "stop_price");
         } else
         {
@@ -5250,9 +5250,9 @@ public class Coinbase extends CoinbaseApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> currency = this.currency(code);
-        var requestparamsValueVariable = (this.prepareAccountRequestWithCurrencyCode(this.safeString(currency, "code"), null, parameters)).join();
-        var request = ((List<Object>) requestparamsValueVariable).get(0);
-        var paramsValue = ((List<Object>) requestparamsValueVariable).get(1);
+        Pair<Map<String, Object>, Map<String, Object>> requestparamsValueVariable = (this.prepareAccountRequestWithCurrencyCode(this.safeString(currency, "code"), null, parameters)).join();
+        Map<String, Object> request = requestparamsValueVariable.first();
+        Map<String, Object> paramsValue = requestparamsValueVariable.second();
         Map<String, Object> response = (this.v2PrivateGetAccountsAccountIdAddresses(this.extend(request, paramsValue))).join();
         //
         //    {
@@ -5680,7 +5680,7 @@ public class Coinbase extends CoinbaseApi
             put( "info", depositId );
             put( "id", Coinbase.this.safeString(depositId, "id") );
             put( "currency", Coinbase.this.safeString(depositId, "currency") );
-            put( "verified", Coinbase.this.safeBool(depositId, "verified", null) );
+            put( "verified", Coinbase.this.safeBool(depositId, "verified", (Object) null) );
             put( "tag", Coinbase.this.safeString(depositId, "name") );
         }};
     }

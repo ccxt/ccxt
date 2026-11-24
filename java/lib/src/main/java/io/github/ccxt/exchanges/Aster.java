@@ -1222,7 +1222,7 @@ public class Aster extends AsterApi
             put( "withdraw", null );
             put( "fee", null );
             put( "precision", null );
-            put( "margin", Aster.this.safeBool(rawCurrency, "marginAvailable", null) );
+            put( "margin", Aster.this.safeBool(rawCurrency, "marginAvailable", (Object) null) );
             put( "limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
@@ -1687,14 +1687,14 @@ public class Aster extends AsterApi
         String costString = this.safeString2(trade, "quoteQty", "baseQty");
         Long timestamp = (Long) this.safeInteger2(trade, "time", "T");
         String side = this.safeStringLower(trade, "side");
-        Boolean isMaker = (Boolean) this.safeBool(trade, "maker", null);
+        Boolean isMaker = (Boolean) this.safeBool(trade, "maker", (Object) null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
             takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
             if (java.util.Objects.equals(side, null))
             {
-                Boolean isBuyer = (Boolean) this.safeBool(trade, "buyer", null);
+                Boolean isBuyer = (Boolean) this.safeBool(trade, "buyer", (Object) null);
                 if (!java.util.Objects.equals(isBuyer, null))
                 {
                     side = ((Boolean.TRUE.equals(isBuyer))) ? "buy" : "sell";
@@ -2694,7 +2694,7 @@ public class Aster extends AsterApi
         //
         return new HashMap<String, Object>() {{
             put( "info", response );
-            put( "hedged", Aster.this.safeBool(response, "dualSidePosition", null) );
+            put( "hedged", Aster.this.safeBool(response, "dualSidePosition", (Object) null) );
         }};
 
     }
@@ -4361,7 +4361,7 @@ public class Aster extends AsterApi
 
     }
 
-    public Object parsePositionRisk(Map<String, Object> position, Map<String, Object> market)
+    public Map<String, Object> parsePositionRisk(Map<String, Object> position, Map<String, Object> market)
     {
         //
         //     {
@@ -4769,7 +4769,7 @@ public class Aster extends AsterApi
         {
             timestamp = null;
         }
-        Boolean isolatedRaw = (Boolean) this.safeBool(position, "isolated", null);
+        Boolean isolatedRaw = (Boolean) this.safeBool(position, "isolated", (Object) null);
         Boolean isolated = false;
         if (java.util.Objects.equals(isolatedRaw, null))
         {

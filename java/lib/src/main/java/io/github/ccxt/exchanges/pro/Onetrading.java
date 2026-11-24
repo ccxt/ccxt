@@ -290,7 +290,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             String symbol = this.safeSymbol(marketId, null, null, null);
             Long timestamp = this.parse8601(datetime);
             String isoDatetime = this.iso8601(timestamp);
-            Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWSTicker(ticker, null, timestamp, (String) (isoDatetime));
+            Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWSTicker(ticker, null, timestamp, isoDatetime);
             this.tickers.put(symbol, parsedTicker);
             client.resolve(parsedTicker, ("ticker." + symbol));
         }
@@ -1118,7 +1118,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             Map<String, Object> previousOrder = this.safeDict(previousOrderArray, 0, new HashMap<String, Object>() {{}});
             symbol = this.safeString(previousOrder, "symbol");
             String filled = this.safeString(update, "filled_amount");
-            String status = this.parseWsOrderStatus((String) (updateType));
+            String status = this.parseWsOrderStatus(updateType);
             if (java.util.Objects.equals(updateType, "ORDER_CLOSED") && Precise.stringEq(filled, "0"))
             {
                 status = "canceled";
@@ -1182,7 +1182,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         //     }
         //
         String currencyId = this.safeString(balance, "currency_code");
-        String code = this.safeCurrencyCode((String) (currencyId), null);
+        String code = this.safeCurrencyCode(currencyId, null);
         Map<String, Object> account = this.account();
         account.put("free", this.safeString(balance, "new_available"));
         account.put("used", this.safeString(balance, "new_locked"));

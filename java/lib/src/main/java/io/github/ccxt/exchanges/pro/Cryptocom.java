@@ -402,7 +402,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 boolean checksum = Boolean.TRUE.equals(this.handleOption("watchOrderBook", "checksum", true));
                 if (checksum)
                 {
-                    throw new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage((String) (symbol)))) ;
+                    throw new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage(symbol))) ;
                 }
             }
         }
@@ -1316,7 +1316,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         for (var i = 0; i < rawPositions.size(); i++)
         {
             Map<String, Object> rawPosition = (Map<String, Object>) (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition, null);
+            Map<String, Object> position = this.parsePosition(rawPosition, null);
             ((List<Object>)newPositions).add(position);
             cache.append(position);
         }
@@ -1412,7 +1412,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         {
             Map<String, Object> balance = this.safeDict(positionBalances, i, null);
             String currencyId = this.safeString(balance, "instrument_name");
-            String code = this.safeCurrencyCode((String) (currencyId), null);
+            String code = this.safeCurrencyCode(currencyId, null);
             Map<String, Object> account = this.account();
             account.put("total", this.safeString(balance, "quantity"));
             account.put("used", this.safeString(balance, "reserved_qty"));
@@ -1736,11 +1736,11 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             if ((!java.util.Objects.equals(errorCode, null) && !java.util.Objects.equals(errorCode, "")) && !java.util.Objects.equals(errorCode, "0"))
             {
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorCode), feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
                 String messageString = this.safeString(message, "message");
                 if (!java.util.Objects.equals(messageString, null))
                 {
-                    this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (messageString), feedback);
+                    this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), messageString, feedback);
                 }
                 throw new ExchangeError(feedback) ;
             }
@@ -1960,7 +1960,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                     {
                         String unsubHash = (String) (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
                         String subHash = this.safeString(subMessageHashes, j, "");
-                        this.cleanUnsubscription(client, (String) (subHash), unsubHash, false);
+                        this.cleanUnsubscription(client, subHash, unsubHash, false);
                     }
                 }
                 this.cleanCache(subscription);

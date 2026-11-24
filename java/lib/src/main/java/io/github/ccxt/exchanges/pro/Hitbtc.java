@@ -202,7 +202,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         Map<String, Object> subscription = new HashMap<String, Object>() {{
             put( "id", requestId );
         }};
-        return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, subscription)).join();
+        return (this.watchMultiple(url, messageHashes, request, messageHashes, subscription)).join();
 
     }
 
@@ -371,7 +371,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 put( "symbols", new ArrayList<Object>(Arrays.asList(market.get("id"))) );
             }} );
         }};
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic((String) (name), "orderbooks", new ArrayList<String>(Arrays.asList(symbol)), this.deepExtend(request, paramsOmitted))).join();
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.subscribePublic(name, "orderbooks", new ArrayList<String>(Arrays.asList(symbol)), this.deepExtend(request, paramsOmitted))).join();
         return orderbook.limit();
 
     }
@@ -557,7 +557,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 put( "symbols", marketIds );
             }} );
         }};
-        Object newTickers = (this.subscribePublic((String) (name), "tickers", symbolsNormalized, this.deepExtend(request, paramsOmitted))).join();
+        Object newTickers = (this.subscribePublic(name, "tickers", symbolsNormalized, this.deepExtend(request, paramsOmitted))).join();
         if (this.newUpdates)
         {
             if (!(newTickers instanceof List))
@@ -728,7 +728,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 put( "symbols", marketIds );
             }} );
         }};
-        Object newTickers = (this.subscribePublic((String) (name), "bidask", symbolsNormalized, this.deepExtend(request, paramsOmitted))).join();
+        Object newTickers = (this.subscribePublic(name, "bidask", symbolsNormalized, this.deepExtend(request, paramsOmitted))).join();
         if (this.newUpdates)
         {
             if (!(newTickers instanceof List))
@@ -1179,7 +1179,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             put( "swap", "futures_subscribe" );
             put( "future", "futures_subscribe" );
         }});
-        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.subscribePrivate((String) (name), symbol, paramsMarketType)).join();
+        io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.subscribePrivate(name, symbol, paramsMarketType)).join();
         Long limitResolved = limit;
         if (this.newUpdates)
         {
@@ -1388,10 +1388,10 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         String parsedStatus = null;
         if (java.util.Objects.equals(report_type, "canceled"))
         {
-            parsedStatus = this.parseOrderStatus((String) (report_type));
+            parsedStatus = this.parseOrderStatus(report_type);
         } else
         {
-            parsedStatus = this.parseOrderStatus((String) (rawStatus));
+            parsedStatus = this.parseOrderStatus(rawStatus);
         }
         HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
         mapLiteral2.put("info", order);
@@ -1407,7 +1407,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         mapLiteral2.put("side", this.safeStringUpper(order, "side"));
         mapLiteral2.put("timeInForce", this.safeString(order, "time_in_force"));
         mapLiteral2.put("postOnly", this.safeString(order, "post_only"));
-        mapLiteral2.put("reduceOnly", this.safeBool(order, "reduce_only", null));
+        mapLiteral2.put("reduceOnly", this.safeBool(order, "reduce_only", (Object) null));
         mapLiteral2.put("filled", null);
         mapLiteral2.put("remaining", null);
         mapLiteral2.put("cost", null);
@@ -1456,7 +1456,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "mode", mode );
         }};
-        return (this.subscribePrivate((String) (name), (String) null, this.extend(request, paramsOmitted))).join();
+        return (this.subscribePrivate(name, (String) null, this.extend(request, paramsOmitted))).join();
 
     }
 
@@ -1952,8 +1952,8 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 String errorMessage = this.safeString(error, "message");
                 String description = this.safeString(error, "description");
                 String feedback = ((this.id + " ") + description);
-                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (code), feedback);
-                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (errorMessage), feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), code, feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), errorMessage, feedback);
                 throw new ExchangeError(feedback) ;
             } catch(Exception e)
             {

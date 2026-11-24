@@ -1258,7 +1258,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 Long calculatedChecksum = this.crc32(payload, true);
                 if (!java.util.Objects.equals(calculatedChecksum, responseChecksum))
                 {
-                    this.handleCheckSumError(client, (String) (symbol), messageHash, (String) (this.orderbookChecksumMessage(this.safeString(market, "symbol", ""))));
+                    this.handleCheckSumError(client, symbol, messageHash, (String) (this.orderbookChecksumMessage(this.safeString(market, "symbol", ""))));
                     return;
                 }
             }
@@ -1669,7 +1669,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         if (!java.util.Objects.equals(first, null))
         {
             String feeCurrencyId = this.safeString(first, "feeCoin");
-            String feeCurrencyCode = this.safeCurrencyCode((String) (feeCurrencyId), null);
+            String feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, null);
             String feeCost = this.safeString2(first, "totalFee", "fee");
             fee = new HashMap<String, Object>() {{
                 put( "cost", Precise.stringAbs(feeCost) );
@@ -1948,7 +1948,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         //
         String marketId = this.safeString2(position, "instId", "symbol");
         String marginModeId = this.safeString(position, "marginMode");
-        String marginMode = this.getSupportedMapping((String) (marginModeId), new HashMap<String, Object>() {{
+        String marginMode = this.getSupportedMapping(marginModeId, new HashMap<String, Object>() {{
             put( "crossed", "cross" );
             put( "isolated", "isolated" );
         }});
@@ -2516,7 +2516,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();
                 hx4NewMap0.put("cost", this.parseNumber(Precise.stringAbs(feeAmount)));
-                hx4NewMap0.put("currency", this.safeCurrencyCode((String) (feeCurrency), null));
+                hx4NewMap0.put("currency", this.safeCurrencyCode(feeCurrency, null));
                 feeObject = hx4NewMap0;
             }
         }
@@ -2608,7 +2608,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         mapLiteral4.put("average", avgPrice);
         mapLiteral4.put("filled", filledAmount);
         mapLiteral4.put("remaining", remaining);
-        mapLiteral4.put("status", this.parseWsOrderStatus((String) (rawStatus)));
+        mapLiteral4.put("status", this.parseWsOrderStatus(rawStatus));
         mapLiteral4.put("fee", feeObject);
         mapLiteral4.put("trades", null);
         return this.safeOrder(mapLiteral4, marketResolved);
@@ -3056,7 +3056,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 {
                     Map<String, Object> entry = this.safeDict(coins, j, null);
                     String currencyId = this.safeString(entry, "coin");
-                    String code = this.safeCurrencyCode((String) (currencyId), null);
+                    String code = this.safeCurrencyCode(currencyId, null);
                     Map<String, Object> coinAccount = this.account();
                     if ((!java.util.Objects.equals(code, null)) && (((Map<?, ?>)this.balance).containsKey(code)))
                     {
@@ -3079,7 +3079,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             } else
             {
                 String currencyId = this.safeString2(rawBalance, "coin", "marginCoin");
-                String code = this.safeCurrencyCode((String) (currencyId), null);
+                String code = this.safeCurrencyCode(currencyId, null);
                 Map<String, Object> account = this.account();
                 if ((!java.util.Objects.equals(code, null)) && (((Map<?, ?>)this.balance).containsKey(code)))
                 {
@@ -3337,9 +3337,9 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
             {
                 String code = this.safeString(message, "code");
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((Map<String, Object>) (((Map<String, Object>)this.exceptions.get("ws")).get("exact")), (String) (code), feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (((Map<String, Object>)this.exceptions.get("ws")).get("exact")), code, feedback);
                 String msg = this.safeString(message, "msg", "");
-                this.throwBroadlyMatchedException((Map<String, Object>) (((Map<String, Object>)this.exceptions.get("ws")).get("broad")), (String) (msg), feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (((Map<String, Object>)this.exceptions.get("ws")).get("broad")), msg, feedback);
                 throw new ExchangeError(feedback) ;
             }
             return false;

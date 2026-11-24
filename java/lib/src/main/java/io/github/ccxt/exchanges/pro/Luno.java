@@ -133,7 +133,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         }
         String symbol = this.safeString(subscription, "symbol", "");
         Map<String, Object> market = this.market(symbol);
-        String symbolValue = (String) market.get("symbol");
+        String symbolValue = this.safeString(market, "symbol", "");
         String messageHash = ("trades:" + symbolValue);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbolValue);
         if (java.util.Objects.equals(stored, null))
@@ -291,7 +291,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         }
         if (!java.util.Objects.equals(asks, null))
         {
-            Map<String, Object> snapshot = this.customParseOrderBook(message, (String) (symbol), timestamp, "bids", "asks", "price", "volume", "id");
+            Map<String, Object> snapshot = this.customParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "volume", "id");
             orderbook.reset(snapshot);
         } else
         {

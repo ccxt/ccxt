@@ -2715,7 +2715,7 @@ public class Htx extends HtxApi
             String quoteId = null;
             String settleId = null;
             String id = null;
-            Object lowercaseId = null;
+            String lowercaseId = null;
             Boolean contract = (!java.util.Objects.equals(this.safeString(market, "contract_code"), null));
             Boolean spot = !Boolean.TRUE.equals(contract);
             Boolean swap = false;
@@ -6416,7 +6416,7 @@ public class Htx extends HtxApi
         Object reduceOnly = null;
         if (Boolean.TRUE.equals(isLinearOrder))
         {
-            reduceOnly = this.safeBool(order, "reduce_only", null);
+            reduceOnly = this.safeBool(order, "reduce_only", (Object) null);
         } else
         {
             Long reduceOnlyInteger = this.safeInteger(order, "reduce_only");
@@ -9651,7 +9651,7 @@ public class Htx extends HtxApi
             // {code: '1003', message: 'invalid signature'}
             String feedback = ((this.id + " ") + body);
             String codeError = responseCode;
-            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (codeError), feedback);
+            this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), codeError, feedback);
         }
         Map<String, Object> data = this.safeDict(response, "data", null);
         List<Object> errorsList = this.safeList(data, "errors", null);
@@ -10102,7 +10102,7 @@ public class Htx extends HtxApi
         for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> position = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-            Map<String, Object> parsed = (Map<String, Object>) this.parsePosition(position, null);
+            Map<String, Object> parsed = this.parsePosition(position, null);
             ((List<Object>)result).add(this.extend(parsed, new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
                 put( "datetime", Htx.this.iso8601(timestamp) );
@@ -10206,7 +10206,7 @@ public class Htx extends HtxApi
             position = this.safeDict(positions, 0, null);
         }
         Long timestamp = this.safeInteger(response, "ts");
-        Map<String, Object> parsed = (Map<String, Object>) this.parsePosition(this.extend(position, omitted), market);
+        Map<String, Object> parsed = this.parsePosition(this.extend(position, omitted), market);
         parsed.put("timestamp", timestamp);
         parsed.put("datetime", this.iso8601(timestamp));
         return parsed;

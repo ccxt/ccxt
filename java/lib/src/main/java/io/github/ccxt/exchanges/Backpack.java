@@ -796,8 +796,8 @@ public class Backpack extends BackpackApi
         }} );
     }});
                 mapLiteral1.put("active", null);
-                mapLiteral1.put("deposit", this.safeBool(network, "depositEnabled", null));
-                mapLiteral1.put("withdraw", this.safeBool(network, "withdrawEnabled", null));
+                mapLiteral1.put("deposit", this.safeBool(network, "depositEnabled", (Object) null));
+                mapLiteral1.put("withdraw", this.safeBool(network, "withdrawEnabled", (Object) null));
                 mapLiteral1.put("fee", this.safeNumber(network, "withdrawalFee", null));
                 mapLiteral1.put("precision", null);
                 mapLiteral1.put("info", network);
@@ -2536,9 +2536,9 @@ public class Backpack extends BackpackApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String price = this.safeString2(trade, "fillPrice", "price");
         String amount = this.safeString2(trade, "fillQuantity", "quantity");
-        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "isBuyerMaker", null);
+        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "isBuyerMaker", (Object) null);
         String side = this.parseOrderSide(this.safeString(trade, "side"));
-        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", null);
+        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", (Object) null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
@@ -3986,8 +3986,8 @@ public class Backpack extends BackpackApi
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         String triggerPrice = this.safeString(order, "triggerPrice");
         String filled = this.safeString(order, "executedQuantity");
-        Boolean reduceOnly = (Boolean) this.safeBool(order, "reduceOnly", null);
-        Boolean postOnly = (Boolean) this.safeBool(order, "postOnly", null);
+        Boolean reduceOnly = (Boolean) this.safeBool(order, "reduceOnly", (Object) null);
+        Boolean postOnly = (Boolean) this.safeBool(order, "postOnly", (Object) null);
         String stopLossPrice = this.safeString2(order, "stopLossLimitPrice", "stopLossTriggerPrice");
         String takeProfitPrice = this.safeString2(order, "takeProfitLimitPrice", "takeProfitTriggerPrice");
         HashMap<String, Object> mapLiteral10 = new HashMap<String, Object>();

@@ -925,7 +925,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         mapLiteral2.put("amount", this.safeString2(orderUpdate, "amount", "orderAmt"));
         mapLiteral2.put("remaining", this.safeString(orderUpdate, "remainAmt"));
         mapLiteral2.put("filled", this.safeString(orderUpdate, "accAmt"));
-        mapLiteral2.put("status", this.parseWsOrderStatus((String) (status)));
+        mapLiteral2.put("status", this.parseWsOrderStatus(status));
         mapLiteral2.put("fee", null);
         mapLiteral2.put("cost", cost);
         mapLiteral2.put("trades", null);
@@ -1001,7 +1001,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         this.balance.put("timestamp", timestamp);
         this.balance.put("datetime", datetime);
         String currencyId = this.safeString(data, "assetCode");
-        String code = this.safeCurrencyCode((String) (currencyId), null);
+        String code = this.safeCurrencyCode(currencyId, null);
         Map<String, Object> account = this.account();
         account.put("free", this.safeString(data, "free"));
         account.put("used", this.safeString(data, "freeze"));

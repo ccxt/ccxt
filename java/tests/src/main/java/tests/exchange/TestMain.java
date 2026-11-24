@@ -1141,7 +1141,7 @@ public class TestMain extends BaseTest
                         // separators as spaces) so the scoped contract holds even without a pin
                         List<Object> handleParts = (List<Object>) Helpers.split(outcomeSymbol, ":");
                         String marketPart = (String) Helpers.GetValue(handleParts, 0);
-                        Object lowerPart = marketPart.toLowerCase();
+                        String lowerPart = marketPart.toLowerCase();
                         String dedashed = (lowerPart == null ? null : ((String)lowerPart).replace("-", " "));
                         eventQuery = (dedashed == null ? null : ((String)dedashed).replace("_", " "));
                     }
@@ -1462,7 +1462,7 @@ public class TestMain extends BaseTest
                 dump("[INFO] Skipping private tests", "Keys not found");
                 return true;
             }
-            Object code = this.getExchangeCode(exchange, null);
+            Object code = this.getExchangeCode(exchange, (Object) null);
             // if (exchange.deepExtendedTest) {
             //     await test ('InvalidNonce', exchange, symbol);
             //     await test ('OrderNotFound', exchange, symbol);
@@ -1969,7 +1969,7 @@ public class TestMain extends BaseTest
                 storedKeysLength = this.countSignificantKeys(exchange, storedOutput, newOutputKeys);
                 newKeysLength = this.countSignificantKeys(exchange, newOutput, storedOutputKeys);
             }
-            this.AssertStaticError(Helpers.isEqual(storedKeysLength, newKeysLength), "output length mismatch", storedOutput, newOutput, (Object) null);
+            this.AssertStaticError(Helpers.isEqual(storedKeysLength, newKeysLength), "output length mismatch", storedOutput, newOutput, null);
             // iterate over the keys
             for (var i = 0; i < storedOutputKeys.size(); i++)
             {
@@ -1980,7 +1980,7 @@ public class TestMain extends BaseTest
                     {
                         continue;
                     }
-                    this.AssertStaticError(false, ("output key missing: " + key), storedOutput, newOutput, (Object) null);
+                    this.AssertStaticError(false, ("output key missing: " + key), storedOutput, newOutput, null);
                 }
                 if (Helpers.isTrue(exchange.inArray(key, skipKeys)))
                 {
@@ -2001,12 +2001,12 @@ public class TestMain extends BaseTest
         {
             Integer storedArrayLength = ((List<?>)storedOutput).size();
             Integer newArrayLength = ((List<?>)newOutput).size();
-            this.AssertStaticError(java.util.Objects.equals(storedArrayLength, newArrayLength), "output length mismatch", storedOutput, newOutput, (Object) null);
+            this.AssertStaticError(java.util.Objects.equals(storedArrayLength, newArrayLength), "output length mismatch", storedOutput, newOutput, null);
             for (var i = 0; i < ((List<?>)storedOutput).size(); i++)
             {
                 Object storedItem = (storedOutput == null || i < 0 || i >= ((List<?>)storedOutput).size() ? null : ((List<?>)storedOutput).get(i));
                 Object newItem = (newOutput == null || i < 0 || i >= ((List<?>)newOutput).size() ? null : ((List<?>)newOutput).get(i));
-                this.AssertNewAndStoredOutputInner(exchange, skipKeys, newItem, storedItem, java.util.Objects.requireNonNullElse(strictTypeCheck, true), (Object) null);
+                this.AssertNewAndStoredOutputInner(exchange, skipKeys, newItem, storedItem, java.util.Objects.requireNonNullElse(strictTypeCheck, true), null);
             }
         } else
         {
@@ -2162,7 +2162,7 @@ public class TestMain extends BaseTest
             // remove the host part from the url
             Object firstPath = this.removeHostnamefromUrl(storedUrl);
             Object secondPath = this.removeHostnamefromUrl(requestUrl);
-            this.AssertStaticError(java.util.Objects.equals(firstPath, secondPath), "url mismatch", firstPath, secondPath, (Object) null);
+            this.AssertStaticError(java.util.Objects.equals(firstPath, secondPath), "url mismatch", firstPath, secondPath, null);
         }
         // body (aka storedOutput and newOutput) is not defined and information is in the url
         // example: "https://open-api.bingx.com/openApi/spot/v1/trade/order?quoteOrderQty=5&side=BUY&symbol=LTC-USDT&timestamp=1698777135343&type=MARKET&signature=d55a7e4f7f9dbe56c4004c9f3ab340869d3cb004e2f0b5b861e5fbd1762fd9a0
@@ -2182,7 +2182,7 @@ public class TestMain extends BaseTest
                 }
                 Object storedUrlParams = this.urlencodedToDict((String) (storedUrlQuery));
                 Object newUrlParams = this.urlencodedToDict((String) (newUrlQuery));
-                this.AssertNewAndStoredOutput(exchange, skipKeys, newUrlParams, storedUrlParams, true, (Object) null);
+                this.AssertNewAndStoredOutput(exchange, skipKeys, newUrlParams, storedUrlParams, true, null);
                 return true;
             }
         }
@@ -2212,7 +2212,7 @@ public class TestMain extends BaseTest
                 newOutput = this.urlencodedToDict((String) (newOutput));
             }
         }
-        this.AssertNewAndStoredOutput(exchange, skipKeys, newOutput, storedOutput, true, (Object) null);
+        this.AssertNewAndStoredOutput(exchange, skipKeys, newOutput, storedOutput, true, null);
         return true;
     }
 
@@ -2240,10 +2240,10 @@ public class TestMain extends BaseTest
         {
             if (java.util.Objects.equals(side, "long"))
             {
-                this.AssertStaticError(Helpers.isLessThan(liquidationPrice, entryPrice), "isolated long liquidationPrice should be less than entryPrice", entryPrice, liquidationPrice, (Object) null);
+                this.AssertStaticError(Helpers.isLessThan(liquidationPrice, entryPrice), "isolated long liquidationPrice should be less than entryPrice", entryPrice, liquidationPrice, null);
             } else if (java.util.Objects.equals(side, "short"))
             {
-                this.AssertStaticError(Helpers.isGreaterThan(liquidationPrice, entryPrice), "isolated short liquidationPrice should be greater than entryPrice", entryPrice, liquidationPrice, (Object) null);
+                this.AssertStaticError(Helpers.isGreaterThan(liquidationPrice, entryPrice), "isolated short liquidationPrice should be greater than entryPrice", entryPrice, liquidationPrice, null);
             }
         }
         Object entryMargin = null;
@@ -2279,10 +2279,10 @@ public class TestMain extends BaseTest
                 }
                 Object lossFromEntry = Helpers.multiply(Helpers.multiply(priceDiff, contracts), contractSize);
                 Object calculatedMm = Helpers.subtract(entryMargin, lossFromEntry);
-                this.AssertStaticError(Helpers.isGreaterThan(calculatedMm, 0), "isolated position remaining collateral at liquidationPrice should be greater than 0", maintenanceMargin, calculatedMm, (Object) null);
+                this.AssertStaticError(Helpers.isGreaterThan(calculatedMm, 0), "isolated position remaining collateral at liquidationPrice should be greater than 0", maintenanceMargin, calculatedMm, null);
                 Object mmDiff = (((Helpers.isGreaterThan(calculatedMm, maintenanceMargin)))) ? (Helpers.subtract(calculatedMm, maintenanceMargin)) : (Helpers.subtract(maintenanceMargin, calculatedMm));
                 Object maxTolerance = Helpers.multiply(entryMargin, 0.05);
-                this.AssertStaticError(Helpers.isLessThanOrEqual(mmDiff, maxTolerance), "isolated position maintenanceMargin does not match remaining collateral at liquidationPrice", maintenanceMargin, calculatedMm, (Object) null);
+                this.AssertStaticError(Helpers.isLessThanOrEqual(mmDiff, maxTolerance), "isolated position maintenanceMargin does not match remaining collateral at liquidationPrice", maintenanceMargin, calculatedMm, null);
             }
         }
         return true;
@@ -2309,7 +2309,7 @@ public class TestMain extends BaseTest
 
     public void AssertStaticResponseOutput(BaseExchange exchange, Object skipKeys, Object computedResult, Object storedResult)
     {
-        this.AssertNewAndStoredOutput(exchange, skipKeys, computedResult, storedResult, false, (Object) null);
+        this.AssertNewAndStoredOutput(exchange, skipKeys, computedResult, storedResult, false, null);
     }
 
     public Object sanitizeDataInput(Object input)
@@ -2381,7 +2381,7 @@ public class TestMain extends BaseTest
                         Object headerKey = (storedHeaderKeys == null || i < 0 || i >= storedHeaderKeys.size() ? null : storedHeaderKeys.get(i));
                         Object storedHeaderValue = Helpers.GetValue(storedHeaders, headerKey);
                         String sentHeaderValue = exchange.safeString(sentHeaders, headerKey);
-                        this.AssertStaticError(java.util.Objects.equals(sentHeaderValue, storedHeaderValue), ("header mismatch for " + headerKey), storedHeaderValue, sentHeaderValue, (Object) null);
+                        this.AssertStaticError(java.util.Objects.equals(sentHeaderValue, storedHeaderValue), ("header mismatch for " + headerKey), storedHeaderValue, sentHeaderValue, null);
                     }
                 }
             } catch(Exception e)

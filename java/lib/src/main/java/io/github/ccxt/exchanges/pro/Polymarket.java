@@ -342,7 +342,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             }
         }
         Map<String, Object> request = (Map<String, Object>) this.sendSubscription("sub", channels, messageHashes, messageHashes, new HashMap<String, Object>() {{}}, parameters, null);
-        Map<String, Object> newTicker = (this.<Map<String, Object>>watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
+        Map<String, Object> newTicker = (this.<Map<String, Object>>watchMultiple(url, messageHashes, request, messageHashes, null)).join();
         if (this.newUpdates)
         {
             Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -422,7 +422,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             channels.add(("bbo::" + this.safeString(market, "id", "")));
         }
         Map<String, Object> request = (Map<String, Object>) this.sendSubscription("sub", channels, messageHashes, messageHashes, new HashMap<String, Object>() {{}}, parameters, null);
-        Map<String, Object> ticker = (this.<Map<String, Object>>watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
+        Map<String, Object> ticker = (this.<Map<String, Object>>watchMultiple(url, messageHashes, request, messageHashes, null)).join();
         if (this.newUpdates)
         {
             Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -1253,7 +1253,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             Map<String, Object> extended = this.extend(row, new HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
             }});
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition(extended, null);
+            Map<String, Object> position = this.parsePosition(extended, null);
             ((List<Object>)newPositions).add(position);
             cache.append(position);
         }

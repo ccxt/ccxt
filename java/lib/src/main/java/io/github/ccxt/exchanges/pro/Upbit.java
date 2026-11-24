@@ -108,7 +108,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             String key = (channelKeys == null || i < 0 || i >= channelKeys.size() ? null : channelKeys.get(i));
             ((List<Object>)finalMessage).add((subscriptions == null || key == null ? null : subscriptions.get(key)));
         }
-        return (this.watchMultiple((String) (url), messageHashes, finalMessage, messageHashes, null)).join();
+        return (this.watchMultiple(url, messageHashes, finalMessage, messageHashes, null)).join();
 
     }
 
@@ -647,7 +647,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         }
         Long timestamp = this.safeInteger(order, "order_timestamp");
         String rawStatus = this.safeString(order, "state");
-        String status = this.parseWsOrderStatus((String) (rawStatus));
+        String status = this.parseWsOrderStatus(rawStatus);
         String marketId = this.safeString(order, "code");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Map<String, Object> fee = null;
@@ -716,7 +716,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             cost = Precise.stringMul(price, amount);
         }
         String takerOrMaker = null;
-        Boolean isMaker = (Boolean) this.safeBool(trade, "is_maker", null);
+        Boolean isMaker = (Boolean) this.safeBool(trade, "is_maker", (Object) null);
         if (!java.util.Objects.equals(isMaker, null))
         {
             takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
@@ -892,7 +892,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         {
             Map<String, Object> balance = this.safeDict(data, i, null);
             String currencyId = this.safeString(balance, "currency");
-            String code = this.safeCurrencyCode((String) (currencyId), null);
+            String code = this.safeCurrencyCode(currencyId, null);
             String available = this.safeString(balance, "balance");
             String frozen = this.safeString(balance, "locked");
             Map<String, Object> account = this.account();

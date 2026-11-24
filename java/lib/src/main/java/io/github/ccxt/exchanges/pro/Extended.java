@@ -330,7 +330,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         if (!java.util.Objects.equals(balance, null))
         {
             String currencyId = this.safeString(balance, "collateralName");
-            String code = this.safeCurrencyCode((String) (currencyId), null);
+            String code = this.safeCurrencyCode(currencyId, null);
             if (!java.util.Objects.equals(code, null))
             {
                 Map<String, Object> account = this.account();
@@ -344,7 +344,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         {
             Map<String, Object> spotBalance = this.safeDict(spotBalances, i, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(spotBalance, "asset");
-            String code = this.safeCurrencyCode((String) (currencyId), null);
+            String code = this.safeCurrencyCode(currencyId, null);
             if (!java.util.Objects.equals(code, null))
             {
                 Map<String, Object> account = this.account();
@@ -558,7 +558,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             {
                 continue;
             }
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition(this.safeDict(rawPositions, i, new HashMap<String, Object>() {{}}), null);
+            Map<String, Object> position = this.parsePosition(this.safeDict(rawPositions, i, new HashMap<String, Object>() {{}}), null);
             ((List<Object>)newPositions).add(position);
             stored.append(position);
         }
@@ -1059,9 +1059,9 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         }
         String feedback = ((this.id + " ") + this.json(message));
         String errorCode = this.safeString(error, "code");
-        this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorCode), feedback);
+        this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorCode, feedback);
         String errorMessage = this.safeString(error, "message");
-        this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (errorMessage), feedback);
+        this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), errorMessage, feedback);
         throw new ExchangeError(feedback) ;
     }
 

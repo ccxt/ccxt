@@ -1116,7 +1116,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         String cost = Precise.stringMul(price, amount);
         String side = this.safeStringLower(trade, "side");
         Long timestamp = this.safeInteger(trade, "timestamp");
-        Boolean maker = (Boolean) this.safeBool(trade, "maker", null);
+        Boolean maker = (Boolean) this.safeBool(trade, "maker", (Object) null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(maker, null))
         {
@@ -1438,7 +1438,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         String type = this.safeStringLower(order, "type");
         String filled = this.safeString2(order, "totalExecutedQuantity", "executed");
         String rawStatus = this.safeString2(order, "status", "algoStatus");
-        String status = this.parseOrderStatus((String) (rawStatus));
+        String status = this.parseOrderStatus(rawStatus);
         List<String> trades = null;
         String clientOrderId = this.safeString(order, "clientOrderId");
         String triggerPrice = this.safeString(order, "triggerPrice");
@@ -1457,7 +1457,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         mapLiteral2.put("price", price);
         mapLiteral2.put("stopPrice", triggerPrice);
         mapLiteral2.put("triggerPrice", triggerPrice);
-        mapLiteral2.put("reduceOnly", this.safeBool(order, "reduceOnly", null));
+        mapLiteral2.put("reduceOnly", this.safeBool(order, "reduceOnly", (Object) null));
         mapLiteral2.put("amount", amount);
         mapLiteral2.put("cost", null);
         mapLiteral2.put("average", avgPrice);
@@ -1512,7 +1512,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 {
                     this.handleMyTrade(client, this.safeDict(dataList, i, new HashMap<String, Object>() {{}}));
                 }
-                this.handleOrder(client, this.safeDict(dataList, i, new HashMap<String, Object>() {{}}), (String) (topic));
+                this.handleOrder(client, this.safeDict(dataList, i, new HashMap<String, Object>() {{}}), topic);
             }
         } else
         {
@@ -1523,7 +1523,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             {
                 this.handleMyTrade(client, data);
             }
-            this.handleOrder(client, data, (String) (topic));
+            this.handleOrder(client, data, topic);
         }
     }
 
@@ -1768,7 +1768,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         {
             String marketId = (postitionsIds == null || i < 0 || i >= postitionsIds.size() ? null : postitionsIds.get(i));
             Map<String, Object> market = this.safeMarket(marketId, null, null, null);
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition(this.safeDict(rawPositions, marketId, new HashMap<String, Object>() {{}}), market);
+            Map<String, Object> position = this.parsePosition(this.safeDict(rawPositions, marketId, new HashMap<String, Object>() {{}}), market);
             ((List<Object>)newPositions).add(position);
             cache.append(position);
             String marketSymbol = this.safeString(market, "symbol", "");
@@ -1943,7 +1943,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             if (!java.util.Objects.equals(errorMessage, null))
             {
                 String feedback = ((this.id + " ") + this.json(message));
-                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), (String) (errorMessage), feedback);
+                this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), errorMessage, feedback);
             }
             return false;
         } catch(Exception error)
@@ -1984,7 +1984,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         {
             String subHash = this.safeString(subMessageHashes, i);
             String unsubHash = this.safeString(unsubMessageHashes, i);
-            this.cleanUnsubscription(client, (String) (subHash), (String) (unsubHash), false);
+            this.cleanUnsubscription(client, subHash, unsubHash, false);
         }
         this.cleanCache(subscription);
     }

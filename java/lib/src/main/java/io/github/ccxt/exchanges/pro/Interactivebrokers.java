@@ -785,7 +785,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         if (!java.util.Objects.equals(serverId, null))
         {
             // the history is sent once, the request must be cancelled to free one of the 5 concurrent slots
-            this.ibkrCancelHistory(client, (String) (serverId));
+            this.ibkrCancelHistory(client, serverId);
         }
         Long barLength = this.safeInteger(message, "barLength");
         // several timeframes of a market share the topic, they are told apart by the bar length
@@ -1020,9 +1020,9 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
         String unifiedSymbol = this.safeString(market, "symbol", "");
-        var accountIdqueryVariable = (this.loadAccountId(parameters)).join();
-        var accountId = ((List<Object>) accountIdqueryVariable).get(0);
-        var query = ((List<Object>) accountIdqueryVariable).get(1);
+        Pair<String, Map<String, Object>> accountIdqueryVariable = (this.loadAccountId(parameters)).join();
+        String accountId = accountIdqueryVariable.first();
+        Map<String, Object> query = accountIdqueryVariable.second();
         String bookExchange = this.safeString(query, "exchange");
         String url = (this.ibkrConnect()).join();
         Client client = this.client(url);
@@ -1065,9 +1065,9 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
         String unifiedSymbol = this.safeString(market, "symbol", "");
-        var accountIdqueryVariable = (this.loadAccountId(parameters)).join();
+        Pair<String, Map<String, Object>> accountIdqueryVariable = (this.loadAccountId(parameters)).join();
         var accountId = ((List<Object>) accountIdqueryVariable).get(0);
-        var query = ((List<Object>) accountIdqueryVariable).get(1);
+        Map<String, Object> query = accountIdqueryVariable.second();
         String url = (this.ibkrConnect()).join();
         Client client = this.client(url);
         Map<String, Object> subscription = this.extend(new HashMap<String, Object>() {{
@@ -1141,7 +1141,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         for (var i = 0; i < rowIds.size(); i++)
         {
             Object row = (ladder == null || (rowIds == null || i < 0 || i >= rowIds.size() ? null : rowIds.get(i)) == null ? null : ladder.get((rowIds == null || i < 0 || i >= rowIds.size() ? null : rowIds.get(i))));
-            Object rawPrice = this.safeString(row, "price");
+            String rawPrice = this.safeString(row, "price");
             if (java.util.Objects.equals(rawPrice, null))
             {
                 continue;
@@ -1154,7 +1154,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
                 List<String> priceWords = new ArrayList<String>(Arrays.asList(pricePart.split(java.util.regex.Pattern.quote(" "))));
                 rawPrice = String.join("", priceWords);
             }
-            String price = this.ibkrParseValue((String) (rawPrice));
+            String price = this.ibkrParseValue(rawPrice);
             if (java.util.Objects.equals(price, null))
             {
                 continue;
@@ -1591,9 +1591,9 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        var accountIdqueryVariable = (this.loadAccountId(parameters)).join();
+        Pair<String, Map<String, Object>> accountIdqueryVariable = (this.loadAccountId(parameters)).join();
         var accountId = ((List<Object>) accountIdqueryVariable).get(0);
-        var query = ((List<Object>) accountIdqueryVariable).get(1);
+        Map<String, Object> query = accountIdqueryVariable.second();
         String url = (this.ibkrConnect()).join();
         Client client = this.client(url);
         String messageHash = "balance";
@@ -1641,14 +1641,14 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
     private Object unWatchBalanceCore(Map<String, Object> parameters)
     {
 
-        var accountIdqueryVariable = (this.loadAccountId(parameters)).join();
+        Pair<String, Map<String, Object>> accountIdqueryVariable = (this.loadAccountId(parameters)).join();
         var accountId = ((List<Object>) accountIdqueryVariable).get(0);
-        var query = ((List<Object>) accountIdqueryVariable).get(1);
+        Map<String, Object> query = accountIdqueryVariable.second();
         String url = (this.ibkrConnect()).join();
         Client client = this.client(url);
         this.balance = new HashMap<String, Object>() {{}};
         String emptyArgs = "{}"; // a separate literal, the php transpiler turns '+{}' into '+array()'
-        return (this.ibkrUnsubscribe(client, new ArrayList<Object>(Arrays.asList("balance", ("sld::" + accountId))), ((("uld+" + accountId) + "+") + emptyArgs), ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })))).join();
+        return (this.ibkrUnsubscribe(client, new ArrayList<Object>(Arrays.asList("balance", ("sld::" + accountId))), ((("uld+" + accountId) + "+") + emptyArgs), query)).join();
 
     }
 
@@ -1682,7 +1682,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             {
                 continue;
             }
-            String code = ((String)this.safeCurrencyCode((String) (currencyId), null));
+            String code = ((String)this.safeCurrencyCode(currencyId, null));
             Map<String, Object> account = (Map<String, Object>) this.safeDict(this.balance, code, this.account());
             account.put("total", cash);
             account.put("free", null); // recomputed from total - used
@@ -1706,7 +1706,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         //     { "topic": "sts", "args": { "authenticated": true, "competing": false, "message": "", "fail": "", "serverName": "...", "serverVersion": "..." } }
         //
         Map<String, Object> args = this.safeDict(message, "args", new HashMap<String, Object>() {{}});
-        Boolean authenticated = (Boolean) this.safeBool(args, "authenticated", null);
+        Boolean authenticated = (Boolean) this.safeBool(args, "authenticated", (Object) null);
         if (java.util.Objects.equals(authenticated, null))
         {
             return;
@@ -1741,7 +1741,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         String feedback = ((this.id + " ") + this.json(message));
         try
         {
-            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), (String) (errorMessage), feedback);
+            this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), errorMessage, feedback);
             throw new ExchangeError(feedback) ;
         } catch(Exception error)
         {
