@@ -5306,6 +5306,7 @@ function rustBorrowedParseRows (content: string): string {
     optFns.push ('parse_adl_rank');
     optFns.push ('parse_greeks');
     optFns.push ('parse_last_price');
+    optFns.push ('parse_funding_rate');
     // an inherent override borrows `Option<&Dict>` too; its `self.X(` callers and dispatch arm in the same file lend
     const venue = RUST_BORROWED_VENUE_ROWS.filter ((f) => content.includes ('\n    pub fn ' + f + '(&self, '));
     for (const f of venue) {
