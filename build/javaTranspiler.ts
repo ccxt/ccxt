@@ -68,6 +68,7 @@ import { installJavaR92j2MapSlotHandOff } from './java-local-types.js';
 import { installJavaR92j2StringSlotLocals } from './java-local-types.js';
 import { installJavaR93j2ListLocals } from './java-local-types.js';
 import { installJavaBaseMapCallReturns } from './java-local-types.js';
+import { installJavaBaseMapReturnSites } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
@@ -2164,6 +2165,7 @@ class NewTranspiler {
             installJavaR92j2StringSlotLocals,
             installJavaR93j2ListLocals,
             installJavaBaseMapCallReturns,
+            installJavaBaseMapReturnSites,
             installJavaMapCopyLocals,
             installJavaEventsParamsSlots,
             installJavaCurrenciesByIdReads,

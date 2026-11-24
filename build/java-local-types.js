@@ -30322,3 +30322,53 @@ export function installJavaBaseMapCallReturns (transpiler) {
         return javaBaseMapCallReturnTable ()[rel]?.includes (node.name.text) ? JAVA_STRUCTURE_TYPE : undefined;
     };
 }
+
+// ===== Map return sites read from the hand-written base declarations =====
+// A return of a base reader whose hand-written Java declaration is Map (safeMarket, a safeDict with no
+// or `{}` default binding the Map-default overload) prints a Map, so a `Market`-annotated venue method
+// whose every return is such a call prints its Map return (no descendant redeclares it, no hand-written caller).
+function javaBaseMapReturnSite (printer, node) {
+    if (!isThisCall (node) || node.arguments.some ((a) => ts.isSpreadElement (a)) || !javaResolvesToBase (printer, node)
+        || isAsyncMethodCall (printer, node)) {
+        return false;
+    }
+    const name = String (node.expression.name.text);
+    if (name === 'safeDict') {
+        const local = safeDictLocalType (printer, node, 'safeDict');
+        return local !== undefined && local.cast === undefined;
+    }
+    const type = syncCoreCallType (printer, node);
+    return type !== undefined && String (type).replace (/\s+/g, '') === JAVA_STRUCTURE_TYPE.replace (/\s+/g, '');
+}
+
+export function installJavaBaseMapReturnSites (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaExpressionPrintsType !== 'function' || printer._javaBaseMapReturnSitesPatched) {
+        return;
+    }
+    printer._javaBaseMapReturnSitesPatched = true;
+    const upstream = printer.javaExpressionPrintsType.bind (printer);
+    printer.javaExpressionPrintsType = function (expression, target) {
+        if (upstream (expression, target)) {
+            return true;
+        }
+        if (target !== JAVA_STRUCTURE_TYPE) {
+            return false;
+        }
+        const node = printer.javaUnwrapReturnExpression (expression);
+        let method = node;
+        while (method !== undefined && !ts.isMethodDeclaration (method)) {
+            method = method.parent;
+        }
+        try {
+            if (method === undefined || !JAVA_VENUE_SOURCE_FILE.test (method.getSourceFile ().fileName) || javaRedeclaredByDescendant (method)) {
+                return false;
+            }
+            const uses = typeof printer.javaRepoMethodUses === 'function' ? printer.javaRepoMethodUses (String (method.name.text), method.getSourceFile ().fileName) : undefined;
+            return uses !== undefined && !uses.handWritten && javaBaseMapReturnSite (printer, node);
+        } catch (e) {
+            return false;
+        }
+    };
+}
+// ===== end base Map return sites

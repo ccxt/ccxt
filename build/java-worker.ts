@@ -50,6 +50,7 @@ import { installJavaR92j2MapSlotHandOff } from './java-local-types.js';
 import { installJavaR92j2StringSlotLocals } from './java-local-types.js';
 import { installJavaR93j2ListLocals } from './java-local-types.js';
 import { installJavaBaseMapCallReturns } from './java-local-types.js';
+import { installJavaBaseMapReturnSites } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
@@ -258,6 +259,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots, handed,
         installJavaR92j2StringSlotLocals (cachedTranspiler);
         installJavaR93j2ListLocals (cachedTranspiler);
         installJavaBaseMapCallReturns (cachedTranspiler);
+        installJavaBaseMapReturnSites (cachedTranspiler);
         installJavaMapCopyLocals (cachedTranspiler);
         installJavaEventsParamsSlots (cachedTranspiler);
         installJavaCurrenciesByIdReads (cachedTranspiler);

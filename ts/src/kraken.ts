@@ -1865,13 +1865,13 @@ export default class kraken extends Exchange {
         return market;
     }
 
-    getDelistedMarketById (id: Str): any {
+    getDelistedMarketById (id: Str): Market {
         if (id === undefined) {
             return undefined;
         }
         let market = this.safeDict (this.options['delistedMarketsById'], id);
         if (market !== undefined) {
-            return market;
+            return market as MarketInterface;
         }
         const baseIdStart = 0;
         let baseIdEnd = 3;
@@ -1905,7 +1905,7 @@ export default class kraken extends Exchange {
         const delistedMarketsByIdDict: Dict = this.safeDict (this.options, 'delistedMarketsById', {});
         delistedMarketsByIdDict[id] = market;
         this.options['delistedMarketsById'] = delistedMarketsByIdDict;
-        return market;
+        return market as MarketInterface;
     }
 
     parseOrderStatus (status: Str): Str {
