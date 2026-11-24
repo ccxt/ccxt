@@ -6084,7 +6084,9 @@ function lendReaderContainers(content: string): string {
         if (last === undefined) return false;
         // a later pattern binding (`for x in`, `|x|`, `Some(x)`, `ref x`) may shadow it with another type
         const rebind = new RegExp(`\\bfor (?:mut )?${name}\\b|[(|,]\\s*(?:ref )?(?:mut )?${name}\\s*[)|,]`);
-        if (rebind.test(scope.slice((last.index as number) + last[0].length))) return false;
+        // a local moved as a map insert value (`m.insert("k".to_string(), x)`) is not a binding
+        const tail = scope.slice((last.index as number) + last[0].length).replace(/\.insert\("(?:[^"\\]|\\.)*"\.to_string\(\), \w+\)/g, '');
+        if (rebind.test(tail)) return false;
         const type = (last[1] ?? last[3])?.trim();
         return type === undefined ? last[2] !== undefined : RUST_KEYREAD_LENT_TYPE.test(type);
     };
