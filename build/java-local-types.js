@@ -330,6 +330,8 @@ ROW_PARSER_MAP_RETURN_METHODS_2.forEach ((m) => { J92J7_MAP_RETURN_METHODS.push 
 // every declaration throws or returns a literal, a Map / HashMap local or safePredictionTrade (a Map)
 const ROW_PARSER_MAP_RETURN_METHODS_3 = [ 'parseBorrowRate', 'parseGreeks', 'parseOption', 'parseADLRank', 'parsePredictionTrade', 'parseLastPrice', 'parseDepositWithdrawFees' ];
 ROW_PARSER_MAP_RETURN_METHODS_3.forEach ((m) => { J92J7_MAP_RETURN_METHODS.push (m); JAVA_MAP_RETURN_METHODS.add (m); });
+// parseLongShortRatio: base throws, every override returns a literal
+[ 'parseLongShortRatio' ].forEach ((m) => { J92J7_MAP_RETURN_METHODS.push (m); JAVA_MAP_RETURN_METHODS.add (m); });
 
 // Methods returning a unified struct (TypedMap view) on every declaration. Return sites:
 // null / same-table this|super call pass, a proven Map prints `new T(x)`, a const local of a
