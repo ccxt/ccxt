@@ -2870,7 +2870,7 @@ public partial class extended : Exchange
         return settlement;
     }
 
-    public virtual Dictionary<string, object> createWithdrawalSettlementData(object address, string amountString, IDictionary<string, object> currency, IDictionary<string, object> account, IDictionary<string, object> parameters = null)
+    public virtual Dictionary<string, object> createWithdrawalSettlementData(object address, string amountString, IDictionary<string, object> currency, IDictionary<string, object> account, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 now = this.milliseconds();

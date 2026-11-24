@@ -4320,7 +4320,7 @@ public partial class pacifica : Exchange
         return signatureBase58;
     }
 
-    public virtual Dictionary<string, object> postActionRequest(string? operationType, IDictionary<string, object> sigPayload, object parameters)
+    public virtual Dictionary<string, object> postActionRequest(string? operationType, IDictionary<string, object> sigPayload, IDictionary<string, object> parameters)
     {
         this.checkRequiredCredentials(); // check credentials every post action
         if ((operationType == "undefined"))

@@ -4564,7 +4564,7 @@ public partial class gate : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(response, market,timeframeVar, since, limitValue));
     }
 
-    public async virtual Task<List<ccxt.OHLCV>> FetchOptionOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.OHLCV>> FetchOptionOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         string timeframeVar = timeframe;
         // separated option logic because the from, to and limit parameters weren't functioning

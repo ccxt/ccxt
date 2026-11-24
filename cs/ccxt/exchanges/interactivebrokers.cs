@@ -3397,7 +3397,7 @@ public partial class interactivebrokers : Exchange
         //
         //     [ { "31": "82838.50", "7697": "12345", "conidEx": "770561201", "_updated": 1791449398940, "conid": 770561201 } ]
         //
-        return ccxt.BaseExchange.ToOpenInterests(this.parseOpenInterests(this.toArray(response), symbolsNormalized));
+        return ccxt.BaseExchange.ToOpenInterests(this.parseOpenInterests(response, symbolsNormalized));
     }
 
     public override Dictionary<string, object> parseOpenInterest(object interest, IDictionary<string, object> market = null)

@@ -336,7 +336,7 @@ public partial class kucoin : ccxt.kucoin
         return await this.watchMultiple(url, messageHashes, message, subscriptionHashes, subscription);
     }
 
-    public async virtual Task<object> unSubscribeMultiple(object url, IList<object> messageHashes, string topic, IList<object> subscriptionHashes, object parameters = null, object subscription = null)
+    public async virtual Task<object> unSubscribeMultiple(object url, IList<object> messageHashes, string topic, IList<object> subscriptionHashes, IDictionary<string, object>? parameters = null, object subscription = null)
     {
         parameters ??= new Dictionary<string, object>();
         string requestId = this.requestId().ToString();
@@ -2064,7 +2064,7 @@ public partial class kucoin : ccxt.kucoin
         }
     }
 
-    public virtual void handleBidAsks(object bookSide, IList<object> bidAsks)
+    public virtual void handleBidAsks(ccxt.pro.IOrderBookSide bookSide, IList<object> bidAsks)
     {
         for (int i = 0; i < (bidAsks?.Count ?? 0); i++)
         {

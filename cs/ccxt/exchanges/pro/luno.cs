@@ -106,7 +106,7 @@ public partial class luno : ccxt.luno
         }
         string? symbol = this.safeString(subscription, "symbol", "");
         Dictionary<string, object> market = this.market(symbol);
-        string? symbolValue = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
+        string? symbolValue = this.safeString(market, "symbol", "");
         string messageHash = ("trades:" + symbolValue);
         ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)this.safeValue(this.trades, symbolValue));
         if ((stored == null))

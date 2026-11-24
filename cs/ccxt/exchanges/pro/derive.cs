@@ -1167,7 +1167,7 @@ public partial class derive : ccxt.derive
         }
         if (updated)
         {
-            this.balance[subaccountIdKey] = this.safeBalance(((object)subBalance));
+            this.balance[subaccountIdKey] = this.safeBalance(subBalance);
             client.resolve(this.safeValue(this.balance, subaccountIdKey), topic);
         }
         int positionUpdatesLength = (positionUpdates?.Count ?? 0);

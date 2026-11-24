@@ -2603,7 +2603,7 @@ public partial class bullish : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public async virtual Task<string?> loadAccount(object parameters = null)
+    public async virtual Task<string?> loadAccount(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         (string?, IDictionary<string, object>) tradingAccountIdOptionparamsTradingAccountIdVariable = this.handleOptionStringAndParams(parameters, "loadAccount", "tradingAccountId");

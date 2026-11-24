@@ -2840,9 +2840,9 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public virtual object tryGetSymbolFromFutureMarkets(object symbolOrMarketId)
+    public virtual string? tryGetSymbolFromFutureMarkets(string? symbolOrMarketId)
     {
-        if (((this.markets != null)) && ((this.markets != null && symbolOrMarketId is string inOpKey0 && this.markets.ContainsKey(inOpKey0))))
+        if (((this.markets != null)) && ((this.markets != null && symbolOrMarketId != null && this.markets.ContainsKey(symbolOrMarketId))))
         {
             return symbolOrMarketId;
         }
@@ -2887,7 +2887,7 @@ public partial class htx : Exchange
             {
                 constructedId = ((((marketBase + "-") + marketQuote) + "-") + contractSuffix);
             }
-            if (isEqual(constructedId, symbolOrMarketId))
+            if ((constructedId == symbolOrMarketId))
             {
                 IDictionary<string, object> futureMarketIdsForSymbolsDict1 = this.safeDict(this.options, "futureMarketIdsForSymbols", new Dictionary<string, object>() {});
                 futureMarketIdsForSymbolsDict1[(string)symbolOrMarketId] = marketSymbol;
@@ -2950,7 +2950,7 @@ public partial class htx : Exchange
         //     }
         //
         string? marketId = this.safeString2(ticker, "symbol", "contract_code");
-        object symbol = this.safeSymbol(marketId, market);
+        string? symbol = this.safeSymbol(marketId, market);
         symbol = this.tryGetSymbolFromFutureMarkets(symbol);
         Int64? timestamp = this.safeInteger2(ticker, "ts", "quoteTime");
         string? bid = null;
@@ -3638,7 +3638,7 @@ public partial class htx : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async virtual Task<List<ccxt.Trade>> FetchSpotOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Trade>> FetchSpotOrderTrades(string id, string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5037,7 +5037,7 @@ public partial class htx : Exchange
         return this.extend(account, updates);
     }
 
-    public async virtual Task<List<ccxt.Order>> FetchSpotOrdersByStates(string states, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchSpotOrdersByStates(string states, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? method = this.safeString(this.options, "fetchOrdersByStatesMethod", "spot_private_get_v1_order_orders"); // spot_private_get_v1_order_history
@@ -5111,19 +5111,19 @@ public partial class htx : Exchange
         return this.parseOrders(data, market, since, limit);
     }
 
-    public async virtual Task<List<ccxt.Order>> FetchSpotOrders(string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchSpotOrders(string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.FetchSpotOrdersByStates("pre-submitted,submitted,partial-filled,filled,partial-canceled,canceled", symbol, since, limit, parameters);
     }
 
-    public async virtual Task<List<ccxt.Order>> FetchClosedSpotOrders(string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchClosedSpotOrders(string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.FetchSpotOrdersByStates("filled", symbol, since, limit, parameters);
     }
 
-    public async virtual Task<List<ccxt.Order>> FetchContractOrders(object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchContractOrders(object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -5233,7 +5233,7 @@ public partial class htx : Exchange
         return this.parseOrders(orders, market, since, limit);
     }
 
-    public async virtual Task<List<ccxt.Order>> FetchClosedContractOrders(string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchClosedContractOrders(string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))

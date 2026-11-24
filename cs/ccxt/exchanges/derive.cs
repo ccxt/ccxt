@@ -4743,7 +4743,7 @@ public partial class derive : Exchange
         throw new ArgumentsRequired ((((this.id + " ") + methodName) + "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.")) ;
     }
 
-    public virtual List<object> handleDeriveWalletAddress(string methodName, object parameters)
+    public virtual List<object> handleDeriveWalletAddress(string methodName, IDictionary<string, object> parameters)
     {
         (string?, IDictionary<string, object>) deriveWalletAddressparamsDeriveWalletAddressVariable = this.handleOptionStringAndParams(parameters, methodName, "deriveWalletAddress");
         string? deriveWalletAddress = deriveWalletAddressparamsDeriveWalletAddressVariable.Item1;

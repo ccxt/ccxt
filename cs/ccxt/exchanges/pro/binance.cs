@@ -374,7 +374,7 @@ public partial class binance : ccxt.binance
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} the raw stream subscription response
      */
-    public async virtual Task<object> watchStockMarketStream(IList<object> streams, IList<object> messageHashes, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> watchStockMarketStream(IList<object> streams, IList<object> messageHashes, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = this.getStockWsUrl("market");
@@ -712,7 +712,7 @@ public partial class binance : ccxt.binance
         return ccxt.BaseExchange.ToLiquidationList(this.filterBySymbolsSinceLimit(this.liquidations, symbolsNormalized, since, limit));
     }
 
-    public virtual void handleMyLiquidation(WebSocketClient client, object message)
+    public virtual void handleMyLiquidation(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -3961,7 +3961,7 @@ public partial class binance : ccxt.binance
         //
         //
         string? messageHash = this.safeString(message, "id");
-        if (((getValue(message, "result")) is var hxArr190589 && ((hxArr190589 is IList<object>) || (hxArr190589 is not null && hxArr190589.GetType().IsGenericType && hxArr190589.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if (((getValue(message, "result")) is var hxArr190602 && ((hxArr190602 is IList<object>) || (hxArr190602 is not null && hxArr190602.GetType().IsGenericType && hxArr190602.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             // account.balance
             List<object> rawBalance = this.safeList(message, "result", new List<object>() {});
@@ -4389,13 +4389,15 @@ public partial class binance : ccxt.binance
         IList<object> subTypeparamsSubTypeVariable = (IList<object>)this.handleSubTypeAndParams(methodName, market, paramsMarketType);
         string? subType = (string)subTypeparamsSubTypeVariable[0];
         IDictionary<string, object> paramsSubType = ((IDictionary<string, object>)subTypeparamsSubTypeVariable[1]);
-        string? type = marketType;
+        bool linear = this.isLinear(marketType, subType);
+        bool inverse = this.isInverse(marketType, subType);
+        string? type = ((marketType != null)) ? marketType : "spot";
         if (type != "option" && type != "stock")
         {
-            if (this.isLinear(type, subType))
+            if (linear)
             {
                 type = "linear";
-            } else if (this.isInverse(type, subType))
+            } else if (inverse)
             {
                 type = "inverse";
             }
@@ -5676,20 +5678,8 @@ public partial class binance : ccxt.binance
             this.handleOrder(client, message);
             return;
         }
-        IDictionary<string, object> orderValue = this.safeDict(message, "o", message);
-        object messageValue = message;
-        if ((e == "ORDER_TRADE_UPDATE") || (e == "ALGO_UPDATE"))
-        {
-            messageValue = orderValue;
-            if ((e == "ALGO_UPDATE") && ((this.safeInteger(orderValue, "T") == null)))
-            {
-                // keep the outer event time, the algo payload carries no timestamps
-                messageValue = this.extend(orderValue, new Dictionary<string, object>() {
-                    { "T", this.safeInteger(message, "T") },
-                });
-            }
-        }
-        if ((e == "ORDER_TRADE_UPDATE") || (e == "ALGO_UPDATE"))
+        bool isOrderEvent = (e == "ORDER_TRADE_UPDATE") || (e == "ALGO_UPDATE");
+        if (isOrderEvent)
         {
             List<object> oField = this.safeList(message, "o");
             if ((oField != null))
@@ -5699,9 +5689,28 @@ public partial class binance : ccxt.binance
                 return;
             }
         }
-        this.handleMyTrade(client, messageValue);
-        this.handleOrder(client, messageValue);
-        this.handleMyLiquidation(client, messageValue);
+        if (!isOrderEvent)
+        {
+            this.handleMyTrade(client, message);
+            this.handleOrder(client, message);
+            this.handleMyLiquidation(client, message);
+            return;
+        }
+        IDictionary<string, object> orderValue = this.safeDict(message, "o", message);
+        if ((e == "ALGO_UPDATE") && ((this.safeInteger(orderValue, "T") == null)))
+        {
+            // keep the outer event time, the algo payload carries no timestamps
+            Dictionary<string, object> algoOrder = this.extend(orderValue, new Dictionary<string, object>() {
+                { "T", this.safeInteger(message, "T") },
+            });
+            this.handleMyTrade(client, algoOrder);
+            this.handleOrder(client, algoOrder);
+            this.handleMyLiquidation(client, algoOrder);
+            return;
+        }
+        this.handleMyTrade(client, orderValue);
+        this.handleOrder(client, orderValue);
+        this.handleMyLiquidation(client, orderValue);
     }
 
     public virtual void handleStockPrice(WebSocketClient client, IDictionary<string, object> message)
@@ -6488,7 +6497,7 @@ public partial class binance : ccxt.binance
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }
 
-    public virtual void handleMyTrade(WebSocketClient client, object message)
+    public virtual void handleMyTrade(WebSocketClient client, IDictionary<string, object> message)
     {
         string messageHash = "myTrades";
         string? executionType = this.safeString(message, "x");
@@ -6583,7 +6592,7 @@ public partial class binance : ccxt.binance
         }
     }
 
-    public virtual void handleOrder(WebSocketClient client, object message)
+    public virtual void handleOrder(WebSocketClient client, IDictionary<string, object> message)
     {
         Dictionary<string, object> parsed = ccxt.BaseExchange.FromOrder(this.parseWsOrder(message));
         string? symbol = this.safeString(parsed, "symbol");

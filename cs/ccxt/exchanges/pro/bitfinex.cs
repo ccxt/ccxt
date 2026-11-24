@@ -45,7 +45,7 @@ public partial class bitfinex : ccxt.bitfinex
         });
     }
 
-    public async virtual Task<T> subscribe<T>(string channel, string? symbol, object parameters = null)
+    public async virtual Task<T> subscribe<T>(string channel, string? symbol, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

@@ -79,7 +79,8 @@ public partial class xt : ccxt.xt
         {
             tradeType = "contract";
         }
-        IDictionary<string, object> apiUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> urlsApi = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> apiUrls = this.safeDict(urlsApi, "ws", new Dictionary<string, object>() {});
         object url = this.safeString(apiUrls, tradeType);
         if (!isContract)
         {
@@ -210,7 +211,7 @@ public partial class xt : ccxt.xt
      * @param {object} params extra parameters specific to the xt api
      * @returns {object} data from the websocket stream
      */
-    public async virtual Task<T> subscribe<T>(string? name, string access, string methodName, IDictionary<string, object> market = null, IList<object>? symbols = null, object parameters = null)
+    public async virtual Task<T> subscribe<T>(string? name, string access, string methodName, IDictionary<string, object> market = null, IList<object>? symbols = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         bool privateAccess = (access == "private");
@@ -250,7 +251,7 @@ public partial class xt : ccxt.xt
             messageHash = ((object)(messageHash == null ? null : messageHash + "::" + String.Join(",", symbols.ToArray())));
         }
         Dictionary<string, object> request = this.extend(subscribe, paramsMarketType);
-        object tail = access;
+        string tail = access;
         if (isContract)
         {
             tail = privateAccess ? "user" : "market";
@@ -258,7 +259,8 @@ public partial class xt : ccxt.xt
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "id", id },
         };
-        IDictionary<string, object> apiUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> urlsApi = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> apiUrls = this.safeDict(urlsApi, "ws", new Dictionary<string, object>() {});
         string url = ((this.safeString(apiUrls, tradeType, "") + "/") + (tail));
         return await this.watch<T>(url, messageHash, request, messageHash, subscription);
     }
@@ -322,7 +324,8 @@ public partial class xt : ccxt.xt
         {
             tail = privateAccess ? "user" : "market";
         }
-        IDictionary<string, object> apiUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> urlsApi = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> apiUrls = this.safeDict(urlsApi, "ws", new Dictionary<string, object>() {});
         string url = ((this.safeString(apiUrls, tradeType, "") + "/") + (tail));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "unsubscribe", true },
@@ -757,7 +760,8 @@ public partial class xt : ccxt.xt
         {
             await this.loadMarkets();
         }
-        IDictionary<string, object> apiUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> urlsApi = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> apiUrls = this.safeDict(urlsApi, "ws", new Dictionary<string, object>() {});
         string url = ((this.safeString(apiUrls, "contract", "") + "/") + "user");
         var client = this.client(url);
         this.setPositionsCache(client);

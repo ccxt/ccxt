@@ -3275,7 +3275,7 @@ public partial class nado : Exchange
         return ((string?)((object)(Precise.stringAdd(highBits, this.numberToString(entropy)))));
     }
 
-    public virtual string? createOrderAppendix(bool isTriggerOrder, IDictionary<string, object> parameters = null)
+    public virtual string? createOrderAppendix(bool isTriggerOrder, IDictionary<string, object>? parameters = null)
     {
         // | value   | builder | builder fee rate | reserved | trigger | reduce only | order type | isolated | version |
         // | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |

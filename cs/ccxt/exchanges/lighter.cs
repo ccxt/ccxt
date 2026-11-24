@@ -3663,7 +3663,7 @@ public partial class lighter : Exchange
         return await this.modifyLeverageAndMarginMode(leverage, marginMode, symbol, paramsLeverage);
     }
 
-    public async virtual Task<Dictionary<string, object>> modifyLeverageAndMarginMode(object leverage, string? marginMode, string? symbol = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<Dictionary<string, object>> modifyLeverageAndMarginMode(object leverage, string? marginMode, string? symbol = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

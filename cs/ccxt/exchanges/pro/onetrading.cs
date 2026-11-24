@@ -1285,19 +1285,19 @@ public partial class onetrading : ccxt.onetrading
 
     public override string? findTimeframe(object timeframe, IDictionary<string, object> timeframes = null)
     {
-        object timeframesResolved = ((timeframes == null)) ? this.timeframes : timeframes;
+        IDictionary<string, object> timeframesResolved = ((timeframes == null)) ? this.timeframes : timeframes;
         if ((timeframesResolved == null))
         {
             throw new ArgumentsRequired ((this.id + " findTimeframe() timeframes is required")) ;
         }
         string? unit = this.safeString(timeframe, "unit");
         string? period = this.safeString(timeframe, "period");
-        List<object> keys = new List<object>(((IDictionary<string,object>)timeframesResolved).Keys);
+        List<object> keys = new List<object>(timeframesResolved.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            string? rowUnit = this.safeString(getValue(timeframesResolved, key), "unit");
-            string? rowPeriod = this.safeString(getValue(timeframesResolved, key), "period");
+            string? rowUnit = this.safeString((timeframesResolved != null && key != null && timeframesResolved.ContainsKey(key) ? timeframesResolved[key] : null), "unit");
+            string? rowPeriod = this.safeString((timeframesResolved != null && key != null && timeframesResolved.ContainsKey(key) ? timeframesResolved[key] : null), "period");
             if ((rowUnit == unit) && (rowPeriod == period))
             {
                 return key;

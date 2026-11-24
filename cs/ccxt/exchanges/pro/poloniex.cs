@@ -151,7 +151,7 @@ public partial class poloniex : ccxt.poloniex
      * @param {object} [params] extra parameters specific to the poloniex api
      * @returns {object} data from the websocket stream
      */
-    public async virtual Task<T> subscribe<T>(string? name, string? messageHash, bool? isPrivate, IList<object>? symbols = null, object parameters = null)
+    public async virtual Task<T> subscribe<T>(string? name, string? messageHash, bool? isPrivate, IList<object>? symbols = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string publicOrPrivate = "public";
@@ -181,7 +181,7 @@ public partial class poloniex : ccxt.poloniex
             marketIds = this.marketIds(symbols);
         }
         string symbolsSuffix = ((symbols == null)) ? "" : String.Join(",", symbols.ToArray());
-        object symbolsHash = messageHash;
+        string? symbolsHash = messageHash;
         if (!this.isEmpty(symbols))
         {
             symbolsHash = ((messageHash + "::") + symbolsSuffix);

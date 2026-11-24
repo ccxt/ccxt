@@ -87,7 +87,8 @@ public partial class bithumb : ccxt.bithumb
         Int64? generation = generationparamsGenerationVariable.Item1;
         IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         bool isGenerationTwo = ((generation == 2));
-        IDictionary<string, object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> urlsApi = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(urlsApi, "ws", new Dictionary<string, object>() {});
         string? url = isGenerationTwo ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
         Dictionary<string, object> market = this.market(symbol);
         string messageHash = ("ticker:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
@@ -147,7 +148,8 @@ public partial class bithumb : ccxt.bithumb
             symbolsResolved = symbolsNormalized;
         }
         int symbolsLengthDefined = (symbolsResolved?.Count ?? 0);
-        IDictionary<string, object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> urlsApi = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(urlsApi, "ws", new Dictionary<string, object>() {});
         string? url = isGenerationTwo ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
         List<object> streamMarketIds = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
@@ -413,7 +415,8 @@ public partial class bithumb : ccxt.bithumb
         Int64? generation = generationparamsGenerationVariable.Item1;
         IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         bool isGenerationTwo = ((generation == 2));
-        IDictionary<string, object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> urlsApi = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(urlsApi, "ws", new Dictionary<string, object>() {});
         string? url = isGenerationTwo ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = this.safeString(market, "symbol", "");
@@ -610,7 +613,8 @@ public partial class bithumb : ccxt.bithumb
         Int64? generation = generationparamsGenerationVariable.Item1;
         IDictionary<string, object> paramsGeneration = ((IDictionary<string, object>)generationparamsGenerationVariable.Item2);
         bool isGenerationTwo = ((generation == 2));
-        IDictionary<string, object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> urlsApi = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(urlsApi, "ws", new Dictionary<string, object>() {});
         string? url = isGenerationTwo ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
         Dictionary<string, object> market = this.market(symbol);
         string? symbolValue = this.safeString(market, "symbol", "");
@@ -859,7 +863,8 @@ public partial class bithumb : ccxt.bithumb
             throw new BadRequest ((this.id + " watchBalance() is only supported for the generation 2 API")) ;
         }
         await this.authenticate();
-        IDictionary<string, object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> urlsApi = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(urlsApi, "ws", new Dictionary<string, object>() {});
         string? url = this.safeString(wsUrls, "privateGen2", "");
         string messageHash = "myAsset";
         List<object> request = this.buildGen2SubscriptionRequest(messageHash, new Dictionary<string, object>() {
@@ -965,7 +970,8 @@ public partial class bithumb : ccxt.bithumb
             };
             this.options["ws"] = wsOptions;
         }
-        IDictionary<string, object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> urlsApi = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(urlsApi, "ws", new Dictionary<string, object>() {});
         string? url = this.safeString(wsUrls, "privateGen2", "");
         var client = this.client(url);
         return client;
@@ -998,7 +1004,8 @@ public partial class bithumb : ccxt.bithumb
             throw new BadRequest ((this.id + " watchOrders() is only supported for the generation 2 API")) ;
         }
         await this.authenticate();
-        IDictionary<string, object> wsUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
+        IDictionary<string, object> urlsApi = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> wsUrls = this.safeDict(urlsApi, "ws", new Dictionary<string, object>() {});
         string? url = this.safeString(wsUrls, "privateGen2", "");
         string messageHash = "myOrder";
         List<object> codes = this.safeList(parameters, "codes", new List<object>() {});

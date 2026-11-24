@@ -4630,7 +4630,7 @@ public partial class aster : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} data on account positions
      */
-    public async virtual Task<List<ccxt.Position>> FetchAccountPositions(IList<object>? symbols = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Position>> FetchAccountPositions(IList<object>? symbols = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbols != null))

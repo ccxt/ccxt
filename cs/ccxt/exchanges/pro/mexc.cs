@@ -564,7 +564,7 @@ public partial class mexc : ccxt.mexc
         return await this.watch(url, messageHash, this.extend(request, paramsOmitted), messageHash, subscription);
     }
 
-    public async virtual Task<object> watchSpotPrivate(string? channel, string? messageHash, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> watchSpotPrivate(string? channel, string? messageHash, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -594,7 +594,7 @@ public partial class mexc : ccxt.mexc
         return await this.watch(url, messageHash, message, messageHash);
     }
 
-    public async virtual Task<object> watchSwapPrivate(string? messageHash, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> watchSwapPrivate(string? messageHash, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();

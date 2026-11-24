@@ -2587,7 +2587,8 @@ public partial class polymarket : PredictionExchange
         Int64? signatureType = this.safeInteger2(parameters, "signatureType", "signature_type", this.safeInteger(this.options, "signatureType", 3));
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
         string eoa = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
-        string funder = this.ethChecksumAddress(this.safeString2(parameters, "funder", "maker", this.safeString(this.options, "funder", this.walletAddress)));
+        string? funderAddress = this.safeString2(parameters, "funder", "maker", this.safeString(this.options, "funder", this.walletAddress));
+        string funder = this.ethChecksumAddress(funderAddress);
         // the salt defaults to a strictly-increasing millisecond value and the timestamp to the current time; both can be pinned via params for idempotency
         Int64? defaultSalt = this.incrementingNonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
         string? salt = this.safeString(parameters, "salt", this.numberToString(defaultSalt));
@@ -3373,7 +3374,7 @@ public partial class polymarket : PredictionExchange
             List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
             for (int i = 0; i < queryKeys.Count; i++)
             {
-                if (((getValue(query, queryKeys[i])) is var hxArr152273 && ((hxArr152273 is IList<object>) || (hxArr152273 is not null && hxArr152273.GetType().IsGenericType && hxArr152273.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+                if (((getValue(query, queryKeys[i])) is var hxArr152326 && ((hxArr152326 is IList<object>) || (hxArr152326 is not null && hxArr152326.GetType().IsGenericType && hxArr152326.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
                 {
                     hasArrayParam = true;
                 }

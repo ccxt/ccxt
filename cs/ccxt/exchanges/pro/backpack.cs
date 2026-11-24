@@ -65,7 +65,7 @@ public partial class backpack : ccxt.backpack
      * @param {object} params exchange-specific parameters
      * @returns {object} local parameters with the validated stock selector
      */
-    public async virtual Task<IDictionary<string, object>> prepareWsStockParams(object methodName, object parameters)
+    public async virtual Task<IDictionary<string, object>> prepareWsStockParams(object methodName, IDictionary<string, object> parameters)
     {
         (bool?, IDictionary<string, object>) stockqueryVariable = this.handleOptionBoolAndParams(parameters, methodName, "stock");
         bool? stock = stockqueryVariable.Item1;
@@ -829,7 +829,7 @@ public partial class backpack : ccxt.backpack
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> query = await this.prepareWsStockParams("watchOHLCVForSymbols", parameters);
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr35719 && ((hxArr35719 is IList<object>) || (hxArr35719 is not null && hxArr35719.GetType().IsGenericType && hxArr35719.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr35785 && ((hxArr35785 is IList<object>) || (hxArr35785 is not null && hxArr35785.GetType().IsGenericType && hxArr35785.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
         }
@@ -878,7 +878,7 @@ public partial class backpack : ccxt.backpack
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> query = await this.prepareWsStockParams("watchOHLCVForSymbols", parameters);
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr38217 && ((hxArr38217 is IList<object>) || (hxArr38217 is not null && hxArr38217.GetType().IsGenericType && hxArr38217.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr38283 && ((hxArr38283 is IList<object>) || (hxArr38283 is not null && hxArr38283.GetType().IsGenericType && hxArr38283.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
         }
@@ -1373,7 +1373,7 @@ public partial class backpack : ccxt.backpack
         this.handleBidAsks(storedAsks, asks);
     }
 
-    public virtual void handleBidAsks(object bookSide, IList<object> bidAsks)
+    public virtual void handleBidAsks(ccxt.pro.IOrderBookSide bookSide, IList<object> bidAsks)
     {
         for (int i = 0; i < (bidAsks?.Count ?? 0); i++)
         {

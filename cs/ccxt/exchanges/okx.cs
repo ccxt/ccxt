@@ -5133,7 +5133,7 @@ public partial class okx : Exchange
         return this.parseOrder(this.safeDict(data, 0, new Dictionary<string, object>() {}), market);
     }
 
-    public virtual object parseIds(object ids)
+    public virtual List<object> parseIds(object ids)
     {
         /**
          * @ignore
@@ -5147,7 +5147,7 @@ public partial class okx : Exchange
             return ((string)ids).Split(new [] {","}, StringSplitOptions.None).ToList<object>();
         } else
         {
-            return ids;
+            return this.safeStringList(new List<object>() {ids}, new List<object>() {0});
         }
     }
 
@@ -5180,8 +5180,8 @@ public partial class okx : Exchange
         IDictionary<string, object> options = this.safeDict(this.options, "cancelOrders", new Dictionary<string, object>() {});
         string? defaultMethod = this.safeString(options, "method", "privatePostTradeCancelBatchOrders");
         string? method = this.safeString(parameters, "method", defaultMethod);
-        object clientOrderIds = this.parseIds(this.safeValue2(parameters, "clOrdId", "clientOrderId"));
-        object algoIds = this.parseIds(this.safeValue(parameters, "algoId"));
+        List<object> clientOrderIds = this.parseIds(this.safeValue2(parameters, "clOrdId", "clientOrderId"));
+        List<object> algoIds = this.parseIds(this.safeValue(parameters, "algoId"));
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         bool? trailing = this.safeBool(parameters, "trailing", false);
         bool isTrigger = ((trigger == true));
@@ -5191,10 +5191,10 @@ public partial class okx : Exchange
         }
         if ((clientOrderIds == null))
         {
-            object orderIds = this.parseIds(ids);
+            List<object> orderIds = this.parseIds(ids);
             if ((algoIds != null))
             {
-                for (int i = 0; i < getArrayLength(algoIds); i++)
+                for (int i = 0; i < (algoIds?.Count ?? 0); i++)
                 {
                     request.Add(new Dictionary<string, object>() {
                         { "algoId", this.safeString(algoIds, i) },
@@ -5202,25 +5202,28 @@ public partial class okx : Exchange
                     });
                 }
             }
-            for (int i = 0; i < getArrayLength(orderIds); i++)
+            if ((orderIds != null))
             {
-                if ((trailing == true) || isTrigger)
+                for (int i = 0; i < (orderIds?.Count ?? 0); i++)
                 {
-                    request.Add(new Dictionary<string, object>() {
-                        { "algoId", this.safeString(orderIds, i) },
-                        { "instId", (market.ContainsKey("id") ? market["id"] : null) },
-                    });
-                } else
-                {
-                    request.Add(new Dictionary<string, object>() {
-                        { "ordId", this.safeString(orderIds, i) },
-                        { "instId", (market.ContainsKey("id") ? market["id"] : null) },
-                    });
+                    if ((trailing == true) || isTrigger)
+                    {
+                        request.Add(new Dictionary<string, object>() {
+                            { "algoId", this.safeString(orderIds, i) },
+                            { "instId", (market.ContainsKey("id") ? market["id"] : null) },
+                        });
+                    } else
+                    {
+                        request.Add(new Dictionary<string, object>() {
+                            { "ordId", this.safeString(orderIds, i) },
+                            { "instId", (market.ContainsKey("id") ? market["id"] : null) },
+                        });
+                    }
                 }
             }
         } else
         {
-            for (int i = 0; i < getArrayLength(clientOrderIds); i++)
+            for (int i = 0; i < (clientOrderIds?.Count ?? 0); i++)
             {
                 if ((trailing == true) || isTrigger)
                 {

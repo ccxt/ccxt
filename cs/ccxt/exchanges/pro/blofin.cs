@@ -667,7 +667,7 @@ public partial class blofin : ccxt.blofin
             marketBalance[(string)key] = (parsed != null && key != null && parsed.ContainsKey(key) ? parsed[key] : null);
         }
         this.balance[marketType] = marketBalance;
-        this.balance[marketType] = this.safeBalance((this.balance != null && marketType != null && this.balance.ContainsKey(marketType) ? this.balance[marketType] : null));
+        this.balance[marketType] = this.safeBalance(marketBalance);
         string messageHash = (marketType + ":balance");
         client.resolve((this.balance != null && marketType != null && this.balance.ContainsKey(marketType) ? this.balance[marketType] : null), messageHash);
     }

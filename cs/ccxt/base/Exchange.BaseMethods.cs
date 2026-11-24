@@ -657,12 +657,12 @@ public partial class BaseExchange
 
     public virtual string? findTimeframe(object timeframe, IDictionary<string, object> timeframes = null)
     {
-        object timeframesResolved = ((timeframes == null)) ? this.timeframes : timeframes;
-        List<object> keys = new List<object>(((IDictionary<string,object>)timeframesResolved).Keys);
+        IDictionary<string, object> timeframesResolved = ((timeframes == null)) ? this.timeframes : timeframes;
+        List<object> keys = new List<object>(timeframesResolved.Keys);
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if (isEqual(getValue(timeframesResolved, key), timeframe))
+            if (isEqual((timeframesResolved != null && key != null && timeframesResolved.ContainsKey(key) ? timeframesResolved[key] : null), timeframe))
             {
                 return key;
             }
@@ -2975,14 +2975,15 @@ public partial class BaseExchange
                 reducedFees = new List<object>() {};
             }
             int reducedLength = (reducedFees?.Count ?? 0);
+            List<object> parsedFees = new List<object>() {};
             for (int i = 0; i < reducedLength; i++)
             {
-                reducedFees[Convert.ToInt32(i)] = this.parseFeeNumeric((reducedFees != null && i < reducedFees.Count ? reducedFees[i] : null));
+                parsedFees.Add(this.parseFeeNumeric((reducedFees != null && i < reducedFees.Count ? reducedFees[i] : null)));
             }
-            fees = reducedFees;
+            fees = parsedFees;
             if ((reducedLength == 1))
             {
-                fee = (reducedFees != null && 0 < reducedFees.Count ? reducedFees[0] : null);
+                fee = this.parseFeeNumeric((reducedFees != null && 0 < reducedFees.Count ? reducedFees[0] : null));
             } else if ((reducedLength == 0))
             {
                 fee = null;
@@ -4898,14 +4899,15 @@ public partial class BaseExchange
         return this.accounts;
     }
 
-    public virtual List<object> buildOHLCVC(IList<object> trades, string timeframe = null, object since = null, Int64? limit = null)
+    public virtual List<object> buildOHLCVC(IList<object> trades, string timeframe = null, Int64? since = null, Int64? limit = null)
     {
         string timeframeVar = timeframe;
+        Int64? sinceVar = since;
         Int64? limitVar = limit;
         // given a sorted arrays of trades (recent last) and a timeframe builds an array of OHLCV candles
         // note, default limit value (2147483647) is max int32 value
         timeframeVar ??= "1m";
-        since ??= 0;
+        sinceVar ??= ((Int64?)0);
         limitVar ??= ((Int64?)2147483647);
         Int64 ms = (this.parseTimeframe(timeframeVar) * 1000L);
         List<object> ohlcvs = new List<object>() {};
@@ -4929,7 +4931,7 @@ public partial class BaseExchange
             {
                 continue;
             }
-            if (isLessThan(ts, since))
+            if ((sinceVar != null && (ts == null || ts < sinceVar)))
             {
                 continue;
             }
@@ -4938,7 +4940,7 @@ public partial class BaseExchange
                 throw new ExchangeError ((this.id + " buildOHLCVC() missing ts")) ;
             }
             object openingTime = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))((Math.Floor(Double.Parse((((double?)ts / ms)).ToString()))), ms); // shift to the edge of m/h/d (but not M)
-            if (isLessThan(openingTime, since))
+            if (isLessThan(openingTime, sinceVar))
             {
                 continue;
             }
@@ -4955,7 +4957,7 @@ public partial class BaseExchange
             bool isNewCandle = (candle == -1);
             if (!isNewCandle)
             {
-                object candleTimestamp = (ohlcvs != null && candle < ohlcvs.Count && ohlcvs[candle] is IList<object> ohlcvsSlot327869 && i_timestamp < ohlcvsSlot327869.Count ? ohlcvsSlot327869[i_timestamp] : null);
+                object candleTimestamp = (ohlcvs != null && candle < ohlcvs.Count && ohlcvs[candle] is IList<object> ohlcvsSlot327935 && i_timestamp < ohlcvsSlot327935.Count ? ohlcvsSlot327935[i_timestamp] : null);
                 if ((candleTimestamp == null))
                 {
                     throw new ExchangeError ((this.id + " buildOHLCVC() missing candle timestamp")) ;

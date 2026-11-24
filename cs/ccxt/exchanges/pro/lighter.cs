@@ -967,7 +967,7 @@ public partial class lighter : ccxt.lighter
         return await this.unsubscribe(messageHash, this.extend(request, paramsAccountIndex));
     }
 
-    public virtual Dictionary<string, object> parseWsLiquidation(object liquidation, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsLiquidation(IDictionary<string, object> liquidation, IDictionary<string, object>? market = null)
     {
         //
         //     {
@@ -1082,7 +1082,7 @@ public partial class lighter : ccxt.lighter
         for (Int64 i = 0; i < dataLength; i++)
         {
             Int64? iReversed = this.parseToInt(((dataLength - 1) - i));
-            Dictionary<string, object> liquidation = this.parseWsLiquidation((data != null && iReversed != null && iReversed < data.Count ? data[(int)iReversed] : null), market);
+            Dictionary<string, object> liquidation = this.parseWsLiquidation(this.safeDict(data, iReversed, new Dictionary<string, object>() {}), market);
             ccxt.pro.BaseCache.appendTo(stored, liquidation);
         }
         string? messageHash = this.getMessageHash("liquidations", symbol);

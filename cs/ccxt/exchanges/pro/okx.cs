@@ -163,7 +163,7 @@ public partial class okx : ccxt.okx
         return await this.watchMultiple(url, messageHashes, request, messageHashes);
     }
 
-    public async virtual Task<T> subscribe<T>(string access, string? messageHash, object channel, string? symbol, object parameters = null)
+    public async virtual Task<T> subscribe<T>(string access, string? messageHash, object channel, string? symbol, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -174,7 +174,7 @@ public partial class okx : ccxt.okx
         Dictionary<string, object> firstArgument = new Dictionary<string, object>() {
             { "channel", channel },
         };
-        object messageHashResolved = messageHash;
+        string? messageHashResolved = messageHash;
         if ((symbol != null))
         {
             Dictionary<string, object> market = this.market(symbol);
@@ -1017,7 +1017,7 @@ public partial class okx : ccxt.okx
         List<object> rawLiquidations = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < rawLiquidations.Count; i++)
         {
-            Dictionary<string, object> liquidation = this.parseWsLiquidation(rawLiquidations[i]);
+            Dictionary<string, object> liquidation = this.parseWsLiquidation(this.safeDict(rawLiquidations, i, new Dictionary<string, object>() {}));
             string? symbol = this.safeString(liquidation, "symbol", "");
             if ((this.liquidations == null))
             {
@@ -1196,7 +1196,7 @@ public partial class okx : ccxt.okx
         });
     }
 
-    public virtual Dictionary<string, object> parseWsLiquidation(object liquidation, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsLiquidation(IDictionary<string, object> liquidation, IDictionary<string, object>? market = null)
     {
         //
         // public liquidation
@@ -1303,7 +1303,7 @@ public partial class okx : ccxt.okx
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr54597 && ((hxArr54597 is IList<object>) || (hxArr54597 is not null && hxArr54597.GetType().IsGenericType && hxArr54597.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr54617 && ((hxArr54617 is IList<object>) || (hxArr54617 is not null && hxArr54617.GetType().IsGenericType && hxArr54617.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }
@@ -1358,7 +1358,7 @@ public partial class okx : ccxt.okx
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr57073 && ((hxArr57073 is IList<object>) || (hxArr57073 is not null && hxArr57073.GetType().IsGenericType && hxArr57073.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr57093 && ((hxArr57093 is IList<object>) || (hxArr57093 is not null && hxArr57093.GetType().IsGenericType && hxArr57093.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }

@@ -65,7 +65,7 @@ public partial class coinbase : ccxt.coinbase
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    public async virtual Task<T> subscribe<T>(string? name, bool? isPrivate = null, string? symbol = null, object parameters = null)
+    public async virtual Task<T> subscribe<T>(string? name, bool? isPrivate = null, string? symbol = null, IDictionary<string, object>? parameters = null)
     {
         isPrivate ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -74,7 +74,7 @@ public partial class coinbase : ccxt.coinbase
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        object messageHash = name;
+        string? messageHash = name;
         List<object> productIds = new List<object>() {};
         if ((symbol != null))
         {

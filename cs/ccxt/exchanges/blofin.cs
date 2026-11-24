@@ -1954,7 +1954,7 @@ public partial class blofin : Exchange
         return order;
     }
 
-    public virtual Dictionary<string, object> createTpslOrderRequest(string? symbol, string? type, string? side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
+    public virtual Dictionary<string, object> createTpslOrderRequest(string? symbol, string? type, string? side, double? amount = null, double? price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
@@ -3236,7 +3236,7 @@ public partial class blofin : Exchange
         }, currencyResolved);
     }
 
-    public virtual object parseIds(object ids)
+    public virtual List<object> parseIds(object ids)
     {
         /**
          * @ignore
@@ -3250,7 +3250,7 @@ public partial class blofin : Exchange
             return ((string)ids).Split(new [] {","}, StringSplitOptions.None).ToList<object>();
         } else
         {
-            return ids;
+            return this.safeStringList(new List<object>() {ids}, new List<object>() {0});
         }
     }
 
@@ -3280,8 +3280,8 @@ public partial class blofin : Exchange
         Dictionary<string, object> market = this.market(symbol);
         List<object> request = new List<object>() {};
         string method = ((string)this.handleOption("cancelOrders", "method", "privatePostTradeCancelBatchOrders"));
-        object clientOrderIds = this.parseIds(this.safeValue(parameters, "clientOrderId"));
-        object tpslIds = this.parseIds(this.safeValue(parameters, "tpslId"));
+        List<object> clientOrderIds = this.parseIds(this.safeValue(parameters, "clientOrderId"));
+        List<object> tpslIds = this.parseIds(this.safeValue(parameters, "tpslId"));
         bool? trigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl"});
         if ((trigger == true))
         {
@@ -3291,7 +3291,7 @@ public partial class blofin : Exchange
         {
             if ((tpslIds != null))
             {
-                for (int i = 0; i < getArrayLength(tpslIds); i++)
+                for (int i = 0; i < (tpslIds?.Count ?? 0); i++)
                 {
                     request.Add(new Dictionary<string, object>() {
                         { "tpslId", this.safeString(tpslIds, i) },
@@ -3317,7 +3317,7 @@ public partial class blofin : Exchange
             }
         } else
         {
-            for (int i = 0; i < getArrayLength(clientOrderIds); i++)
+            for (int i = 0; i < (clientOrderIds?.Count ?? 0); i++)
             {
                 request.Add(new Dictionary<string, object>() {
                     { "instId", (market.ContainsKey("id") ? market["id"] : null) },

@@ -845,7 +845,7 @@ public partial class gate : ccxt.gate
         return (cache?.Count ?? 0);
     }
 
-    public virtual void handleBidAsks(object bookSide, IList<object> bidAsks)
+    public virtual void handleBidAsks(ccxt.pro.IOrderBookSide bookSide, IList<object> bidAsks)
     {
         for (int i = 0; i < (bidAsks?.Count ?? 0); i++)
         {

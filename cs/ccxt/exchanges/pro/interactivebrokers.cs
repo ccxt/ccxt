@@ -321,7 +321,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
      * @param {string[]} [params.fields] the market data fields to stream
      * @returns {Array} the raw message and the params without fields
      */
-    public virtual (string?, IDictionary<string, object>) ibkrMarketDataRequest(string marketId, object parameters = null)
+    public virtual (string?, IDictionary<string, object>) ibkrMarketDataRequest(string marketId, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> options = this.safeDict(this.options, "watchTickers", new Dictionary<string, object>() {});

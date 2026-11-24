@@ -1616,8 +1616,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                     cashBalance[(string)code] = newAccount;
                 }
             }
-            this.balance["cash"] = this.pruneStaleBalanceKeys(cashBalance, holdingCodes);
-            this.balance["cash"] = this.safeBalance((this.balance != null && this.balance.ContainsKey("cash") ? this.balance["cash"] : null));
+            this.balance["cash"] = this.safeBalance(this.pruneStaleBalanceKeys(cashBalance, holdingCodes));
         }
         if ((futures != null))
         {
@@ -1647,8 +1646,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                 }
                 marginBalance[(string)symbol] = symbolAccounts;
             }
-            this.balance["margin"] = this.pruneStaleBalanceKeys(marginBalance, futuresSymbols);
-            this.balance["margin"] = this.safeBalance((this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null));
+            this.balance["margin"] = this.safeBalance(this.pruneStaleBalanceKeys(marginBalance, futuresSymbols));
             client.resolve((this.balance != null && this.balance.ContainsKey("margin") ? this.balance["margin"] : null), (messageHash + ":futures"));
         }
         if ((flexFutures != null))
@@ -1676,8 +1674,7 @@ public partial class krakenfutures : ccxt.krakenfutures
                     flexBalance[(string)code] = newAccount;
                 }
             }
-            this.balance["flex"] = this.pruneStaleBalanceKeys(flexBalance, flexCodes);
-            this.balance["flex"] = this.safeBalance((this.balance != null && this.balance.ContainsKey("flex") ? this.balance["flex"] : null));
+            this.balance["flex"] = this.safeBalance(this.pruneStaleBalanceKeys(flexBalance, flexCodes));
             client.resolve((this.balance != null && this.balance.ContainsKey("flex") ? this.balance["flex"] : null), (messageHash + ":flex_futures"));
         }
         // resolve the plain hash exactly once per message, with the unified

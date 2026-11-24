@@ -2508,7 +2508,7 @@ public partial class sxbet : PredictionExchange
         return await client.future("centrifugoConnected");
     }
 
-    public async virtual Task pong(WebSocketClient client, object message = null)
+    public async virtual Task pong(WebSocketClient client)
     {
         // Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
         await client.send("{}");

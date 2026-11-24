@@ -57,7 +57,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         };
     }
 
-    public async virtual Task<object> subscribe(object name, string? symbol = null, string? messageHashStart = null, object parameters = null)
+    public async virtual Task<object> subscribe(object name, string? symbol = null, string? messageHashStart = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((messageHashStart == null))
@@ -69,13 +69,13 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             await this.loadMarkets();
         }
         IDictionary<string, object> market = null;
-        object messageHash = messageHashStart;
+        string? messageHash = messageHashStart;
         List<object> productIds = new List<object>() {};
         if ((symbol != null))
         {
             market = this.market(symbol);
             string? marketId = this.safeString(market, "id", "");
-            messageHash = ((object)(messageHash == null ? null : messageHash + (":" + marketId)));
+            messageHash = (messageHash == null ? null : messageHash + (":" + marketId));
             productIds.Add(marketId);
         }
         string url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
@@ -83,7 +83,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         {
             throw new ExchangeError ((this.id + " urls.api.ws is not set")) ;
         }
-        if (((IDictionary<string, object>)parameters).ContainsKey("signature"))
+        if (parameters.ContainsKey("signature"))
         {
             // need to distinguish between public trades and user trades
             url = (url + "?");

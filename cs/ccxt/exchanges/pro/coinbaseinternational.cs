@@ -2331,7 +2331,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
      * @param {bool} [params.invalidate_token] whether to invalidate session tokens, default true
      * @returns {object} the exchange response
      */
-    public async virtual Task<object> logoutWs(IDictionary<string, object>? parameters = null)
+    public async virtual Task logoutWs(IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> paramsResolved = this.handleRouteAndParams("logoutWs", parameters);
@@ -2345,6 +2345,5 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
             { "params", paramsResolved },
         };
         await client.send(request);
-        return null;
     }
 }

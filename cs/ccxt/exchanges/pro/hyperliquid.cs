@@ -1446,7 +1446,8 @@ public partial class hyperliquid : ccxt.hyperliquid
         ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(account) ? this.balance[account] : null))["info"] = info;
         ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(account) ? this.balance[account] : null))["timestamp"] = timestamp;
         ((IDictionary<string,object>)(this.balance != null && this.balance.ContainsKey(account) ? this.balance[account] : null))["datetime"] = this.iso8601(timestamp);
-        this.balance[(string)account] = this.safeBalance((this.balance != null && this.balance.ContainsKey(account) ? this.balance[account] : null));
+        IDictionary<string, object> accountEntry = this.safeDict(this.balance, account, new Dictionary<string, object>() {});
+        this.balance[(string)account] = this.safeBalance(accountEntry);
         if ((topic != null))
         {
             string messageHash = (topic + "::balance");

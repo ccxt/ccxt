@@ -1184,11 +1184,11 @@ public partial class hashkey : Exchange
                 IDictionary<string, object> first = this.safeDict(riskLimits, 0);
                 int arrayLength = riskLimits.Count;
                 IDictionary<string, object> last = this.safeDict(riskLimits, (arrayLength - 1));
-                object minInitialMargin = this.safeString(first, "initialMargin");
-                object maxInitialMargin = this.safeString(last, "initialMargin");
+                string? minInitialMargin = this.safeString(first, "initialMargin");
+                string? maxInitialMargin = this.safeString(last, "initialMargin");
                 if (Precise.stringGt(minInitialMargin, maxInitialMargin))
                 {
-                    object initialMarginsSwapped = minInitialMargin;
+                    string? initialMarginsSwapped = minInitialMargin;
                     minInitialMargin = maxInitialMargin;
                     maxInitialMargin = initialMarginsSwapped;
                 }

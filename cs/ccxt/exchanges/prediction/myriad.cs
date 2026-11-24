@@ -2204,7 +2204,7 @@ public partial class myriad : PredictionExchange
         return ccxt.BaseExchange.ToPredictionTradeList(this.filterByValueSinceLimit(trades, "outcome", outcome, since, limit, "timestamp", true));
     }
 
-    public virtual object orderToTrade(IDictionary<string, object> order)
+    public virtual Dictionary<string, object> orderToTrade(IDictionary<string, object> order)
     {
         Int64? timestamp = this.safeInteger(order, "timestamp");
         string? orderType = this.safeString(order, "type");
@@ -3873,7 +3873,7 @@ public partial class myriad : PredictionExchange
         string channel = ((("trades:" + networkId) + ":") + marketId);
         string messageHash = "myTrades";
         ccxt.pro.ArrayCache trades = await this.subscribeMyriadChannel<ccxt.pro.ArrayCache>(messageHash, channel, parameters);
-        return ccxt.BaseExchange.ToTradeList(this.filterByValueSinceLimit(this.toArray(trades), "outcome", sym, since, limit, "timestamp", true));
+        return ccxt.BaseExchange.ToTradeList(this.filterByValueSinceLimit(trades, "outcome", sym, since, limit, "timestamp", true));
     }
 
     public virtual string? walletAddressOrUndefined()
@@ -4094,7 +4094,7 @@ public partial class myriad : PredictionExchange
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         List<object> trades = ccxt.BaseExchange.FromTradeList(await this.WatchTrades(outcome, since, limit, parameters));
-        List<object> ohlcvc = this.buildOHLCVC(this.toArray(((object)trades)),timeframeVar, 0, 2147483647L);
+        List<object> ohlcvc = this.buildOHLCVC(this.toArray(((object)trades)),timeframeVar, 0L, 2147483647L);
         List<object> result = new List<object>() {};
         int ohlcvcLength = (ohlcvc?.Count ?? 0);
         for (int i = 0; i < ohlcvcLength; i++)
@@ -4184,7 +4184,7 @@ public partial class myriad : PredictionExchange
         string channel = ((("orders:" + networkId) + ":") + trader);
         string messageHash = "orders";
         ccxt.pro.ArrayCache orders = await this.subscribeMyriadChannel<ccxt.pro.ArrayCache>(messageHash, channel, parameters);
-        return ccxt.BaseExchange.ToOrderList(this.filterByValueSinceLimit(this.toArray(orders), "outcome", outcomeResolved, since, limit, "timestamp", true));
+        return ccxt.BaseExchange.ToOrderList(this.filterByValueSinceLimit(orders, "outcome", outcomeResolved, since, limit, "timestamp", true));
     }
 
     public virtual void handleOrder(WebSocketClient client, IDictionary<string, object> data)

@@ -214,7 +214,7 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {string} [symbol] unified CCXT symbol
      * @param {object} [params] extra parameters specific to the hitbtc api
      */
-    public async virtual Task<T> subscribePrivate<T>(string name, string? symbol = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<T> subscribePrivate<T>(string name, string? symbol = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -249,7 +249,7 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {string} name websocket endpoint name
      * @param {object} [params] extra parameters specific to the hitbtc api
      */
-    public async virtual Task<object> tradeRequest(string name, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> tradeRequest(string name, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

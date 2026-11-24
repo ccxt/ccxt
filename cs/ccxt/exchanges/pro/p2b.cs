@@ -69,7 +69,7 @@ public partial class p2b : ccxt.p2b
      * @param {object} [params] extra parameters specific to the p2b api
      * @returns {object} data from the websocket stream
      */
-    public async virtual Task<T> subscribe<T>(object name, object messageHash, IList<object> request, object parameters = null)
+    public async virtual Task<T> subscribe<T>(object name, object messageHash, IList<object> request, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));

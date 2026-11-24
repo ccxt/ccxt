@@ -1924,7 +1924,7 @@ public partial class bithumb : Exchange
         request["side"] = sideRequest;
         string? timeInForceRaw = this.safeString2(parameters, "timeInForce", "time_in_force");
         string? timeInForce = ((timeInForceRaw == null)) ? "GTC" : timeInForceRaw;
-        IDictionary<string, object> paramsTimeInForce = ((IDictionary<string, object>)(((timeInForceRaw == null)) ? parameters : this.omit(parameters, "timeInForce")));
+        IDictionary<string, object> paramsTimeInForce = ((timeInForceRaw == null)) ? parameters : this.omit(parameters, "timeInForce");
         IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly((type == "market"), false, paramsTimeInForce);
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);

@@ -984,11 +984,11 @@ public partial class deepcoin : Exchange
         string? symbol = this.safeString(marketResolved, "symbol");
         string? last = this.safeString(ticker, "last");
         string? open = this.safeString(ticker, "open24h");
-        object quoteVolume = this.safeString(ticker, "volCcy24h");
-        object baseVolume = this.safeString(ticker, "vol24h");
+        string? quoteVolume = this.safeString(ticker, "volCcy24h");
+        string? baseVolume = this.safeString(ticker, "vol24h");
         if ((this.safeBool(marketResolved, "swap", false) == true) && (this.safeBool(marketResolved, "inverse", false) == true))
         {
-            object temp = baseVolume;
+            string? temp = baseVolume;
             baseVolume = quoteVolume;
             quoteVolume = temp;
         }
