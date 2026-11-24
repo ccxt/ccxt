@@ -2094,6 +2094,27 @@ record_elem!(Ticker, Trade, Order, Position, Transaction, DepositAddress, Transf
     LeverageTier, Greeks, OptionContract, LastPrice, PredictionEvent, PredictionSettlement, Account, BorrowRate,
     IsolatedBorrowRate, MarginLoan, Conversion, ADL, LongShortRatio, BorrowInterest);
 
+/// A typed record map's row read by key text (`None` reads "null"): the row's decoded map as a shared handle,
+/// `None` for a missing key or a non-map row, as `safe_dict_o` answered on the boxed map.
+pub trait RecordRows { fn row_dict(&self, key: impl crate::value::ScalarArg) -> Option<crate::value::Dict>; }
+macro_rules! record_rows {
+    ($($t:ident),*) => { $(
+        impl RecordRows for HashMap<String, $t> {
+            fn row_dict(&self, key: impl crate::value::ScalarArg) -> Option<crate::value::Dict> {
+                let row = match key.scalar() {
+                    crate::value::ScalarRef::Str(k) => self.get(k),
+                    crate::value::ScalarRef::Null => self.get("null"),
+                    crate::value::ScalarRef::Num(v) => self.get(crate::runtime::stringify_param(&v).as_str()),
+                    crate::value::ScalarRef::Other(v) => self.get(crate::runtime::stringify_param(v).as_str()),
+                };
+                match row.map(|r| &r.raw) { Some(Value::Dict(m)) => Some(std::sync::Arc::clone(m)), _ => None }
+            }
+        }
+    )* };
+}
+record_rows!(Ticker, FundingRate, OpenInterest, Leverage, MarginMode, TradingFee, BorrowRate, IsolatedBorrowRate, Currency,
+    OrderBook, LastPrice, DepositWithdrawFee, Greeks, OptionContract, DepositAddress);
+
 /// A keyed read on a typed `Tickers` result: the ticker's decoded row, as the boxed map read answered it.
 impl crate::value::KeyRead for &Tickers {
     fn key_read(&self, key: &str) -> Value { self.get(key).map(Value::from).unwrap_or_default() }
