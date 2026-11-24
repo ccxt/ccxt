@@ -236,9 +236,9 @@ export default class binance extends binanceRest {
         if (stream === undefined) {
             const previousStreamIndex = this.safeInteger (this.options, 'streamIndex', -1);
             const streamLimits = this.safeDict (this.options, 'streamLimits');
-            const streamLimit = this.safeInteger (streamLimits, type);
+            const streamLimit = this.safeInteger (streamLimits, type, 50);
             const streamIndex = previousStreamIndex + 1;
-            const normalizedIndex = streamIndex % (streamLimit as number);
+            const normalizedIndex = streamIndex % streamLimit;
             this.options['streamIndex'] = streamIndex;
             stream = this.numberToString (normalizedIndex);
             if (subscriptionHash !== undefined) {
