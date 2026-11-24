@@ -1225,7 +1225,7 @@ export default class binance extends binanceRest {
         }
     }
 
-    handleOrderBookSubscription (client: Client, message: any, subscription: Dict) {
+    handleOrderBookSubscription (client: Client, message: Dict, subscription: Dict) {
         const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
         // const messageHash = this.safeString (subscription, 'messageHash');
         const symbolOfSubscription = this.safeString (subscription, 'symbol'); // watchOrderBook
