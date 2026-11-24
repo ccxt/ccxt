@@ -13432,6 +13432,8 @@ class NewTranspiler {
                 // writers cut every @SKIP_START_GO..@SKIP_END_GO span out of the printed Go
                 "baseFileStdlibImportSeamPaths": '(?:base/Exchange(?:\\.nooverloads\\.\\d+)?|base/PredictionExchange)\\.ts$',
                 "excisedSpanMarkers": [ '@SKIP_START_GO', '@SKIP_END_GO' ],
+                // base methods whose printed body the writer drops for a hand-written Go twin (exchange.go)
+                "handWrittenBaseMethods": [ 'loadOrderBook' ],
                 "nativeStoreFields": RF_GO_6_B_NATIVE_STORE_FIELDS,
                 // the ws watch family's symbols list prints `[]string`/`[][]string`
                 "unifiedSliceParams": GO_UNIFIED_SLICE_PARAMS,
