@@ -33,7 +33,7 @@ public partial class upbit : ccxt.upbit
         });
     }
 
-    public async virtual Task<object> watchPublicMultiple(IList<object> symbols, string channel, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> watchPublicMultiple(IList<object> symbols, string? channel, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -398,7 +398,7 @@ public partial class upbit : ccxt.upbit
         }
     }
 
-    public async virtual Task<object> watchPrivate(object symbol, string channel, string messageHash, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> watchPrivate(string? symbol, string channel, string messageHash, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.authenticate();

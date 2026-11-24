@@ -3516,9 +3516,9 @@ public partial class polymarket : PredictionExchange
         return ("0x" + result);
     }
 
-    public virtual Dictionary<string, object> signHash(string? hash, object privateKey)
+    public virtual Dictionary<string, object> signHash(string? hash, string? privateKey)
     {
-        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : hash.Substring(Math.Max(hash.Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : hash.Substring(Math.Max(hash.Length - 64, 0))), ((privateKey == null) ? null : privateKey.Substring(Math.Max(privateKey.Length - 64, 0))), secp256k1, null);
         // assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
         string? rRaw = this.safeString(signature, "r", "");
         string? sRaw = this.safeString(signature, "s", "");

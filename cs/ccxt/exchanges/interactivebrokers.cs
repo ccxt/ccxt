@@ -4612,11 +4612,11 @@ public partial class interactivebrokers : Exchange
         return ((string?)((object)(((encoded == null) ? null : encoded.Substring(Math.Min(2, encoded.Length))))));  // strip the 'v=' prefix
     }
 
-    public virtual string? ibkrBaseString(object method, string url, IDictionary<string, object> parameters, object prepend = null)
+    public virtual string? ibkrBaseString(string? method, string url, IDictionary<string, object> parameters, string? prepend = null)
     {
         prepend ??= "";
         string query = this.rawencode(this.keysort(parameters));
-        return ((string?)((object)(add(add(add(add(add(prepend, method), "&"), this.ibkrEncrypt(url)), "&"), this.ibkrEncrypt(query)))));
+        return ((string?)((object)((((((prepend + method) + "&") + this.ibkrEncrypt(url)) + "&") + this.ibkrEncrypt(query)))));
     }
 
     public virtual string? ibkrAuthHeader(IDictionary<string, object> parameters)

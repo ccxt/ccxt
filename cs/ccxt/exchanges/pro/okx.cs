@@ -163,7 +163,7 @@ public partial class okx : ccxt.okx
         return await this.watchMultiple(url, messageHashes, request, messageHashes);
     }
 
-    public async virtual Task<T> subscribe<T>(string access, string? messageHash, object channel, object symbol, object parameters = null)
+    public async virtual Task<T> subscribe<T>(string access, string? messageHash, object channel, string? symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3207,14 +3207,14 @@ public partial class okx : ccxt.okx
         }
     }
 
-    public virtual void handleUnsubscriptionMarkPrice(WebSocketClient client, object symbol, object channel)
+    public virtual void handleUnsubscriptionMarkPrice(WebSocketClient client, string? symbol, string channel)
     {
-        string? subMessageHash = ((string)(add(add(channel, "::"), symbol)));
-        string messageHash = ("unsubscribe:mark-price:" + (symbol));
+        string subMessageHash = ((channel + "::") + symbol);
+        string messageHash = ("unsubscribe:mark-price:" + symbol);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if ((this.tickers != null && symbol is string inOpKey3 && this.tickers.ContainsKey(inOpKey3)))
         {
-            this.tickers.Remove((string)symbol);
+            this.tickers.Remove(symbol);
         }
     }
 

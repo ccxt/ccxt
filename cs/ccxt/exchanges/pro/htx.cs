@@ -3263,7 +3263,7 @@ public partial class htx : ccxt.htx
         return url;
     }
 
-    public async virtual Task<T> subscribePublic<T>(object url, object symbol, object messageHash, object method = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<T> subscribePublic<T>(string? url, string? symbol, string? messageHash, object method = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 requestId = this.requestId();
@@ -3316,7 +3316,7 @@ public partial class htx : ccxt.htx
         return await this.watch(url, messageHash, this.extend(request, paramsOmitted), messageHash, subscription);
     }
 
-    public async virtual Task<T> subscribePrivate<T>(object channel, object messageHash, object type, object subtype, object parameters = null, IDictionary<string, object>? subscriptionParams = null)
+    public async virtual Task<T> subscribePrivate<T>(object channel, object messageHash, string? type, string? subtype, object parameters = null, IDictionary<string, object>? subscriptionParams = null)
     {
         parameters ??= new Dictionary<string, object>();
         subscriptionParams ??= new Dictionary<string, object>();
@@ -3328,7 +3328,7 @@ public partial class htx : ccxt.htx
         };
         Dictionary<string, object> extendedSubsription = this.extend(subscription, subscriptionParams);
         Dictionary<string, object> request = null;
-        if ((type is "spot"))
+        if ((type == "spot"))
         {
             request = new Dictionary<string, object>() {
                 { "action", "sub" },
@@ -3342,12 +3342,12 @@ public partial class htx : ccxt.htx
                 { "cid", ((object)requestId).ToString() },
             };
         }
-        bool isLinear = (subtype is "linear");
+        bool isLinear = (subtype == "linear");
         bool? isV5 = this.safeBool(subscriptionParams, "isV5", false);
         string? url = this.getUrlByMarketType(type, isLinear, true, false, isV5);
         IDictionary<string, object> hostnames = this.safeDict(this.urls, "hostnames", new Dictionary<string, object>() {});
         object hostname = null;
-        if ((type is "spot"))
+        if ((type == "spot"))
         {
             hostname = (hostnames != null && hostnames.ContainsKey("spot") ? hostnames["spot"] : null);
         } else

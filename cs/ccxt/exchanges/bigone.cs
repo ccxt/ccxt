@@ -672,7 +672,7 @@ public partial class bigone : Exchange
         List<object> promises = new List<object> {this.publicGetAssetPairs(parameters), this.contractPublicGetSymbols(parameters)};
         List<object> promisesResult = await promiseAll(promises);
         IDictionary<string, object> response = this.safeDict(promisesResult, 0);
-        object contractResponse = this.safeValue(promisesResult, 1);
+        List<object> contractMarkets = this.safeList(promisesResult, 1, new List<object>() {});
         //
         //     {
         //         "code":0,
@@ -791,8 +791,7 @@ public partial class bigone : Exchange
                 { "info", market },
             }));
         }
-        IList<object> contractMarkets = this.toArray(contractResponse);
-        for (int i = 0; i < (contractMarkets?.Count ?? 0); i++)
+        for (int i = 0; i < contractMarkets.Count; i++)
         {
             IDictionary<string, object> market = ((IDictionary<string, object>)contractMarkets[i]);
             string? baseId = this.safeString(market, "baseCurrency");

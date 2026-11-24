@@ -214,7 +214,7 @@ public partial class hitbtc : ccxt.hitbtc
      * @param {string} [symbol] unified CCXT symbol
      * @param {object} [params] extra parameters specific to the hitbtc api
      */
-    public async virtual Task<T> subscribePrivate<T>(string name, object symbol = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<T> subscribePrivate<T>(string name, string? symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -229,7 +229,7 @@ public partial class hitbtc : ccxt.hitbtc
         string messageHash = messageHashBase;
         if ((symbol != null))
         {
-            messageHash = ((messageHashBase + "::") + (symbol));
+            messageHash = ((messageHashBase + "::") + symbol);
         }
         Int64? requestId = this.incrementingNonce();
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {

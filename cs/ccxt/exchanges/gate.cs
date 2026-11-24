@@ -6667,7 +6667,7 @@ public partial class gate : Exchange
         bool? trigger = this.safeBoolN(parameters, new List<object>() {"trigger", "is_stop_order", "stop"}, false);
         Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"is_stop_order", "stop", "trigger"});
         string? clientOrderIdRaw = this.safeString2(paramsOmitted, "text", "clientOrderId");
-        object orderId = id;
+        string? orderId = id;
         if ((clientOrderIdRaw != null))
         {
             if (!clientOrderIdRaw.StartsWith("t"))

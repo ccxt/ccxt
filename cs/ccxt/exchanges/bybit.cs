@@ -2567,7 +2567,7 @@ public partial class bybit : Exchange
         return base.safeMarket(marketId, market, delimiter,marketType);
     }
 
-    public virtual (string?, IDictionary<string, object>) getBybitType(string method, IDictionary<string, object>? market = null, object parameters = null)
+    public virtual (string?, IDictionary<string, object>) getBybitType(string method, IDictionary<string, object>? market = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams(method, market, parameters);

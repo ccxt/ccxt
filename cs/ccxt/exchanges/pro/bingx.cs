@@ -1373,7 +1373,7 @@ public partial class bingx : ccxt.bingx
         }
     }
 
-    public async virtual Task loadBalanceSnapshot(WebSocketClient client, string messageHash, string type, object subType)
+    public async virtual Task loadBalanceSnapshot(WebSocketClient client, string messageHash, string type, string? subType)
     {
         Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(new Dictionary<string, object>() { { "type", type }, { "subType", subType }, }));
         this.balance[(string)type] = this.extend(response, this.safeDict(this.balance, type, new Dictionary<string, object>() {}));

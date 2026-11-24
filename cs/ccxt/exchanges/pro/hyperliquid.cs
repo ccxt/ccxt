@@ -1437,7 +1437,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
         for (int i = 0; i < (rawBalances?.Count ?? 0); i++)
         {
-            this.parseWsBalance(rawBalances[i], account);
+            this.parseWsBalance(this.safeDict(rawBalances, i, new Dictionary<string, object>() {}), account);
         }
         if (!((this.balance != null && this.balance.ContainsKey(account))))
         {
@@ -1454,7 +1454,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         }
     }
 
-    public virtual void parseWsBalance(object balance, string? accountType = null)
+    public virtual void parseWsBalance(IDictionary<string, object> balance, string? accountType = null)
     {
         //
         // spot

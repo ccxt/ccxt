@@ -1166,7 +1166,7 @@ public partial class nado : ccxt.nado
         return await this.watch(url, messageHash, request, messageHash);
     }
 
-    public async virtual Task<T> watchPublic<T>(string streamType, IDictionary<string, object> market, string messageHash, IDictionary<string, object>? parameters = null)
+    public async virtual Task<T> watchPublic<T>(string? streamType, IDictionary<string, object> market, string messageHash, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "subscriptions");
@@ -1199,7 +1199,7 @@ public partial class nado : ccxt.nado
         return await this.watch<T>(url, messageHash);
     }
 
-    public async virtual Task<T> watchPrivate<T>(string streamType, IDictionary<string, object> stream, string messageHash, IDictionary<string, object>? parameters = null)
+    public async virtual Task<T> watchPrivate<T>(string? streamType, IDictionary<string, object> stream, string messageHash, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "subscriptions");
@@ -1335,7 +1335,7 @@ public partial class nado : ccxt.nado
         };
     }
 
-    public async virtual Task<T> watchPublicMultiple<T>(string streamType, IList<object> markets, IList<object> messageHashes, IDictionary<string, object>? parameters = null, IList<object>? subscriptionParams = null)
+    public async virtual Task<T> watchPublicMultiple<T>(string? streamType, IList<object> markets, IList<object> messageHashes, IDictionary<string, object>? parameters = null, IList<object>? subscriptionParams = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "subscriptions");
@@ -1368,7 +1368,7 @@ public partial class nado : ccxt.nado
         return await this.watchMultiple<T>(url, messageHashes, null, messageHashes);
     }
 
-    public async virtual Task<object> unWatchPublic(string streamType, IDictionary<string, object> market, string messageHash, IDictionary<string, object>? parameters = null)
+    public async virtual Task<object> unWatchPublic(string? streamType, IDictionary<string, object> market, string messageHash, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "subscriptions");
@@ -1387,7 +1387,7 @@ public partial class nado : ccxt.nado
         return await this.watch(url, unsubscribeHash, request, unsubscribeHash, subscription);
     }
 
-    public async virtual Task<bool> unWatchPublicMultiple(string streamType, IList<object> markets, IList<object> messageHashes, IDictionary<string, object>? parameters = null, IList<object>? subscriptionParams = null)
+    public async virtual Task<bool> unWatchPublicMultiple(string? streamType, IList<object> markets, IList<object> messageHashes, IDictionary<string, object>? parameters = null, IList<object>? subscriptionParams = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "subscriptions");

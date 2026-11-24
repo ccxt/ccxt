@@ -57,7 +57,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         };
     }
 
-    public async virtual Task<object> subscribe(object name, object symbol = null, object messageHashStart = null, object parameters = null)
+    public async virtual Task<object> subscribe(object name, string? symbol = null, string? messageHashStart = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((messageHashStart == null))

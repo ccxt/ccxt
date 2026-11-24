@@ -1006,7 +1006,7 @@ public partial class deribit : ccxt.deribit
         return new List<object> {this.safeInteger(ohlcv, "tick"), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")};
     }
 
-    public async virtual Task<T> watchMultipleWrapper<T>(string channelName, object channelDescriptor, IList<object> symbolsArray = null, IDictionary<string, object>? parameters = null)
+    public async virtual Task<T> watchMultipleWrapper<T>(string channelName, string? channelDescriptor, IList<object> symbolsArray = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

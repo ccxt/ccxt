@@ -655,7 +655,7 @@ public partial class BaseExchange
         return result;
     }
 
-    public virtual string? findTimeframe(object timeframe, object timeframes = null)
+    public virtual string? findTimeframe(object timeframe, IDictionary<string, object> timeframes = null)
     {
         object timeframesResolved = ((timeframes == null)) ? this.timeframes : timeframes;
         List<object> keys = new List<object>(((IDictionary<string,object>)timeframesResolved).Keys);
@@ -4917,7 +4917,7 @@ public partial class BaseExchange
         int i_volume = 5;
         int i_count = 6;
         int tradesLength = (trades?.Count ?? 0);
-        object oldest = mathMin(tradesLength, limitVar);
+        object oldest = Math.Min(tradesLength, limitVar.GetValueOrDefault());
         IDictionary<string, object> options = this.safeDict(this.options, "buildOHLCVC", new Dictionary<string, object>() {});
         bool? skipZeroPrices = this.safeBool(options, "skipZeroPrices", true);
         for (int i = 0; isLessThan(i, oldest); i++)
@@ -4955,7 +4955,7 @@ public partial class BaseExchange
             bool isNewCandle = (candle == -1);
             if (!isNewCandle)
             {
-                object candleTimestamp = (ohlcvs != null && candle < ohlcvs.Count && ohlcvs[candle] is IList<object> ohlcvsSlot327856 && i_timestamp < ohlcvsSlot327856.Count ? ohlcvsSlot327856[i_timestamp] : null);
+                object candleTimestamp = (ohlcvs != null && candle < ohlcvs.Count && ohlcvs[candle] is IList<object> ohlcvsSlot327869 && i_timestamp < ohlcvsSlot327869.Count ? ohlcvsSlot327869[i_timestamp] : null);
                 if ((candleTimestamp == null))
                 {
                     throw new ExchangeError ((this.id + " buildOHLCVC() missing candle timestamp")) ;

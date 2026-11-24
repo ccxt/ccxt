@@ -871,7 +871,7 @@ public partial class whitebit : ccxt.whitebit
         }
     }
 
-    public async virtual Task loadBalanceSnapshot(WebSocketClient client, string messageHash, object type, string subscriptionHash)
+    public async virtual Task loadBalanceSnapshot(WebSocketClient client, string messageHash, string? type, string subscriptionHash)
     {
         Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(new Dictionary<string, object>() { { "type", type }, }));
         this.balance = this.extend(response, this.balance);
@@ -990,7 +990,7 @@ public partial class whitebit : ccxt.whitebit
         return await this.watch<T>(url, messageHash, message, messageHash);
     }
 
-    public async virtual Task<T> watchMultipleSubscription<T>(string messageHash, string method, object symbol, bool? isNested = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<T> watchMultipleSubscription<T>(string messageHash, string method, string? symbol, bool? isNested = null, IDictionary<string, object> parameters = null)
     {
         isNested ??= false;
         parameters ??= new Dictionary<string, object>();

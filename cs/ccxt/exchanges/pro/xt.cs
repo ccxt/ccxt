@@ -317,7 +317,7 @@ public partial class xt : ccxt.xt
         }
         string? subMessageHash = ((string)(((name + "::") + tradeType)));
         Dictionary<string, object> request = this.extend(unsubscribe, paramsMarketType);
-        object tail = access;
+        string tail = access;
         if (isContract)
         {
             tail = privateAccess ? "user" : "market";

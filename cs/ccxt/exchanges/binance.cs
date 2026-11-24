@@ -13727,18 +13727,22 @@ public partial class binance : Exchange
             IDictionary<string, object> position = ((IDictionary<string, object>)positions[i]);
             string? marketId = this.safeString(position, "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId, null, null, "contract");
-            string? code = ((string)((this.safeBool(market, "linear", false) == true) ? (market.ContainsKey("quote") ? market["quote"] : null) : (market.ContainsKey("base") ? market["base"] : null)));
+            string? marginCode = this.safeString(market, "base", "");
+            if ((this.safeBool(market, "linear", false) == true))
+            {
+                marginCode = this.safeString(market, "quote", "");
+            }
             string? maintenanceMargin = this.safeString(position, "maintMargin");
             // check for maintenance margin so empty positions are not returned
             bool isPositionOpen = (maintenanceMargin != "0") && (maintenanceMargin != "0.00000000");
             if (filterClosed != true || isPositionOpen)
             {
                 // sometimes not all the codes are correctly returned...
-                if ((balances != null && code != null && balances.ContainsKey(code)))
+                if (((marginCode != null) && balances.ContainsKey(marginCode)))
                 {
                     Dictionary<string, object> parsed = this.parseAccountPosition(this.extend(position, new Dictionary<string, object>() {
-                        { "crossMargin", this.safeString((code != null && balances.ContainsKey(code) ? balances[code] : null), "crossMargin") },
-                        { "crossWalletBalance", this.safeString((code != null && balances.ContainsKey(code) ? balances[code] : null), "crossWalletBalance") },
+                        { "crossMargin", this.safeString((marginCode != null && balances.ContainsKey(marginCode) ? balances[marginCode] : null), "crossMargin") },
+                        { "crossWalletBalance", this.safeString((marginCode != null && balances.ContainsKey(marginCode) ? balances[marginCode] : null), "crossWalletBalance") },
                     }), market);
                     result.Add(parsed);
                 }
@@ -15436,7 +15440,11 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> market = ((symbol == null)) ? null : this.market(symbol);
+        IDictionary<string, object> market = null;
+        if ((symbol != null))
+        {
+            market = this.market(symbol);
+        }
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters);
         string? type = (string)typeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);
@@ -15493,7 +15501,11 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> market = ((symbol == null)) ? null : this.market(symbol);
+        IDictionary<string, object> market = null;
+        if ((symbol != null))
+        {
+            market = this.market(symbol);
+        }
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("fetchMySettlementHistory", market, parameters);
         string? type = (string)typeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeparamsMarketTypeVariable[1]);

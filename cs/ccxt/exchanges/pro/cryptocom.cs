@@ -1427,7 +1427,7 @@ public partial class cryptocom : ccxt.cryptocom
         client.resolve(message, messageHash);
     }
 
-    public async virtual Task<T> watchPublic<T>(string messageHash, IDictionary<string, object>? parameters = null)
+    public async virtual Task<T> watchPublic<T>(string? messageHash, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = ((string)(this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null));

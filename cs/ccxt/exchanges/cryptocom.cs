@@ -3981,13 +3981,9 @@ public partial class cryptocom : Exchange
     {
         int maxLevel = 3;
         Int64? depth = this.parseToInt(level);
-        if (depth >= maxLevel)
+        if ((depth >= maxLevel) || ((obj is string)))
         {
             return obj.ToString();
-        }
-        if ((obj is string))
-        {
-            return ((string?)((object)(obj)));
         }
         string returnString = "";
         object paramsKeys = null;

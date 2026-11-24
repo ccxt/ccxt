@@ -1283,7 +1283,7 @@ public partial class onetrading : ccxt.onetrading
         client.resolve(stored, channel);
     }
 
-    public override string? findTimeframe(object timeframe, object timeframes = null)
+    public override string? findTimeframe(object timeframe, IDictionary<string, object> timeframes = null)
     {
         object timeframesResolved = ((timeframes == null)) ? this.timeframes : timeframes;
         if ((timeframesResolved == null))

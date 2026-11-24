@@ -69,14 +69,14 @@ public partial class hashkey : ccxt.hashkey
         return await this.watch<T>(url, messageHash, null, messageHash);
     }
 
-    public virtual string? getPrivateUrl(object listenKey)
+    public virtual string? getPrivateUrl(string? listenKey)
     {
         string? wsUrl = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "private");
         if ((wsUrl == null))
         {
             throw new ExchangeError ((this.id + " getPrivateUrl() has no private websocket url")) ;
         }
-        return ((string?)((object)(((wsUrl + "/") + (listenKey)))));
+        return ((string?)((object)(((wsUrl + "/") + listenKey))));
     }
 
     /**
@@ -961,7 +961,7 @@ public partial class hashkey : ccxt.hashkey
         return listenKey;
     }
 
-    public async virtual Task keepAliveListenKey(object listenKey, IDictionary<string, object>? parameters = null)
+    public async virtual Task keepAliveListenKey(string? listenKey, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((listenKey == null))

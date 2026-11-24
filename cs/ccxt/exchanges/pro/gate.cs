@@ -2725,7 +2725,7 @@ public partial class gate : ccxt.gate
         return reqid;
     }
 
-    public async virtual Task<T> subscribePublic<T>(object url, string messageHash, IList<object> payload, string channel, IDictionary<string, object>? parameters = null, object subscription = null)
+    public async virtual Task<T> subscribePublic<T>(string? url, string messageHash, IList<object> payload, string? channel, IDictionary<string, object>? parameters = null, object subscription = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 requestId = this.requestId();
@@ -2750,7 +2750,7 @@ public partial class gate : ccxt.gate
         return await this.watch<T>(url, messageHash, message, messageHash, subscription);
     }
 
-    public async virtual Task<T> subscribePublicMultiple<T>(object url, IList<object> messageHashes, IList<object> payload, string channel, IDictionary<string, object> parameters = null)
+    public async virtual Task<T> subscribePublicMultiple<T>(string? url, IList<object> messageHashes, IList<object> payload, string? channel, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 requestId = this.requestId();
@@ -2766,7 +2766,7 @@ public partial class gate : ccxt.gate
         return await this.watchMultiple<T>(url, messageHashes, message, messageHashes);
     }
 
-    public async virtual Task<object> unSubscribePublicMultiple(object url, string topic, IList<object> symbols, IList<object> messageHashes, IList<object> subMessageHashes, object payload, string channel, IDictionary<string, object> parameters = null)
+    public async virtual Task<object> unSubscribePublicMultiple(string? url, string topic, IList<object> symbols, IList<object> messageHashes, IList<object> subMessageHashes, object payload, string? channel, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 requestId = this.requestId();
@@ -2790,7 +2790,7 @@ public partial class gate : ccxt.gate
         return await this.watchMultiple(url, messageHashes, message, messageHashes, sub);
     }
 
-    public async virtual Task<object> authenticate(string? url, string messageType)
+    public async virtual Task<object> authenticate(string? url, string? messageType)
     {
         string channel = (messageType + ".login");
         var client = this.client(url);
@@ -2811,13 +2811,13 @@ public partial class gate : ccxt.gate
         (future as Future).resolve(true);
     }
 
-    public async virtual Task<object> requestPrivate(string? url, object reqParams, object channel, object requestId = null)
+    public async virtual Task<object> requestPrivate(string? url, object reqParams, string? channel, string? requestId = null)
     {
         this.checkRequiredCredentials();
         // uid is required for some subscriptions only so it's not a part of required credentials
         string eventVar = "api";
-        object requestIdResolved = ((requestId == null)) ? this.requestId().ToString() : requestId;
-        object messageHash = requestIdResolved;
+        string? requestIdResolved = ((requestId == null)) ? this.requestId().ToString() : requestId;
+        string? messageHash = requestIdResolved;
         Int64 time = this.seconds();
         // unfortunately, PHP demands double quotes for the escaped newline symbol
         string signatureString = String.Join("\n", ((IList<object>)new List<object>() {eventVar, channel, this.json(reqParams), time.ToString()}).ToArray()); // eslint-disable-line quotes
@@ -2829,7 +2829,7 @@ public partial class gate : ccxt.gate
             { "signature", signature },
             { "req_param", reqParams },
         };
-        if (((channel is "spot.order_place")) || ((channel is "futures.order_place")))
+        if (((channel == "spot.order_place")) || ((channel == "futures.order_place")))
         {
             payload["req_header"] = new Dictionary<string, object>() {
                 { "X-Gate-Channel-Id", "ccxt" },
@@ -2845,7 +2845,7 @@ public partial class gate : ccxt.gate
         return await this.watch(url, messageHash, request, messageHash, requestIdResolved);
     }
 
-    public async virtual Task<T> subscribePrivate<T>(object url, string messageHash, object payload, string channel, object parameters, bool? requiresUid = null)
+    public async virtual Task<T> subscribePrivate<T>(string? url, string messageHash, object payload, string? channel, object parameters, bool? requiresUid = null)
     {
         requiresUid ??= false;
         this.checkRequiredCredentials();
@@ -2862,7 +2862,7 @@ public partial class gate : ccxt.gate
         List<object> payloadWithUid = noPayload ? idArray : this.arrayConcat(idArray, payload);
         Int64 time = this.seconds();
         string eventVar = "subscribe";
-        string signaturePayload = ((((((("channel=" + (channel)) + "&") + "event=") + eventVar) + "&") + "time=") + ((object)time).ToString());
+        string signaturePayload = ((((((("channel=" + channel) + "&") + "event=") + eventVar) + "&") + "time=") + ((object)time).ToString());
         string signature = this.hmac(signaturePayload, this.secret, sha512, "hex");
         Dictionary<string, object> auth = new Dictionary<string, object>() {
             { "method", "api_key" },

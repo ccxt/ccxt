@@ -1143,15 +1143,14 @@ public partial class mudrex : Exchange
         {
             response = await this.privateGetFuturesOrders(request);
         }
-        object data = this.safeValue(response, "data", new List<object>() {});
-        IList<object> rows = this.toArray(data);
+        List<object> rows = this.safeList(response, "data", new List<object>() {});
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
             market = this.market(symbol);
         }
         List<object> orders = new List<object>() {};
-        for (int i = 0; i < (rows?.Count ?? 0); i++)
+        for (int i = 0; i < rows.Count; i++)
         {
             orders.Add(ccxt.BaseExchange.FromOrder(this.parseOrder(this.safeDict(rows, i, new Dictionary<string, object>() {}), market)));
         }
@@ -1228,14 +1227,9 @@ public partial class mudrex : Exchange
         }
         Dictionary<string, object> q = new Dictionary<string, object>() {};
         Dictionary<string, object> response = await this.privateGetFuturesPositions(this.extend(q, parameters));
-        object data = this.safeValue(response, "data", new List<object>() {});
-        if ((data == null))
-        {
-            return ccxt.BaseExchange.ToPositionList(new List<object>() {});
-        }
-        IList<object> rows = this.toArray(data);
+        List<object> rows = this.safeList(response, "data", new List<object>() {});
         List<object> outPos = new List<object>() {};
-        for (int i = 0; i < (rows?.Count ?? 0); i++)
+        for (int i = 0; i < rows.Count; i++)
         {
             string? symRaw = this.safeString((rows != null && i < rows.Count ? rows[i] : null), "symbol");
             Dictionary<string, object> m = this.safeMarket(symRaw);

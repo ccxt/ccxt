@@ -1835,7 +1835,7 @@ public partial class phemex : ccxt.phemex
         }
     }
 
-    public async virtual Task<T> subscribePrivate<T>(object type, string messageHash, IDictionary<string, object> parameters = null)
+    public async virtual Task<T> subscribePrivate<T>(string? type, string messageHash, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1848,7 +1848,7 @@ public partial class phemex : ccxt.phemex
         bool settleIsUSDT = ((this.safeString(parameters, "settle", "") == "USDT"));
         Dictionary<string, object> paramsOmitted = this.omit(parameters, "settle");
         string channel = "aop.subscribe";
-        if ((type is "spot"))
+        if ((type == "spot"))
         {
             channel = "wo.subscribe";
         }

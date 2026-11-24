@@ -740,7 +740,7 @@ public partial class mexc : ccxt.mexc
             market = this.safeMarket(((string)this.symbol(this.safeString(message, "symbol"))));
             IDictionary<string, object> data = this.safeDict(message, "publicSpotKline", new Dictionary<string, object>() {});
             string? timeframeId = this.safeString(data, "interval");
-            timeframe = this.findTimeframe(timeframeId, (this.options != null && this.options.ContainsKey("timeframes") ? this.options["timeframes"] : null));
+            timeframe = this.findTimeframe(timeframeId, this.safeDict(this.options, "timeframes"));
             parsed = this.parseWsOHLCV(data, market);
         } else
         {
@@ -2230,7 +2230,7 @@ public partial class mexc : ccxt.mexc
         }
     }
 
-    public async virtual Task<string?> authenticate(string subscriptionHash, IDictionary<string, object>? parameters = null)
+    public async virtual Task<string?> authenticate(string? subscriptionHash, IDictionary<string, object>? parameters = null)
     {
         // we only need one listenKey since ccxt shares connections
         parameters ??= new Dictionary<string, object>();
@@ -2278,7 +2278,7 @@ public partial class mexc : ccxt.mexc
         return listenKey;
     }
 
-    public async virtual Task keepAliveListenKey(object listenKey, IDictionary<string, object>? parameters = null)
+    public async virtual Task keepAliveListenKey(string? listenKey, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((listenKey == null))
@@ -2300,7 +2300,7 @@ public partial class mexc : ccxt.mexc
             {
                 throw new ExchangeError ((this.id + " keepAliveListenKey() has no spot websocket url")) ;
             }
-            string url = ((wsUrl + "?listenKey=") + (listenKey));
+            string url = ((wsUrl + "?listenKey=") + listenKey);
             var client = this.client(url);
             this.options["listenKey"] = null;
             client.reject(error);

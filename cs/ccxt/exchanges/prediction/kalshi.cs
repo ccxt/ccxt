@@ -1737,7 +1737,7 @@ public partial class kalshi : PredictionExchange
         string? ticker = this.safeString2(fill, "ticker", "market_ticker");
         // the leg the fill executed on ('yes' | 'no'); NO is addressed as <ticker>-NO
         string? sideLeg = this.safeStringLower(fill, "side");
-        object outcomeKey = ticker;
+        string? outcomeKey = ticker;
         if ((sideLeg == "no") && ((ticker != null)))
         {
             outcomeKey = (ticker + "-NO");
@@ -2236,7 +2236,7 @@ public partial class kalshi : PredictionExchange
         // a kalshi order is leg-specific: the raw `side` field says which leg ('yes'|'no');
         // the bare ticker is the YES outcome's id, the NO leg is addressed as `<ticker>-NO`
         string? sideLeg = this.safeStringLower(order, "side");
-        object outcomeKey = ticker;
+        string? outcomeKey = ticker;
         if ((sideLeg == "no") && ((ticker != null)))
         {
             outcomeKey = (ticker + "-NO");

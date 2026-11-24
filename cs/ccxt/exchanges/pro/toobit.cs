@@ -894,11 +894,11 @@ public partial class toobit : ccxt.toobit
         client.resolve((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null), (type + ":balance"));
     }
 
-    public async virtual Task loadBalanceSnapshot(WebSocketClient client, string messageHash, object marketType)
+    public async virtual Task loadBalanceSnapshot(WebSocketClient client, string messageHash, string? marketType)
     {
         Dictionary<string, object> response = ccxt.BaseExchange.FromBalances(await this.FetchBalance(new Dictionary<string, object>() { { "type", marketType }, }));
         string type = "contract";
-        if ((marketType is "spot"))
+        if ((marketType == "spot"))
         {
             type = "spot";
         }

@@ -151,14 +151,14 @@ public partial class paradex : ccxt.paradex
      * @param {string} [subscribeHash] the subscription the request opens, the request id when undefined
      * @returns {object} the reply
      */
-    public async virtual Task<object> sendRequest(object url, IDictionary<string, object> request, object subscribeHash = null)
+    public async virtual Task<object> sendRequest(object url, IDictionary<string, object> request, string? subscribeHash = null)
     {
         string requestHash = ("request:" + this.safeString(request, "id", ""));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "id", (request != null && request.ContainsKey("id") ? request["id"] : null) },
             { "messageHashes", new List<object>() {requestHash} },
         };
-        object hash = ((subscribeHash == null)) ? requestHash : subscribeHash;
+        string? hash = ((subscribeHash == null)) ? requestHash : subscribeHash;
         return await this.watch(url, requestHash, request, hash, subscription);
     }
 

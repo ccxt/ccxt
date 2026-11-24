@@ -1801,9 +1801,9 @@ public partial class hyperliquid : Exchange
         return ((string?)((object)(("0x" + (this.hash(message, keccak, "hex"))))));
     }
 
-    public virtual Dictionary<string, object> signHash(string? hash, object privateKey)
+    public virtual Dictionary<string, object> signHash(string? hash, string? privateKey)
     {
-        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : hash.Substring(Math.Max(hash.Length - 64, 0))), ((privateKey == null) ? null : ((string)privateKey).Substring(Math.Max(((string)privateKey).Length - 64, 0))), secp256k1, null);
+        Dictionary<string, object> signature = ecdsa(((hash == null) ? null : hash.Substring(Math.Max(hash.Length - 64, 0))), ((privateKey == null) ? null : privateKey.Substring(Math.Max(privateKey.Length - 64, 0))), secp256k1, null);
         return new Dictionary<string, object>() {
             { "r", ("0x" + this.safeString(signature, "r", "")) },
             { "s", ("0x" + this.safeString(signature, "s", "")) },

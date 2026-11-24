@@ -1409,7 +1409,7 @@ public partial class kraken : ccxt.kraken
         await this.loadMarkets();
         string? token = await this.authenticate();
         string subscriptionHash = "executions";
-        object messageHash = name;
+        string messageHash = name;
         string? symbolResolved = null;
         if ((symbol != null))
         {
