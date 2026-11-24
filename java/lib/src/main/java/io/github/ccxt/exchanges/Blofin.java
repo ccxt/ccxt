@@ -85,7 +85,7 @@ public class Blofin extends BlofinApi
                 put( "createStopOrder", false );
                 put( "createTakeProfitOrder", true );
                 put( "createTriggerOrder", true );
-                put( "editOrder", false );
+                put( "editOrder", true );
                 put( "fetchAccounts", false );
                 put( "fetchBalance", true );
                 put( "fetchBidsAsks", null );
@@ -2214,6 +2214,71 @@ public class Blofin extends BlofinApi
             List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+
+    }
+
+    /**
+     * @method
+     * @name blofin#editOrder
+     * @description edit a trade order
+     * @see https://docs.blofin.com/index.html#amend-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "instId", market.get("id") );
+            }};
+            String clientOrderId = this.safeString(parameters, "clientOrderId");
+            if (!java.util.Objects.equals(clientOrderId, null))
+            {
+                request.put("clientOrderId", clientOrderId);
+            } else
+            {
+                request.put("orderId", id);
+            }
+            if (!java.util.Objects.equals(amount, null))
+            {
+                request.put("newSize", this.amountToPrecision(symbol, amount));
+            }
+            if (!java.util.Objects.equals(price, null))
+            {
+                request.put("newPrice", this.priceToPrecision(symbol, price));
+            }
+            Map<String, Object> response = (this.privatePostTradeAmendOrder(this.extend(request, this.omit(parameters, "clientOrderId")))).join();
+            //
+            //     {
+            //         "code": "0",
+            //         "msg": "Order modified",
+            //         "data": {
+            //             "orderId": "6000004088576",
+            //             "clientOrderId": "",
+            //             "requestId": "",
+            //             "msg": "Order modified",
+            //             "code": "0",
+            //             "ts": "1795184228537"
+            //         }
+            //     }
+            //
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            return this.parseOrder(data, market);
+        }).thenApply(Order::new);
 
     }
 
