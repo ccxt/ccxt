@@ -8264,10 +8264,11 @@ export default class bybit extends Exchange {
         //     }
         //
         const feeRates: Dict = this.safeDict (response, 'result', {});
-        const fees: List = this.safeList (feeRates, 'list', []);
+        const fees = this.safeList (feeRates, 'list', []);
         const result: Dict = {};
         for (let i = 0; i < fees.length; i++) {
-            const fee = this.parseTradingFee (fees[i]);
+            const feeRow = this.safeDict (fees, i, {});
+            const fee = this.parseTradingFee (feeRow);
             const symbol = this.safeString (fee, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = fee;

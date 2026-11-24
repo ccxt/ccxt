@@ -4459,8 +4459,8 @@ export default class hashkey extends Exchange {
             const fee = this.safeDict (response, symbol);
             return fee as TradingFeeInterface;
         } else if (this.safeBool (market, 'swap', false)) {
-            response = await this.privateGetApiV1FuturesCommissionRate (this.extend ({ 'symbol': market['id'] }, params));
-            return this.parseTradingFee (response as Dict, market);
+            const swapResponse = await this.privateGetApiV1FuturesCommissionRate (this.extend ({ 'symbol': market['id'] }, params));
+            return this.parseTradingFee (swapResponse, market);
             //
             //     {
             //         "openMakerFee": "0.00025",

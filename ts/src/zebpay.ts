@@ -574,7 +574,8 @@ export default class zebpay extends Exchange {
         const fees = this.safeList (response, 'data', []);
         const result: Dict = {};
         for (let i = 0; i < fees.length; i++) {
-            const fee = this.parseTradingFee (fees[i]);
+            const feeRow = this.safeDict (fees, i, {});
+            const fee = this.parseTradingFee (feeRow);
             const symbol = this.safeString (fee, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = fee;
