@@ -1498,8 +1498,12 @@ func (this *Apex) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol 
 	//         ]
 	//     }
 	//
-	var tickers []any = SafeListTyped(response, "data")
-	var rawTicker map[string]any = SafeMapTyped(tickers, 0)
+	var tickers []any
+	tickers, _ = response["data"].([]any)
+	var rawTicker map[string]any
+	if 0 < len(tickers) {
+		rawTicker, _ = tickers[0].(map[string]any)
+	}
 	if rawTicker == nil {
 		panic(BadResponse(this.Id + " fetchFundingRate() returned no data for " + symbol))
 	}
@@ -1511,7 +1515,7 @@ func (this *Apex) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol 
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(rawTicker, market)}
 	return nil
 }
-func (this *Apex) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+func (this *Apex) ParseFundingRate(contract map[string]any, optionalArgs ...any) FundingRate {
 	//
 	//     {
 	//         "symbol": "BTCUSDT",
@@ -1683,7 +1687,11 @@ func (this *Apex) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingRa
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data []any = SafeListTypedDefault(response, "data", []any{})
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(data, unifiedSymbols))}
 	return nil

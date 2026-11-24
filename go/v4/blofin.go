@@ -52,7 +52,7 @@ func (this *Blofin) Describe() map[string]any {
 			"createStopOrder":                      false,
 			"createTakeProfitOrder":                true,
 			"createTriggerOrder":                   true,
-			"editOrder":                            false,
+			"editOrder":                            true,
 			"fetchAccounts":                        false,
 			"fetchBalance":                         true,
 			"fetchBidsAsks":                        nil,
@@ -89,7 +89,7 @@ func (this *Blofin) Describe() map[string]any {
 			"fetchLeverageTiers":                   false,
 			"fetchMarginMode":                      true,
 			"fetchMarginModes":                     false,
-			"fetchMarketLeverageTiers":             false,
+			"fetchMarketLeverageTiers":             true,
 			"fetchMarkets":                         true,
 			"fetchMarkOHLCV":                       false,
 			"fetchMySettlementHistory":             false,
@@ -2477,6 +2477,88 @@ func (this *Blofin) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[
 
 /**
  * @method
+ * @name blofin#editOrder
+ * @description edit a trade order
+ * @see https://docs.blofin.com/index.html#amend-order
+ * @param {string} id order id
+ * @param {string} symbol unified symbol of the market the order was made in
+ * @param {string} type 'market' or 'limit'
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+ * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Blofin) EditOrderAsync(id string, symbol string, typeVar string, side string, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
+	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
+	return ch
+}
+func (this *Blofin) editOrderBody(ch chan AsyncResult[Order], id string, symbol string, typeVar string, side string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
+	_ = amount
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
+	_ = price
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var market map[string]any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"instId": market["id"],
+	}
+	var clientOrderId *string = this.SafeString(params, "clientOrderId")
+	if clientOrderId != nil {
+		request["clientOrderId"] = clientOrderId
+	} else {
+		request["orderId"] = id
+	}
+	if amount != nil {
+		request["newSize"] = this.AmountToPrecision(symbol, amount)
+	}
+	if price != nil {
+		request["newPrice"] = this.PriceToPrecision(symbol, price)
+	}
+
+	r1 := <-this.PrivatePostTradeAmendOrder(this.Extend(request, this.Omit(params, "clientOrderId")))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
+	//
+	//     {
+	//         "code": "0",
+	//         "msg": "Order modified",
+	//         "data": {
+	//             "orderId": "6000004088576",
+	//             "clientOrderId": "",
+	//             "requestId": "",
+	//             "msg": "Order modified",
+	//             "code": "0",
+	//             "ts": "1795184228537"
+	//         }
+	//     }
+	//
+	var data map[string]any
+	data, _ = response["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
+
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
+	return nil
+}
+
+/**
+ * @method
  * @name blofin#fetchOrder
  * @description fetches information on an order made by the user
  * @see https://docs.blofin.com/index.html#get-order-detail
@@ -2594,11 +2676,11 @@ func (this *Blofin) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes188519 []any = r1.Value
-		if retRes188519 == nil {
+		var retRes193919 []any = r1.Value
+		if retRes193919 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes188519)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes193919)}
 		}
 		return nil
 	}
@@ -2694,11 +2776,11 @@ func (this *Blofin) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes193519 []any = r1.Value
-		if retRes193519 == nil {
+		var retRes198919 []any = r1.Value
+		if retRes198919 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes193519)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes198919)}
 		}
 		return nil
 	}
@@ -2808,11 +2890,11 @@ func (this *Blofin) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes200419 []any = r1.Value
-		if retRes200419 == nil {
+		var retRes205819 []any = r1.Value
+		if retRes205819 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes200419)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes205819)}
 		}
 		return nil
 	}
@@ -2888,11 +2970,11 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes204419 []any = r1.Value
-		if retRes204419 == nil {
+		var retRes209819 []any = r1.Value
+		if retRes209819 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes204419)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes209819)}
 		}
 		return nil
 	}
@@ -3606,11 +3688,11 @@ func (this *Blofin) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes255619 []any = r1.Value
-		if retRes255619 == nil {
+		var retRes261019 []any = r1.Value
+		if retRes261019 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes255619)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes261019)}
 		}
 		return nil
 	}
@@ -3712,7 +3794,7 @@ func (this *Blofin) ParseTransaction(transaction map[string]any, optionalArgs ..
 	var feeCurrencyId *string = this.SafeString(transaction, "feeCurrency")
 	var feeCode *string = this.SafeCurrencyCode(feeCurrencyId)
 	var feeCost *float64 = this.SafeNumber(transaction, "fee")
-	var literal264515 map[string]any = map[string]any{
+	var literal269915 map[string]any = map[string]any{
 		"info":        transaction,
 		"id":          nil,
 		"currency":    code,
@@ -3738,12 +3820,12 @@ func (this *Blofin) ParseTransaction(transaction map[string]any, optionalArgs ..
 		},
 	}
 	if id != nil {
-		literal264515["id"] = *id
+		literal269915["id"] = *id
 	}
 	if status != nil {
-		literal264515["status"] = *status
+		literal269915["status"] = *status
 	}
-	return TransactionFromMap(literal264515)
+	return TransactionFromMap(literal269915)
 }
 func (this *Blofin) ParseTransactionWithdrawalStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -4378,6 +4460,91 @@ func (this *Blofin) ParsePosition(position map[string]any, optionalArgs ...any) 
 
 /**
  * @method
+ * @name blofin#fetchMarketLeverageTiers
+ * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+ * @see https://docs.blofin.com/index.html#get-position-tiers
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
+ * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+ */
+func (this *Blofin) FetchMarketLeverageTiersAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]LeverageTier] {
+	ch := make(chan AsyncResult[[]LeverageTier], 1)
+	go this.fetchMarketLeverageTiersBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Blofin) fetchMarketLeverageTiersBody(ch chan AsyncResult[[]LeverageTier], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var market map[string]any = this.Market(symbol)
+	marginMode, query := this.HandleMarginModeAndParams("fetchMarketLeverageTiers", params, "cross")
+	var request map[string]any = map[string]any{
+		"instId":     market["id"],
+		"marginMode": marginMode,
+	}
+
+	r1 := <-this.PublicGetMarketPositionTiers(this.Extend(request, query))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
+	//
+	//     {
+	//         "code": "0",
+	//         "msg": "success",
+	//         "data": [
+	//             {
+	//                 "symbol": "LTC-USDT",
+	//                 "marginMode": "cross",
+	//                 "minSize": "0",
+	//                 "maxSize": "500",
+	//                 "maintenanceMarginRate": "0.0065",
+	//                 "maxLeverage": "50"
+	//             }
+	//         ]
+	//     }
+	//
+	var data []any
+	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
+
+	ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(this.ParseMarketLeverageTiers(data, market))}
+	return nil
+}
+func (this *Blofin) ParseMarketLeverageTiers(info any, optionalArgs ...any) []any {
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = market
+	var tiers []any = []any{}
+	for i := 0; i < GetArrayLength(info); i++ {
+		var tier map[string]any = SafeMapTyped(info, i)
+		var marketId *string = this.SafeString(tier, "symbol")
+		tiers = append(tiers, map[string]any{
+			"tier":                  this.Sum(i, 1),
+			"symbol":                this.SafeSymbol(marketId, market),
+			"currency":              this.SafeString(market, "quote"),
+			"minNotional":           this.SafeNumber(tier, "minSize"),
+			"maxNotional":           this.SafeNumber(tier, "maxSize"),
+			"maintenanceMarginRate": this.SafeNumber(tier, "maintenanceMarginRate"),
+			"maxLeverage":           this.SafeNumber(tier, "maxLeverage"),
+			"info":                  tier,
+		})
+	}
+	return tiers
+}
+
+/**
+ * @method
  * @name blofin#fetchLeverages
  * @description fetch the set leverage for all contract markets
  * @see https://docs.blofin.com/index.html#get-multiple-leverage
@@ -4702,11 +4869,11 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes333819 []any = r1.Value
-		if retRes333819 == nil {
+		var retRes345219 []any = r1.Value
+		if retRes345219 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes333819)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes345219)}
 		}
 		return nil
 	}
@@ -4946,12 +5113,12 @@ func (this *Blofin) setPositionModeBody(ch chan AsyncResult[map[string]any], hed
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var ternaryStr347828 string = "net_mode"
+	var ternaryStr359228 string = "net_mode"
 	if hedged {
-		ternaryStr347828 = "long_short_mode"
+		ternaryStr359228 = "long_short_mode"
 	}
 	var request map[string]any = map[string]any{
-		"positionMode": ternaryStr347828,
+		"positionMode": ternaryStr359228,
 	}
 
 	//
@@ -5540,6 +5707,36 @@ func (this *Blofin) CreateOrders(orders []OrderRequest, options ...CreateOrdersO
 
 /**
  * @method
+ * @name blofin#editOrder
+ * @description edit a trade order
+ * @see https://docs.blofin.com/index.html#amend-order
+ * @param {string} id order id
+ * @param {string} symbol unified symbol of the market the order was made in
+ * @param {string} type 'market' or 'limit'
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+ * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Blofin) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
+
+	opts := EditOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.EditOrderAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
+	}
+	var res Order = r.Value
+	return res, nil
+}
+
+/**
+ * @method
  * @name blofin#fetchOrder
  * @description fetches information on an order made by the user
  * @see https://docs.blofin.com/index.html#get-order-detail
@@ -5990,6 +6187,31 @@ func (this *Blofin) FetchPositionsHistory(options ...FetchPositionsHistoryOption
 		return nil, r.Err
 	}
 	var res []Position = r.Value
+	return res, nil
+}
+
+/**
+ * @method
+ * @name blofin#fetchMarketLeverageTiers
+ * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+ * @see https://docs.blofin.com/index.html#get-position-tiers
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
+ * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+ */
+func (this *Blofin) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
+
+	opts := FetchMarketLeverageTiersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.FetchMarketLeverageTiersAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	var res []LeverageTier = r.Value
 	return res, nil
 }
 
