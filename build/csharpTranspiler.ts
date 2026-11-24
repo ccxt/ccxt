@@ -4050,8 +4050,10 @@ class NewTranspiler {
         }
         const lines = content.split ('\n');
         const sigRe = /^(\s*)(?:public|private|protected|internal)\s+(?:static\s+)?(?:async\s+)?(?:virtual\s+|override\s+|sealed\s+|new\s+)*([\w<>., ?\[\]]+)\s+(\w+)\s*\((.*)\)\s*$/;
+        // a generic method (`subscribe<T>(..)`, the ws subscribe helpers) has the same body shape
+        const genericSigRe = /^(\s*)(?:public|private|protected|internal)\s+(?:static\s+)?(?:async\s+)?(?:virtual\s+|override\s+|sealed\s+|new\s+)*([\w<>., ?\[\]]+)\s+(\w+)<T>\s*\((.*)\)\s*$/;
         for (let i = 0; i < lines.length; i++) {
-            const sig = sigRe.exec (lines[i]);
+            const sig = sigRe.exec (lines[i]) ?? genericSigRe.exec (lines[i]);
             if (sig === null || lines[i + 1] !== sig[1] + '{') {
                 continue; // only a method with its body block on the next line
             }
@@ -4103,6 +4105,11 @@ class NewTranspiler {
                 }
                 if (this.identifierCopyIsProvable (bodyLines, alias, type, returnType, k, declared)) {
                     bodyLines[k] = dindent + type + ' ' + alias + ' = ' + source + ';';
+                    // the boxed null-guarded concat write is a `string` once the copy is typed
+                    const boxed = new RegExp ('^(\\s*)' + alias + ' = \\(\\(object\\)\\((' + alias + ' == null \\? null : ' + alias + ' \\+ .*)\\)\\);(\\s*//.*)?$');
+                    for (let w = 0; w < bodyLines.length; w++) {
+                        bodyLines[w] = bodyLines[w].replace (boxed, (_m, wi, e, c) => wi + alias + ' = (' + e + ');' + (c ?? ''));
+                    }
                     changed = true;
                 }
             }
@@ -4182,6 +4189,11 @@ class NewTranspiler {
         if (/(?:ref|out)\s+$/.test (pre)) {
             return '';
         }
+        // every occurrence on `alias = ((object)(alias == null ? null : alias + x));`: the write and its guarded reads
+        const lead = /^\s*(\w+)/.exec (line);
+        if (bare === 'string' && lead !== null && lead[1] === alias && this.identifierCopyBoxedConcatWrite (line.slice (lead[0].length), alias)) {
+            return (pre.trim () === '') ? 'write' : 'read';
+        }
         if (pre.trim () === '') {
             const m = /^\s*(?:\?\?=|=)\s*(.*?);?\s*$/.exec (post);
             if (m !== null && this.identifierCopyRhsIsTyped (m[1].trim (), targetType, declared)) {
@@ -4256,6 +4268,22 @@ class NewTranspiler {
         }
         return operands.some ((operand) => /^"(?:[^"\\]|\\.)*"$/.test (operand)
             || (operand.startsWith ('(') && this.identifierCopyStringConcatIsTyped (operand)));
+    }
+
+    // `= ((object)(alias == null ? null : alias + <operand>));`: the printer's null-guarded concat,
+    // boxed only because the copy was `object`; `<operand>` is one balanced group, a literal or a word.
+    identifierCopyBoxedConcatWrite (post: string, alias: string): boolean {
+        const m = /^\s*=\s*\(\(object\)\((\w+) == null \? null : (\w+) \+ (.*)\)\);(?:\s*\/\/.*)?\s*$/.exec (post);
+        if (m === null || m[1] !== alias || m[2] !== alias) {
+            return false;
+        }
+        const operand = m[3].trim ();
+        if (/^"(?:[^"\\]|\\.)*"$/.test (operand) || /^\w+$/.test (operand)) {
+            return true;
+        }
+        const cast = /^\(string\)\(object\)(\(.*\))$/.exec (operand);
+        const group = cast === null ? operand : cast[1];
+        return group.startsWith ('(') && this.identifierCopyGroupEnd (group, 0) === group.length - 1;
     }
 
     // index of the `)` closing the `(` at `open` (string literals skipped), or -1
