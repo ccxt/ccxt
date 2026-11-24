@@ -215,7 +215,8 @@ export default class lbank extends lbankRest {
             'topic': 'ohlcv',
             'symbolsAndTimeframes': [ [ market['symbol'], timeframe ] ],
         };
-        return await this.unSubscribe ('ohlcv:' + market['symbol'] + ':' + timeframeId, request, subscription, params);
+        const symbolValue: string = this.safeString (market, 'symbol', '');
+        return await this.unSubscribe ('ohlcv:' + symbolValue + ':' + timeframeId, request, subscription, params);
     }
 
     handleOHLCV (client: Client, message: Dict) {
@@ -544,7 +545,8 @@ export default class lbank extends lbankRest {
             'topic': 'trades',
             'symbols': [ market['symbol'] ],
         };
-        return await this.unSubscribe ('trades:' + market['symbol'], request, subscription, params);
+        const symbolValue: string = this.safeString (market, 'symbol', '');
+        return await this.unSubscribe ('trades:' + symbolValue, request, subscription, params);
     }
 
     handleTrades (client: Client, message: Dict) {
