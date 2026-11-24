@@ -15570,6 +15570,8 @@ export function installCsharpLocalTypes (transpiler) {
         return 'IList<object>';
     };
     installTypedDictElementAccess (csharp);
+    // slot 1 of a `handle*AndParams` destructuring that retypeElement1Params prints IDictionary
+    csharp.csharpDestructuredDictSlotType = (element) => (element1ParamsBinding (csharp, element) ? CSHARP_ELEMENT_1_TYPE : undefined);
     // the printer's guarded `-x` hook asks for the declaration's FINAL type (this module retypes
     // `object x = this.safeNumber(..)` to `double? x` after printing), so `(x = -x)` matches the retype
     csharp.csharpFinalDeclaredLocalType = (declaration) => referenceDeclaredType (csharp, declaration);
