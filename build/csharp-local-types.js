@@ -18610,6 +18610,8 @@ CORE_LIST_ARGS['parseLedger'] = Object.assign ({}, CORE_LIST_ARGS['parseLedger']
 CORE_LIST_ARGS['parsePositions'] = Object.assign ({}, CORE_LIST_ARGS['parsePositions'] ?? {}, { 0: 'IList<object>' });
 // base parseTransactions: the declared `List` first parameter; every caller passes a list (ndax via toArray)
 CORE_LIST_ARGS['parseTransactions'] = Object.assign ({}, CORE_LIST_ARGS['parseTransactions'] ?? {}, { 0: 'IList<object>' });
+// base parseWsTrades: every caller passes a list (toobit List<object>, hitbtc via safeList); hitbtc override only
+CORE_LIST_ARGS['parseWsTrades'] = Object.assign ({}, CORE_LIST_ARGS['parseWsTrades'] ?? {}, { 0: 'IList<object>' });
 
 // ===== native Math.Min / Math.Max on a guarded nullable integer parameter =====
 //
