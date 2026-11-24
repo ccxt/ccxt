@@ -1740,6 +1740,8 @@ const VENUE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
     // phemex: every caller passes a safeInteger / Int64? valueScale
     'toEn': { 1: 'Int64?' },
     'tokenizedConvertHistory': { 0: 'Int64?', 1: 'Int64?' },
+    // hitbtc / dydx / poloniex: since, limit are declared Int and every caller passes its own Int64? since / limit
+    'FetchTransactionsHelper': { 1: 'Int64?', 2: 'Int64?', 3: 'Int64?' },
 };
 
 // Shadow-local uses that stay identities when the shadow takes the parameter's own type (same box,
