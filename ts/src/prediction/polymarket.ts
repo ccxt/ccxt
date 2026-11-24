@@ -2698,7 +2698,7 @@ export default class polymarket extends Exchange {
     parseEvents (rawEvents: any[]): Dict[] {
         const result: Dict[] = [];
         for (let i = 0; i < rawEvents.length; i++) {
-            result.push (this.parseEvent (this.safeDict (rawEvents, i, {})));
+            result.push (this.parseEvent (this.extend ({}, rawEvents[i])));
         }
         return result;
     }

@@ -3073,7 +3073,7 @@ export default class myriad extends Exchange {
         const result: any[] = [];
         const rawQuestionsLength = rawQuestions.length;
         for (let i = 0; i < rawQuestionsLength; i++) {
-            const ev = this.parseEvent (this.safeDict (rawQuestions, i, {}));
+            const ev = this.parseEvent (this.extend ({}, rawQuestions[i]));
             const evMarkets = this.safeList (ev, 'markets', []);
             const evMarketsLength = evMarkets.length;
             const filteredMarkets: any[] = [];
