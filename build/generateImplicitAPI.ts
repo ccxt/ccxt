@@ -1026,8 +1026,10 @@ function goEndpointBody (method: string, resolvable: any, callEndpoint: string, 
     const api = `[]string{${paths.map (x => JSON.stringify (x)).join (', ')}}`
     const call = `${JSON.stringify (resolvable.endpoint)}, ${api}, ${JSON.stringify (resolvable.method)}, ${pkgPrefix}GetArg(args, 0, nil), map[string]any{"cost": float64(${resolvable.goCost})}`
     // dispatch through RequestAsync (like this.request in ts) so a venue's request () override runs
-    const requestCall = `this.RequestAsync(${call})`
-    return (element === 'any') ? `\treturn ${requestCall}` : `\treturn ${pkgPrefix}EndpointTyped[${element}](${requestCall})`
+    if (element === 'any') {
+        return `\treturn this.RequestAsync(${call})`
+    }
+    return `\treturn ${pkgPrefix}EndpointTyped[${element}](this.RequestAsync(${call}))`
 }
 
 function createImplicitMethodsGo(){
