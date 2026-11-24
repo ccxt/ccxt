@@ -10690,7 +10690,7 @@ class binance extends Exchange {
         );
     }
 
-    public function fetch_transaction_fees(?array $codes = null, $params = array()) {
+    public function fetch_transaction_fees(?array $codes = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_transaction_fees(...))($codes, $params);
     }
 
@@ -11588,16 +11588,19 @@ class binance extends Exchange {
             $position = $positions[$i];
             $marketId = $this->safe_string($position, 'symbol');
             $market = $this->safe_market($marketId, null, null, 'contract');
-            $code = ($this->safe_bool($market, 'linear', false)) ? $market['quote'] : $market['base'];
+            $marginCode = $this->safe_string($market, 'base', '');
+            if ($this->safe_bool($market, 'linear', false)) {
+                $marginCode = $this->safe_string($market, 'quote', '');
+            }
             $maintenanceMargin = $this->safe_string($position, 'maintMargin');
             // check for maintenance margin so empty positions are not returned
             $isPositionOpen = ($maintenanceMargin !== '0') && ($maintenanceMargin !== '0.00000000');
             if (!$filterClosed || $isPositionOpen) {
                 // sometimes not all the codes are correctly returned...
-                if (is_array($balances) && array_key_exists($code ?? '', $balances)) {
+                if (is_array($balances) && array_key_exists($marginCode ?? '', $balances)) {
                     $parsed = $this->parse_account_position($this->extend($position, array(
-                        'crossMargin' => $this->safe_string($balances[$code], 'crossMargin'),
-                        'crossWalletBalance' => $this->safe_string($balances[$code], 'crossWalletBalance'),
+                        'crossMargin' => $this->safe_string($balances[$marginCode], 'crossMargin'),
+                        'crossWalletBalance' => $this->safe_string($balances[$marginCode], 'crossWalletBalance'),
                     )), $market);
                     $result[] = $parsed;
                 }
@@ -13190,7 +13193,10 @@ class binance extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $market = ($symbol === null) ? null : $this->market($symbol);
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchSettlementHistory', $market, $params);
         if ($type !== 'option') {
             throw new NotSupported($this->id . ' fetchSettlementHistory() supports option markets only');
@@ -13242,7 +13248,10 @@ class binance extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $market = ($symbol === null) ? null : $this->market($symbol);
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchMySettlementHistory', $market, $params);
         if ($type !== 'option') {
             throw new NotSupported($this->id . ' fetchMySettlementHistory() supports option markets only');

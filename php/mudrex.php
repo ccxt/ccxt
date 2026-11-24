@@ -959,8 +959,7 @@ class mudrex extends Exchange {
         } else {
             $response = $this->privateGetFuturesOrders($request);
         }
-        $data = $this->safe_value($response, 'data', array());
-        $rows = $this->to_array($data);
+        $rows = $this->safe_list($response, 'data', array());
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -1033,11 +1032,7 @@ class mudrex extends Exchange {
         }
         $q = array();
         $response = $this->privateGetFuturesPositions($this->extend($q, $params));
-        $data = $this->safe_value($response, 'data', array());
-        if ($data === null) {
-            return array();
-        }
-        $rows = $this->to_array($data);
+        $rows = $this->safe_list($response, 'data', array());
         $outPos = array();
         for ($i = 0; $i < count($rows); $i++) {
             $symRaw = $this->safe_string($rows[$i], 'symbol');

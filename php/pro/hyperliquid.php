@@ -1383,7 +1383,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
             $this->handle_positions($client, $message);
         }
         for ($i = 0; $i < count($rawBalances); $i++) {
-            $this->parse_ws_balance($rawBalances[$i], $account);
+            $this->parse_ws_balance($this->safe_dict($rawBalances, $i, array()), $account);
         }
         if (!(is_array($this->balance) && array_key_exists($account ?? '', $this->balance))) {
             $this->balance[$account] = array();

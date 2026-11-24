@@ -788,7 +788,7 @@ class modetrade extends Exchange {
         ));
     }
 
-    public function parse_token_and_fee_temp(array $item, string $feeTokenKey, string $feeAmountKey) {
+    public function parse_token_and_fee_temp(array $item, string $feeTokenKey, string $feeAmountKey): ?array {
         $feeCost = $this->safe_string($item, $feeAmountKey);
         $fee = null;
         if ($feeCost !== null) {

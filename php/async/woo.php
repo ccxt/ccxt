@@ -985,7 +985,7 @@ class woo extends Exchange {
         ), $marketResolved);
     }
 
-    public function parse_token_and_fee_temp(array $item, array $feeTokenKeys, array $feeAmountKeys) {
+    public function parse_token_and_fee_temp(array $item, array $feeTokenKeys, array $feeAmountKeys): ?array {
         $feeCost = $this->safe_string_n($item, $feeAmountKeys);
         $fee = null;
         if ($feeCost !== null) {

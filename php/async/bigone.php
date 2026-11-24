@@ -628,7 +628,7 @@ class bigone extends Exchange {
         $promises = array( $this->publicGetAssetPairs($params), $this->contractPublicGetSymbols($params) );
         $promisesResult = Async\await(Promise\all($promises));
         $response = $this->safe_dict($promisesResult, 0);
-        $contractResponse = $this->safe_value($promisesResult, 1);
+        $contractMarkets = $this->safe_list($promisesResult, 1, array());
         //
         //     {
         //         "code":0,
@@ -745,7 +745,6 @@ class bigone extends Exchange {
                 'info' => $market,
             ));
         }
-        $contractMarkets = $this->to_array($contractResponse);
         for ($i = 0; $i < count($contractMarkets); $i++) {
             $market = $contractMarkets[$i];
             $baseId = $this->safe_string($market, 'baseCurrency');

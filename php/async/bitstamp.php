@@ -1618,7 +1618,7 @@ class bitstamp extends Exchange {
         return $this->parse_trading_fees($response);
     }
 
-    public function fetch_transaction_fees(?array $codes = null, $params = array()) {
+    public function fetch_transaction_fees(?array $codes = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_transaction_fees(...))($codes, $params);
     }
 

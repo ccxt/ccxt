@@ -3544,11 +3544,8 @@ class cryptocom extends Exchange {
     public function params_to_string(mixed $object, float $level): string {
         $maxLevel = 3;
         $depth = $this->parse_to_int($level);
-        if ($depth >= $maxLevel) {
+        if (($depth >= $maxLevel) || (gettype($object) === 'string')) {
             return (string) $object;
-        }
-        if (gettype($object) === 'string') {
-            return $object;
         }
         $returnString = '';
         $paramsKeys = null;

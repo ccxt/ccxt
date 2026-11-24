@@ -2497,7 +2497,7 @@ class bybit extends \ccxt\async\bybit {
             $info = $this->safe_list($message, 'data', array());
         }
         for ($i = 0; $i < count($rawBalances); $i++) {
-            $this->parse_ws_balance($rawBalances[$i], $account);
+            $this->parse_ws_balance($this->safe_dict($rawBalances, $i, array()), $account);
         }
         if ($account !== null) {
             if ($this->safe_dict($this->balance, $account) === null) {

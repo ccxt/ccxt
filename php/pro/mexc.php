@@ -745,7 +745,7 @@ class mexc extends \ccxt\async\mexc {
             $market = $this->safe_market($this->symbol($this->safe_string($message, 'symbol')));
             $data = $this->safe_dict($message, 'publicSpotKline', array());
             $timeframeId = $this->safe_string($data, 'interval');
-            $timeframe = $this->find_timeframe($timeframeId, $this->options['timeframes']);
+            $timeframe = $this->find_timeframe($timeframeId, $this->safe_dict($this->options, 'timeframes'));
             $parsed = $this->parse_ws_ohlcv($data, $market);
         } else {
             $d = $this->safe_dict_2($message, 'd', 'data', array());
