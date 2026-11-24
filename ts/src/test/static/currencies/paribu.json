@@ -1,0 +1,423 @@
+{
+    "BTC": {
+        "info": {
+            "color": "f7931a",
+            "deposit_limits": {
+                "min_amount": "0"
+            },
+            "hide_if_void": false,
+            "icon": "btc-wo8KSCg7jl.png",
+            "labels": [
+                "crypto"
+            ],
+            "listing_date": "2017-02-14T00:00:00Z",
+            "name": "Bitcoin",
+            "networks": [
+                "btc"
+            ],
+            "precision": 8,
+            "step": "0.00000001",
+            "symbol": "btc",
+            "type": "crypto",
+            "withdraw_limits": {
+                "max_daily": "0",
+                "max_monthly": "0",
+                "max_once": "2",
+                "min_once": "0.00006"
+            },
+            "fees": {
+                "btc": [
+                    {
+                        "btc": "0.00005"
+                    }
+                ]
+            }
+        },
+        "id": "btc",
+        "numericId": null,
+        "code": "BTC",
+        "precision": 1e-08,
+        "type": "crypto",
+        "name": "Bitcoin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 5e-05,
+        "fees": {},
+        "networks": {
+            "BTC": {
+                "info": {
+                    "btc": "0.00005"
+                },
+                "id": "btc",
+                "network": "BTC",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 5e-05,
+                "precision": 1e-08,
+                "limits": {
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 6e-05,
+                        "max": 2
+                    }
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": 0,
+                "max": null
+            },
+            "withdraw": {
+                "min": 6e-05,
+                "max": 2
+            }
+        }
+    },
+    "ETH": {
+        "info": {
+            "color": "8094F9",
+            "deposit_limits": {
+                "min_amount": "0"
+            },
+            "hide_if_void": false,
+            "icon": "eth-SRK7jtbsdk.png",
+            "labels": [
+                "crypto"
+            ],
+            "listing_date": "2018-10-17T00:00:00Z",
+            "name": "Ethereum",
+            "networks": [
+                "eth"
+            ],
+            "precision": 8,
+            "step": "0.00000001",
+            "symbol": "eth",
+            "type": "crypto",
+            "withdraw_limits": {
+                "max_daily": "0",
+                "max_monthly": "0",
+                "max_once": "23",
+                "min_once": "0.0002"
+            },
+            "fees": {
+                "eth": [
+                    {
+                        "eth": "0.0001"
+                    }
+                ]
+            }
+        },
+        "id": "eth",
+        "numericId": null,
+        "code": "ETH",
+        "precision": 1e-08,
+        "type": "crypto",
+        "name": "Ethereum",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.0001,
+        "fees": {},
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "eth": "0.0001"
+                },
+                "id": "eth",
+                "network": "ERC20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.0001,
+                "precision": 1e-08,
+                "limits": {
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 0.0002,
+                        "max": 23
+                    }
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": 0,
+                "max": null
+            },
+            "withdraw": {
+                "min": 0.0002,
+                "max": 23
+            }
+        }
+    },
+    "USDT": {
+        "info": {
+            "color": "00ADAD",
+            "deposit_limits": {
+                "min_amount": "0"
+            },
+            "hide_if_void": false,
+            "icon": "usdt-SHRkIpqt59.png",
+            "labels": [
+                "stable",
+                "crypto"
+            ],
+            "listing_date": "2019-01-29T00:00:00Z",
+            "name": "Tether",
+            "networks": [
+                "arb",
+                "eth",
+                "trx",
+                "sol"
+            ],
+            "precision": 2,
+            "step": "0.01",
+            "symbol": "usdt",
+            "type": "crypto",
+            "withdraw_limits": {
+                "max_daily": "0",
+                "max_monthly": "0",
+                "max_once": "150000",
+                "min_once": "2"
+            },
+            "fees": {
+                "arb": [
+                    {
+                        "usdt": "0.25"
+                    }
+                ],
+                "eth": [
+                    {
+                        "usdt": "1.5"
+                    }
+                ],
+                "sol": [
+                    {
+                        "usdt": "0.5"
+                    }
+                ],
+                "trx": [
+                    {
+                        "usdt": "5"
+                    }
+                ]
+            }
+        },
+        "id": "usdt",
+        "numericId": null,
+        "code": "USDT",
+        "precision": 0.01,
+        "type": "crypto",
+        "name": "Tether",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.25,
+        "fees": {},
+        "networks": {
+            "ARBITRUM": {
+                "info": {
+                    "usdt": "0.25"
+                },
+                "id": "arb",
+                "network": "ARBITRUM",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.25,
+                "precision": 0.01,
+                "limits": {
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 2,
+                        "max": 150000
+                    }
+                }
+            },
+            "ERC20": {
+                "info": {
+                    "usdt": "1.5"
+                },
+                "id": "eth",
+                "network": "ERC20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 1.5,
+                "precision": 0.01,
+                "limits": {
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 2,
+                        "max": 150000
+                    }
+                }
+            },
+            "TRC20": {
+                "info": {
+                    "usdt": "5"
+                },
+                "id": "trx",
+                "network": "TRC20",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 5,
+                "precision": 0.01,
+                "limits": {
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 2,
+                        "max": 150000
+                    }
+                }
+            },
+            "SOL": {
+                "info": {
+                    "usdt": "0.5"
+                },
+                "id": "sol",
+                "network": "SOL",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0.5,
+                "precision": 0.01,
+                "limits": {
+                    "deposit": {
+                        "min": 0,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 2,
+                        "max": 150000
+                    }
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": 0,
+                "max": null
+            },
+            "withdraw": {
+                "min": 2,
+                "max": 150000
+            }
+        }
+    },
+    "TRY": {
+        "info": {
+            "color": "7D89A1",
+            "deposit_limits": {
+                "min_amount": "5"
+            },
+            "hide_if_void": false,
+            "icon": "tl-PsIukb097H.png",
+            "labels": [
+                "fiat"
+            ],
+            "listing_date": "2026-02-06T00:00:00Z",
+            "name": "Türk Lirası",
+            "networks": [
+                "banktr"
+            ],
+            "precision": 2,
+            "step": "0.01",
+            "symbol": "tl",
+            "type": "fiat",
+            "withdraw_limits": {
+                "max_daily": "15000000",
+                "max_monthly": "150000000",
+                "max_once": "5000000",
+                "min_once": "10"
+            },
+            "fees": {
+                "banktr": [
+                    {
+                        "tl": "0"
+                    }
+                ]
+            }
+        },
+        "id": "tl",
+        "numericId": null,
+        "code": "TRY",
+        "precision": 0.01,
+        "type": "fiat",
+        "name": "Türk Lirası",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0,
+        "fees": {},
+        "networks": {
+            "BANKTR": {
+                "info": {
+                    "tl": "0"
+                },
+                "id": "banktr",
+                "network": "BANKTR",
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "fee": 0,
+                "precision": 0.01,
+                "limits": {
+                    "deposit": {
+                        "min": 5,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": 10,
+                        "max": 5000000
+                    }
+                }
+            }
+        },
+        "limits": {
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "deposit": {
+                "min": 5,
+                "max": null
+            },
+            "withdraw": {
+                "min": 10,
+                "max": 5000000
+            }
+        }
+    }
+}
