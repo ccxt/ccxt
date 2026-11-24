@@ -777,7 +777,7 @@ export default class kalshi extends Exchange {
         //         }
         //     }
         //
-        const raw = this.safeDict (response, 'market', response);
+        const raw = this.extend ({}, this.safeDict (response, 'market', response));
         return this.parsePredictionTicker (raw, outcomeObj as any);
     }
 
@@ -1038,7 +1038,7 @@ export default class kalshi extends Exchange {
             const response = await this.kalshiPublicGetMarkets (this.extend (request, params));
             const rawMarkets: Dict[] = this.safeList (response, 'markets', []);
             for (let i = 0; i < rawMarkets.length; i++) {
-                const raw = rawMarkets[i];
+                const raw = this.safeDict (rawMarkets, i, {});
                 const marketTicker = this.safeString (raw, 'ticker');
                 if ((marketTicker === undefined) || !(marketTicker in outcomesByTicker)) {
                     continue;
