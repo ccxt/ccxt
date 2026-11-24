@@ -12518,6 +12518,7 @@ function overwriteFileAndFolder (path: string, content: string) {
     content = path.endsWith ('.go') ? goTypedEndpointNilLocals (content) : content;
     content = path.endsWith ('.go') ? goTypedEndpointRawLocals (content) : content;
     content = path.endsWith ('.go') ? goLateNativeInOp (content) : content;  // receivers typed by the three passes above
+    content = path.endsWith ('.go') ? goLateTypedMapRowReads (content) : content;  // SafeMapTyped on a map local the passes above typed
     content = path.endsWith ('.go') ? goNativeKeysAndRemove (content) : content;  // ObjectKeys of the late-typed map locals
     content = path.endsWith ('.go') ? goTypedLenNative (content) : content;  // list locals typed only by the late passes
     // gofmt's block/blank/table layout, once, on the text every pass above has finished
@@ -12764,6 +12765,36 @@ function goTypedNilFoldLocalsCheck (ok: SelfTestOk): void {
     ok (out.includes ('\tvar b []any = OrdersToList(r1.Value)\n'), 'ToList fold typed: ' + out);
     ok (out.includes ('\tvar c any = nil\n'), 'untabled fold kept: ' + out);
     ok (out.includes ('\tvar d any = nil\n'), 'fold handed on as a value kept: ' + out);
+}
+
+// `var x map[string]any = SafeMapTyped(m, k)` with `m` one map[string]any declaration and a literal or string key: the
+// comma-ok read answers the same nil for a missing key, a nil / "" member and a non-map member
+function goLateTypedMapRowReads (content: string): string {
+    return goRewriteEachFunc (content, /\bSafeMapTyped\(/.test (content), (lines: string[], masked: string[], start: number, end: number) => {
+        const maskedFunc = masked.slice (start, end + 1).join ('\n');
+        for (let k = start + 1; k < end; k++) {
+            const m = /^(\t+)var (\w+) map\[string\]any = (?:ccxt\.)?SafeMapTyped\((\w+), (\w+|"[^"\\\n]*")\)((?: \/\/[^\n]*)?)$/.exec (lines[k]);
+            if ((m === null) || (m[2] === m[3])) {
+                continue;
+            }
+            const decl = goAccessSingleDeclaration (maskedFunc, lines[start], m[3]);
+            const key = m[4].startsWith ('"') ? undefined : goAccessSingleDeclaration (maskedFunc, lines[start], m[4]);
+            if ((decl?.type !== 'map[string]any') || (!m[4].startsWith ('"') && (key?.type !== 'string'))) {
+                continue;
+            }
+            lines[k] = m[1] + 'var ' + m[2] + ', _ = ' + m[3] + '[' + m[4] + '].(map[string]any)' + m[5];
+        }
+    });
+}
+
+function goLateTypedMapRowReadsCheck (ok: SelfTestOk): void {
+    const f = (sig: string, body: string) => goLateTypedMapRowReads ('func (this *X) f(' + sig + ') any {\n' + body + '\treturn nil\n}\n');
+    ok (f ('p any', '\tvar r map[string]any = nil\n\tr = p.(map[string]any)\n\tvar d map[string]any = SafeMapTyped(r, "data")\n').includes ('\tvar d, _ = r["data"].(map[string]any)\n'), 'typed map local, literal key');
+    ok (f ('r map[string]any, s string', '\tvar d map[string]any = ccxt.SafeMapTyped(r, s)\n').includes ('\tvar d, _ = r[s].(map[string]any)\n'), 'typed map param, string key');
+    ok (f ('r any', '\tvar d map[string]any = SafeMapTyped(r, "data")\n').includes ('SafeMapTyped(r, "data")'), 'boxed receiver keeps the wrap');
+    ok (f ('r map[string]any, s *string', '\tvar d map[string]any = SafeMapTyped(r, s)\n').includes ('SafeMapTyped(r, s)'), 'pointer key keeps the wrap');
+    ok (f ('r []any', '\tvar d map[string]any = SafeMapTyped(r, 0)\n').includes ('SafeMapTyped(r, 0)'), 'list receiver keeps the wrap');
+    ok (f ('p any', '\tvar r map[string]any = nil\n\tif p != nil {\n\t\tr := map[string]any{}\n\t\tthis.U(r)\n\t}\n\tvar d map[string]any = SafeMapTyped(r, "data")\n').includes ('SafeMapTyped(r, "data")'), 'shadowed receiver keeps the wrap');
 }
 
 function goLateNativeInOpCheck (ok: SelfTestOk): void {
@@ -16266,6 +16297,7 @@ async function runMain () {
     }
     if (process.argv.includes ('--self-test')) {
         const problems = [
+            [ 'late typed map row reads: ', goLateTypedMapRowReadsCheck ],
             goTypedArithSelfTest, goIntegralArithmeticSelfTest, [ '', goDerefWrapSelfTest ], [ '', goParamNilSelfTest ],
             [ '', goBoxedPointerSelfTest ], [ '', goTypedNilSelfTest ], [ '', goProvenParamNilSelfTest ], [ '', goAnyLocalNilSelfTest ], [ '', goStrPtrLocalSelfTest ],
             [ '', goStringLiteralSelfTest ], [ '', goSafeBoolLiteralSelfTest ], [ '', goSliceIndexSelfTest ],
