@@ -63,7 +63,7 @@ class blofin(Exchange, ImplicitAPI):
                 'createStopOrder': False,
                 'createTakeProfitOrder': True,
                 'createTriggerOrder': True,
-                'editOrder': False,
+                'editOrder': True,
                 'fetchAccounts': False,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
@@ -1724,6 +1724,55 @@ class blofin(Exchange, ImplicitAPI):
         response = await self.privatePostTradeBatchOrders(ordersRequests)
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data)
+
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
+        """
+        edit a trade order
+
+        https://docs.blofin.com/index.html#amend-order
+
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float [amount]: how much of the currency you want to trade in units of the base currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: client order id, used instead of the id argument
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'instId': market['id'],
+        }
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is not None:
+            request['clientOrderId'] = clientOrderId
+        else:
+            request['orderId'] = id
+        if amount is not None:
+            request['newSize'] = self.amount_to_precision(symbol, amount)
+        if price is not None:
+            request['newPrice'] = self.price_to_precision(symbol, price)
+        response = await self.privatePostTradeAmendOrder(self.extend(request, self.omit(params, 'clientOrderId')))
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "Order modified",
+        #         "data": {
+        #             "orderId": "6000004088576",
+        #             "clientOrderId": "",
+        #             "requestId": "",
+        #             "msg": "Order modified",
+        #             "code": "0",
+        #             "ts": "1795184228537"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_order(data, market)
 
     async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
