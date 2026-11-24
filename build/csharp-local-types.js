@@ -17167,6 +17167,8 @@ export const SIGNATURE_ARG_TYPES = {
     'getCacheIndex': { 0: 'IDictionary<string, object>' },
     // `info: Dict` on the base and every override; bodies only read it, both callers pass a dictionary
     'parseIsolatedBorrowRate': { 0: 'IDictionary<string, object>' },
+    // `contract: NullableDict` on the base and every override; every caller passes a dictionary row
+    'parseFundingRate': { 0: 'IDictionary<string, object>' },
 };
 
 // parse* cores whose `market: Market` parameter prints `IDictionary<string, object>` on every
