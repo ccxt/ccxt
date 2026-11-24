@@ -231,13 +231,14 @@ section.step > p.fineprint { margin-top: 16px; }
 
 <script type="application/json" id="boot">__BOOT_JSON__</script>
 <script nonce="__CSP_NONCE__">
+/* @include setup-common.js */
 (function () {
     'use strict';
-    var boot = JSON.parse (document.getElementById ('boot').textContent);
-    // the session's own path; every endpoint hangs off it (this page may be served one level
-    // below it, when it was reached from the accounts page)
-    var base = (/^\/setup\/[0-9a-f]{32}/.exec (location.pathname) || [ '' ])[0];
-    var $ = function (id) { return document.getElementById (id); };
+    var common = window.ccxtSetup;
+    var boot = common.boot;
+    var base = common.base;
+    var $ = common.$;
+    var el = common.el;
     var exchangeSelect = $('exchange');
     var accountInput = $('account');
     var fieldsBox = $('fields');
@@ -249,13 +250,6 @@ section.step > p.fineprint { margin-top: 16px; }
     var state = { 'step': 1, 'info': undefined, 'nameEdited': false, 'testedOk': '', 'busy': false, 'over': false, 'wantedEnv': boot.prefill.environment };
     // names the settings file cannot hold as an account (the server refuses them too)
     var RESERVED_NAMES = [ '__proto__', 'constructor', 'prototype' ];
-
-    function el (tag, className, text) {
-        var node = document.createElement (tag);
-        if (className) { node.className = className; }
-        if (text !== undefined) { node.textContent = text; }
-        return node;
-    }
 
     function environment () {
         var checked = document.querySelector ('input[name="environment"]:checked');
@@ -410,21 +404,7 @@ section.step > p.fineprint { margin-top: 16px; }
     }
 
     function request (method, path, body) {
-        var options = { 'method': method, 'cache': 'no-store', 'credentials': 'same-origin', 'headers': {} };
-        if (body !== undefined) {
-            options.headers['Content-Type'] = 'application/json';
-            options.headers['X-Setup-Nonce'] = boot.csrf;
-            options.body = JSON.stringify (body);
-        }
-        return fetch (base + path, options).then (function (response) {
-            // 404 is the server saying the session is over (expired, used, or replaced)
-            if (response.status === 404) { gone (); throw new Error ('gone'); }
-            return response.json ().then (function (data) { data.status = response.status; return data; });
-        }, function () {
-            // the local server is not there any more
-            gone ();
-            throw new Error ('gone');
-        });
+        return common.request (method, path, body, gone);
     }
 
     function renderFields (info) {
@@ -745,17 +725,7 @@ section.step > p.fineprint { margin-top: 16px; }
     }
 
     function startCountdown () {
-        var end = performance.now () + boot.expiresInMs;
-        var tick = function () {
-            if (state.over) { return; }
-            var left = Math.max (0, end - performance.now ());
-            if (left <= 0) { gone (); return; }
-            var minutes = Math.floor (left / 60000);
-            var seconds = Math.floor ((left % 60000) / 1000);
-            $('expiry').textContent = 'Closes in ' + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
-            setTimeout (tick, 1000);
-        };
-        tick ();
+        common.countdown (function () { return state.over; }, gone);
     }
 
     // ---- wire up

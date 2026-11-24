@@ -240,8 +240,26 @@ const LICENCE_FILE = /^(licen[cs]e|copying|notice|copyright)([-_.].*)?$/i;
 // a comment that states terms: kept verbatim, because 'legalComments' drops it from the bundle
 const LICENCE_COMMENT = /@license|@preserve|SPDX-License-Identifier|licensed under|\bcopyright\b/i;
 
+// The notices file is shipped and its bytes must not depend on where the release was built.
+// Two things do, unless they are taken out here: line endings (a Windows checkout with
+// core.autocrlf, and licence files that are CRLF inside the npm package itself) and the
+// path separator in the file names it quotes.
+function portableText (text) {
+    return text.replace (/^\uFEFF/, '').replace (/\r\n?/g, '\n').trim ();
+}
+
+function portablePath (file) {
+    return file.split (path.sep).join ('/');
+}
+
+function byPortablePath (a, b) {
+    const left = portablePath (a);
+    const right = portablePath (b);
+    return (left < right) ? -1 : ((left > right) ? 1 : 0);
+}
+
 function ownCopyrightLine () {
-    const line = fs.readFileSync (ownLicenseFile, 'utf8').split ('\n').find ((text) => /^copyright/i.test (text.trim ()));
+    const line = portableText (fs.readFileSync (ownLicenseFile, 'utf8')).split ('\n').find ((text) => /^copyright/i.test (text.trim ()));
     if (line === undefined) {
         fail ('mcp/LICENSE has no copyright line');
     }
@@ -265,7 +283,8 @@ function licenceFilesBelow (directory) {
             found.push (full);
         }
     }
-    return found.sort ();
+    // "\\" sorts after the letters and "/" before them: the order must not follow the separator
+    return found.sort (byPortablePath);
 }
 
 function licenceComments (file) {
@@ -341,11 +360,11 @@ function thirdPartyNotices (bundledFiles) {
     }
     entries.sort ((a, b) => ((a.name < b.name) ? -1 : ((a.name > b.name) ? 1 : 0)));
     const vendoredEntries = [ ...vendored.values () ].sort ((a, b) => ((a.name < b.name) ? -1 : 1)).map ((module_) => {
-        const files = licenceFilesBelow (module_.directory).map ((file) => ({ 'name': path.relative (module_.directory, file), 'text': fs.readFileSync (file, 'utf8') }));
+        const files = licenceFilesBelow (module_.directory).map ((file) => ({ 'name': portablePath (path.relative (module_.directory, file)), 'text': fs.readFileSync (file, 'utf8') }));
         const comments = [];
-        for (const file of module_.files.sort ()) {
+        for (const file of module_.files.sort (byPortablePath)) {
             for (const comment of licenceComments (file)) {
-                comments.push ({ 'name': path.relative (module_.directory, file), 'text': comment });
+                comments.push ({ 'name': portablePath (path.relative (module_.directory, file)), 'text': comment });
             }
         }
         if (files.length === 0 && VENDORED_WITHOUT_LICENCE_FILE[module_.name] === undefined) {
@@ -365,7 +384,7 @@ function thirdPartyNotices (bundledFiles) {
         '',
         'ccxt-mcp itself is distributed under the MIT License:',
         '',
-        fs.readFileSync (ownLicenseFile, 'utf8').trim (),
+        portableText (fs.readFileSync (ownLicenseFile, 'utf8')),
         '',
         'The single-file server also contains code from the ' + entries.length + ' npm packages listed below. This file',
         'was generated when the bundle was built, from the list of source files that went into',
@@ -399,15 +418,19 @@ function thirdPartyNotices (bundledFiles) {
             lines.push ('This package ships no licence text. ' + entry.exception, '');
         }
         for (const text of entry.texts) {
-            lines.push (dash, entry.name + ' — ' + text.name, dash, '', text.text.replace (/\r\n/g, '\n').trim (), '');
+            lines.push (dash, entry.name + ' — ' + text.name, dash, '', portableText (text.text), '');
         }
         for (const module_ of vendoredEntries.filter ((candidate) => candidate.package === entry.name)) {
             for (const text of [ ...module_.licenceFiles, ...module_.comments ]) {
-                lines.push (dash, entry.name + ' — vendored ' + module_.name + ' — ' + text.name, dash, '', text.text.replace (/\r\n/g, '\n').trim (), '');
+                lines.push (dash, entry.name + ' — vendored ' + module_.name + ' — ' + text.name, dash, '', portableText (text.text), '');
             }
         }
     }
-    return { 'text': lines.join ('\n'), 'packages': entries.length, 'vendored': vendoredEntries.length };
+    const text = lines.join ('\n');
+    if (text.includes ('\r')) {
+        reject ('the third-party licence notices would contain a carriage return — every text that goes into them has to pass through portableText ()');
+    }
+    return { text, 'packages': entries.length, 'vendored': vendoredEntries.length };
 }
 
 // only what contributed bytes: a file esbuild read and then tree-shook away is not distributed

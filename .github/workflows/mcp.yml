@@ -10,6 +10,7 @@ on:
       - '.agents/plugins/**'
       - '.claude/skills/ccxt-mcp/**'
       - '.github/workflows/mcp.yml'
+      - '.gitattributes'
   pull_request:
     paths:
       - 'mcp/**'
@@ -17,6 +18,7 @@ on:
       - '.agents/plugins/**'
       - '.claude/skills/ccxt-mcp/**'
       - '.github/workflows/mcp.yml'
+      - '.gitattributes'
 
 # The ccxt-mcp sub-package is self-contained (its own package.json + lockfile) and its
 # tests use a fake ccxt module, so this job never touches the multi-language transpiler
@@ -27,12 +29,21 @@ on:
 jobs:
   build-test:
     # the plugin targets desktop apps on all three systems, and the launcher, the config-file
-    # permissions and the browser launch are each OS-specific — so the whole suite runs on each
+    # permissions and the browser launch are each OS-specific — so the whole suite runs on each.
+    # Node 18 is the oldest version the server and the plugin's bootstrap accept (the ChatGPT
+    # app brings a newer one, a user's own install may not be): one job runs on it.
     strategy:
       fail-fast: false
       matrix:
         os: [ ubuntu-latest, macos-latest, windows-latest ]
+        node: [ 20 ]
+        include:
+          - os: ubuntu-latest
+            node: 18
+    name: ${{ matrix.os }} / Node ${{ matrix.node }}
     runs-on: ${{ matrix.os }}
+    # a launcher test that waits for a window nobody can close must not run for six hours
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: mcp
@@ -41,15 +52,26 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: ${{ matrix.node }}
+      # what the tests and the build read from the checkout byte for byte: launch.cmd must be
+      # CRLF and everything else LF on every system, whatever core.autocrlf says there
+      - name: Line endings of the checkout
+        working-directory: .
+        run: |
+          echo "core.autocrlf=$(git config --get core.autocrlf || echo '(unset)')"
+          git ls-files --eol mcp/LICENSE mcp/plugin/scripts mcp/plugin/server.lock.json mcp/plugin/mcp.json
       - name: Install
         run: npm ci
       - name: Build (tsc + doc manifest + single-file bundle)
         run: npm run build
+      # The steps below run even when an earlier one failed: a run on a system nobody has at
+      # hand should report everything it can in one go.
       - name: Test (unit + schema snapshot + stdio integration + bundle / bootstrap / launcher)
-        run: node scripts/run-tests.mjs
+        if: ${{ !cancelled() }}
+        run: node scripts/run-tests.mjs --tap "$RUNNER_TEMP/mcp-tests.tap"
       # the plugin's bootstrap extracts exactly this path from the published tarball
       - name: Pack check (tarball contents, including the single-file server)
+        if: ${{ !cancelled() }}
         run: |
           npm pack --dry-run --json > "$RUNNER_TEMP/pack.json"
           node -e '
@@ -59,6 +81,81 @@ jobs:
             console.log (pack.files.length + " files, " + (pack.size / 1048576).toFixed (2) + " MB packed, bundle " + (bundle.size / 1048576).toFixed (2) + " MB");
           ' "$RUNNER_TEMP/pack.json"
       # what a user without Node.js gets: packed tarball -> loopback registry -> plugin launcher
-      # -> bootstrap (download, verify, cache) -> single-file server, with no node on PATH
+      # (launch.cmd on Windows) -> bootstrap (download, verify, cache) -> single-file server,
+      # with no node on PATH
       - name: Plugin smoke test (launcher + bootstrap + bundle, no Node on PATH)
+        if: ${{ !cancelled() }}
         run: node scripts/smoke-plugin.mjs
+      # What is shipped must not depend on the system the release happens to be built on. The
+      # checksums of the two generated files are printed here and compared by the job below.
+      - name: Checksums of the generated files
+        if: ${{ !cancelled() }}
+        run: |
+          node -e '
+            const fs = require ("fs");
+            const crypto = require ("crypto");
+            const lines = [ "js/bundle/THIRD_PARTY_LICENSES.txt", "js/bundle/ccxt-mcp.mjs", "LICENSE" ].map ((file) => (fs.existsSync (file) ? crypto.createHash ("sha256").update (fs.readFileSync (file)).digest ("hex") : "missing") + "  " + file);
+            fs.writeFileSync (process.argv[1], lines.join ("\n") + "\n");
+            console.log (lines.join ("\n"));
+          ' "$RUNNER_TEMP/mcp-checksums.txt"
+      - name: Keep the test results and the checksums
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcp-${{ matrix.os }}-node${{ matrix.node }}
+          path: |
+            ${{ runner.temp }}/mcp-tests.tap
+            ${{ runner.temp }}/mcp-checksums.txt
+          if-no-files-found: warn
+          retention-days: 14
+
+  # The licence notices and mcp/LICENSE go into the npm package as they are: they must be the
+  # same bytes whichever system built them (a Windows checkout once gave them CR LF). The
+  # bundle is compared too, but only reported: nothing requires it to be reproducible across
+  # systems, the plugin pins the checksum of the one that was published.
+  same-on-every-system:
+    needs: build-test
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: mcp-*-node20
+          path: results
+      - name: Compare the checksums
+        run: |
+          node -e '
+            const fs = require ("fs");
+            const path = require ("path");
+            const seen = new Map (); // file -> checksum -> the systems that produced it
+            for (const directory of fs.readdirSync ("results").sort ()) {
+                const file = path.join ("results", directory, "mcp-checksums.txt");
+                if (!fs.existsSync (file)) {
+                    console.log ("::warning::" + directory + " produced no checksums");
+                    continue;
+                }
+                for (const line of fs.readFileSync (file, "utf8").split ("\n").filter (Boolean)) {
+                    const [ checksum, name ] = line.split ("  ");
+                    const byChecksum = seen.get (name) ?? new Map ();
+                    byChecksum.set (checksum, (byChecksum.get (checksum) ?? []).concat ([ directory ]));
+                    seen.set (name, byChecksum);
+                }
+            }
+            let failed = false;
+            for (const [ name, byChecksum ] of seen) {
+                const summary = [ ...byChecksum ].map (([ checksum, systems ]) => checksum.slice (0, 16) + " on " + systems.join (", ")).join ("; ");
+                if (byChecksum.size === 1) {
+                    console.log ("same everywhere: " + name + " (" + summary + ")");
+                } else if (name === "js/bundle/ccxt-mcp.mjs") {
+                    console.log ("::warning::" + name + " differs between systems: " + summary);
+                } else {
+                    console.log ("::error::" + name + " differs between systems: " + summary);
+                    failed = true;
+                }
+            }
+            if (seen.size === 0) {
+                console.log ("::error::no checksums to compare");
+                failed = true;
+            }
+            process.exit (failed ? 1 : 0);
+          '

@@ -301,7 +301,15 @@ test ('renderView resolves every @include with the fragment verbatim', async () 
         // verbatim: "$&", "$1", "$$" … inside a fragment must not be read as replace patterns
         assert.ok (html.includes (css), view.file + ' must inline shared.css verbatim');
         assert.ok (html.includes (bridge), view.file + ' must inline bridge.js verbatim');
-        assert.equal (html.length, template.length - '/* @include shared.css */'.length - '/* @include bridge.js */'.length + css.length + bridge.length);
+        // a view may include further fragments (table.js, account.css): each one verbatim, and
+        // nothing but the markers is replaced
+        let expectedLength = template.length;
+        for (const marker of template.matchAll (/\/\*\s*@include\s+([a-z0-9.-]+)\s*\*\//g)) {
+            const fragment = fs.readFileSync (path.join (uiDir, marker[1]), 'utf8');
+            assert.ok (html.includes (fragment), view.file + ' must inline ' + marker[1] + ' verbatim');
+            expectedLength += fragment.length - marker[0].length;
+        }
+        assert.equal (html.length, expectedLength);
     }
 });
 

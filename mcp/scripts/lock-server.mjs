@@ -9,11 +9,14 @@
 // Usage: node scripts/lock-server.mjs <ccxt-mcp-x.y.z.tgz>   (release job, before npm publish)
 //        node scripts/lock-server.mjs --clear                 (back to "no verified bundle")
 //        either form takes --lock <file> to write a lock other than plugin/server.lock.json
-// Needs the system `tar` (present on GitHub runners, macOS, Linux and Windows 10+).
+// The tarball is read here, with zlib and the few lines of tar below, and not by the system
+// `tar`: which one that is depends on the machine (GNU tar in Git Bash on Windows takes
+// "C:\…" for a remote host, and a tar that writes to a console may translate line endings),
+// and a hash must not depend on the machine it was computed on.
 import fs from 'node:fs';
 import path from 'node:path';
+import zlib from 'node:zlib';
 import crypto from 'node:crypto';
-import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const here = path.dirname (fileURLToPath (import.meta.url));
@@ -31,6 +34,58 @@ function fail (message) {
 }
 
 const sha512 = (buffer) => 'sha512-' + crypto.createHash ('sha512').update (buffer).digest ('base64');
+
+function field (block, start, length) {
+    const slice = block.subarray (start, start + length);
+    const end = slice.indexOf (0);
+    return slice.subarray (0, (end === -1) ? slice.length : end).toString ('utf8');
+}
+
+// Every regular file in a (gunzipped) tar archive as [ name, contents ]. npm writes plain
+// ustar entries, with a pax header before an entry whose name does not fit; both are read,
+// and anything this does not understand stops the release instead of being guessed at.
+function tarFiles (archive) {
+    const files = [];
+    let offset = 0;
+    let longName;
+    while (offset + 512 <= archive.length) {
+        const header = archive.subarray (offset, offset + 512);
+        if (header.every ((byte) => byte === 0)) {
+            break;
+        }
+        const sizeText = field (header, 124, 12).trim ();
+        if (!/^[0-7]*$/.test (sizeText)) {
+            fail ('the tarball has an entry whose size this script cannot read');
+        }
+        const size = parseInt (sizeText || '0', 8);
+        const type = String.fromCharCode (header[156] || 0x30);
+        const data = archive.subarray (offset + 512, offset + 512 + size);
+        if (data.length !== size) {
+            fail ('the tarball is truncated');
+        }
+        offset += 512 + Math.ceil (size / 512) * 512;
+        if (type === 'x') {
+            // pax records are "<length> <key>=<value>\n"
+            const record = /(?:^|\n)\d+ path=([^\n]*)\n/.exec (data.toString ('utf8'));
+            longName = (record === null) ? longName : record[1];
+            continue;
+        }
+        if (type === 'L') {
+            longName = field (data, 0, data.length);
+            continue;
+        }
+        if (type === 'g') {
+            continue;
+        }
+        const prefix = field (header, 345, 155);
+        const name = longName ?? ((prefix !== '' && field (header, 257, 5) === 'ustar') ? prefix + '/' + field (header, 0, 100) : field (header, 0, 100));
+        longName = undefined;
+        if (type === '0') {
+            files.push ([ name, Buffer.from (data) ]);
+        }
+    }
+    return files;
+}
 
 const pkg = JSON.parse (fs.readFileSync (path.join (mcpRoot, 'package.json'), 'utf8'));
 const lockName = (lockFlag !== -1) ? lockPath : 'plugin/server.lock.json';
@@ -51,19 +106,23 @@ if (argument === '--clear') {
     if (path.basename (argument) !== expectedName) {
         fail (`expected a tarball named ${expectedName}, got ${path.basename (argument)}`);
     }
-    const listing = spawnSync ('tar', [ '-tzf', argument ], { 'encoding': 'utf8', 'maxBuffer': 64 * 1024 * 1024 });
-    if (listing.status !== 0) {
-        fail ('tar could not list the tarball: ' + (listing.stderr || listing.error));
+    const tarball = fs.readFileSync (argument);
+    let archive;
+    try {
+        archive = zlib.gunzipSync (tarball);
+    } catch (error) {
+        fail ('the tarball could not be unpacked: ' + error.message);
     }
-    if (!listing.stdout.split ('\n').includes (BUNDLE_ENTRY)) {
+    const bundles = tarFiles (archive).filter (([ name ]) => name === BUNDLE_ENTRY);
+    if (bundles.length === 0) {
         fail (`the tarball has no ${BUNDLE_ENTRY} — run "npm run build" before packing`);
     }
-    const extracted = spawnSync ('tar', [ '-xOzf', argument, BUNDLE_ENTRY ], { 'maxBuffer': 256 * 1024 * 1024 });
-    if (extracted.status !== 0 || extracted.stdout.length === 0) {
-        fail ('tar could not read the bundle out of the tarball: ' + (extracted.stderr || extracted.error));
+    // the plugin's bootstrap refuses an archive that holds the server twice
+    if (bundles.length > 1 || bundles[0][1].length === 0) {
+        fail (`the tarball holds ${BUNDLE_ENTRY} ${bundles.length} times, or empty`);
     }
-    lock.integrity = sha512 (fs.readFileSync (argument));
-    lock.bundleIntegrity = sha512 (extracted.stdout);
+    lock.integrity = sha512 (tarball);
+    lock.bundleIntegrity = sha512 (bundles[0][1]);
 }
 
 fs.writeFileSync (lockPath, JSON.stringify (lock, null, 2) + '\n');

@@ -11,8 +11,8 @@
   "scripts": {
     "build": "tsc && node scripts/copy-ui.mjs && node scripts/build-doc-manifest.mjs && npm run bundle",
     "bundle": "node scripts/build-bundle.mjs",
-    "test": "node --import tsx --test test/unit/*.test.ts test/schema/*.test.ts test/integration/*.test.ts",
-    "test:live": "node --import tsx --test test/live/*.test.ts",
+    "test": "node scripts/run-tests.mjs",
+    "test:live": "node scripts/run-tests.mjs live",
     "prepublishOnly": "npm run build",
     "publishPackage": "npm run build && npm publish",
     "sync-versions": "node scripts/sync-versions.mjs",
@@ -44,6 +44,7 @@
   "devDependencies": {
     "@types/node": "^22.20.1",
     "esbuild": "^0.28.1",
+    "happy-dom": "^21.0.4",
     "protobufjs": "^7.5.3",
     "tsx": "^4.20.0",
     "typescript": "^5.8.0"

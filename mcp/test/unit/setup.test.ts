@@ -8,7 +8,7 @@ import { browserCommand, defaultLaunchRoots, launchPage } from '../../ts/setup.j
 import { ExchangePools, UnknownAccountError } from '../../ts/pools.js';
 
 // The config-file writer behind the setup form's save, and the small pure helpers around it.
-// The HTTP side (sessions, CSRF, hot-apply) is covered in test/integration/setup.test.ts.
+// The HTTP side (sessions, CSRF, hot-apply) is covered in test/integration/setup.*.test.ts.
 
 const known = (id: string) => id === 'fakex' || id === 'otherx';
 const ACCOUNT = { 'exchange': 'fakex', 'apiKey': 'FAKEKEY-unit-123456', 'secret': 'FAKESECRET-unit-123456', 'sandbox': true };
@@ -152,7 +152,7 @@ test ('writer: account names are restricted, and prototype keys are never writte
     assert.equal (isValidAccountName (undefined), false);
 });
 
-test ('writer: a symlinked config file is written through, not replaced', { 'skip': !posix }, () => {
+test ('writer: a symlinked config file is written through, not replaced', { 'skip': posix ? false : 'creating a symbolic link needs a privilege ordinary Windows accounts do not have' }, () => {
     const dir = tempDir ();
     const real = path.join (dir, 'real.json');
     const link = path.join (dir, 'link.json');
@@ -294,7 +294,7 @@ test ('browserCommand: the launch file is always one argv element and no shell i
     assert.deepEqual (browserCommand ('darwin', url), { 'command': 'open', 'args': [ url ] });
     assert.deepEqual (browserCommand ('linux', url), { 'command': 'xdg-open', 'args': [ url ] });
     const windows = browserCommand ('win32', url);
-    assert.equal (windows.command, 'rundll32');
+    assert.match (windows.command, /[\\/]System32[\\/]rundll32\.exe$/i);
     assert.deepEqual (windows.args, [ 'url.dll,FileProtocolHandler', url ]);
     for (const platform of [ 'darwin', 'linux', 'win32' ]) {
         const { command, args } = browserCommand (platform, url);

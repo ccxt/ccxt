@@ -91,21 +91,17 @@
 
 <script type="application/json" id="boot">__BOOT_JSON__</script>
 <script nonce="__CSP_NONCE__">
+/* @include setup-common.js */
 (function () {
     'use strict';
-    var boot = JSON.parse (document.getElementById ('boot').textContent);
-    var base = (/^\/setup\/[0-9a-f]{32}/.exec (location.pathname) || [ '' ])[0];
-    var $ = function (id) { return document.getElementById (id); };
+    var common = window.ccxtSetup;
+    var boot = common.boot;
+    var base = common.base;
+    var $ = common.$;
+    var el = common.el;
     var cards = $('cards');
     // open: which account has a panel open, and which panel ('remove' | 'permissions')
     var state = { 'accounts': boot.accounts || [], 'open': undefined, 'busy': false, 'over': false };
-
-    function el (tag, className, text) {
-        var node = document.createElement (tag);
-        if (className) { node.className = className; }
-        if (text !== undefined) { node.textContent = text; }
-        return node;
-    }
 
     function button (label, className, handler) {
         var node = el ('button', className, label);
@@ -130,20 +126,7 @@
     }
 
     function post (path, body) {
-        return fetch (base + path, {
-            'method': 'POST',
-            'cache': 'no-store',
-            'credentials': 'same-origin',
-            'headers': { 'Content-Type': 'application/json', 'X-Setup-Nonce': boot.csrf },
-            'body': JSON.stringify (body),
-        }).then (function (response) {
-            // 404 is the server saying the session is over
-            if (response.status === 404) { gone (); throw new Error ('gone'); }
-            return response.json ();
-        }, function () {
-            gone ();
-            throw new Error ('gone');
-        });
+        return common.request ('POST', path, body, gone);
     }
 
     function say (kind, title, detail) {
@@ -421,17 +404,7 @@
     }
 
     function startCountdown () {
-        var end = performance.now () + boot.expiresInMs;
-        var tick = function () {
-            if (state.over) { return; }
-            var left = Math.max (0, end - performance.now ());
-            if (left <= 0) { gone (); return; }
-            var minutes = Math.floor (left / 60000);
-            var seconds = Math.floor ((left % 60000) / 1000);
-            $('expiry').textContent = 'Closes in ' + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
-            setTimeout (tick, 1000);
-        };
-        tick ();
+        common.countdown (function () { return state.over; }, gone);
     }
 
     $('config-path').textContent = boot.configPath;

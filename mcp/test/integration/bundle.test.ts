@@ -62,7 +62,7 @@ before (() => {
 
 after (() => {
     if (dir !== undefined) {
-        fs.rmSync (dir, { 'recursive': true, 'force': true });
+        fs.rmSync (dir, { 'recursive': true, 'force': true, 'maxRetries': 20, 'retryDelay': 250 });
     }
 });
 
@@ -160,6 +160,17 @@ test ('the bundle has no import or require that Node would resolve from disk', {
 // bundle without its notice fails this test (and, without a licence file, the build itself).
 test ('the third-party notices cover exactly the packages in the bundle, with their licence texts', { skip }, () => {
     const text = fs.readFileSync (notices, 'utf8');
+    // The file is shipped, so its bytes must not depend on the system the release was built
+    // on: no CR (a Windows checkout of mcp/LICENSE had CR LF until .gitattributes pinned it,
+    // and licence files inside npm packages can have them too) and no "\" in the file
+    // names it quotes. The CI workflow compares the checksum of this file across systems.
+    assert.ok (!text.includes ('\r'), 'THIRD_PARTY_LICENSES.txt contains a carriage return');
+    const headings = text.split ('\n').filter ((line, index, lines) => index > 0 && lines[index - 1] === '-'.repeat (80) && line.includes (' — '));
+    assert.ok (headings.length >= 15);
+    for (const heading of headings) {
+        assert.ok (!heading.includes ('\\'), 'a file name in the notices uses the Windows path separator: ' + heading);
+    }
+    assert.ok (!/\(inside [^)]*\): [^\n]*\\/.test (text), 'a file name in the VENDORED CODE list uses the Windows path separator');
     const meta = JSON.parse (fs.readFileSync (metafile, 'utf8'));
     const outputs: any[] = Object.values (meta.outputs);
     assert.equal (outputs.length, 1);
@@ -240,6 +251,8 @@ test ('the npm package ships its own LICENSE and the third-party notices beside 
     }
     assert.deepEqual (files.filter ((file) => file.startsWith ('js/bundle/')).sort (), [ 'js/bundle/THIRD_PARTY_LICENSES.txt', 'js/bundle/ccxt-mcp.mjs' ]);
     const license = fs.readFileSync (path.join (mcpRoot, 'LICENSE'), 'utf8');
+    // exactly these bytes go into the npm package: LF on every system (.gitattributes)
+    assert.ok (!license.includes ('\r'), 'mcp/LICENSE has CR LF line endings — .gitattributes must pin it to eol=lf');
     assert.match (license, /^MIT License\n/);
     // inside the ccxt repository it is a copy of the one licence the project has
     const rootLicense = path.join (mcpRoot, '..', 'LICENSE.txt');

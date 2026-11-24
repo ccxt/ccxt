@@ -1,12 +1,14 @@
 // End-to-end check of what a user without Node.js gets from the plugin on an OpenAI host:
 //
 //   packed npm tarball  ->  stand-in registry on loopback  ->  plugin/scripts/launch
-//   ->  plugin/scripts/bootstrap.mjs (download, verify, cache)  ->  the single-file server
-//   ->  MCP initialize / tools/list / resources/read over stdio
+//   (launch.cmd on Windows)  ->  plugin/scripts/bootstrap.mjs (download, verify, cache)
+//   ->  the single-file server  ->  MCP initialize / tools/list / resources/read over stdio
 //
-// in an environment shaped like that user's: a scratch HOME, PATH=/usr/bin:/bin, nothing
-// inherited, and the only "app runtime" a Node placed where the ChatGPT desktop app keeps
-// its own (~/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node).
+// in an environment shaped like that user's: a scratch home, a PATH with the system's own
+// directories only, nothing inherited, and the only "app runtime" a Node placed where the
+// ChatGPT desktop app keeps its own
+// (~/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node; on Windows
+// node.exe one level up, the layout Node.js is distributed in there).
 // It runs a scratch COPY of the plugin whose lock points at the loopback registry, so the
 // committed plugin and its lock are never touched and no knob exists that a user could set.
 //
@@ -14,7 +16,7 @@
 //   --tarball  test this exact file (the release job passes the one it is about to publish);
 //              without it the checkout is packed (run `npm run build` first)
 //   --live     also call show_chart on that exchange (needs network access to it)
-// POSIX only (it drives scripts/launch); needs the system `tar` (scripts/lock-server.mjs).
+// Runs on Linux, macOS and Windows.
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -30,11 +32,24 @@ const option = (name) => {
     return (index === -1) ? undefined : process.argv[index + 1];
 };
 const say = (message) => process.stderr.write (message + '\n');
-const scratch = fs.mkdtempSync (path.join (os.tmpdir (), 'ccxt-mcp-smoke-'));
+const windows = process.platform === 'win32';
+// the temp directory as the system itself names it (a symlink on macOS, an 8.3 short name on
+// some Windows machines): the server reports the path of the Node it runs on, and the two
+// are compared below
+const scratch = fs.realpathSync.native (fs.mkdtempSync (path.join (os.tmpdir (), 'ccxt-mcp-smoke-')));
+
+// Windows keeps a program's file locked for a moment after it exited
+function cleanUp () {
+    try {
+        fs.rmSync (scratch, { 'recursive': true, 'force': true, 'maxRetries': 20, 'retryDelay': 250 });
+    } catch (error) {
+        say ('[smoke-plugin] could not remove ' + scratch + ' (' + (error.code || error.message) + ')');
+    }
+}
 
 function fail (message) {
     say ('[smoke-plugin] FAILED: ' + message);
-    fs.rmSync (scratch, { 'recursive': true, 'force': true });
+    cleanUp ();
     process.exit (1);
 }
 
@@ -48,9 +63,13 @@ function check (condition, message) {
 // 1. the tarball: the one given, or this checkout packed the way `npm publish` packs it
 let tarball = option ('--tarball');
 if (tarball === undefined) {
-    const packed = spawnSync ('npm', [ 'pack', '--pack-destination', scratch, '--silent' ], { 'cwd': mcpRoot, 'encoding': 'utf8' });
+    // npm is a batch file on Windows, which only a shell can start; the one path in the
+    // command line is quoted for it
+    const packed = windows
+        ? spawnSync ('npm pack --pack-destination "' + scratch + '" --silent', { 'cwd': mcpRoot, 'encoding': 'utf8', 'shell': true })
+        : spawnSync ('npm', [ 'pack', '--pack-destination', scratch, '--silent' ], { 'cwd': mcpRoot, 'encoding': 'utf8' });
     if (packed.status !== 0) {
-        fail ('npm pack failed: ' + packed.stderr);
+        fail ('npm pack failed: ' + (packed.stderr || packed.error));
     }
     tarball = path.join (scratch, `${pkg.name}-${pkg.version}.tgz`);
 }
@@ -87,16 +106,35 @@ if (locked.status !== 0) {
 
 // 4. the machine: no Node on PATH, the app's runtime in the user's cache
 const home = path.join (scratch, 'home');
-const runtime = path.join (home, '.cache', 'codex-runtimes', 'codex-primary-runtime', 'dependencies', 'node', 'bin', 'node');
+const runtimeRoot = path.join (home, '.cache', 'codex-runtimes', 'codex-primary-runtime', 'dependencies', 'node');
+const runtime = windows ? path.join (runtimeRoot, 'node.exe') : path.join (runtimeRoot, 'bin', 'node');
 fs.mkdirSync (path.dirname (runtime), { 'recursive': true });
-try {
-    fs.linkSync (process.execPath, runtime);
-} catch (error) {
+// a hard link is instant, but Windows cannot delete a link to the program of a process that
+// is still running — and this process is one
+let linked = false;
+if (!windows) {
+    try {
+        fs.linkSync (process.execPath, runtime);
+        linked = true;
+    } catch (error) {
+        // another volume
+    }
+}
+if (!linked) {
     fs.copyFileSync (process.execPath, runtime);
     fs.chmodSync (runtime, 0o755);
 }
-// what Codex gives a plugin's MCP server: a short fixed list plus the two plugin variables
-const env = { 'HOME': home, 'PATH': '/usr/bin:/bin', 'PLUGIN_ROOT': plugin, 'PLUGIN_DATA': path.join (scratch, 'plugin data') };
+// what Codex gives a plugin's MCP server: a short fixed list plus the two plugin variables.
+// On Windows the user's folders are named by variables of their own, and a program cannot
+// open a socket without SystemRoot. ProgramFiles is left out on purpose: it is where the
+// launcher would find the Node.js installed on this machine.
+const systemRoot = process.env['SystemRoot'] || process.env['windir'] || 'C:\\Windows';
+const shell = process.env['ComSpec'] || path.join (systemRoot, 'System32', 'cmd.exe');
+const env = windows
+    ? { 'SystemRoot': systemRoot, 'windir': systemRoot, 'ComSpec': shell, 'PATHEXT': process.env['PATHEXT'] || '.COM;.EXE;.BAT;.CMD', 'TEMP': os.tmpdir (), 'TMP': os.tmpdir (), 'USERPROFILE': home, 'APPDATA': path.join (home, 'AppData', 'Roaming'), 'LOCALAPPDATA': path.join (home, 'AppData', 'Local'), 'PATH': path.join (systemRoot, 'System32') + path.delimiter + systemRoot }
+    : { 'HOME': home, 'PATH': '/usr/bin:/bin' };
+env['PLUGIN_ROOT'] = plugin;
+env['PLUGIN_DATA'] = path.join (scratch, 'plugin data');
 // (Codex also forwards a custom CA bundle; --live needs it behind a TLS-inspecting proxy)
 for (const name of [ 'NODE_EXTRA_CA_CERTS', 'SSL_CERT_FILE' ]) {
     if (process.env[name]) {
@@ -104,14 +142,37 @@ for (const name of [ 'NODE_EXTRA_CA_CERTS', 'SSL_CERT_FILE' ]) {
     }
 }
 for (const tool of [ 'node', 'npm', 'npx' ]) {
-    const found = spawnSync ('/bin/sh', [ '-c', 'command -v ' + tool ], { env, 'encoding': 'utf8' });
-    check (found.status !== 0, `no ${tool} on PATH=${env.PATH}` + (found.stdout ? ' (found ' + found.stdout.trim () + ')' : ''));
+    const names = windows ? [ tool + '.exe', tool + '.cmd', tool + '.bat', tool + '.com' ] : [ tool ];
+    const found = env.PATH.split (path.delimiter).flatMap ((directory) => names.map ((name) => path.join (directory, name))).filter ((file) => fs.existsSync (file));
+    check (found.length === 0, `no ${tool} on PATH=${env.PATH}` + ((found.length > 0) ? ' (found ' + found.join (', ') + ')' : ''));
+}
+
+// How a host starts the plugin's server. Unix: it executes ./scripts/launch from mcp.json.
+// Windows: that name has to become launch.cmd, and a batch file is started through cmd.exe —
+// with the whole command between one more pair of quotes, which /s makes cmd remove again.
+function startServer () {
+    const options = { 'cwd': plugin, env, 'stdio': [ 'pipe', 'pipe', 'pipe' ], 'windowsHide': true };
+    if (!windows) {
+        return spawn ('./scripts/launch', [ './scripts/bootstrap.mjs' ], options);
+    }
+    const launcher = path.join (plugin, 'scripts', 'launch.cmd');
+    return spawn (shell, [ '/d', '/s', '/c', '""' + launcher + '" "./scripts/bootstrap.mjs""' ], { ...options, 'windowsVerbatimArguments': true });
+}
+
+// the launcher stays between this process and the server on Windows (cmd.exe has no exec),
+// so stopping a server that hangs means stopping the tree
+function stopServer (child) {
+    if (windows && child.pid !== undefined) {
+        spawnSync ('taskkill', [ '/pid', String (child.pid), '/t', '/f' ], { 'stdio': 'ignore' });
+    } else {
+        child.kill ();
+    }
 }
 
 // one server session: start through the launcher, run the requests, close stdin
 function session (calls) {
     return new Promise ((resolve) => {
-        const child = spawn ('./scripts/launch', [ './scripts/bootstrap.mjs' ], { 'cwd': plugin, env, 'stdio': [ 'pipe', 'pipe', 'pipe' ] });
+        const child = startServer ();
         const state = { 'stdoutLines': [], 'stderr': '', 'results': [] };
         const pending = new Map ();
         let buffer = '';
@@ -142,7 +203,7 @@ function session (calls) {
             pending.set (id, answer);
             send ({ 'jsonrpc': '2.0', id, method, params });
         });
-        const timer = setTimeout (() => child.kill (), 120000);
+        const timer = setTimeout (() => stopServer (child), 120000);
         child.on ('close', (code) => {
             clearTimeout (timer);
             resolve ({ ...state, code, 'unanswered': pending.size });
@@ -169,10 +230,11 @@ if (live !== undefined) {
     calls.push ([ 'tools/call', { 'name': 'show_chart', 'arguments': { 'exchange': live, 'symbol': 'BTC/USDT', 'timeframe': '1h', 'limit': 5 } } ]);
 }
 
-say ('[smoke-plugin] cold start: ./scripts/launch ./scripts/bootstrap.mjs (cwd = plugin copy)');
+say ('[smoke-plugin] cold start: ' + (windows ? 'cmd.exe /d /s /c ""scripts\\launch.cmd" "./scripts/bootstrap.mjs""' : './scripts/launch ./scripts/bootstrap.mjs') + ' (cwd = plugin copy)');
 const cold = await session (calls);
 say (cold.stderr.trim ().split ('\n').map ((line) => '  stderr| ' + line).join ('\n'));
-check (cold.unanswered === 0 && cold.results.length === calls.length + 1, 'every request was answered');
+check (cold.unanswered === 0 && cold.results.length === calls.length + 1, 'every request was answered (exit status ' + cold.code + ')');
+check (cold.code === 0, 'the server exited with status 0 once its stdin was closed');
 check (cold.stdoutLines.every ((line) => line.startsWith ('{"')), 'stdout carried JSON-RPC only (' + cold.stdoutLines.length + ' lines)');
 const [ initialize, toolsList, chartView, describe, chart ] = cold.results;
 check (initialize.result?.serverInfo?.version === pkg.version, 'initialize -> ' + JSON.stringify (initialize.result?.serverInfo));
@@ -192,10 +254,16 @@ const cached = path.join (env.PLUGIN_DATA, 'server', pkg.version, 'ccxt-mcp.mjs'
 // ran from (see runnableCopy in the bootstrap) must be gone again
 const cachedNotices = path.join (path.dirname (cached), 'THIRD_PARTY_LICENSES.txt');
 const allFiles = fs.readdirSync (env.PLUGIN_DATA, { 'recursive': true }).filter ((entry) => fs.statSync (path.join (env.PLUGIN_DATA, entry)).isFile ());
-check (allFiles.length === 2 && fs.existsSync (cached) && fs.existsSync (cachedNotices), 'exactly two files were written: ' + path.relative (scratch, cached) + ' (mode ' + (fs.statSync (cached).mode & 0o777).toString (8) + ') and ' + path.basename (cachedNotices) + ' — found ' + JSON.stringify (allFiles));
+check (allFiles.length === 2 && fs.existsSync (cached) && fs.existsSync (cachedNotices), 'exactly two files were written: ' + path.relative (scratch, cached) + ' and ' + path.basename (cachedNotices) + ' — found ' + JSON.stringify (allFiles));
 const noticesText = fs.readFileSync (cachedNotices, 'utf8');
-check (noticesText.startsWith ('THIRD-PARTY SOFTWARE NOTICES') && noticesText.includes ('protobufjs@') && (fs.statSync (cachedNotices).mode & 0o777) === 0o600, 'the third-party licence notices came with it (' + noticesText.length + ' chars, mode 600)');
-check (cold.stderr.includes (' at ' + fs.realpathSync (runtime) + '\n'), 'the launcher picked the app-runtime Node at ' + path.relative (scratch, runtime));
+check (noticesText.startsWith ('THIRD-PARTY SOFTWARE NOTICES') && noticesText.includes ('protobufjs@') && !noticesText.includes ('\r'), 'the third-party licence notices came with it (' + noticesText.length + ' chars, LF line endings)');
+if (!windows) {
+    // Windows has no mode bits: there the files are private by being in the user's profile
+    check ((fs.statSync (cached).mode & 0o777) === 0o600 && (fs.statSync (cachedNotices).mode & 0o777) === 0o600 && (fs.statSync (path.dirname (cached)).mode & 0o777) === 0o700, 'both are readable by this user only (mode 600 in a 700 directory)');
+}
+// Windows file names compare without regard to case
+const sameText = (text) => (windows ? text.toLowerCase () : text);
+check (sameText (cold.stderr).includes (sameText (' at ' + fs.realpathSync.native (runtime) + '\n')), 'the launcher picked the app-runtime Node at ' + path.relative (scratch, runtime));
 
 say ('[smoke-plugin] warm start with the registry shut down');
 await new Promise ((resolve) => registry.close (resolve));
@@ -205,5 +273,5 @@ check (requests.length === 1 && !warm.stderr.includes ('downloading'), 'no netwo
 const afterWarm = fs.readdirSync (env.PLUGIN_DATA, { 'recursive': true }).filter ((entry) => fs.statSync (path.join (env.PLUGIN_DATA, entry)).isFile ());
 check (afterWarm.length === 2, 'the warm start left the cache as it was: ' + JSON.stringify (afterWarm));
 
-fs.rmSync (scratch, { 'recursive': true, 'force': true });
+cleanUp ();
 say ('[smoke-plugin] passed');

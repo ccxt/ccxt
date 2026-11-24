@@ -154,6 +154,14 @@ function readVerifiedCache (file, lock) {
     return undefined;
 }
 
+function holdsBundle (file, lock) {
+    try {
+        return sameDigest (sha512 (fs.readFileSync (file)), lock.bundleIntegrity);
+    } catch (error) {
+        return false;
+    }
+}
+
 // https only, except a loopback http address (the tests' stand-in registry): the hash check
 // is what makes the download trustworthy, but there is no reason to send the request in clear
 function assertAllowedUrl (url) {
@@ -506,6 +514,24 @@ function readTarEntry (archive, wanted) {
     return found;
 }
 
+// Windows refuses to rename a file, or to put one in the place of another, for as long as
+// some other process has it open — which a virus scanner does with every file that was just
+// written. That passes within moments, so the rename is tried again for about a second
+// there. Everywhere else a rename either works or fails for a reason waiting does not cure.
+function renameIntoPlace (from, to) {
+    for (let attempt = 0; ; attempt++) {
+        try {
+            fs.renameSync (from, to);
+            return;
+        } catch (error) {
+            if (process.platform !== 'win32' || attempt >= 20 || ![ 'EPERM', 'EACCES', 'EBUSY' ].includes (error.code)) {
+                throw error;
+            }
+            Atomics.wait (new Int32Array (new SharedArrayBuffer (4)), 0, 0, 50);
+        }
+    }
+}
+
 // 0700 directory, 0600 file, written under a temporary name and renamed into place: another
 // instance starting at the same moment sees either no file or the complete one
 function writeAtomically (file, contents) {
@@ -514,7 +540,7 @@ function writeAtomically (file, contents) {
     const temporary = path.join (directory, '.' + path.basename (file) + '.' + process.pid + '.' + crypto.randomBytes (6).toString ('hex') + '.tmp');
     try {
         fs.writeFileSync (temporary, contents, { 'mode': 0o600, 'flag': 'wx' });
-        fs.renameSync (temporary, file);
+        renameIntoPlace (temporary, file);
     } catch (error) {
         fs.rmSync (temporary, { 'force': true });
         throw error;
@@ -561,8 +587,13 @@ async function fetchBundle (lock, directories) {
         try {
             writeAtomically (path.join (directory, CACHED_NAME), bundle);
         } catch (error) {
-            unusable.set (directory, error.code || error.message);
-            continue;
+            // Two instances that start cold together both get here, and Windows refuses to
+            // put a file in the place of one the other instance has open at that moment. The
+            // file that is there is then the same verified server, which is all that matters.
+            if (!holdsBundle (path.join (directory, CACHED_NAME), lock)) {
+                unusable.set (directory, error.code || error.message);
+                continue;
+            }
         }
         if (notices !== undefined) {
             try {
@@ -641,25 +672,6 @@ function runnableCopy (server) {
     }
 }
 
-function findOnPath (names, directories) {
-    for (const directory of directories) {
-        if (!directory) {
-            continue;
-        }
-        for (const name of names) {
-            const candidate = path.join (directory, name);
-            try {
-                if (fs.statSync (candidate).isFile ()) {
-                    return candidate;
-                }
-            } catch (error) {
-                // not here
-            }
-        }
-    }
-    return undefined;
-}
-
 // The places scripts/launch and scripts/launch.cmd look for a user-installed Node, which is
 // where its npx is too. Keep the three lists in step.
 function nodeInstallDirectories () {
@@ -668,6 +680,7 @@ function nodeInstallDirectories () {
     if (process.platform === 'win32') {
         return [
             env['ProgramFiles'] && path.join (env['ProgramFiles'], 'nodejs'),
+            env['ProgramW6432'] && path.join (env['ProgramW6432'], 'nodejs'),
             env['NVM_SYMLINK'],
             env['LOCALAPPDATA'] && path.join (env['LOCALAPPDATA'], 'Volta', 'bin'),
         ];
@@ -695,30 +708,100 @@ function nodeInstallDirectories () {
     return directories.concat (parsed.map ((entry) => path.join (versions, entry.name, 'bin')));
 }
 
+function isFile (file) {
+    try {
+        return fs.statSync (file).isFile ();
+    } catch (error) {
+        return false;
+    }
+}
+
+// what may stand between cmd.exe's double quotes without meaning anything to it; "%" is
+// missing on purpose (cmd expands %NAME% inside quotes too), and a path cannot hold a quote
+const CMD_SAFE_PATH = /^[^"%\r\n]+$/;
+// the fixed "-y" and "ccxt-mcp@<version>": nothing cmd.exe gives a meaning to
+const CMD_SAFE_ARGUMENT = /^[0-9A-Za-z@._-]+$/;
+
+// How the npx at `npx` is started with `args`: { command, args, options }, or undefined
+// when it cannot be started safely.
+//
+// Everywhere but Windows npx is a script with a shebang and is started as it is. On Windows
+// it is a batch file (npx.cmd), which Node refuses to start without a shell (since the fix
+// for CVE-2024-27980), and a command line that goes through cmd.exe is parsed by it. So, in
+// this order:
+//   1. a program (Volta's npx.exe) is started as it is;
+//   2. the npx.cmd of a Node.js install only starts `node npx-cli.js`, and both files are
+//      right beside it — that is done here directly, with no cmd.exe at all. It also means
+//      the host stops the real server process, not a cmd.exe that leaves it running;
+//   3. any other npx.cmd is started through cmd.exe, with a command line built here
+//      (never by Node's `shell` option, which quotes nothing): the path between double
+//      quotes, refused when it holds the one character that still means something there,
+//      and arguments that are checked to hold nothing cmd.exe interprets.
+function npxInvocation (npx, args) {
+    if (process.platform !== 'win32' || /\.exe$/i.test (npx)) {
+        return { 'command': npx, args, 'options': {} };
+    }
+    const directory = path.dirname (npx);
+    const cli = path.join (directory, 'node_modules', 'npm', 'bin', 'npx-cli.js');
+    if (isFile (cli)) {
+        const node = path.join (directory, 'node.exe');
+        return { 'command': isFile (node) ? node : process.execPath, 'args': [ cli, ...args ], 'options': {} };
+    }
+    if (!CMD_SAFE_PATH.test (npx) || !args.every ((argument) => CMD_SAFE_ARGUMENT.test (argument))) {
+        return undefined;
+    }
+    const systemRoot = process.env['SystemRoot'] || process.env['windir'] || 'C:\\Windows';
+    const named = process.env['ComSpec'];
+    const shell = (named && path.isAbsolute (named) && isFile (named)) ? named : path.join (systemRoot, 'System32', 'cmd.exe');
+    // /d: no AutoRun commands; /v:off: "!" stays a plain character; /s with the whole
+    // command between one more pair of quotes: cmd removes exactly that pair and reads the
+    // rest as written
+    return { 'command': shell, 'args': [ '/d', '/v:off', '/s', '/c', '"' + [ '"' + npx + '"', ...args ].join (' ') + '"' ], 'options': { 'windowsVerbatimArguments': true } };
+}
+
+function npxArguments (version) {
+    return [ '-y', PACKAGE + '@' + version ];
+}
+
 // npx on PATH, beside the Node that runs this file, or in a usual install location. The
 // launcher prefers the app's own Node, which has no npx beside it, and a desktop app hands
 // its children a minimal PATH — so a user with Node from Homebrew or nvm would otherwise be
-// told to install the Node.js they already have.
-function findNpx () {
+// told to install the Node.js they already have. An npx that cannot be started safely (see
+// npxInvocation) is passed over like one that is not there.
+function findNpx (version) {
     const windows = process.platform === 'win32';
     const nodeDirectory = path.dirname (process.execPath);
     const directories = (process.env['PATH'] || '').split (path.delimiter).concat ([ nodeDirectory ], nodeInstallDirectories ());
-    const npx = findOnPath (windows ? [ 'npx.cmd' ] : [ 'npx' ], directories.filter ((directory) => directory && path.isAbsolute (directory)));
-    return (npx === undefined) ? undefined : { npx, nodeDirectory };
+    const names = windows ? [ 'npx.cmd', 'npx.exe' ] : [ 'npx' ];
+    for (const directory of directories) {
+        if (!directory || !path.isAbsolute (directory)) {
+            continue;
+        }
+        for (const name of names) {
+            const npx = path.join (directory, name);
+            const invocation = isFile (npx) ? npxInvocation (npx, npxArguments (version)) : undefined;
+            if (invocation !== undefined) {
+                return { npx, nodeDirectory, invocation };
+            }
+        }
+    }
+    return undefined;
 }
 
-function runNpx (found, version) {
-    const windows = process.platform === 'win32';
-    const args = [ '-y', PACKAGE + '@' + version ];
+function runNpx (found) {
     // npx is a script that starts `node` from PATH: the one installed beside it is the one
     // it belongs to, so that directory comes first; the Node running this file is the last
-    // resort for an npx that has none beside it
-    const env = { ...process.env, 'PATH': [ path.dirname (found.npx), process.env['PATH'], found.nodeDirectory ].filter (Boolean).join (path.delimiter) };
-    // a .cmd file can only be started through the shell on Windows; the arguments are the
-    // fixed "-y" and a version that matched VERSION_PATTERN, so there is nothing to quote
-    const child = windows
-        ? spawn ('"' + found.npx + '" ' + args.join (' '), { 'stdio': 'inherit', env, 'shell': true })
-        : spawn (found.npx, args, { 'stdio': 'inherit', env });
+    // resort for an npx that has none beside it. (Windows names the variable "Path", and an
+    // environment with both spellings would leave it to chance which one the child gets.)
+    const windows = process.platform === 'win32';
+    const env = {};
+    for (const [ name, value ] of Object.entries (process.env)) {
+        if (!windows || name.toUpperCase () !== 'PATH') {
+            env[name] = value;
+        }
+    }
+    env['PATH'] = [ path.dirname (found.npx), process.env['PATH'], found.nodeDirectory ].filter (Boolean).join (path.delimiter);
+    const child = spawn (found.invocation.command, found.invocation.args, { 'stdio': 'inherit', env, ...found.invocation.options });
     for (const signal of [ 'SIGINT', 'SIGTERM', 'SIGHUP' ]) {
         process.on (signal, () => child.kill (signal));
     }
@@ -780,9 +863,9 @@ async function main () {
         }
         say (reason.message + ' — trying npx instead');
     }
-    const npx = findNpx ();
+    const npx = findNpx (lock.version);
     if (npx !== undefined) {
-        runNpx (npx, lock.version);
+        runNpx (npx);
         return;
     }
     if (reason === undefined) {

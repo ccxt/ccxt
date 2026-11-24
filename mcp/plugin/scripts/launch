@@ -63,7 +63,8 @@ too_old=
 
 # Runs "$@" with the candidate when it is an executable Node >= MIN_MAJOR; returns otherwise.
 # The version is read from `node --version` and compared in the shell, so nothing but the
-# candidate itself is executed and no string is ever evaluated.
+# candidate itself is executed and no string is ever evaluated. The candidate gets no stdin:
+# that is the host's MCP channel, and a file that is not a Node must not be able to read it.
 try_node() {
     candidate=$1
     shift
@@ -71,7 +72,7 @@ try_node() {
     if [ ! -f "$candidate" ] || [ ! -x "$candidate" ]; then
         return 0
     fi
-    version=$("$candidate" --version 2>/dev/null) || return 0
+    version=$("$candidate" --version 2>/dev/null </dev/null) || return 0
     major=${version#v}
     major=${major%%.*}
     case "$major" in '' | *[!0-9]*) return 0 ;; esac

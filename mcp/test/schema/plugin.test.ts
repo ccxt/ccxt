@@ -172,8 +172,8 @@ test ('the launcher scripts ship complete: sh + cmd twins, executable, no machin
     assert.ok (!/[^\r]\n/.test (cmd), 'plugin/scripts/launch.cmd must use CRLF line endings');
     assert.ok (/^[\x00-\x7f]*$/.test (cmd), 'plugin/scripts/launch.cmd must be ASCII: cmd.exe reads it in the console code page');
     // the script argument is plugin-relative, so both twins must leave the host's working
-    // directory for the plugin root before they look for anything (launcher.test.ts runs the
-    // sh one from a foreign directory; the cmd one can only be checked by reading it)
+    // directory for the plugin root before they look for anything (launcher.test.ts runs
+    // each one from a foreign directory on its own system; this reads the cmd one everywhere)
     assert.ok (cmd.includes ('\r\ncd /d "%~dp0.." 2>nul || goto :no_root\r\n'));
     assert.ok (cmd.indexOf ('cd /d "%~dp0.."') < cmd.indexOf ('call :try'), 'launch.cmd must enter the plugin root before probing for Node');
     assert.ok (cmd.indexOf ('cd /d "%~dp0.."') < cmd.indexOf ('(\'where node'));

@@ -40,3 +40,7 @@ rust/ccxt-base/src/pro/mod.rs linguist-generated=true
 # cmd.exe mis-parses labels in LF-only batch files; the plugin launcher is checked out with CRLF everywhere
 mcp/plugin/scripts/launch.cmd text eol=crlf
 mcp/plugin/scripts/launch text eol=lf
+# "*.*" above does not match a name without a dot, so core.autocrlf decided this one: on Windows
+# it was checked out with CRLF, and the copy in the npm package and the licence notices generated
+# from it (mcp/scripts/build-bundle.mjs) differed from the ones built on Linux and macOS
+mcp/LICENSE text eol=lf

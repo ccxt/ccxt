@@ -1,0 +1,32 @@
+/* Shared by the account views (balance, orders, positions): the account / environment
+   heading, the readout under the table and the table chrome. Inlined after shared.css. */
+/* the account this data belongs to, and the one thing that must never be misread: whether
+   it is real. LIVE is a solid inverted pill, the practice environments an outline — told
+   apart by the word and the form, not by a colour */
+.account { display: inline-flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%; }
+.account .name { font-weight: 600; max-width: 14em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.env { flex: none; font-size: 11px; font-weight: 700; letter-spacing: 0.06em; line-height: 16px; padding: 0 7px; border: 1px solid var(--text-2); border-radius: 999px; color: var(--text-2); white-space: nowrap; }
+.env.live { background: var(--text); border-color: var(--text); color: var(--bg); }
+.asof { color: var(--text-2); margin-top: 2px; }
+.hero .value { font-variant-numeric: normal; overflow-wrap: anywhere; }
+/* sits under the table: its height may change with the row, and rows must not move under the pointer */
+.readout { display: flex; flex-wrap: wrap; align-items: center; align-content: flex-start; gap: 2px 14px; min-height: 20px; margin: 8px 0 0; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.readout > span { min-width: 0; overflow-wrap: anywhere; }
+.readout b { color: var(--text); font-weight: 600; }
+.readout .sym { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.note { color: var(--text-2); margin-top: 6px; }
+.board.scroll { max-height: 520px; }
+th, td { padding: 6px 7px; }
+thead th { padding: 5px 7px; }
+thead button { border: 0; border-radius: 4px; padding: 2px 4px; margin: -2px -4px; color: inherit; font-weight: inherit; white-space: nowrap; }
+thead th[aria-sort="ascending"] button, thead th[aria-sort="descending"] button { color: var(--text); font-weight: 600; }
+thead .dir { display: inline-block; width: 1em; text-align: center; }
+tbody tr:hover, tbody tr.active { background: var(--bg-2); }
+tbody tr:focus-visible { outline-offset: -2px; }
+tbody th { font-weight: 600; border-bottom: 1px solid var(--border); }
+tbody tr:last-child th { border-bottom: 0; }
+th.l, td.l { text-align: left; }
+.name { display: block; max-width: 9.5em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.missing, .unit { color: var(--text-3); font-weight: 400; }
+.sub { display: block; white-space: nowrap; font-size: 11px; line-height: 1.25; color: var(--text-2); font-weight: 400; }
+thead .short { display: none; }

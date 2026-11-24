@@ -76,7 +76,10 @@ test ('CCXT_MCP_TOOLS=core lists the core profile over real stdio', { 'skip': !f
 // The server used to answer that with an endless EPIPE → uncaught exception → log → EPIPE
 // loop: an orphan at 100% CPU per crashed session. The stand-in host below initializes the
 // server and then SIGKILLs itself; the server must be gone shortly after.
-test ('the server exits when its host dies without closing the pipes', { 'skip': (!fs.existsSync (serverEntry) ? 'run npm run build first' : false) || (process.platform === 'win32' ? 'needs SIGKILL and a pid probe' : false) }, async () => {
+// On Windows there are no signals at all: a host that is ended (Task Manager, a crash, the
+// app closing) takes its ends of the pipes with it, and stdin closing is the ONLY thing that
+// tells the server. Node maps the SIGKILL below to TerminateProcess there, which is that case.
+test ('the server exits when its host dies without closing the pipes', { 'skip': (!fs.existsSync (serverEntry) ? 'run npm run build first' : false) }, async () => {
     const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'ccxt-mcp-orphan-'));
     const config = path.join (dir, 'config.json');
     fs.writeFileSync (config, '{}', { 'mode': 0o600 });
@@ -90,7 +93,8 @@ test ('the server exits when its host dies without closing the pipes', { 'skip':
         'child.stdin.write (JSON.stringify ({ \'jsonrpc\': \'2.0\', \'id\': 1, \'method\': \'initialize\', \'params\': { \'protocolVersion\': \'2025-03-26\', \'capabilities\': {}, \'clientInfo\': { \'name\': \'dying-host\', \'version\': \'0\' } } }) + \'\\n\');',
     ].join ('\n'));
     const env: Record<string, string> = { 'CCXT_MCP_CONFIG': config };
-    for (const key of [ 'PATH', 'HOME' ]) {
+    // (the names after HOME are what a Windows program needs to start at all)
+    for (const key of [ 'PATH', 'HOME', 'SystemRoot', 'windir', 'USERPROFILE', 'APPDATA', 'LOCALAPPDATA', 'TEMP', 'TMP' ]) {
         if (process.env[key] !== undefined) {
             env[key] = process.env[key] as string;
         }
@@ -113,6 +117,11 @@ test ('the server exits when its host dies without closing the pipes', { 'skip':
             });
             hostProcess.on ('error', reject);
             hostProcess.on ('close', () => (/^\d+\n$/.test (out) ? resolve (Number (out)) : reject (new Error ('the stand-in host did not report the server pid: ' + JSON.stringify (out)))));
+            // a host that never reports must fail this test, not hold the whole run
+            setTimeout (() => {
+                hostProcess.kill ('SIGKILL');
+                reject (new Error ('the stand-in host did not start the server within 60 s: ' + JSON.stringify (out)));
+            }, 60000).unref ();
         });
         const deadline = Date.now () + 10000;
         while (alive (serverPid) && Date.now () < deadline) {
@@ -123,6 +132,6 @@ test ('the server exits when its host dies without closing the pipes', { 'skip':
         if (serverPid !== 0 && alive (serverPid)) {
             process.kill (serverPid, 'SIGKILL');
         }
-        fs.rmSync (dir, { 'recursive': true, 'force': true });
+        fs.rmSync (dir, { 'recursive': true, 'force': true, 'maxRetries': 20, 'retryDelay': 250 });
     }
 });
