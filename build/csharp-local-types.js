@@ -7374,6 +7374,9 @@ function resolveLocalReadType (csharp, context, identifier) {
         // every member re-checks its own writes against that box, so a bad write still fails
         return 'double?';
     }
+    if (context.depth < MAX_RESOLVE_DEPTH && declaration.initializer && safeNumberSwapMember (declaration, 'safeString')) {
+        return 'string?'; // the same swap ring over safeString boxes
+    }
     if ((context.stack.has (declaration) || classifyInProgress.has (declaration)) && annotationType (declaration) === 'Int64?' && declaration.getStart () < identifier.getStart ()) {
         return 'Int64?'; // an `Int` local in a write cycle: assumed, and its own writes are checked when it is classified
     }
@@ -13764,7 +13767,7 @@ function safeHelperLocalInitializer (node) {
 // A member of a safeNumber swap ring (`let a = this.safeNumber (..); let b = this.safeNumber (..);
 // const t = a; a = b; b = t`): the initialiser is a safeNumber call or a copy of one, and EVERY plain
 // write of the name stores another ring member, so the whole ring is one double? box.
-function safeNumberSwapMember (declaration) {
+function safeNumberSwapMember (declaration, method = 'safeNumber') {
     const scope = enclosingFunction (declaration);
     if (scope === undefined || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
         return false;
@@ -13781,7 +13784,7 @@ function safeNumberSwapMember (declaration) {
         n.forEachChild (visit);
     };
     visit (scope);
-    const isSafeNumber = (d) => d && safeHelperLocalInitializer (d.initializer) && d.initializer.expression.name?.text === 'safeNumber';
+    const isSafeNumber = (d) => d && safeHelperLocalInitializer (d.initializer) && d.initializer.expression.name?.text === method;
     const member = (name, depth) => {
         const d = decls.get (name);
         if (!d || depth > 2 || (d.parent?.declarations?.length !== 1)) {
@@ -13795,7 +13798,11 @@ function safeNumberSwapMember (declaration) {
     if (!member (declaration.name.text, 0)) {
         return false;
     }
-    return writes.filter ((w) => w.left.text === declaration.name.text)
+    const own = writes.filter ((w) => w.left.text === declaration.name.text);
+    if (method !== 'safeNumber' && own.length === 0 && declaration.initializer?.kind !== ts.SyntaxKind.Identifier) {
+        return false; // a written ring member or a copy of one, not every plain read
+    }
+    return own
         .every ((w) => w.operatorToken.kind === ts.SyntaxKind.EqualsToken && w.right.kind === ts.SyntaxKind.Identifier && member (w.right.text, 0));
 }
 
