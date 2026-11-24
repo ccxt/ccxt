@@ -3630,7 +3630,7 @@ public class BaseExchange {
         return ""; // to do later
     }
 
-    public Object extendedStarknetSign(Object msgHash, Object privateKey)
+    public String extendedStarknetSign(Object msgHash, Object privateKey)
     {
         BigInteger hash = extendedParseStarknetBigInteger(msgHash);
         BigInteger key = extendedParseStarknetBigInteger(privateKey);
