@@ -3834,11 +3834,13 @@ export default class binance extends binanceRest {
         // stock keepalive fixes
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams (methodName, market, params);
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams (methodName, market, paramsMarketType);
-        let type: Str = marketType;
+        const linear = this.isLinear (marketType, subType);
+        const inverse = this.isInverse (marketType, subType);
+        let type: string = (marketType !== undefined) ? marketType : 'spot';
         if (type !== 'option' && type !== 'stock') {
-            if (this.isLinear (type, subType)) {
+            if (linear) {
                 type = 'linear';
-            } else if (this.isInverse (type, subType)) {
+            } else if (inverse) {
                 type = 'inverse';
             }
         }
