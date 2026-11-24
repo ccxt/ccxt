@@ -42,7 +42,7 @@ public partial class blofin : Exchange
                 { "createStopOrder", false },
                 { "createTakeProfitOrder", true },
                 { "createTriggerOrder", true },
-                { "editOrder", false },
+                { "editOrder", true },
                 { "fetchAccounts", false },
                 { "fetchBalance", true },
                 { "fetchBidsAsks", null },
@@ -2121,6 +2121,67 @@ public partial class blofin : Exchange
         Dictionary<string, object> response = await this.privatePostTradeBatchOrders(ordersRequests);
         List<object> data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data);
+    }
+
+    /**
+     * @method
+     * @name blofin#editOrder
+     * @description edit a trade order
+     * @see https://docs.blofin.com/index.html#amend-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "instId", (market.ContainsKey("id") ? market["id"] : null) },
+        };
+        string? clientOrderId = this.safeString(parameters, "clientOrderId");
+        if ((clientOrderId != null))
+        {
+            request["clientOrderId"] = clientOrderId;
+        } else
+        {
+            request["orderId"] = id;
+        }
+        if ((amount != null))
+        {
+            request["newSize"] = this.amountToPrecision(symbol, amount);
+        }
+        if ((price != null))
+        {
+            request["newPrice"] = this.priceToPrecision(symbol, price);
+        }
+        Dictionary<string, object> response = await this.privatePostTradeAmendOrder(this.extend(request, this.omit(parameters, "clientOrderId")));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Order modified",
+        //         "data": {
+        //             "orderId": "6000004088576",
+        //             "clientOrderId": "",
+        //             "requestId": "",
+        //             "msg": "Order modified",
+        //             "code": "0",
+        //             "ts": "1795184228537"
+        //         }
+        //     }
+        //
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseOrder(data, market);
     }
 
     /**
