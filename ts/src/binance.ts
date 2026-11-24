@@ -11391,16 +11391,19 @@ export default class binance extends Exchange {
             const position = positions[i];
             const marketId = this.safeString (position, 'symbol');
             const market = this.safeMarket (marketId, undefined, undefined, 'contract');
-            const code = (this.safeBool (market, 'linear', false)) ? market['quote'] : market['base'];
+            let marginCode: string = this.safeString (market, 'base', '');
+            if (this.safeBool (market, 'linear', false)) {
+                marginCode = this.safeString (market, 'quote', '');
+            }
             const maintenanceMargin = this.safeString (position, 'maintMargin');
             // check for maintenance margin so empty positions are not returned
             const isPositionOpen = (maintenanceMargin !== '0') && (maintenanceMargin !== '0.00000000');
             if (!filterClosed || isPositionOpen) {
                 // sometimes not all the codes are correctly returned...
-                if (code in balances) {
+                if (marginCode in balances) {
                     const parsed = this.parseAccountPosition (this.extend (position, {
-                        'crossMargin': this.safeString (balances[code], 'crossMargin'),
-                        'crossWalletBalance': this.safeString (balances[code], 'crossWalletBalance'),
+                        'crossMargin': this.safeString (balances[marginCode], 'crossMargin'),
+                        'crossWalletBalance': this.safeString (balances[marginCode], 'crossWalletBalance'),
                     }), market);
                     result.push (parsed);
                 }
