@@ -3410,11 +3410,8 @@ export default class cryptocom extends Exchange {
     paramsToString (object: any, level: number): string {
         const maxLevel = 3;
         const depth: int = this.parseToInt (level);
-        if (depth >= maxLevel) {
+        if ((depth >= maxLevel) || (typeof object === 'string')) {
             return object.toString ();
-        }
-        if (typeof object === 'string') {
-            return object;
         }
         let returnString: string = '';
         let paramsKeys: Strings = undefined;
