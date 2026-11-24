@@ -5550,7 +5550,9 @@ class NewTranspiler {
         if (assigned) {
             return lists.get (assigned[1]) === 'IList<object>';
         }
-        return /(?:\bthis\.(?:parseOHLCVs|parseLeverages|parseLiquidations|parseMarginModes|parseMarginModifications|parseOptionChain|parsePredictionOrders|arrayConcat|filterBySinceLimit|filterBySymbolSinceLimit|filterBySymbolsSinceLimit|filterByOutcomeSinceLimit)|\bccxt\.BaseExchange\.(?:ToTransactionList|ToDepositAddressList))\($/.test (before) || /\bthis\.arrayConcat\((?:this\.toArray\()?[A-Za-z_]\w*\)?,\s*$/.test (before);
+        return /(?:\bthis\.(?:parseOHLCVs|parseLeverages|parseLiquidations|parseMarginModes|parseMarginModifications|parseOptionChain|parsePredictionOrders|arrayConcat|filterBySinceLimit|filterBySymbolSinceLimit|filterBySymbolsSinceLimit|filterByOutcomeSinceLimit)|\bccxt\.BaseExchange\.(?:ToTransactionList|ToDepositAddressList))\($/.test (before) || /\bthis\.arrayConcat\((?:this\.toArray\()?[A-Za-z_]\w*\)?,\s*$/.test (before)
+            // single-signature base slots: filterByValueSinceLimit<T>(IList<T>) infers T = object, parseOpenInterests(IList<object>)
+            || /\bthis\.(?:filterByValueSinceLimit|parseOpenInterests)\($/.test (before);
     }
 
     // `((IList<object>)(x as ccxt.pro.OrderBook).cache).Add(v)` — `cache` is declared
