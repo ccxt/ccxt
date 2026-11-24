@@ -138,7 +138,7 @@ async function tcoCreateFillableOrder (exchange: any, market: Dict, logPrefix: s
         //
         // ### close the traded position ###
         //
-        const amountToClose = exchange.parseToNumeric (exchange.safeString (entryorderFetched, 'filled'));
+        const amountToClose = exchange.safeNumber (entryorderFetched, 'filled');
         const params: Dict = {};
         // as we want to close position, we should use 'reduceOnly' to ensure we don't open a margined position accidentally, because some exchanges might have automatically enabled margin-mode (on spot) or hedge-mode (on contracts)
         if (isSwapFuture) {
