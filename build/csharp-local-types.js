@@ -17714,11 +17714,21 @@ function csharpArgumentType (csharp, argument, expected) {
                 if ((expected === 'string?') && coreStringParameterIsUnwritten (csharp, declaration)) {
                     return 'string?'; // a CORE_STRING_ARGS position: typeCoreArgs prints it a string
                 }
+                // the trailing `params = {}` bag the printer prints `IDictionary<string, object>` (listed, never written),
+                // read as the argument of an unlisted Dict slot (a listed slot keeps the printer's own spelling)
+                if ((expected === 'IDictionary<string, object>') && (csharpListedBagProofDepth === 0) && (typeof csharp.csharpIsDictParamsBag === 'function')
+                    && csharp.csharpIsDictParamsBag (declaration) && (dictionaryParameterType (csharp, declaration) === expected)) {
+                    return expected;
+                }
                 const own = csharpParameterDecision (csharp, declaration, expected);
                 return own ?? printedSignatureParameterType (csharp, declaration) ?? 'object';
             }
             if (nullSeedParamsSlotShape (declaration)) {
                 return 'object'; // 77c4: typing these locals must not retype a called signature (lane 77c1)
+            }
+            // `const [ v, paramsX ] = this.handle*AndParams (..)`: element 1 is printed `IDictionary<string, object> paramsX`
+            if ((expected === CSHARP_ELEMENT_1_TYPE) && element1ParamsBinding (csharp, declaration)) {
+                return CSHARP_ELEMENT_1_TYPE;
             }
             const reference = referenceDeclaredType (csharp, declaration);
             if (reference !== undefined) {
@@ -17995,14 +18005,19 @@ function csharpParameterDecision (csharp, parameter, expected) {
         return undefined;
     }
     csharpParameterDecisionsInProgress.add (parameter);
+    const listedBag = (typeof csharp.csharpIsDictParamsBag === 'function') && csharp.csharpIsDictParamsBag (parameter);
+    const savedListedBagDepth = csharpListedBagProofDepth;
+    csharpListedBagProofDepth = listedBag ? savedListedBagDepth + 1 : 0; // an unlisted slot's own proof reads bags again
     try {
         const proves = csharpParameterCallSitesProve (csharp, parameter, target);
         csharpParameterTypeDecisions.set (parameter, proves ? target : null);
         return proves ? target : undefined;
     } finally {
+        csharpListedBagProofDepth = savedListedBagDepth;
         csharpParameterDecisionsInProgress.delete (parameter);
     }
 }
+let csharpListedBagProofDepth = 0;
 
 // a pro async helper's `Str` parameter takes the same call-site proof as a sync one (string? slot)
 function proAsyncStrParameter (owner, mapped) {
