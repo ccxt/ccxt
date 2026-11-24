@@ -601,7 +601,7 @@ impl crate::exchange::DerivedExchange for Poloniex {
 
     None
 }
-    fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, contract: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let contract: Value = contract.into();
         //
         //    {
@@ -2386,11 +2386,8 @@ impl Poloniex {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let promises: crate::value::List = std::sync::Arc::new(vec![Value::Arr(self.fetch_spot_markets(&[params.clone()]).await), Value::Arr(self.fetch_swap_markets(&[params]).await)]);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        let promises: crate::value::List = std::sync::Arc::new(vec![Value::Arr(self.fetch_spot_markets(&[Value::from(&params)]).await), Value::Arr(self.fetch_swap_markets(&[Value::from(&params)]).await)]);
         let results: Vec<Value> = promise_all(&Value::Arr(promises)).await.to_vec();
         return self.array_concat(results.get(0).cloned().unwrap_or(Value::Null), results.get(1).cloned().unwrap_or(Value::Null));
         Value::Null
@@ -4343,7 +4340,7 @@ impl Poloniex {
         //    }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, Some(&data), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4379,12 +4376,9 @@ impl Poloniex {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let prepared: crate::value::Dict = self.prepare_request_for_deposit_address(code.as_str().unwrap_or_default(), &[&params]);
+        let prepared: crate::value::Dict = self.prepare_request_for_deposit_address(code.as_str().unwrap_or_default(), &[&Value::Dict(params)]);
         let request: crate::value::Dict = self.safe_dict_k_t(&prepared, "request");
         let paramsValue: crate::value::Dict = self.safe_dict_k_t(&prepared, "query");
         let mut currency: crate::types::Currency = self.currency(code.as_str());
@@ -4412,12 +4406,9 @@ impl Poloniex {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let prepared: crate::value::Dict = self.prepare_request_for_deposit_address(code.as_str().unwrap_or_default(), &[&params]);
+        let prepared: crate::value::Dict = self.prepare_request_for_deposit_address(code.as_str().unwrap_or_default(), &[&Value::Dict(params)]);
         let request: crate::value::Dict = self.safe_dict_k_t(&prepared, "request");
         let paramsValue: crate::value::Dict = self.safe_dict_k_t(&prepared, "query");
         let mut currency: crate::types::Currency = self.currency(code.as_str());
@@ -4764,12 +4755,9 @@ impl Poloniex {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let response: crate::value::Dict = self.fetch_transactions_helper(code.as_str(), since, limit, &[params]).await;
+        let response: crate::value::Dict = self.fetch_transactions_helper(code.as_str(), since, limit, &[Value::Dict(params)]).await;
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
             currency = Some(self.currency(code.as_str()));
@@ -4804,11 +4792,8 @@ impl Poloniex {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let response: crate::value::Dict = self.fetch_transactions_helper(code.as_str(), since, limit, &[params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        let response: crate::value::Dict = self.fetch_transactions_helper(code.as_str(), since, limit, &[Value::Dict(params)]).await;
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
             currency = Some(self.currency(code.as_str()));
@@ -5018,11 +5003,8 @@ impl Poloniex {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let response: crate::value::Dict = self.fetch_transactions_helper(code.as_str(), since, limit, &[params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        let response: crate::value::Dict = self.fetch_transactions_helper(code.as_str(), since, limit, &[Value::Dict(params)]).await;
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
             currency = Some(self.currency(code.as_str()));
@@ -5349,11 +5331,8 @@ impl Poloniex {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Some(amount), "reduce", &[&params]).await);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Some(amount), "reduce", &[&Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -5375,11 +5354,8 @@ impl Poloniex {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Some(amount), "add", &[&params]).await);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Some(amount), "add", &[&Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }

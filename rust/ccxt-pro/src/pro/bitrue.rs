@@ -99,7 +99,7 @@ impl Bitrue {
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ping" => { self.handle_ping(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -588,9 +588,7 @@ impl Bitrue {
         }).await?))
     }
 
-    pub fn handle_order_book(&mut self, mut client: Value, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_order_book(&mut self, mut client: Value, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "channel": "market_ethbtc_simple_depth_step0",
@@ -852,10 +850,7 @@ if _try_result.is_err() {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -874,7 +869,7 @@ if _try_result.is_err() {
                 m.insert("symbols".to_string(), Value::from(vec![Value::from(symbolValue.as_str())]));
             m
         });
-        return self.un_subscribe(Value::Str(format!("{}{}", "trades:", symbolValue).into()), channel.as_str(), wsId.as_str(), Value::Map(subscription), &[&params]).await;
+        return self.un_subscribe(Value::Str(format!("{}{}", "trades:", symbolValue).into()), channel.as_str(), wsId.as_str(), Value::Map(subscription), &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -1053,10 +1048,7 @@ if _try_result.is_err() {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1080,7 +1072,7 @@ if _try_result.is_err() {
                 m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![Value::from(symbolValue.as_str()), timeframe.clone()])]));
             m
         });
-        return self.un_subscribe(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv:", symbolValue).into()), ":").into()), timeframe).into()), channel.as_str(), wsId.as_str(), Value::Map(subscription), &[&params]).await;
+        return self.un_subscribe(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv:", symbolValue).into()), ":").into()), timeframe).into()), channel.as_str(), wsId.as_str(), Value::Map(subscription), &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -1334,7 +1326,7 @@ if _try_result.is_err() {
         if (matches!(&message, Value::Dict(__d) if __d.contains_key("channel"))) {
             let channel: Option<String> = (match __pro_message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
             if channel.as_deref().unwrap_or_default().contains("_depth_step") {
-                self.handle_order_book(client.as_value(), &message);
+                self.handle_order_book(client.as_value(), message.as_map().unwrap_or(&Default::default()));
             }  else if channel.as_deref().unwrap_or_default().contains("_trade_ticker") {
                 self.handle_trades(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
             }  else if channel.as_deref().unwrap_or_default().contains("_kline_") {

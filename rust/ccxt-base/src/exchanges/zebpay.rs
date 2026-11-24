@@ -1255,10 +1255,7 @@ impl Zebpay {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let mut promisesUnresolved: Vec<Value> = Vec::new();
         let fetchMarketsOptions: crate::value::Dict = self.safe_dict_k_t(&self.options, "fetchMarkets");
         let defaultMarkets: Value = Value::from(vec![Value::Str("spot".into()), Value::Str("swap".into())]);
@@ -1269,9 +1266,9 @@ impl Zebpay {
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (types.len() as i64) } {
             let type_var: String = self.safe_string(&types, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (type_var == "spot") {
-                promisesUnresolved.push(Value::Arr(self.fetch_spot_markets(&[params.clone()]).await));
+                promisesUnresolved.push(Value::Arr(self.fetch_spot_markets(&[Value::from(&params)]).await));
             }  else if (type_var == "swap") {
-                promisesUnresolved.push(Value::Arr(self.fetch_swap_markets(&[params.clone()]).await));
+                promisesUnresolved.push(Value::Arr(self.fetch_swap_markets(&[Value::from(&params)]).await));
             }  else {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchMarkets() this.options fetchMarkets \"").into()), type_var).into()), "\" is not a supported market type")));
             }

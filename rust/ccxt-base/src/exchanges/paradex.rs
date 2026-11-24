@@ -598,7 +598,7 @@ impl crate::exchange::DerivedExchange for Paradex {
 
     None
 }
-    fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, contract: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let contract: Value = contract.into();
         //
         //     {
@@ -3732,16 +3732,13 @@ impl Paradex {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         self.authenticate_rest(&[]).await;
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut request: Value = Value::Dict(self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), Some(amount), price, &[&params]));
+        let mut request: Value = Value::Dict(self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), Some(amount), price, &[&Value::Dict(params)]));
         request = Value::Dict(self.sign_order_request(request, &[]).await);
         let response: crate::value::Dict = self.private_post_orders(&[&request]).await.unwrap_or_default();
         //
@@ -3806,10 +3803,7 @@ impl Paradex {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (amount.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " editOrder() requires an amount argument")));
         }
@@ -3822,7 +3816,7 @@ impl Paradex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut request: Value = Value::Dict(self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, price, &[&params]));
+        let mut request: Value = Value::Dict(self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, price, &[&Value::Dict(params)]));
         request = self.omit(request, &["instruction", "client_id", "flags", "recv_window"], &[]);
         let editRequest: crate::value::Dict = self.extend_t(&request, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -5515,7 +5509,7 @@ impl Paradex {
         }).await?))
     }
 
-    pub fn parse_option(&self, chain: impl Into<crate::Value>, currency: Option<&crate::types::Currency>, optional_args: &[Value]) -> crate::value::Dict {
+    pub fn parse_option(&self, chain: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>, optional_args: &[Value]) -> crate::value::Dict {
         let chain: Value = chain.into();
         let market = get_arg(optional_args, 0, Value::Null);
         //

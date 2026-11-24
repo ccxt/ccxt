@@ -199,7 +199,7 @@ impl crate::exchange::DerivedExchange for Bitflyer {
 
     None
 }
-    fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, contract: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let contract: Value = contract.into();
         //
         //    {
@@ -1793,7 +1793,7 @@ impl Bitflyer {
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_getfundingrate(&[&__ws_arg_14]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, Some(&response), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

@@ -1507,16 +1507,21 @@ pub trait ExchangeBase:
         }).await?))
     } }
 
-    fn fetch_trading_limits(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn fetch_trading_limits(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> impl ::std::future::Future<Output = crate::Result<Option<crate::value::Dict>>> + Send { async move {
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let symbols = get_arg(optional_args, 0, Value::Null);
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchTradingLimits() is not supported yet")));
-
-    Value::Null
-} }
+        Value::Null
+        }).await?))
+    } }
 
     fn parse_currency(&mut self, mut rawCurrency: Value) -> crate::value::Dict {
         // virtual-dispatch (static: DerivedExchange::parse_currency(self, ...))
@@ -3601,13 +3606,13 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn calculate_fee(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
+    fn calculate_fee(&self, symbol: &str, mut type_var: Value, side: &str, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
         let takerOrMaker = get_arg(optional_args, 0, Value::Str("taker".into()));
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
-        return self.calculate_fee_with_rate(symbol, type_var, side, amount, price, &[takerOrMaker, Value::Null, params]);
+        return self.calculate_fee_with_rate(Value::from(symbol), type_var, Value::from(side), amount, price, &[takerOrMaker, Value::Null, params]);
 
     Value::Null
 }
@@ -3751,11 +3756,15 @@ pub trait ExchangeBase:
 }
 
     fn parse_fee_numeric(&self, mut fee: Value) -> Value {
-        { let __be_tmp = self.safe_number_k(&fee, "cost", &[]); add_element_to_object(&mut fee, &Value::Str("cost".into()), __be_tmp); }; // ensure numeric
-        if (in_op(&fee, &Value::Str("rate".into()))) {
-            { let __be_tmp = self.safe_number_k(&fee, "rate", &[]); add_element_to_object(&mut fee, &Value::Str("rate".into()), __be_tmp); }
+        let mut result: crate::value::Dict = self.extend_t(Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        }), &[fee]);
+        { let __be_tmp = self.safe_number_k(&result, "cost", &[]); std::sync::Arc::make_mut(&mut result).insert("cost".into(), __be_tmp); }; // ensure numeric
+        if (result.contains_key("rate")) {
+            { let __be_tmp = self.safe_number_k(&result, "rate", &[]); std::sync::Arc::make_mut(&mut result).insert("rate".into(), __be_tmp); }
         }
-        return fee;
+        return Value::Dict(result);
 
     Value::Null
 }
@@ -4918,7 +4927,7 @@ pub trait ExchangeBase:
 }
 
     fn load_trading_limits(&mut self, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
-        let symbols = get_arg(optional_args, 0, Value::Null);
+        let mut symbols = get_arg(optional_args, 0, Value::Null);
         let reload = get_arg(optional_args, 1, Value::Bool(false));
         let params = get_arg(optional_args, 2, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -4926,7 +4935,7 @@ pub trait ExchangeBase:
 }));
         if (self.has.get("fetchTradingLimits").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchTradingLimits").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             if reload.as_bool() == Some(true) || !(self.options.contains_key("limitsLoaded")) {
-                let response: Value = self.fetch_trading_limits(&[symbols.clone()]).await;
+                let response: Value = crate::types::IntoRaw::into_raw(self.fetch_trading_limits(symbols.to_opt_str_vec(), Value::Null).await);
                 let symbolsArray: Value = self.require_value(symbols, &[Value::Str("loadTradingLimits() requires a symbols argument".into())]);
                 let mut markets: Value = Value::from(&self.markets);
                 if (markets == Value::Null) {
@@ -8215,7 +8224,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         {
                         let mut i: i64 = 0;
             let mut __for_first_149: bool = true;
-            while { if !__for_first_149 { i += 1; } __for_first_149 = false; (i as f64) < Value::Int(response.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+            while { if !__for_first_149 { i += 1; } __for_first_149 = false; i < (response.len() as i64) } {
             result.push(<Self as crate::exchange_generated::ExchangeBase>::parse_borrow_rate(self, self.safe_dict(&response, Value::Int(i), &[]), None));
         }
         }
@@ -8277,7 +8286,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     fn parse_funding_rate(&self, mut contract: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
         // virtual-dispatch (static: DerivedExchange::parse_funding_rate(self, ...))
-        if let Some(__v) = crate::exchange::DerivedExchange::parse_funding_rate(self, contract, market) { return __v; }
+        if let Some(__v) = crate::exchange::DerivedExchange::parse_funding_rate(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(contract).as_ref(), market) { return __v; }
 
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " parseFundingRate() is not supported yet")));
 
@@ -8587,15 +8596,17 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     fn parse_open_interests_history(&self, response: impl Into<crate::Value>, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
-        let response: Value = response.into();
+        let mut response: Value = response.into();
         let since = get_arg(optional_args, 0, Value::Null);
         let limit = get_arg(optional_args, 1, Value::Null);
+        let __response_empty = Vec::new();
+        let response = response.as_array().unwrap_or(&__response_empty);
         let mut interests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_155: bool = true;
-            while { if !__for_first_155 { i += 1; } __for_first_155 = false; (i as f64) < Value::Int(response.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            interests.push(Value::Dict(<Self as crate::exchange_generated::ExchangeBase>::parse_open_interest(self, get_value(&response, &Value::Int(i)), market)));
+            while { if !__for_first_155 { i += 1; } __for_first_155 = false; i < (response.len() as i64) } {
+            interests.push(Value::Dict(<Self as crate::exchange_generated::ExchangeBase>::parse_open_interest(self, response.get(i as usize).cloned().unwrap_or(Value::Null), market)));
         }
         }
         let sorted: crate::value::List = self.sort_by_t(Value::from(interests), Value::Str("timestamp".into()), &[]);
@@ -11034,10 +11045,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let price = get_arg(optional_args, 0, Value::Null);
         let takeProfit = get_arg(optional_args, 1, Value::Null);
         let stopLoss = get_arg(optional_args, 2, Value::Null);
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         /*
          * @method
          * @name createOrderWithTakeProfitAndStopLossWs
@@ -11060,7 +11068,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
-        let paramsValue: crate::value::Dict = self.set_take_profit_and_stop_loss_params(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), takeProfit, stopLoss, params]);
+        let paramsValue: crate::value::Dict = self.set_take_profit_and_stop_loss_params(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), takeProfit, stopLoss, Value::Dict(params)]);
         if (self.has.get("createOrderWithTakeProfitAndStopLossWs").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("createOrderWithTakeProfitAndStopLossWs").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             return crate::types::IntoRaw::into_raw(self.create_order_ws(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), Value::Dict(paramsValue)).await);
         }
@@ -12572,10 +12580,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let price = get_arg(optional_args, 0, Value::Null);
         let takeProfit = get_arg(optional_args, 1, Value::Null);
         let stopLoss = get_arg(optional_args, 2, Value::Null);
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         /*
          * @method
          * @name createOrderWithTakeProfitAndStopLoss
@@ -12598,7 +12603,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
          */
-        let paramsValue: crate::value::Dict = self.set_take_profit_and_stop_loss_params(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), takeProfit, stopLoss, params]);
+        let paramsValue: crate::value::Dict = self.set_take_profit_and_stop_loss_params(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), takeProfit, stopLoss, Value::Dict(params)]);
         if (self.has.get("createOrderWithTakeProfitAndStopLoss").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("createOrderWithTakeProfitAndStopLoss").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.as_f64().unwrap_or_default(), price.as_f64(), Value::Dict(paramsValue)).await);
         }
@@ -13231,7 +13236,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "borrow_isolated_margin" => crate::types::IntoRaw::into_raw(self.borrow_isolated_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
             "borrow_margin" => crate::types::IntoRaw::into_raw(self.borrow_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or_default()).await),
             "build_ohlcvc" => self.build_ohlcvc(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "calculate_fee" => self.calculate_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]),
+            "calculate_fee" => self.calculate_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]),
             "calculate_fee_with_rate" => self.calculate_fee_with_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]),
             "calculate_rate_limiter_cost" => self.calculate_rate_limiter_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
             "call_method" => self.call_method(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
@@ -13486,7 +13491,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "fetch_trading_fee" => crate::types::IntoRaw::into_raw(self.fetch_trading_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
             "fetch_trading_fees" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees(args.get(0).cloned().unwrap_or_default()).await),
             "fetch_trading_fees_ws" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees_ws(args.get(0).cloned().unwrap_or_default()).await),
-            "fetch_trading_limits" => self.fetch_trading_limits(&args[..]).await,
+            "fetch_trading_limits" => crate::types::IntoRaw::into_raw(self.fetch_trading_limits(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
             "fetch_transaction_fee" => self.fetch_transaction_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_transaction_fees" => self.fetch_transaction_fees(&args[..]).await,
             "fetch_transactions" => crate::types::IntoRaw::into_raw(self.fetch_transactions(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),

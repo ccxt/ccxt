@@ -70,7 +70,7 @@ impl crate::exchange_generated::ExchangeBase for Bittrade {
                 "request_id" => crate::Value::from(self.request_id()),
                 "watch_ohlcv" => crate::types::IntoRaw::into_raw(self.watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
-                "watch_order_book_snapshot" => self.watch_order_book_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
+                "watch_order_book_snapshot" => self.watch_order_book_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).and_then(crate::Value::as_map).unwrap_or(&Default::default())).await,
                 "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 // Go-style inheritance: an un-overridden method dispatches to the parent core.
@@ -639,13 +639,13 @@ impl Bittrade {
         client.resolve(__resolved_orderbook, messageHash.as_deref());
 }
 
-    pub async fn watch_order_book_snapshot(&mut self, client: &Value, message: &Value, mut subscription: Value) -> Value {
+    pub async fn watch_order_book_snapshot(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>, subscription: &indexmap::IndexMap<String, Value>) -> Value {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let messageHash: Option<String> = self.safe_string_k_opt(&subscription, "messageHash", &[]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let symbol: Option<String> = self.safe_string_k_opt(&subscription, "symbol", &[]);
             let mut limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
-            let params: indexmap::IndexMap<String, Value> = self.safe_dict_k(subscription, "params", &[]).as_map().cloned().unwrap_or_default();
+            let params: indexmap::IndexMap<String, Value> = self.safe_dict_k(&subscription, "params", &[]).as_map().cloned().unwrap_or_default();
             let api: String = self.safe_string_k(&self.options, "api", &[Value::Str("api".into())]).as_str().unwrap_or("api").to_string();
             let apiUrls: crate::value::Dict = self.safe_dict_k_t(&self.urls, "api");
             let wsUrls: crate::value::Dict = self.safe_dict_k_t(&apiUrls, "ws");

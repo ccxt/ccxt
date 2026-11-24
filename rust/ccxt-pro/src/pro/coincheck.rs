@@ -60,7 +60,7 @@ impl crate::exchange_generated::ExchangeBase for Coincheck {
     {
         Box::pin(async move {
             match method {
-                "handle_list_message" => { self.handle_list_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+                "handle_list_message" => { self.handle_list_message(args.get(0).unwrap_or(&crate::Value::Null), match args.get(1) { Some(crate::Value::Arr(__a)) => std::sync::Arc::clone(__a), _ => Default::default() }); crate::Value::Null },
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -77,7 +77,6 @@ impl Coincheck {
     pub fn dispatch_ws_handler(&mut self, __name: &impl crate::pro::cache::CacheKey, args: &[&crate::Value]) {
         let __n = match __name.strict() { Some(s) => s, None => return };
         match __n {
-            "handle_list_message" => { self.handle_list_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "parse_ws_trade" => { Value::Dict(self.parse_ws_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
@@ -339,12 +338,12 @@ impl Coincheck {
     Default::default()
 }
 
-    pub fn handle_list_message(&mut self, client: &Value, mut message: Value) {
-        let mut data: Option<crate::value::List> = self.safe_list_o(&message, Value::Int(0));
+    pub fn handle_list_message(&mut self, client: &Value, message: crate::value::List) {
+        let mut data: Option<crate::value::List> = self.safe_list_o(Value::from(&message), Value::Int(0));
         if !(data.is_some()) {
-            self.handle_order_book(client.clone(), message.clone());
+            self.handle_order_book(client.clone(), Value::from(&message));
         }  else {
-            self.handle_trades(client, message);
+            self.handle_trades(client, Value::from(&message));
         }
 }
 }

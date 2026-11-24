@@ -3210,10 +3210,7 @@ impl Extended {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         self.check_required_credentials(&[]);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut currency: crate::types::Currency = self.currency(code.as_str());
@@ -3228,7 +3225,7 @@ impl Extended {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " transfer() requires a toAccount argument and params[\"toVault\"] and params[\"toL2Key\"]")));
         }
         let amountString: Option<String> = self.currency_to_precision(code.as_str(), Value::from(amount), &[]);
-        let settlement: indexmap::IndexMap<String, Value> = Value::Dict(self.create_transfer_settlement_data(amountString.as_deref().unwrap_or_default(), crate::Value::from(Some(&currency)), &account, toVault.as_deref().unwrap_or_default(), toL2Key.as_deref().unwrap_or_default(), &[&params])).as_map().cloned().unwrap_or_default();
+        let settlement: indexmap::IndexMap<String, Value> = Value::Dict(self.create_transfer_settlement_data(amountString.as_deref().unwrap_or_default(), crate::Value::from(Some(&currency)), &account, toVault.as_deref().unwrap_or_default(), toL2Key.as_deref().unwrap_or_default(), &[&Value::from(&params)])).as_map().cloned().unwrap_or_default();
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("fromAccount".to_string(), Value::from(currentAccountId.as_str()));
@@ -4189,12 +4186,9 @@ impl Extended {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         self.check_required_credentials(&[]);
-        let extendedOrderRequest: crate::value::Dict = self.create_extended_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Some(amount), price, &[&params]).await;
+        let extendedOrderRequest: crate::value::Dict = self.create_extended_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Some(amount), price, &[&Value::Dict(params)]).await;
         let request: crate::value::Dict = self.safe_dict_k_t(&extendedOrderRequest, "request");
         let response: crate::value::Dict = self.v1_private_post_user_order(&[&Value::from(&request)]).await.unwrap_or_default();
         //

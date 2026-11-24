@@ -700,7 +700,7 @@ impl crate::exchange::DerivedExchange for Limitless {
 
     None
 }
-    fn parse_prediction_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_prediction_ticker(&self, ticker: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
         //
         //     {
@@ -989,7 +989,7 @@ impl crate::exchange_generated::ExchangeBase for Limitless {
                 "parse_prediction_trade" => Value::Dict(self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "redeem" => self.redeem(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..]).await,
                 "sign" => Value::Dict(self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..])),
-                "sign_evm_transaction" => self.sign_evm_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
+                "sign_evm_transaction" => crate::Value::from(self.sign_evm_transaction(args.get(0).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 // Prediction Core: fall through to prediction base methods (then Exchange base).
                 _ => self.call_dynamic_prediction_base(method, args).await,
             }
@@ -1470,11 +1470,8 @@ impl Limitless {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let queries: Vec<Value> = self.parse_search_queries(&[&params]).to_vec();
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        let queries: Vec<Value> = self.parse_search_queries(&[&Value::from(&params)]).to_vec();
         let rest: crate::value::Dict = self.omit_t(&params, &["query", "queries", "limit"], &[]);
         // scope the listing: without a search query loadMarkets would otherwise page through
         // every active limitless market. Cap the total number of markets collected.
@@ -1482,7 +1479,7 @@ impl Limitless {
         let mut allRaw: crate::value::List = std::sync::Arc::new(Vec::new());
         let queriesLength: i64 = queries.len() as i64;
         if queriesLength > 0 {
-            let requestedLimit: i64 = self.safe_integer_k(params, "limit", &[Value::Int(50)]).as_i64().unwrap_or(50);
+            let requestedLimit: i64 = self.safe_integer_k(&params, "limit", &[Value::Int(50)]).as_i64().unwrap_or(50);
             // the search endpoint rejects limit > 50 - cap the per-query request and let
             // maxMarkets bound the overall collection
             let mut limit: i64 = 50;
@@ -2145,7 +2142,7 @@ impl Limitless {
                 m.insert("book".to_string(), responses.get(1).cloned().unwrap_or(Value::Null));
             m
         });
-        return <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, Value::Map(tickerInput), outcomeObj.as_ref()).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(Value::Map(tickerInput)).as_ref(), outcomeObj.as_ref()).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2255,7 +2252,7 @@ impl Limitless {
                                 let mut j: i64 = 0;
                 let mut __for_first_13: bool = true;
                 while { if !__for_first_13 { j += 1; } __for_first_13 = false; j < (grouped.len() as i64) } {
-                let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, Value::Map(tickerInput.clone()), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(crate::value::KeyRead::read(&&grouped, &Value::Int(j))).as_ref()).unwrap_or_default();
+                let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(Value::Map(tickerInput.clone())).as_ref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(crate::value::KeyRead::read(&&grouped, &Value::Int(j))).as_ref()).unwrap_or_default();
                 let symbolKey: Option<String> = self.safe_string_k_opt(&ticker, "outcome", &[]);
                 if (symbolKey.is_some()) {
                     result.insert(symbolKey.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
@@ -2934,14 +2931,11 @@ impl Limitless {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let outcome = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (outcome != Value::Null) {
             self.load_outcome(outcome.as_str(), &[]).await;
         }
-        let orders: crate::value::List = self.fetch_orders_by_ids(Value::from(vec![id.clone()]), outcome.as_str(), &[&params]).await.into_list();
+        let orders: crate::value::List = self.fetch_orders_by_ids(Value::from(vec![id.clone()]), outcome.as_str(), &[&Value::Dict(params)]).await.into_list();
         let mut order: Option<crate::value::Dict> = self.safe_dict_o(&orders, Value::Int(0));
         if (order.is_none()) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOrder() could not find order ").into()), id)));
@@ -3082,10 +3076,7 @@ impl Limitless {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         let accounts: Value = self.load_accounts(&[]).await;
         self.load_outcome(outcome.as_str(), &[]).await;
         let outcomeObj: Option<crate::types::Market> = self.outcome(outcome.as_str());
@@ -3106,7 +3097,7 @@ impl Limitless {
         if (self.walletAddress.as_str() != Some("")) {
             maker = self.walletAddress.clone();
         }
-        let mut paramsValue: crate::value::Dict = params.into_dict();
+        let mut paramsValue: crate::value::Dict = params;
         { let __destr_tmp = self.handle_option_and_params(&paramsValue, Value::Str("createOrder".into()), Value::Str("maker".into()), &[maker.clone()]); maker = __destr_tmp.0; paramsValue = __destr_tmp.1; }
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             self.check_address(&[&maker]);
@@ -3358,11 +3349,11 @@ if _try_result.is_err() {
         return self.sign_hash(self.hash_message(message).as_deref().unwrap_or_default(), Some(privateKey).map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
 }
 
-    pub fn sign_evm_transaction(&self, mut tx: Value, privateKey: &str) -> Value {
+    pub fn sign_evm_transaction(&self, tx: &indexmap::IndexMap<String, Value>, privateKey: &str) -> String {
         // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex
         let accessList: Option<String> = self.rlp_encode_list(Value::from(vec![])).as_str().map(str::to_owned);
-        let fields: crate::value::List = std::sync::Arc::new(vec![self.rlp_encode_bytes(self.int_to_rlp_hex(self.safe_integer_k(&tx, "chainId", &[]))), self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(&tx, "nonce", &[]))), self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(&tx, "maxPriorityFeePerGas", &[]))),
-            self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(&tx, "maxFeePerGas", &[]))), self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(&tx, "gasLimit", &[]))), self.rlp_encode_bytes(self.remove0x_prefix(self.safe_string_k(&tx, "to", &[]))), self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(&tx, "value",
+        let fields: crate::value::List = std::sync::Arc::new(vec![self.rlp_encode_bytes(self.int_to_rlp_hex(self.safe_integer_k(tx, "chainId", &[]))), self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx, "nonce", &[]))), self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx, "maxPriorityFeePerGas", &[]))),
+            self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx, "maxFeePerGas", &[]))), self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx, "gasLimit", &[]))), self.rlp_encode_bytes(self.remove0x_prefix(self.safe_string_k(tx, "to", &[]))), self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx, "value",
             &[Value::Str("0x0".into())]))), self.rlp_encode_bytes(self.remove0x_prefix(self.safe_string_k(tx, "data", &[Value::Str("0x".into())]))), accessList.map(Value::from).unwrap_or(Value::Null)]);
         let payload: String = format!("{}{}", Value::Str("02".into()), self.rlp_encode_list(Value::Arr(fields.clone())));
         let hashHex: Value = Value::from(self.hash(self.base16_to_binary(Value::from(payload), &[]), "keccak", &[Value::Str("hex".into())]));
@@ -3381,9 +3372,7 @@ if _try_result.is_err() {
         signedFields.push(self.rlp_encode_bytes(self.int_to_rlp_hex(Value::from(yParity))));
         signedFields.push(self.rlp_encode_bytes(rHex.map(Value::from).unwrap_or(Value::Null)));
         signedFields.push(self.rlp_encode_bytes(sHex.map(Value::from).unwrap_or(Value::Null)));
-        return Value::Str(format!("{}{}", Value::Str("0x02".into()), self.rlp_encode_list(Value::from(signedFields))).into());
-
-    Value::Null
+        return format!("{}{}", Value::Str("0x02".into()), self.rlp_encode_list(Value::from(signedFields)));
 }
 
 /*
@@ -3592,11 +3581,8 @@ if _try_result.is_err() {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let outcome = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let mut paramsValue: crate::value::Dict = params.into_dict();
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
+        let mut paramsValue: crate::value::Dict = params;
         if (outcome != Value::Null) {
             let warnparamsWarnVariable = self.handle_option_bool_and_params(&paramsValue, Value::Str("cancelAllOrders".into()), Value::Str("warnOnCancelAllOrdersWithOutcome".into()), &[Value::Bool(true)]);
             let warn: bool = warnparamsWarnVariable.0 == Some(true);
@@ -3985,12 +3971,9 @@ if _try_result.is_err() {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        self.require_event_query(&[&params]);
-        let queries: Value = Value::Arr(self.parse_search_queries(&[&params]));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        self.require_event_query(&[&Value::from(&params)]);
+        let queries: Value = Value::Arr(self.parse_search_queries(&[&Value::from(&params)]));
         if (queries == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchEvents() missing queries")));
         }
@@ -4053,7 +4036,7 @@ if _try_result.is_err() {
             // tags scope: resolve the tags to limitless categories and page only those
             // categories' listings server-side — never the whole active listing
             let requestedTags: crate::value::List = self.safe_list_k_t(&params, "tags");
-            let listRaw: Vec<Value> = self.fetch_raw_markets_by_tags(Value::Arr(requestedTags), &[&params]).await.as_array().cloned().unwrap_or_default();
+            let listRaw: Vec<Value> = self.fetch_raw_markets_by_tags(Value::Arr(requestedTags), &[&Value::from(&params)]).await.as_array().cloned().unwrap_or_default();
             let listRawLength: i64 = listRaw.len() as i64;
             {
                                 let mut i: i64 = 0;
@@ -4135,7 +4118,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
                 m.insert("searchIn".to_string(), Value::Str("both".into()));
             m
-        }), &[params]);
+        }), &[&params]);
         let postParams: crate::value::Dict = self.omit_t(&searchParams, &["tags"], &[]);
         return self.apply_event_fetch_params(Value::from(result), &[Value::Dict(postParams), queries]);
         Value::Null

@@ -475,7 +475,7 @@ impl crate::exchange::DerivedExchange for Aster {
 
     None
 }
-    fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, contract: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let contract: Value = contract.into();
         //
         // fundingRate
@@ -3436,7 +3436,7 @@ impl Aster {
     let m = indexmap::IndexMap::new();
     m
 }), &[response]);
-        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, __ws_arg_17, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_17).as_ref(), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4070,13 +4070,10 @@ impl Aster {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         self.load_markets_and_sign_in().await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let request: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), Value::from(amount), &[&Value::from(price), &params]);
+        let request: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), Value::from(amount), &[&Value::from(price), &Value::Dict(params)]);
         let mut response: Option<crate::value::Dict> = None;
         if (market).swap {
             response = self.fapi_private_post_v3_order(&[&Value::from(&request)]).await;
@@ -4693,11 +4690,8 @@ impl Aster {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, Value::Int(2), &[&params]).await);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, Value::Int(2), &[&Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -4720,11 +4714,8 @@ impl Aster {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, Value::Int(1), &[&params]).await);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, Value::Int(1), &[&Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -5045,22 +5036,19 @@ impl Aster {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbols = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (symbols != Value::Null) {
             if !(matches!(&symbols, Value::Arr(_))) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchPositionsRisk() requires an array argument for symbols")));
             }
         }
         self.load_markets_and_sign_in().await;
-        self.load_leverage_brackets(&[Value::Bool(false), params.clone()]).await;
+        self.load_leverage_brackets(&[Value::Bool(false), Value::from(&params)]).await;
         let request: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
         });
-        let __ws_arg_44 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_44 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::List = self.fapi_private_get_v3_position_risk(&[&__ws_arg_44]).await.unwrap_or_default();
         //
         //     [

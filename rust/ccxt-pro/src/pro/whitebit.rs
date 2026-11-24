@@ -105,7 +105,7 @@ impl Whitebit {
             "handle_my_trades" => { self.handle_my_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default()), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
             "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default()), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
-            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_pong" => { self.handle_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_subscription_status" => { self.handle_subscription_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
@@ -236,10 +236,7 @@ impl Whitebit {
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -254,7 +251,7 @@ impl Whitebit {
         let messageHash: String = format!("{}{}", "candles:", symbolValue);
         let reqParams: Value = Value::from(vec![marketId.map(Value::from).unwrap_or(Value::Null), Value::from(interval)]);
         let method: String = "candles_subscribe".to_string();
-        let mut ohlcv: Value = self.watch_public(messageHash.as_str(), method.as_str(), &[reqParams, params]).await;
+        let mut ohlcv: Value = self.watch_public(messageHash.as_str(), method.as_str(), &[reqParams, Value::Dict(params)]).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit);
@@ -349,9 +346,7 @@ impl Whitebit {
         }).await?))
     }
 
-    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         // {
         //     "method":"depth_update",
@@ -448,10 +443,7 @@ impl Whitebit {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -459,7 +451,7 @@ impl Whitebit {
         let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let method: String = "market_subscribe".to_string();
         let messageHash: String = format!("{}{}", "ticker:", symbolValue);
-        return self.watch_multiple_subscription(messageHash.as_str(), method.as_str(), Some(symbolValue.as_str()), &[&Value::Bool(false), &params]).await;
+        return self.watch_multiple_subscription(messageHash.as_str(), method.as_str(), Some(symbolValue.as_str()), &[&Value::Bool(false), &Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -590,10 +582,7 @@ impl Whitebit {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -602,7 +591,7 @@ impl Whitebit {
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "trades", ":").into()), symbolValue);
         let method: String = "trades_subscribe".to_string();
         // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
-        let mut trades: Value = self.watch_multiple_subscription(messageHash.as_str(), method.as_str(), Some(symbolValue.as_str()), &[&Value::Bool(false), &params]).await;
+        let mut trades: Value = self.watch_multiple_subscription(messageHash.as_str(), method.as_str(), Some(symbolValue.as_str()), &[&Value::Bool(false), &Value::Dict(params)]).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit);
@@ -680,10 +669,7 @@ impl Whitebit {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " watchMyTrades() requires a symbol argument")));
         }
@@ -695,7 +681,7 @@ impl Whitebit {
         let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", "myTrades:", symbolValue);
         let method: String = "deals_subscribe".to_string();
-        let mut trades: Value = self.watch_multiple_subscription(messageHash.as_str(), method.as_str(), Some(symbolValue.as_str()), &[&Value::Bool(true), &params]).await;
+        let mut trades: Value = self.watch_multiple_subscription(messageHash.as_str(), method.as_str(), Some(symbolValue.as_str()), &[&Value::Bool(true), &Value::Dict(params)]).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit);
@@ -834,10 +820,7 @@ impl Whitebit {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " watchOrders() requires a symbol argument")));
         }
@@ -849,7 +832,7 @@ impl Whitebit {
         let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", "orders:", symbolValue);
         let method: String = "ordersPending_subscribe".to_string();
-        let mut trades: Value = self.watch_multiple_subscription(messageHash.as_str(), method.as_str(), Some(symbolValue.as_str()), &[&Value::Bool(false), &params]).await;
+        let mut trades: Value = self.watch_multiple_subscription(messageHash.as_str(), method.as_str(), Some(symbolValue.as_str()), &[&Value::Bool(false), &Value::Dict(params)]).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit);

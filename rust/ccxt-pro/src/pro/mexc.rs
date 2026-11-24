@@ -121,7 +121,7 @@ impl Mexc {
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_book_subscription" => { self.handle_order_book_subscription(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_book_subscription" => { self.handle_order_book_subscription(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_pong" => { self.handle_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_protobuf_message" => { self.handle_protobuf_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_subscription_status" => { self.handle_subscription_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -280,10 +280,7 @@ impl Mexc {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -291,7 +288,7 @@ impl Mexc {
         let messageHash: String = format!("{}{}", "ticker:", (market).symbol);
         if (market).spot {
             let channel: String = format!("{}{}", Value::Str("spot@public.aggre.bookTicker.v3.api.pb@100ms@".into()), Value::from((market).id.as_deref().unwrap_or("")));
-            return self.watch_spot_public(Value::from(channel), Value::from(messageHash.as_str()), &[&params]).await;
+            return self.watch_spot_public(Value::from(channel), Value::from(messageHash.as_str()), &[&Value::from(&params)]).await;
         }  else {
             let channel: String = "sub.ticker".to_string();
             let requestParams: indexmap::IndexMap<String, Value> = ({
@@ -299,7 +296,7 @@ impl Mexc {
                     m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m
             });
-            return self.watch_swap_public(Value::from(channel), Value::from(messageHash), Value::Map(requestParams), &[&params]).await;
+            return self.watch_swap_public(Value::from(channel), Value::from(messageHash), Value::Map(requestParams), &[&Value::Dict(params)]).await;
         }
         Value::Null
         }).await?))
@@ -469,7 +466,7 @@ impl Mexc {
     }
 
     pub fn handle_tickers(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
-        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
+        let __pro_message: &indexmap::IndexMap<String, Value> = message;
         //
         // swap
         //
@@ -897,10 +894,7 @@ impl Mexc {
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -913,7 +907,7 @@ impl Mexc {
         if (market).spot {
             let spotTimeframeId: String = self.safe_string(&timeframes, timeframe, &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let spotChannel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("spot@public.kline.v3.api.pb@".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), "@").into()), spotTimeframeId);
-            ohlcv = self.watch_spot_public(Value::from(spotChannel), Value::from(messageHash.as_str()), &[&params]).await;
+            ohlcv = self.watch_spot_public(Value::from(spotChannel), Value::from(messageHash.as_str()), &[&Value::from(&params)]).await;
         }  else {
             let channel: String = "sub.kline".to_string();
             let requestParams: indexmap::IndexMap<String, Value> = ({
@@ -922,7 +916,7 @@ impl Mexc {
                     m.insert("interval".to_string(), timeframeId.map(Value::from).unwrap_or(Value::Null));
                 m
             });
-            ohlcv = self.watch_swap_public(Value::from(channel), Value::from(messageHash), Value::Map(requestParams), &[&params]).await;
+            ohlcv = self.watch_swap_public(Value::from(channel), Value::from(messageHash), Value::Map(requestParams), &[&Value::Dict(params)]).await;
         }
         ohlcv = self.require_value(ohlcv, &[Value::Str("watchOHLCV() ohlcv is required".into())]);
         let mut limitResolved: Option<i64> = limit;
@@ -1140,9 +1134,7 @@ impl Mexc {
         }).await?))
     }
 
-    pub fn handle_order_book_subscription(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_order_book_subscription(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         // the ack echoes the subscribed channel, the market id is always its last segment
         //
         //     { id: 0, code: 0, msg: "spot@public.aggre.depth.v3.api.pb@100ms@BTCUSDT" }
@@ -1358,10 +1350,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1371,7 +1360,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut trades: Value = Value::Null;
         if (market).spot {
             let spotChannel: String = format!("{}{}", Value::Str("spot@public.aggre.deals.v3.api.pb@100ms@".into()), Value::from((market).id.as_deref().unwrap_or("")));
-            trades = self.watch_spot_public(Value::from(spotChannel), Value::from(messageHash.as_str()), &[&params]).await;
+            trades = self.watch_spot_public(Value::from(spotChannel), Value::from(messageHash.as_str()), &[&Value::from(&params)]).await;
         }  else {
             let channel: String = "sub.deal".to_string();
             let requestParams: indexmap::IndexMap<String, Value> = ({
@@ -1379,7 +1368,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m
             });
-            trades = self.watch_swap_public(Value::from(channel), Value::from(messageHash), Value::Map(requestParams), &[&params]).await;
+            trades = self.watch_swap_public(Value::from(channel), Value::from(messageHash), Value::Map(requestParams), &[&Value::Dict(params)]).await;
         }
         trades = self.require_value(trades, &[Value::Str("watchTrades() trades is required".into())]);
         let mut limitResolved: Option<i64> = limit;
@@ -2142,10 +2131,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2157,7 +2143,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        return self.watch_swap_public(Value::from(channel), Value::from(messageHash), Value::Map(requestParams), &[&params]).await;
+        return self.watch_swap_public(Value::from(channel), Value::from(messageHash), Value::Map(requestParams), &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }

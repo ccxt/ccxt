@@ -520,7 +520,7 @@ impl crate::exchange::DerivedExchange for Modetrade {
 
     None
 }
-    fn parse_funding_rate(&self, fundingRate: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, fundingRate: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let fundingRate: Value = fundingRate.into();
         //
         //         {
@@ -2517,7 +2517,7 @@ impl Modetrade {
         // }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, Some(&data), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3391,19 +3391,16 @@ impl Modetrade {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let request: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), Some(amount), price, &[&params]);
+        let request: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), Some(amount), price, &[&Value::from(&params)]);
         let triggerPrice: Option<String> = self.safe_string2_opt(&params, Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
         let stopLoss: Value = self.safe_value_k(&params, "stopLoss", &[]);
         let takeProfit: Value = self.safe_value_k(&params, "takeProfit", &[]);
-        let childOrders: Option<crate::value::List> = self.safe_list_k_o(params, "childOrders");
+        let childOrders: Option<crate::value::List> = self.safe_list_k_o(&params, "childOrders");
         let isConditional: bool = (triggerPrice.is_some()) || (stopLoss != Value::Null) || (takeProfit != Value::Null) || (childOrders.is_some());
         let mut response: Option<crate::value::Dict> = None;
         if isConditional {
@@ -4143,10 +4140,7 @@ impl Modetrade {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4184,7 +4178,7 @@ impl Modetrade {
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let trades: crate::value::List = self.safe_list_k_t(&data, "rows");
-        return Value::Arr(self.parse_trades(&trades, market.as_ref(), &[&Value::from(since), &Value::from(limit), &params]));
+        return Value::Arr(self.parse_trades(&trades, market.as_ref(), &[&Value::from(since), &Value::from(limit), &Value::Dict(params)]));
         Value::Null
         }).await?))
     }
@@ -4416,16 +4410,13 @@ impl Modetrade {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let rows: crate::value::List = self.get_asset_history_rows(code.as_str(), since, limit, &[&params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        let rows: crate::value::List = self.get_asset_history_rows(code.as_str(), since, limit, &[&Value::from(&params)]).await;
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
             currency = Some(self.currency(code.as_str()));
         }
-        return self.parse_ledger(&rows, currency.as_ref(), &[&Value::from(since), &Value::from(limit), &params]);
+        return self.parse_ledger(&rows, currency.as_ref(), &[&Value::from(since), &Value::from(limit), &Value::Dict(params)]);
         Value::Null
         }).await?))
     }
@@ -4615,10 +4606,7 @@ impl Modetrade {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4642,7 +4630,7 @@ impl Modetrade {
         if (coinNetworkId.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " withdraw() require chainId parameter")));
         }
-        let withdrawNonce: Option<f64> = self.get_withdraw_nonce(&[&params]).await.as_f64();
+        let withdrawNonce: Option<f64> = self.get_withdraw_nonce(&[&Value::from(&params)]).await.as_f64();
         let mut nonce: i64 = self.nonce();
         let domain: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

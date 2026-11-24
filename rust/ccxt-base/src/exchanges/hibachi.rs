@@ -616,7 +616,7 @@ impl crate::exchange_generated::ExchangeBase for Hibachi {
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_settlement" => crate::Value::Dict(self.parse_settlement(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_settlement" => crate::Value::Dict(self.parse_settlement(&match args.get(0) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_settlements" => Value::Arr(self.parse_settlements(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1621,15 +1621,12 @@ impl Hibachi {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let nonce: i64 = self.incrementing_nonce();
-        let mut request: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.create_order_request(Value::from(nonce), symbol.as_str(), type_var.as_str(), side.as_str(), Value::from(amount), &[&Value::from(price), &params]));
+        let mut request: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.create_order_request(Value::from(nonce), symbol.as_str(), type_var.as_str(), side.as_str(), Value::from(amount), &[&Value::from(price), &Value::Dict(params)]));
         request.insert("accountId".into(), self.get_account_id());
         let response: crate::value::Dict = self.private_post_trade_order(&[&Value::Map(request)]).await.unwrap_or_default();
         return Value::Dict(self.safe_order(Value::Map({
@@ -1769,15 +1766,12 @@ impl Hibachi {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let nonce: i64 = self.incrementing_nonce();
-        let mut request: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.edit_order_request(Value::from(nonce), id.as_str(), symbol.as_str(), type_var.as_str(), side.as_str(), &[&Value::from(amount), &Value::from(price), &params]));
+        let mut request: indexmap::IndexMap<String, Value> = std::sync::Arc::unwrap_or_clone(self.edit_order_request(Value::from(nonce), id.as_str(), symbol.as_str(), type_var.as_str(), side.as_str(), &[&Value::from(amount), &Value::from(price), &Value::Dict(params)]));
         request.insert("accountId".into(), self.get_account_id());
         self.private_put_trade_order(&[&Value::Map(request)]).await;
         return Value::Dict(self.safe_order(Value::Map({
@@ -2220,10 +2214,7 @@ impl Hibachi {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2264,7 +2255,7 @@ impl Hibachi {
         if (trades.is_some()) {
             tradesList = trades.unwrap_or_default();
         }
-        return Value::Arr(self.parse_trades(&tradesList, market.as_ref(), &[&Value::from(since), &Value::from(limit), &params]));
+        return Value::Arr(self.parse_trades(&tradesList, market.as_ref(), &[&Value::from(since), &Value::from(limit), &Value::Dict(params)]));
         Value::Null
         }).await?))
     }
@@ -2409,11 +2400,8 @@ impl Hibachi {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let orders: crate::value::List = self.fetch_orders_by_status(Some("filled"), symbol.as_str(), since, limit, &[params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        let orders: crate::value::List = self.fetch_orders_by_status(Some("filled"), symbol.as_str(), since, limit, &[Value::Dict(params)]).await;
         let filtered: crate::value::List = self.filter_by(Value::Arr(orders), Value::Str("status".into()), Value::Str("closed".into()), &[]);
         return Value::Arr(self.filter_by_since_limit(&filtered, since, limit, &[]));
         Value::Null
@@ -2442,11 +2430,8 @@ impl Hibachi {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let orders: crate::value::List = self.fetch_orders_by_status(None, symbol.as_str(), since, limit, &[params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        let orders: crate::value::List = self.fetch_orders_by_status(None, symbol.as_str(), since, limit, &[Value::Dict(params)]).await;
         let filtered: crate::value::List = self.filter_by(Value::Arr(orders), Value::Str("status".into()), Value::Str("canceled".into()), &[]);
         return Value::Arr(self.filter_by_since_limit(&filtered, since, limit, &[]));
         Value::Null
@@ -2666,10 +2651,7 @@ impl Hibachi {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2766,7 +2748,7 @@ impl Hibachi {
         //
         let rowsTradingHistory: crate::value::List = self.safe_list_k_t(&responseTradingHistory, "tradingHistory");
         let rows: crate::value::List = self.array_concat_t(&rowsCapitalHistory, &rowsTradingHistory);
-        return self.parse_ledger(&rows, Some(&currency), &[&Value::from(since), &Value::from(limit), &params]);
+        return self.parse_ledger(&rows, Some(&currency), &[&Value::from(since), &Value::from(limit), &Value::Dict(params)]);
         Value::Null
         }).await?))
     }
@@ -2831,10 +2813,7 @@ impl Hibachi {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         let currency: crate::types::Currency = self.safe_currency(code.as_str(), None);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2875,7 +2854,7 @@ impl Hibachi {
         //     ]
         // }
         let transactions: crate::value::List = self.safe_list_k_t(&response, "transactions");
-        return Value::Arr(self.parse_transactions(&transactions, Some(&currency), &[&Value::from(since), &Value::from(limit), &params]));
+        return Value::Arr(self.parse_transactions(&transactions, Some(&currency), &[&Value::from(since), &Value::from(limit), &Value::Dict(params)]));
         Value::Null
         }).await?))
     }
@@ -2942,7 +2921,7 @@ impl Hibachi {
         }).await?))
     }
 
-    pub fn parse_settlement(&self, mut settlement: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
+    pub fn parse_settlement(&self, settlement: &crate::value::Dict, market: Option<&crate::types::Market>) -> crate::value::Dict {
         //
         //     {
         //         "direction": "Long",
@@ -2958,9 +2937,9 @@ impl Hibachi {
         let marketId: Option<String> = self.safe_string_k_opt(&settlement, "symbol", &[]);
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), settlement.clone());
+        m.insert("info".to_string(), Value::Dict(settlement.clone()));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[]));
-        m.insert("price".to_string(), self.safe_number_k(settlement, "indexPrice", &[]));
+        m.insert("price".to_string(), self.safe_number_k(&settlement, "indexPrice", &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
@@ -2976,11 +2955,11 @@ impl Hibachi {
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (settlements.len() as i64) } {
-            let __ws_arg_20 = self.extend(Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}), &[settlements.get(i as usize).cloned().unwrap_or(Value::Null)]);
-            result.push(Value::Dict(self.parse_settlement(__ws_arg_20, market)));
+            let settlementRow: crate::value::Dict = self.extend_t(Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            }), &[settlements.get(i as usize).cloned().unwrap_or(Value::Null)]);
+            result.push(Value::Dict(self.parse_settlement(&settlementRow, market)));
         }
         }
         return std::sync::Arc::new(result);
@@ -3028,8 +3007,8 @@ impl Hibachi {
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None })))));
         }
-        let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsUntil]);
-        let response: crate::value::Dict = self.private_get_trade_account_settlements_history(&[&__ws_arg_21]).await.unwrap_or_default();
+        let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsUntil]);
+        let response: crate::value::Dict = self.private_get_trade_account_settlements_history(&[&__ws_arg_20]).await.unwrap_or_default();
         //
         //     {
         //         "settlements": [
@@ -3101,8 +3080,8 @@ impl Hibachi {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_22 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.public_get_market_data_open_interest(&[&__ws_arg_22]).await.unwrap_or_default();
+        let __ws_arg_21 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.public_get_market_data_open_interest(&[&__ws_arg_21]).await.unwrap_or_default();
         //
         //   { "totalQuantity" : "2.3299770166" }
         //
@@ -3147,8 +3126,8 @@ impl Hibachi {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_23 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.call_method_t("public_get_market_data_prices", &[&__ws_arg_23]).await;
+        let __ws_arg_22 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.call_method_t("public_get_market_data_prices", &[&__ws_arg_22]).await;
         //
         // {
         //     "askPrice": "3514.650296",
@@ -3222,8 +3201,8 @@ impl Hibachi {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_24 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.public_get_market_data_funding_rates(&[&__ws_arg_24]).await.unwrap_or_default();
+        let __ws_arg_23 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.public_get_market_data_funding_rates(&[&__ws_arg_23]).await.unwrap_or_default();
         //
         // {
         //     "data": [

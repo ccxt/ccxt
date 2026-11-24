@@ -769,7 +769,7 @@ impl crate::exchange::DerivedExchange for Backpack {
 
     None
 }
-    fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, contract: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let contract: Value = contract.into();
         //
         //     {
@@ -3285,7 +3285,7 @@ impl Backpack {
         let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
         let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.public_get_api_v1_mark_prices(&[&__ws_arg_7]).await.unwrap_or_default());
         let data: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, Some(&data), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

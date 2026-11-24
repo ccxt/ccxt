@@ -68,7 +68,7 @@ impl crate::exchange_generated::ExchangeBase for Phemex {
                 "parse_ws_swap_order" => Value::Dict(self.parse_ws_swap_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "request_id" => crate::Value::from(self.request_id()),
                 "subscribe_private" => self.subscribe_private(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..]).await,
-                "un_subscribe_public" => self.un_subscribe_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "un_subscribe_public" => self.un_subscribe_public(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).and_then(crate::Value::as_map).unwrap_or(&Default::default()), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "un_watch_trades" => crate::types::IntoRaw::into_raw(self.un_watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
@@ -101,7 +101,7 @@ impl Phemex {
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_orders" => { self.handle_orders(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -337,7 +337,7 @@ impl Phemex {
 }
 
     pub fn handle_ticker(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
-        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
+        let __pro_message: &indexmap::IndexMap<String, Value> = message;
         //
         //     {
         //         "spot_market24h": {
@@ -980,9 +980,8 @@ impl Phemex {
         }).await?))
     }
 
-    pub async fn un_subscribe_public(&mut self, mut method: Value, mut subMessageHash: Value, marketParams: impl Into<crate::Value>, subscription: impl Into<crate::Value>, optional_args: &[&Value]) -> Value {
+    pub async fn un_subscribe_public(&mut self, mut method: Value, mut subMessageHash: Value, marketParams: impl Into<crate::Value>, subscription: &indexmap::IndexMap<String, Value>, optional_args: &[&Value]) -> Value {
         let marketParams: Value = marketParams.into();
-        let subscription: Value = subscription.into();
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1029,10 +1028,7 @@ impl Phemex {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1049,7 +1045,7 @@ impl Phemex {
                 m.insert("symbols".to_string(), Value::from(vec![Value::from(symbolValue.as_str())]));
             m
         });
-        return self.un_subscribe_public(Value::Str(format!("{}{}", name, ".unsubscribe").into()), Value::Str(format!("{}{}", "trade:", symbolValue).into()), Value::from(vec![Value::from(marketId)]), Value::Map(subscription), &[&params]).await;
+        return self.un_subscribe_public(Value::Str(format!("{}{}", name, ".unsubscribe").into()), Value::Str(format!("{}{}", "trade:", symbolValue).into()), Value::from(vec![Value::from(marketId)]), &subscription, &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -1074,10 +1070,7 @@ impl Phemex {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1096,7 +1089,7 @@ impl Phemex {
         });
         // phemex drops only the given interval when it is sent along with the symbol
         let marketParams: crate::value::List = std::sync::Arc::new(vec![Value::from(marketId), self.safe_integer(&self.timeframes, &timeframe, &[])]);
-        return self.un_subscribe_public(Value::Str(format!("{}{}", name, ".unsubscribe").into()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kline:", timeframe).into()), ":").into()), symbolValue).into()), &marketParams, Value::Map(subscription), &[&params]).await;
+        return self.un_subscribe_public(Value::Str(format!("{}{}", name, ".unsubscribe").into()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kline:", timeframe).into()), ":").into()), symbolValue).into()), &marketParams, &subscription, &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -1154,9 +1147,8 @@ impl Phemex {
         }
 }
 
-    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+    pub fn handle_order_book(&mut self, mut client: Value, message: &indexmap::IndexMap<String, Value>) {
+        let __pro_message: &indexmap::IndexMap<String, Value> = message;
         //
         //     {
         //         "book": {
@@ -1228,7 +1220,7 @@ impl Phemex {
         }  else {
             if (self.orderbooks.has(&symbol)) {
                 let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
-                let changes: crate::value::Dict = self.safe_dict2_t(message, Value::Str("book".into()), Value::Str("orderbook_p".into()));
+                let changes: crate::value::Dict = self.safe_dict2_t(&message, Value::Str("book".into()), Value::Str("orderbook_p".into()));
                 let asks: crate::value::List = self.safe_list_k_t(&changes, "asks");
                 let bids: crate::value::List = self.safe_list_k_t(&changes, "bids");
                 self.custom_handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), &asks, &[crate::Value::from(&market)]);
@@ -1524,7 +1516,7 @@ impl Phemex {
     }
 
     pub fn handle_orders(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
-        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
+        let __pro_message: &indexmap::IndexMap<String, Value> = message;
         // spot update
         // {
         //        "closed":[
@@ -2068,7 +2060,7 @@ impl Phemex {
             self.handle_ohlcv(client.clone(), message.as_map().unwrap_or(&Default::default()));
             return;
         }  else if (matches!(&message, Value::Dict(__d) if __d.contains_key("book"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("orderbook_p"))) {
-            self.handle_order_book(client.clone(), message.clone());
+            self.handle_order_book(client.clone(), message.as_map().unwrap_or(&Default::default()));
             return;
         }
         if (matches!(&message, Value::Dict(__d) if __d.contains_key("orders"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("orders_p"))) {

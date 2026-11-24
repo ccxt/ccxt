@@ -299,7 +299,7 @@ impl crate::exchange::DerivedExchange for Predictfun {
 
     None
 }
-    fn parse_prediction_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_prediction_ticker(&self, ticker: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
         //
         //     {
@@ -514,7 +514,7 @@ impl crate::exchange_generated::ExchangeBase for Predictfun {
                 "request_id" => crate::Value::from(self.request_id()),
                 "set_sandbox_mode" => crate::types::IntoRaw::into_raw(self.set_sandbox_mode(args.get(0).is_some_and(crate::Value::is_truthy))),
                 "sign" => Value::Dict(self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..])),
-                "sign_evm_transaction" => self.sign_evm_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
+                "sign_evm_transaction" => crate::Value::from(self.sign_evm_transaction(args.get(0).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "sign_predictfun_order" => crate::Value::Dict(self.sign_predictfun_order(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).is_some_and(crate::Value::is_truthy), args.get(2).is_some_and(crate::Value::is_truthy))),
                 "un_watch_my_trades" => crate::types::IntoRaw::into_raw(self.un_watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_order_book" => crate::types::IntoRaw::into_raw(self.un_watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -1034,15 +1034,12 @@ impl Predictfun {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let allowUnscopedFetchEvents: bool = self.safe_bool_k_opt(&self.options, "allowUnscopedFetchEvents", &[Value::Bool(false)]).unwrap_or(false);
         if !allowUnscopedFetchEvents {
-            self.require_event_query(&[&params]);
+            self.require_event_query(&[&Value::from(&params)]);
         }
-        let queries: crate::value::List = self.parse_search_queries(&[&params]);
+        let queries: crate::value::List = self.parse_search_queries(&[&Value::from(&params)]);
         let queriesLength: i64 = queries.len() as i64;
         let paramsValue: crate::value::Dict = self.omit_t(params, &["query", "queries"], &[]);
         // keys dropped before the client-side pass; the categories listing also drops its limit
@@ -2232,7 +2229,7 @@ impl Predictfun {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, &data, outcomeObj.as_ref()).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, Some(&data), outcomeObj.as_ref()).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3632,16 +3629,16 @@ impl Predictfun {
  * @param {string} privateKey the wallet private key
  * @returns {string} the signed raw transaction
  */
-    pub fn sign_evm_transaction(&self, mut tx: Value, privateKey: &str) -> Value {
+    pub fn sign_evm_transaction(&self, tx: &indexmap::IndexMap<String, Value>, privateKey: &str) -> String {
         let accessList: Option<String> = self.rlp_encode_list(Value::from(vec![])).as_str().map(str::to_owned);
         let __yd0: Vec<Value> = vec![
-            self.rlp_encode_bytes(self.int_to_rlp_hex(self.safe_integer_k(&tx, "chainId", &[]))),
-            self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(&tx, "nonce", &[]))),
-            self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(&tx, "maxPriorityFeePerGas", &[]))),
-            self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(&tx, "maxFeePerGas", &[]))),
-            self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(&tx, "gasLimit", &[]))),
-            self.rlp_encode_bytes(self.remove0x_prefix(self.safe_string_k(&tx, "to", &[]))),
-            self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(&tx, "value", &[Value::Str("0x0".into())]))),
+            self.rlp_encode_bytes(self.int_to_rlp_hex(self.safe_integer_k(tx, "chainId", &[]))),
+            self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx, "nonce", &[]))),
+            self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx, "maxPriorityFeePerGas", &[]))),
+            self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx, "maxFeePerGas", &[]))),
+            self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx, "gasLimit", &[]))),
+            self.rlp_encode_bytes(self.remove0x_prefix(self.safe_string_k(tx, "to", &[]))),
+            self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(tx, "value", &[Value::Str("0x0".into())]))),
             self.rlp_encode_bytes(self.remove0x_prefix(self.safe_string_k(tx, "data", &[Value::Str("0x".into())]))),
             accessList.map(Value::from).unwrap_or(Value::Null),
         ];
@@ -3655,9 +3652,7 @@ impl Predictfun {
         sHex = self.pad_hex_to_even(sHex.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         let yParity: Option<i64> = self.safe_integer_k(&signature, "v", &[]).as_i64();
         let signedFields: crate::value::List = self.array_concat_t(fields, Value::from(vec![self.rlp_encode_bytes(self.int_to_rlp_hex(Value::from(yParity))), self.rlp_encode_bytes(rHex.map(Value::from).unwrap_or(Value::Null)), self.rlp_encode_bytes(sHex.map(Value::from).unwrap_or(Value::Null))]));
-        return Value::Str(format!("{}{}", Value::Str("0x02".into()), self.rlp_encode_list(Value::Arr(signedFields))).into());
-
-    Value::Null
+        return format!("{}{}", Value::Str("0x02".into()), self.rlp_encode_list(Value::Arr(signedFields)));
 }
 
 /*
@@ -4061,10 +4056,7 @@ impl Predictfun {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         let mut messageHash: String = "orders".to_string();
         let mut outcomeResolved: Option<String> = outcome.as_str().map(str::to_owned);
         if (outcome != Value::Null) {
@@ -4080,7 +4072,7 @@ impl Predictfun {
             // without a request once the cache is warm
             self.load_outcomes(&[]).await;
         }
-        let mut orders: Option<crate::pro::cache::Cache> = self.watch_wallet_events(messageHash.as_str(), &[&params]).await.into();
+        let mut orders: Option<crate::pro::cache::Cache> = self.watch_wallet_events(messageHash.as_str(), &[&Value::Dict(params)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(outcomeResolved.as_deref(), limitResolved);
@@ -4110,10 +4102,7 @@ impl Predictfun {
         let mut outcome = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         let mut messageHash: String = "myTrades".to_string();
         let mut outcomeResolved: Option<String> = outcome.as_str().map(str::to_owned);
         if (outcome != Value::Null) {
@@ -4126,7 +4115,7 @@ impl Predictfun {
             // a synchronous handler, so the cache is warmed here rather than on the first event
             self.load_outcomes(&[]).await;
         }
-        let mut trades: Option<crate::pro::cache::Cache> = self.watch_wallet_events(messageHash.as_str(), &[&params]).await.into();
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch_wallet_events(messageHash.as_str(), &[&Value::Dict(params)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(outcomeResolved.as_deref(), limitResolved);
@@ -4152,11 +4141,8 @@ impl Predictfun {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let outcome = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return self.un_watch_wallet_events("orders", &[&params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
+        return self.un_watch_wallet_events("orders", &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -4177,11 +4163,8 @@ impl Predictfun {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let outcome = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return self.un_watch_wallet_events("myTrades", &[&params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
+        return self.un_watch_wallet_events("myTrades", &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -4417,9 +4400,7 @@ impl Predictfun {
  * @param {Client} client the websocket client
  * @param {object} message the raw message
  */
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_order_book(&self, mut client: Value, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "type": "M",
@@ -4951,7 +4932,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let parts: crate::value::List = crate::value::List::new(if let Some(__s) = topic.as_deref() { __s.split("/").map(Value::from).collect() } else { Vec::new() });
         let channel: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
         if (channel.as_deref() == Some("predictOrderbook")) {
-            self.handle_order_book(client.as_value(), message.clone());
+            self.handle_order_book(client.as_value(), message.as_map().unwrap_or(&Default::default()));
         }  else if (channel.as_deref() == Some("predictWalletEvents")) {
             self.handle_wallet_event(client.as_value(), message.as_map().unwrap_or(&Default::default()));
         }

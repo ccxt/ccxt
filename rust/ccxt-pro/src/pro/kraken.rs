@@ -127,7 +127,7 @@ impl Kraken {
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_my_trades" => { self.handle_my_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default()), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
             "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_orders" => { self.handle_orders(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default()), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
             "handle_pong" => { self.handle_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_subscription_status" => { self.handle_subscription_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -519,10 +519,7 @@ impl Kraken {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let token: Option<String> = self.authenticate(&[]).await.as_str().map(str::to_owned);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -545,7 +542,7 @@ impl Kraken {
                 m.insert("req_id".to_string(), Value::from(requestId));
             m
         });
-        let requestValueparamsValueVariable = self.order_request_ws(Value::Str("createOrderWs".into()), symbol, type_var, Value::Map(request), &mut orderParams, Value::from(amount), &[&Value::from(price), &params]);
+        let requestValueparamsValueVariable = self.order_request_ws(Value::Str("createOrderWs".into()), symbol, type_var, Value::Map(request), &mut orderParams, Value::from(amount), &[&Value::from(price), &Value::Dict(params)]);
         let requestValue: crate::value::Dict = requestValueparamsValueVariable.0;
         let paramsValue: crate::value::Dict = requestValueparamsValueVariable.1;
         let __ws_arg_0 = self.extend(requestValue, &[&paramsValue]);
@@ -555,7 +552,7 @@ impl Kraken {
     }
 
     pub fn handle_create_edit_order(&self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
-        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
+        let __pro_message: &indexmap::IndexMap<String, Value> = message;
         //
         //  createOrder
         //     {
@@ -612,10 +609,7 @@ impl Kraken {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let token: Option<String> = self.authenticate(&[]).await.as_str().map(str::to_owned);
         let url: Option<String> = crate::value::KeyRead::key_read(&self.urls.get("api").unwrap_or(&crate::value::NULL).at("ws"), "privateV2").as_str().map(str::to_owned);
@@ -635,7 +629,7 @@ impl Kraken {
                 m.insert("req_id".to_string(), Value::from(requestId));
             m
         });
-        let requestValueparamsValueVariable = self.order_request_ws(Value::Str("editOrderWs".into()), symbol, type_var, Value::Map(request), &mut orderParams, Value::from(amount), &[&Value::from(price), &params]);
+        let requestValueparamsValueVariable = self.order_request_ws(Value::Str("editOrderWs".into()), symbol, type_var, Value::Map(request), &mut orderParams, Value::from(amount), &[&Value::from(price), &Value::Dict(params)]);
         let requestValue: crate::value::Dict = requestValueparamsValueVariable.0;
         let paramsValue: crate::value::Dict = requestValueparamsValueVariable.1;
         let __ws_arg_1 = self.extend(requestValue, &[&paramsValue]);
@@ -1016,19 +1010,16 @@ impl Kraken {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn watch_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
-        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols: Option<Vec<String>> = symbols;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let symbolsNormalized: crate::value::List = self.market_symbols(&[&Value::from(symbols), &Value::Null, &Value::Bool(false)]).unwrap_or_default();
-        let ticker: Value = self.watch_multi_helper("ticker", "ticker", &[&Value::Arr(symbolsNormalized.clone()), &Value::Null, &params]).await;
+        let symbolsNormalized: crate::value::List = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(false)]).unwrap_or_default();
+        let ticker: Value = self.watch_multi_helper("ticker", "ticker", &[&Value::Arr(symbolsNormalized.clone()), &Value::Null, &Value::Dict(params)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let m = indexmap::IndexMap::new();
@@ -1134,11 +1125,8 @@ impl Kraken {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let mut trades: Value = self.watch_multi_helper("trade", "trade", &[&symbols, &Value::Null, &params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
+        let mut trades: Value = self.watch_multi_helper("trade", "trade", &[&symbols, &Value::Null, &Value::Dict(params)]).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             let first: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(0));
@@ -1202,7 +1190,8 @@ impl Kraken {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-            std::sync::Arc::make_mut(&mut unsubMessageHashes).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), self.get_message_hash(Value::Str("trade".into()), &[&Value::Null, &symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null)).into()));
+            std::sync::Arc::make_mut(&mut unsubMessageHashes).push(Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), self.get_message_hash(Value::Str("trade".into()), &[&Value::Null,
+                &Value::from(self.symbol((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str()))]).map(Value::from).unwrap_or(Value::Null)).into()));
         }
         }
         let mut request: crate::value::Dict = std::sync::Arc::new({
@@ -1481,10 +1470,8 @@ impl Kraken {
         client.resolve(Value::Dict(std::sync::Arc::clone(message)), event.as_deref());
 }
 
-    pub fn handle_order_book(&mut self, mut client: Value, message: &Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, message: &indexmap::IndexMap<String, Value>) {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
         //
         // first message (snapshot)
         //
@@ -1600,7 +1587,7 @@ impl Kraken {
                 let mut __for_first_4: bool = true;
                 while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (keys.len() as i64) } {
                 let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
-                let bookside: crate::pro::order_book::Side = crate::pro::order_book::Side::of(get_value(&Value::from(&orderbook), key.as_deref()));
+                let bookside: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field(key.as_deref().unwrap_or_default()));
                 let deltas: crate::value::List = self.safe_list_t(&first, Value::from(key.as_deref()));
                 let deltasLength: i64 = deltas.len() as i64;
                 if deltasLength > 0 {

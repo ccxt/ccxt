@@ -123,15 +123,15 @@ impl Cex {
             "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ohlcv1m" => { self.handle_ohlcv1m(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ohlcv24" => { self.handle_ohlcv24(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
-            "handle_order_book_snapshot" => { self.handle_order_book_snapshot(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_book_snapshot" => { self.handle_order_book_snapshot(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order_book_update" => { self.handle_order_book_update(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order_update" => { self.handle_order_update(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_orders_snapshot" => { self.handle_orders_snapshot(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_trade" => { self.handle_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_trades_inner" => { self.handle_trades_inner(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_trades_snapshot" => { self.handle_trades_snapshot(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_transaction" => { self.handle_transaction(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_trades_snapshot" => { self.handle_trades_snapshot(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_transaction" => { self.handle_transaction(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "pair_to_symbol" => { self.pair_to_symbol(args.get(0).copied().and_then(crate::Value::as_text).as_deref()); },
             "parse_ws_old_trade" => { Value::Dict(self.parse_ws_old_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_ticker" => { Value::Dict(self.parse_ws_ticker(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
@@ -402,7 +402,7 @@ impl Cex {
         }).await?))
     }
 
-    pub fn handle_trades_snapshot(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
+    pub fn handle_trades_snapshot(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "e": "history",
@@ -414,7 +414,7 @@ impl Cex {
         //         ]
         //     }
         //
-        self.handle_trades_inner(client, message.as_map().unwrap_or(&Default::default()));
+        self.handle_trades_inner(client, message);
 }
 
     pub fn parse_ws_old_trade(&self, mut trade: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
@@ -878,16 +878,15 @@ impl Cex {
         }).await?))
     }
 
-    pub fn handle_transaction(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+    pub fn handle_transaction(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
+        let __pro_message: &indexmap::IndexMap<String, Value> = message;
         let data: crate::value::Dict = __pro_message.key_dict("data");
         let symbol2: Option<String> = self.safe_string_k_opt(&data, "symbol2", &[]);
         if (symbol2.is_none()) {
             return;
         }
-        self.handle_order_update(client, message.as_map().unwrap_or(&Default::default()));
-        self.handle_my_trades(client, message.as_map().unwrap_or(&Default::default()));
+        self.handle_order_update(client, message);
+        self.handle_my_trades(client, message);
 }
 
     pub fn handle_my_trades(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
@@ -1378,9 +1377,7 @@ impl Cex {
         }).await?))
     }
 
-    pub fn handle_order_book_snapshot(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_order_book_snapshot(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "e": "order-book-subscribe",
@@ -1758,10 +1755,7 @@ impl Cex {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchOpenOrdersWs requires a symbol.")));
         }
@@ -1785,7 +1779,7 @@ impl Cex {
             m
         });
         let response: Value = self.watch(url.as_str(), &messageHash[..], Value::Map(request), &messageHash[..], Value::Null).await;
-        return Value::Arr(self.parse_orders(response, Some(&market), &[&Value::from(since), &Value::from(limit), &params]));
+        return Value::Arr(self.parse_orders(response, Some(&market), &[&Value::from(since), &Value::from(limit), &Value::Dict(params)]));
         Value::Null
         }).await?))
     }
@@ -1983,10 +1977,7 @@ impl Cex {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (symbol != Value::Null) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " cancelOrderWs does not allow filtering by symbol")));
         }
@@ -2020,7 +2011,7 @@ impl Cex {
         //    }
         //
         let canceledOrders: Option<crate::value::List> = self.safe_list_k_o(&response, "cancel-orders");
-        return Value::Arr(self.parse_orders(&canceledOrders, None, &[&Value::Null, &Value::Null, &params]));
+        return Value::Arr(self.parse_orders(&canceledOrders, None, &[&Value::Null, &Value::Null, &Value::Dict(params)]));
         Value::Null
         }).await?))
     }

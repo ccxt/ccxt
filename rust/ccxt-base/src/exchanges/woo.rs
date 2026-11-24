@@ -598,7 +598,7 @@ impl crate::exchange::DerivedExchange for Woo {
 
     None
 }
-    fn parse_funding_rate(&self, fundingRate: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, fundingRate: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let fundingRate: Value = fundingRate.into();
         //
         //     {
@@ -4392,10 +4392,7 @@ impl Woo {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4429,7 +4426,7 @@ impl Woo {
         //     ]
         // }
         let trades: crate::value::List = self.safe_list_k_t(&response, "rows");
-        return Value::Arr(self.parse_trades(&trades, market.as_ref(), &[&Value::from(since), &Value::from(limit), &params]));
+        return Value::Arr(self.parse_trades(&trades, market.as_ref(), &[&Value::from(since), &Value::from(limit), &Value::Dict(params)]));
         Value::Null
         }).await?))
     }
@@ -4830,16 +4827,13 @@ impl Woo {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let rows: crate::value::List = self.get_asset_history_rows(code.as_str(), since, limit, &[&params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        let rows: crate::value::List = self.get_asset_history_rows(code.as_str(), since, limit, &[&Value::from(&params)]).await;
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
             currency = Some(self.currency(code.as_str()));
         }
-        return self.parse_ledger(&rows, currency.as_ref(), &[&Value::from(since), &Value::from(limit), &params]);
+        return self.parse_ledger(&rows, currency.as_ref(), &[&Value::from(since), &Value::from(limit), &Value::Dict(params)]);
         Value::Null
         }).await?))
     }
@@ -5478,7 +5472,7 @@ impl Woo {
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let rows: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "rows"));
         let first: crate::value::Dict = rows.get(0).cloned().unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &first, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, Some(&first), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -5799,11 +5793,8 @@ impl Woo {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), "ADD", &[&params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), "ADD", &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -5827,11 +5818,8 @@ impl Woo {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), "REDUCE", &[&params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), "REDUCE", &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }

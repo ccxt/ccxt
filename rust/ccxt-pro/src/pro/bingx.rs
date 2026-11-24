@@ -109,7 +109,7 @@ impl Bingx {
             "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_positions" => { self.handle_positions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_subscription_status" => { self.handle_subscription_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_text_message" => { self.handle_text_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default()); },
@@ -405,10 +405,7 @@ impl Bingx {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -418,7 +415,7 @@ impl Bingx {
         let messageHash: String = format!("{}{}", "unsubscribe::", subMessageHash.as_deref().unwrap_or("null"));
         let topic: String = "ticker".to_string();
         let methodName: String = "unWatchTicker".to_string();
-        return self.un_watch(messageHash.as_str(), subMessageHash.as_deref().unwrap_or_default(), messageHash.as_str(), Value::from(dataType), topic.as_str(), Some(&market), methodName.as_str(), &[params]).await;
+        return self.un_watch(messageHash.as_str(), subMessageHash.as_deref().unwrap_or_default(), messageHash.as_str(), Value::from(dataType), topic.as_str(), Some(&market), methodName.as_str(), &[Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -692,10 +689,7 @@ impl Bingx {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -704,7 +698,7 @@ impl Bingx {
         let messageHash: String = format!("{}{}", "unsubscribe::", subMessageHash.as_deref().unwrap_or("null"));
         let topic: String = "trades".to_string();
         let methodName: String = "unWatchTrades".to_string();
-        return self.un_watch(messageHash.as_str(), subMessageHash.as_deref().unwrap_or_default(), messageHash.as_str(), Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@trade".into())).into()), topic.as_str(), Some(&market), methodName.as_str(), &[params]).await;
+        return self.un_watch(messageHash.as_str(), subMessageHash.as_deref().unwrap_or_default(), messageHash.as_str(), Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@trade".into())).into()), topic.as_str(), Some(&market), methodName.as_str(), &[Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -929,10 +923,7 @@ impl Bingx {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -943,7 +934,7 @@ impl Bingx {
         let messageHash: String = format!("{}{}", "unsubscribe::", subMessageHash);
         let topic: String = "orderbook".to_string();
         let methodName: String = "unWatchOrderBook".to_string();
-        return self.un_watch(messageHash.as_str(), subMessageHash.clone().as_str(), messageHash.as_str(), Value::from(subMessageHash.as_str()), topic.as_str(), Some(&market), methodName.as_str(), &[params]).await;
+        return self.un_watch(messageHash.as_str(), subMessageHash.clone().as_str(), messageHash.as_str(), Value::from(subMessageHash.as_str()), topic.as_str(), Some(&market), methodName.as_str(), &[Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -954,10 +945,9 @@ impl Bingx {
         bookside.store(price, amount);
 }
 
-    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, message: &indexmap::IndexMap<String, Value>) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+        let __pro_message: &indexmap::IndexMap<String, Value> = message;
         //
         // spot
         //
@@ -1053,7 +1043,7 @@ impl Bingx {
         }
         orderbook = self.orderbooks.at(&symbol);
         let mut snapshot: Value = Value::Null;
-        let mut timestamp: Option<i64> = self.safe_integer2(message, Value::Str("timestamp".into()), Value::Str("ts".into()), &[]).as_i64();
+        let mut timestamp: Option<i64> = self.safe_integer2(&message, Value::Str("timestamp".into()), Value::Str("ts".into()), &[]).as_i64();
         timestamp = self.safe_integer2(&data, Value::Str("timestamp".into()), Value::Str("ts".into()), &[Value::from(timestamp)]).as_i64();
         if ((market).inverse == Some(true)) {
             snapshot = Value::Dict(self.parse_order_book(&data, Value::from(symbol.as_str()), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Str("p".into()), Value::Str("a".into())]));
@@ -2081,7 +2071,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }
 
     pub fn handle_order(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
-        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
+        let __pro_message: &indexmap::IndexMap<String, Value> = message;
         //
         //     {
         //         "code": 0,
@@ -2292,7 +2282,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 
     pub fn handle_balance(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
+        let __pro_message: &indexmap::IndexMap<String, Value> = message;
         // spot
         //     {
         //         "e":"ACCOUNT_UPDATE",
@@ -2391,7 +2381,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let dataType: String = (match __pro_message.get("dataType").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         if dataType.contains("@depth") {
-            self.handle_order_book(client.clone(), message.clone());
+            self.handle_order_book(client.clone(), message.as_map().unwrap_or(&Default::default()));
             return;
         }
         if dataType.contains("@ticker") {

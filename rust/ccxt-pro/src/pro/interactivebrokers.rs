@@ -105,7 +105,7 @@ impl Interactivebrokers {
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_orders" => { self.handle_orders(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_session_status" => { self.handle_session_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_text_message" => { self.handle_text_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default()); },
@@ -561,17 +561,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn watch_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
-        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols: Option<Vec<String>> = symbols;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let ticker: crate::value::Dict = self.ibkr_watch_market_data("ticker", &[Value::from(symbols.clone()), params]).await.into_dict();
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
+        let ticker: crate::value::Dict = self.ibkr_watch_market_data("ticker", &[symbols.clone(), Value::Dict(params)]).await.into_dict();
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let m = indexmap::IndexMap::new();
@@ -581,7 +578,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             result.insert(tickerSymbol, Value::Dict(ticker));
             return Value::Map(result);
         }
-        return Value::Dict(self.filter_by_array_dict(&self.tickers, Value::Str("symbol".into()), Value::from(symbols)));
+        return Value::Dict(self.filter_by_array_dict(&self.tickers, Value::Str("symbol".into()), symbols));
         Value::Null
         }).await?))
     }
@@ -596,17 +593,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn watch_bids_asks(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
-        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols: Option<Vec<String>> = symbols;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let ticker: crate::value::Dict = self.ibkr_watch_market_data("bidask", &[Value::from(symbols.clone()), params]).await.into_dict();
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
+        let ticker: crate::value::Dict = self.ibkr_watch_market_data("bidask", &[symbols.clone(), Value::Dict(params)]).await.into_dict();
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let m = indexmap::IndexMap::new();
@@ -616,7 +610,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             result.insert(tickerSymbol, Value::Dict(ticker));
             return Value::Map(result);
         }
-        return Value::Dict(self.filter_by_array_dict(&self.bidsasks, Value::Str("symbol".into()), Value::from(symbols)));
+        return Value::Dict(self.filter_by_array_dict(&self.bidsasks, Value::Str("symbol".into()), symbols));
         Value::Null
         }).await?))
     }
@@ -692,17 +686,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @returns {boolean} true
  */
     pub async fn un_watch_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::Value> {
-        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols: Option<Vec<String>> = symbols;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return self.ibkr_un_watch_market_data("ticker", &[Value::from(symbols), params]).await;
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
+        return self.ibkr_un_watch_market_data("ticker", &[symbols, Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -717,17 +708,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @returns {boolean} true
  */
     pub async fn un_watch_bids_asks(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::Value> {
-        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols: Option<Vec<String>> = symbols;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return self.ibkr_un_watch_market_data("bidask", &[Value::from(symbols), params]).await;
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
+        return self.ibkr_un_watch_market_data("bidask", &[symbols, Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -867,10 +855,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let unifiedSymbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
@@ -881,7 +866,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
         let future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         // the last price stream, it builds the current candles
-        let marketDataRequestqueryVariable: Vec<Value> = self.ibkr_market_data_request(Value::from((market).id.as_deref()), &[params]).as_array().cloned().unwrap_or_default();
+        let marketDataRequestqueryVariable: Vec<Value> = self.ibkr_market_data_request(Value::from((market).id.as_deref()), &[Value::Dict(params)]).as_array().cloned().unwrap_or_default();
         let marketDataRequest: Option<String> = marketDataRequestqueryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let query: Value = marketDataRequestqueryVariable.get(1).cloned().unwrap_or(Value::Null);
         self.ibkr_subscribe(&client.as_value(), messageHash.as_str(), marketDataRequest.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
@@ -1222,14 +1207,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let unifiedSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let accountIdqueryVariable = self.parent.load_account_id(&[params]).await;
+        let accountIdqueryVariable = self.parent.load_account_id(&[Value::Dict(params)]).await;
         let accountId: Option<String> = accountIdqueryVariable.0.as_str().map(str::to_owned);
         let query: crate::value::Dict = accountIdqueryVariable.1;
         let bookExchange: Option<String> = self.safe_string_k_opt(&query, "exchange", &[]);
@@ -1272,14 +1254,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let unifiedSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let accountIdqueryVariable = self.parent.load_account_id(&[params]).await;
+        let accountIdqueryVariable = self.parent.load_account_id(&[Value::Dict(params)]).await;
         let accountId: Option<String> = accountIdqueryVariable.0.as_str().map(str::to_owned);
         let query: crate::value::Dict = accountIdqueryVariable.1;
         let url: Option<String> = self.ibkr_connect().await.as_str().map(str::to_owned);
@@ -1295,10 +1274,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     }
 
-    pub fn handle_order_book(&mut self, mut client: Value, message: &Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, message: &indexmap::IndexMap<String, Value>) {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
         //
         // the price ladder is a list of rows, the first message after subscribing is an empty placeholder ladder,
         // then the full ladder is sent, then only the changed rows are sent, every row carries its full state
@@ -1849,12 +1826,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let accountIdqueryVariable = self.parent.load_account_id(&[params]).await;
+        let accountIdqueryVariable = self.parent.load_account_id(&[Value::Dict(params)]).await;
         let accountId: Option<String> = accountIdqueryVariable.0.as_str().map(str::to_owned);
         let query: crate::value::Dict = accountIdqueryVariable.1;
         let url: Option<String> = self.ibkr_connect().await.as_str().map(str::to_owned);
@@ -2054,7 +2028,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }  else if (topic.starts_with("smh+")) {
             self.handle_ohlcv(client.clone(), message.as_map().unwrap_or(&Default::default()));
         }  else if (topic.starts_with("sbd+")) {
-            self.handle_order_book(client.clone(), &message);
+            self.handle_order_book(client.clone(), message.as_map().unwrap_or(&Default::default()));
         }  else if (topic == "sor") {
             self.handle_orders(&client, message.as_map().unwrap_or(&Default::default()));
         }  else if (topic == "str") {

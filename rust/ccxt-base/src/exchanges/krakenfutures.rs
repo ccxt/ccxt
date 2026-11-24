@@ -1054,7 +1054,7 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
 
     None
 }
-    fn parse_funding_rate(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, ticker: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
         //
         //     {
@@ -3104,15 +3104,12 @@ impl Krakenfutures {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let orderRequest: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), Some(amount), &[&Value::from(price), &params]);
+        let orderRequest: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), Some(amount), &[&Value::from(price), &Value::Dict(params)]);
         let response: crate::value::Dict = self.private_post_sendorder(&[&Value::Dict(orderRequest)]).await.unwrap_or_default();
         //
         //    {
@@ -4400,7 +4397,7 @@ impl Krakenfutures {
                 }
             }
             let market: crate::types::Market = self.safe_market(entry_symbol.as_deref(), None, &[]);
-            let parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &entry, Some(&market)).unwrap_or_default();
+            let parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, entry.as_ref(), Some(&market)).unwrap_or_default();
             fundingRates.push(Value::Dict(parsed));
         }
         }

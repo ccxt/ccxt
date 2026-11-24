@@ -1473,7 +1473,7 @@ impl crate::exchange_generated::ExchangeBase for Coinbase {
                 "fetch_convert_trade" => crate::types::IntoRaw::into_raw(self.fetch_convert_trade(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_currencies" => crate::types::IntoRaw::into_raw(self.fetch_currencies(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_currencies_from_cache" => crate::Value::Dict(self.fetch_currencies_from_cache(&args[..].iter().collect::<Vec<_>>()).await),
-                "fetch_deposit" => self.fetch_deposit(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "fetch_deposit" => crate::types::IntoRaw::into_raw(self.fetch_deposit(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_deposit_addresses" => crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_deposit_addresses_by_network" => crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses_by_network(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_deposit_method_id" => crate::Value::Dict(self.fetch_deposit_method_id(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
@@ -2537,15 +2537,12 @@ impl Coinbase {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let method: Option<String> = self.safe_string_k_opt(&self.options, "fetchAccounts", &[&Value::Str("fetchAccountsV3".into())]);
         if (method.as_deref() == Some("fetchAccountsV3")) {
-            return self.fetch_accounts_v3(&[&params]).await;
+            return self.fetch_accounts_v3(&[&Value::from(&params)]).await;
         }
-        return self.fetch_accounts_v2(&[&params]).await;
+        return self.fetch_accounts_v2(&[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -3023,14 +3020,11 @@ impl Coinbase {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let results: crate::value::List = self.fetch_transactions_with_method("v2PrivateGetAccountsAccountIdTransactions", code.as_str(), since, limit, &[&params]).await;
+        let results: crate::value::List = self.fetch_transactions_with_method("v2PrivateGetAccountsAccountIdTransactions", code.as_str(), since, limit, &[&Value::Dict(params)]).await;
         return self.to_array(Value::Arr(self.filter_by_array_list(&results, Value::Str("type".into()), Value::from(vec![Value::Str("deposit".into()), Value::Str("withdrawal".into())]))));
         Value::Null
         }).await?))
@@ -3067,18 +3061,15 @@ impl Coinbase {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if matches!(self.safe_bool_k(&self.options, "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
         let method: Option<String> = self.safe_string_k_opt(&self.options, "fetchMarkets", &[&Value::Str("fetchMarketsV3".into())]);
         if (method.as_deref() == Some("fetchMarketsV3")) {
-            return self.fetch_markets_v3(&[&params]).await;
+            return self.fetch_markets_v3(&[&Value::from(&params)]).await;
         }
-        return self.fetch_markets_v2(&[&params]).await;
+        return self.fetch_markets_v2(&[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -3991,15 +3982,12 @@ if _try_result.is_err() {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbols = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         let method: Option<String> = self.safe_string_k_opt(&self.options, "fetchTickers", &[&Value::Str("fetchTickersV3".into())]);
         if (method.as_deref() == Some("fetchTickersV3")) {
-            return self.fetch_tickers_v3(&[&symbols, &params]).await;
+            return self.fetch_tickers_v3(&[&symbols, &Value::from(&params)]).await;
         }
-        return self.fetch_tickers_v2(&[&symbols, &params]).await;
+        return self.fetch_tickers_v2(&[&symbols, &Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -4173,15 +4161,12 @@ if _try_result.is_err() {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let method: Option<String> = self.safe_string_k_opt(&self.options, "fetchTicker", &[&Value::Str("fetchTickerV3".into())]);
         if (method.as_deref() == Some("fetchTickerV3")) {
-            return self.fetch_ticker_v3(symbol.as_str().unwrap_or_default(), &[&params]).await;
+            return self.fetch_ticker_v3(symbol.as_str().unwrap_or_default(), &[&Value::from(&params)]).await;
         }
-        return self.fetch_ticker_v2(symbol.as_str().unwrap_or_default(), &[&params]).await;
+        return self.fetch_ticker_v2(symbol.as_str().unwrap_or_default(), &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -5586,11 +5571,8 @@ if _try_result.is_err() {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return Value::Arr(self.fetch_orders_by_status(Some("CANCELLED"), symbol.as_str(), since, limit, &[params]).await);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        return Value::Arr(self.fetch_orders_by_status(Some("CANCELLED"), symbol.as_str(), since, limit, &[Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -6154,15 +6136,12 @@ if _try_result.is_err() {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code.as_str());
-        let requestparamsValueVariable = self.prepare_account_request_with_currency_code(self.safe_string_k(&currency, "code", &[]).as_str(), None, &[&params]).await;
+        let requestparamsValueVariable = self.prepare_account_request_with_currency_code(self.safe_string_k(&currency, "code", &[]).as_str(), None, &[&Value::Dict(params)]).await;
         let request: crate::value::Dict = requestparamsValueVariable.0;
         let paramsValue: crate::value::Dict = requestparamsValueVariable.1;
         let __ws_arg_55 = self.extend(request, &[&paramsValue]);
@@ -6327,11 +6306,15 @@ if _try_result.is_err() {
  * @param {string} [params.accountId] the id of the account that the funds were deposited into
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
  */
-    pub async fn fetch_deposit(&mut self, id: &str, code: Option<&str>, optional_args: &[&Value]) -> Value {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+    pub async fn fetch_deposit(&mut self, id: &str, code: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Transaction> {
+        let __args: Vec<Value> = vec![Value::from(id), code.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let id = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
+        let code = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -6340,16 +6323,16 @@ if _try_result.is_err() {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("account_id".to_string(), Value::from(accountId.as_deref()));
-                m.insert("deposit_id".to_string(), Value::from(id));
+                m.insert("deposit_id".to_string(), id);
             m
         });
         if (accountId.is_none()) {
-            if (code.is_none()) {
+            if (code == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchDeposit() requires an account_id (or accountId) parameter OR a currency code argument")));
             }
-            let foundAccountId: Option<String> = self.find_account_id(code, &[&Value::from(&paramsOmitted)]).await.as_str().map(str::to_owned);
+            let foundAccountId: Option<String> = self.find_account_id(code.as_str(), &[&Value::from(&paramsOmitted)]).await.as_str().map(str::to_owned);
             if (foundAccountId.is_none()) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchDeposit() could not find account id for ").into()), Value::from(code))));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchDeposit() could not find account id for ").into()), code)));
             }
             request.insert("account_id".into(), foundAccountId.map(Value::from).unwrap_or(Value::Null));
         }
@@ -6394,9 +6377,9 @@ if _try_result.is_err() {
         // https://github.com/ccxt/ccxt/issues/25484
         let data: crate::value::Dict = self.safe_dict2_t(&response, Value::Str("data".into()), Value::Str("transfer".into()));
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&data), None).map_or(Value::Null, Value::Dict);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -7199,24 +7182,21 @@ if _try_result.is_err() {
  * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by currency code
  */
     pub async fn fetch_deposit_addresses(&mut self, codes: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::DepositAddress>> {
-        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(codes), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let codes: Option<Vec<String>> = codes;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let codes = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let request: crate::value::Dict = self.prepare_account_request(None, &[&params]);
-        let __ws_arg_68 = self.extend(request, &[params]);
+        let request: crate::value::Dict = self.prepare_account_request(None, &[&Value::from(&params)]);
+        let __ws_arg_68 = self.extend(request, &[&params]);
         let response: crate::value::Dict = self.v2_private_get_accounts_account_id_addresses(&[&__ws_arg_68]).await.unwrap_or_default();
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_deposit_addresses(&data, &[Value::from(codes), Value::Bool(false), Value::Map({
+        return self.parse_deposit_addresses(&data, &[codes, Value::Bool(false), Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]);

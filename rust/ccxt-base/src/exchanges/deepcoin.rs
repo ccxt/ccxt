@@ -569,7 +569,7 @@ impl crate::exchange::DerivedExchange for Deepcoin {
 
     None
 }
-    fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, contract: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let contract: Value = contract.into();
         //
         //     {
@@ -1711,10 +1711,7 @@ impl Deepcoin {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let mut types: crate::value::List = std::sync::Arc::new(vec![Value::Str("spot".into()), Value::Str("swap".into())]);
         let fetchMarketsOption: Option<crate::value::Dict> = self.safe_dict_k_o(&self.options, "fetchMarkets");
         if (fetchMarketsOption.is_some()) {
@@ -1728,7 +1725,7 @@ impl Deepcoin {
                         let mut i: i64 = 0;
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (types.len() as i64) } {
-            promises.push(self.fetch_markets_by_type(self.safe_string(&types, Value::Int(i), &[]).as_str(), &[&params]).await);
+            promises.push(self.fetch_markets_by_type(self.safe_string(&types, Value::Int(i), &[]).as_str(), &[&Value::from(&params)]).await);
         }
         }
         let responses: Vec<Value> = promise_all(&Value::from(promises)).await.to_vec();
@@ -2662,16 +2659,13 @@ impl Deepcoin {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let triggerPrice: Option<String> = self.safe_string_k_opt(&params, "triggerPrice", &[]);
-        let request: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Value::from(amount), &[&Value::from(price), &params]);
+        let request: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Value::from(amount), &[&Value::from(price), &Value::Dict(params)]);
         let mut response: Option<crate::value::Dict> = None;
         if (triggerPrice.is_some()) {
             // trigger orders
@@ -4124,7 +4118,7 @@ impl Deepcoin {
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let rates: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "current_fund_rates"));
         let entry: crate::value::Dict = rates.get(0).cloned().unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &entry, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, Some(&entry), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

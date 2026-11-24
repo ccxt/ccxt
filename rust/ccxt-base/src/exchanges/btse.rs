@@ -596,7 +596,7 @@ impl crate::exchange::DerivedExchange for Btse {
 
     None
 }
-    fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, contract: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let contract: Value = contract.into();
         //
         // ticker/24hr contract rows
@@ -2664,7 +2664,7 @@ impl Btse {
     let m = indexmap::IndexMap::new();
     m
 })]));
-        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, Some(&data), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3033,16 +3033,13 @@ impl Btse {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if (market).spot {
-            return self.create_spot_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, price, &[&params]).await;
+            return self.create_spot_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, price, &[&Value::from(&params)]).await;
         }  else {
-            return self.create_contract_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, price, &[&params]).await;
+            return self.create_contract_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, price, &[&Value::Dict(params)]).await;
         }
         Value::Null
         }).await?))
@@ -4156,11 +4153,8 @@ impl Btse {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return self.request_wallet_history_rows("fetchDepositsWithdrawals", Value::from(vec![Value::Str("DEPOSIT".into()), Value::Str("WITHDRAW".into())]), code.as_str(), since, limit, &[&params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        return self.request_wallet_history_rows("fetchDepositsWithdrawals", Value::from(vec![Value::Str("DEPOSIT".into()), Value::Str("WITHDRAW".into())]), code.as_str(), since, limit, &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -4187,11 +4181,8 @@ impl Btse {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return self.request_wallet_history_rows("fetchDeposits", Value::from(vec![Value::Str("DEPOSIT".into())]), code.as_str(), since, limit, &[&params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        return self.request_wallet_history_rows("fetchDeposits", Value::from(vec![Value::Str("DEPOSIT".into())]), code.as_str(), since, limit, &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -4218,11 +4209,8 @@ impl Btse {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return self.request_wallet_history_rows("fetchWithdrawals", Value::from(vec![Value::Str("WITHDRAW".into())]), code.as_str(), since, limit, &[&params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        return self.request_wallet_history_rows("fetchWithdrawals", Value::from(vec![Value::Str("WITHDRAW".into())]), code.as_str(), since, limit, &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }

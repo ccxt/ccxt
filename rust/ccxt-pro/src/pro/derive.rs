@@ -70,7 +70,7 @@ impl crate::exchange_generated::ExchangeBase for Derive {
                 "un_watch_my_trades" => crate::types::IntoRaw::into_raw(self.un_watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_order_book" => crate::types::IntoRaw::into_raw(self.un_watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_orders" => crate::types::IntoRaw::into_raw(self.un_watch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
-                "un_watch_public" => self.un_watch_public(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
+                "un_watch_public" => self.un_watch_public(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).and_then(crate::Value::as_map).unwrap_or(&Default::default())).await,
                 "un_watch_ticker" => crate::types::IntoRaw::into_raw(self.un_watch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "un_watch_trades" => crate::types::IntoRaw::into_raw(self.un_watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
@@ -79,8 +79,8 @@ impl crate::exchange_generated::ExchangeBase for Derive {
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_positions" => crate::types::IntoRaw::into_raw(self.watch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "watch_private" => self.watch_private(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
-                "watch_public" => self.watch_public(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
+                "watch_private" => self.watch_private(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).and_then(crate::Value::as_map).unwrap_or(&Default::default())).await,
+                "watch_public" => self.watch_public(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).and_then(crate::Value::as_map).unwrap_or(&Default::default())).await,
                 "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_trades" => crate::types::IntoRaw::into_raw(self.watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 // Go-style inheritance: an un-overridden method dispatches to the parent core.
@@ -104,7 +104,7 @@ impl Derive {
             "handle_my_trade" => { self.handle_my_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_my_trades_un_subscription" => { self.handle_my_trades_un_subscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default()); },
             "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
-            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order_book_un_subscription" => { self.handle_order_book_un_subscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default()); },
             "handle_orders_un_subscription" => { self.handle_orders_un_subscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default()); },
             "handle_position_delta" => { self.handle_position_delta(args.get(0).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -221,9 +221,7 @@ impl Derive {
         return newValue;
 }
 
-    pub async fn watch_public(&mut self, messageHash: &str, message: impl Into<crate::Value>, subscription: impl Into<crate::Value>) -> Value {
-        let message: Value = message.into();
-        let subscription: Value = subscription.into();
+    pub async fn watch_public(&mut self, messageHash: &str, message: &indexmap::IndexMap<String, Value>, subscription: &indexmap::IndexMap<String, Value>) -> Value {
         let url: Option<String> = self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let requestId: i64 = self.request_id(url.as_deref().unwrap_or_default());
         let request: crate::value::Dict = self.extend_t(message, &[Value::Map({
@@ -289,15 +287,13 @@ impl Derive {
                 m.insert("params".to_string(), params);
             m
         });
-        let mut orderbook: Value = self.watch_public(topic.as_str(), Value::Map(request), Value::Map(subscription)).await;
+        let mut orderbook: Value = self.watch_public(topic.as_str(), &request, &subscription).await;
         return orderbook.limit();
         Value::Null
         }).await?))
     }
 
-    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         // {
         //     method: 'subscription',
@@ -378,7 +374,7 @@ impl Derive {
                 m.insert("params".to_string(), params);
             m
         });
-        return self.watch_public(topic.as_str(), Value::Map(request), Value::Map(subscription)).await;
+        return self.watch_public(topic.as_str(), &request, &subscription).await;
         Value::Null
         }).await?))
     }
@@ -425,7 +421,7 @@ impl Derive {
                 m.insert("name".to_string(), Value::from(topic));
             m
         });
-        return self.un_watch_public(messageHash.as_str(), Value::Map(request), Value::Map(subscription)).await;
+        return self.un_watch_public(messageHash.as_str(), &request, &subscription).await;
         Value::Null
         }).await?))
     }
@@ -609,7 +605,7 @@ impl Derive {
                 m.insert("name".to_string(), Value::from(topic));
             m
         });
-        return self.un_watch_public(messageHash.as_str(), Value::Map(request), Value::Map(subscription)).await;
+        return self.un_watch_public(messageHash.as_str(), &request, &subscription).await;
         Value::Null
         }).await?))
     }
@@ -655,14 +651,12 @@ impl Derive {
                 m.insert("name".to_string(), Value::from(topic));
             m
         });
-        return self.un_watch_public(messageHah.as_str(), Value::Map(request), Value::Map(subscription)).await;
+        return self.un_watch_public(messageHah.as_str(), &request, &subscription).await;
         Value::Null
         }).await?))
     }
 
-    pub async fn un_watch_public(&mut self, messageHash: &str, message: impl Into<crate::Value>, subscription: impl Into<crate::Value>) -> Value {
-        let message: Value = message.into();
-        let subscription: Value = subscription.into();
+    pub async fn un_watch_public(&mut self, messageHash: &str, message: &indexmap::IndexMap<String, Value>, subscription: &indexmap::IndexMap<String, Value>) -> Value {
         let url: Option<String> = self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let requestId: i64 = self.request_id(url.as_deref().unwrap_or_default());
         let request: crate::value::Dict = self.extend_t(message, &[Value::Map({
@@ -823,7 +817,7 @@ impl Derive {
                 m.insert("params".to_string(), params);
             m
         });
-        let mut trades: Value = self.watch_public(topic.as_str(), Value::Map(request), Value::Map(subscription)).await;
+        let mut trades: Value = self.watch_public(topic.as_str(), &request, &subscription).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some((market).symbol.as_str()), limit);
@@ -908,8 +902,7 @@ impl Derive {
     Value::Null
 }
 
-    pub async fn watch_private(&mut self, messageHash: &str, message: &indexmap::IndexMap<String, Value>, subscription: impl Into<crate::Value>) -> Value {
-        let subscription: Value = subscription.into();
+    pub async fn watch_private(&mut self, messageHash: &str, message: &indexmap::IndexMap<String, Value>, subscription: &indexmap::IndexMap<String, Value>) -> Value {
         self.authenticate(&[]).await;
         let url: Option<String> = self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let requestId: i64 = self.request_id(url.as_deref().unwrap_or_default());
@@ -985,7 +978,7 @@ impl Derive {
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[&paramsDeriveSubaccountId]);
-        let mut orders: Value = self.watch_private(messageHash.as_str(), &message, Value::Map(subscription)).await;
+        let mut orders: Value = self.watch_private(messageHash.as_str(), &message, &subscription).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit);
@@ -1127,7 +1120,7 @@ impl Derive {
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[&paramsDeriveSubaccountId]);
-        return self.un_watch_public(messageHash.as_str(), &message, Value::Map(subscription)).await;
+        return self.un_watch_public(messageHash.as_str(), &message, &subscription).await;
         Value::Null
         }).await?))
     }
@@ -1188,7 +1181,7 @@ impl Derive {
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[&paramsDeriveSubaccountId]);
-        let mut trades: Value = self.watch_private(messageHash.as_str(), &message, Value::Map(subscription)).await;
+        let mut trades: Value = self.watch_private(messageHash.as_str(), &message, &subscription).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit);
@@ -1272,7 +1265,7 @@ impl Derive {
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[&paramsDeriveSubaccountId]);
-        return self.un_watch_public(messageHash.as_str(), &message, Value::Map(subscription)).await;
+        return self.un_watch_public(messageHash.as_str(), &message, &subscription).await;
         Value::Null
         }).await?))
     }
@@ -1352,7 +1345,7 @@ impl Derive {
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[&paramsDeriveSubaccountId]);
-        return self.watch_private(topic.as_str(), &message, Value::Map(subscription)).await;
+        return self.watch_private(topic.as_str(), &message, &subscription).await;
         Value::Null
         }).await?))
     }
@@ -1446,7 +1439,7 @@ impl Derive {
             m
         });
         let message: crate::value::Dict = self.extend_t(Value::Map(request), &[&paramsDeriveSubaccountId]);
-        let newPositions: Value = self.watch_private(messageHash.as_str(), &message, Value::Map(subscription)).await;
+        let newPositions: Value = self.watch_private(messageHash.as_str(), &message, &subscription).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }

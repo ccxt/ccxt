@@ -277,7 +277,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
 
     None
 }
-    fn parse_prediction_ticker(&self, raw: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_prediction_ticker(&self, raw: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let raw: Value = raw.into();
         //
         //     {
@@ -1324,7 +1324,7 @@ impl Hyperliquid {
         m.insert("book".to_string(), response);
     m
 }), Value::Str("book".into()));
-        return <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, &tickerData, outcomeObj.as_ref()).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, Some(&tickerData), outcomeObj.as_ref()).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -1406,12 +1406,12 @@ impl Hyperliquid {
                 continue;
             }
             // Build minimal ticker from mid price
-            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, Value::Map({
+            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("levels".to_string(), Value::from(vec![Value::from(vec![]), Value::from(vec![])]));
                     m.insert("mid".to_string(), Value::from(mid));
                 m
-            }), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref()).unwrap_or_default();
+            })).as_ref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref()).unwrap_or_default();
             tickers.insert(outcomeHandle.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
         }
         }

@@ -138,7 +138,7 @@ impl crate::exchange::DerivedExchange for Sxbet {
 
     None
 }
-    fn parse_prediction_ticker(&self, raw: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_prediction_ticker(&self, raw: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let raw: Value = raw.into();
         //
         //     {
@@ -969,15 +969,12 @@ impl Sxbet {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        self.require_event_query(&[&params]);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        self.require_event_query(&[&Value::from(&params)]);
         let eventId: Option<String> = self.safe_string2_opt(&params, Value::Str("eventId".into()), Value::Str("slug".into()), &[]);
         let leagueId: Option<String> = self.safe_string_k_opt(&params, "leagueId", &[]);
         let sportId: Option<String> = self.safe_string_k_opt(&params, "sportId", &[]);
-        let mut queries: Value = Value::Arr(self.parse_search_queries(&[&params]));
+        let mut queries: Value = Value::Arr(self.parse_search_queries(&[&Value::from(&params)]));
         let tags: crate::value::List = self.safe_list_k_t(&params, "tags");
         let tagsLength: i64 = tags.len() as i64;
         {
@@ -2783,7 +2780,7 @@ impl Sxbet {
         // route needs an apiKey, so it only pays off for the multi-market path
         let snapshot: crate::value::Dict = self.fetch_sxbet_book_snapshot(marketHash.as_deref()).await;
         let raw: crate::value::Dict = self.parse_sxbet_snapshot_best_odds(&snapshot);
-        return <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, &raw, outcomeObj.as_ref()).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, Some(&raw), outcomeObj.as_ref()).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2858,20 +2855,17 @@ impl Sxbet {
  * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
  */
     pub async fn fetch_tickers(&mut self, outcomes: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
-        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(outcomes), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let outcomes: Option<Vec<String>> = outcomes;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        if (outcomes.is_none()) {
+        let outcomes = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
+        if (outcomes == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchTickers() requires an outcomes argument - sx.bet has thousands of markets and serves best odds per market list")));
         }
-        let outcomesList: Option<crate::value::List> = (if (outcomes.is_none()) { Value::from(vec![]) } else { Value::from(outcomes) }).into_opt_list();
+        let outcomesList: Option<crate::value::List> = (if (outcomes == Value::Null) { Value::from(vec![]) } else { outcomes }).into_opt_list();
         let outcomesLength: i64 = outcomesList.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
         let mut hashesOrder: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut seenHashes: indexmap::IndexMap<String, Value> = ({
@@ -2929,7 +2923,7 @@ impl Sxbet {
                 end = self.parse_to_int(Value::from(hashesLength));
             }
             let mut chunk: Value = Value::Arr(self.array_slice(Value::Arr(hashesOrder.clone()), Value::from(start), &[Value::from(end)]));
-            let rows: Vec<Value> = self.fetch_sxbet_best_odds(chunk.to_str_vec(), &[&params]).await.to_vec();
+            let rows: Vec<Value> = self.fetch_sxbet_best_odds(chunk.to_str_vec(), &[&Value::from(&params)]).await.to_vec();
             let rowsLength: i64 = rows.len() as i64;
             {
                                 let mut j: i64 = 0;
@@ -2975,7 +2969,7 @@ impl Sxbet {
             if (raw.is_none()) {
                 continue;
             }
-            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, &raw, outcomeObj.as_ref()).unwrap_or_default();
+            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, raw.as_ref(), outcomeObj.as_ref()).unwrap_or_default();
             let sym: Option<String> = self.safe_string_k_opt(&ticker, "outcome", &[]);
             if (sym.is_some()) {
                 result.insert(sym.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
@@ -3552,7 +3546,7 @@ impl Sxbet {
             // for every newly watched market, not only on a fresh subscription
             let snapshot: crate::value::Dict = self.fetch_sxbet_book_snapshot(marketHash.as_deref()).await;
             let raw: crate::value::Dict = self.parse_sxbet_snapshot_best_odds(&snapshot);
-            let ticker: Value = <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, &raw, outcomeObj.as_ref()).map_or(Value::Null, Value::Dict);
+            let ticker: Value = <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, Some(&raw), outcomeObj.as_ref()).map_or(Value::Null, Value::Dict);
             self.set_ws_option("wsTickers", sym.as_str(), ticker);
             hydrated = true;
         }
@@ -3632,7 +3626,7 @@ impl Sxbet {
                     continue;
                 }
                 let outcomeObj: Option<crate::types::Market> = self.outcome(sym.as_deref());
-                let ticker: Value = <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, Value::Map(raw.clone()), outcomeObj.as_ref()).map_or(Value::Null, Value::Dict);
+                let ticker: Value = <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(Value::Map(raw.clone())).as_ref(), outcomeObj.as_ref()).map_or(Value::Null, Value::Dict);
                 self.set_ws_option("wsTickers", sym.as_deref().unwrap_or_default(), ticker.clone());
                 client.resolve(ticker, &(Value::Str(format!("{}{}", "ticker::", sym.as_deref().unwrap_or("null")).into())));
             }

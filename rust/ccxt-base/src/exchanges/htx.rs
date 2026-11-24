@@ -816,7 +816,7 @@ impl crate::exchange::DerivedExchange for Htx {
 
     None
 }
-    fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, contract: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let contract: Value = contract.into();
         //
         // inverse swap
@@ -2006,7 +2006,7 @@ impl crate::exchange_generated::ExchangeBase for Htx {
                 "fetch_time" => crate::types::IntoRaw::into_raw(self.fetch_time(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_trading_fee" => crate::types::IntoRaw::into_raw(self.fetch_trading_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_trading_limits" => self.fetch_trading_limits(&args[..]).await,
+                "fetch_trading_limits" => crate::types::IntoRaw::into_raw(self.fetch_trading_limits(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trading_limits_by_id" => crate::Value::Dict(self.fetch_trading_limits_by_id(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "fetch_transfers" => crate::types::IntoRaw::into_raw(self.fetch_transfers(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_withdraw_addresses" => self.fetch_withdraw_addresses(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
@@ -5504,12 +5504,14 @@ impl Htx {
         }).await?))
     }
 
-    pub async fn fetch_trading_limits(&mut self, optional_args: &[Value]) -> Value {
+    pub async fn fetch_trading_limits(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<Option<crate::value::Dict>> {
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         let mut symbols = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         // this method should not be called directly, use loadTradingLimits () instead
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
         //  however if you define symbols = [ 'ETH/BTC', 'LTC/BTC' ] in args it will only load those
@@ -5532,13 +5534,13 @@ impl Htx {
             let mut __for_first_0: bool = true;
             while { if !__for_first_0 { i += 1; } __for_first_0 = false; i < (symbolsValue.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let symbol: Option<String> = symbolsValue.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(self.fetch_trading_limits_by_id(self.market_id(symbol.as_deref()).as_str(), &[&params]).await));
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(self.fetch_trading_limits_by_id(self.market_id(symbol.as_deref()).as_str(), &[&Value::from(&params)]).await));
         }
         }
         return Value::Map(result);
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @ignore
@@ -10928,7 +10930,7 @@ impl Htx {
         }).await?))
     }
 
-    pub fn parse_isolated_borrow_rate(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_isolated_borrow_rate(&self, info: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Value {
         let info: Value = info.into();
         //
         //     {
@@ -11172,7 +11174,7 @@ impl Htx {
     m
 }));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &result, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, result.as_ref(), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -12050,7 +12052,7 @@ impl Htx {
         //    }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let tick: Option<crate::value::List> = self.safe_list_k_o(&data, "tick");
+        let tick: crate::value::List = self.safe_list_k_t(&data, "tick");
         return self.parse_open_interests_history(&tick, Some(&market), &[Value::from(since), Value::from(limit)]);
         Value::Null
         }).await?))
@@ -12366,15 +12368,12 @@ impl Htx {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code.as_str());
-        let accountId: Option<String> = self.fetch_account_id_by_type("spot", Some("isolated"), symbol.as_str(), &[&params]).await.as_str().map(str::to_owned);
+        let accountId: Option<String> = self.fetch_account_id_by_type("spot", Some("isolated"), symbol.as_str(), &[&Value::from(&params)]).await.as_str().map(str::to_owned);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -12382,7 +12381,7 @@ impl Htx {
                 m.insert("accountId".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_154 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_154 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.v2_private_post_account_repayment(&[&__ws_arg_154]).await.unwrap_or_default();
         //
         //     {
@@ -12426,15 +12425,12 @@ impl Htx {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code.as_str());
-        let accountId: Option<String> = self.fetch_account_id_by_type("spot", Some("cross"), None, &[&params]).await.as_str().map(str::to_owned);
+        let accountId: Option<String> = self.fetch_account_id_by_type("spot", Some("cross"), None, &[&Value::from(&params)]).await.as_str().map(str::to_owned);
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -12442,7 +12438,7 @@ impl Htx {
                 m.insert("accountId".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_155 = self.extend(Value::Map(request), &[params]);
+        let __ws_arg_155 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.v2_private_post_account_repayment(&[&__ws_arg_155]).await.unwrap_or_default();
         //
         //     {

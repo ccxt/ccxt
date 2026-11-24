@@ -72,7 +72,7 @@ impl crate::exchange_generated::ExchangeBase for Lighter {
                 "handle_orders" => self.handle_orders(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
                 "handle_subscription_status" => self.handle_subscription_status(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ws_liquidation" => self.parse_ws_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_ws_order_trade" => Value::Dict(self.parse_ws_order_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_ws_order_trade" => Value::Dict(self.parse_ws_order_trade(<crate::value::Dict as crate::value::EndpointBody>::from_body(args.get(0).cloned().unwrap_or(crate::Value::Null)).as_ref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "pong" => { self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "request_id" => crate::Value::from(self.request_id(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
@@ -123,7 +123,7 @@ impl Lighter {
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_my_trades_un_subscription" => { self.handle_my_trades_un_subscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order_book_message" => { self.handle_order_book_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book_un_subscription" => { self.handle_order_book_un_subscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_orders" => { self.handle_orders(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -132,12 +132,12 @@ impl Lighter {
             "handle_subscription_status" => { self.handle_subscription_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ticker_un_subscription" => { self.handle_ticker_un_subscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_trades_un_subscription" => { self.handle_trades_un_subscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_un_subscription" => { self.handle_un_subscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ws_sendtx_api" => { self.handle_ws_sendtx_api(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "parse_ws_liquidation" => { self.parse_ws_liquidation(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref()); },
-            "parse_ws_order_trade" => { Value::Dict(self.parse_ws_order_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
+            "parse_ws_order_trade" => { Value::Dict(self.parse_ws_order_trade(<crate::value::Dict as crate::value::EndpointBody>::from_body(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)).as_ref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "parse_ws_trade" => { Value::Dict(self.parse_ws_trade(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
             "pong" => crate::exchange_stubs::enqueue_spawn("pong", args.iter().copied().cloned().collect::<Vec<_>>()),
             "request_id" => { self.request_id(args.get(0).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default()); },
@@ -359,7 +359,7 @@ impl Lighter {
 }
 
     pub fn handle_order_book_message(&self, client: &Value, message: &indexmap::IndexMap<String, Value>, mut orderbook: Value) -> Value {
-        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
+        let __pro_message: &indexmap::IndexMap<String, Value> = message;
         let data: crate::value::Dict = __pro_message.key_dict("order_book");
         self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), (self.safe_list_k(&data, "asks", &[Value::from(vec![])])).as_array().map(Vec::as_slice).unwrap_or_default());
         self.handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), (self.safe_list_k(&data, "bids", &[Value::from(vec![])])).as_array().map(Vec::as_slice).unwrap_or_default());
@@ -372,9 +372,8 @@ impl Lighter {
     Value::Null
 }
 
-    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+    pub fn handle_order_book(&mut self, mut client: Value, message: &indexmap::IndexMap<String, Value>) {
+        let __pro_message: &indexmap::IndexMap<String, Value> = message;
         //
         // {
         //     "channel": "order_book:0",
@@ -417,7 +416,7 @@ impl Lighter {
             std::sync::Arc::make_mut(&mut parsed).insert("nonce".into(), self.safe_integer_k(&data, "offset", &[]));
             orderbook.reset(Value::Dict(parsed));
         }  else if (type_var.as_deref() == Some("update/order_book")) {
-            self.handle_order_book_message(&client, message.as_map().unwrap_or(&Default::default()), Value::from(&orderbook));
+            self.handle_order_book_message(&client, message, Value::from(&orderbook));
         }
         let messageHash: Option<String> = self.get_message_hash("orderbook", &[&Value::from(symbol)]);
         client.resolve(Value::from(&orderbook), messageHash.as_deref());
@@ -915,9 +914,8 @@ impl Lighter {
     Default::default()
 }
 
-    pub fn handle_trades(&mut self, client: &Value, mut message: Value) {
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+    pub fn handle_trades(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
+        let __pro_message: &indexmap::IndexMap<String, Value> = message;
         //
         //     {
         //         "channel": "trade:0",
@@ -957,7 +955,7 @@ impl Lighter {
         let liquidationData: crate::value::List = __pro_message.key_list("liquidation_trades");
         let liquidationDataLength: i64 = liquidationData.len() as i64;
         if liquidationDataLength > 0 {
-            self.handle_liquidation(client, message.as_map().unwrap_or(&Default::default()));
+            self.handle_liquidation(client, message);
         }
         let data: crate::value::List = __pro_message.key_list("trades");
         let channel: String = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
@@ -1057,7 +1055,7 @@ impl Lighter {
         }).await?))
     }
 
-    pub fn parse_ws_order_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
+    pub fn parse_ws_order_trade(&self, trade: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let trade: Value = trade.into();
         //
         //     {
@@ -1218,7 +1216,7 @@ impl Lighter {
                 let jReversed: i64 = (((tradesLength - 1)) - j);
                 let mut tradeRaw: crate::value::Dict = self.safe_dict_t(&trades, jReversed);
                 std::sync::Arc::make_mut(&mut tradeRaw).insert("accountIndex".into(), Value::from(accountIndex.as_deref()));
-                let trade: crate::value::Dict = self.parse_ws_order_trade(&tradeRaw, Some(&market));
+                let trade: crate::value::Dict = self.parse_ws_order_trade(Some(&tradeRaw), Some(&market));
                 self.myTrades.append(Value::from(&trade));
                 let symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
                 if (symbol.is_some()) {
@@ -1537,7 +1535,7 @@ impl Lighter {
     }
 
     pub fn handle_balance(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) -> Value {
-        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
+        let __pro_message: &indexmap::IndexMap<String, Value> = message;
         //
         //    spot balance
         //    {
@@ -1781,16 +1779,13 @@ impl Lighter {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         let url: Option<String> = self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let nextId: i64 = self.request_id(url.as_deref().unwrap_or_default());
         // the venue takes a string request id
         let requestId: String = format!("{}", nextId);
         let messageHash: String = format!("{}{}", "jsonapi/sendtx:", requestId);
-        let txTypetxInfoorderVariable: Vec<Value> = self.parent.sign_and_create_order("createOrderWs", symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Value::from(amount), &[&Value::from(price), &params]).await.as_array().cloned().unwrap_or_default();
+        let txTypetxInfoorderVariable: Vec<Value> = self.parent.sign_and_create_order("createOrderWs", symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Value::from(amount), &[&Value::from(price), &Value::Dict(params)]).await.as_array().cloned().unwrap_or_default();
         let txType: Option<String> = txTypetxInfoorderVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let txInfo: Value = txTypetxInfoorderVariable.get(1).cloned().unwrap_or(Value::Null);
         let order: Value = txTypetxInfoorderVariable.get(2).cloned().unwrap_or(Value::Null);
@@ -1839,16 +1834,13 @@ impl Lighter {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         let url: Option<String> = self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let nextId: i64 = self.request_id(url.as_deref().unwrap_or_default());
         // the venue takes a string request id
         let requestId: String = format!("{}", nextId);
         let messageHash: String = format!("{}{}", "jsonapi/sendtx:", requestId);
-        let txTypetxInfoVariable: Vec<Value> = self.parent.sign_and_cancel_order("cancelOrderWs", id.as_str().unwrap_or_default(), symbol.as_str(), &[&params]).await.as_array().cloned().unwrap_or_default();
+        let txTypetxInfoVariable: Vec<Value> = self.parent.sign_and_cancel_order("cancelOrderWs", id.as_str().unwrap_or_default(), symbol.as_str(), &[&Value::Dict(params)]).await.as_array().cloned().unwrap_or_default();
         let txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
         let txInfo: Option<String> = txTypetxInfoVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1898,16 +1890,13 @@ impl Lighter {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         let url: Option<String> = self.urls.get("api").cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let nextId: i64 = self.request_id(url.as_deref().unwrap_or_default());
         // the venue takes a string request id
         let requestId: String = format!("{}", nextId);
         let messageHash: String = format!("{}{}", "jsonapi/sendtx:", requestId);
-        let txTypetxInfoVariable: Vec<Value> = self.parent.sign_and_cancel_all_orders("cancelAllOrdersWs", symbol.as_str(), &[&params]).await.as_array().cloned().unwrap_or_default();
+        let txTypetxInfoVariable: Vec<Value> = self.parent.sign_and_cancel_all_orders("cancelAllOrdersWs", symbol.as_str(), &[&Value::Dict(params)]).await.as_array().cloned().unwrap_or_default();
         let txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
         let txInfo: Option<String> = txTypetxInfoVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let parsedTx: Value = self.parse_json_value(txInfo.map(Value::from).unwrap_or(Value::Null));
@@ -2115,7 +2104,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let channel: String = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         if channel.contains("order_book:") {
-            self.handle_order_book(client.as_value(), message.clone());
+            self.handle_order_book(client.as_value(), message.as_map().unwrap_or(&Default::default()));
             return;
         }
         if channel.contains("market_stats:") {
@@ -2123,7 +2112,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             return;
         }
         if channel.contains("trade:") {
-            self.handle_trades(&client.as_value(), message.clone());
+            self.handle_trades(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
             return;
         }
         if channel.contains("account_all_trades:") {

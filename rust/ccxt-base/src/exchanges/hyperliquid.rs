@@ -575,7 +575,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
 
     None
 }
-    fn parse_funding_rate(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, info: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let info: Value = info.into();
         //
         //     {
@@ -1778,10 +1778,7 @@ impl Hyperliquid {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let options: crate::value::Dict = self.safe_dict_k_t(&self.options, "fetchMarkets");
         let types: crate::value::List = self.safe_list_k_t(&options, "types");
         let mut rawPromises: Vec<Value> = Vec::new();
@@ -1791,11 +1788,11 @@ impl Hyperliquid {
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (types.len() as i64) } {
             let marketType: Option<String> = self.safe_string_opt(&types, Value::Int(i), &[]);
             if (marketType.as_deref() == Some("swap")) {
-                rawPromises.push(Value::Arr(self.fetch_swap_markets(&[params.clone()]).await));
+                rawPromises.push(Value::Arr(self.fetch_swap_markets(&[Value::from(&params)]).await));
             }  else if (marketType.as_deref() == Some("spot")) {
-                rawPromises.push(Value::Arr(self.fetch_spot_markets(&[params.clone()]).await));
+                rawPromises.push(Value::Arr(self.fetch_spot_markets(&[Value::from(&params)]).await));
             }  else if (marketType.as_deref() == Some("hip3")) {
-                rawPromises.push(Value::Arr(self.fetch_hip3_markets(&[&params]).await));
+                rawPromises.push(Value::Arr(self.fetch_hip3_markets(&[&Value::from(&params)]).await));
             }
         }
         }
@@ -3612,14 +3609,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let orderglobalParamsVariable = self.parse_create_edit_order_args(None, symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Value::from(amount), &[&Value::from(price), &params]);
+        let orderglobalParamsVariable = self.parse_create_edit_order_args(None, symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Value::from(amount), &[&Value::from(price), &Value::Dict(params)]);
         let order: Value = Value::Dict(orderglobalParamsVariable.0);
         let globalParams: crate::value::Dict = orderglobalParamsVariable.1;
         let orders: Vec<crate::types::Order> = (match self.create_orders(crate::types::FromRaw::from_raw(Value::from(vec![order])), Value::Dict(globalParams)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3746,15 +3740,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.initialize_client().await;
-        let request: crate::value::Dict = self.create_orders_request(orders, &[&params]);
+        let request: crate::value::Dict = self.create_orders_request(orders, &[&Value::Dict(params)]);
         let response: crate::value::Dict = self.call_method_t("private_post_exchange", &[&Value::Dict(request)]).await;
         //
         //     {
@@ -4112,10 +4103,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         self.check_required_credentials(&[]);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelOrders() requires a symbol argument")));
@@ -4124,7 +4112,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.initialize_client().await;
-        let request: crate::value::Dict = self.cancel_orders_request(ids, symbol.as_str(), &[&params]);
+        let request: crate::value::Dict = self.cancel_orders_request(ids, symbol.as_str(), &[&Value::Dict(params)]);
         let response: crate::value::Dict = self.call_method_t("private_post_exchange", &[&Value::Dict(request)]).await;
         //
         //     {
@@ -4661,17 +4649,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (id == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " editOrder() requires an id argument")));
         }
-        let orderglobalParamsVariable = self.parse_create_edit_order_args(id.as_str(), symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Value::from(amount), &[&Value::from(price), &params]);
+        let orderglobalParamsVariable = self.parse_create_edit_order_args(id.as_str(), symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Value::from(amount), &[&Value::from(price), &Value::Dict(params)]);
         let order: Value = Value::Dict(orderglobalParamsVariable.0);
         let globalParams: crate::value::Dict = orderglobalParamsVariable.1;
         let orders: Vec<crate::types::Order> = (match self.edit_orders(crate::types::FromRaw::from_raw(Value::from(vec![order])), Value::Dict(globalParams)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -4697,15 +4682,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.initialize_client().await;
-        let request: crate::value::Dict = self.edit_orders_request(orders, &[&params]);
+        let request: crate::value::Dict = self.edit_orders_request(orders, &[&Value::Dict(params)]);
         let response: crate::value::Dict = self.call_method_t("private_post_exchange", &[&Value::Dict(request)]).await;
         //
         //     {
@@ -5738,11 +5720,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), "add", &[&params]).await);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), "add", &[&Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -5767,11 +5746,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), "reduce", &[&params]).await);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), "reduce", &[&Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }

@@ -2278,7 +2278,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 
     fn parse_prediction_ticker(&self, mut ticker: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
         // virtual-dispatch (static: DerivedExchange::parse_prediction_ticker(self, ...))
-        if let Some(__v) = crate::exchange::DerivedExchange::parse_prediction_ticker(self, ticker, market) { return __v; }
+        if let Some(__v) = crate::exchange::DerivedExchange::parse_prediction_ticker(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(ticker).as_ref(), market) { return __v; }
 
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " parsePredictionTicker() is not supported yet")));
 
@@ -2312,10 +2312,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Default::default()
 }
 
-    fn parse_prediction_open_interest(&self, mut interest: Value, market: Option<&crate::types::Market>) -> Value {
+    fn parse_prediction_open_interest(&self, mut interest: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
+        // virtual-dispatch (static: DerivedExchange::parse_prediction_open_interest(self, ...))
+        if let Some(__v) = crate::exchange::DerivedExchange::parse_prediction_open_interest(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(interest).as_ref(), market) { return __v; }
+
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " parsePredictionOpenInterest() is not supported yet")));
 
-    Value::Null
+    Default::default()
 }
 
 /*
@@ -2616,10 +2619,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }
 
 // eslint-disable-next-line no-unused-vars
-    fn sign_evm_transaction(&self, mut tx: Value, privateKey: &str) -> Value {
+    fn sign_evm_transaction(&self, tx: &indexmap::IndexMap<String, Value>, privateKey: &str) -> String {
         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " signEvmTransaction() must be overridden by the exchange")));
-
-    Value::Null
 }
 
     fn eth_rpc(&mut self, mut rpcUrl: Value, mut method: Value, mut rpcParams: Value) -> impl ::std::future::Future<Output = Value> + Send { async move {
@@ -2661,8 +2662,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("data".to_string(), data);
             m
         });
-        let signed: Option<String> = self.sign_evm_transaction(Value::Map(tx), (self.privateKey.clone()).as_str().unwrap_or_default()).as_str().map(str::to_owned);
-        return self.eth_rpc(rpcUrl, Value::Str("eth_sendRawTransaction".into()), Value::from(vec![signed.map(Value::from).unwrap_or(Value::Null)])).await;
+        let signed: String = self.sign_evm_transaction(&tx, (self.privateKey.clone()).as_str().unwrap_or_default());
+        return self.eth_rpc(rpcUrl, Value::Str("eth_sendRawTransaction".into()), Value::from(vec![Value::from(signed)])).await;
 
     Value::Null
 } }
@@ -2738,7 +2739,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             "outcome_search_query" => <Self as crate::prediction_exchange_generated::PredictionBase>::outcome_search_query(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "pad_hex_address" => <Self as crate::prediction_exchange_generated::PredictionBase>::pad_hex_address(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "pad_hex_to_even" => <Self as crate::prediction_exchange_generated::PredictionBase>::pad_hex_to_even(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "parse_prediction_open_interest" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_open_interest(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+            "parse_prediction_open_interest" => Value::Dict(<Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_open_interest(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "parse_prediction_order" => Value::Dict(<Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_order(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
             "parse_prediction_orders" => <Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_orders(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "parse_prediction_position" => Value::Dict(<Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_position(self, args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -2763,7 +2764,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             "set_events" => <Self as crate::prediction_exchange_generated::PredictionBase>::set_events(self, args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "set_markets" => <Self as crate::prediction_exchange_generated::PredictionBase>::set_markets(self, args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "shorten_slug" => crate::Value::from(<Self as crate::prediction_exchange_generated::PredictionBase>::shorten_slug(self, args.get(0).cloned().unwrap_or(crate::Value::Null))),
-            "sign_evm_transaction" => <Self as crate::prediction_exchange_generated::PredictionBase>::sign_evm_transaction(self, args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
+            "sign_evm_transaction" => crate::Value::from(<Self as crate::prediction_exchange_generated::PredictionBase>::sign_evm_transaction(self, args.get(0).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
             "slug_to_market_symbol" => <Self as crate::prediction_exchange_generated::PredictionBase>::slug_to_market_symbol(self, args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "slug_to_outcome_symbol" => <Self as crate::prediction_exchange_generated::PredictionBase>::slug_to_outcome_symbol(self, args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
             "wait_for_transaction_receipt" => <Self as crate::prediction_exchange_generated::PredictionBase>::wait_for_transaction_receipt(self, args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]).await,

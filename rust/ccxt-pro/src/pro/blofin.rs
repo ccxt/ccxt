@@ -108,11 +108,11 @@ impl Blofin {
             "handle_funding_rate" => { self.handle_funding_rate(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_orders" => { self.handle_orders(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_positions" => { self.handle_positions(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_text_message" => { self.handle_text_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default()); },
-            "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_trades" => { self.handle_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_unsubscription" => { self.handle_unsubscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "parse_ws_balance" => { Value::Dict(self.parse_ws_balance(args.get(0).copied().cloned().unwrap_or(crate::Value::Null))); },
@@ -295,14 +295,11 @@ impl Blofin {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut trades: Value = self.watch_multiple_wrapper(true, "trades", "watchTradesForSymbols", &[&symbols, &params]).await;
+        let mut trades: Value = self.watch_multiple_wrapper(true, "trades", "watchTradesForSymbols", &[&symbols, &Value::Dict(params)]).await;
         let firstMarket: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(0));
         let firstSymbol: Option<String> = self.safe_string_k_opt(&firstMarket, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit;
@@ -357,11 +354,8 @@ impl Blofin {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return self.unsubscribe_multiple_wrapper("trades", "unWatchTradesForSymbols", symbols, &[&params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        return self.unsubscribe_multiple_wrapper("trades", "unWatchTradesForSymbols", symbols, &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -489,9 +483,7 @@ impl Blofin {
         }).await?))
     }
 
-    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //   {
         //     arg: {
@@ -584,14 +576,11 @@ impl Blofin {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbols = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (symbols == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " watchTickers() requires a list of symbols")));
         }
-        let ticker: Value = self.watch_multiple_wrapper(true, "tickers", "watchTickers", &[&symbols, &params]).await;
+        let ticker: Value = self.watch_multiple_wrapper(true, "tickers", "watchTickers", &[&symbols, &Value::Dict(params)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let m = indexmap::IndexMap::new();
@@ -608,9 +597,8 @@ impl Blofin {
         }).await?))
     }
 
-    pub fn handle_ticker(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+    pub fn handle_ticker(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
+        let __pro_message: &indexmap::IndexMap<String, Value> = message;
         //
         // message
         //
@@ -624,7 +612,7 @@ impl Blofin {
         //         ],
         //     }
         //
-        self.handle_bid_ask(client, message.as_map().unwrap_or(&Default::default()));
+        self.handle_bid_ask(client, message);
         let arg: crate::value::Dict = __pro_message.key_dict("arg");
         let channelName: Option<String> = self.safe_string_k_opt(&arg, "channel", &[]);
         let data: Vec<Value> = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::Null }).as_array().cloned().unwrap_or_default();
@@ -804,10 +792,7 @@ impl Blofin {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         let symbolsLength: i64 = symbolsAndTimeframes.len() as i64;
         if (symbolsLength == 0) || (self.safe_list(&symbolsAndTimeframes, Value::Int(0), &[]) == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")));
@@ -815,7 +800,7 @@ impl Blofin {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let result: Value = self.watch_multiple_wrapper(true, "candle", "watchOHLCVForSymbols", &[&symbolsAndTimeframes, &params]).await;
+        let result: Value = self.watch_multiple_wrapper(true, "candle", "watchOHLCVForSymbols", &[&symbolsAndTimeframes, &Value::Dict(params)]).await;
         let symbol: String = self.safe_string(&result, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let timeframe: String = self.safe_string(&result, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut candles: Value = self.safe_value(&result, Value::Int(2), &[]);
@@ -873,15 +858,12 @@ impl Blofin {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let symbolsLength: i64 = symbolsAndTimeframes.len() as i64;
         if (symbolsLength == 0) || !(matches!(&symbolsAndTimeframes.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Arr(_))) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")));
         }
-        return self.unsubscribe_multiple_wrapper("candle", "unWatchOHLCVForSymbols", symbolsAndTimeframes, &[&params]).await;
+        return self.unsubscribe_multiple_wrapper("candle", "unWatchOHLCVForSymbols", symbolsAndTimeframes, &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -1206,15 +1188,12 @@ impl Blofin {
         let symbols = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         self.authenticate(&[]).await;
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let newPositions: Value = self.watch_multiple_wrapper(false, "positions", "watchPositions", &[&symbols, &params]).await;
+        let newPositions: Value = self.watch_multiple_wrapper(false, "positions", "watchPositions", &[&symbols, &Value::Dict(params)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }

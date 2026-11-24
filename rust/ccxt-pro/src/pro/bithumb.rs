@@ -94,7 +94,7 @@ impl Bithumb {
             "handle_book_delta" => { self.handle_book_delta(&mut <Option<crate::pro::order_book::Book>>::from(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_orders" => { self.handle_orders(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_ping" => { self.handle_ping(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_pong" => { self.handle_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -634,9 +634,8 @@ impl Bithumb {
         }).await?))
     }
 
-    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
+        let __pro_message: &indexmap::IndexMap<String, Value> = message;
         //
         // generation 1
         //
@@ -724,7 +723,7 @@ impl Bithumb {
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         let units: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("orderbook_units"));
-        let gen2TimestampStr: Option<String> = self.safe_string2_opt(message, Value::Str("timestamp".into()), Value::Str("datetime".into()), &[]);
+        let gen2TimestampStr: Option<String> = self.safe_string2_opt(&message, Value::Str("timestamp".into()), Value::Str("datetime".into()), &[]);
         let mut timestamp: Option<i64> = Some(self.milliseconds());
         if (gen2TimestampStr.is_some()) {
             timestamp = self.parse_to_int((if let Some(__s) = gen2TimestampStr.as_deref() { Some(__s.chars().skip(0).take(13).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null));
@@ -775,7 +774,7 @@ impl Bithumb {
             side = "bids".to_string();
         }
         let bidAsk: crate::value::List = self.parse_order_book_bid_ask(delta, &[Value::Str("price".into()), Value::Str("quantity".into())]);
-        let mut orderbookSide: crate::pro::order_book::Side = crate::pro::order_book::Side::of(get_value(&Value::from(&*orderbook), side.as_str()));
+        let mut orderbookSide: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field(side.as_str()));
         orderbookSide.store_array(Value::Arr(bidAsk));
 }
 

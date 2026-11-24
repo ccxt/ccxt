@@ -965,7 +965,7 @@ impl crate::exchange::DerivedExchange for Xt {
 
     None
 }
-    fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, contract: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let contract: Value = contract.into();
         //
         //     {
@@ -3490,14 +3490,11 @@ impl Xt {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if matches!(self.safe_bool_k(&self.options, "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
-        let promisesUnresolved: crate::value::List = std::sync::Arc::new(vec![Value::Arr(self.fetch_spot_markets(&[params.clone()]).await), self.fetch_swap_and_future_markets(&[&params]).await]);
+        let promisesUnresolved: crate::value::List = std::sync::Arc::new(vec![Value::Arr(self.fetch_spot_markets(&[Value::from(&params)]).await), self.fetch_swap_and_future_markets(&[&Value::from(&params)]).await]);
         let promises: Vec<Value> = promise_all(&Value::Arr(promisesUnresolved)).await.to_vec();
         let spotMarkets: crate::value::List = promises.get(0).cloned().unwrap_or(Value::Null).into_list();
         let swapAndFutureMarkets: crate::value::List = promises.get(1).cloned().unwrap_or(Value::Null).into_list();
@@ -5750,11 +5747,8 @@ impl Xt {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return Value::Arr(self.fetch_orders_by_status("open", symbol.as_str(), since, limit, &[params]).await);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        return Value::Arr(self.fetch_orders_by_status("open", symbol.as_str(), since, limit, &[Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -5786,11 +5780,8 @@ impl Xt {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return Value::Arr(self.fetch_orders_by_status("closed", symbol.as_str(), since, limit, &[params]).await);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        return Value::Arr(self.fetch_orders_by_status("closed", symbol.as_str(), since, limit, &[Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -5822,11 +5813,8 @@ impl Xt {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return Value::Arr(self.fetch_orders_by_status("canceled", symbol.as_str(), since, limit, &[params]).await);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        return Value::Arr(self.fetch_orders_by_status("canceled", symbol.as_str(), since, limit, &[Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -6335,10 +6323,7 @@ impl Xt {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -6387,7 +6372,7 @@ impl Xt {
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let deposits: crate::value::List = self.safe_list_k_t(&data, "items");
-        return Value::Arr(self.parse_transactions(&deposits, currency.as_ref(), &[&Value::from(since), &Value::from(limit), &params]));
+        return Value::Arr(self.parse_transactions(&deposits, currency.as_ref(), &[&Value::from(since), &Value::from(limit), &Value::Dict(params)]));
         Value::Null
         }).await?))
     }
@@ -6412,10 +6397,7 @@ impl Xt {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -6464,7 +6446,7 @@ impl Xt {
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let withdrawals: crate::value::List = self.safe_list_k_t(&data, "items");
-        return Value::Arr(self.parse_transactions(&withdrawals, currency.as_ref(), &[&Value::from(since), &Value::from(limit), &params]));
+        return Value::Arr(self.parse_transactions(&withdrawals, currency.as_ref(), &[&Value::from(since), &Value::from(limit), &Value::Dict(params)]));
         Value::Null
         }).await?))
     }
@@ -6632,11 +6614,8 @@ impl Xt {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), "ADD", &[&params]).await);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), "ADD", &[&Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -6660,11 +6639,8 @@ impl Xt {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), "SUB", &[&params]).await);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), "SUB", &[&Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -7078,7 +7054,7 @@ impl Xt {
         //     }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &result, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, Some(&result), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

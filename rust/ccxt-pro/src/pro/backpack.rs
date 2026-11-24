@@ -123,7 +123,7 @@ impl Backpack {
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_positions" => { self.handle_positions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_stock_ticker" => { self.handle_stock_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -1692,9 +1692,7 @@ impl Backpack {
         }).await?))
     }
 
-    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_order_book(&mut self, mut client: Value, message: &indexmap::IndexMap<String, Value>) {
         //
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
@@ -2491,7 +2489,7 @@ impl Backpack {
         }  else if (event.as_deref() == Some("trade")) {
             self.handle_trades(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
         }  else if (event.as_deref() == Some("depth")) {
-            self.handle_order_book(client.as_value(), message.clone());
+            self.handle_order_book(client.as_value(), message.as_map().unwrap_or(&Default::default()));
         }  else if (event.as_deref() == Some("orderAccepted")) || (event.as_deref() == Some("orderUpdate")) || (event.as_deref() == Some("orderFill")) || (event.as_deref() == Some("orderCancelled")) || (event.as_deref() == Some("orderExpired")) || (event.as_deref() == Some("orderModified")) || (event.as_deref() == Some("triggerPlaced")) || (event.as_deref() == Some("triggerFailed")) {
             self.handle_order(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
         }  else if (event.as_deref() == Some("positionAdjusted")) || (event.as_deref() == Some("positionOpened")) || (event.as_deref() == Some("positionClosed")) || (event.as_deref() == Some("positionUpdated")) {

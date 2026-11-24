@@ -111,7 +111,7 @@ impl Deepcoin {
             "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book_message" => { self.handle_order_book_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_book_snapshot" => { self.handle_order_book_snapshot(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_book_snapshot" => { self.handle_order_book_snapshot(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_pong" => { self.handle_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_position" => { self.handle_position(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_subscription_status" => { self.handle_subscription_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -979,16 +979,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "orderbook", "::").into()), Value::from((market).symbol.as_str()));
-        let suffixparamsValueVariable = self.order_book_suffix(Some(&market), Value::Str("watchOrderBook".into()), &[&params]);
+        let suffixparamsValueVariable = self.order_book_suffix(Some(&market), Value::Str("watchOrderBook".into()), &[&Value::Dict(params)]);
         let suffix: Option<String> = suffixparamsValueVariable.0.as_str().map(str::to_owned);
         let paramsValue: crate::value::Dict = suffixparamsValueVariable.1;
         let mut orderbook: Option<crate::pro::order_book::Book> = self.watch_public(Some(&market), messageHash.as_str(), "25", &[Value::Dict(paramsValue), suffix.map(Value::from).unwrap_or(Value::Null)]).await.into();
@@ -1014,16 +1011,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "orderbook", "::").into()), Value::from((market).symbol.as_str()));
-        let suffixparamsValueVariable = self.order_book_suffix(Some(&market), Value::Str("unWatchOrderBook".into()), &[&params]);
+        let suffixparamsValueVariable = self.order_book_suffix(Some(&market), Value::Str("unWatchOrderBook".into()), &[&Value::Dict(params)]);
         let suffix: Option<String> = suffixparamsValueVariable.0.as_str().map(str::to_owned);
         let paramsValue: crate::value::Dict = suffixparamsValueVariable.1;
         let subscription: indexmap::IndexMap<String, Value> = ({
@@ -1100,7 +1094,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.safe_integer_k(Value::from(&orderbook), "timestamp", &[]) == Value::Null) {
             if (type_var.as_deref() == Some("f")) {
                 // snapshot
-                self.handle_order_book_snapshot(&client, message.clone());
+                self.handle_order_book_snapshot(&client, message.as_map().unwrap_or(&Default::default()));
             }  else {
                 // cache the updates until the snapshot is received
                 orderbook.cache_push(message);
@@ -1112,9 +1106,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
 }
 
-    pub fn handle_order_book_snapshot(&self, client: &Value, mut message: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_order_book_snapshot(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
         let entries: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("r"));
         let first: crate::value::Dict = entries.get(0).cloned().unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&first, "d");
@@ -1227,10 +1219,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         let mut messageHash: String = "myTrades".to_string();
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1240,7 +1229,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             symbolResolved = Some(self.symbol(symbol.as_str()));
             messageHash = format!("{}{}", Value::Str(format!("{}{}", "myTrades", "::").into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())), Value::Str("symbol".into()), &[Value::Str("".into())]));
         }
-        let mut trades: Option<crate::pro::cache::Cache> = self.watch_private(messageHash.as_str(), &[params]).await.into();
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch_private(messageHash.as_str(), &[Value::Dict(params)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit);
@@ -1322,10 +1311,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         let mut messageHash: String = "orders".to_string();
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1335,7 +1321,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             symbolResolved = Some(self.symbol(symbol.as_str()));
             messageHash = format!("{}{}", Value::Str(format!("{}{}", "orders", "::").into()), self.safe_string(crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default())), Value::Str("symbol".into()), &[Value::Str("".into())]));
         }
-        let mut orders: Option<crate::pro::cache::Cache> = self.watch_private(messageHash.as_str(), &[params]).await.into();
+        let mut orders: Option<crate::pro::cache::Cache> = self.watch_private(messageHash.as_str(), &[Value::Dict(params)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit);

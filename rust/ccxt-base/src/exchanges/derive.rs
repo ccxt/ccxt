@@ -531,7 +531,7 @@ impl crate::exchange::DerivedExchange for Derive {
 
     None
 }
-    fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, contract: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let contract: Value = contract.into();
         let symbol: Option<String> = self.safe_string_k_opt(&contract, "symbol", &[]);
         let fundingTimestamp: Option<i64> = self.safe_integer_k(&contract, "timestamp", &[]).as_i64();
@@ -925,7 +925,7 @@ impl crate::exchange_generated::ExchangeBase for Derive {
                 "parse_option" => Value::Dict(self.parse_option(<crate::value::Dict as crate::value::EndpointBody>::from_body(args.get(0).cloned().unwrap_or(crate::Value::Null)).as_ref(), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_settlement" => crate::Value::Dict(self.parse_settlement(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_settlement" => crate::Value::Dict(self.parse_settlement(&match args.get(0) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_settlements" => Value::Arr(self.parse_settlements(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -2194,16 +2194,13 @@ impl Derive {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if matches!(self.safe_bool_k(&self.options, "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
-        let spotMarketsPromise: Value = Value::Arr(self.fetch_spot_markets(&[params.clone()]).await);
-        let swapMarketsPromise: Value = Value::Arr(self.fetch_swap_markets(&[params.clone()]).await);
-        let optionMarketsPromise: Value = self.fetch_option_markets(&[params]).await;
+        let spotMarketsPromise: Value = Value::Arr(self.fetch_spot_markets(&[Value::from(&params)]).await);
+        let swapMarketsPromise: Value = Value::Arr(self.fetch_swap_markets(&[Value::from(&params)]).await);
+        let optionMarketsPromise: Value = self.fetch_option_markets(&[Value::Dict(params)]).await;
         let spotMarketsswapMarketsoptionMarketsVariable: Vec<Value> = promise_all(&Value::from(vec![spotMarketsPromise, swapMarketsPromise, optionMarketsPromise])).await.to_vec();
         let spotMarkets: crate::value::List = spotMarketsswapMarketsoptionMarketsVariable.get(0).cloned().unwrap_or(Value::Null).into_list();
         let swapMarkets: crate::value::List = spotMarketsswapMarketsoptionMarketsVariable.get(1).cloned().unwrap_or(Value::Null).into_list();
@@ -2605,7 +2602,7 @@ impl Derive {
         }).await?))
     }
 
-    pub fn parse_option(&self, chain: impl Into<crate::Value>, currency: Option<&crate::types::Currency>, optional_args: &[Value]) -> crate::value::Dict {
+    pub fn parse_option(&self, chain: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>, optional_args: &[Value]) -> crate::value::Dict {
         let chain: Value = chain.into();
         let market = get_arg(optional_args, 0, Value::Null);
         let timestamp: Option<i64> = self.safe_integer_k(&chain, "t", &[]).as_i64();
@@ -2753,7 +2750,7 @@ impl Derive {
         return self.filter_by_symbol_since_limit(&sorted, symbolResolved.as_deref(), since, limit, &[]);
 }
 
-    pub fn parse_settlement(&self, mut settlement: Value, market: Option<&crate::types::Market>) -> crate::value::Dict {
+    pub fn parse_settlement(&self, settlement: &crate::value::Dict, market: Option<&crate::types::Market>) -> crate::value::Dict {
         //
         // fetchSettlementHistory
         //
@@ -2784,9 +2781,9 @@ impl Derive {
         }
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), settlement.clone());
+        m.insert("info".to_string(), Value::Dict(settlement.clone()));
         m.insert("symbol".to_string(), symbolResolved.map(Value::from).unwrap_or(Value::Null));
-        m.insert("price".to_string(), self.safe_number2(settlement, Value::Str("price".into()), Value::Str("settlement_price".into()), &[]));
+        m.insert("price".to_string(), self.safe_number2(&settlement, Value::Str("price".into()), Value::Str("settlement_price".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
@@ -2802,11 +2799,11 @@ impl Derive {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (settlements.len() as i64) } {
-            let __ws_arg_8 = self.extend(Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}), &[settlements.get(i as usize).cloned().unwrap_or(Value::Null)]);
-            result.push(Value::Dict(self.parse_settlement(__ws_arg_8, market)));
+            let settlementRow: crate::value::Dict = self.extend_t(Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            }), &[settlements.get(i as usize).cloned().unwrap_or(Value::Null)]);
+            result.push(Value::Dict(self.parse_settlement(&settlementRow, market)));
         }
         }
         return std::sync::Arc::new(result);
@@ -2875,8 +2872,8 @@ impl Derive {
         if (until.is_some()) {
             request.insert("to_timestamp".into(), Value::from(until));
         }
-        let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.public_post_get_trade_history(&[&__ws_arg_9]).await.unwrap_or_default();
+        let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.public_post_get_trade_history(&[&__ws_arg_8]).await.unwrap_or_default();
         //
         //     {
         //         "id": "ac7b1242-a8e5-4ee3-a975-c1b0cb413932",
@@ -3101,12 +3098,12 @@ impl Derive {
         let mut response: Option<crate::value::Dict> = None;
         if (priceType.as_deref() == Some("index")) {
             request.insert("currency".into(), Value::from((market).base_id.as_deref()));
-            let __ws_arg_10 = self.extend(&request, &[&paramsOmitted]);
-            response = self.public_post_get_index_chart_data(&[&__ws_arg_10]).await;
+            let __ws_arg_9 = self.extend(&request, &[&paramsOmitted]);
+            response = self.public_post_get_index_chart_data(&[&__ws_arg_9]).await;
         }  else {
             request.insert("instrument_name".into(), Value::from((market).id.as_deref()));
-            let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.public_post_get_tradingview_chart_data(&[&__ws_arg_11]).await;
+            let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            response = self.public_post_get_tradingview_chart_data(&[&__ws_arg_10]).await;
         }
         let result: crate::value::List = self.safe_list_k_t(&response, "result");
         return Value::Arr(self.parse_ohlc_vs(&result, Some(&market), &[timeframe, Value::from(since), Value::from(limit)]));
@@ -3154,8 +3151,8 @@ impl Derive {
         if (until.is_some()) {
             request.insert("end_timestamp".into(), Value::from(until)); // the venue silently ignores the to_timestamp spelling other endpoints use
         }
-        let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.public_post_get_funding_rate_history(&[&__ws_arg_12]).await.unwrap_or_default();
+        let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.public_post_get_funding_rate_history(&[&__ws_arg_11]).await.unwrap_or_default();
         //
         //     {
         //         "id": "6dcdcdd2-1523-4d48-9b45-e1f3e61b3711",
@@ -3270,7 +3267,7 @@ impl Derive {
         //     ]
         //
         let data: Option<crate::value::Dict> = (match response.get(0) { Some(__row) => match &__row.raw { Value::Dict(__m) => Some(std::sync::Arc::clone(__m)), _ => None }, None => None });
-        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &data, None).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, data.as_ref(), None).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3473,11 +3470,11 @@ impl Derive {
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsDeriveWalletAddress, &["reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "test", "clientOrderId", "stopPrice", "triggerPrice", "trigger_price", "stopLossPrice", "takeProfitPrice", "trigger_price_type"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if test {
-            let __ws_arg_13 = self.extend(&request, &[&paramsOmitted]);
-            response = self.private_post_order_debug(&[&__ws_arg_13]).await;
+            let __ws_arg_12 = self.extend(&request, &[&paramsOmitted]);
+            response = self.private_post_order_debug(&[&__ws_arg_12]).await;
         }  else {
-            let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_post_order(&[&__ws_arg_14]).await;
+            let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            response = self.private_post_order(&[&__ws_arg_13]).await;
         }
         //
         //     {
@@ -3634,8 +3631,8 @@ impl Derive {
         }
         request.insert("signature".into(), signature.map(Value::from).unwrap_or(Value::Null));
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsDeriveWalletAddress, &["reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "clientOrderId"], &[]);
-        let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_post_replace(&[&__ws_arg_15]).await.unwrap_or_default();
+        let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_post_replace(&[&__ws_arg_14]).await.unwrap_or_default();
         //
         //     {
         //         "id": "bdeaa36f-5eae-4193-a1d2-81fb7f0dfd9d",
@@ -3776,16 +3773,16 @@ impl Derive {
         if isByClientOrder {
             request.insert("label".into(), Value::from(clientOrderIdExchangeSpecific.as_deref()));
             let paramsLabel: crate::value::Dict = self.omit_t(&paramsOmitted, &["clientOrderId", "label"], &[]);
-            let __ws_arg_16 = self.extend(&request, &[&paramsLabel]);
-            response = self.private_post_cancel_by_label(&[&__ws_arg_16]).await;
+            let __ws_arg_15 = self.extend(&request, &[&paramsLabel]);
+            response = self.private_post_cancel_by_label(&[&__ws_arg_15]).await;
         }  else {
             request.insert("order_id".into(), id);
             if isTrigger {
-                let __ws_arg_17 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_post_cancel_trigger_order(&[&__ws_arg_17]).await;
+                let __ws_arg_16 = self.extend(&request, &[&paramsOmitted]);
+                response = self.private_post_cancel_trigger_order(&[&__ws_arg_16]).await;
             }  else {
-                let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.private_post_cancel(&[&__ws_arg_18]).await;
+                let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsOmitted]);
+                response = self.private_post_cancel(&[&__ws_arg_17]).await;
             }
         }
         //
@@ -3839,8 +3836,8 @@ impl Derive {
         if isByClientOrder {
             extendParams.insert("client_order_id".into(), clientOrderIdExchangeSpecific.map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_19 = <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&order), Some(&market)).map_or(Value::Null, Value::Dict);
-        return self.extend(__ws_arg_19, &[Value::Map(extendParams)]);
+        let __ws_arg_18 = <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&order), Some(&market)).map_or(Value::Null, Value::Dict);
+        return self.extend(__ws_arg_18, &[Value::Map(extendParams)]);
         Value::Null
         }).await?))
     }
@@ -3885,11 +3882,11 @@ impl Derive {
         let mut response: Option<crate::value::Dict> = None;
         if (market.is_some()) {
             request.insert("instrument_name".into(), crate::value::KeyRead::key_read(&&market, "id"));
-            let __ws_arg_20 = self.extend(&request, &[&paramsDeriveSubaccountId]);
-            response = self.private_post_cancel_by_instrument(&[&__ws_arg_20]).await;
+            let __ws_arg_19 = self.extend(&request, &[&paramsDeriveSubaccountId]);
+            response = self.private_post_cancel_by_instrument(&[&__ws_arg_19]).await;
         }  else {
-            let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
-            response = self.private_post_cancel_all(&[&__ws_arg_21]).await;
+            let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
+            response = self.private_post_cancel_all(&[&__ws_arg_20]).await;
         }
         return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3963,8 +3960,8 @@ impl Derive {
         if (until.is_some()) {
             request.insert("to_timestamp".into(), Value::from(until));
         }
-        let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
-        let response: crate::value::Dict = self.private_post_get_order_history(&[&__ws_arg_22]).await.unwrap_or_default();
+        let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
+        let response: crate::value::Dict = self.private_post_get_order_history(&[&__ws_arg_21]).await.unwrap_or_default();
         //
         //     {
         //         "id": "c55b1f4e-7263-4045-ac9f-158da9a97c5c",
@@ -4071,8 +4068,8 @@ impl Derive {
                 m.insert("subaccount_id".to_string(), Value::from(subaccountId));
             m
         });
-        let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
-        let response: crate::value::Dict = self.private_post_get_order(&[&__ws_arg_23]).await.unwrap_or_default();
+        let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
+        let response: crate::value::Dict = self.private_post_get_order(&[&__ws_arg_22]).await.unwrap_or_default();
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&result), market.as_ref());
         None
@@ -4125,11 +4122,11 @@ impl Derive {
         }
         let mut response: Option<crate::value::Dict> = None;
         if isTrigger {
-            let __ws_arg_24 = self.extend(&request, &[&paramsDeriveSubaccountId]);
-            response = self.private_post_get_trigger_orders(&[&__ws_arg_24]).await;
+            let __ws_arg_23 = self.extend(&request, &[&paramsDeriveSubaccountId]);
+            response = self.private_post_get_trigger_orders(&[&__ws_arg_23]).await;
         }  else {
-            let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
-            response = self.private_post_get_open_orders(&[&__ws_arg_25]).await;
+            let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
+            response = self.private_post_get_open_orders(&[&__ws_arg_24]).await;
         }
         //
         //     {
@@ -4334,8 +4331,8 @@ impl Derive {
         if (since.is_some()) {
             request.insert("from_timestamp".into(), Value::from(since));
         }
-        let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
-        let response: crate::value::Dict = self.private_post_get_trade_history(&[&__ws_arg_26]).await.unwrap_or_default();
+        let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
+        let response: crate::value::Dict = self.private_post_get_trade_history(&[&__ws_arg_25]).await.unwrap_or_default();
         //
         //     {
         //         "id": "41517b29-67b3-4ed8-845d-ef4bde9b79aa",
@@ -4437,8 +4434,8 @@ impl Derive {
         if (since.is_some()) {
             request.insert("from_timestamp".into(), Value::from(since));
         }
-        let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
-        let response: crate::value::Dict = self.private_post_get_trade_history(&[&__ws_arg_27]).await.unwrap_or_default();
+        let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
+        let response: crate::value::Dict = self.private_post_get_trade_history(&[&__ws_arg_26]).await.unwrap_or_default();
         //
         //     {
         //         "id": "c375c303-2356-4ba0-acea-32411e33b3f6",
@@ -4551,8 +4548,8 @@ impl Derive {
             m
         });
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsDeriveSubaccountId, &["subaccount_id"], &[]);
-        let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_post_get_positions(&[&__ws_arg_28]).await.unwrap_or_default();
+        let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_post_get_positions(&[&__ws_arg_27]).await.unwrap_or_default();
         //
         //     {
         //         "id": "64af0eeb-5b8f-4aa9-bc6b-c5029f47ac27",
@@ -4660,8 +4657,8 @@ impl Derive {
         if (until.is_some()) {
             request.insert("end_timestamp".into(), Value::from(until));
         }
-        let __ws_arg_29 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_post_get_funding_history(&[&__ws_arg_29]).await.unwrap_or_default();
+        let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_post_get_funding_history(&[&__ws_arg_28]).await.unwrap_or_default();
         //
         //     {
         //         "id": "05a90234-63dd-4769-b66b-3256fe4c3336",
@@ -4742,8 +4739,8 @@ impl Derive {
                 m
             });
             let subaccountParams: crate::value::Dict = self.omit_t(&params, Value::Str("subaccount_id".into()), &[]);
-            let __ws_arg_30 = self.extend(Value::Map(subaccountRequest), &[&subaccountParams]);
-            let subaccountResponse: crate::value::Dict = self.private_post_get_subaccount(&[&__ws_arg_30]).await.unwrap_or_default();
+            let __ws_arg_29 = self.extend(Value::Map(subaccountRequest), &[&subaccountParams]);
+            let subaccountResponse: crate::value::Dict = self.private_post_get_subaccount(&[&__ws_arg_29]).await.unwrap_or_default();
             // the result is a single portfolio object shaped exactly like one element of the get_all_portfolios sample below
             let subaccountResult: crate::value::Dict = self.safe_dict_k_t(&subaccountResponse, "result");
             return Value::Dict(self.parse_balance_list(Value::from(vec![Value::Dict(subaccountResult)])));
@@ -4756,8 +4753,8 @@ impl Derive {
                 m.insert("wallet".to_string(), deriveWalletAddress.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_31 = self.extend(Value::Map(request), &[&paramsDeriveWalletAddress]);
-        let response: crate::value::Dict = self.private_post_get_all_portfolios(&[&__ws_arg_31]).await.unwrap_or_default();
+        let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsDeriveWalletAddress]);
+        let response: crate::value::Dict = self.private_post_get_all_portfolios(&[&__ws_arg_30]).await.unwrap_or_default();
         //
         //     {
         //         "id": "eb40a04b-167e-4a3f-b142-63f76e0e2a31",
@@ -5144,8 +5141,8 @@ impl Derive {
                 m.insert("signature_expiry_sec".to_string(), Value::from(signatureExpiry));
             m
         });
-        let __ws_arg_32 = self.extend(Value::Map(request), &[&paramsDeriveWalletAddress]);
-        let response: crate::value::Dict = self.private_post_transfer_spot(&[&__ws_arg_32]).await.unwrap_or_default();
+        let __ws_arg_31 = self.extend(Value::Map(request), &[&paramsDeriveWalletAddress]);
+        let response: crate::value::Dict = self.private_post_transfer_spot(&[&__ws_arg_31]).await.unwrap_or_default();
         //
         //     {
         //         "id": "cc745aff-d485-464d-bc2f-cd99f821ea52",
@@ -5216,8 +5213,8 @@ impl Derive {
         if (until.is_some()) {
             request.insert("end_timestamp".into(), Value::from(until));
         }
-        let __ws_arg_33 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_post_get_erc20_transfer_history(&[&__ws_arg_33]).await.unwrap_or_default();
+        let __ws_arg_32 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_post_get_erc20_transfer_history(&[&__ws_arg_32]).await.unwrap_or_default();
         //
         //     {
         //         "id": "6475ec25-b0ac-4f38-a5d6-6fc8f7cc5611",
@@ -5249,11 +5246,11 @@ impl Derive {
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (transfers.len() as i64) } {
-            let __ws_arg_34 = <Self as crate::exchange::DerivedExchange>::parse_transfer(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(self.safe_dict(&transfers, Value::Int(i), &[Value::Map({
+            let __ws_arg_33 = <Self as crate::exchange::DerivedExchange>::parse_transfer(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(self.safe_dict(&transfers, Value::Int(i), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })])).as_ref(), None).map_or(Value::Null, Value::Dict);
-            let transfer: crate::value::Dict = self.extend_t(__ws_arg_34, &[Value::Map({
+            let transfer: crate::value::Dict = self.extend_t(__ws_arg_33, &[Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
             })]);
@@ -5306,8 +5303,8 @@ impl Derive {
         if (until.is_some()) {
             request.insert("end_timestamp".into(), Value::from(until));
         }
-        let __ws_arg_35 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.public_post_get_interest_rate_history(&[&__ws_arg_35]).await.unwrap_or_default();
+        let __ws_arg_34 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.public_post_get_interest_rate_history(&[&__ws_arg_34]).await.unwrap_or_default();
         //
         //     {
         //         "id": "d9f3db6f-9ebd-4d29-ae83-006f22ce07af",
@@ -5401,8 +5398,8 @@ impl Derive {
         if (until.is_some()) {
             request.insert("end_timestamp".into(), Value::from(until));
         }
-        let __ws_arg_36 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_post_get_interest_history(&[&__ws_arg_36]).await.unwrap_or_default();
+        let __ws_arg_35 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_post_get_interest_history(&[&__ws_arg_35]).await.unwrap_or_default();
         //
         //     {
         //         "id": "7e0a9cb5-44c4-4c27-91cb-c0b7bd23a4f0",
@@ -5511,8 +5508,8 @@ impl Derive {
             m
         });
         // never executed from tests: the signed payload was validated against public/withdraw_debug, which returns the server-side action hashes without executing; the result carries operation_id and op_uuid per the venue schema
-        let __ws_arg_37 = self.extend(Value::Map(request), &[&paramsDeriveWalletAddress]);
-        let response: crate::value::Dict = self.private_post_withdraw(&[&__ws_arg_37]).await.unwrap_or_default();
+        let __ws_arg_36 = self.extend(Value::Map(request), &[&paramsDeriveWalletAddress]);
+        let response: crate::value::Dict = self.private_post_withdraw(&[&__ws_arg_36]).await.unwrap_or_default();
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let mut transaction: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&result), Some(&currency)).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
         transaction.insert("type".into(), Value::Str("withdrawal".into()));
@@ -5568,8 +5565,8 @@ impl Derive {
         if (since.is_some()) {
             request.insert("start_timestamp".into(), Value::from(since));
         }
-        let __ws_arg_38 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
-        let response: crate::value::Dict = self.private_post_get_deposit_history(&[&__ws_arg_38]).await.unwrap_or_default();
+        let __ws_arg_37 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
+        let response: crate::value::Dict = self.private_post_get_deposit_history(&[&__ws_arg_37]).await.unwrap_or_default();
         //
         //     {
         //         "id": "4ba60e41-fa05-490c-b849-9ead5aef63c8",
@@ -5646,8 +5643,8 @@ impl Derive {
         if (since.is_some()) {
             request.insert("start_timestamp".into(), Value::from(since));
         }
-        let __ws_arg_39 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
-        let response: crate::value::Dict = self.private_post_get_withdrawal_history(&[&__ws_arg_39]).await.unwrap_or_default();
+        let __ws_arg_38 = self.extend(Value::Map(request), &[&paramsDeriveSubaccountId]);
+        let response: crate::value::Dict = self.private_post_get_withdrawal_history(&[&__ws_arg_38]).await.unwrap_or_default();
         //
         //     {
         //         "id": "f3d46c05-5c8f-4e4a-9d2f-5a86d26124b3",

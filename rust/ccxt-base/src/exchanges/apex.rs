@@ -2020,10 +2020,7 @@ impl Apex {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2057,7 +2054,7 @@ impl Apex {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " createOrder() requires a price argument for market orders")));
         }
         let mut timeInForce: Option<String> = self.safe_string_upper_k_opt(&params, "timeInForce", &[]);
-        let postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[&params]);
+        let postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[&Value::from(&params)]);
         if (timeInForce.is_none()) {
             timeInForce = Some("GOOD_TIL_CANCEL".to_string());
         }

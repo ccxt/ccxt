@@ -86,7 +86,7 @@ impl crate::exchange_generated::ExchangeBase for Htx {
                 "watch_my_trades" => crate::types::IntoRaw::into_raw(self.watch_my_trades(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_ohlcv" => crate::types::IntoRaw::into_raw(self.watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "watch_order_book" => crate::types::IntoRaw::into_raw(self.watch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
-                "watch_order_book_snapshot" => self.watch_order_book_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await,
+                "watch_order_book_snapshot" => self.watch_order_book_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).and_then(crate::Value::as_map).unwrap_or(&Default::default())).await,
                 "watch_orders" => crate::types::IntoRaw::into_raw(self.watch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_positions" => crate::types::IntoRaw::into_raw(self.watch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "watch_ticker" => crate::types::IntoRaw::into_raw(self.watch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -368,10 +368,7 @@ impl Htx {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -388,7 +385,7 @@ impl Htx {
     m
 }));
         let url: Option<String> = self.get_url_by_market_type(Value::from((market).market_type.clone()), &[&(market).linear.map(Value::Bool).unwrap_or_default()]);
-        return self.subscribe_public(url.as_deref(), symbolValue.as_deref(), Some(messageHash.as_str()), &[&Value::Null, &params]).await;
+        return self.subscribe_public(url.as_deref(), symbolValue.as_deref(), Some(messageHash.as_str()), &[&Value::Null, &Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -410,10 +407,7 @@ impl Htx {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -429,7 +423,7 @@ impl Htx {
         m.insert("marketId".to_string(), Value::from((market).id.as_deref()));
     m
 }));
-        return self.unsubscribe_public(Some(&market), subMessageHash.as_str(), topic.as_str(), &[&params]).await;
+        return self.unsubscribe_public(Some(&market), subMessageHash.as_str(), topic.as_str(), &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -513,10 +507,7 @@ impl Htx {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -525,7 +516,7 @@ impl Htx {
         let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "market.", marketId).into()), ".trade.detail");
         let url: Option<String> = self.get_url_by_market_type(Value::from((market).market_type.clone()), &[&(market).linear.map(Value::Bool).unwrap_or_default()]);
-        let mut trades: Value = self.subscribe_public(url.as_deref(), symbolValue.as_deref(), Some(messageHash.as_str()), &[&Value::Null, &params]).await;
+        let mut trades: Value = self.subscribe_public(url.as_deref(), symbolValue.as_deref(), Some(messageHash.as_str()), &[&Value::Null, &Value::Dict(params)]).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolValue.as_deref(), limit);
@@ -553,10 +544,7 @@ impl Htx {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -569,7 +557,7 @@ impl Htx {
         m.insert("marketId".to_string(), Value::from((market).id.as_deref()));
     m
 }));
-        return self.unsubscribe_public(Some(&market), subMessageHash.as_str(), topic.as_str(), &[&params]).await;
+        return self.unsubscribe_public(Some(&market), subMessageHash.as_str(), topic.as_str(), &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -653,10 +641,7 @@ impl Htx {
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -666,7 +651,7 @@ impl Htx {
         let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "market.", marketId).into()), ".kline.").into()), interval.as_deref().unwrap_or("null"));
         let url: Option<String> = self.get_url_by_market_type(Value::from((market).market_type.clone()), &[&(market).linear.map(Value::Bool).unwrap_or_default()]);
-        let mut ohlcv: Value = self.subscribe_public(url.as_deref(), symbolValue.as_deref(), Some(messageHash.as_str()), &[&Value::Null, &params]).await;
+        let mut ohlcv: Value = self.subscribe_public(url.as_deref(), symbolValue.as_deref(), Some(messageHash.as_str()), &[&Value::Null, &Value::Dict(params)]).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbolValue.as_deref(), limit);
@@ -969,16 +954,14 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
          } }
 }
 
-    pub async fn watch_order_book_snapshot(&mut self, client: &Value, message: &Value, mut subscription: Value) -> Value {
+    pub async fn watch_order_book_snapshot(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>, subscription: &indexmap::IndexMap<String, Value>) -> Value {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
         let messageHash: Option<String> = self.safe_string_k_opt(&subscription, "messageHash", &[]);
         let symbol: Option<String> = self.safe_string_k_opt(&subscription, "symbol", &[]);
         let mut limit: Option<i64> = self.safe_integer_k(&subscription, "limit", &[]).as_i64();
         let timestamp: Option<i64> = (match message.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let params: indexmap::IndexMap<String, Value> = self.safe_dict_k(&subscription, "params", &[]).as_map().cloned().unwrap_or_default();
-        let attempts: i64 = self.safe_integer_k(subscription, "numAttempts", &[Value::Int(0)]).as_i64().unwrap_or(0);
+        let attempts: i64 = self.safe_integer_k(&subscription, "numAttempts", &[Value::Int(0)]).as_i64().unwrap_or(0);
         let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let url: Option<String> = self.get_url_by_market_type(Value::from((market).market_type.clone()), &[&(market).linear.map(Value::Bool).unwrap_or_default(), &Value::Bool(false), &Value::Bool(true)]);
         let requestId: i64 = self.request_id();

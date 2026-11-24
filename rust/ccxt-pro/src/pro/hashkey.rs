@@ -61,7 +61,7 @@ impl crate::exchange_generated::ExchangeBase for Hashkey {
         Box::pin(async move {
             match method {
                 "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
-                "handle_list_message" => { self.handle_list_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+                "handle_list_message" => { self.handle_list_message(args.get(0).unwrap_or(&crate::Value::Null), match args.get(1) { Some(crate::Value::Arr(__a)) => std::sync::Arc::clone(__a), _ => Default::default() }); crate::Value::Null },
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "keep_alive_listen_key" => { self.keep_alive_listen_key(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await; crate::Value::Null },
                 "load_balance_snapshot" => { self.load_balance_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
@@ -94,12 +94,11 @@ impl Hashkey {
         match __n {
             "authenticate" => crate::exchange_stubs::enqueue_spawn("authenticate", args.iter().copied().cloned().collect::<Vec<_>>()),
             "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_list_message" => { self.handle_list_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_my_trade" => { self.handle_my_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_position" => { self.handle_position(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_stream_message" => { self.handle_stream_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -256,10 +255,7 @@ impl Hashkey {
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -268,7 +264,7 @@ impl Hashkey {
         let interval: Option<String> = self.safe_string_opt(&self.timeframes, &timeframe, &[&timeframe]);
         let topic: String = format!("{}{}", "kline_", interval.as_deref().unwrap_or("null"));
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv:", symbolValue).into()), ":").into()), timeframe);
-        let mut ohlcv: Option<crate::pro::cache::Cache> = self.wath_public(Some(&market), topic.as_str(), messageHash.as_str(), &[&params]).await.into();
+        let mut ohlcv: Option<crate::pro::cache::Cache> = self.wath_public(Some(&market), topic.as_str(), messageHash.as_str(), &[&Value::Dict(params)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit);
@@ -279,7 +275,7 @@ impl Hashkey {
     }
 
     pub fn handle_ohlcv(&mut self, mut client: Value, message: &indexmap::IndexMap<String, Value>) {
-        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
+        let __pro_message: &indexmap::IndexMap<String, Value> = message;
         //
         //     {
         //         "symbol": "DOGEUSDT",
@@ -358,10 +354,7 @@ impl Hashkey {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -369,7 +362,7 @@ impl Hashkey {
         let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let topic: String = "realtimes".to_string();
         let messageHash: String = format!("{}{}", "ticker:", symbolValue);
-        return self.wath_public(Some(&market), topic.as_str(), messageHash.as_str(), &[&params]).await;
+        return self.wath_public(Some(&market), topic.as_str(), messageHash.as_str(), &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -435,10 +428,7 @@ impl Hashkey {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -446,7 +436,7 @@ impl Hashkey {
         let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let topic: String = "trade".to_string();
         let messageHash: String = format!("{}{}", "trades:", symbolValue);
-        let mut trades: Option<crate::pro::cache::Cache> = self.wath_public(Some(&market), topic.as_str(), messageHash.as_str(), &[&params]).await.into();
+        let mut trades: Option<crate::pro::cache::Cache> = self.wath_public(Some(&market), topic.as_str(), messageHash.as_str(), &[&Value::Dict(params)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit);
@@ -457,7 +447,7 @@ impl Hashkey {
     }
 
     pub fn handle_trades(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
-        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
+        let __pro_message: &indexmap::IndexMap<String, Value> = message;
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -525,10 +515,7 @@ impl Hashkey {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -536,15 +523,14 @@ impl Hashkey {
         let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let topic: String = "depth".to_string();
         let messageHash: String = format!("{}{}", "orderbook:", symbolValue);
-        let mut orderbook: Option<crate::pro::order_book::Book> = self.wath_public(Some(&market), topic.as_str(), messageHash.as_str(), &[&params]).await.into();
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.wath_public(Some(&market), topic.as_str(), messageHash.as_str(), &[&Value::Dict(params)]).await.into();
         return orderbook.limit();
         Value::Null
         }).await?))
     }
 
-    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+    pub fn handle_order_book(&mut self, mut client: Value, message: &indexmap::IndexMap<String, Value>) {
+        let __pro_message: &indexmap::IndexMap<String, Value> = message;
         //
         //     {
         //         "symbol": "ETHUSDT",
@@ -574,7 +560,7 @@ impl Hashkey {
         //         "shared": false
         //     }
         //
-        let marketId: Option<String> = self.safe_string_k_opt(message, "symbol", &[]);
+        let marketId: Option<String> = self.safe_string_k_opt(&message, "symbol", &[]);
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
         let messageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
         if !(self.orderbooks.has(&symbol)) {
@@ -1223,8 +1209,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         }
 }
 
-    pub fn handle_list_message(&mut self, client: &Value, mut message: Value) {
-        let __ws_arg_3 = self.safe_dict(message, Value::Int(0), &[Value::Map({
+    pub fn handle_list_message(&mut self, client: &Value, message: crate::value::List) {
+        let __ws_arg_3 = self.safe_dict(Value::from(&message), Value::Int(0), &[Value::Map({
             let m = indexmap::IndexMap::new();
             m
         })]);
@@ -1244,7 +1230,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         }  else if (topic.as_deref() == Some("trade")) {
             self.handle_trades(client, message.as_map().unwrap_or(&Default::default()));
         }  else if (topic.as_deref() == Some("depth")) {
-            self.handle_order_book(client.clone(), message.clone());
+            self.handle_order_book(client.clone(), message.as_map().unwrap_or(&Default::default()));
         }  else if (topic.as_deref() == Some("contractExecutionReport")) || (topic.as_deref() == Some("executionReport")) {
             self.handle_order(client, message.clone());
         }  else if (topic.as_deref() == Some("ticketInfo")) {

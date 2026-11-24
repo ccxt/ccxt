@@ -565,7 +565,7 @@ impl crate::exchange::DerivedExchange for Digifinex {
 
     None
 }
-    fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, contract: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let contract: Value = contract.into();
         //
         //     {
@@ -2231,16 +2231,13 @@ impl Digifinex {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let options: crate::value::Dict = self.safe_dict_k_t(&self.options, "fetchMarkets");
         let method: Option<String> = self.safe_string_k_opt(&options, "method", &[&Value::Str("fetch_markets_v2".into())]);
         if (method.as_deref() == Some("fetch_markets_v2")) {
-            return self.fetch_markets_v2(&[&params]).await;
+            return self.fetch_markets_v2(&[&Value::from(&params)]).await;
         }
-        return self.fetch_markets_v1(&[&params]).await;
+        return self.fetch_markets_v1(&[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -4787,11 +4784,8 @@ impl Digifinex {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return self.fetch_transactions_by_type(Some("deposit"), code.as_str(), since, limit, &[&params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        return self.fetch_transactions_by_type(Some("deposit"), code.as_str(), since, limit, &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -4816,11 +4810,8 @@ impl Digifinex {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return self.fetch_transactions_by_type(Some("withdrawal"), code.as_str(), since, limit, &[&params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        return self.fetch_transactions_by_type(Some("withdrawal"), code.as_str(), since, limit, &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -5216,7 +5207,7 @@ impl Digifinex {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, Some(&data), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -6160,13 +6151,10 @@ impl Digifinex {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let side: Option<String> = self.safe_string_k_opt(&params, "side", &[]);
         self.check_required_argument(Value::Str("addMargin".into()), &side.map(Value::from).unwrap_or(Value::Null), Value::Str("side".into()), &[Value::from(vec![Value::Str("long".into()), Value::Str("short".into())])]);
-        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Some(amount), Some(1), &[&params]).await);
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Some(amount), Some(1), &[&Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -6190,13 +6178,10 @@ impl Digifinex {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let side: Option<String> = self.safe_string_k_opt(&params, "side", &[]);
         self.check_required_argument(Value::Str("reduceMargin".into()), &side.map(Value::from).unwrap_or(Value::Null), Value::Str("side".into()), &[Value::from(vec![Value::Str("long".into()), Value::Str("short".into())])]);
-        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Some(amount), Some(2), &[&params]).await);
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Some(amount), Some(2), &[&Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }

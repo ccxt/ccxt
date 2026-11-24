@@ -527,7 +527,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
 
     None
 }
-    fn parse_funding_rate(&self, info: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, info: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let info: Value = info.into();
         //
         //      {
@@ -2807,15 +2807,12 @@ if _try_result.is_err() {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.initialize_client().await;
-        let requestoperationTypeVariable = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), Some(amount), price, &[&params]);
+        let requestoperationTypeVariable = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), Some(amount), price, &[&Value::from(&params)]);
         let request: crate::value::Dict = requestoperationTypeVariable.0;
         let operationType: Option<String> = requestoperationTypeVariable.1.as_str().map(str::to_owned);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["reduceOnly", "reduce_only", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow", "slippage", "slippage_percent"], &[]);
@@ -3172,10 +3169,7 @@ if _try_result.is_err() {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3183,7 +3177,7 @@ if _try_result.is_err() {
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " cancelOrders() requires a \"symbol\" argument!")));
         }
-        let request: crate::value::Dict = self.cancel_orders_request(ids, symbol.as_str(), &[&params]);
+        let request: crate::value::Dict = self.cancel_orders_request(ids, symbol.as_str(), &[&Value::from(&params)]);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["expiryWindow", "clientOrderIds"], &[]);
         let __ws_arg_14 = self.extend(request, &[&paramsOmitted]);
         let response: crate::value::Dict = self.call_method_t("private_post_orders_batch", &[&__ws_arg_14]).await;
@@ -3301,15 +3295,12 @@ if _try_result.is_err() {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.initialize_client().await;
-        let request: crate::value::Dict = self.cancel_all_orders_request(symbol.as_str(), &[&params]);
+        let request: crate::value::Dict = self.cancel_all_orders_request(symbol.as_str(), &[&Value::from(&params)]);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["excludeReduceOnly", "expiryWindow"], &[]);
         let __ws_arg_16 = self.extend(request, &[&paramsOmitted]);
         let response: crate::value::Dict = self.private_post_orders_cancel_all(&[&__ws_arg_16]).await.unwrap_or_default();
@@ -3470,16 +3461,13 @@ if _try_result.is_err() {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.initialize_client().await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let request: crate::value::Dict = self.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str(), amount, price, Some(&market), &[&params]);
+        let request: crate::value::Dict = self.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str(), amount, price, Some(&market), &[&Value::from(&params)]);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["expiryWindow", "clientOrderId"], &[]);
         let __ws_arg_19 = self.extend(request, &[&paramsOmitted]);
         let response: crate::value::Dict = self.private_post_orders_edit(&[&__ws_arg_19]).await.unwrap_or_default();

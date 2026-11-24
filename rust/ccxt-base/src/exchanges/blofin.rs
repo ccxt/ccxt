@@ -707,7 +707,7 @@ impl crate::exchange::DerivedExchange for Blofin {
 
     None
 }
-    fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, contract: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let contract: Value = contract.into();
         //
         //    {
@@ -1231,7 +1231,7 @@ impl crate::exchange_generated::ExchangeBase for Blofin {
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_currencies" => crate::types::IntoRaw::into_raw(self.fetch_currencies(args.get(0).cloned().unwrap_or_default()).await),
-                "fetch_deposit" => self.fetch_deposit(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "fetch_deposit" => crate::types::IntoRaw::into_raw(self.fetch_deposit(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_deposit_address" => crate::types::IntoRaw::into_raw(self.fetch_deposit_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_deposit_withdraw_fees" => crate::types::IntoRaw::into_raw(self.fetch_deposit_withdraw_fees(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_deposits" => crate::types::IntoRaw::into_raw(self.fetch_deposits(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -1256,7 +1256,7 @@ impl crate::exchange_generated::ExchangeBase for Blofin {
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_withdrawal" => self.fetch_withdrawal(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "fetch_withdrawal" => crate::types::IntoRaw::into_raw(self.fetch_withdrawal(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
@@ -2846,7 +2846,7 @@ impl Blofin {
         //
         let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let entry: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &entry, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, Some(&entry), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3926,23 +3926,28 @@ impl Blofin {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
  */
-    pub async fn fetch_deposit(&mut self, id: &str, code: Option<&str>, optional_args: &[&Value]) -> Value {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+    pub async fn fetch_deposit(&mut self, id: &str, code: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Transaction> {
+        let __args: Vec<Value> = vec![Value::from(id), code.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let id = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
+        let code = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("depositId".to_string(), Value::from(id));
+                m.insert("depositId".to_string(), id);
             m
         });
         let mut currency: Option<crate::types::Currency> = None;
-        if (code.is_some()) {
-            currency = Some(self.currency(code));
+        if (code != Value::Null) {
+            currency = Some(self.currency(code.as_str()));
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
-        let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
+        let depositId: String = self.safe_string_k(&request, "depositId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let __ws_arg_21 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.private_get_asset_deposit_history(&[&__ws_arg_21]).await.unwrap_or_default();
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
         // only accept a row that matches the requested id, in case the
@@ -3953,15 +3958,15 @@ impl Blofin {
             let mut __for_first_6: bool = true;
             while { if !__for_first_6 { i += 1; } __for_first_6 = false; (i as f64) < dataLength } {
             let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
-            if (self.safe_string_k(&entry, "depositId", &[]).as_str() == Some(id)) {
+            if ((Some(depositId.as_str()) == self.safe_string_k(&entry, "depositId", &[]).as_str())) {
                 return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&entry), currency.as_ref()).map_or(Value::Null, Value::Dict);
             }
         }
         }
-        panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchDeposit() could not find deposit ").into()), Value::from(id))));
-
-    Value::Null
-}
+        panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchDeposit() could not find deposit ").into()), depositId)));
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method
@@ -3974,14 +3979,18 @@ impl Blofin {
  * @param {string} [params.clientId] look up by the client-supplied id instead, with id set to undefined or ''
  * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
  */
-    pub async fn fetch_withdrawal(&mut self, id: &str, code: Option<&str>, optional_args: &[&Value]) -> Value {
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+    pub async fn fetch_withdrawal(&mut self, id: &str, code: Option<&str>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Transaction> {
+        let __args: Vec<Value> = vec![Value::from(id), code.map(Value::from).unwrap_or_default(), params.into().into_value()];
+        let mut __it = __args.into_iter();
+        let mut id = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
+        let code = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         let clientId: Option<String> = self.safe_string_k_opt(&params, "clientId", &[]);
         // an undefined or empty id looks the withdrawal up by params['clientId']
-        let hasId: bool = (true) && (id != "");
+        let hasId: bool = (id != Value::Null) && (id.as_str() != Some(""));
         if !hasId && (clientId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchWithdrawal() requires an id argument or a params[\"clientId\"]")));
         }
@@ -3991,14 +4000,19 @@ impl Blofin {
             m
         });
         if hasId {
-            request.insert("withdrawId".into(), Value::from(id));
+            request = ({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("withdrawId".to_string(), id);
+                m
+            });
         }
         let mut currency: Option<crate::types::Currency> = None;
-        if (code.is_some()) {
-            currency = Some(self.currency(code));
+        if (code != Value::Null) {
+            currency = Some(self.currency(code.as_str()));
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
-        let __ws_arg_22 = self.extend(Value::Map(request), &[params]);
+        let withdrawId: String = self.safe_string_k(&request, "withdrawId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let __ws_arg_22 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.private_get_asset_withdrawal_history(&[&__ws_arg_22]).await.unwrap_or_default();
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
         // only accept a row that matches the requested id (or clientId), in
@@ -4011,7 +4025,7 @@ impl Blofin {
             let entry: crate::value::Dict = self.safe_dict_t(&data, Value::Int(i));
             let mut matches: bool = false;
             if hasId {
-                matches = (self.safe_string_k(&entry, "withdrawId", &[]).as_str() == Some(id));
+                matches = (Some(withdrawId.as_str()) == self.safe_string_k(&entry, "withdrawId", &[]).as_str());
             }  else {
                 matches = (clientId.as_deref() == self.safe_string_k(&entry, "clientId", &[]).as_str());
             }
@@ -4020,11 +4034,11 @@ impl Blofin {
             }
         }
         }
-        let reference: Option<String> = (if hasId { Some(id).map(str::to_owned) } else { clientId });
+        let reference: Option<String> = (if hasId { Some(withdrawId) } else { clientId });
         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchWithdrawal() could not find withdrawal ").into()), reference.as_deref().unwrap_or("null"))));
-
-    Value::Null
-}
+        Value::Null
+        }).await?))
+    }
 
 /*
  * @method

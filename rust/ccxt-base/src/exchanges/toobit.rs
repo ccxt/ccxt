@@ -442,7 +442,7 @@ impl crate::exchange::DerivedExchange for Toobit {
 
     None
 }
-    fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, contract: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let contract: Value = contract.into();
         let marketId: Option<String> = self.safe_string_k_opt(&contract, "symbol", &[]);
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), market, &[]).as_str().map(str::to_owned);
@@ -2937,10 +2937,7 @@ impl Toobit {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2950,13 +2947,13 @@ impl Toobit {
             m
         });
         if (market).spot {
-            let requestparamsRequestVariable: Vec<Value> = ({ let __t = self.create_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Some(amount), price, &[&params]); Value::from(vec![Value::Dict(__t.0), Value::Dict(__t.1)]) }).as_array().cloned().unwrap_or_default();
+            let requestparamsRequestVariable: Vec<Value> = ({ let __t = self.create_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Some(amount), price, &[&Value::from(&params)]); Value::from(vec![Value::Dict(__t.0), Value::Dict(__t.1)]) }).as_array().cloned().unwrap_or_default();
             let request: crate::value::Dict = requestparamsRequestVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
             let paramsRequest: crate::value::Dict = requestparamsRequestVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
             let __ws_arg_11 = self.extend(request, &[&paramsRequest]);
             response = self.private_post_api_v1_spot_order(&[&__ws_arg_11]).await.unwrap_or_default();
         }  else {
-            let requestparamsRequestVariable = self.create_contract_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Some(amount), price, &[&params]);
+            let requestparamsRequestVariable = self.create_contract_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Some(amount), price, &[&Value::Dict(params)]);
             let request: crate::value::Dict = requestparamsRequestVariable.0;
             let paramsRequest: crate::value::Dict = requestparamsRequestVariable.1;
             let __ws_arg_12 = self.extend(request, &[&paramsRequest]);
@@ -3828,11 +3825,8 @@ impl Toobit {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return self.fetch_deposits_or_withdrawals_helper(Some("deposits"), code.as_str(), since, limit, &[&params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        return self.fetch_deposits_or_withdrawals_helper(Some("deposits"), code.as_str(), since, limit, &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -3857,11 +3851,8 @@ impl Toobit {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return self.fetch_deposits_or_withdrawals_helper(Some("withdrawals"), code.as_str(), since, limit, &[&params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        return self.fetch_deposits_or_withdrawals_helper(Some("withdrawals"), code.as_str(), since, limit, &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }

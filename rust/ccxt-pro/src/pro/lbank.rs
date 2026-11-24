@@ -388,10 +388,7 @@ if _try_result.is_err() {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -417,7 +414,8 @@ if _try_result.is_err() {
                 m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![Value::from((market).symbol.clone()), timeframe])]));
             m
         });
-        return self.un_subscribe(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv:", (market).symbol).into()), ":").into()), timeframeId.as_deref().unwrap_or("null")).into()), Value::Map(request), Value::Map(subscription), &[&params]).await;
+        let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        return self.un_subscribe(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv:", symbolValue).into()), ":").into()), timeframeId.as_deref().unwrap_or("null")).into()), Value::Map(request), Value::Map(subscription), &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -793,10 +791,7 @@ if _try_result.is_err() {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -815,7 +810,8 @@ if _try_result.is_err() {
                 m.insert("symbols".to_string(), Value::from(vec![Value::from((market).symbol.clone())]));
             m
         });
-        return self.un_subscribe(Value::Str(format!("{}{}", "trades:", (market).symbol).into()), Value::Map(request), Value::Map(subscription), &[&params]).await;
+        let symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        return self.un_subscribe(Value::Str(format!("{}{}", "trades:", symbolValue).into()), Value::Map(request), Value::Map(subscription), &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }

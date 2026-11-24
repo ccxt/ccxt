@@ -417,7 +417,7 @@ impl crate::exchange::DerivedExchange for Lighter {
 
     None
 }
-    fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, contract: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let contract: Value = contract.into();
         //
         //     {
@@ -2405,11 +2405,8 @@ if _try_result.is_err() {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let txTypetxInfoorderVariable: Vec<Value> = self.sign_and_create_order("createOrder", symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Value::from(amount), &[&Value::from(price), &params]).await.as_array().cloned().unwrap_or_default();
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
+        let txTypetxInfoorderVariable: Vec<Value> = self.sign_and_create_order("createOrder", symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Value::from(amount), &[&Value::from(price), &Value::Dict(params)]).await.as_array().cloned().unwrap_or_default();
         let txType: Option<String> = txTypetxInfoorderVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let txInfo: Value = txTypetxInfoorderVariable.get(1).cloned().unwrap_or(Value::Null);
         let order: Value = txTypetxInfoorderVariable.get(2).cloned().unwrap_or(Value::Null);
@@ -4631,11 +4628,8 @@ if _try_result.is_err() {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let txTypetxInfoVariable: Vec<Value> = self.sign_and_cancel_order("cancelOrder", id.as_str().unwrap_or_default(), symbol.as_str(), &[&params]).await.as_array().cloned().unwrap_or_default();
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
+        let txTypetxInfoVariable: Vec<Value> = self.sign_and_cancel_order("cancelOrder", id.as_str().unwrap_or_default(), symbol.as_str(), &[&Value::Dict(params)]).await.as_array().cloned().unwrap_or_default();
         let txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
         let txInfo: Option<String> = txTypetxInfoVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -4708,11 +4702,8 @@ if _try_result.is_err() {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let txTypetxInfoVariable: Vec<Value> = self.sign_and_cancel_all_orders("cancelAllOrdersWs", symbol.as_str(), &[&params]).await.as_array().cloned().unwrap_or_default();
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
+        let txTypetxInfoVariable: Vec<Value> = self.sign_and_cancel_all_orders("cancelAllOrdersWs", symbol.as_str(), &[&Value::Dict(params)]).await.as_array().cloned().unwrap_or_default();
         let txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
         let txInfo: Option<String> = txTypetxInfoVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let request: indexmap::IndexMap<String, Value> = ({

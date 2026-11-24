@@ -256,7 +256,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
 
     None
 }
-    fn parse_prediction_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_prediction_ticker(&self, ticker: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
         //
         //     {
@@ -343,6 +343,31 @@ impl crate::exchange::DerivedExchange for Polymarket {
         m.insert("info".to_string(), ticker);
     m
 }), &[crate::Value::from(market)]));
+
+    None
+}
+    fn parse_prediction_open_interest(&self, interest: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+        let interest: Value = interest.into();
+        //
+        //     { "market": "0x7976b8...92", "value": 4925662.470476 }
+        //
+        let mut openInterest: crate::value::Dict = self.safe_open_interest(Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("symbol".to_string(), self.safe_outcome_symbol(Value::Null, &[crate::Value::from(market)]));
+                m.insert("openInterestAmount".to_string(), Value::Null);
+                m.insert("openInterestValue".to_string(), self.safe_number_k(&interest, "value", &[]));
+                m.insert("baseVolume".to_string(), Value::Null);
+                m.insert("quoteVolume".to_string(), Value::Null);
+                m.insert("timestamp".to_string(), Value::Null);
+                m.insert("datetime".to_string(), Value::Null);
+                m.insert("info".to_string(), interest);
+            m
+        }), market);
+        std::sync::Arc::make_mut(&mut openInterest).insert("outcome".to_string(), self.safe_outcome_symbol(Value::Null, &[crate::Value::from(market)]));
+        std::sync::Arc::make_mut(&mut openInterest).insert("outcomeId".to_string(), self.safe_string_k(&market, "outcomeId", &[]));
+        std::sync::Arc::make_mut(&mut openInterest).insert("market".to_string(), self.safe_string_k(&market, "market", &[]));
+        std::sync::Arc::make_mut(&mut openInterest).shift_remove("symbol");
+        return Some(openInterest);
 
     None
 }
@@ -547,7 +572,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "fetch_trading_fee" => crate::types::IntoRaw::into_raw(self.fetch_trading_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
-                "handle_list_message" => { self.handle_list_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+                "handle_list_message" => { self.handle_list_message(args.get(0).cloned().unwrap_or(crate::Value::Null), match args.get(1) { Some(crate::Value::Arr(__a)) => std::sync::Arc::clone(__a), _ => Default::default() }); crate::Value::Null },
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
                 "load_api_credentials" => { self.load_api_credentials().await; crate::Value::Null },
@@ -558,7 +583,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "parse_events" => crate::Value::Arr(self.parse_events(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_poly_timestamp" => self.parse_poly_timestamp(args.get(0).and_then(crate::Value::as_text).as_deref()),
-                "parse_prediction_open_interest" => self.parse_prediction_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_prediction_open_interest" => Value::Dict(self.parse_prediction_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_prediction_order" => Value::Dict(self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_prediction_position" => Value::Dict(self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_prediction_ticker" => Value::Dict(self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1497,11 +1522,8 @@ impl Polymarket {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let queries: crate::value::List = self.parse_search_queries(&[&params]);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        let queries: crate::value::List = self.parse_search_queries(&[&Value::from(&params)]);
         let rest: crate::value::Dict = self.omit_t(params, &["query", "queries"], &[]);
         let queriesLength: i64 = queries.len() as i64;
         let mut rawEvents: crate::value::List = std::sync::Arc::new(Vec::new());
@@ -2284,7 +2306,7 @@ impl Polymarket {
                 m.insert("lastTrade".to_string(), Value::Dict(lastTradeResponse));
             m
         });
-        return <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, Value::Map(response), outcomeObj.as_ref()).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(Value::Map(response)).as_ref(), outcomeObj.as_ref()).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2416,7 +2438,7 @@ impl Polymarket {
 })]));
                     m
                 });
-                let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, Value::Map(tickerInput), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref()).unwrap_or_default();
+                let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(Value::Map(tickerInput)).as_ref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref()).unwrap_or_default();
                 let symbolKey: Option<String> = self.safe_string_k_opt(&ticker, "outcome", &[&tokenId]);
                 result.insert(symbolKey.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
             }
@@ -2746,36 +2768,11 @@ impl Polymarket {
         //     [ { "market": "0x7976b8...92", "value": 4925662.470476 } ]
         //
         let first: crate::value::Dict = response.get(0).cloned().unwrap_or_default();
-        return self.parse_prediction_open_interest(&first, outcomeObj.as_ref());
+        return <Self as crate::exchange::DerivedExchange>::parse_prediction_open_interest(self, Some(&first), outcomeObj.as_ref()).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_prediction_open_interest(&self, interest: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
-        let interest: Value = interest.into();
-        //
-        //     { "market": "0x7976b8...92", "value": 4925662.470476 }
-        //
-        let mut openInterest: Value = Value::Dict(self.safe_open_interest(Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), self.safe_outcome_symbol(Value::Null, &[crate::Value::from(market)]));
-                m.insert("openInterestAmount".to_string(), Value::Null);
-                m.insert("openInterestValue".to_string(), self.safe_number_k(&interest, "value", &[]));
-                m.insert("baseVolume".to_string(), Value::Null);
-                m.insert("quoteVolume".to_string(), Value::Null);
-                m.insert("timestamp".to_string(), Value::Null);
-                m.insert("datetime".to_string(), Value::Null);
-                m.insert("info".to_string(), interest);
-            m
-        }), market));
-        if let Value::Dict(__rda) = &mut openInterest { std::sync::Arc::make_mut(__rda).insert("outcome".to_string(), self.safe_outcome_symbol(Value::Null, &[crate::Value::from(market)])); }
-        if let Value::Dict(__rda) = &mut openInterest { std::sync::Arc::make_mut(__rda).insert("outcomeId".to_string(), self.safe_string_k(&market, "outcomeId", &[])); }
-        if let Value::Dict(__rda) = &mut openInterest { std::sync::Arc::make_mut(__rda).insert("market".to_string(), self.safe_string_k(&market, "market", &[])); }
-        if let Value::Dict(__d) = &mut openInterest { std::sync::Arc::make_mut(__d).shift_remove("symbol"); }
-        return openInterest;
-
-    Value::Null
-}
 
 /*
  * @method
@@ -3288,13 +3285,10 @@ impl Polymarket {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         self.load_api_credentials().await;
         self.load_outcome(outcome.as_str(), &[]).await;
-        let built: crate::value::Dict = self.build_clob_order_body(outcome.as_str(), type_var.as_str(), side.as_str(), Value::from(amount), &[&Value::from(price), &params]);
+        let built: crate::value::Dict = self.build_clob_order_body(outcome.as_str(), type_var.as_str(), side.as_str(), Value::from(amount), &[&Value::from(price), &Value::Dict(params)]);
         let response: crate::value::Dict = self.clob_private_post_order(&[&self.safe_dict_k(&built, "body", &[])]).await.unwrap_or_default();
         // request echo first so the response's real orderID/status/success win on overlap
         let __ws_arg_13 = self.safe_dict_k(&built, "request", &[]);
@@ -4605,9 +4599,8 @@ if _try_result.is_err() {
         self.handle_message_event(client.as_value(), message);
 }
 
-    pub fn handle_list_message(&mut self, mut client: Value, mut message: Value) {
-        let __message_empty = Vec::new();
-        let message = message.as_array().unwrap_or(&__message_empty);
+    pub fn handle_list_message(&mut self, mut client: Value, message: crate::value::List) {
+        let message: &[Value] = &message;
         {
                         let mut i: i64 = 0;
             let mut __for_first_47: bool = true;
@@ -4626,7 +4619,7 @@ if _try_result.is_err() {
         let __pro_message: &indexmap::IndexMap<String, Value> = event.as_map().unwrap_or(&__pro_message_empty);
         let eventType: Option<String> = (match __pro_message.get("event_type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (eventType.as_deref() == Some("book")) {
-            self.handle_order_book_snapshot(client.clone(), event.clone());
+            self.handle_order_book_snapshot(client.clone(), event.as_map().unwrap_or(&Default::default()));
         }  else if (eventType.as_deref() == Some("price_change")) {
             self.handle_order_book_delta(client.clone(), event.as_map().unwrap_or(&Default::default()));
         }  else if (eventType.as_deref() == Some("last_trade_price")) {
@@ -4638,9 +4631,8 @@ if _try_result.is_err() {
         }
 }
 
-    pub fn handle_order_book_snapshot(&self, mut client: Value, mut event: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &event { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+    pub fn handle_order_book_snapshot(&self, mut client: Value, event: &indexmap::IndexMap<String, Value>) {
+        let __pro_message: &indexmap::IndexMap<String, Value> = event;
         let tokenId: Option<String> = (match __pro_message.get("asset_id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let outcome: Value = self.token_id_to_symbol(tokenId.as_deref()).map(Value::from).unwrap_or(Value::Null);
         if (outcome == Value::Null) {
@@ -4654,7 +4646,7 @@ if _try_result.is_err() {
             CacheStore::put(&mut self.orderbooks.clone(), &outcome, seededBook);
         }
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&outcome);
-        let timestamp: Option<i64> = self.parse_poly_timestamp(self.safe_string_k(event, "timestamp", &[]).as_str()).as_i64();
+        let timestamp: Option<i64> = self.parse_poly_timestamp(self.safe_string_k(&event, "timestamp", &[]).as_str()).as_i64();
         let rawBids: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("bids"));
         let rawAsks: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("asks"));
         let mut bids: Vec<Value> = Vec::new();
@@ -4692,7 +4684,7 @@ if _try_result.is_err() {
 }
 
     pub fn handle_order_book_delta(&self, mut client: Value, event: &indexmap::IndexMap<String, Value>) {
-        let __pro_message: &indexmap::IndexMap<String, Value> = &event;
+        let __pro_message: &indexmap::IndexMap<String, Value> = event;
         let timestamp: Option<i64> = self.parse_poly_timestamp(self.safe_string_k(&event, "timestamp", &[]).as_str()).as_i64();
         let changes: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("price_changes"));
         let mut updated: indexmap::IndexMap<String, Value> = ({
@@ -4987,10 +4979,7 @@ if _try_result.is_err() {
         let outcome = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         self.load_api_credentials().await;
         let mut messageHash: String = "orders".to_string();
         let mut outcomeResolved: Option<String> = outcome.as_str().map(str::to_owned);
@@ -5000,7 +4989,7 @@ if _try_result.is_err() {
             let outcomeName: String = self.safe_string_k(&outcomeObj, "outcome", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             messageHash = format!("{}{}", "orders::", outcomeName);
         }
-        let mut orders: Option<crate::pro::cache::Cache> = self.subscribe_user_channel(messageHash.as_str(), &[&params]).await.into();
+        let mut orders: Option<crate::pro::cache::Cache> = self.subscribe_user_channel(messageHash.as_str(), &[&Value::Dict(params)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(outcomeResolved.as_deref(), limitResolved);
@@ -5030,10 +5019,7 @@ if _try_result.is_err() {
         let outcome = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         self.load_api_credentials().await;
         let mut messageHash: String = "myTrades".to_string();
         let mut outcomeResolved: Option<String> = outcome.as_str().map(str::to_owned);
@@ -5043,7 +5029,7 @@ if _try_result.is_err() {
             let outcomeName: String = self.safe_string_k(&outcomeObj, "outcome", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             messageHash = format!("{}{}", "myTrades::", outcomeName);
         }
-        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_user_channel(messageHash.as_str(), &[&params]).await.into();
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_user_channel(messageHash.as_str(), &[&Value::Dict(params)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(outcomeResolved.as_deref(), limitResolved);

@@ -704,7 +704,7 @@ impl crate::exchange::DerivedExchange for Mexc {
 
     None
 }
-    fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, contract: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let contract: Value = contract.into();
         //
         //     {
@@ -3589,15 +3589,12 @@ impl Mexc {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if matches!(self.safe_bool_k(&self.options, "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
-        let spotMarketPromise: crate::value::List = self.fetch_spot_markets(&[params.clone()]).await;
-        let swapMarketPromise: crate::value::List = self.fetch_swap_markets(&[params]).await;
+        let spotMarketPromise: crate::value::List = self.fetch_spot_markets(&[Value::from(&params)]).await;
+        let swapMarketPromise: crate::value::List = self.fetch_swap_markets(&[Value::Dict(params)]).await;
         let spotMarketswapMarketVariable: Vec<Value> = promise_all(&Value::from(vec![Value::Arr(spotMarketPromise), Value::Arr(swapMarketPromise)])).await.to_vec();
         let spotMarket: crate::value::List = spotMarketswapMarketVariable.get(0).cloned().unwrap_or(Value::Null).into_list();
         let swapMarket: crate::value::List = spotMarketswapMarketVariable.get(1).cloned().unwrap_or(Value::Null).into_list();
@@ -4924,16 +4921,13 @@ impl Mexc {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut ordersRequests: Vec<Value> = Vec::new();
         let mut symbol: Option<String> = None;
-        let mut paramsLoop: crate::value::Dict = params.into_dict();
+        let mut paramsLoop: crate::value::Dict = params;
         {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
@@ -5429,11 +5423,8 @@ impl Mexc {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return self.fetch_orders_by_state(Value::Int(3), symbol.as_str(), since, limit, &[&params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        return self.fetch_orders_by_state(Value::Int(3), symbol.as_str(), since, limit, &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -5460,11 +5451,8 @@ impl Mexc {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return self.fetch_orders_by_state(Value::Int(4), symbol.as_str(), since, limit, &[&params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        return self.fetch_orders_by_state(Value::Int(4), symbol.as_str(), since, limit, &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -6413,11 +6401,8 @@ impl Mexc {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), Some("SUB"), &[&params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), Some("SUB"), &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -6440,11 +6425,8 @@ impl Mexc {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), Some("ADD"), &[&params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), Some("ADD"), &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -6667,7 +6649,7 @@ impl Mexc {
         //     }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &result, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, Some(&result), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -7448,10 +7430,7 @@ impl Mexc {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -7490,7 +7469,7 @@ impl Mexc {
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
         }
-        let mut paramsOmitted: crate::value::Dict = params.into_dict();
+        let mut paramsOmitted: crate::value::Dict = params;
         if isIsolatedMargin {
             paramsOmitted = self.omit_t(&paramsOmitted, Value::Str("symbol".into()), &[]);
         }
@@ -7965,10 +7944,7 @@ impl Mexc {
         let symbols = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -8029,7 +8005,7 @@ impl Mexc {
         //    }
         //
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        let positions: crate::value::List = self.parse_positions(&data, &[symbols, params]);
+        let positions: crate::value::List = self.parse_positions(&data, &[symbols, Value::Dict(params)]);
         return Value::Arr(self.filter_by_since_limit(&positions, since, limit, &[]));
         Value::Null
         }).await?))

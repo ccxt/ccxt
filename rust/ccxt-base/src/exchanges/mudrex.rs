@@ -1089,7 +1089,7 @@ impl Mudrex {
             }
             let mut m: crate::types::Market = self.safe_market(sym.as_deref(), None, &[]);
             let symbol: String = self.safe_string_k(&m, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            if (symbols != Value::Null) && !self.in_array(&symbol, symbols.clone()) {
+            if (symbols != Value::Null) && !self.in_array(&symbol, &symbols) {
                 continue;
             }
             resultTickers.insert(symbol, <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_dict(&rows, Value::Int(i), &[Value::Map({
@@ -1667,11 +1667,8 @@ impl Mudrex {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return self.fetch_orders_by_state("closed", symbol.as_str(), since, limit, &[&params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        return self.fetch_orders_by_state("closed", symbol.as_str(), since, limit, &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -1696,11 +1693,8 @@ impl Mudrex {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return self.fetch_orders_by_state("open", symbol.as_str(), since, limit, &[&params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        return self.fetch_orders_by_state("open", symbol.as_str(), since, limit, &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -1725,11 +1719,8 @@ impl Mudrex {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return self.fetch_orders_by_state("closed", symbol.as_str(), since, limit, &[&params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        return self.fetch_orders_by_state("closed", symbol.as_str(), since, limit, &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }

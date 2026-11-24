@@ -141,7 +141,7 @@ impl Nado {
             "handle_my_trade" => { self.handle_my_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_pong" => { self.handle_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_position" => { self.handle_position(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_subscription" => { self.handle_subscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -310,14 +310,11 @@ impl Nado {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let messageHash: String = format!("{}{}", "trade:", (market).symbol);
-        let mut trades: Value = self.watch_public(Some("trade"), Some(&market), messageHash.as_str(), &[params]).await;
+        let mut trades: Value = self.watch_public(Some("trade"), Some(&market), messageHash.as_str(), &[Value::Dict(params)]).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some((market).symbol.as_str()), limit);
@@ -466,10 +463,7 @@ impl Nado {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let messageHash: String = format!("{}{}", "orderbook:", (market).symbol);
@@ -477,7 +471,7 @@ impl Nado {
             let snapshot: crate::types::OrderBook = (match self.fetch_order_book(symbol.as_str().unwrap_or_default(), limit, Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             { let __cv = self.order_book(&[crate::types::IntoRaw::into_raw(snapshot), Value::from(limit)]); CacheStore::put(&mut self.orderbooks, &(Value::from((market).symbol.clone())), __cv); }
         }
-        let mut orderbook: Value = self.watch_public(Some("book_depth"), Some(&market), messageHash.as_str(), &[params]).await;
+        let mut orderbook: Value = self.watch_public(Some("book_depth"), Some(&market), messageHash.as_str(), &[Value::Dict(params)]).await;
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -852,18 +846,15 @@ impl Nado {
  * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
  */
     pub async fn watch_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
-        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols: Option<Vec<String>> = symbols;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols), &Value::Null, &Value::Bool(true), &Value::Bool(true), &Value::Bool(true)]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(true), &Value::Bool(true), &Value::Bool(true)]);
         let mut market: Option<crate::types::Market> = None;
         let mut messageHash: String = "ticker".to_string();
         let mut streamType: String = "all_bbo".to_string();
@@ -876,7 +867,7 @@ impl Nado {
                 streamType = "best_bid_offer".to_string();
             }
         }
-        let ticker: Value = self.watch_public(Some(streamType.as_str()), market.as_ref(), messageHash.as_str(), &[params]).await;
+        let ticker: Value = self.watch_public(Some(streamType.as_str()), market.as_ref(), messageHash.as_str(), &[Value::Dict(params)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             if (messageHash == "ticker") {
                 return Value::Dict(self.filter_by_array_dict(&ticker, Value::Str("symbol".into()), &symbolsNormalized));
@@ -906,18 +897,15 @@ impl Nado {
  * @returns {object} the exchange response
  */
     pub async fn un_watch_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::Value> {
-        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols: Option<Vec<String>> = symbols;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols), &Value::Null, &Value::Bool(true), &Value::Bool(true), &Value::Bool(true)]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(true), &Value::Bool(true), &Value::Bool(true)]);
         let mut market: Option<crate::types::Market> = None;
         let mut messageHash: String = "ticker".to_string();
         let mut streamType: String = "all_bbo".to_string();
@@ -930,7 +918,7 @@ impl Nado {
                 streamType = "best_bid_offer".to_string();
             }
         }
-        return self.un_watch_public(Some(streamType.as_str()), crate::Value::from(market.as_ref()), messageHash.as_str(), &[params]).await;
+        return self.un_watch_public(Some(streamType.as_str()), crate::Value::from(market.as_ref()), messageHash.as_str(), &[Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -945,18 +933,15 @@ impl Nado {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
  */
     pub async fn watch_bids_asks(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
-        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols: Option<Vec<String>> = symbols;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols), &Value::Null, &Value::Bool(true), &Value::Bool(true), &Value::Bool(true)]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(true), &Value::Bool(true), &Value::Bool(true)]);
         let mut market: Option<crate::types::Market> = None;
         let mut messageHash: String = "bidask".to_string();
         let mut streamType: String = "all_bbo".to_string();
@@ -969,7 +954,7 @@ impl Nado {
                 streamType = "best_bid_offer".to_string();
             }
         }
-        let ticker: Value = self.watch_public(Some(streamType.as_str()), market.as_ref(), messageHash.as_str(), &[params]).await;
+        let ticker: Value = self.watch_public(Some(streamType.as_str()), market.as_ref(), messageHash.as_str(), &[Value::Dict(params)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             if (messageHash == "bidask") {
                 return Value::Dict(self.filter_by_array_dict(&ticker, Value::Str("symbol".into()), &symbolsNormalized));
@@ -999,18 +984,15 @@ impl Nado {
  * @returns {object} the exchange response
  */
     pub async fn un_watch_bids_asks(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::Value> {
-        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols: Option<Vec<String>> = symbols;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols), &Value::Null, &Value::Bool(true), &Value::Bool(true), &Value::Bool(true)]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols, &Value::Null, &Value::Bool(true), &Value::Bool(true), &Value::Bool(true)]);
         let mut market: Option<crate::types::Market> = None;
         let mut messageHash: String = "bidask".to_string();
         let mut streamType: String = "all_bbo".to_string();
@@ -1023,7 +1005,7 @@ impl Nado {
                 streamType = "best_bid_offer".to_string();
             }
         }
-        return self.un_watch_public(Some(streamType.as_str()), crate::Value::from(market.as_ref()), messageHash.as_str(), &[params]).await;
+        return self.un_watch_public(Some(streamType.as_str()), crate::Value::from(market.as_ref()), messageHash.as_str(), &[Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -2544,10 +2526,9 @@ impl Nado {
         bookside.store_array(bidAsk);
 }
 
-    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, message: &crate::value::Dict) {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         //
         //     {
         //         "type": "book_depth",
@@ -2597,7 +2578,7 @@ impl Nado {
         let bids: crate::value::List = __pro_message.key_list("bids");
         self.handle_deltas(crate::pro::order_book::Side::of(orderbook.as_map().and_then(|__m| __m.get("asks")).cloned().unwrap_or(Value::Null)), &asks);
         self.handle_deltas(crate::pro::order_book::Side::of(orderbook.as_map().and_then(|__m| __m.get("bids")).cloned().unwrap_or(Value::Null)), &bids);
-        let timestamp: Option<i64> = self.parse_ws_timestamp(message, Value::Str("max_timestamp".into())).as_i64();
+        let timestamp: Option<i64> = self.parse_ws_timestamp(Value::from(message), Value::Str("max_timestamp".into())).as_i64();
         add_element_to_object(&mut orderbook, &Value::Str("symbol".into()), symbol.map(Value::from).unwrap_or(Value::Null));
         add_element_to_object(&mut orderbook, &Value::Str("timestamp".into()), Value::from(timestamp));
         add_element_to_object(&mut orderbook, &Value::Str("datetime".into()), self.iso8601(timestamp));

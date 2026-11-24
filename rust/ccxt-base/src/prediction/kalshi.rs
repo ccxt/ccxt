@@ -628,7 +628,7 @@ impl crate::exchange::DerivedExchange for Kalshi {
 
     None
 }
-    fn parse_prediction_ticker(&self, raw: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_prediction_ticker(&self, raw: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let raw: Value = raw.into();
         //
         //     {
@@ -764,6 +764,31 @@ impl crate::exchange::DerivedExchange for Kalshi {
 
     None
 }
+    fn parse_prediction_open_interest(&self, interest: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+        let interest: Value = interest.into();
+        //
+        //     { "ticker": "...", "open_interest_fp": "60802.01", "updated_time": "2026-04-09T10:32:47.890506Z", ... }   // the market object of GET /markets/{ticker}, open interest in contracts
+        //
+        let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&interest, "updated_time", &[]));
+        let mut openInterest: crate::value::Dict = self.safe_open_interest(Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("symbol".to_string(), self.safe_symbol(None, market, &[]));
+                m.insert("openInterestAmount".to_string(), self.safe_number2(&interest, Value::Str("open_interest_fp".into()), Value::Str("open_interest".into()), &[]));
+                m.insert("openInterestValue".to_string(), Value::Null);
+                m.insert("baseVolume".to_string(), Value::Null);
+                m.insert("quoteVolume".to_string(), Value::Null);
+                m.insert("timestamp".to_string(), Value::from(timestamp));
+                m.insert("datetime".to_string(), self.iso8601(timestamp));
+                m.insert("info".to_string(), interest);
+            m
+        }), market);
+        std::sync::Arc::make_mut(&mut openInterest).insert("outcome".to_string(), self.safe_outcome_symbol(Value::Null, &[crate::Value::from(market)]));
+        std::sync::Arc::make_mut(&mut openInterest).insert("outcomeId".to_string(), self.safe_string_k(&market, "outcomeId", &[]));
+        std::sync::Arc::make_mut(&mut openInterest).shift_remove("symbol");
+        return Some(openInterest);
+
+    None
+}
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("kalshi".into())]));
         let method = get_arg(optional_args, 1, Value::Str("GET".into()));
@@ -845,7 +870,7 @@ impl crate::exchange_generated::ExchangeBase for Kalshi {
     {
         Box::pin(async move {
             match method {
-                "calculate_fee" => self.calculate_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]),
+                "calculate_fee" => self.calculate_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]),
                 "cancel_all_orders" => crate::types::IntoRaw::into_raw(self.cancel_all_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
@@ -883,7 +908,7 @@ impl crate::exchange_generated::ExchangeBase for Kalshi {
                 "parse_market" => Value::Dict(self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_my_trade" => self.parse_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_prediction_open_interest" => self.parse_prediction_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_prediction_open_interest" => Value::Dict(self.parse_prediction_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_prediction_order" => Value::Dict(self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_prediction_position" => Value::Dict(self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_prediction_ticker" => Value::Dict(self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1467,11 +1492,8 @@ impl Kalshi {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let mut params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let queries: Vec<Value> = self.parse_search_queries(&[&params]).to_vec();
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        let queries: Vec<Value> = self.parse_search_queries(&[&Value::from(&params)]).to_vec();
         let queriesLength: i64 = queries.len() as i64;
         // kalshi's public markets endpoint has no free-text search, so a query would otherwise
         // force a client-side scan of every open market (thousands, paged 1000 at a time, which
@@ -1503,7 +1525,7 @@ impl Kalshi {
         let rest: crate::value::Dict = self.omit_t(&params, &["query", "queries", "limit"], &[]);
         // no query: page the markets listing directly. Cap the total collected so an unscoped
         // loadMarkets cannot run away through every kalshi market via the cursor.
-        let maxMarkets: Option<i64> = self.safe_integer_k(params, "limit", &[self.safe_integer(&self.options, Value::Str("maxFetchMarketsLimit".into()), &[Value::Int(1000)])]).as_i64();
+        let maxMarkets: Option<i64> = self.safe_integer_k(&params, "limit", &[self.safe_integer(&self.options, Value::Str("maxFetchMarketsLimit".into()), &[Value::Int(1000)])]).as_i64();
         let mut flatMarkets: Vec<Value> = Vec::new();
         let mut eventsDict: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -1795,7 +1817,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         return None;
 }
 
-    pub fn calculate_fee(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
+    pub fn calculate_fee(&self, symbol: &str, mut type_var: Value, side: &str, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
         let takerOrMaker = get_arg(optional_args, 0, Value::Str("taker".into()));
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -1906,7 +1928,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     }
         //
         let raw: crate::value::Dict = self.safe_dict_k_or(&response, "market", Value::from(&response));
-        return <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, &raw, outcomeObj.as_ref()).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, Some(&raw), outcomeObj.as_ref()).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -1975,36 +1997,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __ws_arg_2 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.kalshi_public_get_markets_ticker(&[&__ws_arg_2]).await.unwrap_or_default();
         let raw: crate::value::Dict = self.safe_dict_k_or(&response, "market", Value::from(&response));
-        return self.parse_prediction_open_interest(&raw, outcomeObj.as_ref());
+        return <Self as crate::exchange::DerivedExchange>::parse_prediction_open_interest(self, Some(&raw), outcomeObj.as_ref()).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_prediction_open_interest(&self, interest: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
-        let interest: Value = interest.into();
-        //
-        //     { "ticker": "...", "open_interest_fp": "60802.01", "updated_time": "2026-04-09T10:32:47.890506Z", ... }   // the market object of GET /markets/{ticker}, open interest in contracts
-        //
-        let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&interest, "updated_time", &[]));
-        let mut openInterest: Value = Value::Dict(self.safe_open_interest(Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("symbol".to_string(), self.safe_symbol(None, market, &[]));
-                m.insert("openInterestAmount".to_string(), self.safe_number2(&interest, Value::Str("open_interest_fp".into()), Value::Str("open_interest".into()), &[]));
-                m.insert("openInterestValue".to_string(), Value::Null);
-                m.insert("baseVolume".to_string(), Value::Null);
-                m.insert("quoteVolume".to_string(), Value::Null);
-                m.insert("timestamp".to_string(), Value::from(timestamp));
-                m.insert("datetime".to_string(), self.iso8601(timestamp));
-                m.insert("info".to_string(), interest);
-            m
-        }), market));
-        if let Value::Dict(__rda) = &mut openInterest { std::sync::Arc::make_mut(__rda).insert("outcome".to_string(), self.safe_outcome_symbol(Value::Null, &[crate::Value::from(market)])); }
-        if let Value::Dict(__rda) = &mut openInterest { std::sync::Arc::make_mut(__rda).insert("outcomeId".to_string(), self.safe_string_k(&market, "outcomeId", &[])); }
-        if let Value::Dict(__d) = &mut openInterest { std::sync::Arc::make_mut(__d).shift_remove("symbol"); }
-        return openInterest;
-
-    Value::Null
-}
 
 /*
  * @ignore
@@ -2104,7 +2101,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                                         let mut j: i64 = 0;
                     let mut __for_first_11: bool = true;
                     while { if !__for_first_11 { j += 1; } __for_first_11 = false; (j as f64) < Value::Int(grouped.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                    let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, &raw, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(get_value(&grouped, &Value::Int(j))).as_ref()).unwrap_or_default();
+                    let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, Some(&raw), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(get_value(&grouped, &Value::Int(j))).as_ref()).unwrap_or_default();
                     let symbolKey: Option<String> = self.safe_string_k_opt(&ticker, "outcome", &[]);
                     if (symbolKey.is_some()) {
                         result.insert(symbolKey.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
@@ -3265,11 +3262,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let queries: crate::value::List = self.parse_search_queries(&[&params]);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        let queries: crate::value::List = self.parse_search_queries(&[&Value::from(&params)]);
         if (false) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchEvents() missing queries")));
         }
@@ -3667,12 +3661,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let fullEvent: crate::value::Dict = self.fetch_raw_event_by_ticker(id.as_str().unwrap_or_default(), &[&params]).await;
-        let event: crate::value::Dict = self.parse_event(&fullEvent);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        let fullEvent: crate::value::Dict = self.fetch_raw_event_by_ticker(id.as_str().unwrap_or_default(), &[&Value::Dict(params)]).await;
+        let __ws_arg_20 = self.extend(Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        }), &[&fullEvent]);
+        let event: crate::value::Dict = self.parse_event(__ws_arg_20);
         self.index_event_outcomes(Value::from(&event));
         return Value::Dict(event);
         Value::Null
@@ -3687,8 +3682,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {object} rawEvent the raw event object
  * @returns {object} an event structure
  */
-    pub fn parse_event(&self, rawEvent: impl Into<crate::Value>) -> crate::value::Dict {
-        let rawEvent: Value = rawEvent.into();
+    pub fn parse_event(&self, mut rawEvent: Value) -> crate::value::Dict {
         // {
         //         "available_on_brokers": true,
         //         "category": "Politics",
@@ -3819,14 +3813,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (created.is_none()) {
             created = earliestCreated;
         }
-        let __ws_arg_20 = self.safe_string_k(&rawEvent, "url", &[]);
-        let __ws_arg_21 = self.safe_string_k(&rawEvent, "image_url", &[]);
-        let __ws_arg_22 = self.safe_string_k(&rawEvent, "created_date_iso", &[]);
-        let __ws_arg_23 = self.iso8601(end);
-        let __ws_arg_24 = self.safe_string_k(&rawEvent, "category", &[]);
-        let __ws_arg_25 = self.parse8601(self.safe_string_k(&rawEvent, "last_updated_date_iso", &[]));
-        let __ws_arg_26 = self.safe_string_k(&rawEvent, "last_updated_date_iso", &[]);
-        let __ws_arg_27 = self.safe_string_k(&rawEvent, "resolution_source", &[]);
+        let __ws_arg_21 = self.safe_string_k(&rawEvent, "url", &[]);
+        let __ws_arg_22 = self.safe_string_k(&rawEvent, "image_url", &[]);
+        let __ws_arg_23 = self.safe_string_k(&rawEvent, "created_date_iso", &[]);
+        let __ws_arg_24 = self.iso8601(end);
+        let __ws_arg_25 = self.safe_string_k(&rawEvent, "category", &[]);
+        let __ws_arg_26 = self.parse8601(self.safe_string_k(&rawEvent, "last_updated_date_iso", &[]));
+        let __ws_arg_27 = self.safe_string_k(&rawEvent, "last_updated_date_iso", &[]);
+        let __ws_arg_28 = self.safe_string_k(&rawEvent, "resolution_source", &[]);
         return self.extend_t(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::from(ticker.as_deref()));
@@ -3836,16 +3830,16 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("markets".to_string(), Value::from(marketsList));
         m.insert("volume".to_string(), totalVolume);
         m.insert("liquidity".to_string(), totalLiquidity);
-        m.insert("url".to_string(), __ws_arg_20);
-        m.insert("image".to_string(), __ws_arg_21);
+        m.insert("url".to_string(), __ws_arg_21);
+        m.insert("image".to_string(), __ws_arg_22);
         m.insert("created".to_string(), Value::from(created));
-        m.insert("createdDatetime".to_string(), __ws_arg_22);
+        m.insert("createdDatetime".to_string(), __ws_arg_23);
         m.insert("end".to_string(), Value::from(end));
-        m.insert("endDatetime".to_string(), __ws_arg_23);
-        m.insert("category".to_string(), __ws_arg_24);
-        m.insert("lastUpdatedAt".to_string(), Value::from(__ws_arg_25));
-        m.insert("lastUpdatedAtDatetime".to_string(), __ws_arg_26);
-        m.insert("resolutionSource".to_string(), __ws_arg_27);
+        m.insert("endDatetime".to_string(), __ws_arg_24);
+        m.insert("category".to_string(), __ws_arg_25);
+        m.insert("lastUpdatedAt".to_string(), Value::from(__ws_arg_26));
+        m.insert("lastUpdatedAtDatetime".to_string(), __ws_arg_27);
+        m.insert("resolutionSource".to_string(), __ws_arg_28);
         m.insert("active".to_string(), active.map(Value::from).unwrap_or(Value::Null));
         m.insert("resolved".to_string(), resolved.map_or(Value::Null, Value::Bool));
         m.insert("info".to_string(), rawEvent);

@@ -119,7 +119,7 @@ impl Poloniex {
             "handle_my_trades" => { self.handle_my_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
+            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order_request" => { self.handle_order_request(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_pong" => { self.handle_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
@@ -613,15 +613,12 @@ impl Poloniex {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         self.authenticate(&[]).await;
-        return self.trade_request("cancelAllOrders", &[&params]).await;
+        return self.trade_request("cancelAllOrders", &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -675,10 +672,7 @@ impl Poloniex {
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -687,7 +681,7 @@ impl Poloniex {
         if (channel.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id, " watchOHLCV cannot take a timeframe of ").into()), timeframe)));
         }
-        let mut ohlcv: Value = self.subscribe(channel.as_deref().unwrap_or_default(), channel.as_deref().unwrap_or_default(), false, &[Value::from(vec![symbol.clone()]), params]).await;
+        let mut ohlcv: Value = self.subscribe(channel.as_deref().unwrap_or_default(), channel.as_deref().unwrap_or_default(), false, &[Value::from(vec![symbol.clone()]), Value::Dict(params)]).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol.as_str(), limit);
@@ -715,10 +709,7 @@ impl Poloniex {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -729,7 +720,7 @@ impl Poloniex {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:", channel.as_deref().unwrap_or("null")).into()), "::").into()), (market).symbol);
-        return self.un_subscribe(channel.as_deref().unwrap_or_default(), Value::from(vec![Value::from((market).symbol.clone())]), &[Value::from(messageHash)], &[&params]).await;
+        return self.un_subscribe(channel.as_deref().unwrap_or_default(), Value::from(vec![Value::from((market).symbol.clone())]), &[Value::from(messageHash)], &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -774,22 +765,19 @@ impl Poloniex {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn watch_tickers(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
-        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols: Option<Vec<String>> = symbols;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let name: String = "ticker".to_string();
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
-        let newTickers: Value = self.subscribe(name.as_str(), name.as_str(), false, &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr), params]).await;
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
+        let newTickers: Value = self.subscribe(name.as_str(), name.as_str(), false, &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr), Value::Dict(params)]).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newTickers;
         }
@@ -926,10 +914,7 @@ impl Poloniex {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -943,7 +928,7 @@ impl Poloniex {
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:", name).into()), "::").into()), symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).into()));
         }
         }
-        return self.un_subscribe(name.as_str(), Value::Arr(symbolsNormalized), &messageHashes, &[&params]).await;
+        return self.un_subscribe(name.as_str(), Value::Arr(symbolsNormalized), &messageHashes, &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -1004,10 +989,7 @@ impl Poloniex {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1015,7 +997,7 @@ impl Poloniex {
         self.authenticate(&[]).await;
         let symbolResolved: Option<String> = (if (symbol == Value::Null) { None } else { Some(self.symbol(symbol.as_str())) });
         let symbols: Value = (if (symbolResolved.is_none()) { Value::Null } else { Value::from(vec![Value::from(symbolResolved.as_deref())]) });
-        let mut orders: Value = self.subscribe(name.as_str(), name.as_str(), true, &[symbols, params]).await;
+        let mut orders: Value = self.subscribe(name.as_str(), name.as_str(), true, &[symbols, Value::Dict(params)]).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = orders.get_limit(symbolResolved.as_deref(), limit);
@@ -1045,10 +1027,7 @@ impl Poloniex {
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1057,7 +1036,7 @@ impl Poloniex {
         self.authenticate(&[]).await;
         let symbolResolved: Option<String> = (if (symbol == Value::Null) { None } else { Some(self.symbol(symbol.as_str())) });
         let symbols: Value = (if (symbolResolved.is_none()) { Value::Null } else { Value::from(vec![Value::from(symbolResolved.as_deref())]) });
-        let mut trades: Value = self.subscribe(name.as_str(), messageHash.as_str(), true, &[symbols, params]).await;
+        let mut trades: Value = self.subscribe(name.as_str(), messageHash.as_str(), true, &[symbols, Value::Dict(params)]).await;
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(symbolResolved.as_deref(), limit);
@@ -1081,10 +1060,7 @@ impl Poloniex {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1103,7 +1079,7 @@ impl Poloniex {
         if fetchBalanceSnapshot && awaitBalanceSnapshot {
             crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", name, ":fetchBalanceSnapshot").into()))).await;
         }
-        return self.subscribe(name.as_str(), name.as_str(), true, &[Value::Null, params]).await;
+        return self.subscribe(name.as_str(), name.as_str(), true, &[Value::Null, Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -1711,9 +1687,7 @@ impl Poloniex {
     Value::Null
 }
 
-    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         // snapshot
         //

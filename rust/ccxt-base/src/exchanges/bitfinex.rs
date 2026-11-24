@@ -421,7 +421,7 @@ impl crate::exchange::DerivedExchange for Bitfinex {
 
     None
 }
-    fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, contract: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let contract: Value = contract.into();
         //
         //       [
@@ -749,39 +749,6 @@ impl crate::exchange::DerivedExchange for Bitfinex {
 
     None
 }
-    fn parse_margin_modification(&self, data: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
-        let data: Value = data.into();
-        //
-        // setMargin
-        //
-        //     [
-        //         [
-        //             1
-        //         ]
-        //     ]
-        //
-        let marginStatusRaw: Option<i64> = self.safe_integer(&data, Value::Int(0), &[]).as_i64();
-        let mut marginStatus: String = "failed".to_string();
-        if (marginStatusRaw == Some(1)) {
-            marginStatus = "ok".to_string();
-        }
-        return Some(std::sync::Arc::new({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), data);
-        m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
-        m.insert("type".to_string(), Value::Null);
-        m.insert("marginMode".to_string(), Value::Str("isolated".into()));
-        m.insert("amount".to_string(), Value::Null);
-        m.insert("total".to_string(), Value::Null);
-        m.insert("code".to_string(), Value::Null);
-        m.insert("status".to_string(), Value::from(marginStatus));
-        m.insert("timestamp".to_string(), Value::Null);
-        m.insert("datetime".to_string(), Value::Null);
-    m
-}));
-
-    None
-}
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let method = get_arg(optional_args, 1, Value::Str("GET".into()));
@@ -903,7 +870,7 @@ impl crate::exchange_generated::ExchangeBase for Bitfinex {
                 "parse_ledger_entry" => Value::Dict(self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ledger_entry_type" => self.parse_ledger_entry_type(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "parse_liquidation" => Value::Dict(self.parse_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_margin_modification" => Value::Dict(self.parse_margin_modification(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_margin_modification_row" => crate::Value::Dict(self.parse_margin_modification_row(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_market" => Value::Dict(self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_open_interest" => Value::Dict(self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -3333,15 +3300,12 @@ impl Bitfinex {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let request: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), Value::from(amount), &[&Value::from(price), &params]);
+        let request: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), Value::from(amount), &[&Value::from(price), &Value::Dict(params)]);
         let response: crate::value::List = self.private_post_auth_w_order_submit(&[&Value::Dict(request)]).await.unwrap_or_default();
         //
         //      [
@@ -5381,11 +5345,42 @@ impl Bitfinex {
         //     ]
         //
         let data: Value = self.safe_value(&response, Value::Int(0), &[]);
-        return <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, data, Some(&market)).map_or(Value::Null, Value::Dict);
+        return Value::Dict(self.parse_margin_modification_row(data, Some(&market)));
         Value::Null
         }).await?))
     }
 
+    pub fn parse_margin_modification_row(&self, data: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
+        let data: Value = data.into();
+        //
+        // setMargin
+        //
+        //     [
+        //         [
+        //             1
+        //         ]
+        //     ]
+        //
+        let marginStatusRaw: Option<i64> = self.safe_integer(&data, Value::Int(0), &[]).as_i64();
+        let mut marginStatus: String = "failed".to_string();
+        if (marginStatusRaw == Some(1)) {
+            marginStatus = "ok".to_string();
+        }
+        return std::sync::Arc::new({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("info".to_string(), data);
+        m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
+        m.insert("type".to_string(), Value::Null);
+        m.insert("marginMode".to_string(), Value::Str("isolated".into()));
+        m.insert("amount".to_string(), Value::Null);
+        m.insert("total".to_string(), Value::Null);
+        m.insert("code".to_string(), Value::Null);
+        m.insert("status".to_string(), Value::from(marginStatus));
+        m.insert("timestamp".to_string(), Value::Null);
+        m.insert("datetime".to_string(), Value::Null);
+    m
+});
+}
 
 /*
  * @method

@@ -437,7 +437,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
 
     None
 }
-    fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, contract: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let contract: Value = contract.into();
         //
         //     {
@@ -2910,11 +2910,8 @@ impl Hitbtc {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let transactions: crate::value::List = self.fetch_transactions_helper(Some("DEPOSIT,WITHDRAW"), code.as_str(), since, limit, &[params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        let transactions: crate::value::List = self.fetch_transactions_helper(Some("DEPOSIT,WITHDRAW"), code.as_str(), since, limit, &[Value::Dict(params)]).await;
         return self.to_array(&transactions);
         Value::Null
         }).await?))
@@ -2940,11 +2937,8 @@ impl Hitbtc {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let transactions: crate::value::List = self.fetch_transactions_helper(Some("DEPOSIT"), code.as_str(), since, limit, &[params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        let transactions: crate::value::List = self.fetch_transactions_helper(Some("DEPOSIT"), code.as_str(), since, limit, &[Value::Dict(params)]).await;
         return self.to_array(&transactions);
         Value::Null
         }).await?))
@@ -2970,11 +2964,8 @@ impl Hitbtc {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let transactions: crate::value::List = self.fetch_transactions_helper(Some("WITHDRAW"), code.as_str(), since, limit, &[params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        let transactions: crate::value::List = self.fetch_transactions_helper(Some("WITHDRAW"), code.as_str(), since, limit, &[Value::Dict(params)]).await;
         return self.to_array(&transactions);
         Value::Null
         }).await?))
@@ -4327,7 +4318,7 @@ impl Hitbtc {
             let rawFundingRate: crate::value::Dict = (if let Some(Value::Dict(__m)) = response.get(marketId.as_deref().unwrap_or("null")) { std::sync::Arc::clone(__m) } else { Default::default() });
             let marketInner: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), Some(&marketInner), &[]).as_str().map(str::to_owned);
-            let fundingRate: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &rawFundingRate, Some(&marketInner)).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
+            let fundingRate: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, Some(&rawFundingRate), Some(&marketInner)).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
             fundingRates.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map(fundingRate));
         }
         }
@@ -4741,7 +4732,7 @@ impl Hitbtc {
         });
         let __ws_arg_69 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_public_futures_info_symbol(&[&__ws_arg_69]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, Some(&response), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -4838,14 +4829,11 @@ impl Hitbtc {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (Value::from(self.number_to_string(&amount)).as_str() != Some("0")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " reduceMargin() on hitbtc requires the amount to be 0 and that will remove the entire margin amount")));
         }
-        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, Some("reduce"), &[&params]).await);
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, Some("reduce"), &[&Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -4871,11 +4859,8 @@ impl Hitbtc {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, Some("add"), &[&params]).await);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, Some("add"), &[&Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }

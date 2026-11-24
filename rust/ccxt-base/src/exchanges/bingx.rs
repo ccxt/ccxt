@@ -1199,7 +1199,7 @@ impl crate::exchange::DerivedExchange for Bingx {
 
     None
 }
-    fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, contract: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let contract: Value = contract.into();
         //
         //     {
@@ -1975,7 +1975,7 @@ impl crate::exchange_generated::ExchangeBase for Bingx {
                 "fetch_funding_rate" => crate::types::IntoRaw::into_raw(self.fetch_funding_rate(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_funding_rate_history" => crate::types::IntoRaw::into_raw(self.fetch_funding_rate_history(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_funding_rates" => crate::types::IntoRaw::into_raw(self.fetch_funding_rates(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_inverse_swap_markets" => self.fetch_inverse_swap_markets(args.get(0).cloned().unwrap_or(crate::Value::Null)).await,
+                "fetch_inverse_swap_markets" => self.fetch_inverse_swap_markets(&args[..]).await,
                 "fetch_leverage" => crate::types::IntoRaw::into_raw(self.fetch_leverage(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_margin_mode" => crate::types::IntoRaw::into_raw(self.fetch_margin_mode(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_mark_price" => crate::types::IntoRaw::into_raw(self.fetch_mark_price(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -1994,8 +1994,8 @@ impl crate::exchange_generated::ExchangeBase for Bingx {
                 "fetch_position_history" => crate::types::IntoRaw::into_raw(self.fetch_position_history(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_position_mode" => crate::types::IntoRaw::into_raw(self.fetch_position_mode(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_spot_markets" => Value::Arr(self.fetch_spot_markets(args.get(0).cloned().unwrap_or(crate::Value::Null)).await),
-                "fetch_swap_markets" => Value::Arr(self.fetch_swap_markets(args.get(0).cloned().unwrap_or(crate::Value::Null)).await),
+                "fetch_spot_markets" => Value::Arr(self.fetch_spot_markets(&args[..]).await),
+                "fetch_swap_markets" => Value::Arr(self.fetch_swap_markets(&args[..]).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_time" => crate::types::IntoRaw::into_raw(self.fetch_time(args.get(0).cloned().unwrap_or_default()).await),
@@ -4096,7 +4096,11 @@ impl Bingx {
     }
 
 
-    pub async fn fetch_spot_markets(&mut self, mut params: Value) -> crate::value::List {
+    pub async fn fetch_spot_markets(&mut self, optional_args: &[Value]) -> crate::value::List {
+        let params = get_arg(optional_args, 0, Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}));
         let response: crate::value::Dict = self.spot_v1_public_get_common_symbols(&[&params]).await.unwrap_or_default();
         //
         //    {
@@ -4130,7 +4134,11 @@ impl Bingx {
         return self.parse_markets(&markets);
 }
 
-    pub async fn fetch_swap_markets(&mut self, mut params: Value) -> crate::value::List {
+    pub async fn fetch_swap_markets(&mut self, optional_args: &[Value]) -> crate::value::List {
+        let params = get_arg(optional_args, 0, Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}));
         let response: crate::value::Dict = self.swap_v2_public_get_quote_contracts(&[&params]).await.unwrap_or_default();
         //
         //    {
@@ -4167,8 +4175,11 @@ impl Bingx {
         return self.parse_markets(&markets);
 }
 
-    pub async fn fetch_inverse_swap_markets(&mut self, params: impl Into<crate::Value>) -> Value {
-        let params: Value = params.into();
+    pub async fn fetch_inverse_swap_markets(&mut self, optional_args: &[Value]) -> Value {
+        let params = get_arg(optional_args, 0, Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}));
         let response: crate::value::Dict = self.cswap_v1_public_get_market_contracts(&[&params]).await.unwrap_or_default();
         //
         //     {
@@ -4211,15 +4222,12 @@ impl Bingx {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let mut requests: Vec<Value> = vec![Value::Arr(self.fetch_swap_markets(params.clone()).await)];
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        let mut requests: Vec<Value> = vec![Value::Arr(self.fetch_swap_markets(&[Value::from(&params)]).await)];
         let isSandbox: bool = self.safe_bool_k_opt(&self.options, "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
         if !isSandbox {
-            requests.push(self.fetch_inverse_swap_markets(params.clone()).await);
-            requests.push(Value::Arr(self.fetch_spot_markets(params).await)); // sandbox is swap only
+            requests.push(self.fetch_inverse_swap_markets(&[Value::from(&params)]).await);
+            requests.push(Value::Arr(self.fetch_spot_markets(&[Value::Dict(params)]).await)); // sandbox is swap only
         }
         let promises: crate::value::List = promise_all(&Value::from(requests)).await;
         let linearSwapMarkets: crate::value::List = self.safe_list_t(&promises, Value::Int(0));
@@ -4673,7 +4681,7 @@ impl Bingx {
     m
 }));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, data.as_ref(), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -8167,7 +8175,7 @@ impl Bingx {
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (responseCodes.len() as i64) } {
             let code: Option<&str> = responseCodes.get(i as usize).and_then(Value::as_str);
-            if (codes == Value::Null) || (self.in_array(Value::from(code.as_deref()), codes.clone())) {
+            if (codes == Value::Null) || (self.in_array(Value::from(code.as_deref()), &codes)) {
                 let entry: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(response.clone()), Value::from(code.as_deref()));
                 depositWithdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), <Self as crate::exchange::DerivedExchange>::parse_deposit_withdraw_fee(self, &entry, None).map_or(Value::Null, Value::Dict));
             }

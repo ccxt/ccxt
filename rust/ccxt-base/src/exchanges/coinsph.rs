@@ -1934,10 +1934,7 @@ impl Coinsph {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbols = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1972,7 +1969,7 @@ impl Coinsph {
             let __ws_arg_2 = self.extend(Value::Map(request), &[&params]);
             tickers = self.public_get_openapi_quote_v1_ticker24hr(&[&__ws_arg_2]).await;
         }
-        return self.parse_tickers(tickers, &[symbols, params]);
+        return self.parse_tickers(tickers, &[symbols, Value::Dict(params)]);
         Value::Null
         }).await?))
     }
@@ -2809,12 +2806,13 @@ impl Coinsph {
             let m = indexmap::IndexMap::new();
             m
         });
-        let fees: crate::value::List = self.to_array_t(&response);
+        let fees: Vec<crate::value::Dict> = crate::value::dict_rows(self.to_array_t(&response));
         {
                         let mut i: i64 = 0;
             let mut __for_first_6: bool = true;
             while { if !__for_first_6 { i += 1; } __for_first_6 = false; i < (fees.len() as i64) } {
-            let fee: crate::value::Dict = self.parse_trading_fee(fees.get(i as usize).cloned().unwrap_or(Value::Null), None);
+            let feeRow: crate::value::Dict = fees.get(i as usize).cloned().unwrap_or_default();
+            let fee: crate::value::Dict = self.parse_trading_fee(&feeRow, None);
             let symbol: Option<String> = self.safe_string_k_opt(&fee, "symbol", &[]);
             if (symbol.is_some()) {
                 result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(fee));

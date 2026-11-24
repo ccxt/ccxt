@@ -179,7 +179,7 @@ impl Binance {
             "handle_delta" => { self.handle_delta(&mut crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_deltas" => { self.handle_deltas(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()); },
             "handle_edit_order_ws" => { self.handle_edit_order_ws(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_event_stream_terminated" => { self.handle_event_stream_terminated(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_event_stream_terminated" => { self.handle_event_stream_terminated(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_fetch_ohlcv" => { self.handle_fetch_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_fetch_order_book" => { self.handle_fetch_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_liquidation" => { self.handle_liquidation(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -208,7 +208,7 @@ impl Binance {
             "handle_trade" => { self.handle_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_trades_ws" => { self.handle_trades_ws(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_un_subscription" => { self.handle_un_subscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_user_data_stream_subscribe" => { self.handle_user_data_stream_subscribe(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_user_data_stream_subscribe" => { self.handle_user_data_stream_subscribe(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_ws_error" => { self.handle_ws_error(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "is_spot_url" => { self.is_spot_url(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null)); },
             "keep_alive_listen_key" => crate::exchange_stubs::enqueue_spawn("keep_alive_listen_key", args.iter().copied().cloned().collect::<Vec<_>>()),
@@ -765,10 +765,7 @@ impl Binance {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -795,7 +792,7 @@ impl Binance {
         if !(self.is_empty(symbolsNormalized.clone().map_or(Value::Null, Value::Arr)).as_bool() == Some(true)) {
             firstMarket = self.get_market_from_symbols(symbolsNormalized.as_deref());
         }
-        let resolvedAuth = self.resolve_auth_type(Value::Str("watchLiquidationsForSymbols".into()), firstMarket.as_ref(), &[&params]);
+        let resolvedAuth = self.resolve_auth_type(Value::Str("watchLiquidationsForSymbols".into()), firstMarket.as_ref(), &[&Value::Dict(params)]);
         let type_var: Option<String> = resolvedAuth.0.as_str().map(str::to_owned);
         let paramsValue: crate::value::Dict = resolvedAuth.2;
         // the spot check runs on the RESOLVED type: a spot default combined
@@ -1039,10 +1036,7 @@ impl Binance {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1059,7 +1053,7 @@ impl Binance {
             }
             }
         }
-        let type_varsubTypeparamsValueVariable = self.resolve_auth_type(Value::Str("watchMyLiquidationsForSymbols".into()), market.as_ref(), &[&params]);
+        let type_varsubTypeparamsValueVariable = self.resolve_auth_type(Value::Str("watchMyLiquidationsForSymbols".into()), market.as_ref(), &[&Value::Dict(params)]);
         let type_var: Option<String> = type_varsubTypeparamsValueVariable.0.as_str().map(str::to_owned);
         let subType: Option<String> = type_varsubTypeparamsValueVariable.1.as_str().map(str::to_owned);
         let paramsValue: crate::value::Dict = type_varsubTypeparamsValueVariable.2;
@@ -3993,10 +3987,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub fn handle_user_data_stream_subscribe(&self, client: &Value, message: &Value) {
+    pub fn handle_user_data_stream_subscribe(&self, client: &Value, message: &crate::value::Dict) {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         //
         //   {
         //     "id": 1,
@@ -4019,7 +4012,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             client.reject(error, messageHash.as_deref());
             return;
         }
-        client.resolve(message.clone(), messageHash.as_deref());
+        client.resolve(Value::Dict(std::sync::Arc::clone(message)), messageHash.as_deref());
 }
 
 /*
@@ -4814,10 +4807,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4825,7 +4815,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         // re-derives from its own method scope, so without this a method-scoped
         // options.watchBalance.type seeds one bucket while the read below
         // indexes another - the same derive-first shape watchOrders uses
-        let type_varsubTypeparamsValueVariable = self.resolve_auth_type(Value::Str("watchBalance".into()), None, &[&params]);
+        let type_varsubTypeparamsValueVariable = self.resolve_auth_type(Value::Str("watchBalance".into()), None, &[&Value::Dict(params)]);
         let type_var: Option<String> = type_varsubTypeparamsValueVariable.0.as_str().map(str::to_owned);
         let subType: Option<String> = type_varsubTypeparamsValueVariable.1.as_str().map(str::to_owned);
         let paramsValue: crate::value::Dict = type_varsubTypeparamsValueVariable.2;
@@ -6426,9 +6416,10 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             self.handle_order(client, message.clone());
             return;
         }
+        let orderValue: Value = self.safe_dict_k(&message, "o", &[message.clone()]);
         let mut messageValue: Value = message.clone();
         if (e.as_deref() == Some("ORDER_TRADE_UPDATE")) || (e.as_deref() == Some("ALGO_UPDATE")) {
-            messageValue = self.safe_dict_k(&message, "o", &[message.clone()]);
+            messageValue = orderValue;
             if (e.as_deref() == Some("ALGO_UPDATE")) && (self.safe_integer_k(&messageValue, "T", &[]) == Value::Null) {
                 // keep the outer event time, the algo payload carries no timestamps
                 messageValue = self.extend(messageValue, &[Value::Map({
@@ -6646,24 +6637,21 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
  */
     pub async fn watch_positions(&mut self, symbols: Option<Vec<String>>, since: Option<i64>, limit: Option<i64>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Position>> {
-        let __args: Vec<Value> = vec![Value::Null, Value::from(since), Value::from(limit), params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(symbols), Value::from(since), Value::from(limit), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols: Option<Vec<String>> = symbols;
+        let symbols = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: Option<crate::types::Market> = None;
         let mut messageHash: String = "".to_string();
-        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
+        let symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         if !(self.is_empty(symbolsNormalized.clone().map_or(Value::Null, Value::Arr)).as_bool() == Some(true)) {
             market = self.get_market_from_symbols(symbolsNormalized.as_deref());
             if (symbolsNormalized.is_none()) {
@@ -6674,7 +6662,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let mut type_var: Option<String> = None;
         let mut subType: Option<String> = None;
         let mut paramsAuth: Value = Value::Null;
-        { let __destr_tmp = self.resolve_auth_type(Value::Str("watchPositions".into()), market.as_ref(), &[&params]); type_var = __destr_tmp.0.as_str().map(str::to_owned); subType = __destr_tmp.1.as_str().map(str::to_owned); paramsAuth = Value::Dict(__destr_tmp.2); }
+        { let __destr_tmp = self.resolve_auth_type(Value::Str("watchPositions".into()), market.as_ref(), &[&Value::Dict(params)]); type_var = __destr_tmp.0.as_str().map(str::to_owned); subType = __destr_tmp.1.as_str().map(str::to_owned); paramsAuth = Value::Dict(__destr_tmp.2); }
         // spot and margin have no positions - whatever still RESOLVES to spot
         // or margin after the helper falls through to the derivatives stream
         // matching the subType. requests a defaultSubType already rewrote
@@ -7183,10 +7171,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -7196,7 +7181,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             symbolResolved = Some(self.symbol(symbol.as_str()));
         }
-        let type_varsubTypeparamsAuthVariable = self.resolve_auth_type(Value::Str("watchMyTrades".into()), market.as_ref(), &[&params]);
+        let type_varsubTypeparamsAuthVariable = self.resolve_auth_type(Value::Str("watchMyTrades".into()), market.as_ref(), &[&Value::Dict(params)]);
         let type_var: Option<String> = type_varsubTypeparamsAuthVariable.0.as_str().map(str::to_owned);
         let subType: Option<String> = type_varsubTypeparamsAuthVariable.1.as_str().map(str::to_owned);
         let paramsAuth: crate::value::Dict = type_varsubTypeparamsAuthVariable.2;
@@ -7546,10 +7531,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
 }
 
-    pub fn handle_event_stream_terminated(&self, client: &Value, message: &Value) {
+    pub fn handle_event_stream_terminated(&self, client: &Value, message: &crate::value::Dict) {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         //
         //    {
         //        e: 'eventStreamTerminated',

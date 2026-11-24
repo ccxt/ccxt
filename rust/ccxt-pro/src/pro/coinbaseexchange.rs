@@ -159,7 +159,7 @@ impl Coinbaseexchange {
             "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_my_trade" => { self.handle_my_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_subscription_status" => { self.handle_subscription_status(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_trade" => { self.handle_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -360,12 +360,9 @@ impl Coinbaseexchange {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let name: String = "ticker".to_string();
-        return self.subscribe(name.as_str(), symbol.as_str(), Some(name.as_str()), &[params]).await;
+        return self.subscribe(name.as_str(), symbol.as_str(), Some(name.as_str()), &[Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -386,10 +383,7 @@ impl Coinbaseexchange {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbols = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -402,7 +396,7 @@ impl Coinbaseexchange {
         }
         let channel: String = "ticker".to_string();
         let messageHash: String = "ticker".to_string();
-        let ticker: crate::value::Dict = self.subscribe_multiple(channel.as_str(), &[&symbols, &Value::from(messageHash), &params]).await.into_dict();
+        let ticker: crate::value::Dict = self.subscribe_multiple(channel.as_str(), &[&symbols, &Value::from(messageHash), &Value::Dict(params)]).await.into_dict();
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let m = indexmap::IndexMap::new();
@@ -438,16 +432,13 @@ impl Coinbaseexchange {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let symbolValue: String = self.symbol(symbol.as_str());
         let name: String = "matches".to_string();
-        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe(name.as_str(), Some(symbolValue.as_str()), Some(name.as_str()), &[params]).await.into();
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe(name.as_str(), Some(symbolValue.as_str()), Some(name.as_str()), &[Value::Dict(params)]).await.into();
         let mut limitResolved: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(Some(symbolValue.as_str()), limit);
@@ -476,10 +467,7 @@ impl Coinbaseexchange {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         let symbolsLength: i64 = symbols.len() as i64;
         if (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id, " watchTradesForSymbols() requires a non-empty array of symbols")));
@@ -489,7 +477,7 @@ impl Coinbaseexchange {
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&symbols]);
         let name: String = "matches".to_string();
-        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_multiple(name.clone().as_str(), &[&symbolsNormalized.map_or(Value::Null, Value::Arr), &Value::from(name), &params]).await.into();
+        let mut trades: Option<crate::pro::cache::Cache> = self.subscribe_multiple(name.clone().as_str(), &[&symbolsNormalized.map_or(Value::Null, Value::Arr), &Value::from(name), &Value::Dict(params)]).await.into();
         let first: crate::value::Dict = self.safe_dict_t(Value::from(&trades), Value::Int(0));
         let tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit;
@@ -1246,9 +1234,8 @@ impl Coinbaseexchange {
         }
 }
 
-    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         //
         // first message (snapshot)
         //
@@ -1290,7 +1277,7 @@ impl Coinbaseexchange {
 }), Value::from(limit)]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
             }
             let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
-            let snapshot: crate::value::Dict = self.parse_order_book(message, Value::from(symbol.as_str()), &[]);
+            let snapshot: crate::value::Dict = self.parse_order_book(Value::Dict(std::sync::Arc::clone(message)), Value::from(symbol.as_str()), &[]);
             orderbook.reset(Value::Dict(snapshot));
             client.resolve(Value::from(&orderbook), messageHash.as_str());
         }  else if (type_var.as_deref() == Some("l2update")) {

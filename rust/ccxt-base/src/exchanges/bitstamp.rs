@@ -382,7 +382,7 @@ impl crate::exchange::DerivedExchange for Bitstamp {
 
     None
 }
-    fn parse_funding_rate(&self, fundingRate: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, fundingRate: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let fundingRate: Value = fundingRate.into();
         //
         //     {
@@ -2686,11 +2686,8 @@ impl Bitstamp {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let response: crate::value::List = self.fetch_markets_from_cache(&[params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        let response: crate::value::List = self.fetch_markets_from_cache(&[Value::Dict(params)]).await;
         //
         //    [
         //
@@ -2955,11 +2952,8 @@ impl Bitstamp {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let response: Option<crate::value::List> = Some(self.fetch_markets_from_cache(&[params]).await);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        let response: Option<crate::value::List> = Some(self.fetch_markets_from_cache(&[Value::Dict(params)]).await);
         return self.parse_currencies(&response);
         Value::Null
         }).await?))
@@ -3468,12 +3462,13 @@ impl Bitstamp {
                 m.insert("info".to_string(), fees.clone());
             m
         });
-        let feesList: crate::value::List = self.to_array_t(fees);
+        let feesList: Vec<crate::value::Dict> = crate::value::dict_rows(self.to_array_t(fees));
         {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (feesList.len() as i64) } {
-            let fee: crate::value::Dict = self.parse_trading_fee(feesList.get(i as usize).cloned().unwrap_or(Value::Null), None);
+            let feeRow: crate::value::Dict = feesList.get(i as usize).cloned().unwrap_or_default();
+            let fee: crate::value::Dict = self.parse_trading_fee(&feeRow, None);
             let symbol: Option<String> = self.safe_string_k_opt(&fee, "symbol", &[]);
             if (symbol.is_some()) {
                 result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(fee));
@@ -4262,7 +4257,7 @@ impl Bitstamp {
         });
         let __ws_arg_23 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.public_get_funding_rate_market_symbol(&[&__ws_arg_23]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, Some(&response), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }

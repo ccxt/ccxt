@@ -428,7 +428,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
 
     None
 }
-    fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, contract: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let contract: Value = contract.into();
         //
         //     {
@@ -1778,10 +1778,7 @@ impl Polymarket {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1793,7 +1790,7 @@ impl Polymarket {
             request.insert("start_timestamp".into(), Value::from(since));
         }
         let until: Option<i64> = self.safe_integer_k(&params, "until", &[]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = params.into_dict();
+        let mut paramsOmitted: crate::value::Dict = params;
         if (until.is_some()) {
             paramsOmitted = self.omit_t(&paramsOmitted, Value::Str("until".into()), &[]);
             request.insert("end_timestamp".into(), Value::from(until));
@@ -1847,12 +1844,9 @@ impl Polymarket {
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut paramsOmitted: crate::value::Dict = params.into_dict();
+        let mut paramsOmitted: crate::value::Dict = params;
         let paginateparamsPaginateVariable = self.handle_option_bool_and_params(&paramsOmitted, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
         let paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
@@ -1988,15 +1982,12 @@ impl Polymarket {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchFundingRateHistory() requires a symbol argument")));
         }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut paramsOmitted: crate::value::Dict = params.into_dict();
+        let mut paramsOmitted: crate::value::Dict = params;
         let paginateparamsPaginateVariable = self.handle_option_bool_and_params(&paramsOmitted, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]);
         let paginate: bool = paginateparamsPaginateVariable.0 == Some(true);
         let paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.1;
@@ -2366,10 +2357,7 @@ impl Polymarket {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut rows: Vec<Value> = vec![];
         let mut entries: Vec<Value> = Vec::new();
@@ -2401,7 +2389,7 @@ impl Polymarket {
                 m.insert("args".to_string(), Value::from(entries));
             m
         });
-        let signed: crate::value::Dict = self.sign_perps_op(&signable, Value::Map(bodyOp), &[&params]).await;
+        let signed: crate::value::Dict = self.sign_perps_op(&signable, Value::Map(bodyOp), &[&Value::Dict(params)]).await;
         let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.trade_post_trade_orders(&[&Value::Dict(signed)]).await.unwrap_or_default());
         //
         //     [
@@ -2682,10 +2670,7 @@ impl Polymarket {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let precisionSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -2708,7 +2693,7 @@ impl Polymarket {
 })]));
             m
         });
-        let signed: crate::value::Dict = self.sign_perps_op(&signable, Value::Map(bodyOp), &[&params]).await;
+        let signed: crate::value::Dict = self.sign_perps_op(&signable, Value::Map(bodyOp), &[&Value::Dict(params)]).await;
         let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.trade_patch_trade_orders(&[&Value::Dict(signed)]).await.unwrap_or_default());
         //
         //     [
@@ -2962,10 +2947,7 @@ impl Polymarket {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         self.load_proxy_credentials(&[]).await;
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2981,7 +2963,7 @@ impl Polymarket {
             request.insert("start_timestamp".into(), Value::from(since));
         }
         let until: Option<i64> = self.safe_integer_k(&params, "until", &[]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = params.into_dict();
+        let mut paramsOmitted: crate::value::Dict = params;
         if (until.is_some()) {
             paramsOmitted = self.omit_t(&paramsOmitted, Value::Str("until".into()), &[]);
             request.insert("end_timestamp".into(), Value::from(until));
@@ -3068,10 +3050,7 @@ impl Polymarket {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         self.load_proxy_credentials(&[]).await;
         let mut market: Option<crate::types::Market> = None;
@@ -3086,7 +3065,7 @@ impl Polymarket {
             request.insert("start_timestamp".into(), Value::from(since));
         }
         let until: Option<i64> = self.safe_integer_k(&params, "until", &[]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = params.into_dict();
+        let mut paramsOmitted: crate::value::Dict = params;
         if (until.is_some()) {
             paramsOmitted = self.omit_t(&paramsOmitted, Value::Str("until".into()), &[]);
             request.insert("end_timestamp".into(), Value::from(until));
@@ -3146,10 +3125,7 @@ impl Polymarket {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         self.load_proxy_credentials(&[]).await;
         let mut market: Option<crate::types::Market> = None;
@@ -3166,7 +3142,7 @@ impl Polymarket {
             request.insert("start_timestamp".into(), Value::from(since));
         }
         let until: Option<i64> = self.safe_integer_k(&params, "until", &[]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = params.into_dict();
+        let mut paramsOmitted: crate::value::Dict = params;
         if (until.is_some()) {
             paramsOmitted = self.omit_t(&paramsOmitted, Value::Str("until".into()), &[]);
             request.insert("end_timestamp".into(), Value::from(until));
@@ -3250,10 +3226,7 @@ impl Polymarket {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         self.load_proxy_credentials(&[]).await;
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3264,7 +3237,7 @@ impl Polymarket {
             request.insert("start_timestamp".into(), Value::from(since));
         }
         let until: Option<i64> = self.safe_integer_k(&params, "until", &[]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = params.into_dict();
+        let mut paramsOmitted: crate::value::Dict = params;
         if (until.is_some()) {
             paramsOmitted = self.omit_t(&paramsOmitted, Value::Str("until".into()), &[]);
             request.insert("end_timestamp".into(), Value::from(until));
@@ -3302,10 +3275,7 @@ impl Polymarket {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         self.load_proxy_credentials(&[]).await;
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3316,7 +3286,7 @@ impl Polymarket {
             request.insert("start_timestamp".into(), Value::from(since));
         }
         let until: Option<i64> = self.safe_integer_k(&params, "until", &[]).as_i64();
-        let mut paramsOmitted: crate::value::Dict = params.into_dict();
+        let mut paramsOmitted: crate::value::Dict = params;
         if (until.is_some()) {
             paramsOmitted = self.omit_t(&paramsOmitted, Value::Str("until".into()), &[]);
             request.insert("end_timestamp".into(), Value::from(until));
@@ -3560,17 +3530,14 @@ impl Polymarket {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " setLeverage() requires a symbol argument")));
         }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marginMode: Option<String> = None;
-        let mut paramsOmitted: crate::value::Dict = params.into_dict();
+        let mut paramsOmitted: crate::value::Dict = params;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[&Value::from(&paramsOmitted), &Value::Str("cross".into())]); marginMode = __destr_tmp.0.as_str().map(str::to_owned); paramsOmitted = __destr_tmp.1; }
         let isCross: bool = marginMode.as_deref() != Some("isolated");
         let instrumentId: Option<i64> = self.parse_to_int(Value::from((market).id.as_deref()));
@@ -3709,11 +3676,8 @@ impl Polymarket {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, "add", &[&params]).await);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, "add", &[&Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -3736,11 +3700,8 @@ impl Polymarket {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, "reduce", &[&params]).await);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), amount, "reduce", &[&Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }

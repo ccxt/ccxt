@@ -1532,10 +1532,7 @@ impl Indodax {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1550,7 +1547,7 @@ impl Indodax {
         let mut priceIsRequired: bool = false;
         let mut quantityIsRequired: bool = false;
         let isMarketBuy: bool = (type_var.as_str() == Some("market")) && (side.as_str() == Some("buy"));
-        let mut paramsOmitted: crate::value::Dict = params.clone().into_dict();
+        let mut paramsOmitted: crate::value::Dict = params.clone();
         if isMarketBuy {
             paramsOmitted = self.omit_t(&params, Value::Str("cost".into()), &[]);
         }
@@ -1559,7 +1556,7 @@ impl Indodax {
         if (type_var.as_str() == Some("market")) {
             if (side.as_str() == Some("buy")) {
                 let mut quoteAmount: Option<String> = None;
-                let cost: Option<f64> = self.safe_number_k(params, "cost", &[]).as_f64();
+                let cost: Option<f64> = self.safe_number_k(&params, "cost", &[]).as_f64();
                 if (cost.is_some()) {
                     quoteAmount = self.cost_to_precision(symbol.as_str(), cost);
                 }  else {
@@ -2044,7 +2041,7 @@ impl Indodax {
             let mut marketId: Option<&str> = addressKeys.get(i as usize).and_then(Value::as_str);
             let code: Option<String> = self.safe_currency_code(marketId.as_deref(), None);
             let address: Option<String> = self.safe_string_opt(&addresses, Value::from(marketId.as_deref()), &[]);
-            if (address.is_some()) && ((codes == Value::Null) || (self.in_array(&code, codes.clone()))) {
+            if (address.is_some()) && ((codes == Value::Null) || (self.in_array(&code, &codes))) {
                 self.check_address(&[&Value::from(address.as_deref())]);
                 let mut network: Value = Value::Null;
                 if (matches!(marketId.as_deref(), Some(__k) if networks.contains_key(__k))) {

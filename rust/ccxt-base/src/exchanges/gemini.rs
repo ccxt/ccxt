@@ -1857,11 +1857,8 @@ impl Gemini {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return self.fetch_currencies_from_web(&[&params]).await;
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        return self.fetch_currencies_from_web(&[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -1928,19 +1925,16 @@ impl Gemini {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let method: Option<String> = self.safe_string_k_opt(&self.options, "fetchMarketsMethod", &[&Value::Str("fetch_markets_from_api".into())]);
         if (method.as_deref() == Some("fetch_markets_from_web")) {
             let mut promises: Vec<Value> = Vec::new();
-            promises.push(self.fetch_markets_from_web(&[&params]).await); // get usd markets
-            promises.push(self.fetch_usdt_markets(&[&params]).await); // get usdt markets
+            promises.push(self.fetch_markets_from_web(&[&Value::from(&params)]).await); // get usd markets
+            promises.push(self.fetch_usdt_markets(&[&Value::from(&params)]).await); // get usdt markets
             let promisesResult: Vec<Value> = promise_all(&Value::from(promises)).await.to_vec();
             return self.array_concat(promisesResult.get(0).cloned().unwrap_or(Value::Null), promisesResult.get(1).cloned().unwrap_or(Value::Null));
         }
-        return self.fetch_markets_from_api(&[&params]).await;
+        return self.fetch_markets_from_api(&[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -2352,18 +2346,15 @@ impl Gemini {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let method: Option<String> = self.safe_string_k_opt(&self.options, "fetchTickerMethod", &[&Value::Str("fetchTickerV1".into())]);
         if (method.as_deref() == Some("fetchTickerV1")) {
-            return self.fetch_ticker_v1(symbol.as_str().unwrap_or_default(), &[&params]).await;
+            return self.fetch_ticker_v1(symbol.as_str().unwrap_or_default(), &[&Value::from(&params)]).await;
         }
         if (method.as_deref() == Some("fetchTickerV2")) {
-            return self.fetch_ticker_v2(symbol.as_str().unwrap_or_default(), &[&params]).await;
+            return self.fetch_ticker_v2(symbol.as_str().unwrap_or_default(), &[&Value::from(&params)]).await;
         }
-        return self.fetch_ticker_v1_and_v2(symbol.as_str().unwrap_or_default(), &[&params]).await;
+        return self.fetch_ticker_v1_and_v2(symbol.as_str().unwrap_or_default(), &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }

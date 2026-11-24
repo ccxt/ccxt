@@ -4014,21 +4014,29 @@ impl Bitrue {
         if !(market).swap {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " setMargin only support swap markets")));
         }
-        let mut response: Option<crate::value::Dict> = None;
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("contractName".to_string(), Value::from((market).id.as_deref()));
                 m.insert("amount".to_string(), self.parse_to_numeric(Value::from(amount)));
             m
         });
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "success"
+        //         "data": null
+        //     }
+        //
         if ((market).linear == Some(true)) {
             let __ws_arg_44 = self.extend(&request, &[&params]);
-            response = self.fapi_v2_private_post_position_margin(&[&__ws_arg_44]).await;
+            let response: crate::value::Dict = self.fapi_v2_private_post_position_margin(&[&__ws_arg_44]).await.unwrap_or_default();
+            return <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
         }  else if ((market).inverse == Some(true)) {
             let __ws_arg_45 = self.extend(Value::Map(request), &[&params]);
-            response = self.dapi_v2_private_post_position_margin(&[&__ws_arg_45]).await;
+            let response: crate::value::Dict = self.dapi_v2_private_post_position_margin(&[&__ws_arg_45]).await.unwrap_or_default();
+            return <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
+        panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " setMargin only support linear or inverse swap markets")));
         Value::Null
         }).await?))
     }

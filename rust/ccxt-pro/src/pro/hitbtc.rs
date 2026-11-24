@@ -72,7 +72,7 @@ impl crate::exchange_generated::ExchangeBase for Hitbtc {
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_notification" => self.handle_notification(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }),
                 "handle_ohlcv" => self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }),
-                "handle_order" => self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_order" => self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }),
                 "handle_order_request" => self.handle_order_request(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_trades" => self.handle_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }),
                 "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -85,7 +85,8 @@ impl crate::exchange_generated::ExchangeBase for Hitbtc {
                 "subscribe_private" => self.subscribe_private(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..]).await,
                 "subscribe_public" => self.subscribe_public(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "trade_request" => self.trade_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "un_subscribe_public" => self.un_subscribe_public(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "un_subscribe_public" => self.un_subscribe_public(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).and_then(crate::Value::as_map).unwrap_or(&Default::default()),
+                    &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "un_watch_trades" => crate::types::IntoRaw::into_raw(self.un_watch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
@@ -123,8 +124,8 @@ impl Hitbtc {
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_notification" => { self.handle_notification(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
-            "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
+            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order_helper" => { self.handle_order_helper(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_request" => { self.handle_order_request(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -375,8 +376,7 @@ impl Hitbtc {
  * @param {object} [params] extra parameters specific to the hitbtc api
  * @returns {boolean} true once the exchange acknowledges the unsubscribe
  */
-    pub async fn un_subscribe_public(&mut self, name: &str, messageHashPrefix: &str, mut symbols: Value, subscription: impl Into<crate::Value>, optional_args: &[&Value]) -> Value {
-        let subscription: Value = subscription.into();
+    pub async fn un_subscribe_public(&mut self, name: &str, messageHashPrefix: &str, mut symbols: Value, subscription: &indexmap::IndexMap<String, Value>, optional_args: &[&Value]) -> Value {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -546,9 +546,8 @@ impl Hitbtc {
         }).await?))
     }
 
-    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
+        let __pro_message: &indexmap::IndexMap<String, Value> = message;
         //
         //    {
         //        "ch": "orderbook/full",                 // Channel
@@ -586,7 +585,7 @@ impl Hitbtc {
         //        }
         //    }
         //
-        let snapshot: Option<crate::value::Dict> = self.safe_dict2_o(message, Value::Str("snapshot".into()), Value::Str("data".into()));
+        let snapshot: Option<crate::value::Dict> = self.safe_dict2_o(&message, Value::Str("snapshot".into()), Value::Str("data".into()));
         let mut data: crate::value::Dict = __pro_message.key_dict("update");
         if (snapshot.is_some()) {
             data = snapshot.clone().unwrap_or_default();
@@ -1076,10 +1075,7 @@ impl Hitbtc {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let subscription: indexmap::IndexMap<String, Value> = ({
@@ -1088,7 +1084,7 @@ impl Hitbtc {
                 m.insert("symbols".to_string(), Value::from(vec![Value::from((market).symbol.clone())]));
             m
         });
-        return self.un_subscribe_public("trades", "trades", Value::from(vec![Value::from((market).symbol.clone())]), Value::Map(subscription), &[&params]).await;
+        return self.un_subscribe_public("trades", "trades", Value::from(vec![Value::from((market).symbol.clone())]), &subscription, &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -1294,10 +1290,7 @@ impl Hitbtc {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let period: Option<String> = self.safe_string_opt(&self.timeframes, &timeframe, &[&timeframe]);
@@ -1308,7 +1301,7 @@ impl Hitbtc {
                 m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![Value::from((market).symbol.clone()), timeframe])]));
             m
         });
-        return self.un_subscribe_public(name.as_str(), name.as_str(), Value::from(vec![Value::from((market).symbol.clone())]), Value::Map(subscription), &[&params]).await;
+        return self.un_subscribe_public(name.as_str(), name.as_str(), Value::from(vec![Value::from((market).symbol.clone())]), &subscription, &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -1448,9 +1441,8 @@ impl Hitbtc {
         }).await?))
     }
 
-    pub fn handle_order(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) -> Value {
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+    pub fn handle_order(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) -> Value {
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         //
         //    {
         //        "jsonrpc": "2.0",
@@ -1518,7 +1510,7 @@ impl Hitbtc {
         }
         let mut dataDict: Option<crate::value::Dict> = self.safe_dict_k_o(&__pro_message, "params");
         if (dataDict.is_some()) {
-            self.handle_order_helper(client, message.as_map().unwrap_or(&Default::default()), dataDict.map_or(Value::Null, Value::Dict));
+            self.handle_order_helper(client, message, dataDict.map_or(Value::Null, Value::Dict));
         }  else {
             let data: crate::value::List = __pro_message.key_list("params");
             {
@@ -1526,11 +1518,11 @@ impl Hitbtc {
                 let mut __for_first_11: bool = true;
                 while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (data.len() as i64) } {
                 let order: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
-                self.handle_order_helper(client, message.as_map().unwrap_or(&Default::default()), order);
+                self.handle_order_helper(client, message, order);
             }
             }
         }
-        return message;
+        return Value::from(message);
 
     Value::Null
 }

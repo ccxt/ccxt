@@ -145,11 +145,11 @@ impl Gate {
             "handle_new_spot_order_book" => { self.handle_new_spot_order_book(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_book_subscription" => { self.handle_order_book_subscription(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
+            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_order_book_subscription" => { self.handle_order_book_subscription(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default()), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
             "handle_positions" => { self.handle_positions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_subscription_status" => { self.handle_subscription_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ticker_and_bid_ask" => { self.handle_ticker_and_bid_ask(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &crate::pro::ws_client::ClientHandle::from_value(args.get(1).copied().unwrap_or(&crate::Value::Null)), args.get(2).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_trades" => { self.handle_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_un_subscribe" => { self.handle_un_subscribe(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -470,14 +470,11 @@ impl Gate {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let request: crate::value::List = self.parent.create_orders_request(orders.clone(), &[&params]).into_list();
+        let request: crate::value::List = self.parent.create_orders_request(orders.clone(), &[&Value::Dict(params)]);
         let mut symbol: Option<String> = None;
         {
                         let mut i: i64 = 0;
@@ -640,15 +637,12 @@ impl Gate {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let extendedRequest: crate::value::Dict = self.parent.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), &[&Value::from(amount), &Value::from(price), &params]);
+        let extendedRequest: crate::value::Dict = self.parent.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), &[&Value::from(amount), &Value::from(price), &Value::Dict(params)]);
         let messageType: Option<String> = self.get_type_by_market(Some(&market)).as_str().map(str::to_owned);
         let channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".order_amend");
         let url: Option<String> = self.get_url_by_market(&market).as_str().map(str::to_owned);
@@ -686,10 +680,7 @@ impl Gate {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -699,7 +690,7 @@ impl Gate {
         }  else {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let requestrequestParamsVariable = self.parent.fetch_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), &[&params]);
+        let requestrequestParamsVariable = self.parent.fetch_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), &[&Value::Dict(params)]);
         let request: crate::value::Dict = requestrequestParamsVariable.0;
         let requestParams: crate::value::Dict = requestrequestParamsVariable.1;
         let messageType: Option<String> = self.get_type_by_market(market.as_ref()).as_str().map(str::to_owned);
@@ -799,10 +790,7 @@ impl Gate {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -815,7 +803,7 @@ impl Gate {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchOrdersByStatusWs is only supported by swap markets. Use rest API for other markets")));
             }
         }
-        let requestrequestParamsVariable = self.parent.prepare_orders_by_status_request(status.as_str(), symbolResolved.as_deref(), since, limit, &[&params]);
+        let requestrequestParamsVariable = self.parent.prepare_orders_by_status_request(status.as_str(), symbolResolved.as_deref(), since, limit, &[&Value::Dict(params)]);
         let request: crate::value::Dict = requestrequestParamsVariable.0;
         let requestParams: crate::value::Dict = requestrequestParamsVariable.1;
         let newRequest: crate::value::Dict = self.omit_t(&request, &["settle"], &[]);
@@ -989,7 +977,7 @@ impl Gate {
         }).await?))
     }
 
-    pub fn handle_order_book_subscription(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value, optional_args: &[Value]) {
+    pub fn handle_order_book_subscription(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>, optional_args: &[Value]) {
         let subscription = get_arg(optional_args, 0, Value::Null);
         let symbol: Option<String> = self.safe_string_k_opt(&subscription, "symbol", &[]);
         let limit: Option<i64> = self.safe_integer_k(subscription, "limit", &[]).as_i64();
@@ -1064,10 +1052,9 @@ impl Gate {
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
-    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, message: &indexmap::IndexMap<String, Value>) {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+        let __pro_message: &indexmap::IndexMap<String, Value> = message;
         //
         // spot
         //
@@ -1123,7 +1110,7 @@ impl Gate {
         //
         let channel: Option<String> = (match __pro_message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (channel.as_deref() == Some("spot.obu")) {
-            self.handle_new_spot_order_book(&client, message.as_map().unwrap_or(&Default::default()));
+            self.handle_new_spot_order_book(&client, message);
             return;
         }
         let channelParts: crate::value::List = crate::value::List::new(if let Some(__s) = channel.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
@@ -1300,7 +1287,7 @@ impl Gate {
         }).await?))
     }
 
-    pub fn handle_ticker(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
+    pub fn handle_ticker(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //    {
         //        "time": 1649326221,
@@ -1319,7 +1306,7 @@ impl Gate {
         //        }
         //    }
         //
-        self.handle_ticker_and_bid_ask(Value::Str("ticker".into()), client, message.as_map().unwrap_or(&Default::default()));
+        self.handle_ticker_and_bid_ask(Value::Str("ticker".into()), client, message);
 }
 
 /*
@@ -1529,10 +1516,7 @@ impl Gate {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1551,7 +1535,7 @@ impl Gate {
         }
         }
         let url: Option<String> = self.get_url_by_market(&market).as_str().map(str::to_owned);
-        let mut trades: Value = self.subscribe_public_multiple(url.as_deref(), &messageHashes, marketIds.map_or(Value::Null, Value::Arr), Some(channel.as_str()), &[&params]).await;
+        let mut trades: Value = self.subscribe_public_multiple(url.as_deref(), &messageHashes, marketIds.map_or(Value::Null, Value::Arr), Some(channel.as_str()), &[&Value::Dict(params)]).await;
         let first: crate::value::Dict = self.safe_dict_t(&trades, Value::Int(0));
         let tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit;
@@ -1578,10 +1562,7 @@ impl Gate {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -1602,7 +1583,7 @@ impl Gate {
         }
         }
         let url: Option<String> = self.get_url_by_market(&market).as_str().map(str::to_owned);
-        return self.un_subscribe_public_multiple(url.as_deref(), "trades", symbolsNormalized.map_or(Value::Null, Value::Arr), Value::from(messageHashes), Value::from(subMessageHashes), marketIds.map_or(Value::Null, Value::Arr), Some(channel.as_str()), &[&params]).await;
+        return self.un_subscribe_public_multiple(url.as_deref(), "trades", symbolsNormalized.map_or(Value::Null, Value::Arr), Value::from(messageHashes), Value::from(subMessageHashes), marketIds.map_or(Value::Null, Value::Arr), Some(channel.as_str()), &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -1649,9 +1630,10 @@ impl Gate {
         // }
         //
         let rawResult: Value = (match message.get("result") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
+        let tradeRows: Option<crate::value::List> = (match message.get("result") { Some(Value::Arr(__a)) => Some(__a.clone()), _ => None });
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&rawResult, Value::Arr(_))) {
-            result = (match message.get("result") { Some(Value::Arr(__a)) => __a.clone(), _ => std::sync::Arc::new(Vec::new()) });
+        if (tradeRows.is_some()) {
+            result = tradeRows.unwrap_or_default();
         }  else {
             result = std::sync::Arc::new(vec![rawResult]);
         }
@@ -3121,7 +3103,7 @@ impl Gate {
         let channel: String = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         // after supporting more method we can create a mapping for this
         if (channel == "spot.obu") {
-            self.handle_order_book(client.as_value(), message.clone());
+            self.handle_order_book(client.as_value(), message.as_map().unwrap_or(&Default::default()));
             return;
         }
         let channelParts: crate::value::List = crate::value::List::new(channel.split(".").map(Value::from).collect());

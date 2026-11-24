@@ -62,7 +62,7 @@ impl crate::exchange_generated::ExchangeBase for Gemini {
             match method {
                 "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
                 "handle_heartbeat" => self.handle_heartbeat(args.get(0).cloned().unwrap_or(crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }),
-                "handle_list_message" => { self.handle_list_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+                "handle_list_message" => { self.handle_list_message(args.get(0).unwrap_or(&crate::Value::Null), match args.get(1) { Some(crate::Value::Arr(__a)) => std::sync::Arc::clone(__a), _ => Default::default() }); crate::Value::Null },
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_ohlcv" => self.handle_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_subscription" => self.handle_subscription(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }),
@@ -93,12 +93,11 @@ impl Gemini {
             "handle_bids_asks_for_multidata" => { self.handle_bids_asks_for_multidata(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null), args.get(3).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error" => { self.handle_error(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_heartbeat" => { self.handle_heartbeat(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
-            "handle_l2_updates" => { self.handle_l2_updates(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
-            "handle_list_message" => { self.handle_list_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_l2_updates" => { self.handle_l2_updates(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order_book_for_multidata" => { self.handle_order_book_for_multidata(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null), args.get(3).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_subscription" => { self.handle_subscription(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_trade" => { self.handle_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
@@ -246,11 +245,8 @@ impl Gemini {
         let optional_args: &[Value] = &__optional_args;
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 2, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let mut trades: Option<crate::pro::cache::Cache> = self.helper_for_watch_multiple_construct("trades", &[&symbols, &params]).await.into();
+        let params: crate::value::Dict = get_arg_dict(optional_args, 2);
+        let mut trades: Option<crate::pro::cache::Cache> = self.helper_for_watch_multiple_construct("trades", &[&symbols, &Value::Dict(params)]).await.into();
         let first: crate::value::Dict = self.safe_dict_t(Value::from(&trades), Value::Int(0));
         let tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit;
@@ -352,7 +348,7 @@ impl Gemini {
 }
 
     pub fn handle_trades(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
-        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
+        let __pro_message: &indexmap::IndexMap<String, Value> = message;
         //
         //     {
         //         "type": "l2_updates",
@@ -629,12 +625,11 @@ impl Gemini {
         }).await?))
     }
 
-    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
-        let isInitial: bool = (matches!(&message, Value::Dict(__d) if __d.contains_key("auction_events"))) && (matches!(&message, Value::Dict(__d) if __d.contains_key("trades"))) && (matches!(&message, Value::Dict(__d) if __d.contains_key("changes")));
+    pub fn handle_order_book(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
+        let __pro_message: &indexmap::IndexMap<String, Value> = message;
+        let isInitial: bool = (__pro_message.contains_key("auction_events")) && (__pro_message.contains_key("trades")) && (__pro_message.contains_key("changes"));
         let changes: crate::value::List = __pro_message.key_list("changes");
-        let marketId: Option<String> = self.safe_string_lower_k_opt(message, "symbol", &[]);
+        let marketId: Option<String> = self.safe_string_lower_k_opt(&message, "symbol", &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
         let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", "orderbook:", symbol);
@@ -709,11 +704,8 @@ impl Gemini {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let mut limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let mut orderbook: Option<crate::pro::order_book::Book> = self.helper_for_watch_multiple_construct("orderbook", &[&symbols, &params]).await.into();
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.helper_for_watch_multiple_construct("orderbook", &[&symbols, &Value::Dict(params)]).await.into();
         return orderbook.limit();
         Value::Null
         }).await?))
@@ -729,17 +721,14 @@ impl Gemini {
  * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
     pub async fn watch_bids_asks(&mut self, symbols: Option<Vec<String>>, params: impl Into<crate::Params> + Send) -> crate::Result<crate::types::Tickers> {
-        let __args: Vec<Value> = vec![Value::Null, params.into().into_value()];
+        let __args: Vec<Value> = vec![Value::from(symbols), params.into().into_value()];
         let mut __it = __args.into_iter();
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let symbols: Option<Vec<String>> = symbols;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return self.helper_for_watch_multiple_construct("bidsasks", &[&Value::from(symbols), &params]).await;
+        let symbols = get_arg(optional_args, 0, Value::Null);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
+        return self.helper_for_watch_multiple_construct("bidsasks", &[&symbols, &Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -932,7 +921,7 @@ impl Gemini {
         client.resolve(__resolved_orderbook, messageHash.as_str());
 }
 
-    pub fn handle_l2_updates(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
+    pub fn handle_l2_updates(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "type": "l2_updates",
@@ -970,7 +959,7 @@ impl Gemini {
         //         ]
         //     }
         //
-        self.handle_order_book(client, Value::from(message));
+        self.handle_order_book(client, message);
         self.handle_trades(client, message);
 }
 
@@ -1186,8 +1175,8 @@ impl Gemini {
         panic!("{}", crate::exchange_errors::exchange_error(json_stringify(message)));
 }
 
-    pub fn handle_list_message(&mut self, client: &Value, mut message: Value) {
-        self.handle_order(client, message);
+    pub fn handle_list_message(&mut self, client: &Value, message: crate::value::List) {
+        self.handle_order(client, Value::from(&message));
 }
 
     pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {

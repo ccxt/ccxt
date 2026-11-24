@@ -197,7 +197,7 @@ impl crate::exchange::DerivedExchange for Opinion {
 
     None
 }
-    fn parse_prediction_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_prediction_ticker(&self, ticker: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
         //
         //     {
@@ -728,10 +728,11 @@ impl Opinion {
                 fetchedRawRows.push(Value::from(&raw));
                 let marketType: Option<i64> = self.safe_integer_k(&raw, "marketType", &[]).as_i64();
                 if (marketType == Some(1)) {
-                    let event: crate::value::Dict = self.parse_event(self.safe_dict(&rawMarkets, Value::Int(i), &[Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-})]));
+                    let __ws_arg_1 = self.extend(Value::Map({
+                        let m = indexmap::IndexMap::new();
+                        m
+                    }), &[rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null)]);
+                    let event: crate::value::Dict = self.parse_event(__ws_arg_1);
                     let childMarkets: crate::value::List = self.safe_list_k_t(&event, "markets");
                     let childMarketsLength: i64 = childMarkets.len() as i64;
                     {
@@ -985,19 +986,19 @@ impl Opinion {
             let singleRest: crate::value::Dict = self.omit_t(&params, &["eventId", "slug", "query", "queries", "tags", "status", "sort", "searchIn", "limit"], &[]);
             let mut singleResponse: Option<crate::value::Dict> = None;
             if (slug.is_some()) {
-                let __ws_arg_1 = self.extend(Value::Map({
+                let __ws_arg_2 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("slug".to_string(), slug.map(Value::from).unwrap_or(Value::Null));
     m
 }), &[&singleRest]);
-                singleResponse = self.opinion_public_get_market_slug_slug(&[&__ws_arg_1]).await;
+                singleResponse = self.opinion_public_get_market_slug_slug(&[&__ws_arg_2]).await;
             }  else {
-                let __ws_arg_2 = self.extend(Value::Map({
+                let __ws_arg_3 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("marketId".to_string(), eventId.map(Value::from).unwrap_or(Value::Null));
     m
 }), &[&singleRest]);
-                singleResponse = self.opinion_public_get_market_categorical_market_id(&[&__ws_arg_2]).await;
+                singleResponse = self.opinion_public_get_market_categorical_market_id(&[&__ws_arg_3]).await;
             }
             let singleResult: crate::value::Dict = self.safe_dict_k_t(&singleResponse, "result");
             let singleData: crate::value::Dict = self.safe_dict_k_t(&singleResult, "data");
@@ -1012,7 +1013,7 @@ impl Opinion {
         // label can still hold more than one page
         let fetchCap: Option<i64> = self.safe_integer_k(&params, "limit", &[self.safe_integer(&self.options, Value::Str("maxFetchEventsResults".into()), &[Value::Int(100)])]).as_i64();
         let maxPages: i64 = self.safe_integer_k(&self.options, "maxEventsPages", &[Value::Int(50)]).as_i64().unwrap_or(50);
-        let mut rawEvents: crate::value::List = std::sync::Arc::new(Vec::new());
+        let mut rawEvents: Vec<Value> = Vec::new();
         {
                         let mut page: i64 = 1;
             let mut __for_first_5: bool = true;
@@ -1030,8 +1031,8 @@ impl Opinion {
                     m.insert("page".to_string(), Value::Int(page));
                 m
             });
-            let __ws_arg_3 = self.extend(Value::Map(request), &[&rest]);
-            let response: crate::value::Dict = self.opinion_public_get_market(&[&__ws_arg_3]).await.unwrap_or_default();
+            let __ws_arg_4 = self.extend(Value::Map(request), &[&rest]);
+            let response: crate::value::Dict = self.opinion_public_get_market(&[&__ws_arg_4]).await.unwrap_or_default();
             let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
             let pageEvents: crate::value::List = self.safe_list_k_t(&result, "list");
             let pageEventsLength: i64 = pageEvents.len() as i64;
@@ -1039,7 +1040,7 @@ impl Opinion {
                                 let mut i: i64 = 0;
                 let mut __for_first_4: bool = true;
                 while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < pageEventsLength } {
-                std::sync::Arc::make_mut(&mut rawEvents).push(pageEvents.get(i as usize).cloned().unwrap_or(Value::Null));
+                rawEvents.push(pageEvents.get(i as usize).cloned().unwrap_or(Value::Null));
             }
             }
             // rawEvents holds every row fetched so far, so its length is the raw fetched count
@@ -1059,10 +1060,11 @@ impl Opinion {
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < rawEventsLength } {
-            let event: crate::value::Dict = self.parse_event(self.safe_dict(&rawEvents, Value::Int(i), &[Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-})]));
+            let __ws_arg_5 = self.extend(Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            }), &[rawEvents.get(i as usize).cloned().unwrap_or(Value::Null)]);
+            let event: crate::value::Dict = self.parse_event(__ws_arg_5);
             parsedEvents.push(Value::from(&event));
             // register the parsed markets so populateOutcomes can index their outcomes
             let eventMarkets: crate::value::List = self.safe_list_k_t(&event, "markets");
@@ -1106,19 +1108,19 @@ impl Opinion {
         let isSlug: bool = id.as_str().unwrap_or("").contains("-");
         let mut response: Option<crate::value::Dict> = None;
         if isSlug {
-            let __ws_arg_4 = self.extend(Value::Map({
+            let __ws_arg_6 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("slug".to_string(), id.clone());
     m
 }), &[&params]);
-            response = self.opinion_public_get_market_slug_slug(&[&__ws_arg_4]).await;
+            response = self.opinion_public_get_market_slug_slug(&[&__ws_arg_6]).await;
         }  else {
-            let __ws_arg_5 = self.extend(Value::Map({
+            let __ws_arg_7 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("marketId".to_string(), id);
     m
 }), &[&params]);
-            response = self.opinion_public_get_market_categorical_market_id(&[&__ws_arg_5]).await;
+            response = self.opinion_public_get_market_categorical_market_id(&[&__ws_arg_7]).await;
         }
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let data: crate::value::Dict = self.safe_dict_k_t(&result, "data");
@@ -1255,30 +1257,30 @@ impl Opinion {
         }
         let created: Option<i64> = self.safe_timestamp_k(&rawEvent, "createdAt", &[]).as_i64();
         let labels: crate::value::List = self.safe_list_k_t(&rawEvent, "labels");
-        let __ws_arg_6 = self.safe_string_k(&rawEvent, "rules", &[]);
-        let __ws_arg_7 = self.safe_string(&labels, Value::Int(0), &[]);
-        let __ws_arg_8 = self.safe_number_k(&rawEvent, "volume", &[]);
-        let __ws_arg_9 = self.iso8601(created);
-        let __ws_arg_10 = self.iso8601(Value::from(end));
-        let __ws_arg_11 = self.safe_string2(&rawEvent, Value::Str("coverUrl".into()), Value::Str("thumbnailUrl".into()), &[]);
+        let __ws_arg_8 = self.safe_string_k(&rawEvent, "rules", &[]);
+        let __ws_arg_9 = self.safe_string(&labels, Value::Int(0), &[]);
+        let __ws_arg_10 = self.safe_number_k(&rawEvent, "volume", &[]);
+        let __ws_arg_11 = self.iso8601(created);
+        let __ws_arg_12 = self.iso8601(Value::from(end));
+        let __ws_arg_13 = self.safe_string2(&rawEvent, Value::Str("coverUrl".into()), Value::Str("thumbnailUrl".into()), &[]);
         return self.extend_t(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), eventId.map(Value::from).unwrap_or(Value::Null));
         m.insert("event".to_string(), eventHandle.map(Value::from).unwrap_or(Value::Null));
         m.insert("title".to_string(), title.map(Value::from).unwrap_or(Value::Null));
-        m.insert("description".to_string(), __ws_arg_6);
+        m.insert("description".to_string(), __ws_arg_8);
         m.insert("slug".to_string(), slug.map(Value::from).unwrap_or(Value::Null));
-        m.insert("category".to_string(), __ws_arg_7);
+        m.insert("category".to_string(), __ws_arg_9);
         m.insert("tags".to_string(), Value::from(&labels));
         m.insert("markets".to_string(), Value::from(marketsList));
         m.insert("active".to_string(), Value::Bool(active));
         m.insert("resolved".to_string(), Value::Bool(resolved));
-        m.insert("volume".to_string(), __ws_arg_8);
+        m.insert("volume".to_string(), __ws_arg_10);
         m.insert("created".to_string(), Value::from(created));
-        m.insert("createdDatetime".to_string(), __ws_arg_9);
+        m.insert("createdDatetime".to_string(), __ws_arg_11);
         m.insert("end".to_string(), Value::from(end));
-        m.insert("endDatetime".to_string(), __ws_arg_10);
-        m.insert("image".to_string(), __ws_arg_11);
+        m.insert("endDatetime".to_string(), __ws_arg_12);
+        m.insert("image".to_string(), __ws_arg_13);
         m.insert("info".to_string(), rawEvent);
     m
 }), &[]);
@@ -1305,12 +1307,12 @@ impl Opinion {
         let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let outcomeObj: Option<crate::types::Market> = self.load_outcome(outcome.as_str(), &[]).await;
         let tokenId: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcomeId", &[]);
-        let __ws_arg_12 = self.extend(Value::Map({
+        let __ws_arg_14 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("token_id".to_string(), Value::from(tokenId.as_deref()));
     m
 }), &[&params]);
-        let promises: crate::value::List = std::sync::Arc::new(vec![self.opinion_public_get_token_latest_price(&[&__ws_arg_12]).await, self.opinion_public_get_token_orderbook(&[&self.extend(Value::Map({
+        let promises: crate::value::List = std::sync::Arc::new(vec![self.opinion_public_get_token_latest_price(&[&__ws_arg_14]).await, self.opinion_public_get_token_orderbook(&[&self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("token_id".to_string(), Value::from(tokenId.as_deref()));
     m
@@ -1324,7 +1326,7 @@ impl Opinion {
                 m.insert("book".to_string(), Value::Dict(bookResponse));
             m
         });
-        return <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, Value::Map(response), outcomeObj.as_ref()).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(Value::Map(response)).as_ref(), outcomeObj.as_ref()).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -1368,18 +1370,18 @@ impl Opinion {
             while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < outcomesLength } {
             let outcomeObj: Option<crate::types::Market> = self.outcome((outcomes.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str());
             let tokenId: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcomeId", &[]);
-            let __ws_arg_13 = self.extend(Value::Map({
+            let __ws_arg_15 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("token_id".to_string(), Value::from(tokenId.as_deref()));
                 m
             }), &[&params]);
-            promises.push(self.opinion_public_get_token_latest_price(&[&__ws_arg_13]).await);
-            let __ws_arg_14 = self.extend(Value::Map({
+            promises.push(self.opinion_public_get_token_latest_price(&[&__ws_arg_15]).await);
+            let __ws_arg_16 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("token_id".to_string(), tokenId.map(Value::from).unwrap_or(Value::Null));
                 m
             }), &[&params]);
-            promises.push(self.opinion_public_get_token_orderbook(&[&__ws_arg_14]).await);
+            promises.push(self.opinion_public_get_token_orderbook(&[&__ws_arg_16]).await);
         }
         }
         let responses: crate::value::List = promise_all(&Value::from(promises)).await;
@@ -1401,7 +1403,7 @@ impl Opinion {
                     m.insert("book".to_string(), bookResponse.map_or(Value::Null, Value::Dict));
                 m
             });
-            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, Value::Map(response), outcomeObj.as_ref()).unwrap_or_default();
+            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(Value::Map(response)).as_ref(), outcomeObj.as_ref()).unwrap_or_default();
             let symbolKey: Option<String> = self.safe_string_k_opt(&ticker, "outcome", &[]);
             if (symbolKey.is_some()) {
                 result.insert(symbolKey.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
@@ -1439,8 +1441,8 @@ impl Opinion {
                 m.insert("token_id".to_string(), tokenId.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_15 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.call_method_t("opinion_public_get_token_orderbook", &[&__ws_arg_15]).await;
+        let __ws_arg_17 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.call_method_t("opinion_public_get_token_orderbook", &[&__ws_arg_17]).await;
         //
         //     {
         //         "errmsg": "",
@@ -1494,13 +1496,13 @@ impl Opinion {
         }
         let outcomeObj: Option<crate::types::Market> = self.load_outcome(outcome.as_str(), &[]).await;
         let tokenId: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcomeId", &[]);
-        let __ws_arg_16 = self.extend(Value::Map({
+        let __ws_arg_18 = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("token_id".to_string(), tokenId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("interval".to_string(), interval.map(Value::from).unwrap_or(Value::Null));
             m
         }), &[&params]);
-        let response: crate::value::Dict = self.opinion_public_get_token_price_history(&[&__ws_arg_16]).await.unwrap_or_default();
+        let response: crate::value::Dict = self.opinion_public_get_token_price_history(&[&__ws_arg_18]).await.unwrap_or_default();
         //
         //     {
         //         "errmsg": "",
@@ -1832,8 +1834,8 @@ impl Opinion {
         });
         let signature: Option<String> = self.sign_opinion_order(Value::Map(order), self.safe_string_k(&quoteToken, "ctfExchangeAddress", &[Value::Str("".into())]).as_str().unwrap_or_default());
         let signatureNo0x: Option<String> = self.remove0x_prefix(Value::from(signature.as_deref())).as_str().map(str::to_owned);
-        let __ws_arg_17 = self.number_to_string(price);
-        let __ws_arg_18 = self.seconds();
+        let __ws_arg_19 = self.number_to_string(price);
+        let __ws_arg_20 = self.seconds();
         let orderBody: crate::value::Dict = self.extend_t(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("salt".to_string(), salt.map(Value::from).unwrap_or(Value::Null));
@@ -1853,9 +1855,9 @@ impl Opinion {
                 m.insert("contractAddress".to_string(), Value::Str("".into()));
                 m.insert("currencyAddress".to_string(), quoteTokenAddress.map(Value::from).unwrap_or(Value::Null));
                 m.insert("topicId".to_string(), Value::from(topicId));
-                m.insert("price".to_string(), (if isMarket { marketOrderPrice.map(Value::from).unwrap_or(Value::Null) } else { Value::from(__ws_arg_17) }));
+                m.insert("price".to_string(), (if isMarket { marketOrderPrice.map(Value::from).unwrap_or(Value::Null) } else { Value::from(__ws_arg_19) }));
                 m.insert("tradingMethod".to_string(), (if isMarket { Value::Int(1) } else { Value::Int(2) }));
-                m.insert("timestamp".to_string(), Value::Int(__ws_arg_18));
+                m.insert("timestamp".to_string(), Value::Int(__ws_arg_20));
                 m.insert("safeRate".to_string(), Value::Str("0".into()));
                 m.insert("orderExpTime".to_string(), Value::Str("0".into()));
                 m.insert("postOnly".to_string(), Value::Bool(postOnly));
@@ -1894,8 +1896,8 @@ impl Opinion {
                 m.insert("orderId".to_string(), id.clone());
             m
         });
-        let __ws_arg_19 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.opinion_private_post_order_cancel(&[&__ws_arg_19]).await.unwrap_or_default();
+        let __ws_arg_21 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.opinion_private_post_order_cancel(&[&__ws_arg_21]).await.unwrap_or_default();
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let canceled: bool = self.safe_bool_k_opt(&result, "result", &[Value::Bool(false)]).unwrap_or(false);
         // a false result does NOT mean the order is still open — it may already be filled,
@@ -1975,8 +1977,8 @@ impl Opinion {
             let info: crate::value::Dict = self.safe_dict_k_t(&outcomeObj, "info");
             request.insert("marketId".into(), self.safe_integer_k(&info, "marketId", &[]));
         }
-        let __ws_arg_20 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.opinion_private_get_order(&[&__ws_arg_20]).await.unwrap_or_default();
+        let __ws_arg_22 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.opinion_private_get_order(&[&__ws_arg_22]).await.unwrap_or_default();
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let orders: crate::value::List = self.safe_list_k_t(&result, "list");
         return self.parse_prediction_orders(Value::Arr(orders), &[crate::Value::from(outcomeObj.as_ref()), Value::from(since), Value::from(limit)]);
@@ -2008,12 +2010,12 @@ impl Opinion {
         if (outcome != Value::Null) {
             outcomeObj = self.load_outcome(outcome.as_str(), &[]).await;
         }
-        let __ws_arg_21 = self.extend(Value::Map({
+        let __ws_arg_23 = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("orderId".to_string(), id);
             m
         }), &[&params]);
-        let response: crate::value::Dict = self.opinion_private_get_order_order_id(&[&__ws_arg_21]).await.unwrap_or_default();
+        let response: crate::value::Dict = self.opinion_private_get_order_order_id(&[&__ws_arg_23]).await.unwrap_or_default();
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let orderData: crate::value::Dict = self.safe_dict_k_t(&result, "orderData");
         return <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, Some(&orderData), outcomeObj.as_ref()).map_or(Value::Null, Value::Dict);
@@ -2048,8 +2050,8 @@ impl Opinion {
                 m.insert("status".to_string(), Value::Str("1".into()));
             m
         });
-        let __ws_arg_22 = self.extend(Value::Map(request), &[&params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_orders(outcome.as_str(), since, limit, __ws_arg_22).await);
+        let __ws_arg_24 = self.extend(Value::Map(request), &[&params]);
+        return crate::types::IntoRaw::into_raw(self.fetch_orders(outcome.as_str(), since, limit, __ws_arg_24).await);
         Value::Null
         }).await?))
     }
@@ -2081,8 +2083,8 @@ impl Opinion {
                 m.insert("status".to_string(), Value::Str("2,3,4,5".into()));
             m
         });
-        let __ws_arg_23 = self.extend(Value::Map(request), &[&params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_orders(outcome.as_str(), since, limit, __ws_arg_23).await);
+        let __ws_arg_25 = self.extend(Value::Map(request), &[&params]);
+        return crate::types::IntoRaw::into_raw(self.fetch_orders(outcome.as_str(), since, limit, __ws_arg_25).await);
         Value::Null
         }).await?))
     }
@@ -2123,8 +2125,8 @@ impl Opinion {
             let info: crate::value::Dict = self.safe_dict_k_t(&outcomeObj, "info");
             request.insert("marketId".into(), self.safe_integer_k(&info, "marketId", &[]));
         }
-        let __ws_arg_24 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.opinion_private_get_trade_user_wallet_address(&[&__ws_arg_24]).await.unwrap_or_default();
+        let __ws_arg_26 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.opinion_private_get_trade_user_wallet_address(&[&__ws_arg_26]).await.unwrap_or_default();
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let trades: crate::value::List = self.safe_list_k_t(&result, "list");
         let tradesLength: i64 = trades.len() as i64;
@@ -2233,8 +2235,8 @@ impl Opinion {
                 m.insert("chain_id".to_string(), Value::Str("56".into()));
             m
         });
-        let __ws_arg_25 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.opinion_private_get_user_balance(&[&__ws_arg_25]).await.unwrap_or_default();
+        let __ws_arg_27 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.opinion_private_get_user_balance(&[&__ws_arg_27]).await.unwrap_or_default();
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let rawBalances: crate::value::List = self.safe_list_k_t(&result, "balances");
         let rawBalancesLength: i64 = rawBalances.len() as i64;
@@ -2293,8 +2295,8 @@ impl Opinion {
                 m.insert("walletAddress".to_string(), self.walletAddress.clone());
             m
         });
-        let __ws_arg_26 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.opinion_private_get_positions_user_wallet_address(&[&__ws_arg_26]).await.unwrap_or_default();
+        let __ws_arg_28 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.opinion_private_get_positions_user_wallet_address(&[&__ws_arg_28]).await.unwrap_or_default();
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
         let positions: crate::value::List = self.safe_list_k_t(&result, "list");
         if (outcomesLength == 0) {
@@ -2592,7 +2594,7 @@ if _try_result.is_err() {
             return;
         }
         if (msgType.as_deref() == Some("market.depth.diff")) {
-            self.handle_order_book(client.as_value(), message.clone());
+            self.handle_order_book(client.as_value(), message.as_map().unwrap_or(&Default::default()));
         }  else if (msgType.as_deref() == Some("market.last.price")) {
             self.handle_ticker(client.as_value(), message.clone());
         }  else if (msgType.as_deref() == Some("market.last.trade")) {
@@ -2704,9 +2706,7 @@ if _try_result.is_err() {
         CacheStore::put(&mut self.orderbooks, &Value::from(sym), orderbook);
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut message: Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_order_book(&self, mut client: Value, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         "marketId": 2764,

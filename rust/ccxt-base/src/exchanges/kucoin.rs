@@ -322,7 +322,7 @@ impl crate::exchange::DerivedExchange for Kucoin {
 
     None
 }
-    fn parse_funding_rate(&self, data: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, data: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let data: Value = data.into();
         // uta
         //     {
@@ -14065,7 +14065,7 @@ impl Kucoin {
             response = self.futures_public_get_funding_rate_symbol_current(&[&__ws_arg_132]).await;
         }
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
+        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, Some(&data), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -15516,7 +15516,7 @@ impl Kucoin {
         let paramsUntil: crate::value::Dict = __until1;
         let __ws_arg_155 = self.extend(requestUntil, &[&paramsUntil]);
         let response: crate::value::Dict = self.uta_get_market_open_interest(&[&__ws_arg_155]).await.unwrap_or_default();
-        let data: Option<crate::value::List> = self.safe_list_k_o(&response, "data");
+        let data: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_open_interests_history(&data, Some(&market), &[Value::from(since), Value::from(limit)]);
         Value::Null
         }).await?))

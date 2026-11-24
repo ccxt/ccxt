@@ -593,7 +593,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
 
     None
 }
-    fn parse_funding_rate(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, contract: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let contract: Value = contract.into();
         //
         // fetchFundingRateHistory
@@ -811,7 +811,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
             let m = indexmap::IndexMap::new();
             m
         }), &[&info]);
-        let fundingRate: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, __ws_arg_3, market).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
+        let fundingRate: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_3).as_ref(), market).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
         return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info);

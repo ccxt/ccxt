@@ -1770,11 +1770,8 @@ impl Foxbit {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return Value::Arr(self.fetch_orders_by_status(Some("ACTIVE"), symbol.as_str(), since, limit, &[params]).await);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        return Value::Arr(self.fetch_orders_by_status(Some("ACTIVE"), symbol.as_str(), since, limit, &[Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -1799,11 +1796,8 @@ impl Foxbit {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return Value::Arr(self.fetch_orders_by_status(Some("FILLED"), symbol.as_str(), since, limit, &[params]).await);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        return Value::Arr(self.fetch_orders_by_status(Some("FILLED"), symbol.as_str(), since, limit, &[Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -1817,11 +1811,8 @@ impl Foxbit {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return Value::Arr(self.fetch_orders_by_status(Some("CANCELED"), symbol.as_str(), since, limit, &[params]).await);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        return Value::Arr(self.fetch_orders_by_status(Some("CANCELED"), symbol.as_str(), since, limit, &[Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }

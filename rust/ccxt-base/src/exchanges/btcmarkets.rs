@@ -533,7 +533,7 @@ impl crate::exchange_generated::ExchangeBase for Btcmarkets {
     {
         Box::pin(async move {
             match method {
-                "calculate_fee" => self.calculate_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]),
+                "calculate_fee" => self.calculate_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
@@ -1126,11 +1126,8 @@ impl Btcmarkets {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return Value::Arr(self.fetch_transactions_with_method("privateGetTransfers", code.as_str(), since, limit, &[&params]).await);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        return Value::Arr(self.fetch_transactions_with_method("privateGetTransfers", code.as_str(), since, limit, &[&Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -1155,11 +1152,8 @@ impl Btcmarkets {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return Value::Arr(self.fetch_transactions_with_method("privateGetDeposits", code.as_str(), since, limit, &[&params]).await);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        return Value::Arr(self.fetch_transactions_with_method("privateGetDeposits", code.as_str(), since, limit, &[&Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -1184,11 +1178,8 @@ impl Btcmarkets {
         let code = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return Value::Arr(self.fetch_transactions_with_method("privateGetWithdrawals", code.as_str(), since, limit, &[&params]).await);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        return Value::Arr(self.fetch_transactions_with_method("privateGetWithdrawals", code.as_str(), since, limit, &[&Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -1705,7 +1696,7 @@ impl Btcmarkets {
         }).await?))
     }
 
-    pub fn calculate_fee(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
+    pub fn calculate_fee(&self, symbol: &str, mut type_var: Value, side: &str, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
         let takerOrMaker = get_arg(optional_args, 0, Value::Str("taker".into()));
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -1724,19 +1715,19 @@ impl Btcmarkets {
          * @param {object} params
          * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
          */
-        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut market: crate::types::Market = (match self.market(symbol) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut currency: Option<String> = None;
         let mut cost: Option<String> = None;
         if (Some((market).quote.as_str()) == Some("AUD")) {
             currency = Some((market).quote.clone());
-            cost = self.cost_to_precision(symbol.as_str(), crate::precise::Precise::stringMul(&Value::from(self.number_to_string(&amount)), &Value::from(self.number_to_string(price))));
+            cost = self.cost_to_precision(Some(symbol), crate::precise::Precise::stringMul(&Value::from(self.number_to_string(&amount)), &Value::from(self.number_to_string(price))));
         }  else {
             currency = Some((market).base.clone());
-            cost = self.amount_to_precision(symbol.as_str(), amount);
+            cost = self.amount_to_precision(Some(symbol), amount);
         }
         let rate: Value = self.safe_value(&market, &takerOrMaker, &[]);
         let rateCost: Option<String> = crate::precise::Precise::stringMul(&Value::from(self.number_to_string(&rate)), &cost).as_str().map(str::to_owned);
-        let mut feeCost: Option<String> = self.fee_to_precision(symbol.as_str(), rateCost.map(Value::from).unwrap_or(Value::Null));
+        let mut feeCost: Option<String> = self.fee_to_precision(Some(symbol), rateCost.map(Value::from).unwrap_or(Value::Null));
         if (feeCost.is_none()) {
             feeCost = Some("0".to_string());
         }

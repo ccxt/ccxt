@@ -2856,11 +2856,8 @@ impl Kraken {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let code = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let items: crate::value::List = self.fetch_ledger_entries_by_ids(vec![id.to_string()], code.as_str(), &[&params]).await.into_list();
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
+        let items: crate::value::List = self.fetch_ledger_entries_by_ids(vec![id.to_string()], code.as_str(), &[&Value::Dict(params)]).await.into_list();
         let mut entry: Option<crate::value::Dict> = self.safe_dict_o(&items, Value::Int(0));
         return entry.map_or(Value::Null, Value::Dict);
         Value::Null
@@ -3063,10 +3060,7 @@ impl Kraken {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -3079,7 +3073,7 @@ impl Kraken {
                 m.insert("volume".to_string(), Value::from(self.amount_to_precision(symbol.as_str(), &Value::from(amount))));
             m
         });
-        let orderRequest: Vec<Value> = { let __t = self.order_request("createOrder", symbol.as_str(), type_var.as_str(), Value::Map(request), Some(amount), price, &[&params]); Value::from(vec![Value::Dict(__t.0), Value::Dict(__t.1)]) }.as_array().cloned().unwrap_or_default();
+        let orderRequest: Vec<Value> = { let __t = self.order_request("createOrder", symbol.as_str(), type_var.as_str(), Value::Map(request), Some(amount), price, &[&Value::Dict(params)]); Value::from(vec![Value::Dict(__t.0), Value::Dict(__t.1)]) }.as_array().cloned().unwrap_or_default();
         let flags: String = self.safe_string_k(orderRequest.get(0).cloned().unwrap_or(Value::Null), "oflags", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let isUsingCost: bool = flags.contains("viqc");
         let __ws_arg_8 = self.extend(orderRequest.get(0).cloned().unwrap_or(Value::Null), &[orderRequest.get(1).cloned().unwrap_or(Value::Null)]);

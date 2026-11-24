@@ -517,7 +517,7 @@ impl crate::exchange::DerivedExchange for Lbank {
 
     None
 }
-    fn parse_funding_rate(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_funding_rate(&self, ticker: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let ticker: Value = ticker.into();
         // {
         //     "symbol": "BTCUSDT",
@@ -1796,11 +1796,8 @@ impl Lbank {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        let marketsPromises: crate::value::List = std::sync::Arc::new(vec![Value::Arr(self.fetch_spot_markets(&[params.clone()]).await), Value::Arr(self.fetch_swap_markets(&[params]).await)]);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
+        let marketsPromises: crate::value::List = std::sync::Arc::new(vec![Value::Arr(self.fetch_spot_markets(&[Value::from(&params)]).await), Value::Arr(self.fetch_swap_markets(&[Value::from(&params)]).await)]);
         let resolvedMarkets: crate::value::List = promise_all(&Value::Arr(marketsPromises)).await;
         let spotMarkets: crate::value::List = self.safe_list_t(&resolvedMarkets, Value::Int(0));
         let swapMarkets: crate::value::List = self.safe_list_t(&resolvedMarkets, Value::Int(1));
@@ -2896,10 +2893,7 @@ impl Lbank {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let symbol = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -2909,9 +2903,9 @@ impl Lbank {
             method = self.safe_string_k_opt(&options, "method", &[&Value::Str("fetchOrderSupplement".into())]);
         }
         if (method.as_deref() == Some("fetchOrderSupplement")) {
-            return self.fetch_order_supplement(id.as_str().unwrap_or_default(), symbol.as_str(), &[&params]).await;
+            return self.fetch_order_supplement(id.as_str().unwrap_or_default(), symbol.as_str(), &[&Value::from(&params)]).await;
         }
-        return self.fetch_order_default(id.as_str().unwrap_or_default(), symbol.as_str(), &[&params]).await;
+        return self.fetch_order_default(id.as_str().unwrap_or_default(), symbol.as_str(), &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -3985,10 +3979,7 @@ impl Lbank {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let codes = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 1);
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
@@ -4003,7 +3994,7 @@ impl Lbank {
             }
             return self.fetch_private_deposit_withdraw_fees(&[&codes, &Value::Dict(paramsOmitted)]).await;
         }
-        return self.fetch_public_deposit_withdraw_fees(&[&codes, &params]).await;
+        return self.fetch_public_deposit_withdraw_fees(&[&codes, &Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }

@@ -1956,11 +1956,8 @@ impl Cex {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return Value::Arr(self.fetch_orders_by_status("closed", symbol.as_str(), since, limit, &[params]).await);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        return Value::Arr(self.fetch_orders_by_status("closed", symbol.as_str(), since, limit, &[Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -1985,11 +1982,8 @@ impl Cex {
         let symbol = get_arg(optional_args, 0, Value::Null);
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
-        let params = get_arg(optional_args, 3, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
-        return Value::Arr(self.fetch_orders_by_status("open", symbol.as_str(), since, limit, &[params]).await);
+        let params: crate::value::Dict = get_arg_dict(optional_args, 3);
+        return Value::Arr(self.fetch_orders_by_status("open", symbol.as_str(), since, limit, &[Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -2488,15 +2482,12 @@ impl Cex {
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
-        let params = get_arg(optional_args, 0, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}));
+        let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let mut transfer: Value = Value::Null;
         if (toAccount.as_str() != Some("")) && (fromAccount.as_str() != Some("")) {
-            transfer = self.transfer_between_sub_accounts(code.as_str().unwrap_or_default(), Value::from(amount), fromAccount.as_str().unwrap_or_default(), toAccount.as_str().unwrap_or_default(), &[&params]).await;
+            transfer = self.transfer_between_sub_accounts(code.as_str().unwrap_or_default(), Value::from(amount), fromAccount.as_str().unwrap_or_default(), toAccount.as_str().unwrap_or_default(), &[&Value::from(&params)]).await;
         }  else {
-            transfer = self.transfer_between_main_and_sub_account(code.as_str().unwrap_or_default(), Value::from(amount), fromAccount.as_str().unwrap_or_default(), toAccount.as_str().unwrap_or_default(), &[&params]).await;
+            transfer = self.transfer_between_main_and_sub_account(code.as_str().unwrap_or_default(), Value::from(amount), fromAccount.as_str().unwrap_or_default(), toAccount.as_str().unwrap_or_default(), &[&Value::Dict(params)]).await;
         }
         let fillResponseFromRequest: Option<bool> = self.handle_option(Value::Str("transfer".into()), Value::Str("fillResponseFromRequest".into()), &[Value::Bool(true)]).as_bool();
         let mut filled: indexmap::IndexMap<String, Value> = ({
