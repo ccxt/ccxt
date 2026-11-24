@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import bitvavoRest from '../bitvavo.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict, List, Strings, Tickers, Bool, Currencies, Market, Transaction, type int } from '../base/types.js';
+import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict, List, Strings, Tickers, Currencies, Market, Transaction, type int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
@@ -1833,7 +1833,7 @@ export default class bitvavo extends bitvavoRest {
         }
     }
 
-    handleErrorMessage (client: Client, message: Dict): Bool {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //    {
         //        action: 'privateCreateOrder',
@@ -1851,7 +1851,7 @@ export default class bitvavo extends bitvavoRest {
         //
         const error = this.safeString (message, 'error');
         if (error === undefined) {
-            return undefined;
+            return false;
         }
         const code = this.safeInteger (error, 'errorCode');
         const action = this.safeString (message, 'action');
@@ -1869,7 +1869,7 @@ export default class bitvavo extends bitvavoRest {
             client.reject (feedback, messageHash);
             return true;
         }
-        return undefined;
+        return false;
     }
 
     override handleMessage (client: Client, message: Dict) {

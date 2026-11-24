@@ -1011,7 +1011,7 @@ export default class lbank extends lbankRest {
         client.resolve (orderbook, messageHash);
     }
 
-    handleErrorMessage (client: Client, message: Dict) {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //    {
         //        SERVER: 'V2',
@@ -1023,6 +1023,7 @@ export default class lbank extends lbankRest {
         const errMsg = this.safeString (message, 'message', '');
         const error = new ExchangeError (this.id + ' ' + errMsg);
         client.reject (error);
+        return false;
     }
 
     async handlePing (client: Client, message: Dict) {

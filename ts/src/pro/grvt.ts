@@ -3,7 +3,7 @@
 
 import grvtRest from '../grvt.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Dict, List, Market, Position, Bool, Tickers, int } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, OrderBook, Order, Trade, Ticker, Dict, List, Market, Position, Tickers, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError } from '../base/errors.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -958,7 +958,7 @@ export default class grvt extends grvtRest {
         return this.parseOrder (this.extend ({}, order), market);
     }
 
-    handleErrorMessage (client: Client, response: Dict): Bool {
+    handleErrorMessage (client: Client, response: Dict): boolean {
         //
         //    {
         //        "jsonrpc": "2.0",

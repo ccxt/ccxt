@@ -2467,7 +2467,7 @@ export default class htx extends htxRest {
         promise.resolve (message);
     }
 
-    handleErrorMessage (client: Client, message: Dict): Bool {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //     {
         //         "action": "sub",

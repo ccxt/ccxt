@@ -1806,7 +1806,7 @@ export default class backpack extends backpackRest {
         }
     }
 
-    handleErrorMessage (client: Client, message: Dict): Bool {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //     {
         //         id: null,

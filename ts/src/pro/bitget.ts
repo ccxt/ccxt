@@ -2800,7 +2800,7 @@ export default class bitget extends bitgetRest {
         future.resolve (true);
     }
 
-    handleErrorMessage (client: Client, message: Dict): Bool {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //    { event: "error", code: 30015, msg: "Invalid sign" }
         //

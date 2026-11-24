@@ -4,7 +4,7 @@
 import paradexRest from '../paradex.js';
 import Precise from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
-import type { Int, int, Str, Trade, Order, Dict, NullableDict, OrderBook, Ticker, Strings, Tickers, Bool, Market, FundingRate, FundingRates, Position, Balances, Liquidation } from '../base/types.js';
+import type { Int, int, Str, Trade, Order, Dict, NullableDict, OrderBook, Ticker, Strings, Tickers, Market, FundingRate, FundingRates, Position, Balances, Liquidation } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArgumentsRequired, ExchangeError, RequestTimeout } from '../base/errors.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
@@ -2589,7 +2589,7 @@ export default class paradex extends paradexRest {
         return account;
     }
 
-    handleErrorMessage (client: Client, message: Dict): Bool {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //     {
         //         "jsonrpc": "2.0",

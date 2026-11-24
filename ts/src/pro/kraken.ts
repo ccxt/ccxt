@@ -1776,7 +1776,7 @@ export default class kraken extends krakenRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message: Dict): Bool {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //     {
         //         "errorMessage": "Currency pair not in ISO 4217-A3 format foobar",

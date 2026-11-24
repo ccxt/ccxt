@@ -799,7 +799,7 @@ export default class bit2me extends bit2meRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message: Dict) {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //     { "event": "added-order", "symbol": "BTC/USDC", "error": { "code": "PRICE_LOWER_MARKET_MIN", "minPrice": 0.001, "message": "The price can not be lower than 0.001" } }
         //     { "event": "canceled-order", "orderId": "73352609-a885-4dc6-99c4-8a03e5df6bda", "error": { "code": "ORDER_NOT_FOUND", "message": "The order with ID 73352609-a885-4dc6-99c4-8a03e5df6bda was not found" } }
@@ -871,6 +871,7 @@ export default class bit2me extends bit2meRest {
                 }
             }
         }
+        return false;
     }
 
     override handleMessage (client: Client, message: Dict) {

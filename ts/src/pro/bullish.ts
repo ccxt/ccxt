@@ -782,7 +782,7 @@ export default class bullish extends bullishRest {
         client.resolve (positions, 'positions');
     }
 
-    handleErrorMessage (client: Client, message: Dict) {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //     {
         //         "data": {
@@ -805,6 +805,7 @@ export default class bullish extends bullishRest {
         } catch (e) {
             client.reject (e);
         }
+        return false;
     }
 
     override handleMessage (client: Client, message: Dict) {

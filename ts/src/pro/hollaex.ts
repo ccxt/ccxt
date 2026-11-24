@@ -5,7 +5,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import hollaexRest from '../hollaex.js';
 import { AuthenticationError, BadSymbol, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Balances, Dict, Bool } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Balances, Dict } from '../base/types.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 import Client from '../base/ws/Client.js';
 
@@ -505,7 +505,7 @@ export default class hollaex extends hollaexRest {
         return await this.watch (signedUrl, messageHash, message, messageHash);
     }
 
-    handleErrorMessage (client: Client, message: Dict): Bool {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //     { error: "Bearer or HMAC authentication required" }
         //     { error: "Error: wrong input" }

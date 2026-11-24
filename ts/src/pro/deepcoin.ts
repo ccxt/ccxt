@@ -1325,7 +1325,7 @@ export default class deepcoin extends deepcoinRest {
         this.cleanCache (subscription);
     }
 
-    handleErrorMessage (client: Client, message: Dict) {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //     {
         //         "a": "RecvTopicAction",
@@ -1359,5 +1359,6 @@ export default class deepcoin extends deepcoinRest {
         } catch (e) {
             client.reject (e, messageHash);
         }
+        return false;
     }
 }

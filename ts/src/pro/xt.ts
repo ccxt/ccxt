@@ -1668,7 +1668,7 @@ export default class xt extends xtRest {
         this.cleanCache (subscription);
     }
 
-    handleErrorMessage (client: Client, message: Dict) {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //    {
         //        "id": "123",
@@ -1682,9 +1682,10 @@ export default class xt extends xtRest {
                 delete client.subscriptions['token'];
             }
             this.getListenKey (true);
-            return;
+            return false;
         }
         const error = new ExchangeError (this.id + ' ' + this.json (message));
         client.reject (error);
+        return false;
     }
 }

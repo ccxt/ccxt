@@ -2027,7 +2027,7 @@ export default class gate extends gateRest {
         }, marketResolved);
     }
 
-    handleErrorMessage (client: Client, message: Dict): Bool {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //    {
         //        "time": 1647274664,

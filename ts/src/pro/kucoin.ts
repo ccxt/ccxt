@@ -3541,7 +3541,7 @@ export default class kucoin extends kucoinRest {
         // https://docs.kucoin.com/#ping
     }
 
-    handleErrorMessage (client: Client, message: Dict): Bool {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         //    {
         //        "id": "1",
