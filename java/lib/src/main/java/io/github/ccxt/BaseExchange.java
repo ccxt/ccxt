@@ -2133,8 +2133,8 @@ public class BaseExchange {
         throw new IllegalStateException("incrementingNonce is owner-serialized: nextCounterAbove");
     }
 
-    // TS `loadMarkets (reload = false, params = {})`; venues override it with this signature
-    public java.util.concurrent.CompletableFuture<Object> loadMarkets(Object reload2, Object params) {
+    // TS `loadMarkets (reload = false, params: Dict = {})`; venues override it with this signature
+    public java.util.concurrent.CompletableFuture<Object> loadMarkets(Object reload2, java.util.Map<String, Object> params) {
 
         boolean reload = Boolean.TRUE.equals(reload2);
         // One owner task decides: serve the in-flight load, or claim the right to start one by
