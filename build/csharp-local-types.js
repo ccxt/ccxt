@@ -17796,7 +17796,9 @@ function csharpParameterCallSitesProve (csharp, parameter, target) {
             }
             continue;
         }
-        if (!csharpArgumentAssignable (target, csharpArgumentType (csharp, argument, target), argument)) {
+        // a `Str = undefined` parameter prints `string? x = null`: it takes a nullable string argument
+        const accepts = ((target === 'string') && csharpParameterDefaultPrintsNull (parameter.initializer)) ? 'string?' : target;
+        if (!csharpArgumentAssignable (accepts, csharpArgumentType (csharp, argument, target), argument)) {
             return false;
         }
     }
