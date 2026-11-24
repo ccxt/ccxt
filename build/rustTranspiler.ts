@@ -4740,7 +4740,9 @@ function rustTypedSafeOrder (content: string): string {
 
 // `parseOrder` builds every order through `safeOrder` (a `Dict`): a venue override returns `Some(..)` through the
 // `DerivedExchange` slot (`None` = not overridden), the base `Dict`. `.into_dict()` drops, `.as_map()` copies unwrap, any other use boxes it.
-function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'position' | 'transfer' | 'transaction' | 'balance' | 'margin_modification' | 'income' | 'margin_mode' | 'account' | 'funding_rate' | 'deposit_address' | 'leverage' | 'ledger_entry' | 'open_interest' | 'currency' | 'deposit_withdraw_fee' | 'market' | 'borrow_interest' | 'last_price' | 'prediction_order' | 'prediction_position' | 'adl_rank' | 'greeks' | 'liquidation' | 'funding_rate_history', p0: string | undefined = undefined): string {
+function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'position' | 'transfer' | 'transaction' | 'balance' | 'margin_modification' | 'income' | 'margin_mode' | 'account' | 'funding_rate' | 'deposit_address' | 'leverage' | 'ledger_entry' | 'open_interest' | 'currency' | 'deposit_withdraw_fee' | 'market' | 'borrow_interest' | 'last_price' | 'prediction_order' | 'prediction_position' | 'adl_rank' | 'greeks' | 'liquidation' | 'funding_rate_history'
+    | 'prediction_trade'
+    | 'prediction_ticker', p0: string | undefined = undefined): string {
     const fn = 'parse_' + fam, Fn = 'parse' + fam.replace (/(?:^|_)(\w)/g, (_x, c: string) => c.toUpperCase ());
     // `parseBalance (response)` and `parseAccount (account)` have no second argument; p0 names a base parameter that differs from the family
     const sub = p0 ?? fam;
@@ -4750,7 +4752,7 @@ function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'posit
     const me = fam === 'currency' ? '&mut self' : '&self';
     // binance names the prediction market slot `outcomeObj`
     // an owned `Value` row slot (the trait keeps it boxed) is typed the same way: no rebinding local
-    const derivedSig = new RegExp ('\\n    fn ' + fn + '\\(' + me + ', (?:\\w+: impl Into<crate::Value>|mut \\w+: Value)' + (fam === 'prediction_order' || fam === 'prediction_position' ? arg2Re.replace (/^, \w+:/, ', \\w+:') : arg2Re) + '\\) -> Value \\{\\n');
+    const derivedSig = new RegExp ('\\n    fn ' + fn + '\\(' + me + ', (?:\\w+: impl Into<crate::Value>|mut \\w+: Value)' + (fam.startsWith ('prediction_') ? arg2Re.replace (/^, \w+:/, ', \\w+:') : arg2Re) + '\\) -> Value \\{\\n');
     const safeRet = 'Value::Dict(self.safe_' + fam + (fam === 'currency' || fam === 'market' ? '_structure(' : '(');
     const allSafe = (body: string) => { const r = body.match (/^ *return\b[^\n]*/gm) ?? []; return r.length > 0 && r.every ((x) => x.trim ().startsWith ('return ' + safeRet)); };
     const unbox = (body: string, wrap: string) => {
@@ -5242,6 +5244,8 @@ function rustTypedParsePositionFamilies (content: string): string {
     // `safePredictionOrder` returns one object literal: `Dict`; every venue `parsePredictionOrder` returns it
     content = rustTypedSafeDict (content, 'safe_prediction_order', 'mut outcomeOrder: Value, optional_args: &[Value]', 'return Value::Map(', 'return std::sync::Arc::new(');
     content = rustTypedParseFamily (content, 'prediction_order', 'order');
+    content = rustTypedParseFamily (rustTypedSafeDict (content, 'safe_prediction_trade', 'mut trade: Value, optional_args: &[Value]', 'return Value::Map(', 'return std::sync::Arc::new('), 'prediction_trade', 'trade');
+    content = rustTypedParseFamily (rustTypedSafeDict (content, 'safe_prediction_ticker', 'mut ticker: Value, optional_args: &[Value]', 'return Value::Map(', 'return std::sync::Arc::new('), 'prediction_ticker', 'ticker');
     content = rustTypedParseFamily (rustTypedSafeDict (content, 'safe_prediction_position', 'mut position: Value', 'return Value::Map(', 'return std::sync::Arc::new('), 'prediction_position', 'position');
     content = rustTypedParseFamily (content, 'adl_rank', 'info');
     content = rustTypedParseFamily (content, 'greeks');
@@ -14507,6 +14511,7 @@ export class RustTranspilerBuilder {
             parse_prediction_trade:     ['trade', 'market'],
             parse_prediction_order:     ['order', 'market'],
             parse_prediction_position:  ['position', 'market'],
+            parse_prediction_ticker:    ['ticker', 'market'],
             create_expired_option_market: ['symbol'],
             market:                     ['symbol'],
             sign:                       ['path', 'optional_args: &[Value]'],
