@@ -2573,7 +2573,7 @@ export default class polymarket extends Exchange {
         if (eventForParsing === undefined) {
             eventForParsing = {};
         }
-        const event: any = this.parseEvent (eventForParsing);
+        const event: any = this.parseEvent (this.extend ({}, eventForParsing));
         this.indexEventOutcomes (event);
         return event;
     }

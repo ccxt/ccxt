@@ -346,7 +346,7 @@ export default class myriad extends Exchange {
     override async fetchEvent (id: string, params: Dict = {}): Promise<PredictionEvent> {
         if (id.indexOf (':') < 0) {
             const rawQuestion = await this.fetchRawQuestionById (id, params);
-            const orderBookEvent = this.parseEvent (rawQuestion);
+            const orderBookEvent = this.parseEvent (this.extend ({}, rawQuestion));
             this.indexEventOutcomes (orderBookEvent);
             return orderBookEvent;
         }
