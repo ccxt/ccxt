@@ -4742,7 +4742,8 @@ function rustTypedSafeOrder (content: string): string {
 // `DerivedExchange` slot (`None` = not overridden), the base `Dict`. `.into_dict()` drops, `.as_map()` copies unwrap, any other use boxes it.
 function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'position' | 'transfer' | 'transaction' | 'balance' | 'margin_modification' | 'income' | 'margin_mode' | 'account' | 'funding_rate' | 'deposit_address' | 'leverage' | 'ledger_entry' | 'open_interest' | 'currency' | 'deposit_withdraw_fee' | 'market' | 'borrow_interest' | 'last_price' | 'prediction_order' | 'prediction_position' | 'adl_rank' | 'greeks' | 'liquidation' | 'funding_rate_history'
     | 'prediction_trade'
-    | 'prediction_ticker', p0: string | undefined = undefined): string {
+    | 'prediction_ticker'
+    | 'prediction_open_interest', p0: string | undefined = undefined, builder: string | undefined = undefined): string {
     const fn = 'parse_' + fam, Fn = 'parse' + fam.replace (/(?:^|_)(\w)/g, (_x, c: string) => c.toUpperCase ());
     // `parseBalance (response)` and `parseAccount (account)` have no second argument; p0 names a base parameter that differs from the family
     const sub = p0 ?? fam;
@@ -4753,7 +4754,7 @@ function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'posit
     // binance names the prediction market slot `outcomeObj`
     // an owned `Value` row slot (the trait keeps it boxed) is typed the same way: no rebinding local
     const derivedSig = new RegExp ('\\n    fn ' + fn + '\\(' + me + ', (?:\\w+: impl Into<crate::Value>|mut \\w+: Value)' + (fam.startsWith ('prediction_') ? arg2Re.replace (/^, \w+:/, ', \\w+:') : arg2Re) + '\\) -> Value \\{\\n');
-    const safeRet = 'Value::Dict(self.safe_' + fam + (fam === 'currency' || fam === 'market' ? '_structure(' : '(');
+    const safeRet = builder !== undefined ? 'Value::Dict(self.' + builder + '(' : 'Value::Dict(self.safe_' + fam + (fam === 'currency' || fam === 'market' ? '_structure(' : '(');
     const allSafe = (body: string) => { const r = body.match (/^ *return\b[^\n]*/gm) ?? []; return r.length > 0 && r.every ((x) => x.trim ().startsWith ('return ' + safeRet)); };
     const unbox = (body: string, wrap: string) => {
         let out = '', last = 0, at: number;
@@ -4788,6 +4789,14 @@ function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'posit
                 const s = body.indexOf (m[0]);
                 const close = balancedCloseIndex (body, s + m[0].length);
                 body = body.slice (0, s) + (m[0].startsWith ('let mut ') ? 'let mut ' : 'let ') + name + ': crate::value::Dict = ' + body.slice (s + m[0].length - safeRet.length + 'Value::Dict('.length, close + 1) + body.slice (close + 2);
+                body = body.replace ('return ' + name + ';', 'return Some(' + name + ');');
+            } else if (builder !== undefined && m[2].startsWith ('Value::Dict') && body.includes ('return ' + name + ';')
+                && uses === 2 + (body.match (new RegExp ('^ *if let Value::Dict\\(__\\w+\\) = &mut ' + name + ' \\{ [^\\n]* \\}$', 'gm')) ?? []).length) {
+                // a map built by the typed builder, then only edited in place and returned
+                const s = body.indexOf (m[0]);
+                const close = balancedCloseIndex (body, s + m[0].length);
+                body = body.slice (0, s) + 'let mut ' + name + ': crate::value::Dict = ' + body.slice (s + m[0].length - safeRet.length + 'Value::Dict('.length, close + 1) + body.slice (close + 2);
+                body = body.replace (new RegExp ('^( *)if let Value::Dict\\((__\\w+)\\) = &mut ' + name + ' \\{ ([^\\n]*) \\}$', 'gm'), (_l, ind: string, v: string, e: string) => ind + e.split ('make_mut(' + v + ')').join ('make_mut(&mut ' + name + ')'));
                 body = body.replace ('return ' + name + ';', 'return Some(' + name + ');');
             } else if (!m[2].startsWith ('Value::Dict') && uses === 3 && body.includes (box) && body.includes ('return ' + name + ';')) {
                 body = body.replace (m[0], 'let mut ' + name + ': Option<crate::value::Dict> = ' + m[2]).replace (box, 'if let Some(__rda) = &mut ' + name + ' {');
@@ -5247,6 +5256,8 @@ function rustTypedParsePositionFamilies (content: string): string {
     content = rustTypedParseFamily (rustTypedSafeDict (content, 'safe_prediction_trade', 'mut trade: Value, optional_args: &[Value]', 'return Value::Map(', 'return std::sync::Arc::new('), 'prediction_trade', 'trade');
     content = rustTypedParseFamily (rustTypedSafeDict (content, 'safe_prediction_ticker', 'mut ticker: Value, optional_args: &[Value]', 'return Value::Map(', 'return std::sync::Arc::new('), 'prediction_ticker', 'ticker');
     content = rustTypedParseFamily (rustTypedSafeDict (content, 'safe_prediction_position', 'mut position: Value', 'return Value::Map(', 'return std::sync::Arc::new('), 'prediction_position', 'position');
+    // every venue `parsePredictionOpenInterest` builds its map through `safeOpenInterest` (already `Dict`)
+    content = rustTypedParseFamily (content, 'prediction_open_interest', 'interest', 'safe_open_interest');
     content = rustTypedParseFamily (content, 'adl_rank', 'info');
     content = rustTypedParseFamily (content, 'greeks');
     content = rustTypedParseFamily (content, 'funding_rate_history', 'info');
@@ -5330,6 +5341,7 @@ function rustBorrowedParseRows (content: string): string {
     optFns.push ('parse_prediction_trade');
     optFns.push ('parse_prediction_position');
     optFns.push ('parse_prediction_ticker');
+    optFns.push ('parse_prediction_open_interest');
     const fns = optFns.join ('|');
     const slot = (fn: string) => optFns.includes (fn) ? 'Option<&crate::value::Dict>' : '&crate::value::Dict';
     content = content.replace (new RegExp ('\\n    fn (' + fns + ')\\(&self, (\\w+): impl Into<crate::Value>([,)])', 'g'), (_m, f: string, x: string, e: string) => '\n    fn ' + f + '(&self, ' + x + ': ' + slot (f) + e);
@@ -14534,6 +14546,7 @@ export class RustTranspilerBuilder {
             parse_prediction_order:     ['order', 'market'],
             parse_prediction_position:  ['position', 'market'],
             parse_prediction_ticker:    ['ticker', 'market'],
+            parse_prediction_open_interest: ['interest', 'market'],
             create_expired_option_market: ['symbol'],
             market:                     ['symbol'],
             sign:                       ['path', 'optional_args: &[Value]'],
