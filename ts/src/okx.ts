@@ -8288,7 +8288,7 @@ export default class okx extends Exchange {
      * @param {int} [params.until] The time in ms of the latest record to retrieve as a unix timestamp
      * @returns An array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    override async fetchOpenInterestHistory (symbol: string, timeframe: string = '1d', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OpenInterest[]> {
+    override async fetchOpenInterestHistory (symbol: string, timeframe: string = '1d', since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
         const options = this.safeDict (this.options, 'fetchOpenInterestHistory', {});
         const timeframes = this.safeDict (options, 'timeframes', {});
         const timeframeValue: string = this.safeString (timeframes, timeframe, timeframe);
@@ -8337,7 +8337,7 @@ export default class okx extends Exchange {
             //    }
             //
             const instrumentData = this.safeList (response, 'data', []) as List;
-            return this.filterBySymbolSinceLimit (this.sortBy (this.parseOpenInterestRows (instrumentData, market), 'timestamp'), this.safeString (market, 'symbol'), since, limit);
+            return this.parseOpenInterestsHistory (instrumentData, market, since, limit);
         }
         if (type === 'option') {
             response = await this.publicGetRubikStatOptionOpenInterestVolume (this.extend (request, paramsMarketType));
@@ -8367,65 +8367,7 @@ export default class okx extends Exchange {
         //    }
         //
         const data = this.safeList (response, 'data', []) as List;
-        return this.filterBySymbolSinceLimit (this.sortBy (this.parseOpenInterestRows (data), 'timestamp'), undefined, since, limit);
-    }
-
-    parseOpenInterestRows (rows: List, market: Market = undefined): OpenInterest[] {
-        const interests: OpenInterest[] = [];
-        for (let i = 0; i < rows.length; i++) {
-            interests.push (this.parseOpenInterestRow (this.safeList (rows, i, []), market));
-        }
-        return interests;
-    }
-
-    parseOpenInterestRow (interest: List, market: Market = undefined): OpenInterest {
-        //
-        // fetchOpenInterestHistory
-        //
-        //    [
-        //        "1648221300000",  // timestamp
-        //        "2183354317.945",  // open interest (USD) - (coin) for options
-        //        "74285877.617",  // volume (USD) - (coin) for options
-        //    ]
-        //
-        // fetchOpenInterestHistory for a swap or future market
-        //
-        //    [
-        //        "1790550000000",  // timestamp
-        //        "2800476.45",  // open interest (contracts)
-        //        "28006.5419",  // open interest (base currency)
-        //        "2360916466.88",  // open interest (USD)
-        //    ]
-        //
-        const marketResolved: Market = this.safeMarket (undefined, market);
-        const timestamp = this.safeInteger (interest, 0);
-        let baseVolume: Num = undefined;
-        let quoteVolume: Num = undefined;
-        let openInterestAmount: Num = undefined;
-        let openInterestValue: Num = undefined;
-        const type = this.safeString (this.options, 'defaultType');
-        const numFields = interest.length;
-        if (numFields > 3) {
-            openInterestAmount = this.safeNumber (interest, 1);
-            baseVolume = this.safeNumber (interest, 2);
-            openInterestValue = this.safeNumber (interest, 3);
-        } else if (type === 'option') {
-            openInterestAmount = this.safeNumber (interest, 1);
-            baseVolume = this.safeNumber (interest, 2);
-        } else {
-            openInterestValue = this.safeNumber (interest, 1);
-            quoteVolume = this.safeNumber (interest, 2);
-        }
-        return this.safeOpenInterest ({
-            'symbol': this.safeSymbol (undefined),
-            'baseVolume': baseVolume,  // deprecated
-            'quoteVolume': quoteVolume,  // deprecated
-            'openInterestAmount': openInterestAmount,
-            'openInterestValue': openInterestValue,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'info': interest,
-        }, marketResolved);
+        return this.parseOpenInterestsHistory (data, undefined, since, limit);
     }
 
     /**
@@ -8484,7 +8426,24 @@ export default class okx extends Exchange {
         return [ request, paramsOmitted ];
     }
 
-    override parseOpenInterest (interest: NullableDict, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
+        //
+        // fetchOpenInterestHistory
+        //
+        //    [
+        //        "1648221300000",  // timestamp
+        //        "2183354317.945",  // open interest (USD) - (coin) for options
+        //        "74285877.617",  // volume (USD) - (coin) for options
+        //    ]
+        //
+        // fetchOpenInterestHistory for a swap or future market
+        //
+        //    [
+        //        "1790550000000",  // timestamp
+        //        "2800476.45",  // open interest (contracts)
+        //        "28006.5419",  // open interest (base currency)
+        //        "2360916466.88",  // open interest (USD)
+        //    ]
         //
         // fetchOpenInterest
         //
@@ -8499,13 +8458,37 @@ export default class okx extends Exchange {
         //
         const id = this.safeString (interest, 'instId');
         const marketResolved: Market = this.safeMarket (id, market);
-        const timestamp = this.safeInteger (interest, 'ts');
+        const time = this.safeInteger (interest, 'ts');
+        const timestamp = this.safeInteger (interest, 0, time);
+        let baseVolume: Num = undefined;
+        let quoteVolume: Num = undefined;
+        let openInterestAmount: Num = undefined;
+        let openInterestValue: Num = undefined;
+        const type = this.safeString (this.options, 'defaultType');
+        if (Array.isArray (interest)) {
+            const numFields = interest.length;
+            if (numFields > 3) {
+                openInterestAmount = this.safeNumber (interest, 1);
+                baseVolume = this.safeNumber (interest, 2);
+                openInterestValue = this.safeNumber (interest, 3);
+            } else if (type === 'option') {
+                openInterestAmount = this.safeNumber (interest, 1);
+                baseVolume = this.safeNumber (interest, 2);
+            } else {
+                openInterestValue = this.safeNumber (interest, 1);
+                quoteVolume = this.safeNumber (interest, 2);
+            }
+        } else {
+            baseVolume = this.safeNumber (interest, 'oiCcy');
+            openInterestAmount = this.safeNumber (interest, 'oi');
+            openInterestValue = this.safeNumber (interest, 'oiUsd');
+        }
         return this.safeOpenInterest ({
             'symbol': this.safeSymbol (id),
-            'baseVolume': this.safeNumber (interest, 'oiCcy'),  // deprecated
-            'quoteVolume': undefined,  // deprecated
-            'openInterestAmount': this.safeNumber (interest, 'oi'),
-            'openInterestValue': this.safeNumber (interest, 'oiUsd'),
+            'baseVolume': baseVolume,  // deprecated
+            'quoteVolume': quoteVolume,  // deprecated
+            'openInterestAmount': openInterestAmount,
+            'openInterestValue': openInterestValue,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,

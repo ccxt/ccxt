@@ -36,8 +36,8 @@ const GO_STRUCT_RETURN_TYPES: Record<string, { names: string[], from?: string, t
     'LedgerEntry': { 'names': [ 'ParseLedgerEntry', 'SafeLedgerEntry' ] },
     'DepositAddress': { 'names': [ 'ParseDepositAddress' ] },
     'TransferEntry': { 'names': [ 'ParseTransfer' ] },
-    'FundingRate': { 'names': [ 'ParseFundingRate', 'ParseFundingRateRow' ] }, // bitfinex list-row parser
-    'OpenInterest': { 'names': [ 'ParseOpenInterest', 'SafeOpenInterest', 'ParseOpenInterestRow' ] }, // bitfinex + okx list-row parsers
+    'FundingRate': { 'names': [ 'ParseFundingRate' ] },
+    'OpenInterest': { 'names': [ 'ParseOpenInterest', 'SafeOpenInterest' ] },
     'TradingFeeInterface': { 'names': [ 'ParseTradingFee' ] },
     'Leverage': { 'names': [ 'ParseLeverage' ] },
     'MarginMode': { 'names': [ 'ParseMarginMode' ] },

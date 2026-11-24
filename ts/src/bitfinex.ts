@@ -3317,14 +3317,7 @@ export default class bitfinex extends Exchange {
         //       ]
         //   ]
         //
-        const fundingRates: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const rateSymbol = this.safeSymbol (this.safeString (this.safeList (response, i, []), 0));
-            if (rateSymbol !== undefined) {
-                fundingRates[rateSymbol] = this.parseFundingRateRow (this.safeList (response, i, []));
-            }
-        }
-        return this.indexBy (this.filterByArray (fundingRates, 'symbol', symbols, false), 'symbol') as FundingRates;
+        return this.parseFundingRates (response, symbols);
     }
 
     /**
@@ -3408,7 +3401,7 @@ export default class bitfinex extends Exchange {
         return reversedArray as FundingRateHistory[];
     }
 
-    parseFundingRateRow (contract: List, market: Market = undefined): FundingRate {
+    override parseFundingRate (contract: NullableDict, market: Market = undefined): FundingRate {
         //
         //       [
         //          "tBTCF0:USTF0",
@@ -3552,14 +3545,7 @@ export default class bitfinex extends Exchange {
         //         ]
         //     ]
         //
-        const openInterests: Dict = {};
-        for (let i = 0; i < response.length; i++) {
-            const interestSymbol = this.safeSymbol (this.safeString (this.safeList (response, i, []), 0), undefined, undefined, 'swap');
-            if (interestSymbol !== undefined) {
-                openInterests[interestSymbol] = this.parseOpenInterestRow (this.safeList (response, i, []));
-            }
-        }
-        return this.indexBy (this.filterByArray (openInterests, 'symbol', symbolsNormalized, false), 'symbol') as OpenInterests;
+        return this.parseOpenInterests (response, symbolsNormalized) as OpenInterests;
     }
 
     /**
@@ -3610,8 +3596,8 @@ export default class bitfinex extends Exchange {
         //         ]
         //     ]
         //
-        const oi = this.safeList (response, 0, []);
-        return this.parseOpenInterestRow (oi, market);
+        const oi = this.safeList (response, 0);
+        return this.parseOpenInterest (oi, market);
     }
 
     /**
@@ -3628,7 +3614,7 @@ export default class bitfinex extends Exchange {
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns An array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    override async fetchOpenInterestHistory (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OpenInterest[]> {
+    override async fetchOpenInterestHistory (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3677,15 +3663,10 @@ export default class bitfinex extends Exchange {
         //         ],
         //     ]
         //
-        const interests: OpenInterest[] = [];
-        for (let i = 0; i < response.length; i++) {
-            interests.push (this.parseOpenInterestRow (this.safeList (response, i, []), market));
-        }
-        const sortedInterests = this.sortBy (interests, 'timestamp');
-        return this.filterBySymbolSinceLimit (sortedInterests, this.safeString (market, 'symbol'), since, limit);
+        return this.parseOpenInterestsHistory (response, market, since, limit);
     }
 
-    parseOpenInterestRow (interest: List, market: Market = undefined): OpenInterest {
+    override parseOpenInterest (interest: any, market: Market = undefined): OpenInterest {
         //
         // fetchOpenInterest:
         //
@@ -3809,15 +3790,10 @@ export default class bitfinex extends Exchange {
         //         ],
         //     ]
         //
-        const liquidationsParsed: Liquidation[] = [];
-        for (let i = 0; i < response.length; i++) {
-            liquidationsParsed.push (this.parseLiquidationRow (this.safeList (response, i, []), market));
-        }
-        const sortedLiquidations = this.sortBy (liquidationsParsed, 'timestamp');
-        return this.filterBySymbolSinceLimit (sortedLiquidations, this.safeString (market, 'symbol'), since, limit);
+        return this.parseLiquidations (this.toArray (response), market, since, limit);
     }
 
-    parseLiquidationRow (liquidation: List, market: Market = undefined): Liquidation {
+    override parseLiquidation (liquidation: any, market: Market = undefined): Liquidation {
         //
         //     [
         //         [

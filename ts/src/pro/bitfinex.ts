@@ -1172,13 +1172,13 @@ export default class bitfinex extends bitfinexRest {
                 return;
             }
             for (let i = 0; i < data.length; i++) {
-                const parsed = this.parseWsOrderRow (this.safeList (data, i, []));
+                const parsed = this.parseWsOrder (data[i]);
                 const symbol = this.safeString (parsed, 'symbol', '');
                 symbolIds[symbol] = true;
                 orders.append (parsed);
             }
         } else {
-            const parsed = this.parseWsOrderRow (data);
+            const parsed = this.parseWsOrder (data);
             orders.append (parsed);
             const symbol = this.safeString (parsed, 'symbol', '');
             symbolIds[symbol] = true;
@@ -1205,7 +1205,7 @@ export default class bitfinex extends bitfinexRest {
         return this.safeString (statuses, status, status);
     }
 
-    parseWsOrderRow (order: List, market: Market = undefined): Order {
+    override parseWsOrder (order: List, market: Market = undefined): Order {
         //
         //   [
         //       97084883506, // order id
