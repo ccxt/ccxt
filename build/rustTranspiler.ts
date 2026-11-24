@@ -5848,6 +5848,9 @@ function rustStrParamCopyDrop (content: string): string {
             if (row) {
                 // a key reader (`impl KeyRead` first slot) reads the borrowed row itself; any other use keeps the copy
                 const lead = body.slice (Math.max (0, u.index - 80), u.index);
+                // one `info` entry of the result shares the borrowed handle: `Value::from` is the copy's own `Arc` (or `Null`)
+                const info = /\b\w+\.insert\("info"\.to_string\(\), $/.test (content.slice (Math.max (0, at - 80), at)) ? /^(?:\.clone\(\))?(?=\);)/.exec (after) : null;
+                if (info !== null && !local.some ((e) => e.text === `Value::from(${name})`)) { local.push ({ start: at, end: at + name.length + info[0].length, text: `Value::from(${name})` }); continue; }
                 if (!(/\bself\.safe_(?:string|integer|number|value|dict|list|bool|float|timestamp)[a-z0-9_]*\(&?$/.test (lead) && after.startsWith (','))) ok = false;
                 continue;
             }
