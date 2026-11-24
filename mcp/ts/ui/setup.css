@@ -1,0 +1,116 @@
+/* Styles shared by the two loopback account pages (setup.html, accounts.html), inlined after
+   shared.css by ts/setup.ts. Not used by the MCP Apps views. */
+:root { --primary: #1f5fb4; --on-primary: #ffffff; --warn: #9a5b00; --safe-bg: #eef7ee; --safe-border: #9cc79c; }
+@media (prefers-color-scheme: dark) {
+    :root { --primary: #8fbcf5; --on-primary: #0b0b0b; --warn: #e3a341; --safe-bg: #17261a; --safe-border: #2f5a36; }
+}
+body { font-size: 16px; line-height: 1.5; padding: 0 16px 56px; }
+main { max-width: 620px; margin: 0 auto; }
+header.top { display: flex; align-items: center; gap: 10px; padding: 24px 0 18px; }
+.mark { font-weight: 700; letter-spacing: 0.06em; font-size: 13px; border: 1.5px solid var(--text); border-radius: 6px; padding: 2px 7px; }
+.top .product { color: var(--text-2); font-size: 14px; }
+.expiry { margin-left: auto; color: var(--text-2); font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+h1 { font-size: 27px; line-height: 1.2; margin: 0 0 8px; letter-spacing: -0.01em; }
+h1:focus { outline: none; }
+h1:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
+.lede { color: var(--text-2); margin: 0 0 20px; }
+a { color: var(--primary); }
+code { font-family: var(--mono); font-size: 13px; background: var(--bg-2); border-radius: 4px; padding: 1px 5px; overflow-wrap: anywhere; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+/* the "this stays on your computer" panel */
+.trust { background: var(--safe-bg); border: 1px solid var(--safe-border); border-radius: 14px; padding: 18px 18px 16px; margin: 0 0 22px; }
+.trust .head { display: flex; gap: 10px; align-items: center; margin: 0 0 10px; justify-content: flex-start; }
+.trust .head svg { flex: none; width: 24px; height: 24px; stroke: var(--up); fill: none; overflow: hidden; }
+.trust h2 { font-size: 18px; margin: 0; }
+.trust p { margin: 0 0 8px; }
+.path { display: block; font-family: var(--mono); font-size: 13.5px; line-height: 1.45; background: var(--bg); border: 1px solid var(--safe-border); border-radius: 8px; padding: 9px 11px; margin: 0 0 12px; overflow-wrap: anywhere; }
+ul.ticks { list-style: none; margin: 0; padding: 0; }
+ul.ticks li { display: flex; gap: 10px; align-items: flex-start; padding: 5px 0; }
+ul.ticks .tick, ul.checklist .tick { flex: none; width: 20px; height: 20px; border-radius: 50%; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; margin-top: 2px; color: #fff; background: var(--up); }
+ul.checklist { list-style: none; margin: 0; padding: 0; border: 1px solid var(--border); border-radius: 12px; }
+ul.checklist li { display: flex; gap: 10px; align-items: flex-start; padding: 11px 14px; border-top: 1px solid var(--border); }
+ul.checklist li:first-child { border-top: 0; }
+ul.checklist .tick.no { background: var(--down); }
+ul.checklist small { display: block; color: var(--text-2); font-size: 14px; }
+h2.sub { font-size: 16px; margin: 22px 0 8px; }
+ul.plain { margin: 0; padding-left: 20px; color: var(--text-2); }
+ul.plain li { padding: 2px 0; }
+
+/* form controls */
+.field { margin-top: 16px; }
+.field > label, .field > .name { display: block; font-weight: 600; font-size: 15px; margin-bottom: 5px; }
+.field .help { display: block; color: var(--text-2); font-size: 14px; margin-top: 5px; }
+input[type="text"], input[type="password"], input[type="number"], select {
+    width: 100%; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--text-3);
+    border-radius: 10px; padding: 10px 12px; min-height: 46px;
+}
+input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+.secret { display: flex; gap: 8px; }
+.secret input { flex: 1; min-width: 0; font-family: var(--mono); }
+.secret button { flex: none; min-width: 68px; min-height: 46px; color: var(--text); border-color: var(--text-3); border-radius: 10px; }
+fieldset { border: 0; margin: 24px 0 0; padding: 0; min-width: 0; }
+legend { font-weight: 600; font-size: 15px; padding: 0; margin-bottom: 4px; }
+fieldset > .help { color: var(--text-2); font-size: 14px; margin: 0 0 10px; }
+.options { display: grid; gap: 8px; }
+label.option { display: flex; gap: 12px; align-items: flex-start; border: 1px solid var(--border); border-radius: 12px; padding: 13px 14px; cursor: pointer; }
+label.option input { flex: none; width: 18px; height: 18px; margin: 3px 0 0; accent-color: var(--primary); }
+label.option .body { min-width: 0; }
+/* the title and its badge wrap as two whole items, never mid-phrase */
+label.option .line { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; }
+label.option .t { font-weight: 600; }
+label.option .d { display: block; color: var(--text-2); font-size: 14px; margin-top: 2px; }
+label.option:has(input:checked) { border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); }
+label.option:has(input:disabled) { cursor: default; opacity: 0.55; }
+label.option:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 1px; }
+.badge { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: 0.02em; border-radius: 999px; padding: 1px 9px; border: 1px solid var(--border); color: var(--text-2); white-space: nowrap; }
+.badge.good { color: var(--up); border-color: var(--up); }
+.badge.real { color: var(--down); border-color: var(--down); }
+.always { display: flex; gap: 10px; align-items: flex-start; margin: 0 0 14px; color: var(--text-2); }
+.tick-inline { color: var(--up); font-weight: 700; }
+.livebox { border: 1px solid var(--down); border-left-width: 4px; border-radius: 12px; padding: 14px; margin-top: 12px; }
+.livebox h2, .livebox h3 { margin: 0 0 4px; font-size: 16px; color: var(--down); }
+.livebox p { margin: 0 0 12px; font-size: 15px; }
+.livebox .field { margin-top: 0; margin-bottom: 12px; }
+.cap { display: flex; align-items: center; gap: 8px; max-width: 220px; }
+.cap span { color: var(--text-2); font-weight: 600; }
+.fineprint { color: var(--text-2); font-size: 14px; margin: 16px 0 0; }
+
+/* buttons: the main action comes first in the page (so it is the next Tab stop after the
+   last box) and sits on the right on a wide screen, on top on a narrow one */
+.actions { display: flex; flex-direction: row-reverse; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 26px; }
+button.primary, button.secondary, a.secondary, a.primary { font: inherit; font-size: 16px; font-weight: 600; min-height: 48px; padding: 9px 20px; border-radius: 12px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; text-align: center; border: 1px solid var(--text-3); }
+button.primary, a.primary { background: var(--primary); color: var(--on-primary); border-color: var(--primary); }
+button.primary:hover:not(:disabled), a.primary:hover { background: var(--primary); color: var(--on-primary); filter: brightness(1.08); }
+button.secondary, a.secondary { color: var(--text); background: transparent; }
+a.secondary:hover { background: var(--bg-2); }
+a.primary:focus-visible, a.secondary:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+button.danger { color: var(--down); border-color: var(--down); }
+button.danger.solid { background: var(--down); color: #fff; }
+button.danger.solid:hover:not(:disabled) { background: var(--down); color: #fff; filter: brightness(1.08); }
+.actions .back { margin-right: auto; }
+button[aria-disabled="true"] { opacity: 0.5; cursor: default; }
+
+.notice { border-radius: 12px; padding: 12px 14px; margin-top: 16px; border: 1px solid var(--border); border-left-width: 4px; font-size: 15px; overflow-wrap: anywhere; }
+.notice strong { display: block; }
+.notice.good { border-color: var(--up); }
+.notice.bad { border-color: var(--down); }
+.notice.warn { border-color: var(--warn); }
+.notice .detail { display: block; color: var(--text-2); font-size: 14px; margin-top: 4px; }
+.notice .row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.notice .row button { min-height: 40px; padding: 6px 14px; font-weight: 600; color: var(--text); border-color: var(--text-3); border-radius: 10px; }
+
+.final { text-align: center; padding: 48px 8px 24px; }
+.final .disc { width: 64px; height: 64px; border-radius: 50%; background: var(--up); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; }
+.final .disc.gone { background: var(--text-3); }
+.final h1 { margin-top: 18px; }
+.final p { color: var(--text-2); max-width: 470px; margin: 8px auto 0; }
+.final .summary { color: var(--text); font-weight: 600; }
+.final .actions { justify-content: center; }
+
+@media (max-width: 480px) {
+    h1 { font-size: 23px; }
+    .actions { flex-direction: column; align-items: stretch; }
+    .actions .back { margin-right: 0; }
+    .trust { padding: 16px 14px 14px; }
+}

@@ -11,11 +11,17 @@ import { isUiPayload, toUiContent, type UiPayload } from '../ui.js';
 
 export type ToolResult = { content: { type: 'text', text: string }[], structuredContent?: Record<string, any>, isError?: boolean };
 
-export const exchangeParam = z.string ().describe ('exchange id, e.g. "binance" — validated against ccxt.exchanges; discover ids with list_exchanges');
-export const predictionParam = z.boolean ().optional ().describe ('set true to use the prediction-markets variant of an exchange that exists in both namespaces (e.g. hyperliquid)');
-export const paramsParam = z.record (z.any ()).optional ().describe ('extra exchange-specific parameters passed through to ccxt unchanged (e.g. {"until": 1673000000000}) — discover supported keys with describe_method');
-export const accountParam = z.string ().describe ('configured account name — discover with list_accounts; credentials are never tool parameters');
-export const sinceParam = z.union ([ z.number (), z.string () ]).optional ().describe ('earliest entry to fetch: timestamp in ms, or an ISO8601 string like "2024-01-01T00:00:00Z"');
+// These five descriptions are repeated in ~30 tool schemas, and a host injects every schema
+// into the model's context (some cap the total — see CORE_TOOLS in ./profile.ts), so each
+// word here costs ~30x. Keep them to what the model cannot infer; the conventions they used
+// to restate (validation, credentials never being parameters) live once in SERVER_INSTRUCTIONS.
+export const exchangeParam = z.string ().describe ('exchange id, e.g. "binance" (list_exchanges)');
+export const predictionParam = z.boolean ().optional ().describe ('true = the prediction-markets variant (e.g. of hyperliquid)');
+export const paramsParam = z.record (z.any ()).optional ().describe ('exchange-specific ccxt params, passed unchanged (keys: describe_method)');
+// what a tool carries instead when the tool profile hides describe_method (./profile.ts)
+export const paramsParamNoPointer = z.record (z.any ()).optional ().describe ('exchange-specific ccxt params, passed unchanged');
+export const accountParam = z.string ().describe ('account name (list_accounts)');
+export const sinceParam = z.union ([ z.number (), z.string () ]).optional ().describe ('earliest entry: ms timestamp or ISO8601 string');
 
 export class ArgError extends Error {
     hint: string;

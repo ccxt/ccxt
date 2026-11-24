@@ -8,7 +8,7 @@ import { run, clampLimit, parseSince, marketTypeMismatchNotice, fetchTickerList,
 import { methodSignature, methodDocs, featuresSlice, unifiedMethods, implicitVerb, isImplicitMethod, listImplicitMethods } from '../introspect.js';
 import { requireTier } from '../safety.js';
 
-export const marketTypeParam = z.string ().optional ().describe ('market type routing for exchanges with several (e.g. "spot", "swap", "future", "option") — sets options.defaultType on a dedicated instance');
+export const marketTypeParam = z.string ().optional ().describe ('market type: "spot", "swap", "future", "option"');
 
 // Each notice is a sentence fragment without terminal punctuation (and several contain
 // dashes and semicolons of their own), so a bare space ran them into one garbled sentence.
@@ -38,9 +38,9 @@ const ADDRESS_METHOD_PATTERN = /deposit.?address|withdraw.?address|withdrawal.?w
 export function registerMarketTools (server: McpServer, ctx: ServerContext): void {
     server.registerTool ('list_exchanges', {
         'title': 'List supported exchanges',
-        'description': 'List every exchange this server supports (built from ccxt.exchanges at runtime), with name, websocket and prediction-market availability. Filter by a name query or by support for a unified method.',
+        'description': 'Exchanges this server supports, with name, websocket and prediction-market availability. Filter by name or by a supported unified method.',
         'inputSchema': {
-            'query': z.string ().optional ().describe ('case-insensitive substring match on the exchange id or name'),
+            'query': z.string ().optional ().describe ('substring of the exchange id or name'),
             'supports': z.string ().optional ().describe ('keep only exchanges supporting this unified method, e.g. "fetchOHLCV"'),
             'prediction': z.boolean ().optional ().describe ('true: only prediction-market exchanges; false: exclude them'),
         },
@@ -78,7 +78,7 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
 
     server.registerTool ('describe_exchange', {
         'title': "Describe an exchange's capabilities",
-        'description': "One exchange's supported unified methods, market types, timeframes, required credential fields, sandbox availability and documentation URLs. Per-method detail lives in describe_method.",
+        'description': 'One exchange\'s unified methods, market types, timeframes, required credential fields, sandbox availability and doc URLs. Per-method detail: describe_method.',
         'inputSchema': {
             'exchange': exchangeParam,
             'prediction': predictionParam,
@@ -107,11 +107,11 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
 
     server.registerTool ('describe_method', {
         'title': 'Search or describe unified ccxt methods',
-        'description': 'Search unified method names by keyword, or get one method\'s signature and parameter documentation. With "exchange" it adds that exchange\'s own docs (including supported params.* keys and links to the exchange API reference), per-market-type feature support, and searches its implicit (exchange-specific) endpoints too. Full ccxt manual: https://docs.ccxt.com/',
+        'description': 'Search unified method names by keyword, or get one method\'s signature and parameter docs. With "exchange": that exchange\'s own docs (supported params.* keys, API reference links), per-market-type feature support, and its implicit (exchange-specific) endpoints. Manual: https://docs.ccxt.com/',
         'inputSchema': {
             'method': z.string ().optional ().describe ('exact method name to describe, e.g. "fetchOHLCV" (or an implicit endpoint name when "exchange" is set)'),
             'query': z.string ().optional ().describe ('keyword search over method names, e.g. "funding"'),
-            'exchange': z.string ().optional ().describe ('exchange id for per-exchange docs, feature support and implicit endpoints; when omitted a reference exchange (binance) is used, so implicit-endpoint results are binance-specific — pass "exchange" to search another'),
+            'exchange': z.string ().optional ().describe ('exchange id for per-exchange docs, features and implicit endpoints; omitted = binance is the reference, so implicit-endpoint results are binance-specific'),
             'prediction': predictionParam,
         },
         'annotations': { 'readOnlyHint': true, 'idempotentHint': true, 'openWorldHint': false },
@@ -185,20 +185,20 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
 
     server.registerTool ('search_markets', {
         'title': 'Search markets on an exchange',
-        'description': 'Search and filter the markets of one exchange (by text, base, quote, settle currency, market type), paginated. Use this to resolve unified symbols — there is deliberately no list-all-markets tool. Rows are full market objects (~450 chars each; max 100 per call) unless you pass "fields" — e.g. fields: ["symbol"] lists symbols compactly, up to 1000 per call. meta always carries returned/available/offset/hasMore, plus nextOffset when there is more and limitClamped when the limit was reduced; on zero matches meta.marketTypes lists the types the exchange has. On prediction exchanges use search_events instead.',
+        'description': 'Search one exchange\'s markets by text, base, quote, settle or type, paginated — how unified symbols are resolved (there is no list-all-markets tool). Rows are full market objects (~450 chars, max 100 per call) unless "fields" is passed: fields: ["symbol"] lists up to 1000 symbols. meta has returned/available/offset/hasMore; on zero matches meta.marketTypes lists the exchange\'s types. Prediction exchanges: search_events.',
         'inputSchema': {
             'exchange': exchangeParam,
-            'query': z.string ().optional ().describe ('case-insensitive substring match on the symbol or market id'),
-            'type': z.string ().optional ().describe ('market type filter: "spot", "swap" (perpetuals), "future", "option" — on zero matches meta.marketTypes lists the types this exchange has'),
-            'base': z.string ().optional ().describe ('base currency filter, e.g. "BTC"'),
-            'quote': z.string ().optional ().describe ('quote currency filter, e.g. "USDT"'),
-            'settle': z.string ().optional ().describe ('settle currency filter (derivatives)'),
-            'activeOnly': z.boolean ().optional ().describe ('only active markets (default true)'),
+            'query': z.string ().optional ().describe ('substring of the symbol or market id'),
+            'type': z.string ().optional ().describe ('"spot", "swap" (perpetuals), "future" or "option"'),
+            'base': z.string ().optional ().describe ('base currency, e.g. "BTC"'),
+            'quote': z.string ().optional ().describe ('quote currency, e.g. "USDT"'),
+            'settle': z.string ().optional ().describe ('settle currency (derivatives)'),
+            'activeOnly': z.boolean ().optional ().describe ('default true'),
             'limit': z.number ().int ().optional ().describe ('max results (default 50, max 100)'),
             'offset': z.number ().int ().optional ().describe ('pagination offset'),
             'reload': z.boolean ().optional ().describe ('force-refresh the markets cache'),
             'prediction': predictionParam,
-            'fields': z.array (z.string ()).min (1).optional ().describe ('return only these market fields per row (symbol is always included), e.g. ["symbol"] or ["symbol", "contractSize", "limits"]. Valid: ' + MARKET_FIELDS.join (', ') + '. Compact rows lift the max limit from 100 up to 1000 (as many rows as fit a ~60k-char response); a reduced limit is reported in meta.limitClamped'),
+            'fields': z.array (z.string ()).min (1).optional ().describe ('only these market fields per row (symbol always included), e.g. ["symbol", "limits"] — of ' + MARKET_FIELDS.join (', ') + '. Raises the max limit to as many compact rows as fit ~60k chars (up to 1000)'),
         },
         'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
     }, async (args) => run ({ 'tool': 'search_markets', 'exchange': args.exchange }, async () => {
@@ -285,7 +285,7 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
         'description': '24h price tickers for one or more unified symbols on an exchange (outcome handles on prediction exchanges).',
         'inputSchema': {
             'exchange': exchangeParam,
-            'symbols': z.array (z.string ()).min (1).max (50).describe ('unified symbols, e.g. ["BTC/USDT"] — resolve with search_markets'),
+            'symbols': z.array (z.string ()).min (1).max (50).describe ('unified symbols, e.g. ["BTC/USDT"] (search_markets)'),
             'includeInfo': z.boolean ().optional ().describe ('include the raw exchange payload (single symbol only)'),
             'marketType': marketTypeParam,
             'prediction': predictionParam,
@@ -315,9 +315,9 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
         'description': 'Current order book (bids and asks) for one unified symbol.',
         'inputSchema': {
             'exchange': exchangeParam,
-            'symbol': z.string ().describe ('unified symbol — resolve with search_markets'),
+            'symbol': z.string ().describe ('unified symbol (search_markets)'),
             'limit': z.number ().int ().optional ().describe ('price levels per side (default 20, max 100)'),
-            'depth': z.number ().int ().optional ().describe ('alias for limit (price levels per side)'),
+            'depth': z.number ().int ().optional ().describe ('alias for limit'),
             'marketType': marketTypeParam,
             'prediction': predictionParam,
             'params': paramsParam,
@@ -344,7 +344,7 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
         'inputSchema': {
             'exchange': exchangeParam,
             'symbol': z.string ().describe ('unified symbol'),
-            'timeframe': z.string ().optional ().describe ('candle interval (default "1h") — valid values come from describe_exchange .timeframes'),
+            'timeframe': z.string ().optional ().describe ('candle interval, default "1h" (describe_exchange .timeframes)'),
             'since': sinceParam,
             'limit': z.number ().int ().optional ().describe ('number of candles (default 100, max 500)'),
             'marketType': marketTypeParam,
@@ -473,12 +473,12 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
 
     server.registerTool ('call_read_method', {
         'title': 'Call any read-only unified ccxt method',
-        'description': 'Escape hatch covering every unified read method not served by a dedicated tool (fetchFundingRate, fetchLedger, fetchOpenInterest, fetchLiquidations, fetchEvent, fetchSettlements, …). Only fetch*/load* methods are accepted — writes are structurally rejected. Get the signature first with describe_method. Docs: https://docs.ccxt.com/',
+        'description': 'Escape hatch: any unified read method without a dedicated tool (fetchFundingRate, fetchLedger, fetchOpenInterest, fetchLiquidations, fetchEvent, fetchSettlements, …). Only fetch*/load* methods are accepted — writes are rejected. Get the signature first with describe_method.',
         'inputSchema': {
             'exchange': exchangeParam,
             'method': z.string ().describe ('unified method name matching ^(fetch|load), e.g. "fetchFundingRate"'),
-            'args': z.array (z.union ([ z.string (), z.number (), z.boolean (), z.null () ])).optional ().describe ('positional arguments per the describe_method usage line; ISO8601 strings become ms timestamps; null skips an optional argument'),
-            'account': z.string ().optional ().describe ('configured account name — required for private reads like fetchLedger'),
+            'args': z.array (z.union ([ z.string (), z.number (), z.boolean (), z.null () ])).optional ().describe ('positional arguments per describe_method; ISO8601 strings become ms timestamps; null skips an optional argument'),
+            'account': z.string ().optional ().describe ('account name — required for private reads like fetchLedger'),
             'includeInfo': z.boolean ().optional ().describe ('keep the raw exchange payload inside unified structures'),
             'marketType': marketTypeParam,
             'prediction': predictionParam,
@@ -517,11 +517,11 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
 
     server.registerTool ('call_implicit_get', {
         'title': 'Call a raw GET endpoint (implicit API)',
-        'description': 'Call an exchange-specific implicit REST endpoint over HTTP GET, for data the unified API does not cover. Pass the implicit method name in the "method" argument (e.g. "publicGetTickerPrice"); these are exchange-specific — find them with describe_method {"query": ..., "exchange": ...} (its results list the name to pass here). The response is the raw exchange payload. Consult the exchange API reference (describe_exchange .urls.doc) and the ccxt manual: https://docs.ccxt.com/',
+        'description': 'Call an exchange-specific implicit REST endpoint over HTTP GET, for data the unified API does not cover. "method" is the implicit method name (e.g. "publicGetTickerPrice") — find it with describe_method {"query": ..., "exchange": ...}. Returns the raw exchange payload; see the exchange API reference (describe_exchange .urls.doc).',
         'inputSchema': {
             'exchange': exchangeParam,
             'method': z.string ().describe ('implicit method name whose HTTP verb is GET, e.g. "publicGetTickerPrice" (from describe_method)'),
-            'account': z.string ().optional ().describe ('configured account name for authenticated (private/signed) GET endpoints'),
+            'account': z.string ().optional ().describe ('account name, for authenticated (private/signed) GET endpoints'),
             'prediction': predictionParam,
             'params': paramsParam,
         },
@@ -556,7 +556,7 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
 
     server.registerTool ('get_safety_status', {
         'title': 'Show safety and configuration status',
-        'description': 'What this server is currently allowed to do: configured accounts (names only — never credentials), enabled capability tiers, caps, sandbox/live environments, journal location, unresolved order intents, and any configuration problems.',
+        'description': 'What this server may currently do: accounts (names only, never credentials), enabled capability tiers, caps, sandbox/live environments, the tool profile and the tools it hides, journal location, unresolved order intents and configuration problems.',
         'inputSchema': {},
         'annotations': { 'readOnlyHint': true, 'idempotentHint': true, 'openWorldHint': false },
     }, async () => run ({ 'tool': 'get_safety_status' }, async () => {
@@ -574,6 +574,8 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
                 'implicitWrites': accounts.some ((account) => account.implicitWrites),
             },
             'elicitationSupported': ctx.elicitationSupported (),
+            // which tools this session lists, and how the user gets the hidden ones
+            'toolProfile': ctx.toolProfile?.status () ?? { 'profile': 'all', 'hiddenTools': [] },
             // no file yet: say where the setup form would create one, so "see get_safety_status for
             // the path" never leads to a placeholder
             'configPath': ctx.config.configPath ?? (accounts.length > 0 ? '(no config file — accounts configured via environment variables)' : ('(no config file found — public market tier only; setup_account opens the form that creates one' + ((ctx.setup !== undefined) ? ' at ' + ctx.setup.configPath () : '') + ')')),

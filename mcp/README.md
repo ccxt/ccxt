@@ -103,6 +103,8 @@ With no configuration the server serves **public market data on all exchanges** 
 
 **Guided setup (no file editing).** Ask the assistant to "get started" / "connect my exchange account". The `setup_account` tool opens a form in your default browser, served by this server on `127.0.0.1`. The form is bound to the first browser that loads it, saves one account and expires after 10 minutes; calling the tool again while a form is open reuses that form instead of replacing it (`restart: true` discards it). You type the API key there — never in the chat; the model sees neither the key nor the link. The form offers testnet (default), demo or live, checks the keys against the exchange, writes the account to the config file below (mode 0600) and applies it without a restart; replacing an existing account stops that account's private streams. "Allow placing orders" is off by default; on a live account it requires a per-order USD cap and an explicit confirmation, and saves `"confirm": "always"`. The `funds` and `implicitWrites` tiers are not in the form. Without a reachable desktop browser the tool returns `SETUP_FORM_UNAVAILABLE` and names the config file. `setup_account` is not annotated read-only: it opens a browser window. What the form protects against is a web page in your browser, another OS user (the link is never on a command line: the browser is launched on a private 0600 redirect file) and the model reading tool output — not a process running as you, which can edit the config file anyway; the threat model is in `DESIGN.md`.
 
+**Changing or removing an account.** `manage_accounts` opens a "Your accounts" page the same way (same loopback server, same protections). It lists each account with its environment, whether orders are allowed and the last four characters of its API key — never anything else of a key — and, for accounts in the config file, lets you remove one (with a confirmation), replace its key (through the setup form; this writes a fresh record, so hand-set tiers are dropped) or switch order placement on or off (live needs the cap and the confirmation; `funds` / `implicitWrites` are left untouched and cannot be changed there). Accounts defined by environment variables or a host's install prompt are shown read-only. The page stays open for 10 minutes or until "Done".
+
 To add accounts by hand, create the config file (path shown by the `get_safety_status` tool):
 
 - macOS: `~/Library/Application Support/ccxt-mcp/config.json`
@@ -145,6 +147,18 @@ Environment variables work too: `<EXCHANGEID>_<CREDENTIAL>` (e.g. `BINANCE_APIKE
 
 **Claude Desktop (`.mcpb` bundle):** the install form configures one exchange. To use **several** exchanges (or enable live trading/withdrawals), set the **Config file** field to a `config.json` with an `accounts` map like the one above — or just create it at the default path and leave the form fields blank.
 
+### Tool profile
+
+Every tool the server lists is sent to the model as a definition (name, description, parameter schema), and some hosts cap the total. The ChatGPT desktop app (Codex) was observed handing the model only the alphabetically first 27 of 41 tools, which dropped `setup_account` and every `show_*` view. The tool profile chooses what is listed:
+
+| `CCXT_MCP_TOOLS` / `"settings": { "tools": … }` | Lists |
+|---|---|
+| `all` (default) | every tool |
+| `core` | the 22 essential tools, sized to stay about a third under the observed cap: `setup_account`, `manage_accounts`, the six `show_*` views, `list_exchanges`, `describe_exchange`, `search_markets`, `get_tickers`, `get_orderbook`, `get_ohlcv`, `list_accounts`, `get_balance`, `get_orders`, `get_positions`, `create_order`, `cancel_order`, `get_safety_status` and `call_read_method` (any other read: trades, funding rates, ledger, …) |
+| a comma-separated list | exactly those tools, plus `get_safety_status`; `core` can be one of the entries, e.g. `core,describe_method,watch_subscribe,watch_read` |
+
+The environment variable wins over the config file. A hidden tool is not registered at all for that session; `get_safety_status` reports the active profile, the names it hides, and any name in the list that is not a tool. The profile only chooses what is listed: the capability tiers below still decide what an account may do. The plugin for ChatGPT / Codex sets `core`; everything else defaults to `all`.
+
 ### Capability tiers
 
 | Tier | Enables | Switch | Default |
@@ -159,7 +173,7 @@ Environment variables work too: `<EXCHANGEID>_<CREDENTIAL>` (e.g. `BINANCE_APIKE
 
 ## Tools
 
-**market** — `list_exchanges`, `describe_exchange`, `describe_method` (search/signatures/per-exchange params + docs links), `search_markets`, `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_trades`, `search_events` (prediction markets), `call_read_method` (any unified `fetch*`/`load*` — structurally read-only), `call_implicit_get` (raw GET endpoints), `get_safety_status`, `setup_account` (opens the local account-setup form; optional `exchange` / `account` / `sandbox` prefill, no credentials), `fetch_route` (best execution route for converting an asset at a given size across ~50 exchanges, via the [CCXT order router](https://docs.ccxt.com/router/) — a quote, no keys needed).
+**market** — `list_exchanges`, `describe_exchange`, `describe_method` (search/signatures/per-exchange params + docs links), `search_markets`, `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_trades`, `search_events` (prediction markets), `call_read_method` (any unified `fetch*`/`load*` — structurally read-only), `call_implicit_get` (raw GET endpoints), `get_safety_status`, `setup_account` (opens the local account-setup form; optional `exchange` / `account` / `sandbox` prefill, no credentials), `manage_accounts` (opens the local "Your accounts" page: remove an account, replace its key, switch order placement), `fetch_route` (best execution route for converting an asset at a given size across ~50 exchanges, via the [CCXT order router](https://docs.ccxt.com/router/) — a quote, no keys needed).
 
 **views (MCP Apps)** — `show_chart` (candlestick + volume; `timeframe` default `1h`, `limit` default 200 / max 500), `show_orderbook` (cumulative depth chart + ladder; `limit` default 50 / max 100 levels per side), `show_tickers` (sortable 24h price board; up to 50 symbols). Market tier: public data, read-only, no account. Read tier: `show_balance` (holdings with a best-effort valuation), `show_orders` (`status` `open` default / `closed` / `canceled` / `all`; `limit` default 50 / max 200), `show_positions` (open derivatives positions), and `show_chart`'s optional `account`, which overlays that account's open orders for the symbol — see [Interactive views](#interactive-views-mcp-apps).
 
@@ -190,7 +204,7 @@ The MCP Apps docs list Claude (claude.ai), Claude Desktop, VS Code GitHub Copilo
 
 ## Troubleshooting
 
-- **"Trading is not enabled for account …"** — reopen the setup form (`setup_account`) and replace the account with order placement on, or edit the config file (see tiers above); this is not something the conversation can change.
+- **"Trading is not enabled for account …"** — open your accounts (`manage_accounts`) and use "Change permissions", or edit the config file (see tiers above); this is not something the conversation can change.
 - **AUTH_FAILED on a sandbox account** — testnet keys come from the exchange's testnet portal, not your live account (and vice versa).
 - **"testnet/sandbox mode is not supported for futures" (Binance)** — a Binance testnet account is spot only; for futures practice use demo-trading keys with `"demo": true` (**Demo trading** in the form).
 - **HTTP 451 / geo-blocks** — some exchanges block cloud/VPN/US IPs; set a proxy via account `options` if needed.

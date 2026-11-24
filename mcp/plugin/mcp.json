@@ -7,7 +7,10 @@
       "args": [
         "./scripts/bootstrap.mjs"
       ],
-      "cwd": "./"
+      "cwd": "./",
+      "env": {
+        "CCXT_MCP_TOOLS": "core"
+      }
     }
   }
 }

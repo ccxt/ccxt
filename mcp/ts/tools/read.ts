@@ -124,7 +124,7 @@ export async function loadOpenPositions (exchange: any, query: PositionQuery): P
 export function registerReadTools (server: McpServer, ctx: ServerContext): void {
     server.registerTool ('list_accounts', {
         'title': 'List configured accounts',
-        'description': 'Locally configured named exchange accounts. Returns aliases and capability flags only — credential values are never exposed by any tool.',
+        'description': 'Configured exchange accounts: names and capability flags only — credential values are never exposed by any tool.',
         'inputSchema': {},
         'annotations': { 'readOnlyHint': true, 'idempotentHint': true, 'openWorldHint': false },
     }, async () => run ({ 'tool': 'list_accounts' }, async () => {
@@ -137,11 +137,11 @@ export function registerReadTools (server: McpServer, ctx: ServerContext): void 
 
     server.registerTool ('get_balance', {
         'title': 'Get account balance',
-        'description': 'Balances for a named account. Returns non-zero balances by default (exchanges report every listed currency — hundreds of zero rows).',
+        'description': 'Balances of an account — non-zero ones by default (exchanges report hundreds of zero rows).',
         'inputSchema': {
             'account': accountParam,
             'nonzeroOnly': z.boolean ().optional ().describe ('default true; false returns every currency'),
-            'marketType': z.string ().optional ().describe ('wallet/market type to query when the exchange has several (e.g. "spot", "swap", "future", "funding") — overrides the account default'),
+            'marketType': z.string ().optional ().describe ('wallet/market type when the exchange has several ("spot", "swap", "future", "funding") — overrides the account default'),
             'params': paramsParam,
         },
         'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
@@ -158,11 +158,11 @@ export function registerReadTools (server: McpServer, ctx: ServerContext): void 
 
     server.registerTool ('get_orders', {
         'title': 'Get orders',
-        'description': 'Orders for a named account: one order by id, or a list filtered by status ("open" default, "closed", "canceled", "all"). Many exchanges require a symbol for list queries.',
+        'description': 'An account\'s orders: one by id, or a list by status. Many exchanges require a symbol for lists.',
         'inputSchema': {
             'account': accountParam,
-            'id': z.string ().optional ().describe ('order id — fetches that single order'),
-            'symbol': z.string ().optional ().describe ('unified symbol (required by many exchanges for list queries)'),
+            'id': z.string ().optional ().describe ('order id — fetches that one order'),
+            'symbol': z.string ().optional ().describe ('unified symbol (many exchanges require it for lists)'),
             'status': z.string ().optional ().describe ('"open" (default), "closed", "canceled" or "all"'),
             'since': sinceParam,
             'limit': z.number ().int ().optional ().describe ('max orders (default 50, max 200)'),
@@ -216,7 +216,7 @@ export function registerReadTools (server: McpServer, ctx: ServerContext): void 
         'inputSchema': {
             'account': accountParam,
             'symbols': z.array (z.string ()).optional ().describe ('restrict to these unified symbols'),
-            'marketType': z.string ().optional ().describe ('derivatives type to query when the exchange has several (e.g. "swap", "future") — overrides the account default'),
+            'marketType': z.string ().optional ().describe ('derivatives type when the exchange has several ("swap", "future") — overrides the account default'),
             'params': paramsParam,
         },
         'annotations': { 'readOnlyHint': true, 'openWorldHint': true },

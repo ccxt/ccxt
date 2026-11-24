@@ -286,11 +286,11 @@ export function registerAccountUiTools (server: McpServer, ctx: ServerContext): 
 
     server.registerTool ('show_balance', {
         'title': 'Show account balance',
-        'description': 'Render an account\'s holdings as an interactive view: each currency with its free / in-orders / total amounts and, where the exchange allows it, an estimated value in one cash currency (chosen per account: the one of USDT, USD, USDC, EUR, … that prices the most holdings). Use this when the user asks to see their balance, portfolio or holdings. The tool result is a compact summary (total estimated value and the ten largest holdings) — use get_balance when you need every row. totalValue is an estimate: meta.totalValuePartial / meta.unpricedCurrencies say when holdings are missing from it, meta.valuedAtPar which dollar currencies were counted 1:1 without a market price.',
+        'description': 'Render an account\'s holdings as an interactive view: free / in-orders / total per currency and, where the exchange allows, an estimated value in one cash currency (the one that prices the most holdings). Use when the user asks to see their balance, portfolio or holdings. The result is a compact summary (total estimated value, ten largest holdings) — get_balance returns every row. totalValue is an estimate: meta.totalValuePartial / meta.unpricedCurrencies flag holdings missing from it, meta.valuedAtPar those counted 1:1.',
         'inputSchema': {
             'account': accountParam,
             'nonzeroOnly': z.boolean ().optional ().describe ('default true; false also shows currencies with a zero balance'),
-            'marketType': z.string ().optional ().describe ('wallet/market type to query when the exchange has several (e.g. "spot", "swap", "future", "funding") — overrides the account default'),
+            'marketType': z.string ().optional ().describe ('wallet/market type when the exchange has several ("spot", "swap", "future", "funding") — overrides the account default'),
             'params': paramsParam,
         },
         'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
@@ -349,10 +349,10 @@ export function registerAccountUiTools (server: McpServer, ctx: ServerContext): 
 
     server.registerTool ('show_orders', {
         'title': 'Show orders',
-        'description': 'Render an account\'s orders as an interactive list, filtered by status ("open" default, "closed", "canceled", "all"). Use this when the user asks to see their orders. Many exchanges require a symbol for order lists. The tool result is a compact summary (counts by side and status plus up to ten rows) — use get_orders when you need every order or a single order by id.',
+        'description': 'Render an account\'s orders as an interactive list, by status. Use when the user asks to see their orders. Many exchanges require a symbol. The result is a compact summary (counts by side and status, up to ten rows) — get_orders returns every order, or one by id.',
         'inputSchema': {
             'account': accountParam,
-            'symbol': z.string ().optional ().describe ('unified symbol (required by many exchanges for list queries)'),
+            'symbol': z.string ().optional ().describe ('unified symbol (many exchanges require it for lists)'),
             'status': z.string ().optional ().describe ('"open" (default), "closed", "canceled" or "all"'),
             'since': sinceParam,
             'limit': z.number ().int ().optional ().describe ('max orders (default 50, max 200)'),
@@ -394,11 +394,11 @@ export function registerAccountUiTools (server: McpServer, ctx: ServerContext): 
 
     server.registerTool ('show_positions', {
         'title': 'Show open positions',
-        'description': 'Render an account\'s open derivatives positions as an interactive view (size, entry and mark price, PnL, leverage, liquidation price). Use this when the user asks to see their positions. The tool result is a compact summary (count, the unrealized PnL total with its currency when every position reports it — per settle currency, as unrealizedPnlByCurrency, when the positions settle in several: PnL is never added across currencies — and the main fields per position) — use get_positions when you need every field.',
+        'description': 'Render an account\'s open derivatives positions as an interactive view (size, entry and mark price, PnL, leverage, liquidation price). Use when the user asks to see their positions. The result is a compact summary (count, main fields per position, unrealized PnL per settle currency — never added across currencies) — get_positions returns every field.',
         'inputSchema': {
             'account': accountParam,
             'symbols': z.array (z.string ()).optional ().describe ('restrict to these unified symbols'),
-            'marketType': z.string ().optional ().describe ('derivatives type to query when the exchange has several (e.g. "swap", "future") — overrides the account default'),
+            'marketType': z.string ().optional ().describe ('derivatives type when the exchange has several ("swap", "future") — overrides the account default'),
             'params': paramsParam,
         },
         'annotations': { 'readOnlyHint': true, 'openWorldHint': true },

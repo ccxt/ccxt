@@ -38,6 +38,7 @@ export interface ServerSettings {
     exchangeOptions: Record<string, Record<string, any>>;
     maxSubscriptions: number;
     hideDisabledTools: boolean;
+    tools: string; // tool profile: "all", "core" or a comma-separated list of tool names
     loadEnvKeys: boolean;
 }
 
@@ -77,6 +78,7 @@ export interface ServerContext {
     router: any;   // ccxt.OrderRouter, or undefined when the installed ccxt predates it
     routes: any;   // RouteCache — routes returned by fetch_route, executable by routeId
     setup?: any;   // SetupServer — the loopback account setup form (set when its tool registers)
+    toolProfile?: any; // ToolProfile — which tools CCXT_MCP_TOOLS / settings.tools lets this session list
     version: string;
     elicitationSupported: () => boolean;
     elicit: (message: string, schema: any) => Promise<any>;

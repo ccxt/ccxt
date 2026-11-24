@@ -43,6 +43,35 @@ test ('compiled server initializes and lists tools over real stdio', { 'skip': !
     await client.close ();
 });
 
+// what the plugin's mcp.json does for ChatGPT / Codex: the variable alone, no config file
+// setting, must reach registration in the compiled server
+test ('CCXT_MCP_TOOLS=core lists the core profile over real stdio', { 'skip': !fs.existsSync (serverEntry) ? 'run npm run build first' : false }, async () => {
+    const emptyConfig = path.join (fs.mkdtempSync (path.join (os.tmpdir (), 'ccxt-mcp-stdio-')), 'config.json');
+    fs.writeFileSync (emptyConfig, '{}', { 'mode': 0o600 });
+    const cleanEnv: Record<string, string> = {};
+    for (const [ key, value ] of Object.entries (process.env)) {
+        if (value !== undefined && !/APIKEY|SECRET|PASSWORD|PRIVATEKEY|CCXT_MCP/.test (key)) {
+            cleanEnv[key] = value;
+        }
+    }
+    const transport = new StdioClientTransport ({
+        'command': process.execPath,
+        'args': [ serverEntry ],
+        'env': { ...cleanEnv, 'CCXT_MCP_CONFIG': emptyConfig, 'CCXT_MCP_TOOLS': 'core' },
+    });
+    const client = new Client ({ 'name': 'stdio-test', 'version': '0.0.1' });
+    await client.connect (transport);
+    const names = (await client.listTools ()).tools.map ((tool: any) => tool.name);
+    for (const name of [ 'setup_account', 'show_chart', 'show_positions', 'get_safety_status', 'create_order', 'call_read_method' ]) {
+        assert.ok (names.includes (name), name + ' is a core tool');
+    }
+    for (const name of [ 'withdraw', 'watch_subscribe', 'execute_route', 'call_implicit_write' ]) {
+        assert.ok (!names.includes (name), name + ' is hidden by the core profile');
+    }
+    assert.match (String (client.getInstructions ()), /TOOL PROFILE "core"/);
+    await client.close ();
+});
+
 // A host that crashes or is force-quit closes stdin, stdout and stderr at the same instant.
 // The server used to answer that with an endless EPIPE → uncaught exception → log → EPIPE
 // loop: an orphan at 100% CPU per crashed session. The stand-in host below initializes the

@@ -145,7 +145,7 @@ test ('the portable mcp.json starts the server through the plugin launcher, rela
     // scripts/bootstrap.mjs fetches the pinned server (see plugin/README.md "Runtime")
     const server = portableMcp['mcpServers']['ccxt'];
     assert.ok (server, 'mcp.json has no "ccxt" server');
-    assert.deepEqual (server, { 'type': 'stdio', 'command': './scripts/launch', 'args': [ './scripts/bootstrap.mjs' ], 'cwd': './' });
+    assert.deepEqual (server, { 'type': 'stdio', 'command': './scripts/launch', 'args': [ './scripts/bootstrap.mjs' ], 'cwd': './', 'env': { 'CCXT_MCP_TOOLS': 'core' } });
     // the Agent Plugins schema: a stdio command is a bare name or a contained ./ path, and cwd
     // must match this pattern; Codex resolves both against the installed plugin root
     assert.match (server['cwd'], /^(\.\/|\$\{PLUGIN_ROOT\}(\/|$)|\$\{PLUGIN_DATA\}(\/|$))/);
@@ -235,6 +235,19 @@ test ('portable mcp.json declares a stdio server the schema accepts', () => {
             assert.ok (![ 'PLUGIN_ROOT', 'PLUGIN_DATA' ].includes (key), `mcp.json ${name} env may not set ${key}`);
         }
     }
+});
+
+// ChatGPT desktop / Codex hand the model only as many tool definitions as fit a size cap,
+// filled in alphabetical order: with every tool listed, setup_account and all the show_*
+// views were the ones dropped (see CORE_TOOLS in ts/tools/profile.ts). The portable manifest
+// is what those hosts read, so it starts the server with the profile that fits. The Claude
+// manifest deliberately does not: Claude Code is not known to cap definitions, and its users
+// would lose tools (streams, routing, describe_method) for nothing.
+test ('the portable mcp.json starts the server with the core tool profile; the Claude manifest keeps every tool', () => {
+    assert.deepEqual (portableMcp['mcpServers']['ccxt']['env'], { 'CCXT_MCP_TOOLS': 'core' });
+    const profileSource = fs.readFileSync (path.join (mcpRoot, 'ts', 'tools', 'profile.ts'), 'utf8');
+    assert.ok (profileSource.includes ("export const TOOLS_ENV = 'CCXT_MCP_TOOLS';"), 'the server no longer reads CCXT_MCP_TOOLS');
+    assert.ok (!('CCXT_MCP_TOOLS' in claudeManifest['mcpServers']['ccxt']['env']), 'the Claude manifest must leave the tool profile at its default (all)');
 });
 
 test ('the Codex manifest carries the fields Codex requires and points at the portable files', () => {

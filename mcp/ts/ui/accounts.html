@@ -1,0 +1,450 @@
+<!doctype html>
+<!--
+    "Your accounts": the accounts this server is configured with, and the three things a user
+    may do to one that lives in the config file — remove it, replace its key (which leads into
+    setup.html), switch order placement on or off. NOT an MCP Apps view: ts/setup.ts serves it
+    over loopback HTTP under exactly the session rules of the setup form (see the notes there).
+
+    The server sends this page no secret: per account it gets names, modes and the last four
+    characters of the API key (accountEntry in ts/setup.ts is the whole disclosure). Every
+    button here only asks; the server decides again, on its own, whether the change is allowed.
+    Everything from the server is put on the page with textContent — never as markup.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Your accounts · CCXT</title>
+<link rel="icon" href="data:,">
+<style nonce="__CSP_NONCE__">
+/* @include shared.css */
+/* @include setup.css */
+.where { color: var(--text-2); font-size: 14px; margin: 0 0 22px; }
+#message .notice, #file-problem { margin: 0 0 14px; }
+.card { border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px 18px; margin: 0 0 14px; background: var(--bg); }
+.card.readonly { background: var(--bg-2); }
+.card .who { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; margin: 0 0 2px; }
+.card h2 { font-size: 19px; margin: 0; overflow-wrap: anywhere; }
+.card h2:focus { outline: none; }
+.card .venue { color: var(--text-2); margin: 0 0 12px; }
+.facts { margin: 0; }
+.facts > div { display: grid; grid-template-columns: 140px 1fr; gap: 2px 12px; padding: 7px 0; border-top: 1px solid var(--border); }
+.facts dt { color: var(--text-2); font-size: 14px; padding-top: 1px; }
+.facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.facts .keyend { font-family: var(--mono); }
+.card .origin { color: var(--text-2); font-size: 14px; margin: 12px 0 0; }
+.card .buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.card .buttons button, .card .buttons a { min-height: 44px; padding: 7px 16px; font-size: 15px; }
+.panel { border: 1px solid var(--border); border-left-width: 4px; border-radius: 12px; padding: 14px; margin-top: 14px; }
+.panel.danger { border-color: var(--down); }
+.panel h3 { font-size: 16px; margin: 0 0 6px; }
+.panel h3:focus { outline: none; }
+.panel p { margin: 0 0 10px; font-size: 15px; }
+.panel .buttons { margin-top: 12px; }
+.panel .livebox { margin-bottom: 4px; }
+.none { border: 1px dashed var(--text-3); border-radius: 14px; padding: 28px 18px; text-align: center; color: var(--text-2); margin: 0 0 14px; }
+.foot { display: flex; flex-direction: row-reverse; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
+.foot .add { margin-right: auto; }
+@media (max-width: 480px) {
+    .facts > div { grid-template-columns: 1fr; }
+    .card .buttons { flex-direction: column; }
+    .foot { flex-direction: column; align-items: stretch; }
+    .foot .add { margin-right: 0; }
+    .card { padding: 14px 14px 16px; }
+}
+</style>
+</head>
+<body>
+<main>
+    <header class="top">
+        <span class="mark">CCXT</span>
+        <span class="product">Your accounts</span>
+        <span class="expiry" id="expiry"></span>
+    </header>
+
+    <div id="list-view">
+        <h1 id="title" tabindex="-1">Your accounts</h1>
+        <p class="lede">The exchange accounts your AI assistant can use from this computer. Your keys are never shown here &mdash; only the last four characters of each API key, so you can tell them apart.</p>
+        <p class="where">Saved on this computer in <code id="config-path"></code></p>
+        <div id="message" role="status" aria-live="polite"></div>
+        <div id="file-problem" class="notice warn" hidden></div>
+        <div id="cards"></div>
+        <div class="foot">
+            <button type="button" class="primary" id="done">Done</button>
+            <a class="secondary add" id="add">+ Add another account</a>
+        </div>
+    </div>
+
+    <div id="done-view" class="final" hidden>
+        <span class="disc" aria-hidden="true">&#10003;</span>
+        <h1 tabindex="-1" id="done-title">All done &mdash; return to the chat</h1>
+        <p>Your changes are already in effect. You can close this tab.</p>
+    </div>
+
+    <div id="gone-view" class="final" hidden>
+        <span class="disc gone" aria-hidden="true">!</span>
+        <h1 tabindex="-1" id="gone-title">This page is no longer active</h1>
+        <p>For your safety it stays open for ten minutes only. Changes you already made are kept. To make more, go back to the chat and ask the assistant to open your accounts again.</p>
+    </div>
+</main>
+
+<script type="application/json" id="boot">__BOOT_JSON__</script>
+<script nonce="__CSP_NONCE__">
+(function () {
+    'use strict';
+    var boot = JSON.parse (document.getElementById ('boot').textContent);
+    var base = (/^\/setup\/[0-9a-f]{32}/.exec (location.pathname) || [ '' ])[0];
+    var $ = function (id) { return document.getElementById (id); };
+    var cards = $('cards');
+    // open: which account has a panel open, and which panel ('remove' | 'permissions')
+    var state = { 'accounts': boot.accounts || [], 'open': undefined, 'busy': false, 'over': false };
+
+    function el (tag, className, text) {
+        var node = document.createElement (tag);
+        if (className) { node.className = className; }
+        if (text !== undefined) { node.textContent = text; }
+        return node;
+    }
+
+    function button (label, className, handler) {
+        var node = el ('button', className, label);
+        node.type = 'button';
+        // nothing new is started while a request is on its way
+        node.addEventListener ('click', function () { if (!state.busy) { handler (); } });
+        return node;
+    }
+
+    function finish (viewId, titleId) {
+        state.over = true;
+        $('list-view').hidden = true;
+        $('done-view').hidden = viewId !== 'done-view';
+        $('gone-view').hidden = viewId !== 'gone-view';
+        $('expiry').textContent = '';
+        $(titleId).focus ();
+        window.scrollTo (0, 0);
+    }
+
+    function gone () {
+        if (!state.over) { finish ('gone-view', 'gone-title'); }
+    }
+
+    function post (path, body) {
+        return fetch (base + path, {
+            'method': 'POST',
+            'cache': 'no-store',
+            'credentials': 'same-origin',
+            'headers': { 'Content-Type': 'application/json', 'X-Setup-Nonce': boot.csrf },
+            'body': JSON.stringify (body),
+        }).then (function (response) {
+            // 404 is the server saying the session is over
+            if (response.status === 404) { gone (); throw new Error ('gone'); }
+            return response.json ();
+        }, function () {
+            gone ();
+            throw new Error ('gone');
+        });
+    }
+
+    function say (kind, title, detail) {
+        var box = $('message');
+        box.textContent = '';
+        if (!title) { return; }
+        var notice = el ('div', 'notice ' + kind);
+        notice.appendChild (el ('strong', '', title));
+        if (detail) { notice.appendChild (el ('span', 'detail', detail)); }
+        box.appendChild (notice);
+    }
+
+    // the environment as a word, never as a colour alone
+    function environmentBadge (account) {
+        var demo = account.environment === 'demo' || (account.environment === 'sandbox' && account.sandboxIsDemo);
+        var text = (account.environment === 'live') ? 'LIVE' : (demo ? 'DEMO' : 'TESTNET');
+        return el ('span', 'badge ' + ((account.environment === 'live') ? 'real' : 'good'), text);
+    }
+
+    function mayText (account) {
+        if (account.trading === 'live') {
+            return 'View, and place orders with real money' + ((typeof account.maxOrderValue === 'number') ? ' — up to ' + account.maxOrderValue + ' USD each' : '');
+        }
+        if (account.trading) { return 'View, and place orders with practice money'; }
+        return 'View only';
+    }
+
+    function fact (list, term, value) {
+        var row = el ('div');
+        row.appendChild (el ('dt', '', term));
+        var dd = el ('dd');
+        if (typeof value === 'string') { dd.textContent = value; } else { dd.appendChild (value); }
+        row.appendChild (dd);
+        list.appendChild (row);
+    }
+
+    function setBusy (busy) {
+        state.busy = busy;
+        var all = document.querySelectorAll ('#list-view button');
+        // aria-disabled, not disabled: a disabled button would drop the keyboard focus
+        for (var i = 0; i < all.length; i++) { all[i].setAttribute ('aria-disabled', busy ? 'true' : 'false'); }
+    }
+
+    function openPanel (name, kind) {
+        state.open = name ? { 'name': name, 'kind': kind } : undefined;
+        render ();
+        var heading = document.querySelector ('.panel h3');
+        if (heading) {
+            // the question itself gets the focus, so it is what a screen reader says next
+            heading.focus ();
+            heading.scrollIntoView ({ 'block': 'nearest' });
+        }
+    }
+
+    function closePanel (name) {
+        state.open = undefined;
+        render ();
+        focusCard (name);
+    }
+
+    function focusCard (name) {
+        var headings = cards.querySelectorAll ('h2');
+        for (var i = 0; i < headings.length; i++) {
+            if (headings[i].textContent === name) { headings[i].focus (); return; }
+        }
+        $('title').focus ();
+    }
+
+    function applied (result) {
+        if (result.accounts) { state.accounts = result.accounts; }
+        showFileProblem (result.fileProblem);
+    }
+
+    function removePanel (account) {
+        var panel = el ('div', 'panel danger');
+        var heading = el ('h3', '', 'Remove “' + account.name + '”?');
+        heading.tabIndex = -1;
+        panel.appendChild (heading);
+        panel.appendChild (el ('p', '', 'Your assistant will no longer be able to use this account, and its key is deleted from the settings file on this computer.'));
+        panel.appendChild (el ('p', '', 'The key itself still exists on ' + account.exchangeName + '. To switch it off completely, also delete it on the ' + account.exchangeName + ' website.'));
+        var row = el ('div', 'buttons');
+        // the harmless answer comes first
+        row.appendChild (button ('Keep it', 'secondary', function () { closePanel (account.name); }));
+        row.appendChild (button ('Yes, remove it', 'secondary danger solid', function () {
+            setBusy (true);
+            post ('/remove', { 'name': account.name, 'confirm': true }).then (function (result) {
+                setBusy (false);
+                if (!result.ok) {
+                    say ('bad', 'Not removed.', result.error || 'Something went wrong.');
+                    return;
+                }
+                applied (result);
+                state.open = undefined;
+                render ();
+                var detail = 'Remember to delete the key on the ' + account.exchangeName + ' website too, if you no longer need it.';
+                if (result.stoppedStreams > 0) { detail += ' ' + ((result.stoppedStreams === 1) ? 'One live data stream that used it was stopped.' : result.stoppedStreams + ' live data streams that used it were stopped.'); }
+                if (result.returnsOnRestart) { detail += ' An account of the same name is also defined in your assistant app’s own settings; it will be used again after the app restarts.'; }
+                say ('good', 'Removed “' + account.name + '”.', detail);
+                $('title').focus ();
+            }, function () { setBusy (false); });
+        }));
+        panel.appendChild (row);
+        return panel;
+    }
+
+    function permissionsPanel (account) {
+        var live = account.environment === 'live';
+        var panel = el ('div', 'panel');
+        var heading = el ('h3', '', 'What may the assistant do with “' + account.name + '”?');
+        heading.tabIndex = -1;
+        panel.appendChild (heading);
+        var options = el ('div', 'options');
+        var group = 'may-' + account.name;
+        var choice = function (value, title, detail, checked) {
+            var label = el ('label', 'option');
+            var input = el ('input');
+            input.type = 'radio';
+            input.name = group;
+            input.value = value;
+            input.checked = checked;
+            label.appendChild (input);
+            var body = el ('span', 'body');
+            body.appendChild (el ('span', 't', title));
+            body.appendChild (el ('span', 'd', detail));
+            label.appendChild (body);
+            options.appendChild (label);
+            return input;
+        };
+        var view = choice ('view', 'View only', 'The assistant can look at balances, orders and positions, and nothing else.', account.trading === false);
+        var trade = choice ('trade', 'Allow placing orders', live ? 'The assistant can also create and cancel orders — with real money, up to a limit you set.' : 'The assistant can also create and cancel orders, with practice money.', account.trading !== false);
+        panel.appendChild (options);
+        var livebox = el ('div', 'livebox');
+        livebox.appendChild (el ('h3', '', 'Orders will use real money'));
+        livebox.appendChild (el ('p', '', 'Set the largest single order the assistant may place. Anything bigger is refused, and every order still asks you to confirm first.'));
+        var field = el ('div', 'field');
+        var capLabel = el ('label', '', 'Largest single order');
+        capLabel.htmlFor = 'cap-input';
+        field.appendChild (capLabel);
+        var capRow = el ('span', 'cap');
+        var cap = el ('input');
+        cap.type = 'number';
+        cap.id = 'cap-input';
+        cap.min = '0';
+        cap.step = 'any';
+        cap.setAttribute ('inputmode', 'decimal');
+        cap.setAttribute ('autocomplete', 'off');
+        cap.value = String ((typeof account.maxOrderValue === 'number') ? account.maxOrderValue : 25);
+        capRow.appendChild (cap);
+        capRow.appendChild (el ('span', '', 'USD'));
+        field.appendChild (capRow);
+        livebox.appendChild (field);
+        var confirmLabel = el ('label', 'option');
+        var confirm = el ('input');
+        confirm.type = 'checkbox';
+        confirmLabel.appendChild (confirm);
+        var confirmBody = el ('span', 'body');
+        confirmBody.appendChild (el ('span', 't', 'I understand the assistant will be able to place orders with real money on this account, up to this amount each.'));
+        confirmLabel.appendChild (confirmBody);
+        livebox.appendChild (confirmLabel);
+        panel.appendChild (livebox);
+        var sync = function () {
+            livebox.hidden = !(live && trade.checked);
+            if (livebox.hidden) { confirm.checked = false; }
+        };
+        view.addEventListener ('change', sync);
+        trade.addEventListener ('change', sync);
+        sync ();
+        var problem = el ('div');
+        problem.setAttribute ('role', 'status');
+        problem.setAttribute ('aria-live', 'polite');
+        panel.appendChild (problem);
+        var complain = function (text) {
+            problem.textContent = '';
+            if (text) { problem.appendChild (el ('div', 'notice bad', text)); }
+        };
+        panel.addEventListener ('input', function () { complain (''); });
+        var row = el ('div', 'buttons');
+        var submit = function () {
+            var body = { 'name': account.name, 'trading': trade.checked };
+            if (live && trade.checked) {
+                body.maxOrderValue = Number (cap.value);
+                body.liveConfirmed = confirm.checked;
+                // the server refuses these too; here it only points at the box
+                if (!(body.maxOrderValue > 0) || !isFinite (body.maxOrderValue)) { complain ('Enter the largest single order in USD (a number above 0).'); cap.focus (); return; }
+                if (!body.liveConfirmed) { complain ('Tick the box confirming that orders will use real money.'); confirm.focus (); return; }
+            }
+            setBusy (true);
+            post ('/permissions', body).then (function (result) {
+                setBusy (false);
+                if (!result.ok) {
+                    complain ('Not changed. ' + (result.error || 'Something went wrong.'));
+                    return;
+                }
+                applied (result);
+                state.open = undefined;
+                render ();
+                var now = state.accounts.filter (function (entry) { return entry.name === account.name; })[0];
+                var detail = now ? ('It is now: ' + mayText (now).toLowerCase () + '.') : '';
+                if (result.restartForTools) { detail += ' Restart the assistant app once so the order tools appear.'; }
+                else if (result.toolsAdded) { detail += ' The order tools were just added to the assistant; if it cannot see them, restart the assistant app once.'; }
+                say ('good', 'Changed “' + account.name + '”.', detail);
+                focusCard (account.name);
+            }, function () { setBusy (false); });
+        };
+        row.appendChild (button ('Save this change', 'primary', submit));
+        row.appendChild (button ('Cancel', 'secondary', function () { closePanel (account.name); }));
+        panel.appendChild (row);
+        // Enter in the amount box does what the button does; the tick box is the user's own click
+        cap.addEventListener ('keydown', function (event) { if (event.key === 'Enter') { event.preventDefault (); submit (); } });
+        return panel;
+    }
+
+    function card (account) {
+        var editable = account.source === 'file';
+        var box = el ('section', 'card' + (editable ? '' : ' readonly'));
+        var who = el ('div', 'who');
+        var name = el ('h2', '', account.name);
+        name.tabIndex = -1;
+        who.appendChild (name);
+        who.appendChild (environmentBadge (account));
+        if (!account.loaded) { who.appendChild (el ('span', 'badge', 'NOT IN USE')); }
+        if (!editable) { who.appendChild (el ('span', 'badge', 'READ-ONLY HERE')); }
+        box.appendChild (who);
+        box.appendChild (el ('p', 'venue', account.exchangeName + (account.prediction ? ' — prediction markets' : '')));
+        var facts = el ('dl', 'facts');
+        fact (facts, 'The assistant may', mayText (account));
+        if (account.keyEnding) {
+            var key = el ('span', '', 'ends in ');
+            key.appendChild (el ('span', 'keyend', '••••' + account.keyEnding));
+            fact (facts, 'API key', key);
+        }
+        fact (facts, 'Saved for it', account.credentials.length ? account.credentials.join (', ') : 'nothing');
+        if (account.funds) { fact (facts, 'Withdrawals', 'Withdrawals and transfers are switched on in the settings file. That cannot be changed on this page.'); }
+        if (account.implicitWrites) { fact (facts, 'Raw commands', 'Direct exchange commands are switched on in the settings file. That cannot be changed on this page.'); }
+        box.appendChild (facts);
+        if (!editable) {
+            // not in the settings file: it came with the app's own configuration
+            box.appendChild (el ('p', 'origin', 'This account comes from your assistant app’s own settings — what was entered when the CCXT plugin or extension was installed, or its environment variables — and not from the settings file. It can only be changed or removed there, so there are no buttons for it here.'));
+            return box;
+        }
+        if (!account.loaded) {
+            box.appendChild (el ('p', 'origin', 'This account is in the settings file but your assistant is not using it: it was added after the app started, or something in it is not valid. Restart the assistant app to load it, or remove it here.'));
+        }
+        var open = state.open && state.open.name === account.name ? state.open.kind : '';
+        if (open === 'remove') {
+            box.appendChild (removePanel (account));
+        } else if (open === 'permissions') {
+            box.appendChild (permissionsPanel (account));
+        } else {
+            var row = el ('div', 'buttons');
+            if (account.canEditPermissions) { row.appendChild (button ('Change permissions', 'secondary', function () { openPanel (account.name, 'permissions'); })); }
+            if (account.canReplace) {
+                var replace = el ('a', 'secondary', 'Replace key');
+                replace.href = base + '/wizard?account=' + encodeURIComponent (account.name);
+                row.appendChild (replace);
+            }
+            if (account.canRemove) { row.appendChild (button ('Remove', 'secondary danger', function () { openPanel (account.name, 'remove'); })); }
+            box.appendChild (row);
+        }
+        return box;
+    }
+
+    function showFileProblem (problem) {
+        $('file-problem').hidden = !problem;
+        $('file-problem').textContent = problem ? 'The settings file could not be read, so accounts cannot be changed here until it is fixed: ' + problem : '';
+    }
+
+    function render () {
+        cards.textContent = '';
+        if (state.accounts.length === 0) {
+            cards.appendChild (el ('p', 'none', 'No accounts are connected yet.'));
+        }
+        state.accounts.forEach (function (account) { cards.appendChild (card (account)); });
+        $('add').textContent = state.accounts.length ? '+ Add another account' : '+ Add an account';
+    }
+
+    function startCountdown () {
+        var end = performance.now () + boot.expiresInMs;
+        var tick = function () {
+            if (state.over) { return; }
+            var left = Math.max (0, end - performance.now ());
+            if (left <= 0) { gone (); return; }
+            var minutes = Math.floor (left / 60000);
+            var seconds = Math.floor ((left % 60000) / 1000);
+            $('expiry').textContent = 'Closes in ' + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+            setTimeout (tick, 1000);
+        };
+        tick ();
+    }
+
+    $('config-path').textContent = boot.configPath;
+    $('add').href = base + '/wizard';
+    $('done').addEventListener ('click', function () {
+        if (state.busy) { return; }
+        setBusy (true);
+        post ('/close', {}).then (function () { finish ('done-view', 'done-title'); }, function () {});
+    });
+    showFileProblem (boot.fileProblem);
+    render ();
+    startCountdown ();
+}) ();
+</script>
+</body>
+</html>

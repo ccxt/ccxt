@@ -72,12 +72,15 @@ export function registerSetupTools (server: McpServer, ctx: ServerContext): void
 
     server.registerTool ('setup_account', {
         'title': 'Open the account setup form in the user\'s browser',
-        'description': 'Connect an exchange account WITHOUT the API key ever entering this chat: opens a setup form in the user\'s default browser, served from their own machine, where they pick the exchange, type the API credentials, choose testnet/demo/live and whether orders may be placed (live needs a per-order USD cap). The account is saved to the local config file and usable immediately. Use this for "get started", for a first account, or whenever a tool reports an unconfigured account. The result only says the form was opened — you never see what the user types. Never ask the user to paste keys in chat. Call it once and wait for the user: while a form is open, calling again opens nothing new and leaves what they typed alone.',
+        // Kept short on purpose, like manage_accounts below: hosts pass tool definitions to
+        // the model under a size budget. The detail is in the result's notice, which the
+        // model reads at the moment it needs it.
+        'description': 'Connect an exchange account without the API key ever entering the chat: opens a step-by-step form in the user\'s browser, served from their own machine, where they type the key and choose testnet/demo/live and whether orders are allowed. Saved locally, usable at once. Call once, then wait for the user. Never ask for keys in chat.',
         'inputSchema': {
-            'exchange': z.string ().optional ().describe ('exchange id to preselect in the form, e.g. "binance" (list_exchanges) — the user can change it'),
-            'account': z.string ().optional ().describe ('account name to prefill (letters, digits, "-", "_"); defaults to the exchange id'),
-            'sandbox': z.boolean ().optional ().describe ('environment to preselect: true or omitted = testnet/sandbox (recommended for a first setup), false = live — the user makes the final choice in the form'),
-            'restart': z.boolean ().optional ().describe ('true = throw away the form that is currently open, INCLUDING anything the user has typed into it, and open a fresh one. Only when the user says they closed or lost the form; never to change the preselected values'),
+            'exchange': z.string ().optional ().describe ('exchange id to preselect, e.g. "binance" — the user can change it'),
+            'account': z.string ().optional ().describe ('account name to prefill (letters, digits, "-", "_")'),
+            'sandbox': z.boolean ().optional ().describe ('environment to preselect: true/omitted = testnet (recommended first), false = live — the user decides in the form'),
+            'restart': z.boolean ().optional ().describe ('true = discard the open form, INCLUDING what the user typed, and open a fresh one. Only when the user says they lost it'),
         },
         // Not read-only, although nothing is saved by the call itself (whatever gets saved is
         // typed and confirmed by the human in the page, outside the model's reach): it starts
@@ -96,7 +99,7 @@ export function registerSetupTools (server: McpServer, ctx: ServerContext): void
         const configPath = setup.configPath ();
         let opened: SetupOpened;
         try {
-            opened = await setup.open ({ exchange, account, sandbox }, { 'restart': restart === true });
+            opened = await setup.open ({ exchange, account, sandbox }, { 'restart': restart === true, 'page': 'setup' });
         } catch (e: any) {
             if (!(e instanceof SetupOpenError)) {
                 throw e;
@@ -118,6 +121,19 @@ export function registerSetupTools (server: McpServer, ctx: ServerContext): void
             afterSave = 'call list_accounts — it and the other account tools are added to this server\'s tool list the moment the account is saved (this server hides the tiers that have no account) and the account is usable immediately. If those tools do not show up for you, the host did not refresh its tool list: tell the user to restart the assistant app once';
         } else if (hideDisabled) {
             afterSave += ' (this server hides disabled tool tiers: the tools of a tier the new account enables are added to the tool list when it is saved — if they do not show up for you, the user restarts the assistant app once)';
+        }
+        if (opened.state === 'already-open' && opened.page === 'accounts') {
+            // the user has the accounts page open: it has its own way into this form
+            return ok ({
+                'opened': false,
+                'alreadyOpen': true,
+                'openPage': 'accounts',
+                'where': 'the user\'s default web browser, on their own computer',
+                'expiresInSeconds': opened.expiresInSeconds,
+                'savesTo': configPath,
+            }, {
+                'notice': 'The "Your accounts" page from an earlier manage_accounts call is still open in the user\'s browser, so nothing new was opened. Tell them to switch to that tab and press "Add another account" there — it leads to the same setup form; it expires in about ' + minutes + ' minutes. Only if they say they closed or cannot find it: call setup_account again with restart: true. Do NOT ask them to paste or type any key in this chat. When the user says they are done, ' + afterSave + '.',
+            });
         }
         if (opened.state === 'already-open') {
             return ok ({
@@ -151,7 +167,67 @@ export function registerSetupTools (server: McpServer, ctx: ServerContext): void
             'expiresInSeconds': opened.expiresInSeconds,
             'savesTo': configPath,
         }, {
-            'notice': 'A setup form is now open in the user\'s browser. Tell them to switch to it, follow the steps (create an API key on the exchange with withdrawals DISABLED, type it into the form, save) and come back here when it says "Saved". Do NOT ask them to paste or type any key, secret or passphrase in this chat — you never need to see them. The form expires in ' + minutes + ' minutes and works once. Do not call setup_account again while they are filling it in; if they lost the form, restart: true opens a fresh one. When the user says they are done, ' + afterSave + '.',
+            'notice': 'A setup form is now open in the user\'s browser. Tell them to switch to it and follow its five short steps (it explains where the key is kept, how to create an API key on the exchange with withdrawals DISABLED, then asks for the key, what you may do with it, and saves) and come back here when it says "Saved". Do NOT ask them to paste or type any key, secret or passphrase in this chat — you never need to see them. The form expires in ' + minutes + ' minutes and works once. Do not call setup_account again while they are filling it in; if they lost the form, restart: true opens a fresh one. When the user says they are done, ' + afterSave + '.',
+        });
+    }));
+
+    server.registerTool ('manage_accounts', {
+        'title': 'Open the "Your accounts" page in the user\'s browser',
+        'description': 'Open the "Your accounts" page in the user\'s browser, served from their own machine: it lists their connected accounts (never the keys) and lets THEM remove one, replace its API key, or switch order placement on or off. Use for "remove / change / replace my key" or "what is connected?". You only learn that it opened.',
+        'inputSchema': {
+            'restart': z.boolean ().optional ().describe ('true = discard the page or setup form that is open now, INCLUDING anything typed into it, and open a fresh one. Only when the user says they lost it'),
+        },
+        // The same reasoning as setup_account: the call itself changes no account (every
+        // change is made and confirmed by the human in the page), but it opens a browser
+        // window and, with restart, discards a form the user may be typing into — so it is
+        // not read-only, and a host that auto-approves read-only tools must not run it unasked.
+        'annotations': { 'readOnlyHint': false, 'destructiveHint': false, 'idempotentHint': false, 'openWorldHint': false },
+    }, async ({ restart }) => run ({ 'tool': 'manage_accounts' }, async () => {
+        const configPath = setup.configPath ();
+        let opened: SetupOpened;
+        try {
+            opened = await setup.open ({}, { 'restart': restart === true, 'page': 'accounts' });
+        } catch (e: any) {
+            if (!(e instanceof SetupOpenError)) {
+                throw e;
+            }
+            return {
+                'ok': false,
+                'error': {
+                    'code': 'SETUP_FORM_UNAVAILABLE',
+                    'message': 'the accounts page could not be shown: ' + e.message + ' (no desktop browser is reachable from the ccxt-mcp process)',
+                    'retryable': false,
+                    'hint': 'list_accounts shows what is configured (never the keys). To remove or change an account without the page, the user edits the ccxt-mcp config file at "' + configPath + '" and restarts the server. API keys go ONLY in that file, never in this chat.',
+                },
+            };
+        }
+        const minutes = Math.max (1, Math.round (opened.expiresInSeconds / 60));
+        const base = {
+            'where': 'the user\'s default web browser, on their own computer',
+            'expiresInSeconds': opened.expiresInSeconds,
+            'configFile': configPath,
+        };
+        const after = 'When the user says they are done, call list_accounts to see the result — changes apply immediately, no restart. Do NOT ask them to paste or type any key in this chat.';
+        if (opened.state === 'already-open' && opened.page === 'setup') {
+            return ok ({ 'opened': false, 'alreadyOpen': true, 'openPage': 'setup', ...base }, {
+                'notice': 'The account setup form from an earlier setup_account call is still open in the user\'s browser, so nothing new was opened and whatever they typed is untouched. Tell them to finish (or close) that form first; it expires in about ' + minutes + ' minutes. Only if they say they want to abandon it: call manage_accounts again with restart: true, which discards that form and anything typed into it. ' + after,
+            });
+        }
+        if (opened.state === 'already-open') {
+            return ok ({ 'opened': false, 'alreadyOpen': true, 'openPage': 'accounts', ...base }, {
+                'notice': 'The "Your accounts" page is still open in the user\'s browser from the earlier call, so nothing new was opened. Tell them to switch to that tab; it expires in about ' + minutes + ' minutes. Only if they say they closed or cannot find it: call manage_accounts again with restart: true. ' + after,
+            });
+        }
+        return ok ({
+            'opened': true,
+            ...base,
+            'shows': [
+                'each connected account: name, exchange, testnet/demo/live, whether orders are allowed, and the last 4 characters of its API key (nothing else of any key)',
+                'for accounts saved in the config file: remove, replace the API key, switch order placement on or off (live needs a per-order USD cap and an explicit confirmation)',
+                'accounts that come from the app\'s own settings or environment variables: shown read-only',
+            ],
+        }, {
+            'notice': 'The "Your accounts" page is now open in the user\'s browser. Tell them to switch to it, make their changes there and press "Done" when finished; it stays open for ' + minutes + ' minutes. You cannot make these changes yourself and you never see a key. Withdrawals, transfers and raw write endpoints cannot be enabled there (config file only). ' + after,
         });
     }));
 }

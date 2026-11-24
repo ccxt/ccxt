@@ -4,6 +4,7 @@ import { Safety } from './safety.js';
 import { Journal } from './journal.js';
 import { SubscriptionRegistry } from './subscriptions.js';
 import { registerAllTools, SERVER_INSTRUCTIONS } from './tools/index.js';
+import { ToolProfile, profileInstructions } from './tools/profile.js';
 import { RouteCache, createRouter } from './tools/route.js';
 import type { ResolvedConfig, ServerContext } from './types.js';
 
@@ -24,11 +25,14 @@ export function createServer (options: CreateServerOptions): { server: McpServer
     const safety = new Safety (journal);
     const pools = new ExchangePools (options.config, options.poolsDeps);
     const subscriptions = new SubscriptionRegistry (pools, options.config.settings.maxSubscriptions, options.deadRetentionMs);
+    // resolved before the server exists: the instructions are fixed at construction and must
+    // not promise a tool the profile hides
+    const toolProfile = new ToolProfile (options.config.settings.tools);
     const server = new McpServer ({
         'name': 'ccxt-mcp',
         'version': options.version,
     }, {
-        'instructions': SERVER_INSTRUCTIONS,
+        'instructions': profileInstructions (SERVER_INSTRUCTIONS, toolProfile),
     });
     const ctx: ServerContext = {
         'ccxt': options.ccxtModule,
@@ -39,6 +43,7 @@ export function createServer (options: CreateServerOptions): { server: McpServer
         subscriptions,
         'router': options.router ?? createRouter (options.ccxtModule, options.version),
         'routes': new RouteCache (),
+        toolProfile,
         'version': options.version,
         'elicitationSupported': () => {
             const capabilities = server.server.getClientCapabilities ();

@@ -9,13 +9,19 @@ import { z } from 'zod';
 import { log } from './logging.js';
 import { readAsset } from './embedded.js';
 import { redact, registerSecret, unregisterSecret } from './redact.js';
-import { ConfigWriteError, hasOwn, isReservedAccountName, isValidAccountName, registerAccountSecrets, resolveConfigPath, unescapePem, validateAccount, writeAccountToConfigFile } from './config.js';
+import { ConfigWriteError, hasOwn, isReservedAccountName, isValidAccountName, readConfigFileAccounts, registerAccountSecrets, removeAccountFromConfigFile, resolveConfigPath, unescapePem, updateAccountInConfigFile, validateAccount, writeAccountToConfigFile } from './config.js';
 import type { AccountConfig, ServerContext } from './types.js';
 import { CREDENTIAL_FIELDS, accountEnvironment } from './types.js';
 
-// The account setup form: a single page served over loopback HTTP by this process, opened in
-// the user's own browser, where they type an exchange API key that is then written to the
-// local config file and applied to the running server.
+// The account pages: served over loopback HTTP by this process and opened in the user's own
+// browser. There are two, and they share every line of the session machinery below:
+//   setup      the step-by-step form where the user types an exchange API key, which is then
+//              written to the local config file and applied to the running server;
+//   accounts   "Your accounts": the configured accounts (never their secrets), with remove,
+//              change-permissions and replace-key actions on the ones the config file holds.
+// A session is one or the other (Session.page). Nothing below the session checks knows which:
+// the token, the launch file, the cookie binding and the Host/Origin/nonce rules are the same
+// code path for both, so a property that holds for one holds for the other.
 //
 // Why a local web page and not a tool parameter or an MCP Apps view: a credential that
 // travels through a tool call (or through a view's host bridge) is visible to the model and
@@ -40,9 +46,10 @@ import { CREDENTIAL_FIELDS, accountEnvironment } from './types.js';
 //   something scanning local ports            every miss is an identical empty 404; the token
 //                                             is compared in constant time and 128 bits are not
 //                                             guessable within SESSION_TTL_MS
-//   leftovers                                 one session at a time, dead after one save or
-//                                             SESSION_TTL_MS; the listener and the launch file
-//                                             go with it
+//   leftovers                                 one session at a time, dead after SESSION_TTL_MS;
+//                                             a setup session also dies with its one save, an
+//                                             accounts session with its "Done" button; the
+//                                             listener and the launch file go with it
 // What is left: a process running as the same OS user can read the launch file in the moment
 // before the browser does (and can read the config file anyway), so it is out of scope.
 //
@@ -82,8 +89,13 @@ export class SetupOpenError extends Error {}
 // no browser had loaded yet, or found one the user already has open and left it alone
 export type SetupOpenState = 'opened' | 'reopened' | 'already-open';
 
+export type SetupPage = 'setup' | 'accounts';
+
 export interface SetupOpened {
     state: SetupOpenState;
+    // the page that is in front of the user now — for 'already-open' not necessarily the one
+    // this call asked for
+    page: SetupPage;
     expiresInSeconds: number;
 }
 
@@ -94,6 +106,7 @@ export interface TierListing {
 }
 
 interface Session {
+    page: SetupPage;
     token: string;
     csrf: string;
     // minted by the first page load; from then on the URL token alone is worth nothing
@@ -104,6 +117,16 @@ interface Session {
     prefill: SetupPrefill;
     busy: boolean;
 }
+
+// Why an accounts session is not single-use like a setup session: managing accounts is a run
+// of small actions (look, switch one off, remove another), and a session that died after the
+// first would cost the user a new tool call and a new browser tab for each. Its life is
+// bounded instead by the same fixed SESSION_TTL_MS — never extended by activity, so an open
+// tab cannot keep a surface that changes accounts alive — and by the page's "Done" button.
+// Every action is re-validated on its own (cookie, Origin, nonce, and the account's state on
+// disk at that moment), so the longer life grants nothing the bound browser did not already
+// have. What the page can reveal is fixed by accountEntry () below: names, modes and the last
+// four characters of an API key — no request to an accounts session returns more than that.
 
 // how each ccxt credential is called on an exchange's API-key page, for people who have never
 // seen the ccxt names
@@ -139,6 +162,23 @@ const saveSchema = z.object ({
     'liveConfirmed': z.boolean ().optional (),
     'replace': z.boolean ().optional (),
 }).strict ();
+
+const removeSchema = z.object ({
+    'name': z.string ().max (128),
+    // the page's own "are you sure" step, restated in the request: a body without it is not
+    // a removal the user confirmed
+    'confirm': z.literal (true),
+}).strict ();
+
+const permissionsSchema = z.object ({
+    'name': z.string ().max (128),
+    'trading': z.boolean (),
+    'maxOrderValue': z.number ().optional (),
+    'liveConfirmed': z.boolean ().optional (),
+}).strict ();
+
+// an API key shorter than this shows no ending at all: four characters would be too much of it
+const MIN_KEY_LENGTH_FOR_ENDING = 12;
 
 class FormError extends Error {
     status: number;
@@ -235,14 +275,14 @@ export function openInBrowser (file: string): Promise<void> {
 }
 
 const INCLUDE_PATTERN = /\/\*\s*@include\s+([a-z0-9.-]+)\s*\*\//g;
-let pageTemplate: string | undefined = undefined;
+const pageTemplates: Record<string, string> = {};
 
-function loadTemplate (): string {
-    if (pageTemplate === undefined) {
-        const template = readAsset ('ui/setup.html');
-        pageTemplate = template.replace (INCLUDE_PATTERN, (_match, file) => readAsset ('ui/' + file));
+function loadTemplate (file: 'setup.html' | 'accounts.html'): string {
+    if (pageTemplates[file] === undefined) {
+        const template = readAsset ('ui/' + file);
+        pageTemplates[file] = template.replace (INCLUDE_PATTERN, (_match, include) => readAsset ('ui/' + include));
     }
-    return pageTemplate;
+    return pageTemplates[file];
 }
 
 // JSON placed inside a <script> block: "<" must not be able to close the element
@@ -304,18 +344,24 @@ export class SetupServer {
     // no browser loaded yet is launched again — nothing was typed into it, so it can take
     // the new prefill. Only an explicit restart retires a live form.
     // Deliberately returns nothing that identifies the session — the result goes to the model.
-    async open (prefill: SetupPrefill = {}, options: { restart?: boolean } = {}): Promise<SetupOpened> {
+    // The same rules hold across the two pages: an accounts page the user has open is not
+    // replaced by a setup_account call, nor a half-filled setup form by manage_accounts — the
+    // result names the page that is open and the caller relays that.
+    async open (prefill: SetupPrefill = {}, options: { restart?: boolean, page?: SetupPage } = {}): Promise<SetupOpened> {
+        const page: SetupPage = options.page ?? 'setup';
         const port = await this.listen ();
         let session = this.hasLiveSession () ? this.session : undefined;
         let state: SetupOpenState = 'reopened';
         if (session !== undefined && options.restart !== true) {
             if (session.cookie !== undefined) {
-                return { 'state': 'already-open', 'expiresInSeconds': this.remainingSeconds (session) };
+                return { 'state': 'already-open', 'page': session.page, 'expiresInSeconds': this.remainingSeconds (session) };
             }
+            session.page = page;
             session.prefill = prefill;
         } else {
             this.dropLaunchFile (this.session);
             session = {
+                page,
                 'token': randomToken (),
                 'csrf': randomToken (),
                 'cookie': undefined,
@@ -338,8 +384,8 @@ export class SetupServer {
             // never forward the opener's own message: it may quote what it was given
             throw new SetupOpenError ((e instanceof SetupOpenError) ? e.message : 'the browser could not be opened from this machine');
         }
-        log ('info', 'setup form ' + ((state === 'opened') ? 'opened' : 'opened again') + ' in the browser (expires in ' + Math.ceil (this.remainingSeconds (session) / 60) + ' minutes)');
-        return { state, 'expiresInSeconds': this.remainingSeconds (session) };
+        log ('info', ((page === 'accounts') ? 'accounts page ' : 'setup form ') + ((state === 'opened') ? 'opened' : 'opened again') + ' in the browser (expires in ' + Math.ceil (this.remainingSeconds (session) / 60) + ' minutes)');
+        return { state, page, 'expiresInSeconds': this.remainingSeconds (session) };
     }
 
     async close (): Promise<void> {
@@ -566,20 +612,37 @@ export class SetupServer {
                 setCookie = COOKIE_NAME + '=' + session.cookie + '; HttpOnly; SameSite=Lax; Path=/setup/' + session.token;
             }
             this.dropLaunchFile (session);
-            this.sendPage (res, session, setCookie);
+            if (session.page === 'accounts') {
+                this.sendAccountsPage (res, session, setCookie);
+            } else {
+                this.sendWizardPage (res, session, setCookie, undefined);
+            }
             return;
         }
-        if (!bound || (action !== 'credentials' && action !== 'test' && action !== 'save')) {
+        // what a session answers besides its page depends on its kind: a setup session has
+        // never heard of the account list or of removing anything
+        const manage = session.page === 'accounts';
+        const reads = manage ? [ 'credentials', 'accounts', 'wizard' ] : [ 'credentials' ];
+        const writes = manage ? [ 'test', 'save', 'remove', 'permissions', 'close' ] : [ 'test', 'save' ];
+        if (!bound || (!reads.includes (action) && !writes.includes (action))) {
             // nothing but the page itself is served before a browser is bound to the session
             this.notFound (res);
             return;
         }
-        if (action === 'credentials') {
+        if (reads.includes (action)) {
             if (req.method !== 'GET') {
                 this.send (res, 405, '', { 'Allow': 'GET' });
                 return;
             }
-            this.sendJson (res, 200, this.describeExchange (query.get ('exchange') ?? '', query.get ('prediction') === '1'));
+            if (action === 'credentials') {
+                this.sendJson (res, 200, this.describeExchange (query.get ('exchange') ?? '', query.get ('prediction') === '1'));
+            } else if (action === 'accounts') {
+                this.sendJson (res, 200, { 'ok': true, ...this.accountList () });
+            } else {
+                // the same step-by-step form, reached from the accounts page: to add an
+                // account, or (?account=<name>) to replace the key of one the file holds
+                this.sendWizardPage (res, session, undefined, query.get ('account') ?? undefined);
+            }
             return;
         }
         // from here on the request changes something (or sends keys to an exchange), so it
@@ -627,9 +690,23 @@ export class SetupServer {
         // this request added: unless it ends in a save they are taken back at the very end,
         // after the response and every log line about it went through the redactor.
         const provisional: string[] = [];
+        // the credential values of an account this request removed: they stay redactable
+        // until the response and every log line about it are out, then the server forgets them
+        const forget: string[] = [];
         let saved = false;
         try {
-            const result = (action === 'test') ? await this.runTest (body, provisional) : await this.runSave (body, session, provisional);
+            let result: Record<string, any>;
+            if (action === 'test') {
+                result = await this.runTest (body, provisional);
+            } else if (action === 'save') {
+                result = await this.runSave (body, session, provisional);
+            } else if (action === 'remove') {
+                result = this.runRemove (body, forget);
+            } else if (action === 'permissions') {
+                result = this.runPermissions (body);
+            } else {
+                result = this.runClose (session);
+            }
             saved = action === 'save';
             this.sendJson (res, 200, result);
         } catch (e: any) {
@@ -646,9 +723,12 @@ export class SetupServer {
                     unregisterSecret (value);
                 }
             }
+            for (const value of forget) {
+                unregisterSecret (value);
+            }
         }
         if (this.session === undefined) {
-            // the save ended the session; let this response out, then give the port back
+            // the save (or "Done") ended the session; let this response out, then give the port back
             this.stopListening (true);
         }
     }
@@ -680,11 +760,29 @@ export class SetupServer {
         });
     }
 
-    private sendPage (res: http.ServerResponse, session: Session, setCookie: string | undefined): void {
+    private sendHtml (res: http.ServerResponse, file: 'setup.html' | 'accounts.html', boot: Record<string, any>, setCookie: string | undefined): void {
         const nonce = randomBytes (16).toString ('base64');
+        // redact (): nothing in a boot block is a credential, and should one ever get there
+        // it leaves as a label
+        const html = loadTemplate (file)
+            .replace (/__CSP_NONCE__/g, () => nonce)
+            .replace ('__BOOT_JSON__', () => redact (scriptJson (boot)));
+        this.send (res, 200, html, {
+            ...((setCookie !== undefined) ? { 'Set-Cookie': setCookie } : {}),
+            'Content-Type': 'text/html; charset=utf-8',
+            // nothing external, nothing inline without this response's nonce, and the only
+            // place the page may send data is back here
+            'Content-Security-Policy': "default-src 'none'; script-src 'nonce-" + nonce + "'; style-src 'nonce-" + nonce + "'; connect-src 'self'; img-src data:; form-action 'none'; base-uri 'none'; frame-ancestors 'none'",
+        });
+    }
+
+    // The step-by-step form. `replaceName` (accounts sessions only) names a file account whose
+    // key is being replaced: the form then opens prefilled with what is known about it —
+    // never a credential — and saves over it.
+    private sendWizardPage (res: http.ServerResponse, session: Session, setCookie: string | undefined, replaceName: string | undefined): void {
         const directory = this.ctx.pools.directory ();
         const prefill = session.prefill;
-        const boot = {
+        const boot: Record<string, any> = {
             'csrf': session.csrf,
             'exchanges': directory.allExchangeIds (),
             'prefill': {
@@ -694,17 +792,38 @@ export class SetupServer {
             },
             'configPath': this.configPath (),
             'expiresInMs': Math.max (0, session.expiresAt - this.deps.now ()),
+            // 'accounts': the form was reached from the accounts page and goes back to it
+            'page': session.page,
         };
-        const html = loadTemplate ()
-            .replace (/__CSP_NONCE__/g, () => nonce)
-            .replace ('__BOOT_JSON__', () => scriptJson (boot));
-        this.send (res, 200, html, {
-            ...((setCookie !== undefined) ? { 'Set-Cookie': setCookie } : {}),
-            'Content-Type': 'text/html; charset=utf-8',
-            // nothing external, nothing inline without this response's nonce, and the only
-            // place the page may send data is back here
-            'Content-Security-Policy': "default-src 'none'; script-src 'nonce-" + nonce + "'; style-src 'nonce-" + nonce + "'; connect-src 'self'; img-src data:; form-action 'none'; base-uri 'none'; frame-ancestors 'none'",
-        });
+        if (session.page === 'accounts') {
+            // the tool call's prefill belongs to a setup session; this form starts empty…
+            boot['prefill'] = { 'exchange': '', 'account': '', 'environment': 'sandbox' };
+            const entry = (replaceName === undefined) ? undefined : this.accountList ().accounts.find ((candidate) => candidate['name'] === replaceName);
+            if (entry !== undefined && entry['canReplace'] === true) {
+                // …or with the account being replaced: its name, exchange, environment and
+                // whether orders were allowed. Its keys are typed again; that is the point.
+                boot['prefill'] = {
+                    'exchange': directory.isKnownExchange (entry['exchange']) ? entry['exchange'] : '',
+                    'account': entry['name'],
+                    'environment': entry['environment'],
+                };
+                boot['replace'] = {
+                    'prediction': entry['prediction'] === true,
+                    'trading': entry['trading'] !== false,
+                    'maxOrderValue': (typeof entry['maxOrderValue'] === 'number') ? entry['maxOrderValue'] : undefined,
+                };
+            }
+        }
+        this.sendHtml (res, 'setup.html', boot, setCookie);
+    }
+
+    private sendAccountsPage (res: http.ServerResponse, session: Session, setCookie: string | undefined): void {
+        this.sendHtml (res, 'accounts.html', {
+            'csrf': session.csrf,
+            'configPath': this.configPath (),
+            'expiresInMs': Math.max (0, session.expiresAt - this.deps.now ()),
+            ...this.accountList (),
+        }, setCookie);
     }
 
     // ---------------------------------------------------------------------------------
@@ -984,15 +1103,8 @@ export class SetupServer {
         // they still hold: an env account shadowed by this name, and a file refused under
         // strictPermissions (its other accounts were never loaded).
         const accountPrefix = 'account ' + JSON.stringify (input.name);
-        this.ctx.config.problems = this.ctx.config.problems.filter ((problem) => {
-            if (problem.startsWith (accountPrefix + ':') || problem.startsWith (accountPrefix + ' invalid:') || problem.startsWith (accountPrefix + ' ignored:')) {
-                return false;
-            }
-            if (problem.startsWith ('WARNING: config file ') && problem.includes (' is readable by other users')) {
-                return false;
-            }
-            return !(hadNoFile && problem.startsWith ('CCXT_MCP_CONFIG points to a missing file'));
-        });
+        this.dropProblems ((problem) => problem.startsWith (accountPrefix + ':') || problem.startsWith (accountPrefix + ' invalid:') || problem.startsWith (accountPrefix + ' ignored:')
+            || (hadNoFile && problem.startsWith ('CCXT_MCP_CONFIG points to a missing file')));
         // an account that only lived in memory (environment variables) was replaced just as
         // much as one in the file, and the record must say so
         const replaced = written.replaced || previous !== undefined;
@@ -1004,7 +1116,8 @@ export class SetupServer {
             tiers = this.listTiers (account);
         }
         // names and modes only — a credential value has no business in either record
-        log ('info', 'account ' + JSON.stringify (input.name) + ' on ' + input.exchange + ' saved via setup form (' + input.environment + ', ' + tradingText + ')'
+        const manage = session.page === 'accounts';
+        log ('info', 'account ' + JSON.stringify (input.name) + ' on ' + input.exchange + ' saved via ' + (manage ? 'the accounts page' : 'setup form') + ' (' + input.environment + ', ' + tradingText + ')'
             + (replaced ? ' — replaced the previous account of that name' : '')
             + ((stoppedStreams > 0) ? ' — stopped ' + stoppedStreams + ' live stream(s) that ran on its old keys' : '')
             + ((tiers.added.length > 0) ? ' — now listing the ' + tiers.added.join (' and ') + ' tools' : ''));
@@ -1016,10 +1129,10 @@ export class SetupServer {
                 'account': input.name,
                 'exchange': input.exchange,
                 'environment': input.environment,
-                'tool': 'setup_account',
+                'tool': manage ? 'manage_accounts' : 'setup_account',
                 'method': 'saveAccount',
                 'outcome': {
-                    'source': 'setup form',
+                    'source': manage ? 'accounts page' : 'setup form',
                     trading,
                     'maxOrderValue': account.maxOrderValue,
                     replaced,
@@ -1030,13 +1143,16 @@ export class SetupServer {
         } catch (e: any) {
             log ('warning', 'setup form: could not journal the saved account: ' + redact (String (e?.message ?? e)));
         }
-        // single use: the token that just saved an account can never save (or read) another
-        if (this.session === session) {
+        // A setup session is single use: the token that just saved an account can never save
+        // (or read) another. An accounts session goes on — its form was one stop on the way
+        // back to the list (see the note on Session).
+        if (this.session === session && !manage) {
             this.dropLaunchFile (session);
             this.session = undefined;
         }
         return {
             'ok': true,
+            ...(manage ? { 'returnTo': 'accounts' } : {}),
             'account': input.name,
             'exchange': input.exchange,
             'environment': input.environment,
@@ -1048,5 +1164,288 @@ export class SetupServer {
             // true only when a newly enabled tier could NOT be listed without a restart
             'restartForTools': tiers.restartNeeded,
         };
+    }
+
+    // ---------------------------------------------------------------------------------
+    // "Your accounts"
+
+    // Removes the startup complaints an edit of the config file made untrue. The one about
+    // the file being readable by other users goes with every edit: each rewrites it 0600.
+    private dropProblems (untrue: (problem: string) => boolean): void {
+        this.ctx.config.problems = this.ctx.config.problems.filter ((problem: string) => {
+            if (problem.startsWith ('WARNING: config file ') && problem.includes (' is readable by other users')) {
+                return false;
+            }
+            return !untrue (problem);
+        });
+    }
+
+    // Everything the accounts page is ever told about one account. This is the whole
+    // disclosure: names, modes, WHICH credential fields are set, and the last four characters
+    // of the API key so the user can tell two keys apart against the exchange's own list.
+    // No other part of any credential leaves here — not the secret, not a passphrase or
+    // private key, not a length, not a masked rendering that would give a length away.
+    private accountEntry (name: string, record: Record<string, any>, source: 'file' | 'environment', loaded: boolean): Record<string, any> {
+        const exchange = (typeof record['exchange'] === 'string') ? record['exchange'] : '';
+        const prediction = record['prediction'] === true;
+        const known = this.ctx.pools.directory ().isKnownExchange (exchange);
+        let exchangeName = exchange;
+        let sandboxIsDemo = false;
+        try {
+            const bare = this.bare (exchange, prediction);
+            exchangeName = (typeof bare.name === 'string') ? bare.name : exchange;
+            sandboxIsDemo = this.sandboxIsDemo (bare);
+        } catch (e) {
+            // an exchange this server does not know keeps its id as its name
+        }
+        const trading = (record['trading'] === true || record['trading'] === 'live') ? record['trading'] : false;
+        const apiKey = record['apiKey'];
+        const editable = source === 'file';
+        return {
+            name,
+            exchange,
+            exchangeName,
+            prediction,
+            'environment': (record['sandbox'] === true) ? 'sandbox' : ((record['demo'] === true) ? 'demo' : 'live'),
+            sandboxIsDemo,
+            trading,
+            'maxOrderValue': (typeof record['maxOrderValue'] === 'number') ? record['maxOrderValue'] : undefined,
+            // shown, never switchable here: these two tiers are enabled by editing the file
+            'funds': record['funds'] === true || record['funds'] === 'live',
+            'implicitWrites': record['implicitWrites'] === true,
+            'credentials': CREDENTIAL_FIELDS.filter ((field) => typeof record[field] === 'string' && record[field] !== '').map ((field) => CREDENTIAL_LABELS[field] ?? field),
+            'keyEnding': (typeof apiKey === 'string' && apiKey.length >= MIN_KEY_LENGTH_FOR_ENDING) ? apiKey.slice (-4) : undefined,
+            source,
+            // false: the file holds it but the running server does not use it (it was added
+            // by hand since the server started, or it did not pass validation)
+            loaded,
+            'canRemove': editable,
+            'canEditPermissions': editable && loaded,
+            // the form saves under names it can validate, and an exchange it knows
+            'canReplace': editable && known && isValidAccountName (name),
+        };
+    }
+
+    // The accounts the server is using, each marked with where it comes from, followed by
+    // the ones the config file holds that are not in use. An account whose name the file does
+    // not hold was defined outside it (CCXT_MCP_* variables, which is also how a host's
+    // install prompt hands keys over) and cannot be changed from here: the page shows it
+    // read-only and says where it comes from.
+    private accountList (): { accounts: Record<string, any>[], fileProblem: string | undefined } {
+        let inFile: Record<string, Record<string, any>> = {};
+        let fileProblem: string | undefined = undefined;
+        try {
+            inFile = readConfigFileAccounts (this.configPath (), { 'isKnownExchange': this.ctx.pools.directory ().isKnownExchange }).accounts;
+        } catch (e: any) {
+            // with an unreadable file nothing can be told apart or edited: everything is
+            // listed read-only and the page says why
+            fileProblem = (e instanceof ConfigWriteError) ? e.message : 'the config file could not be read';
+        }
+        const accounts: Record<string, any>[] = [];
+        const memory = this.ctx.config.accounts;
+        for (const name of Object.keys (memory)) {
+            const entry = this.accountEntry (name, memory[name], (fileProblem === undefined && !hasOwn (inFile, name)) ? 'environment' : 'file', true);
+            if (fileProblem !== undefined) {
+                entry['canRemove'] = false;
+                entry['canEditPermissions'] = false;
+                entry['canReplace'] = false;
+            }
+            accounts.push (entry);
+        }
+        for (const name of Object.keys (inFile)) {
+            if (!hasOwn (memory, name)) {
+                accounts.push (this.accountEntry (name, inFile[name], 'file', false));
+            }
+        }
+        return { accounts, fileProblem };
+    }
+
+    private configWriteFailure (e: any, name: string, inUse: boolean): FormError {
+        if (!(e instanceof ConfigWriteError)) {
+            return e;
+        }
+        if (e.code !== 'NOT_FOUND') {
+            return new FormError (400, e.code, e.message);
+        }
+        return inUse
+            ? new FormError (409, 'NOT_IN_FILE', 'the account "' + name + '" does not come from the settings file, so it cannot be changed here — change it where it was entered (the assistant app\'s own settings for this plugin, or its environment variables)')
+            : new FormError (400, 'UNKNOWN_ACCOUNT', 'there is no account named "' + name + '"');
+    }
+
+    // Removes one account from the config file — in the file's own shape, everything else in
+    // it untouched — and from the running server.
+    private runRemove (body: any, forget: string[]): Record<string, any> {
+        const parsed = removeSchema.safeParse (body);
+        if (!parsed.success) {
+            throw new FormError (400, 'BAD_REQUEST', 'the request is incomplete');
+        }
+        const name = parsed.data.name;
+        const accounts = this.ctx.config.accounts;
+        const previous: AccountConfig | undefined = hasOwn (accounts, name) ? accounts[name] : undefined;
+        let fromFile: Record<string, any> = {};
+        try {
+            updateAccountInConfigFile (this.configPath (), name, (record) => {
+                fromFile = record;
+                return undefined;
+            }, { 'isKnownExchange': this.ctx.pools.directory ().isKnownExchange });
+        } catch (e: any) {
+            throw this.configWriteFailure (e, name, previous !== undefined);
+        }
+        // Out of the running server, in the same order as a replacement: its streams first
+        // (each holds its own reference to the client and would reconnect with the removed
+        // keys), then the cached client, then the record. Other accounts are not touched —
+        // not even one on the same exchange, whose client and streams are its own.
+        let stoppedStreams = 0;
+        if (previous !== undefined) {
+            stoppedStreams = this.ctx.subscriptions.stopAccount (name);
+            this.ctx.pools.evictAuthenticated (name);
+            delete accounts[name];
+            // the server forgets the removed values (after this response is out) — except
+            // one another account still uses, which must stay redactable
+            const stillUsed = new Set<string> ();
+            for (const other of Object.values (accounts) as AccountConfig[]) {
+                for (const field of CREDENTIAL_FIELDS) {
+                    const value = (other as any)[field];
+                    if (typeof value === 'string') {
+                        stillUsed.add (value);
+                    }
+                }
+            }
+            for (const field of CREDENTIAL_FIELDS) {
+                const value = (previous as any)[field];
+                if (typeof value === 'string' && !stillUsed.has (value)) {
+                    forget.push (value);
+                }
+            }
+        }
+        // An account of this name defined in the environment was hidden by the file account
+        // all along; it is not in memory, so it only takes over at the next start.
+        const shadowPrefix = 'env/.mcpb-form account "' + name + '" (';
+        const returnsOnRestart = this.ctx.config.problems.some ((problem: string) => problem.startsWith (shadowPrefix));
+        const accountPrefix = 'account ' + JSON.stringify (name);
+        this.dropProblems ((problem) => problem.startsWith (accountPrefix + ':') || problem.startsWith (accountPrefix + ' invalid:') || problem.startsWith (accountPrefix + ' ignored:') || problem.startsWith (shadowPrefix));
+        const record: Record<string, any> = previous ?? fromFile;
+        const exchange = (typeof record['exchange'] === 'string') ? record['exchange'] : '';
+        const environment = (record['sandbox'] === true) ? 'sandbox' : ((record['demo'] === true) ? 'demo' : 'live');
+        // names and modes only
+        log ('info', 'account ' + JSON.stringify (name) + ' on ' + exchange + ' removed via the accounts page'
+            + ((previous === undefined) ? ' (it was in the config file but not in use)' : '')
+            + ((stoppedStreams > 0) ? ' — stopped ' + stoppedStreams + ' live stream(s) that ran on its keys' : ''));
+        this.journalAction (name, exchange, environment, 'removeAccount', { 'source': 'accounts page', 'wasInUse': previous !== undefined, stoppedStreams, returnsOnRestart });
+        return { 'ok': true, 'removed': name, stoppedStreams, returnsOnRestart, ...this.accountList () };
+    }
+
+    // Turns order placement on or off for one file account. It is the ONLY thing this edits:
+    // "trading", and with live trading the cap and the confirmation rule that go with it.
+    // Everything else in the record is written back as it was — including the funds and
+    // implicitWrites tiers, which no page can change. (Replacing an account through the form
+    // is different on purpose: it writes a fresh record, so a tier enabled by hand does not
+    // silently carry over to keys the user typed for something else.)
+    private runPermissions (body: any): Record<string, any> {
+        const parsed = permissionsSchema.safeParse (body);
+        if (!parsed.success) {
+            throw new FormError (400, 'BAD_REQUEST', 'the request is incomplete');
+        }
+        const input = parsed.data;
+        const name = input.name;
+        const accounts = this.ctx.config.accounts;
+        const previous: AccountConfig | undefined = hasOwn (accounts, name) ? accounts[name] : undefined;
+        const directory = this.ctx.pools.directory ();
+        // (the cast keeps the type wide: it is assigned inside the callback below)
+        let trading = false as boolean | 'live';
+        try {
+            updateAccountInConfigFile (this.configPath (), name, (record) => {
+                if (previous === undefined) {
+                    throw new FormError (409, 'NOT_LOADED', 'the account "' + name + '" is in the settings file but not in use yet — restart the assistant app, then change it');
+                }
+                // the environment decides whether this is practice or real money, and it is
+                // taken from the record itself, never from the request
+                const environment = (record['sandbox'] === true) ? 'sandbox' : ((record['demo'] === true) ? 'demo' : 'live');
+                if (environment !== accountEnvironment (previous) || record['exchange'] !== previous.exchange || (record['prediction'] === true) !== (previous.prediction === true)) {
+                    // the file was edited by hand since the server read it: "practice" in one
+                    // and "live" in the other must never be settled by a guess
+                    throw new FormError (409, 'OUT_OF_SYNC', 'the settings file was changed since the assistant app started — restart the app, then change this account');
+                }
+                const next = { ...record };
+                if (!input.trading) {
+                    // switching off needs no second yes: it only ever takes abilities away
+                    delete next['trading'];
+                } else if (environment === 'live') {
+                    // real money: the same two conditions as the form's save, checked here
+                    if (input.maxOrderValue === undefined || !Number.isFinite (input.maxOrderValue) || input.maxOrderValue <= 0) {
+                        throw new FormError (400, 'CAP_REQUIRED', 'live trading needs a maximum order size in USD (a number above 0)');
+                    }
+                    if (input.liveConfirmed !== true) {
+                        throw new FormError (400, 'CONFIRM_REQUIRED', 'tick the confirmation box to allow orders with real money');
+                    }
+                    trading = 'live';
+                    next['trading'] = 'live';
+                    next['maxOrderValue'] = input.maxOrderValue;
+                    next['confirm'] = 'always';
+                } else {
+                    trading = true;
+                    next['trading'] = true;
+                }
+                // the record as startup would load it: an edit that validation would undo
+                // (or a record it rejects) is refused instead of written
+                const problems: string[] = [];
+                const checked = validateAccount (name, next, problems, directory);
+                if (checked === undefined || (checked.trading ?? false) !== trading) {
+                    throw new FormError (400, 'INVALID_ACCOUNT', problems.join ('; ') || 'the account could not be validated');
+                }
+                return next;
+            }, { 'isKnownExchange': directory.isKnownExchange });
+        } catch (e: any) {
+            throw this.configWriteFailure (e, name, previous !== undefined);
+        }
+        // hot-apply: only the fields this edit owns change in memory too. The cached client
+        // and the streams are left alone — the keys and the environment are the same.
+        const account = { ...(previous as AccountConfig), trading } as AccountConfig;
+        if (trading === 'live') {
+            account.maxOrderValue = input.maxOrderValue;
+            account.confirm = 'always';
+        }
+        accounts[name] = account;
+        const accountPrefix = 'account ' + JSON.stringify (name) + ':';
+        this.dropProblems ((problem) => problem.startsWith (accountPrefix) && problem.includes ('"trading":'));
+        let tiers: TierListing = { 'added': [], 'restartNeeded': false };
+        if (trading !== false && this.listTiers !== undefined) {
+            tiers = this.listTiers (account);
+        }
+        const environment = accountEnvironment (account);
+        const tradingText = (trading === 'live') ? 'LIVE trading, max order ' + account.maxOrderValue + ' USD' : (trading ? 'trading' : 'read-only');
+        log ('info', 'account ' + JSON.stringify (name) + ' on ' + account.exchange + ' changed via the accounts page: now ' + tradingText + ' (' + environment + ')'
+            + ((tiers.added.length > 0) ? ' — now listing the ' + tiers.added.join (' and ') + ' tools' : ''));
+        this.journalAction (name, account.exchange, environment, 'setPermissions', { 'source': 'accounts page', trading, 'maxOrderValue': (trading === 'live') ? account.maxOrderValue : undefined, 'previousTrading': (previous as AccountConfig).trading ?? false });
+        return { 'ok': true, 'account': name, trading, 'toolsAdded': tiers.added.length > 0, 'restartForTools': tiers.restartNeeded, ...this.accountList () };
+    }
+
+    // the page's "Done" button: the user says they are finished, so the session ends now
+    // instead of lingering until it expires
+    private runClose (session: Session): Record<string, any> {
+        if (this.session === session) {
+            this.dropLaunchFile (session);
+            this.session = undefined;
+        }
+        log ('info', 'accounts page closed by the user');
+        return { 'ok': true, 'closed': true };
+    }
+
+    private journalAction (account: string, exchange: string, environment: string, method: string, outcome: Record<string, any>): void {
+        try {
+            this.ctx.journal.append ({
+                'ts': new Date (this.deps.now ()).toISOString (),
+                'event': 'result',
+                'intentId': 'accounts-' + randomBytes (6).toString ('hex'),
+                account,
+                exchange,
+                environment,
+                'tool': 'manage_accounts',
+                method,
+                outcome,
+            });
+        } catch (e: any) {
+            log ('warning', 'accounts page: could not journal the change: ' + redact (String (e?.message ?? e)));
+        }
     }
 }

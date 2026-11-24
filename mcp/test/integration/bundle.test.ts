@@ -75,7 +75,13 @@ test ('the bundle, alone in a directory, serves the same tools, views and method
         assert.deepEqual (bundledNames, await names (unbundled));
         assert.ok (bundledNames.length >= 30);
         // the setup form's page is an embedded asset too; opening a browser is not for a test
-        assert.ok (bundledNames.includes ('setup_account'));
+        assert.ok (bundledNames.includes ('setup_account') && bundledNames.includes ('manage_accounts'));
+        // both loopback pages and the stylesheet they share travel inside the one file
+        const bundleText = fs.readFileSync (bundle, 'utf8');
+        for (const asset of [ 'ui/setup.html', 'ui/accounts.html', 'ui/setup.css', 'ui/shared.css' ]) {
+            assert.ok (bundleText.includes (JSON.stringify (asset) + ':'), asset + ' must be embedded in the bundle');
+        }
+        assert.ok (bundleText.includes ('<title>Your accounts') && bundleText.includes ('nav.progress'));
         assert.ok (bundledNames.includes ('watch_subscribe'), 'ccxt.pro streaming must survive bundling');
 
         // every view is an embedded asset with its shared fragments inlined

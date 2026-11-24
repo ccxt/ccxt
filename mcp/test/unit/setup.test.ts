@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { ConfigWriteError, credentialSetupHelp, isValidAccountName, loadConfig, resolveConfigPath, validateAccount, writeAccountToConfigFile } from '../../ts/config.js';
+import { ConfigWriteError, credentialSetupHelp, isValidAccountName, loadConfig, readConfigFileAccounts, removeAccountFromConfigFile, resolveConfigPath, updateAccountInConfigFile, validateAccount, writeAccountToConfigFile } from '../../ts/config.js';
 import { browserCommand, defaultLaunchRoots, launchPage } from '../../ts/setup.js';
 import { ExchangePools, UnknownAccountError } from '../../ts/pools.js';
 
@@ -162,6 +162,84 @@ test ('writer: a symlinked config file is written through, not replaced', { 'ski
     assert.equal (result.path, fs.realpathSync (real));
     assert.equal (fs.lstatSync (link).isSymbolicLink (), true);
     assert.deepEqual (JSON.parse (fs.readFileSync (real, 'utf8'))['accounts']['main'], ACCOUNT);
+});
+
+test ('readConfigFileAccounts: both shapes are read the way the loader reads them; a missing file holds none', () => {
+    const dir = tempDir ();
+    assert.deepEqual (readConfigFileAccounts (path.join (dir, 'missing.json'), { 'isKnownExchange': known }).accounts, {});
+    const modern = path.join (dir, 'modern.json');
+    fs.writeFileSync (modern, '{"accounts":{"main":{"exchange":"fakex","apiKey":"K-123456"},"__proto__":{"exchange":"fakex"},"bad":7},"settings":{}}');
+    const read = readConfigFileAccounts (modern, { 'isKnownExchange': known });
+    assert.equal (read.shape, 'accounts');
+    assert.deepEqual (read.accounts, { 'main': { 'exchange': 'fakex', 'apiKey': 'K-123456' } });
+    assert.equal (Object.getPrototypeOf (read.accounts), Object.prototype);
+    const legacy = path.join (dir, 'legacy.json');
+    fs.writeFileSync (legacy, JSON.stringify ({ 'otherx': { 'apiKey': 'K-123456' }, 'settings': { 'maxResults': 5 }, 'unknownthing': { 'x': 1 } }));
+    const legacyRead = readConfigFileAccounts (legacy, { 'isKnownExchange': known });
+    assert.equal (legacyRead.shape, 'legacy');
+    // "exchange" is filled in from the key; "settings" and unknown keys are not accounts
+    assert.deepEqual (legacyRead.accounts, { 'otherx': { 'exchange': 'otherx', 'apiKey': 'K-123456' } });
+    const broken = path.join (dir, 'broken.json');
+    fs.writeFileSync (broken, '{nope');
+    assert.equal (codeOf (() => readConfigFileAccounts (broken, { 'isKnownExchange': known })), 'INVALID_JSON');
+});
+
+test ('remove / update: one account changes, in the file\'s own shape; everything else and a refused edit leave the file as it was', () => {
+    const dir = tempDir ();
+    const modern = path.join (dir, 'modern.json');
+    const before = {
+        'accounts': { 'main': { 'exchange': 'fakex', 'apiKey': 'K-123456', 'funds': 'live', 'maxTransferValue': 5 }, 'keep': { 'exchange': 'otherx', 'custom': [ 1 ] }, 'odd name': { 'exchange': 'fakex' } },
+        'settings': { 'hideDisabledTools': true },
+        'somethingElse': [ 'kept' ],
+    };
+    fs.writeFileSync (modern, JSON.stringify (before, null, 2), { 'mode': 0o644 });
+    // an edit: only what the callback changed differs
+    const updated = updateAccountInConfigFile (modern, 'main', (body) => ({ ...body, 'trading': true }), { 'isKnownExchange': known });
+    assert.deepEqual ({ 'shape': updated.shape, 'removed': updated.removed }, { 'shape': 'accounts', 'removed': false });
+    let after = JSON.parse (fs.readFileSync (modern, 'utf8'));
+    assert.deepEqual (after, { ...before, 'accounts': { ...before.accounts, 'main': { ...before.accounts.main, 'trading': true } } });
+    assert.deepEqual (Object.keys (after.accounts), [ 'main', 'keep', 'odd name' ], 'the account keeps its place');
+    assert.match (fs.readFileSync (modern, 'utf8'), /^\{\n  "accounts"/);
+    if (posix) {
+        assert.equal (mode (modern), 0o600, 'a rewritten file is private');
+    }
+    // a callback that throws aborts before anything is written
+    const text = fs.readFileSync (modern, 'utf8');
+    assert.throws (() => updateAccountInConfigFile (modern, 'main', () => {
+        throw new Error ('refused');
+    }, { 'isKnownExchange': known }), /refused/);
+    for (const name of [ 'nope', '__proto__', 'constructor', 'toString', 'settings' ]) {
+        assert.equal (codeOf (() => removeAccountFromConfigFile (modern, name, { 'isKnownExchange': known })), 'NOT_FOUND', name);
+    }
+    assert.equal (fs.readFileSync (modern, 'utf8'), text);
+    assert.deepEqual (fs.readdirSync (dir), [ 'modern.json' ], 'no temp file left behind');
+    // removal — also of a name the form itself would never create
+    assert.equal (removeAccountFromConfigFile (modern, 'odd name', { 'isKnownExchange': known }).removed, true);
+    removeAccountFromConfigFile (modern, 'main', { 'isKnownExchange': known });
+    after = JSON.parse (fs.readFileSync (modern, 'utf8'));
+    assert.deepEqual (after, { ...before, 'accounts': { 'keep': before.accounts.keep } });
+    // legacy shape: the key is the exchange id and "exchange" is never written inside
+    const legacy = path.join (dir, 'legacy.json');
+    const legacyBefore = { 'fakex': { 'apiKey': 'K-123456', 'funds': true }, 'otherx': { 'apiKey': 'O-123456' }, 'settings': { 'maxResults': 5 }, 'note': 'kept' };
+    fs.writeFileSync (legacy, JSON.stringify (legacyBefore));
+    let seen: any = undefined;
+    assert.equal (updateAccountInConfigFile (legacy, 'fakex', (body) => {
+        seen = body;
+        return { ...body, 'trading': true };
+    }, { 'isKnownExchange': known }).shape, 'legacy');
+    assert.deepEqual (seen, { 'exchange': 'fakex', 'apiKey': 'K-123456', 'funds': true }, 'the callback sees the body as the loader would');
+    assert.deepEqual (JSON.parse (fs.readFileSync (legacy, 'utf8')), { ...legacyBefore, 'fakex': { 'apiKey': 'K-123456', 'funds': true, 'trading': true } });
+    assert.equal (codeOf (() => removeAccountFromConfigFile (legacy, 'note', { 'isKnownExchange': known })), 'NOT_FOUND');
+    removeAccountFromConfigFile (legacy, 'fakex', { 'isKnownExchange': known });
+    assert.deepEqual (JSON.parse (fs.readFileSync (legacy, 'utf8')), { 'otherx': legacyBefore.otherx, 'settings': legacyBefore.settings, 'note': 'kept' });
+    // invalid JSON and a missing file: refused, untouched
+    const broken = path.join (dir, 'broken.json');
+    fs.writeFileSync (broken, '{"accounts": {"main": {},}}');
+    assert.equal (codeOf (() => removeAccountFromConfigFile (broken, 'main', { 'isKnownExchange': known })), 'INVALID_JSON');
+    assert.equal (fs.readFileSync (broken, 'utf8'), '{"accounts": {"main": {},}}');
+    const missing = path.join (dir, 'missing.json');
+    assert.equal (codeOf (() => removeAccountFromConfigFile (missing, 'main', { 'isKnownExchange': known })), 'NOT_FOUND');
+    assert.equal (fs.existsSync (missing), false, 'a missing file is not created by a removal');
 });
 
 test ('validateAccount: checks against the directory it is given, with the same tier rules as startup', () => {

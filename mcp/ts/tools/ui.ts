@@ -205,16 +205,16 @@ export function registerUiTools (server: McpServer, ctx: ServerContext): void {
 
     server.registerTool ('show_chart', {
         'title': 'Show candlestick chart',
-        'description': 'Render an interactive candlestick + volume chart for a symbol on an exchange. Use this whenever the user asks to see, show, plot or chart a price. In hosts with MCP Apps support the chart is displayed to the user; the tool result is a compact summary (range, open/close, change %, high/low, volume), not the candles — use get_ohlcv when you need the raw rows. Pass "account" to also draw that account\'s open orders for the symbol on the chart (meta.openOrders counts them, meta.drawnOrders the ones with a price line); for a sandbox or demo account the candles are then read from that same environment (meta.candlesEnvironment), not the live market.',
+        'description': 'Render an interactive candlestick + volume chart. Use whenever the user asks to see, show, plot or chart a price. The result is a compact summary (range, open/close, change %, high/low, volume), not the candles — get_ohlcv returns the rows. "account" also draws that account\'s open orders for the symbol (meta.openOrders, meta.drawnOrders); for a sandbox/demo account the candles then come from that environment (meta.candlesEnvironment), not the live market.',
         'inputSchema': {
             'exchange': exchangeParam,
-            'symbol': z.string ().describe ('unified symbol, e.g. "BTC/USDT" — resolve with search_markets'),
-            'timeframe': z.string ().optional ().describe ('candle interval (default "1h") — valid values come from describe_exchange .timeframes'),
+            'symbol': z.string ().describe ('unified symbol, e.g. "BTC/USDT" (search_markets)'),
+            'timeframe': z.string ().optional ().describe ('candle interval, default "1h" (describe_exchange .timeframes)'),
             'since': sinceParam,
             'limit': z.number ().int ().optional ().describe ('number of candles (default ' + CHART_DEFAULT_LIMIT + ', max ' + CHART_MAX_LIMIT + ')'),
             'marketType': marketTypeParam,
             'prediction': predictionParam,
-            'account': z.string ().optional ().describe ('optional configured account name (list_accounts) on this same exchange — overlays its open orders for the symbol on the chart'),
+            'account': z.string ().optional ().describe ('account name on this same exchange — overlays its open orders for the symbol'),
             'params': paramsParam,
         },
         'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
@@ -335,10 +335,10 @@ export function registerUiTools (server: McpServer, ctx: ServerContext): void {
 
     server.registerTool ('show_orderbook', {
         'title': 'Show order book',
-        'description': 'Render an interactive order-book view (cumulative depth chart + bid/ask ladder) for one symbol. Use this when the user asks to see or visualize the order book, depth or liquidity. The tool result is a compact summary (best bid/ask, spread, depth totals) — use get_orderbook when you need the raw levels.',
+        'description': 'Render an interactive order book (cumulative depth chart + bid/ask ladder) for one symbol. Use when the user asks to see the order book, depth or liquidity. The result is a compact summary (best bid/ask, spread, depth totals) — get_orderbook returns the levels.',
         'inputSchema': {
             'exchange': exchangeParam,
-            'symbol': z.string ().describe ('unified symbol — resolve with search_markets'),
+            'symbol': z.string ().describe ('unified symbol (search_markets)'),
             'limit': z.number ().int ().optional ().describe ('price levels per side (default ' + BOOK_DEFAULT_LEVELS + ', max ' + BOOK_MAX_LEVELS + ')'),
             'marketType': marketTypeParam,
             'prediction': predictionParam,
@@ -386,10 +386,10 @@ export function registerUiTools (server: McpServer, ctx: ServerContext): void {
 
     server.registerTool ('show_tickers', {
         'title': 'Show price board',
-        'description': 'Render a sortable 24h price board (last, 24h change, high/low, volume) for up to 50 symbols on one exchange. Use this when the user asks to see or compare current prices for several markets. The tool result is a compact per-symbol summary — use get_tickers when you need every ticker field.',
+        'description': 'Render a sortable 24h price board (last, change, high/low, volume) for up to 50 symbols on one exchange. Use when the user asks to see or compare prices of several markets. The result is a compact per-symbol summary — get_tickers returns every field.',
         'inputSchema': {
             'exchange': exchangeParam,
-            'symbols': z.array (z.string ()).min (1).max (50).describe ('unified symbols, e.g. ["BTC/USDT", "ETH/USDT"] — resolve with search_markets'),
+            'symbols': z.array (z.string ()).min (1).max (50).describe ('unified symbols, e.g. ["BTC/USDT", "ETH/USDT"] (search_markets)'),
             'marketType': marketTypeParam,
             'prediction': predictionParam,
             'params': paramsParam,

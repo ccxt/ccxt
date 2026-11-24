@@ -1,10 +1,14 @@
 <!doctype html>
 <!--
-    The account setup form. NOT an MCP Apps view: ts/setup.ts serves this page over loopback
-    HTTP to the user's own browser, filling in a per-response CSP nonce and the JSON block
-    that describes the session (the two upper-case placeholders below). It has no external assets and talks only to
-    the address it was loaded from. Everything that comes from the server or from the user is
-    put on the page with textContent — never as markup.
+    The account setup form, as a step-by-step wizard. NOT an MCP Apps view: ts/setup.ts serves
+    this page over loopback HTTP to the user's own browser, filling in a per-response CSP nonce
+    and the JSON block that describes the session (the two upper-case placeholders below). It
+    has no external assets and talks only to the address it was loaded from. Everything that
+    comes from the server or from the user is put on the page with textContent — never as markup.
+
+    One step is on screen at a time. The steps are all in the document from the start and are
+    only hidden and shown, which is what lets a typed value survive Back and Next. The pacing
+    is the page's; every rule is the server's (ts/setup.ts checks the submitted account again).
 -->
 <html lang="en">
 <head>
@@ -15,90 +19,34 @@
 <link rel="icon" href="data:,">
 <style nonce="__CSP_NONCE__">
 /* @include shared.css */
-:root { --primary: #1f5fb4; --on-primary: #ffffff; --warn: #9a5b00; }
-@media (prefers-color-scheme: dark) {
-    :root { --primary: #8fbcf5; --on-primary: #0b0b0b; --warn: #e3a341; }
-}
-body { font-size: 15px; line-height: 1.5; padding: 0 16px 48px; }
-main { max-width: 640px; margin: 0 auto; }
-header.top { display: flex; align-items: center; gap: 10px; padding: 28px 0 6px; }
-.mark { font-weight: 700; letter-spacing: 0.06em; font-size: 13px; border: 1.5px solid var(--text); border-radius: 6px; padding: 2px 7px; }
-.top .product { color: var(--text-2); font-size: 13px; }
-h1 { font-size: 26px; line-height: 1.2; margin: 10px 0 6px; letter-spacing: -0.01em; }
-.lede { color: var(--text-2); margin: 0 0 18px; }
-.trust { display: flex; gap: 12px; align-items: flex-start; background: var(--bg-2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; margin-bottom: 22px; }
-.trust svg { flex: none; width: 22px; height: 22px; margin-top: 2px; stroke: var(--up); fill: none; overflow: hidden; }
-.trust strong { display: block; }
-.trust p { margin: 2px 0 0; color: var(--text-2); font-size: 14px; }
-section.step { border: 1px solid var(--border); border-radius: 12px; padding: 18px 18px 20px; margin-bottom: 14px; background: var(--bg); }
-.step h2 { display: flex; align-items: center; gap: 10px; font-size: 17px; margin: 0 0 4px; }
-.step h2 .n { flex: none; width: 24px; height: 24px; border-radius: 50%; background: var(--text); color: var(--bg); font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; }
-.step > p.hint { margin: 0 0 14px; color: var(--text-2); font-size: 14px; }
-label.field { display: block; margin-top: 14px; }
-label.field:first-of-type { margin-top: 0; }
-.field .name { display: block; font-weight: 600; font-size: 14px; margin-bottom: 4px; }
-.field .help { display: block; color: var(--text-2); font-size: 13px; margin-top: 4px; }
-input[type="text"], input[type="password"], input[type="number"], select {
-    width: 100%; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--text-3);
-    border-radius: 8px; padding: 9px 11px; min-height: 42px;
-}
-input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
-.secret { display: flex; gap: 8px; }
-.secret input { flex: 1; min-width: 0; font-family: var(--mono); }
-.secret button { flex: none; min-width: 64px; min-height: 42px; }
-ul.checklist { list-style: none; margin: 0; padding: 0; }
-ul.checklist li { display: flex; gap: 10px; align-items: flex-start; padding: 7px 0; border-top: 1px solid var(--border); }
-ul.checklist li:first-child { border-top: 0; }
-ul.checklist .tick { flex: none; width: 20px; height: 20px; border-radius: 50%; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; margin-top: 2px; color: #fff; background: var(--up); }
-ul.checklist .tick.no { background: var(--down); }
-ul.checklist small { display: block; color: var(--text-2); font-size: 13px; }
-.site { margin: 12px 0 0; font-size: 14px; }
-a { color: var(--primary); }
-.options { display: grid; gap: 8px; }
-label.option { display: flex; gap: 12px; align-items: flex-start; border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; cursor: pointer; }
-label.option input { flex: none; width: 18px; height: 18px; margin: 3px 0 0; accent-color: var(--primary); }
-label.option .t { font-weight: 600; }
-label.option .d { display: block; color: var(--text-2); font-size: 13.5px; }
-label.option:has(input:checked) { border-color: var(--primary); box-shadow: inset 0 0 0 1px var(--primary); }
-label.option:has(input:disabled) { cursor: default; opacity: 0.55; }
-label.option:has(input:focus-visible) { outline: 2px solid var(--accent); outline-offset: 1px; }
-.badge { display: inline-block; font-size: 11.5px; font-weight: 600; border-radius: 999px; padding: 1px 8px; margin-left: 6px; vertical-align: 1px; border: 1px solid var(--border); color: var(--text-2); white-space: nowrap; }
-.badge.good { color: var(--up); border-color: var(--up); }
-.badge.real { color: var(--down); border-color: var(--down); }
-.tick-inline { color: var(--up); font-weight: 700; }
-.always { display: flex; gap: 10px; align-items: flex-start; padding: 2px 2px 12px; color: var(--text-2); font-size: 14px; }
-.livebox { border: 1px solid var(--down); border-left-width: 4px; border-radius: 10px; padding: 14px; margin-top: 10px; }
-.livebox h3 { margin: 0 0 4px; font-size: 15px; color: var(--down); }
-.livebox p { margin: 0 0 12px; font-size: 14px; }
-.cap { display: flex; align-items: center; gap: 8px; max-width: 220px; }
-.cap span { color: var(--text-2); font-weight: 600; }
-.fineprint { color: var(--text-2); font-size: 13px; margin: 14px 0 0; }
-code { font-family: var(--mono); font-size: 12.5px; background: var(--bg-2); border-radius: 4px; padding: 1px 5px; overflow-wrap: anywhere; }
-.actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 20px; }
-button.primary, button.secondary { font-size: 15px; font-weight: 600; min-height: 44px; padding: 8px 18px; border-radius: 10px; }
-button.primary { background: var(--primary); color: var(--on-primary); border-color: var(--primary); }
-button.primary:hover:not(:disabled) { background: var(--primary); color: var(--on-primary); filter: brightness(1.08); }
-button.secondary { color: var(--text); border-color: var(--text-3); }
-.expiry { margin-left: auto; color: var(--text-3); font-size: 13px; font-variant-numeric: tabular-nums; }
-.notice { border-radius: 10px; padding: 12px 14px; margin-top: 14px; border: 1px solid var(--border); border-left-width: 4px; font-size: 14px; overflow-wrap: anywhere; }
-.notice strong { display: block; }
-.notice.good { border-color: var(--up); }
-.notice.bad { border-color: var(--down); }
-.notice.warn { border-color: var(--warn); }
-.notice .detail { display: block; color: var(--text-2); font-size: 13px; margin-top: 4px; }
-.notice .row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-.notice .row button { min-height: 36px; padding: 5px 12px; font-weight: 600; color: var(--text); border-color: var(--text-3); }
-.final { text-align: center; padding: 56px 8px 24px; }
-.final .disc { width: 64px; height: 64px; border-radius: 50%; background: var(--up); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 32px; font-weight: 700; }
-.final .disc.gone { background: var(--text-3); }
-.final h1 { margin-top: 18px; }
-.final p { color: var(--text-2); max-width: 460px; margin: 6px auto 0; }
-.final .summary { color: var(--text); font-weight: 600; }
+/* @include setup.css */
+nav.progress { margin: 0 0 22px; }
+nav.progress ol { list-style: none; margin: 0; padding: 0; display: flex; gap: 6px; }
+nav.progress li { flex: 1 1 0; min-width: 0; border-top: 4px solid var(--border); padding-top: 7px; font-size: 13px; color: var(--text-3); display: flex; gap: 6px; align-items: baseline; }
+nav.progress .n { font-weight: 700; font-variant-numeric: tabular-nums; }
+nav.progress .lbl { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+nav.progress li.done { border-color: var(--up); color: var(--text-2); }
+nav.progress li[aria-current="step"] { border-color: var(--primary); color: var(--text); font-weight: 600; }
+.count { color: var(--text-2); font-size: 14px; font-weight: 600; margin: 0 0 4px; }
+section.step > p { margin: 0 0 14px; }
+section.step > p.fineprint { margin-top: 16px; }
+#how-where { margin: 0 0 10px; }
+.site { margin: 16px 0 0; }
+.review { margin: 0; border: 1px solid var(--border); border-radius: 12px; }
+.review > div { display: grid; grid-template-columns: 150px 1fr auto; gap: 4px 12px; align-items: start; padding: 12px 14px; border-top: 1px solid var(--border); }
+.review > div:first-child { border-top: 0; }
+.review dt { color: var(--text-2); font-size: 14px; padding-top: 1px; }
+.review dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.review dd small { display: block; color: var(--text-2); font-size: 14px; }
+.review .change { font-size: 14px; min-height: 32px; padding: 3px 10px; color: var(--primary); border-color: transparent; text-decoration: underline; }
+.review .keyend { font-family: var(--mono); }
 @media (max-width: 480px) {
-    h1 { font-size: 22px; }
-    section.step { padding: 16px 14px 18px; }
-    .actions button { flex: 1 1 100%; }
-    .expiry { margin-left: 0; }
+    /* five labels do not fit a phone: the bar keeps its numbers, the line above the
+       heading says which step this is */
+    nav.progress .lbl { display: none; }
+    nav.progress li { justify-content: center; }
+    .review > div { grid-template-columns: 1fr auto; }
+    .review dt { grid-column: 1 / -1; }
 }
 </style>
 </head>
@@ -107,93 +55,161 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
     <header class="top">
         <span class="mark">CCXT</span>
         <span class="product">Account setup</span>
+        <span class="expiry" id="expiry"></span>
     </header>
 
     <div id="form-view">
-        <h1>Connect an exchange account</h1>
-        <p class="lede">Add an API key so your AI assistant can show your balances, orders and positions.</p>
+        <nav class="progress" aria-label="Setup steps">
+            <ol id="progress">
+                <li><span class="n">1</span><span class="lbl">Start</span></li>
+                <li><span class="n">2</span><span class="lbl">Get your key</span></li>
+                <li><span class="n">3</span><span class="lbl">Paste it</span></li>
+                <li><span class="n">4</span><span class="lbl">Permissions</span></li>
+                <li><span class="n">5</span><span class="lbl">Save</span></li>
+            </ol>
+        </nav>
 
-        <div class="trust">
-            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
-            <div>
-                <strong>This page runs on your own computer.</strong>
-                <p>Its address starts with <code>127.0.0.1</code>, which means &ldquo;this computer&rdquo;. What you type is saved to a file here and used to talk to the exchange you pick. It is never shown to the AI assistant and never sent to CCXT.</p>
+        <section class="step" data-step="1" aria-labelledby="t1">
+            <p class="count">Step 1 of 5</p>
+            <h1 id="t1" tabindex="-1">Before you start</h1>
+            <p class="lede" id="intro">You are about to connect an exchange account, so your AI assistant can show your balances, orders and positions. It takes about five minutes: you create an &ldquo;API key&rdquo; on your exchange&rsquo;s website and paste it here.</p>
+            <div class="trust">
+                <div class="head">
+                    <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>
+                    <h2>Your key stays on this computer</h2>
+                </div>
+                <p>It will be saved in this file, here on your computer:</p>
+                <span class="path" id="path-1"></span>
+                <ul class="ticks">
+                    <li><span class="tick" aria-hidden="true">&#10003;</span><span>Only your own user account on this computer can read that file.</span></li>
+                    <li><span class="tick" aria-hidden="true">&#10003;</span><span>The key is sent only to the exchange you choose.</span></li>
+                    <li><span class="tick" aria-hidden="true">&#10003;</span><span>It is never shown to the AI assistant, and never sent to CCXT.</span></li>
+                    <li><span class="tick" aria-hidden="true">&#10003;</span><span>This page runs on your computer too: its address starts with <code>127.0.0.1</code>, which means &ldquo;this computer&rdquo;.</span></li>
+                </ul>
             </div>
-        </div>
+            <h2 class="sub">Have ready</h2>
+            <ul class="plain">
+                <li>Your login for the exchange&rsquo;s website.</li>
+                <li>Your phone or authenticator app, if the exchange asks for a security code.</li>
+            </ul>
+            <div class="slot" role="status" aria-live="polite"></div>
+            <div class="actions">
+                <button type="button" class="primary" data-next>Get started</button>
+            </div>
+        </section>
 
-        <section class="step" aria-labelledby="s1">
-            <h2 id="s1"><span class="n">1</span>Choose your exchange</h2>
-            <p class="hint">The exchange where your account is.</p>
-            <label class="field">
-                <span class="name">Exchange</span>
+        <section class="step" data-step="2" aria-labelledby="t2" hidden>
+            <p class="count">Step 2 of 5</p>
+            <h1 id="t2" tabindex="-1">Get your key</h1>
+            <p>An API key is a separate password made for apps. You create it on your exchange&rsquo;s website, and you decide what it is allowed to do.</p>
+            <div class="field">
+                <label for="exchange">Which exchange is your account on?</label>
                 <select id="exchange" autocomplete="off"></select>
-            </label>
-            <label class="field" id="variant-row" hidden>
-                <span class="name">Which account there?</span>
+            </div>
+            <div class="field" id="variant-row" hidden>
+                <label for="variant">Which account there?</label>
                 <select id="variant" autocomplete="off">
                     <option value="">Trading (spot and futures)</option>
                     <option value="1">Prediction markets</option>
                 </select>
                 <span class="help">This exchange keeps the two separate. Add each one as its own account.</span>
-            </label>
-            <label class="field">
-                <span class="name">Name for this account</span>
+            </div>
+            <div id="how" hidden>
+                <p class="site" id="site" hidden><a class="secondary" id="site-link" target="_blank" rel="noopener noreferrer"></a></p>
+                <div id="apikey-how">
+                    <h2 class="sub" id="how-title">On the exchange, create a new API key with only these permissions</h2>
+                    <p class="fineprint" id="how-where">Look for &ldquo;API Management&rdquo; or &ldquo;API keys&rdquo; in your account or profile menu.</p>
+                    <ul class="checklist">
+                        <li><span class="tick" aria-hidden="true">&#10003;</span><div><strong>Reading: on</strong><small>Lets the assistant see balances, orders and positions.</small></div></li>
+                        <li><span class="tick" aria-hidden="true">&#10003;</span><div><strong>Trading: only if you want the assistant to place orders</strong><small>Leave it off for a view-only setup.</small></div></li>
+                        <li><span class="tick no" aria-hidden="true">&#10005;</span><div><strong>Withdrawals: keep them DISABLED</strong><small>This setup never needs to move money out of your account.</small></div></li>
+                        <li><span class="tick" aria-hidden="true">&#10003;</span><div><strong>Restrict the key to your IP address, if the exchange offers it</strong><small>Then the key only works from your own connection.</small></div></li>
+                    </ul>
+                    <p class="fineprint">The exchange shows the secret part of the key only once. Keep that page open until you have pasted it in the next step.</p>
+                </div>
+                <div class="notice warn" id="wallet-how" hidden></div>
+            </div>
+            <div class="notice warn" id="file-only" hidden></div>
+            <div class="slot" role="status" aria-live="polite"></div>
+            <div class="actions">
+                <button type="button" class="primary" data-next id="have-key">I have my key and secret</button>
+                <button type="button" class="secondary back" data-back>Back</button>
+            </div>
+        </section>
+
+        <section class="step" data-step="3" aria-labelledby="t3" hidden>
+            <p class="count">Step 3 of 5</p>
+            <h1 id="t3" tabindex="-1">Paste your key</h1>
+            <p id="fields-hint">Copy each value from the exchange and paste it here. They are hidden as you type.</p>
+            <div id="fields"></div>
+            <fieldset>
+                <legend id="env-legend">Where was this key created?</legend>
+                <p class="help">A key works in one place only. Pick the one you created it in.</p>
+                <div class="options">
+                    <label class="option"><input type="radio" name="environment" value="sandbox"><span class="body"><span class="line"><span class="t" data-title="sandbox">Testnet</span><span class="badge good">Practice money</span></span><span class="d" data-note="sandbox">A separate practice copy of the exchange. Nothing here is real &mdash; the best place to start.</span></span></label>
+                    <label class="option"><input type="radio" name="environment" value="demo"><span class="body"><span class="line"><span class="t">Demo trading</span><span class="badge good">Practice money</span></span><span class="d" data-note="demo">The exchange&rsquo;s demo mode, with a key created in its demo portal.</span></span></label>
+                    <label class="option"><input type="radio" name="environment" value="live"><span class="body"><span class="line"><span class="t">Live</span><span class="badge real">Real money</span></span><span class="d" data-note="live">Your real account.</span></span></label>
+                </div>
+            </fieldset>
+            <div class="slot" role="status" aria-live="polite"></div>
+            <div class="actions">
+                <button type="button" class="primary" data-next>Continue</button>
+                <button type="button" class="secondary back" data-back>Back</button>
+            </div>
+        </section>
+
+        <section class="step" data-step="4" aria-labelledby="t4" hidden>
+            <p class="count">Step 4 of 5</p>
+            <h1 id="t4" tabindex="-1">What the assistant may do</h1>
+            <p class="always"><span class="tick-inline" aria-hidden="true">&#10003;</span><span>Seeing your balances, orders and positions is always included.</span></p>
+            <fieldset>
+                <legend class="sr">May the assistant place orders?</legend>
+                <div class="options">
+                    <label class="option"><input type="radio" name="may" value="view" checked><span class="body"><span class="line"><span class="t">View only</span></span><span class="d">The assistant can look, and nothing else. You can change this later.</span></span></label>
+                    <label class="option"><input type="radio" name="may" value="trade"><span class="body"><span class="line"><span class="t">Allow placing orders</span><span class="badge" id="may-badge"></span></span><span class="d" id="trading-note">The assistant can also create and cancel orders.</span></span></label>
+                </div>
+            </fieldset>
+            <div class="livebox" id="livebox" hidden>
+                <h2>Orders will use real money</h2>
+                <p>Set the largest single order the assistant may place. Anything bigger is refused, and every order still asks you to confirm first.</p>
+                <div class="field">
+                    <label for="cap">Largest single order</label>
+                    <span class="cap"><input id="cap" type="number" inputmode="decimal" min="0" step="any" value="25" autocomplete="off"><span>USD</span></span>
+                </div>
+                <label class="option" id="live-confirm-row"><input type="checkbox" id="live-confirm"><span class="body"><span class="t">I understand the assistant will be able to place orders with real money on this account, up to this amount each.</span></span></label>
+            </div>
+            <p class="fineprint">Withdrawals and transfers cannot be switched on from this page. They can only be enabled by editing the settings file yourself.</p>
+            <div class="slot" role="status" aria-live="polite"></div>
+            <div class="actions">
+                <button type="button" class="primary" data-next>Continue</button>
+                <button type="button" class="secondary back" data-back>Back</button>
+            </div>
+        </section>
+
+        <section class="step" data-step="5" aria-labelledby="t5" hidden>
+            <p class="count">Step 5 of 5</p>
+            <h1 id="t5" tabindex="-1">Review and save</h1>
+            <p>Check that this is what you want. Nothing has been saved yet.</p>
+            <dl class="review">
+                <div><dt>Exchange</dt><dd id="r-exchange"></dd><button type="button" class="change" data-goto="2" aria-label="Change the exchange">Change</button></div>
+                <div><dt>Key</dt><dd id="r-key"></dd><button type="button" class="change" data-goto="3" aria-label="Change the key">Change</button></div>
+                <div><dt>Works on</dt><dd id="r-env"></dd><button type="button" class="change" data-goto="3" aria-label="Change where the key works">Change</button></div>
+                <div><dt>The assistant may</dt><dd id="r-may"></dd><button type="button" class="change" data-goto="4" aria-label="Change what the assistant may do">Change</button></div>
+                <div><dt>Saved in</dt><dd><span id="path-5"></span><small>On this computer only. Readable only by your user account.</small></dd><span></span></div>
+            </dl>
+            <div class="field" id="name-row">
+                <label for="account">Name for this account</label>
                 <input id="account" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="40">
                 <span class="help">How the assistant will refer to it. Letters, digits, &ldquo;-&rdquo; and &ldquo;_&rdquo;.</span>
-            </label>
-        </section>
-
-        <section class="step" aria-labelledby="s2">
-            <h2 id="s2"><span class="n">2</span><span id="s2-title">Create an API key on the exchange</span></h2>
-            <p class="hint">An API key is a separate password for apps. You create it in the exchange&rsquo;s settings, usually under &ldquo;API management&rdquo;. Give it only these permissions:</p>
-            <ul class="checklist">
-                <li><span class="tick" aria-hidden="true">&#10003;</span><div><strong>Reading: on</strong><small>Lets the assistant see balances, orders and positions.</small></div></li>
-                <li><span class="tick" aria-hidden="true">&#10003;</span><div><strong>Trading: only if you want the assistant to place orders</strong><small>Leave it off for a view-only setup.</small></div></li>
-                <li><span class="tick no" aria-hidden="true">&#10005;</span><div><strong>Withdrawals: keep them DISABLED</strong><small>This setup never needs to move money out of your account.</small></div></li>
-                <li><span class="tick" aria-hidden="true">&#10003;</span><div><strong>Restrict the key to your IP address, if the exchange offers it</strong><small>Then the key only works from your own connection.</small></div></li>
-            </ul>
-            <p class="site" id="site" hidden><a id="site-link" target="_blank" rel="noopener noreferrer"></a></p>
-        </section>
-
-        <section class="step" aria-labelledby="s3">
-            <h2 id="s3"><span class="n">3</span>Enter the key</h2>
-            <p class="hint" id="fields-hint">Choose an exchange first &mdash; the boxes it needs will appear here.</p>
-            <div id="fields"></div>
-        </section>
-
-        <section class="step" aria-labelledby="s4">
-            <h2 id="s4"><span class="n">4</span>Where does this key work?</h2>
-            <p class="hint">Keys are made for one environment. Pick the one you created this key in.</p>
-            <div class="options" role="radiogroup" aria-labelledby="s4">
-                <label class="option"><input type="radio" name="environment" value="sandbox"><span><span class="t" data-title="sandbox">Testnet</span><span class="badge good">Practice money</span><span class="d" data-note="sandbox">A separate practice copy of the exchange. Nothing here is real &mdash; the best place to start.</span></span></label>
-                <label class="option"><input type="radio" name="environment" value="demo"><span><span class="t">Demo trading</span><span class="badge good">Practice money</span><span class="d" data-note="demo">The exchange&rsquo;s demo mode, with a key created in its demo portal.</span></span></label>
-                <label class="option"><input type="radio" name="environment" value="live"><span><span class="t">Live</span><span class="badge real">Real money</span><span class="d" data-note="live">Your real account.</span></span></label>
+            </div>
+            <div class="notice warn" id="replace-note" hidden></div>
+            <div class="slot" role="status" aria-live="polite"></div>
+            <div class="actions">
+                <button type="button" class="primary" id="save">Save account</button>
+                <button type="button" class="secondary" id="test">Test connection</button>
+                <button type="button" class="secondary back" data-back>Back</button>
             </div>
         </section>
-
-        <section class="step" aria-labelledby="s5">
-            <h2 id="s5"><span class="n">5</span>What may the assistant do?</h2>
-            <div class="always"><span class="tick-inline" aria-hidden="true">&#10003;</span><span>View balances, orders and positions &mdash; always included.</span></div>
-            <label class="option"><input type="checkbox" id="trading"><span><span class="t">Allow placing orders</span><span class="d" id="trading-note">Off: the assistant can only look. On: it can create and cancel orders.</span></span></label>
-            <div class="livebox" id="livebox" hidden>
-                <h3>Orders will use real money</h3>
-                <p>Set the largest single order the assistant may place. Anything bigger is refused, and every order still asks you to confirm first.</p>
-                <label class="field">
-                    <span class="name">Largest single order</span>
-                    <span class="cap"><input id="cap" type="number" inputmode="decimal" min="0" step="any" value="25" autocomplete="off"><span>USD</span></span>
-                </label>
-                <label class="option" id="live-confirm-row"><input type="checkbox" id="live-confirm"><span><span class="t">I understand the assistant will be able to place orders with real money on this account, up to this amount each.</span></span></label>
-            </div>
-            <p class="fineprint">Withdrawals and transfers cannot be switched on from this page. They can only be enabled by editing the settings file yourself: <code id="config-path"></code></p>
-        </section>
-
-        <div id="status" role="status" aria-live="polite"></div>
-
-        <div class="actions">
-            <button type="button" class="primary" id="save">Save account</button>
-            <button type="button" class="secondary" id="test">Test connection</button>
-            <span class="expiry" id="expiry"></span>
-        </div>
     </div>
 
     <div id="done-view" class="final" hidden>
@@ -203,6 +219,7 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
         <p id="done-ready">Your assistant can use this account right away. Tell it you are done. You can close this tab.</p>
         <p id="done-streams" hidden></p>
         <p id="done-restart" hidden></p>
+        <div class="actions" id="done-actions" hidden><a class="primary" id="done-back">Back to your accounts</a></div>
     </div>
 
     <div id="gone-view" class="final" hidden>
@@ -217,16 +234,19 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
 (function () {
     'use strict';
     var boot = JSON.parse (document.getElementById ('boot').textContent);
-    // the page's own path carries the session; every endpoint hangs off it
-    var base = location.pathname.replace (/\/+$/, '');
+    // the session's own path; every endpoint hangs off it (this page may be served one level
+    // below it, when it was reached from the accounts page)
+    var base = (/^\/setup\/[0-9a-f]{32}/.exec (location.pathname) || [ '' ])[0];
     var $ = function (id) { return document.getElementById (id); };
     var exchangeSelect = $('exchange');
     var accountInput = $('account');
     var fieldsBox = $('fields');
-    var statusBox = $('status');
-    var tradingBox = $('trading');
     var variantSelect = $('variant');
-    var state = { 'info': undefined, 'nameEdited': false, 'testedOk': '', 'busy': false, 'over': false };
+    var steps = document.querySelectorAll ('section.step');
+    var LAST = steps.length;
+    // replace: this form was opened from the accounts page to put a new key on an account
+    var replacing = boot.replace ? boot.prefill.account : '';
+    var state = { 'step': 1, 'info': undefined, 'nameEdited': false, 'testedOk': '', 'busy': false, 'over': false, 'wantedEnv': boot.prefill.environment };
     // names the settings file cannot hold as an account (the server refuses them too)
     var RESERVED_NAMES = [ '__proto__', 'constructor', 'prototype' ];
 
@@ -240,6 +260,10 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
     function environment () {
         var checked = document.querySelector ('input[name="environment"]:checked');
         return checked ? checked.value : '';
+    }
+
+    function trading () {
+        return document.querySelector ('input[name="may"]:checked').value === 'trade';
     }
 
     function credentials () {
@@ -256,8 +280,12 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
         return JSON.stringify ([ exchangeSelect.value, variantSelect.value, credentials (), environment () ]);
     }
 
+    function slot () {
+        return steps[state.step - 1].querySelector ('.slot');
+    }
+
     function clearStatus () {
-        statusBox.textContent = '';
+        for (var i = 0; i < steps.length; i++) { steps[i].querySelector ('.slot').textContent = ''; }
     }
 
     // kind: good | bad | warn; actions: [ [label, handler], ... ]
@@ -276,18 +304,92 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
             });
             box.appendChild (row);
         }
-        statusBox.appendChild (box);
+        slot ().appendChild (box);
         box.scrollIntoView ({ 'block': 'nearest' });
     }
 
     function setBusy (busy, label) {
         state.busy = busy;
-        // an exchange this page cannot set up has nothing to test or save
-        var blocked = !!(state.info && state.info.configFileOnly);
-        $('save').disabled = busy || blocked;
-        $('test').disabled = busy || blocked;
+        // aria-disabled, not disabled: a disabled button drops the keyboard focus to the top
+        // of the page, and the person who just pressed it would have to find their way back
+        $('save').setAttribute ('aria-disabled', busy ? 'true' : 'false');
+        $('test').setAttribute ('aria-disabled', busy ? 'true' : 'false');
         $('save').textContent = (busy && label === 'save') ? 'Saving…' : 'Save account';
         $('test').textContent = (busy && label === 'test') ? 'Testing…' : 'Test connection';
+    }
+
+    // ---- steps
+
+    function showStep (n, focus) {
+        state.step = n;
+        clearStatus ();
+        for (var i = 0; i < steps.length; i++) { steps[i].hidden = (i + 1) !== n; }
+        var items = $('progress').children;
+        for (var j = 0; j < items.length; j++) {
+            items[j].className = (j + 1 < n) ? 'done' : '';
+            if (j + 1 === n) { items[j].setAttribute ('aria-current', 'step'); } else { items[j].removeAttribute ('aria-current'); }
+        }
+        if (n === LAST) { renderReview (); }
+        if (focus !== false) {
+            // the heading, not the first box: a screen reader then announces which step this
+            // is, and the next Tab lands on the first control
+            steps[n - 1].querySelector ('h1').focus ();
+            window.scrollTo (0, 0);
+        }
+    }
+
+    // why the current step cannot be left yet ('' when it can); the server checks all of it
+    // again on save — here it only points at the box that needs attention
+    function stepProblem (n) {
+        var inputs;
+        var i;
+        if (n === 2) {
+            if (!exchangeSelect.value) { exchangeSelect.focus (); return 'Choose your exchange first.'; }
+            if (!state.info) { return 'One moment — still loading what this exchange needs.'; }
+            if (state.info.configFileOnly) { exchangeSelect.focus (); return state.info.name + ' cannot be set up from this page.'; }
+        }
+        if (n === 3) {
+            inputs = fieldsBox.querySelectorAll ('input[data-field]');
+            for (i = 0; i < inputs.length; i++) {
+                if (!inputs[i].value.trim ()) { inputs[i].focus (); return 'Paste a value into every box.'; }
+            }
+            if (!environment ()) { document.querySelector ('input[name="environment"]:not(:disabled)').focus (); return 'Choose where this key was created.'; }
+        }
+        if (n === 4 && environment () === 'live' && trading ()) {
+            var cap = Number ($('cap').value);
+            if (!(cap > 0) || !isFinite (cap)) { $('cap').focus (); return 'Enter the largest single order in USD (a number above 0).'; }
+            if (!$('live-confirm').checked) { $('live-confirm').focus (); return 'Tick the box confirming that orders will use real money.'; }
+        }
+        if (n === 5) {
+            var name = accountInput.value.trim ();
+            if (RESERVED_NAMES.indexOf (name) !== -1) { accountInput.focus (); accountInput.select (); return '“' + name + '” cannot be used as an account name. Choose a different one.'; }
+            if (!/^[a-zA-Z0-9_-]{1,40}$/.test (name)) { accountInput.focus (); return 'Give the account a short name: letters, digits, “-” and “_” only.'; }
+        }
+        return '';
+    }
+
+    function next () {
+        if (state.busy || state.step >= LAST) { return; }
+        var issue = stepProblem (state.step);
+        if (issue) { showStatus ('bad', issue); return; }
+        showStep (state.step + 1);
+    }
+
+    function back () {
+        if (state.busy || state.step <= 1) { return; }
+        showStep (state.step - 1);
+    }
+
+    // the first step that is not in order, looking at everything up to the last one
+    function firstProblem () {
+        for (var n = 2; n <= LAST; n++) {
+            var saved = state.step;
+            state.step = n;
+            var issue = stepProblem (n);
+            state.step = saved;
+            if (issue) { return { 'step': n, 'issue': issue }; }
+        }
+        return undefined;
     }
 
     function finish (viewId, titleId) {
@@ -295,6 +397,7 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
         $('form-view').hidden = true;
         $('done-view').hidden = viewId !== 'done-view';
         $('gone-view').hidden = viewId !== 'gone-view';
+        $('expiry').textContent = '';
         // typed keys must not sit in the page after it has served its purpose
         var inputs = fieldsBox.querySelectorAll ('input');
         for (var i = 0; i < inputs.length; i++) { inputs[i].value = ''; }
@@ -326,17 +429,16 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
 
     function renderFields (info) {
         fieldsBox.textContent = '';
-        // no box to show is never "no key needed": it means the exchange takes its keys in a
-        // way this page cannot ask for, and saving would produce an account that cannot work
-        $('fields-hint').textContent = info.configFileOnly
-            ? info.name + (info.prediction ? ' prediction markets' : '') + ' cannot be set up from this page: it takes its keys in a way this form cannot collect. Add the account by hand to the settings file instead (' + boot.configPath + ') and restart the assistant app — ask the assistant for the exact format. Do not paste keys into the chat.'
-            : 'Copy each value from the exchange and paste it here. They are hidden as you type.';
-        info.fields.forEach (function (field) {
-            var label = el ('label', 'field');
-            label.appendChild (el ('span', 'name', field.label));
+        info.fields.forEach (function (field, index) {
+            var wrap = el ('div', 'field');
+            var id = 'cred-' + index;
+            var label = el ('label', '', field.label);
+            label.htmlFor = id;
+            wrap.appendChild (label);
             var row = el ('span', 'secret');
             var input = el ('input');
             input.type = 'password';
+            input.id = id;
             input.setAttribute ('data-field', field.name);
             input.setAttribute ('autocomplete', 'off');
             input.setAttribute ('autocapitalize', 'off');
@@ -354,13 +456,11 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
             });
             row.appendChild (input);
             row.appendChild (toggle);
-            label.appendChild (row);
-            fieldsBox.appendChild (label);
+            wrap.appendChild (row);
+            fieldsBox.appendChild (wrap);
         });
         if (info.walletKey) {
-            // the checklist in step 2 is about exchange-issued API keys; a wallet key has no
-            // "withdrawals off" switch, so the advice that replaces it is said here
-            fieldsBox.appendChild (el ('p', 'fineprint', info.name + ' signs with a wallet key, not an ordinary API key. A wallet’s main private key can move everything in it: if ' + info.name + ' offers a separate API or agent wallet, create one and use its key here, never your main wallet’s.'));
+            fieldsBox.appendChild (el ('p', 'fineprint', 'Use the key of a separate API or agent wallet if ' + info.name + ' offers one — never your main wallet’s private key.'));
         }
     }
 
@@ -392,8 +492,15 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
             }
             document.querySelector ('[data-note="' + radio.value + '"]').textContent = note;
         }
+        // The environment that was asked for (preselected by the assistant, or the user's own
+        // last click) comes back when the exchange now on screen offers it. That is not a
+        // swap: it is the same choice, and it was only unticked because another exchange
+        // did not have it.
+        if (!environment () && state.wantedEnv) {
+            var wanted = document.querySelector ('input[name="environment"][value="' + state.wantedEnv + '"]');
+            if (wanted && !wanted.disabled) { wanted.checked = true; }
+        }
         document.querySelector ('[data-title="sandbox"]').textContent = environmentName ('sandbox');
-        setBusy (state.busy);
         syncPermissions ();
     }
 
@@ -402,12 +509,18 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
     }
 
     function syncPermissions () {
-        var live = environment () === 'live';
-        $('livebox').hidden = !(live && tradingBox.checked);
-        if (!(live && tradingBox.checked)) { $('live-confirm').checked = false; }
+        var env = environment ();
+        var live = env === 'live';
+        var on = trading ();
+        $('livebox').hidden = !(live && on);
+        if (!(live && on)) { $('live-confirm').checked = false; }
+        var badge = $('may-badge');
+        badge.hidden = !env;
+        badge.textContent = live ? 'Real money' : 'Practice money';
+        badge.className = 'badge ' + (live ? 'real' : 'good');
         $('trading-note').textContent = live
-            ? 'Off: the assistant can only look. On: it can create and cancel orders with real money.'
-            : 'Off: the assistant can only look. On: it can create and cancel orders.';
+            ? 'The assistant can also create and cancel orders — with real money, up to a limit you set.'
+            : 'The assistant can also create and cancel orders.';
     }
 
     function loadExchange () {
@@ -417,11 +530,11 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
         state.testedOk = '';
         clearStatus ();
         if (!state.nameEdited) { accountInput.value = id; }
+        $('how').hidden = true;
+        $('file-only').hidden = true;
+        $('have-key').textContent = 'I have my key and secret';
         if (!id) {
             fieldsBox.textContent = '';
-            $('fields-hint').textContent = 'Choose an exchange first — the boxes it needs will appear here.';
-            $('s2-title').textContent = 'Create an API key on the exchange';
-            $('site').hidden = true;
             $('variant-row').hidden = true;
             renderEnvironments (undefined);
             return;
@@ -430,7 +543,6 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
             if (!info.ok || exchangeSelect.value !== id || variantSelect.value !== variant) { return; }
             state.info = info;
             $('variant-row').hidden = !info.predictionVariant;
-            $('s2-title').textContent = 'Create an API key on ' + info.name;
             if (info.website) {
                 $('site-link').href = info.website;
                 $('site-link').textContent = 'Open the ' + info.name + ' website in a new tab';
@@ -438,8 +550,36 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
             } else {
                 $('site').hidden = true;
             }
+            $('how-title').textContent = 'On ' + info.name + ', create a new API key with only these permissions';
+            // no box to ask for is never "no key needed": the exchange takes its keys in a
+            // way this page cannot collect, and saving would produce an account that cannot work
+            $('file-only').hidden = !info.configFileOnly;
+            $('file-only').textContent = info.configFileOnly
+                ? info.name + (info.prediction ? ' prediction markets' : '') + ' cannot be set up from this page: it takes its keys in a way this form cannot collect. Add the account by hand to the settings file instead (' + boot.configPath + ') and restart the assistant app — ask the assistant for the exact format. Do not paste keys into the chat.'
+                : '';
+            $('how').hidden = !!info.configFileOnly;
+            // the permission checklist is about exchange-issued API keys; a wallet key has no
+            // "withdrawals off" switch, so different advice takes its place
+            $('apikey-how').hidden = !!info.walletKey;
+            $('wallet-how').hidden = !info.walletKey;
+            $('wallet-how').textContent = info.walletKey
+                ? info.name + ' signs with a wallet key, not an ordinary API key. A wallet’s main private key can move everything in it: if ' + info.name + ' offers a separate API or agent wallet, create one and use its key here, never your main wallet’s.'
+                : '';
+            var labels = info.fields.map (function (field) { return field.label.replace (/^API /, '').toLowerCase (); });
+            if (labels.length > 0 && !info.walletKey) {
+                $('have-key').textContent = 'I have my ' + ((labels.length === 1) ? labels[0] : (labels.slice (0, -1).join (', ') + ' and ' + labels[labels.length - 1]));
+            } else if (info.walletKey) {
+                $('have-key').textContent = 'I have my wallet key';
+            }
+            $('have-key').disabled = !!info.configFileOnly;
             renderFields (info);
             renderEnvironments (info);
+            if (boot.replace && boot.replace.prediction && info.predictionVariant && !variantSelect.value && !state.variantApplied) {
+                // the account being replaced is the prediction-markets one on this exchange
+                state.variantApplied = true;
+                variantSelect.value = '1';
+                loadExchange ();
+            }
         }, function () {});
     }
 
@@ -450,40 +590,52 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
             'exchange': exchangeSelect.value,
             'credentials': credentials (),
             'environment': environment (),
-            'trading': tradingBox.checked,
+            'trading': trading (),
         };
         if (variantSelect.value) { data.prediction = true; }
-        if (live && tradingBox.checked) {
+        if (live && data.trading) {
             data.maxOrderValue = Number ($('cap').value);
             data.liveConfirmed = $('live-confirm').checked;
         }
         return data;
     }
 
-    // the server enforces all of this again; here it only saves a round trip and points at
-    // the box that needs attention
-    function problem (data, forSave) {
-        if (!data.exchange || !state.info) { exchangeSelect.focus (); return 'Choose your exchange first.'; }
-        if (state.info.configFileOnly) { exchangeSelect.focus (); return state.info.name + ' cannot be set up from this page — see step 3.'; }
-        var inputs = fieldsBox.querySelectorAll ('input[data-field]');
-        for (var i = 0; i < inputs.length; i++) {
-            if (!inputs[i].value.trim ()) { inputs[i].focus (); return 'Fill in every box in step 3.'; }
-        }
-        if (!data.environment) { return 'Choose where this key works in step 4.'; }
-        if (!forSave) { return ''; }
-        if (RESERVED_NAMES.indexOf (data.name) !== -1) { accountInput.focus (); accountInput.select (); return '“' + data.name + '” cannot be used as an account name. Choose a different one.'; }
-        if (!/^[a-zA-Z0-9_-]{1,40}$/.test (data.name)) { accountInput.focus (); return 'Give the account a short name: letters, digits, “-” and “_” only.'; }
-        if (data.environment === 'live' && data.trading) {
-            if (!(data.maxOrderValue > 0) || !isFinite (data.maxOrderValue)) { $('cap').focus (); return 'Enter the largest single order in USD (a number above 0).'; }
-            if (!data.liveConfirmed) { $('live-confirm').focus (); return 'Tick the box confirming that orders will use real money.'; }
-        }
-        return '';
+    function mayText (data) {
+        if (!data.trading) { return 'View only — it cannot place or cancel orders'; }
+        if (data.environment === 'live') { return 'View, and place orders with REAL money — up to ' + data.maxOrderValue + ' USD each, asking you every time'; }
+        return 'View, and place orders with practice money';
+    }
+
+    // Plain words for what is about to be saved. No secret is written back onto the page:
+    // of the API key only its last four characters, of everything else only that it was entered.
+    function renderReview () {
+        var data = collect ();
+        var info = state.info || { 'name': data.exchange, 'fields': [] };
+        $('r-exchange').textContent = info.name + (data.prediction ? ' — prediction markets' : '');
+        var key = $('r-key');
+        key.textContent = '';
+        info.fields.forEach (function (field) {
+            var value = (data.credentials[field.name] || '').trim ();
+            var line = el ('span', '', field.label + ': ');
+            if (field.name === 'apiKey' && value.length >= 12) {
+                line.appendChild (document.createTextNode ('ends in '));
+                line.appendChild (el ('span', 'keyend', '••••' + value.slice (-4)));
+            } else {
+                line.appendChild (document.createTextNode ('entered (hidden)'));
+            }
+            key.appendChild (line);
+            key.appendChild (document.createElement ('br'));
+        });
+        var env = $('r-env');
+        env.textContent = environmentName (data.environment) + ' ';
+        env.appendChild (el ('span', 'badge ' + ((data.environment === 'live') ? 'real' : 'good'), (data.environment === 'live') ? 'Real money' : 'Practice money'));
+        $('r-may').textContent = mayText (data);
     }
 
     function explain (result) {
         var kind = String (result.kind || '');
         if (/Authentication|InvalidNonce/.test (kind)) {
-            return 'The exchange did not accept these keys. Check for a typo or a missing character, and that the key was created for the environment chosen in step 4 (a testnet key only works on testnet).';
+            return 'The exchange did not accept these keys. Check for a typo or a missing character, and that the key was created for the place chosen in step 3 (a testnet key only works on testnet).';
         }
         if (/PermissionDenied|AccountNotEnabled|AccountSuspended/.test (kind)) {
             return 'The keys are recognised but are not allowed to read the account. Check the key’s permissions and its IP restriction on the exchange.';
@@ -494,10 +646,18 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
         return 'The exchange answered with an error when the keys were tried.';
     }
 
+    // an earlier step is not in order (the page was driven some unusual way): go there
+    function blocked () {
+        var found = firstProblem ();
+        if (!found) { return false; }
+        if (found.step !== state.step) { showStep (found.step); stepProblem (found.step); }
+        showStatus ('bad', found.issue);
+        return true;
+    }
+
     function runTest () {
+        if (blocked ()) { return Promise.resolve (undefined); }
         var data = collect ();
-        var issue = problem (data, false);
-        if (issue) { showStatus ('bad', issue); return Promise.resolve (undefined); }
         var tested = fingerprint ();
         setBusy (true, 'test');
         showStatus ('warn', 'Checking the keys with the exchange…');
@@ -511,10 +671,9 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
     }
 
     function save (options) {
+        if (blocked ()) { return; }
         var data = collect ();
-        var issue = problem (data, true);
-        if (issue) { showStatus ('bad', issue); return; }
-        if (options.replace) { data.replace = true; }
+        if (options.replace || replacing === data.name) { data.replace = true; }
         setBusy (true, 'save');
         request ('POST', '/save', data).then (function (result) {
             setBusy (false);
@@ -533,6 +692,14 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
                     $('done-streams').textContent = (result.stoppedStreams === 1 ? 'One live data stream' : result.stoppedStreams + ' live data streams') + ' still running on this account’s previous keys ' + (result.stoppedStreams === 1 ? 'was' : 'were') + ' stopped. Ask the assistant to start ' + (result.stoppedStreams === 1 ? 'it' : 'them') + ' again if you still need ' + (result.stoppedStreams === 1 ? 'it' : 'them') + '.';
                     $('done-streams').hidden = false;
                 }
+                if (result.returnTo === 'accounts') {
+                    // reached from the accounts page: that is where the user was, and its
+                    // session is still open
+                    $('done-title').textContent = 'Saved';
+                    if (!result.restartForTools) { $('done-ready').textContent = 'Your assistant can use this account right away.'; }
+                    $('done-back').href = base;
+                    $('done-actions').hidden = false;
+                }
                 finish ('done-view', 'done-title');
                 return;
             }
@@ -548,10 +715,7 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
     }
 
     function onSave () {
-        if (state.busy) { return; }
-        var data = collect ();
-        var issue = problem (data, true);
-        if (issue) { showStatus ('bad', issue); return; }
+        if (state.busy || blocked ()) { return; }
         // a save is always preceded by a check that the keys work; a failed check does not
         // block the save (the exchange may simply be unreachable) but is never silent
         if (state.testedOk === fingerprint ()) { save ({}); return; }
@@ -559,7 +723,7 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
             if (result === undefined) { return; }
             if (result.ok) { save ({}); return; }
             showStatus ('bad', 'The connection test failed — this account will probably not work.', explain (result) + ' (' + (result.error || 'no details') + ')', [
-                [ 'Go back and fix it', function () { clearStatus (); } ],
+                [ 'Go back and fix the key', function () { showStep (3); } ],
                 [ 'Save anyway', function () { save ({}); } ],
             ]);
         });
@@ -588,7 +752,7 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
             if (left <= 0) { gone (); return; }
             var minutes = Math.floor (left / 60000);
             var seconds = Math.floor ((left % 60000) / 1000);
-            $('expiry').textContent = 'This form closes in ' + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
+            $('expiry').textContent = 'Closes in ' + minutes + ':' + (seconds < 10 ? '0' : '') + seconds;
             setTimeout (tick, 1000);
         };
         tick ();
@@ -606,17 +770,62 @@ button.secondary { color: var(--text); border-color: var(--text-3); }
     }
     var preset = document.querySelector ('input[name="environment"][value="' + boot.prefill.environment + '"]');
     if (preset) { preset.checked = true; }
-    $('config-path').textContent = boot.configPath;
+    $('path-1').textContent = boot.configPath;
+    $('path-5').textContent = boot.configPath;
+    if (boot.replace) {
+        // a new key for an account that exists: its name is settled, and so is the fact
+        // that it will be saved over
+        accountInput.readOnly = true;
+        $('t1').textContent = 'Replace the key of “' + replacing + '”';
+        $('intro').textContent = 'You are about to give the account “' + replacing + '” a new API key. You create the new key on the exchange’s website and paste it here; the old one is then no longer used by your assistant.';
+        $('replace-note').textContent = 'Saving replaces the account “' + replacing + '” with exactly what is shown above. Anything else that was set for it by hand in the settings file (for example withdrawals) is removed. The old key is not deleted on the exchange — delete it there yourself.';
+        $('replace-note').hidden = false;
+        if (boot.replace.trading) { document.querySelector ('input[name="may"][value="trade"]').checked = true; }
+        if (boot.replace.maxOrderValue > 0) { $('cap').value = String (boot.replace.maxOrderValue); }
+    }
+    if (boot.page === 'accounts') {
+        var cancel = el ('a', 'secondary back', 'Cancel');
+        cancel.href = base;
+        steps[0].querySelector ('.actions').appendChild (cancel);
+    }
     accountInput.addEventListener ('input', function () { state.nameEdited = accountInput.value !== ''; });
     exchangeSelect.addEventListener ('change', function () { variantSelect.value = ''; loadExchange (); });
     variantSelect.addEventListener ('change', loadExchange);
-    tradingBox.addEventListener ('change', syncPermissions);
+    var mays = document.querySelectorAll ('input[name="may"]');
+    for (var m = 0; m < mays.length; m++) { mays[m].addEventListener ('change', syncPermissions); }
     var radios = document.querySelectorAll ('input[name="environment"]');
-    for (var i = 0; i < radios.length; i++) { radios[i].addEventListener ('change', syncPermissions); }
+    var onEnvironment = function () { state.wantedEnv = environment (); syncPermissions (); };
+    for (var i = 0; i < radios.length; i++) { radios[i].addEventListener ('change', onEnvironment); }
+    var nexts = document.querySelectorAll ('[data-next]');
+    for (var a = 0; a < nexts.length; a++) { nexts[a].addEventListener ('click', next); }
+    var backs = document.querySelectorAll ('[data-back]');
+    for (var b = 0; b < backs.length; b++) { backs[b].addEventListener ('click', back); }
+    var gotos = document.querySelectorAll ('[data-goto]');
+    var onGoto = function (event) { if (!state.busy) { showStep (Number (event.currentTarget.getAttribute ('data-goto'))); } };
+    for (var g = 0; g < gotos.length; g++) { gotos[g].addEventListener ('click', onGoto); }
     $('save').addEventListener ('click', onSave);
     $('test').addEventListener ('click', onTest);
+    // a message about a box goes away once that box is edited — it would otherwise sit
+    // there contradicting what is now on screen (this is not the place results of a
+    // finished test are cleared: those are below the boxes of an earlier step)
+    $('form-view').addEventListener ('input', function () { if (!state.busy) { clearStatus (); } });
+    $('form-view').addEventListener ('change', function (event) { if (!state.busy && event.target !== exchangeSelect && event.target !== variantSelect) { clearStatus (); } });
+    // Enter moves on from a text box, a list or a choice, exactly like the step's main
+    // button. Never on the last step: there Enter in the name box must not save an account —
+    // it moves to the Save button, which the user then presses knowingly.
+    $('form-view').addEventListener ('keydown', function (event) {
+        if (event.key !== 'Enter' || event.isComposing) { return; }
+        var target = event.target;
+        var tag = target.tagName;
+        var type = (target.getAttribute && target.getAttribute ('type')) || '';
+        if (!(tag === 'SELECT' || (tag === 'INPUT' && type !== 'checkbox'))) { return; }
+        event.preventDefault ();
+        if (state.step === LAST) { $('save').focus (); return; }
+        next ();
+    });
     loadExchange ();
     syncPermissions ();
+    showStep (1, false);
     startCountdown ();
 }) ();
 </script>

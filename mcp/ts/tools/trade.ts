@@ -8,7 +8,7 @@ import { run, clampLimit, accountParam, paramsParam, confirmWrite, environmentMe
 import { requireTier, SafetyError } from '../safety.js';
 import { executeWrite, journalRejection, maybeInjectClientOrderId } from './write-common.js';
 
-const confirmParam = z.string ().optional ().describe ('confirmation token from the preview response — repeat the identical call with this token to execute');
+const confirmParam = z.string ().optional ().describe ('confirmToken from the preview — repeat the identical call with it to execute');
 
 // unified write long tail dispatchable via call_write_method; batch order placement is
 // deliberately absent (it would bypass the per-order notional caps — place orders one by
@@ -23,14 +23,14 @@ const WRITE_METHOD_ALLOWLIST = new Set ([
 export function registerTradeTools (server: McpServer, ctx: ServerContext): void {
     server.registerTool ('create_order', {
         'title': 'Place an order',
-        'description': 'Place an order on a trading-enabled account (works on prediction exchanges with outcome handles as the symbol). Validated against market precision/limits and the account\'s notional caps. Whether it returns a preview + confirmToken first depends on the account\'s "confirm" policy: always = every order is previewed; live (the default) = only orders on a LIVE account are previewed, sandbox/demo execute immediately; never = no preview. So on a sandbox/demo account under the default policy an order executes without a confirm step. A stop/trigger order also returns meta.note flagging that conditional orders may not appear in get_orders even when live — confirm before treating the stop as guaranteed protection. Use "cost" instead of "amount" to market-buy by quote value where supported. Exchange-specific order params (triggerPrice, timeInForce, postOnly, reduceOnly, …): describe_method {"method": "createOrder", "exchange": ...}.',
+        'description': 'Place an order on a trading-enabled account (on prediction exchanges the symbol is an outcome handle). Validated against market precision/limits and the account\'s notional caps. Returns a preview + confirmToken first when the account\'s "confirm" policy says so: always; live (the default) = only on a LIVE account, so sandbox/demo orders execute immediately; never. Stop/trigger orders may not appear in get_orders even when live (meta.note says so). "cost" instead of "amount" market-buys by quote value where supported. Exchange-specific params (triggerPrice, timeInForce, postOnly, reduceOnly, …): describe_method {"method": "createOrder", "exchange": ...}.',
         'inputSchema': {
             'account': accountParam,
             'symbol': z.string ().describe ('unified symbol (outcome handle on prediction exchanges)'),
-            'type': z.string ().describe ('order type — usually "limit" or "market"; exchange-specific types pass through'),
+            'type': z.string ().describe ('order type, usually "limit" or "market"; exchange-specific types pass through'),
             'side': z.enum ([ 'buy', 'sell' ]),
             'amount': z.number ().positive ().optional ().describe ('amount in base currency / contracts / shares'),
-            'cost': z.number ().positive ().optional ().describe ('spend this quote-currency value instead of specifying an amount (market buy/sell by cost, where the exchange supports it)'),
+            'cost': z.number ().positive ().optional ().describe ('quote-currency value to spend instead of an amount (market orders, where the exchange supports it)'),
             'price': z.number ().positive ().optional ().describe ('limit price — required for limit orders'),
             'params': paramsParam,
             'confirm': confirmParam,

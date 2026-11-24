@@ -9,7 +9,7 @@ import { requireTier, requireImplicitWrites, SafetyError } from '../safety.js';
 import { executeWrite, journalRejection } from './write-common.js';
 import { implicitVerb, isImplicitMethod } from '../introspect.js';
 
-const confirmParam = z.string ().optional ().describe ('confirmation token from the preview response — repeat the identical call with this token to execute');
+const confirmParam = z.string ().optional ().describe ('confirmToken from the preview — repeat the identical call with it to execute');
 
 export function registerFundsTools (server: McpServer, ctx: ServerContext): void {
     server.registerTool ('withdraw', {

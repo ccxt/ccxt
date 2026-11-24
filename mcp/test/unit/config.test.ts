@@ -386,3 +386,23 @@ test ('real per-slot values still win over the global after the template hardeni
         assert.equal ((config.accounts['kraken'] as any).maxOrderValue, 25);
     });
 });
+
+test ('tool profile: settings.tools is read as a string or a list, CCXT_MCP_TOOLS wins, and a blank variable is "not set"', () => {
+    const tools = (settings: any, env: string | undefined): string => {
+        let value = '';
+        withConfig ({ settings }, { 'CCXT_MCP_TOOLS': env }, () => {
+            const config = loadConfig ();
+            assert.equal (config.problems.length, 0);
+            value = config.settings.tools;
+        });
+        return value;
+    };
+    assert.equal (tools ({}, undefined), 'all');
+    assert.equal (tools ({ 'tools': 'core' }, undefined), 'core');
+    assert.equal (tools ({ 'tools': [ 'core', 'describe_method' ] }, undefined), 'core,describe_method');
+    assert.equal (tools ({ 'tools': 'core' }, 'all'), 'all');
+    assert.equal (tools ({}, ' get_tickers,get_ohlcv '), 'get_tickers,get_ohlcv');
+    // a host that passes an unfilled form field as an empty variable must not change the profile
+    assert.equal (tools ({ 'tools': 'core' }, ''), 'core');
+    assert.equal (tools ({}, '   '), 'all');
+});

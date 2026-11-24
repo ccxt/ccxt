@@ -9,6 +9,7 @@ import { registerRouteTools, registerRouteExecuteTool } from './route.js';
 import { registerUiTools } from './ui.js';
 import { registerAccountUiTools } from './ui-account.js';
 import { registerSetupTools } from './setup.js';
+import { ToolProfile, applyToolProfile } from './profile.js';
 import { log } from '../logging.js';
 
 // By default every tier's tools are listed so the model can discover them and, when a
@@ -23,27 +24,49 @@ export function registerAllTools (server: McpServer, ctx: ServerContext): void {
     const tradingEnabled = accounts.some ((account) => (account.trading ?? false) !== false);
     const fundsEnabled = accounts.some ((account) => (account.funds ?? false) !== false);
     const implicitWritesEnabled = accounts.some ((account) => account.implicitWrites === true);
+    // The tool profile (CCXT_MCP_TOOLS / settings.tools) filters inside server.registerTool
+    // from here on, so no register function below — nor the setup form listing a tier later —
+    // can put a hidden tool on the list.
+    const profile: ToolProfile = ctx.toolProfile ?? new ToolProfile (ctx.config.settings.tools);
+    ctx.toolProfile = profile;
+    applyToolProfile (server, profile);
+    // A tier that hideDisabledTools keeps off the list is still walked, registering nothing:
+    // the profile learns its tool names, so a name in an explicit list is not reported as
+    // unknown just because its tier is not listed yet.
+    const tier = (listed: boolean, register: () => void): void => {
+        profile.learnOnly = !listed;
+        try {
+            register ();
+        } finally {
+            profile.learnOnly = false;
+        }
+    };
     registerMarketTools (server, ctx);
     registerUiTools (server, ctx);
     registerWatchTools (server, ctx);
     registerRouteTools (server, ctx);
     // always listed: it is how a user with no account yet gets one without editing a file
     registerSetupTools (server, ctx);
-    if (!hideDisabled || accounts.length > 0) {
+    tier (!hideDisabled || accounts.length > 0, () => {
         registerReadTools (server, ctx);
         registerAccountUiTools (server, ctx);
-    }
-    if (!hideDisabled || tradingEnabled) {
+    });
+    tier (!hideDisabled || tradingEnabled, () => {
         registerTradeTools (server, ctx);
         registerRouteExecuteTool (server, ctx);
-    }
-    if (!hideDisabled || fundsEnabled) {
-        registerFundsTools (server, ctx);
-    }
-    if (!hideDisabled || implicitWritesEnabled) {
-        registerImplicitWriteTool (server, ctx);
+    });
+    tier (!hideDisabled || fundsEnabled, () => registerFundsTools (server, ctx));
+    tier (!hideDisabled || implicitWritesEnabled, () => registerImplicitWriteTool (server, ctx));
+    // a typo in an explicit list must not crash the server or pass silently: it is a config
+    // problem like any other, shown by get_safety_status
+    const unknown = profile.unknownNames ();
+    if (unknown.length > 0) {
+        const problem = 'tool profile (CCXT_MCP_TOOLS / settings.tools): ignored unknown tool name(s) ' + unknown.map ((name) => JSON.stringify (name)).join (', ') + ' — use "all", "core" or names from the tool list';
+        ctx.config.problems.push (problem);
+        log ('warning', 'config: ' + problem);
     }
     log ('info', 'tools registered — accounts: ' + accounts.length
+        + ', tool profile: ' + profile.name + ' (' + profile.hiddenTools ().length + ' hidden)'
         + ', hideDisabledTools: ' + hideDisabled
         + ', enabled tiers — trading: ' + tradingEnabled
         + ', funds: ' + fundsEnabled
@@ -64,5 +87,6 @@ Conventions:
 - For LIVE data over WebSocket, use watch_subscribe (e.g. watchOHLCV/watchTicker/watchOrderBook/watchTrades, or watchOrders/watchMyTrades with an account) to open a background stream, then poll watch_read for new updates and watch_unsubscribe to stop. One-shot fetch* tools are simpler when you just need a current snapshot.
 - Private tools (balances, orders, positions, create_order, withdraw, …) take an "account" name (list_accounts). API credentials live only on the user's machine — they are never tool parameters and never appear in results. NEVER ask the user to paste an API key, secret or passphrase into the chat, and if they do, tell them to revoke that key.
 - To connect an exchange account (first run, "get started", or any error saying an account is not configured), call setup_account: it opens a setup form in the user's own browser, served from their machine, where they type the key themselves. You only learn that the form was opened — call it once, wait for the user to say they saved it, then call list_accounts; the account works immediately, no restart. While a form is open a repeat call opens nothing new (restart: true discards the open form and what was typed — only if the user lost it). The form offers testnet/demo/live and an "allow placing orders" switch (live needs a per-order USD cap) — to turn order placement on for an existing account the user saves it again from the form under the same name; the funds and implicitWrites tiers can only be enabled by the user editing the config file, never from the conversation or the form. A few exchanges (e.g. dydx, polymarket prediction markets) take credentials the form cannot collect; it says so and points the user to the config file.
+- To remove an account, replace its API key or switch order placement on/off, call manage_accounts: it opens a "Your accounts" page in the user's browser where THEY make the change (you only learn it opened; keys are never shown). Then call list_accounts.
 - Every tool is listed by default, but a private one whose account or tier is not configured returns a clear error: relay its "hint" to the user — setup_account first; editing the config file (the hint has its path + an example) and restarting the server is the alternative. Call get_safety_status for the configured accounts and enabled tiers. (A deployment may set hideDisabledTools to hide unconfigured tiers instead; the read and trading tools are then added to the tool list when the setup form saves an account that enables them, while a tier enabled by editing the config file is listed after a restart.)
 - Write tools may return a preview with a confirmToken instead of executing — show the preview to the user, then repeat the identical call with "confirm" set to execute. get_safety_status shows what is currently enabled.`;

@@ -53,6 +53,9 @@ const settingsSchema = z.object ({
     // call time; set true to hide disabled tiers from tools/list (a leaner, deliberately
     // read-only deployment) — execution is gated by the account either way
     'hideDisabledTools': z.boolean ().optional (),
+    // tool profile: "all" (default), "core" (the set sized for hosts that cap tool
+    // definitions) or tool names, as a comma-separated string or an array — CCXT_MCP_TOOLS wins
+    'tools': z.union ([ z.string (), z.array (z.string ()) ]).optional (),
     // opt-in: auto-register accounts from <EXCHANGEID>_<CREDENTIAL> env vars (ccxt --loadKeys parity)
     'loadEnvKeys': z.boolean ().optional (),
 }).passthrough ();
@@ -457,6 +460,8 @@ export function loadConfig (): ResolvedConfig {
         // so a count cap isn't needed — set a positive value only if you want one.
         'maxSubscriptions': validSettings.maxSubscriptions ?? 0,
         'hideDisabledTools': validSettings.hideDisabledTools ?? false,
+        // an empty CCXT_MCP_TOOLS (a host passing a blank form field) is "not set"
+        'tools': (process.env['CCXT_MCP_TOOLS'] ?? '').trim () || [ validSettings.tools ?? [] ].flat ().join (',') || 'all',
         'loadEnvKeys': (validSettings.loadEnvKeys ?? false) || (process.env['CCXT_MCP_LOAD_ENV_KEYS'] === 'true'),
     };
 
@@ -468,7 +473,8 @@ export function loadConfig (): ResolvedConfig {
 }
 
 // ---------------------------------------------------------------------------------------
-// Config-file writer (the setup form's save). Everything above only ever reads the file.
+// Config-file writers (the setup form's save, the accounts page's remove and permission
+// edit). Everything above only ever reads the file.
 
 export const ACCOUNT_NAME_PATTERN = /^[a-zA-Z0-9_-]{1,40}$/;
 // assigning one of these as an own key would either rewrite the object's prototype or be
@@ -483,7 +489,7 @@ export function isValidAccountName (name: any): name is string {
     return typeof name === 'string' && ACCOUNT_NAME_PATTERN.test (name) && !RESERVED_ACCOUNT_NAMES.includes (name);
 }
 
-export type ConfigWriteErrorCode = 'INVALID_NAME' | 'INVALID_JSON' | 'INVALID_SHAPE' | 'ACCOUNT_EXISTS' | 'LEGACY_NAME' | 'IO_ERROR';
+export type ConfigWriteErrorCode = 'INVALID_NAME' | 'INVALID_JSON' | 'INVALID_SHAPE' | 'ACCOUNT_EXISTS' | 'LEGACY_NAME' | 'NOT_FOUND' | 'IO_ERROR';
 
 export class ConfigWriteError extends Error {
     code: ConfigWriteErrorCode;
@@ -510,18 +516,18 @@ function detectIndent (text: string): string | number {
     return (match !== null) ? match[1] : 4;
 }
 
-// Adds (or, with replace, overwrites) ONE account in the config file and leaves everything
-// else in it alone: other accounts, the settings block and any key this server does not know.
-// Both shapes parseConfigObject reads are written back in their own shape — a legacy
-// {"<exchangeId>": {...}} file is never converted, because other tools (ccxt-cli keys.json)
-// may read the same file. A file that is not valid JSON is refused, never overwritten: it
-// may hold keys the user can still recover by fixing a comma.
-// `account` is the account body WITHOUT its name; it must carry "exchange".
-export function writeAccountToConfigFile (configPath: string, name: string, account: Record<string, any>, options: { replace?: boolean, isKnownExchange?: (exchangeId: string) => boolean } = {}): ConfigWriteResult {
-    if (!isValidAccountName (name)) {
-        throw new ConfigWriteError ('INVALID_NAME', 'account name must be 1-40 characters: letters, digits, "-" and "_"');
-    }
-    const known = options.isKnownExchange ?? isKnownExchange;
+interface ConfigFileState {
+    target: string; // the real file (a symlinked config resolves to its target)
+    exists: boolean;
+    root: Record<string, any>;
+    indent: string | number;
+    shape: 'accounts' | 'legacy';
+}
+
+// Reads the config file the way every writer below needs it: parsed, with the shape
+// parseConfigObject would read it in. A file that is not valid JSON is refused, never
+// overwritten: it may hold keys the user can still recover by fixing a comma.
+function readConfigFileState (configPath: string, known: (exchangeId: string) => boolean): ConfigFileState {
     // write through a symlink instead of replacing it with a regular file
     let target = configPath;
     let existing: string | undefined = undefined;
@@ -549,7 +555,6 @@ export function writeAccountToConfigFile (configPath: string, name: string, acco
         indent = detectIndent (existing);
     }
     let shape: 'accounts' | 'legacy' = 'accounts';
-    let replaced = false;
     if (root['accounts'] !== undefined) {
         if (!isPlainObject (root['accounts'])) {
             throw new ConfigWriteError ('INVALID_SHAPE', 'the "accounts" entry of the existing config file is not an object, so the file was left untouched — fix it first');
@@ -559,6 +564,60 @@ export function writeAccountToConfigFile (configPath: string, name: string, acco
         // would switch it to the other shape and silently drop every account already in it
         shape = 'legacy';
     }
+    return { target, 'exists': existing !== undefined, root, indent, shape };
+}
+
+function writeConfigFileState (state: ConfigFileState): void {
+    const target = state.target;
+    const directory = path.dirname (target);
+    const temp = path.join (directory, '.' + path.basename (target) + '.' + randomBytes (6).toString ('hex') + '.tmp');
+    try {
+        // the mode only applies to directories this call creates; an existing one is the user's
+        fs.mkdirSync (directory, { 'recursive': true, 'mode': 0o700 });
+        // temp file in the same directory + rename: a crash or a full disk mid-write leaves
+        // the previous file intact, and readers never see half a file. "wx" refuses to follow
+        // a pre-planted path; 0600 from the first byte, so the keys are never world-readable.
+        const fd = fs.openSync (temp, 'wx', 0o600);
+        try {
+            fs.writeSync (fd, JSON.stringify (state.root, null, state.indent) + '\n');
+            fs.fsyncSync (fd);
+        } finally {
+            fs.closeSync (fd);
+        }
+        fs.renameSync (temp, target);
+    } catch (e: any) {
+        try {
+            fs.unlinkSync (temp);
+        } catch (ee) {
+            // nothing was created, or it is already gone
+        }
+        throw new ConfigWriteError ('IO_ERROR', 'could not write the config file: ' + String (e?.code ?? e?.message ?? e));
+    }
+}
+
+// the accounts of a parsed file, by name, exactly as parseConfigObject would find them
+function fileAccountNames (state: ConfigFileState, known: (exchangeId: string) => boolean): string[] {
+    if (state.shape === 'legacy') {
+        return Object.keys (state.root).filter ((key) => isPlainObject (state.root[key]) && known (key));
+    }
+    return Object.keys (state.root['accounts'] ?? {});
+}
+
+// Adds (or, with replace, overwrites) ONE account in the config file and leaves everything
+// else in it alone: other accounts, the settings block and any key this server does not know.
+// Both shapes parseConfigObject reads are written back in their own shape — a legacy
+// {"<exchangeId>": {...}} file is never converted, because other tools (ccxt-cli keys.json)
+// may read the same file.
+// `account` is the account body WITHOUT its name; it must carry "exchange".
+export function writeAccountToConfigFile (configPath: string, name: string, account: Record<string, any>, options: { replace?: boolean, isKnownExchange?: (exchangeId: string) => boolean } = {}): ConfigWriteResult {
+    if (!isValidAccountName (name)) {
+        throw new ConfigWriteError ('INVALID_NAME', 'account name must be 1-40 characters: letters, digits, "-" and "_"');
+    }
+    const known = options.isKnownExchange ?? isKnownExchange;
+    const state = readConfigFileState (configPath, known);
+    const root = state.root;
+    const shape = state.shape;
+    let replaced = false;
     if (shape === 'legacy') {
         if (name !== account['exchange']) {
             throw new ConfigWriteError ('LEGACY_NAME', 'this config file uses the older {"<exchange id>": {...}} layout, where an account is always named after its exchange — use the account name ' + JSON.stringify (String (account['exchange'])) + ', or convert the file to the {"accounts": {...}} layout first');
@@ -581,29 +640,54 @@ export function writeAccountToConfigFile (configPath: string, name: string, acco
         }
         root['accounts'][name] = { ...account };
     }
-    const directory = path.dirname (target);
-    const temp = path.join (directory, '.' + path.basename (target) + '.' + randomBytes (6).toString ('hex') + '.tmp');
-    try {
-        // the mode only applies to directories this call creates; an existing one is the user's
-        fs.mkdirSync (directory, { 'recursive': true, 'mode': 0o700 });
-        // temp file in the same directory + rename: a crash or a full disk mid-write leaves
-        // the previous file intact, and readers never see half a file. "wx" refuses to follow
-        // a pre-planted path; 0600 from the first byte, so the keys are never world-readable.
-        const fd = fs.openSync (temp, 'wx', 0o600);
-        try {
-            fs.writeSync (fd, JSON.stringify (root, null, indent) + '\n');
-            fs.fsyncSync (fd);
-        } finally {
-            fs.closeSync (fd);
+    writeConfigFileState (state);
+    return { 'path': state.target, shape, 'created': !state.exists, replaced };
+}
+
+// What the "Your accounts" page needs to tell a file account from one that only exists in
+// the environment: the accounts the file holds, by name, each as the body validateAccount
+// would be given ("exchange" filled in for the legacy shape). A missing file holds none.
+export function readConfigFileAccounts (configPath: string, options: { isKnownExchange?: (exchangeId: string) => boolean } = {}): { path: string, shape: 'accounts' | 'legacy', accounts: Record<string, Record<string, any>> } {
+    const known = options.isKnownExchange ?? isKnownExchange;
+    const state = readConfigFileState (configPath, known);
+    const accounts: Record<string, Record<string, any>> = {};
+    for (const name of fileAccountNames (state, known)) {
+        const body = (state.shape === 'legacy') ? state.root[name] : state.root['accounts'][name];
+        if (!RESERVED_ACCOUNT_NAMES.includes (name) && isPlainObject (body)) {
+            accounts[name] = (state.shape === 'legacy') ? { 'exchange': name, ...body } : { ...body };
         }
-        fs.renameSync (temp, target);
-    } catch (e: any) {
-        try {
-            fs.unlinkSync (temp);
-        } catch (ee) {
-            // nothing was created, or it is already gone
-        }
-        throw new ConfigWriteError ('IO_ERROR', 'could not write the config file: ' + String (e?.code ?? e?.message ?? e));
     }
-    return { 'path': target, shape, 'created': existing === undefined, replaced };
+    return { 'path': state.target, 'shape': state.shape, accounts };
+}
+
+// Changes ONE existing account in place, in the file's own shape, leaving every other byte of
+// meaning alone. `mutate` is handed a copy of the account body (with "exchange", as above) and
+// returns the body to store; whatever it throws aborts the edit before anything is written.
+// Returning undefined removes the account. The name is not pattern-checked: a hand-written
+// file may hold names the form would not create, and they must still be removable.
+export function updateAccountInConfigFile (configPath: string, name: string, mutate: (body: Record<string, any>) => Record<string, any> | undefined, options: { isKnownExchange?: (exchangeId: string) => boolean } = {}): { path: string, shape: 'accounts' | 'legacy', removed: boolean } {
+    const known = options.isKnownExchange ?? isKnownExchange;
+    const state = readConfigFileState (configPath, known);
+    const legacy = state.shape === 'legacy';
+    const holder: Record<string, any> = legacy ? state.root : (state.root['accounts'] ?? {});
+    if (typeof name !== 'string' || RESERVED_ACCOUNT_NAMES.includes (name) || !fileAccountNames (state, known).includes (name) || !isPlainObject (holder[name])) {
+        throw new ConfigWriteError ('NOT_FOUND', 'no account named ' + JSON.stringify (String (name)) + ' in the config file');
+    }
+    const next = mutate (legacy ? { 'exchange': name, ...holder[name] } : { ...holder[name] });
+    if (next === undefined) {
+        delete holder[name];
+    } else {
+        const body = { ...next };
+        if (legacy) {
+            // the key IS the exchange id in this shape
+            delete body['exchange'];
+        }
+        holder[name] = body;
+    }
+    writeConfigFileState (state);
+    return { 'path': state.target, 'shape': state.shape, 'removed': next === undefined };
+}
+
+export function removeAccountFromConfigFile (configPath: string, name: string, options: { isKnownExchange?: (exchangeId: string) => boolean } = {}): { path: string, shape: 'accounts' | 'legacy', removed: boolean } {
+    return updateAccountInConfigFile (configPath, name, () => undefined, options);
 }

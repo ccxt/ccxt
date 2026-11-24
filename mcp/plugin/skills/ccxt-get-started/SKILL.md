@@ -50,8 +50,8 @@ An API key is a separate login for apps, with its own permissions. Give the step
 ## Step 3 — open the form
 
 1. Call `setup_account` with `exchange` (e.g. `"binance"`) and `sandbox` (`true` for testnet — the default; `false` for live). You may pass `account` to prefill a name such as `binance-testnet`. There is no argument for demo trading: tell a user with demo keys to choose **Demo trading** on the page.
-2. Say: "A setup page just opened in your web browser, on your own computer. Type the key there, press 'Save account', and tell me when it says Saved." The page checks the key with the exchange and says so if the exchange rejects it.
-3. What the user will see: the exchange, the key fields, where the key works (testnet / demo / live), and whether orders may be placed. Order placement is **off** unless they switch it on; for a live account the page then requires a maximum order size in USD and a confirmation tick. Withdrawals and transfers cannot be enabled there at all.
+2. Say: "A setup page just opened in your web browser, on your own computer. It walks you through five short steps; at the end press 'Save account', and tell me when it says Saved." The page checks the key with the exchange and says so if the exchange rejects it.
+3. What the user will see, one step per screen: where the key is kept (a file on their own computer), how to create the key on the exchange, the key fields and where the key works (testnet / demo / live), whether orders may be placed, and a review before saving. Order placement is **off** unless they switch it on; for a live account the page then requires a maximum order size in USD and a confirmation tick. Withdrawals and transfers cannot be enabled there at all.
 4. **Wait** until the user says they are done. Do not poll, and do not call `setup_account` again while they are typing: a repeat call opens nothing new and answers that the form is already open. The page saves one account and expires after 10 minutes. If it expired, call `setup_account` again. If the user says they closed or lost the page before saving, call it with `restart: true` — this discards whatever was typed into the old page, so only on their word.
 5. The result only tells you that the page opened. It contains no address and no key — do not look for either.
 
@@ -85,8 +85,12 @@ In a terminal app the `show_*` tools answer with a text summary instead of a pic
 - On **testnet / demo** accounts an order normally executes **immediately**, with no preview step from the server. Your question to the user *is* the confirmation.
 - On a **live** account set up through the form every order returns a preview first. Show it, restate the per-order cap and the cost in USD, say clearly that this is **real money**, and only repeat the call with the confirmation token after a fresh, explicit yes. A yes to one order is not a yes to the next.
 - For a first test, use the market's minimum size (`search_markets` shows the limits) and a limit price away from the market, then show it with `show_orders` and offer to cancel it with `cancel_order`.
-- If the order tools answer that trading is not enabled, the user left it off. Do not try to work around it: they can switch it on by reopening the form.
+- If the order tools answer that trading is not enabled, the user left it off. Do not try to work around it: they can switch it on themselves — call `manage_accounts` and tell them to press "Change permissions" on the page that opens.
 - Withdrawals and transfers are not part of this flow.
+
+## Removing or changing an account later
+
+When the user asks to remove a key, replace a key, switch order placement on or off, or see what is connected: call `manage_accounts`. A "Your accounts" page opens in their browser, on their own computer. It shows each account with only the last four characters of its API key, and the user makes the change there (removing asks them to confirm; live trading asks for a maximum order size). Like the setup form, the result only tells you the page opened — wait until they say they are done, then call `list_accounts`. Remind them that removing an account here does not delete the key on the exchange: they should delete it there too. If `manage_accounts` is not in your tool list, the server is older: the user edits the config file that `get_safety_status` names.
 
 ## If the setup tool is missing
 

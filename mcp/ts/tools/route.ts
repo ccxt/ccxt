@@ -317,7 +317,7 @@ function guardedVenue (ctx: ServerContext, exchange: any, account: AccountConfig
 export function registerRouteExecuteTool (server: McpServer, ctx: ServerContext): void {
     server.registerTool ('execute_route', {
         'title': 'Execute a route',
-        'description': 'Execute a route from fetch_route (by routeId) with ccxt\'s OrderRouter: places the orders on every venue the route uses, hop by hop, sizing each hop from the previous fill. Each venue needs a trading-enabled account — matched automatically when there is exactly one per exchange, otherwise pass "accounts". Every order is still bound by that account\'s caps, symbol lists, dryRun and confirm policy, and is journaled. Execution choices are yours and pass straight to OrderRouter: strategy, slippageBps (limit offset from the quoted price, default 25), allowMarketOrders (only used on venues that cannot do IOC — a market order has no price protection), maxPlanAgeMs (refuse a stale quote), dryRun. A route can be executed once; on a halt the result includes an unwind suggestion that is NOT executed.',
+        'description': 'Execute a fetch_route route (by routeId) with ccxt\'s OrderRouter: places the orders on every venue the route uses, hop by hop, sizing each hop from the previous fill. Each venue needs a trading-enabled account — auto-matched when there is exactly one per exchange, otherwise pass "accounts". Every order stays bound by its account\'s caps, symbol lists, dryRun and confirm policy, and is journaled. allowMarketOrders only applies to venues that cannot do IOC — a market order has no price protection. A route executes once; on a halt the result carries an unwind suggestion that is NOT executed.',
         'inputSchema': {
             'routeId': z.string ().describe ('routeId returned by fetch_route (kept for 15 minutes)'),
             'accounts': z.array (z.string ()).optional ().describe ('account names to trade with, one per exchange the route uses — omit to auto-match the single trading account per exchange'),
@@ -327,7 +327,7 @@ export function registerRouteExecuteTool (server: McpServer, ctx: ServerContext)
             'maxPlanAgeMs': z.number ().int ().positive ().optional ().describe ('refuse to execute if the quote is older than this'),
             'dryRun': z.boolean ().optional ().describe ('build, check and report the plan without placing anything'),
             'options': z.record (z.any ()).optional ().describe ('further OrderRouter.execute options: ' + PASSTHROUGH_OPTIONS.join (', ')),
-            'confirm': z.string ().optional ().describe ('confirmation token from the preview response — repeat the identical call with this token to execute'),
+            'confirm': z.string ().optional ().describe ('confirmToken from the preview — repeat the identical call with it to execute'),
         },
         'annotations': { 'destructiveHint': true, 'openWorldHint': true },
     }, async (args) => run ({ 'tool': 'execute_route' }, async (): Promise<Envelope> => {

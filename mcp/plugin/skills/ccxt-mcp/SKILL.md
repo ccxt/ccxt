@@ -48,7 +48,7 @@ With no configuration the server already serves **public market data on every ex
 
 ### The easiest way: `setup_account` (no file editing)
 
-Call `setup_account` (optional `exchange`, `account` name and `sandbox` to prefill; `sandbox` defaults to testnet). It opens a form in the user's default browser, served by the MCP server on `127.0.0.1`; the form is bound to the first browser that loads it, saves one account and expires after 10 minutes. The user picks the exchange, types the credentials, chooses testnet (the default), demo trading or live — only the environments that exchange has are offered — and whether orders may be placed. The form checks the keys against the exchange, saves the account to the local config file (created with owner-only permissions) and applies it immediately — no restart.
+Call `setup_account` (optional `exchange`, `account` name and `sandbox` to prefill; `sandbox` defaults to testnet). It opens a step-by-step form in the user's default browser, served by the MCP server on `127.0.0.1`; the form is bound to the first browser that loads it, saves one account and expires after 10 minutes. In five short steps it shows where the key will be kept (the exact file on their computer), how to create the key on the exchange, then asks for the credentials and the environment — testnet (the default), demo trading or live, only the ones that exchange has — and whether orders may be placed, and ends with a review. The form checks the keys against the exchange, saves the account to the local config file (created with owner-only permissions) and applies it immediately — no restart.
 
 - The tool result only says the form was opened. **You never see the link or what the user types**; tell them a page opened in their browser, wait until they say it is saved, then call `list_accounts`.
 - **Call it once and wait.** It is not a read-only tool: it opens a browser window. While a form is open, a repeat call opens nothing new (`alreadyOpen: true`), ignores the new prefill and leaves what the user typed alone. Pass `restart: true` only when the user says they closed or lost the page — it discards that form and anything typed into it.
@@ -57,6 +57,15 @@ Call `setup_account` (optional `exchange`, `account` name and `sandbox` to prefi
 - Withdrawals/transfers (`funds`) and raw write endpoints (`implicitWrites`) are **not** in the form — config file only.
 - `SETUP_FORM_UNAVAILABLE` means no browser can be opened from the server's machine (a headless or remote host): relay the `hint`, which names the config file to edit instead.
 - If `setup_account` is not in the tool list, the server is older than the release that added it (the plugin pins its server version): use the config file.
+
+### Changing or removing an account: `manage_accounts`
+
+For "remove my key", "replace my key", "turn trading on/off" or "what is connected?", call `manage_accounts` (no arguments; `restart: true` as above). It opens a "Your accounts" page in the user's browser, served the same way as the setup form. The page lists each account — name, exchange, testnet/demo/live, whether orders are allowed, and only the **last four characters** of its API key — and lets the user remove one, replace its key (through the setup form) or switch order placement on or off; switching it on for a live account needs the per-order USD cap and the confirmation, as in the form. Changes apply immediately; call `list_accounts` when the user says they are done.
+
+- As with `setup_account`, the result only says the page opened: you cannot make these changes yourself, and you never see a key.
+- Accounts that come from the host's install prompt or environment variables are shown read-only there; they are changed where they were entered.
+- The page stays open for 10 minutes or until the user presses "Done". One page at a time: while it is open `setup_account` opens nothing new (the page has its own "Add another account" button), and the other way round.
+- `funds` and `implicitWrites` cannot be changed there either, and a permission change leaves them as they are. Replacing a key saves a fresh account record, so tiers that were enabled by hand in the file are dropped.
 
 ### The config file
 
@@ -114,7 +123,7 @@ Some exchanges also (or only) have **demo trading**, a separate environment with
 
 ## Using the tools (what the agent calls)
 
-- **Discovery**: `list_exchanges`, `describe_exchange`, `describe_method` (search method names / signatures / per-exchange params + doc links), `get_safety_status` (which accounts/tiers are active), `setup_account` (opens the local account-setup form — see "Configure accounts").
+- **Discovery**: `list_exchanges`, `describe_exchange`, `describe_method` (search method names / signatures / per-exchange params + doc links), `get_safety_status` (which accounts/tiers are active), `setup_account` (opens the local account-setup form) and `manage_accounts` (opens the "Your accounts" page to remove an account, replace its key or switch order placement) — see "Configure accounts".
 - **Market data**: `search_markets` (resolve a symbol — there is no list-all-markets tool), `get_tickers`, `get_orderbook`, `get_ohlcv`, `get_trades`. Long-tail reads (funding rates, open interest, ledger, …) via `call_read_method`; raw exchange GET endpoints via `call_implicit_get`.
 - **Views (MCP Apps)**: `show_chart` (candlestick + volume chart), `show_orderbook` (cumulative depth chart + bid/ask ladder), `show_tickers` (sortable 24h price board) — public data, read-only, no account. With an account (read tier): `show_balance` (holdings table with an estimated value), `show_orders` (order list), `show_positions` (open derivatives positions), and `show_chart` with `account` draws that account's open orders on the chart. See "Showing charts and views" below.
 - **Live data (WebSocket)**: `watch_subscribe` opens a background stream and returns a `subscriptionId` and a `streamKind`. **State** streams are snapshots — `watchTicker(s)`, `watchOrderBook(ForSymbols)`, `watchOHLCV`, `watchBalance`, `watchPositions`, `watchBidsAsks`, `watchMarkPrice(s)`: `watch_read` returns the **full current set** in `latest` (the server merges live updates, so a multi-symbol stream always shows every subscribed symbol, not just the one that last changed) — just read it whenever you need the current value (the live order book, all your positions, the recent candle window). **Event** streams are logs — `watchTrades` and the private `watchOrders`/`watchMyTrades`/`watch(My)Liquidations` (private need an account): `watch_read` returns new items oldest-first in `events` plus a `nextCursor` — thread it back as `cursor` on each poll so you don't re-receive old items. Pass `waitForChange: true` (optional `timeoutMs`) to **block until the next update** instead of polling — ideal for waiting on an order fill or position change; the response's `timedOut` says whether anything arrived. `watch_unsubscribe` when done; `watch_list` shows active streams. Prefer one-shot `get_*` tools for a single snapshot; use `watch_*` for live/continuous data.
@@ -176,7 +185,7 @@ For "where should I buy 1 BTC?" or "what's the best way to turn 5,000 USDT into 
 
 ## Troubleshooting
 
-- **"Trading is not enabled for account …"** — the user enables it: reopen the form with `setup_account` (replace the account with "allow placing orders" on) or edit the config file. It can't be enabled from the conversation.
+- **"Trading is not enabled for account …"** — the user enables it: open the accounts page with `manage_accounts` ("Change permissions"), or edit the config file. It can't be enabled from the conversation.
 - **No account yet / "configure an account"** — call `setup_account`; never ask for keys in chat.
 - **AUTH_FAILED on a sandbox account** — you need testnet keys from the exchange's testnet portal, not live keys.
 - **A private tool doesn't exist** — its tier isn't enabled; run `get_safety_status` to see what's active.
