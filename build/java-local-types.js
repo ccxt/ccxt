@@ -27403,6 +27403,7 @@ const JAVA_WILDCARD_LIST_PARAM_SLOT_TYPE = 'java.util.List<?>';
 const JAVA_MAP_PARAM_SLOTS = {
     'invertFlatStringDictionary': [ 0 ],
     'handleErrors': [ 4, 7 ],
+    'parseFundingRate': [ 0 ],
 };
 // ws order-book slots: every caller passes a local the printer declares WsOrderBook
 const JAVA_ORDERBOOK_PARAM_SLOTS = {
@@ -27558,7 +27559,8 @@ export function installJavaListParamSlots (transpiler) {
             const ok = slot === JAVA_WILDCARD_LIST_PARAM_SLOT_TYPE ? isAnyList (argType) || printer.isJavaNullishUnion (argType, isAnyList)
                 : slot === JAVA_LIST_PARAM_SLOT_TYPE ? isList (argType) || printer.isJavaNullishUnion (argType, isList)
                 // an object literal prints a HashMap<String, Object> instance
-                : ts.isObjectLiteralExpression (arg) || isMap (argType) || printer.isJavaNullishUnion (argType, isMap);
+                : ts.isObjectLiteralExpression (arg) || isMap (argType) || printer.isJavaNullishUnion (argType, isMap)
+                    || printer.javaBaseMapOverloadCall (arg);
             // a parameter forwarded from the same slot type (filterBySymbol -> filterByKey)
             const forwarded = ts.isIdentifier (arg) && printer.javaDeclarationOfIdentifier (arg)?.kind === ts.SyntaxKind.Parameter
                 && printer.javaNativeParameterType (printer.javaDeclarationOfIdentifier (arg)) === slot;
