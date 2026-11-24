@@ -1755,6 +1755,8 @@ const CORE_ARG_SHADOW_TYPES = [ 'string', 'Int64?', 'double?', 'bool?' ];
 // declares `Int64? getLimit`, so the unbox names the existing box) and integer-literal writes (the
 // emitted cast keeps the Int32 -> Int64 box change visible). Keyed by source name; other copies unaffected.
 const CORE_ARG_SHADOW_LIMIT_SOURCE = 'limit';
+// `since` copies take the same literal-default write (`sinceVar ??= 0;`)
+const CORE_ARG_SHADOW_LITERAL_SOURCES = [ CORE_ARG_SHADOW_LIMIT_SOURCE, 'since' ];
 const CORE_ARG_SHADOW_LIMIT_GETLIMIT_RE = /^callDynamically\s*\(\s*[A-Za-z_]\w*\s*,\s*"getLimit"\s*,/;
 const CORE_ARG_SHADOW_LIMIT_LITERAL_RE = /^-?\d+$/;
 
@@ -4007,7 +4009,7 @@ class NewTranspiler {
                 // Every source gets the extended (callee / RHS) rules; `limitCasts` (getLimit + integer
                 // literal, `((Int64?)...)`) only for `limit`.
                 // All-or-nothing per source: an unreproducible write line keeps the declaration `object`.
-                const limitOwned = source === CORE_ARG_SHADOW_LIMIT_SOURCE;
+                const limitOwned = CORE_ARG_SHADOW_LITERAL_SOURCES.indexOf (source) !== -1;
                 const limitCasts: number[] = [];
                 if (this.coreArgShadowIsProvable (bodyLines, alias, type, returnType, k, limitOwned ? limitCasts : undefined)) {
                     const rewrites: Array<[ number, string ]> = [];
