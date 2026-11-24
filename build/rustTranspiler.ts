@@ -278,7 +278,7 @@ function rustBorrowWsHandlerParams (files: Map<string, string>, outside: string)
             // keep the comma inside a typed map slot from splitting it (same length, so offsets hold)
             h[5].replace(/IndexMap<String, Value>/g, 'IndexMap<String,_Value>').split(', ').slice(1).forEach((p, i) => {
                 off += 2;
-                const pm = /^mut (client|message): Value$/.exec(p) ?? /^(client|message): &Value$/.exec(p) ?? /^(client): &crate::pro::ws_client::ClientHandle$/.exec(p);
+                const pm = /^mut (client|message): Value$/.exec(p) ?? /^(client|message): &Value$/.exec(p) ?? /^(client): &(?:mut )?crate::pro::ws_client::ClientHandle$/.exec(p);
                 // a typed client handle slot is already lent
                 if (pm) params.push({ name: pm[1], idx: i, at: off, len: p.length, isRef: !p.endsWith(': Value') });
                 // a message the printer already typed as a borrowed map: same family slot, nothing to edit
@@ -608,7 +608,7 @@ class Proof {
         if (read === null) return false;
         const root = read[1];
         const header = body.slice(0, body.indexOf('{'));
-        if (root === '__pro_message' || root === 'message') return /fn handle_\w+\(&mut self, (?:mut client: Value|client: &Value|client: &crate::pro::ws_client::ClientHandle), mut message: Value\)/.test(header) && !/(^|[^.\w])message[ \t]*=(?!=)/m.test(body.replace(/^[ \t]*let message = message\.as_map\(\)\.unwrap_or\(&__message_empty\);$/m, '')) && !/&mut message\b/.test(body);
+        if (root === '__pro_message' || root === 'message') return /fn handle_\w+\(&mut self, (?:mut client: Value|client: &Value|client: &(?:mut )?crate::pro::ws_client::ClientHandle), mut message: Value\)/.test(header) && !/(^|[^.\w])message[ \t]*=(?!=)/m.test(body.replace(/^[ \t]*let message = message\.as_map\(\)\.unwrap_or\(&__message_empty\);$/m, '')) && !/&mut message\b/.test(body);
         // a root the function writes into could hold a cached (tagged) value
         if (!/^[a-z][A-Za-z0-9]*$/.test(root) || new RegExp('&mut ' + root + '\\b').test(body)) return false;
         const bind = new RegExp('(?:^|[^.\\w])' + root + '[ \\t]*(?::[^=\\n]*)?=(?!=)(.*)$', 'gm');
@@ -7716,7 +7716,7 @@ function lendDataHandlerMessage(content: string): string {
     const m = rustBorrowMask(content);
     const edits: Array<[number, number, string]> = [];
     for (const name of RUST_LENT_DATA_HANDLERS) {
-        const hdr = new RegExp(`^    pub fn ${name}\\(&mut self, (?:client: &Value|mut client: Value|client: &crate::pro::ws_client::ClientHandle), (mut message: Value)\\) \\{\\n`, 'gm');
+        const hdr = new RegExp(`^    pub fn ${name}\\(&mut self, (?:client: &Value|mut client: Value|client: &(?:mut )?crate::pro::ws_client::ClientHandle), (mut message: Value)\\) \\{\\n`, 'gm');
         const defs = [...m.matchAll(hdr)];
         if (defs.length !== 1 || m.split(new RegExp(`\\bfn ${name}\\(`)).length !== 2) continue;
         const d = defs[0], open = d.index! + d[0].length - 2, end = rustBorrowClose(m, open);
@@ -14846,7 +14846,7 @@ ${isBase
     /// `call_dynamic_base` default (base exchange). This replaces the old
     /// inherent `call_dynamic` + the `bind()`/pointer trampoline — dispatch is
     /// now a static trait method (review #1).
-    emitCoreDispatchImpl(coreName: string, sigs: Array<{ name: string, isAsync: boolean, paramKinds: string[] }>, parentCore: string | null, isPrediction = false, hasHandleMessage: boolean | 'client' = false, frameHandlers: string[] = [], content = ''): string {
+    emitCoreDispatchImpl(coreName: string, sigs: Array<{ name: string, isAsync: boolean, paramKinds: string[] }>, parentCore: string | null, isPrediction = false, hasHandleMessage: boolean | 'client' | 'mutclient' = false, frameHandlers: string[] = [], content = ''): string {
         const arms: string[] = [];
         for (const { name, isAsync, paramKinds, isVoid, isTyped } of sigs as any[]) {
             if (['describe', 'new', 'bind', 'init', 'call_dynamic', 'call_dynamic_base', 'call_dynamic_prediction_base', 'pred', 'pred_mut'].includes(name)) continue;
@@ -14858,7 +14858,7 @@ ${isBase
         // `watch()` drive loop reaches the venue's override via
         // `dispatch_to_derived("handle_message", …)`, so add a void-wrapping arm.
         if (hasHandleMessage) {
-            const clientArg = hasHandleMessage === 'client' ? rustDispatch.arg('client', 0) : 'args.get(0).cloned().unwrap_or(crate::Value::Null)';
+            const clientArg = hasHandleMessage === 'client' || hasHandleMessage === 'mutclient' ? rustDispatch.arg(hasHandleMessage, 0) : 'args.get(0).cloned().unwrap_or(crate::Value::Null)';
             const messageArg = /\bfn handle_message\([^)]*\bmessage: &crate::value::Dict\)/.test(content) ? rustDispatch.arg('dictref', 1) : 'args.get(1).cloned().unwrap_or(crate::Value::Null)';
             arms.push(`                "handle_message" => { self.handle_message(${clientArg}, ${messageArg}); crate::Value::Null },`);
         }
@@ -15438,7 +15438,7 @@ ${proImport}${predImport}`;
         }
         const traitImpl = this.emitDerivedExchangeImpl(coreName, methodNames, methodSigs, parentCore);
         // `impl ExchangeBase for <Core>` — supplies the static `call_dynamic`.
-        const hasHandleMessage: boolean | 'client' = /\bfn\s+handle_message\(&(?:mut )?self, client: &crate::pro::ws_client::ClientHandle\b/.test(content) ? 'client' : /\b(?:pub\s+)?(?:async\s+)?fn\s+handle_message\s*\(/.test(content);
+        const hasHandleMessage: boolean | 'client' | 'mutclient' = /\bfn\s+handle_message\(&(?:mut )?self, client: &mut crate::pro::ws_client::ClientHandle\b/.test(content) ? 'mutclient' : /\bfn\s+handle_message\(&(?:mut )?self, client: &crate::pro::ws_client::ClientHandle\b/.test(content) ? 'client' : /\b(?:pub\s+)?(?:async\s+)?fn\s+handle_message\s*\(/.test(content);
         const frameHandlers = [ 'handle_text_message', 'handle_list_message', 'handle_binary_message' ]
             .filter((name) => content.includes('fn ' + name + '('))
             .map((name) => (new RegExp(`fn ${name}\\([^)]*\\bmessage: &str\\)`).test(content) ? name + '*str' : name))
