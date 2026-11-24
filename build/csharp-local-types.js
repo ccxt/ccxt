@@ -10842,7 +10842,18 @@ function omitReceiverIsDictionary (csharp, receiver) {
             return true;
         }
         const type = identifierType (csharp, node);
-        return (type === 'Dictionary<string, object>') || (type === 'IDictionary<string, object>');
+        if ((type === 'Dictionary<string, object>') || (type === 'IDictionary<string, object>')) {
+            return true;
+        }
+        // a parameter whose printed signature already is a dictionary binds the same overload
+        const reference = resolveReference (csharp, node);
+        if (reference?.kind !== ts.SyntaxKind.Parameter) {
+            return false;
+        }
+        // or one the signature table retypes after printing (an unwritten slot: no `object` shadow)
+        return (printedSignatureParameterType (csharp, reference) === 'IDictionary<string, object>')
+            || ((coreArgParamType (csharp, node) === 'IDictionary<string, object>') && (reference.parent?.kind === ts.SyntaxKind.MethodDeclaration)
+                && !csharpParameterIsWritten (csharp, reference.parent, reference));
     }
     if (node.kind === ts.SyntaxKind.ObjectLiteralExpression) {
         return true;
