@@ -127,7 +127,7 @@ export default class coinone extends Exchange {
                     'v2_1Private': 'https://api.coinone.co.kr/v2.1',
                 },
                 'www': 'https://coinone.co.kr',
-                'doc': 'https://doc.coinone.co.kr',
+                'doc': 'https://docs.coinone.co.kr',
             },
             'requiredCredentials': {
                 'apiKey': true,
@@ -145,6 +145,7 @@ export default class coinone extends Exchange {
                 'v2Public': {
                     'get': {
                         'range_units': { 'cost': 1 } as Endpoint<Dict>,
+                        'range_units/{quote_currency}/{target_currency}': { 'cost': 1 } as Endpoint<Dict>,
                         'markets/{quote_currency}': { 'cost': 1 } as Endpoint<Dict>,
                         'markets/{quote_currency}/{target_currency}': { 'cost': 1 } as Endpoint<Dict>,
                         'orderbook/{quote_currency}/{target_currency}': { 'cost': 1 } as Endpoint<Dict>,
@@ -202,18 +203,27 @@ export default class coinone extends Exchange {
                     'post': {
                         'account/balance/all': { 'cost': 1 } as Endpoint<Dict>,
                         'account/balance': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/deposit_address': { 'cost': 1 } as Endpoint<Dict>,
                         'account/trade_fee': { 'cost': 1 } as Endpoint<Dict>,
                         'account/trade_fee/{quote_currency}/{target_currency}': { 'cost': 1 } as Endpoint<Dict>,
+                        'order': { 'cost': 1 } as Endpoint<Dict>,
                         'order/limit': { 'cost': 1 } as Endpoint<Dict>,
                         'order/cancel': { 'cost': 1 } as Endpoint<Dict>,
                         'order/cancel/all': { 'cost': 1 } as Endpoint<Dict>,
                         'order/open_orders': { 'cost': 1 } as Endpoint<Dict>,
                         'order/open_orders/all': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/active_orders': { 'cost': 1 } as Endpoint<Dict>,
                         'order/complete_orders': { 'cost': 1 } as Endpoint<Dict>,
                         'order/complete_orders/all': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/completed_orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/completed_orders/all': { 'cost': 1 } as Endpoint<Dict>,
                         'order/info': { 'cost': 1 } as Endpoint<Dict>,
+                        'order/detail': { 'cost': 1 } as Endpoint<Dict>,
                         'transaction/krw/history': { 'cost': 1 } as Endpoint<Dict>,
                         'transaction/coin/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction/coin/history/detail': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction/coin/withdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'transaction/coin/withdrawal/address_book': { 'cost': 1 } as Endpoint<Dict>,
                         'transaction/coin/withdrawal/limit': { 'cost': 1 } as Endpoint<Dict>,
                         'event/order-reward/programs': { 'cost': 1 } as Endpoint<Dict>,
                         'event/order-reward/history': { 'cost': 1 } as Endpoint<Dict>,
@@ -372,7 +382,7 @@ export default class coinone extends Exchange {
      * @method
      * @name coinone#fetchMarkets
      * @description retrieves data on all markets for coinone
-     * @see https://docs.coinone.co.kr/v1.0/reference/tickers
+     * @see https://docs.coinone.co.kr/reference/tickers
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -506,7 +516,7 @@ export default class coinone extends Exchange {
      * @method
      * @name coinone#fetchBalance
      * @description query for balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://docs.coinone.co.kr/v1.0/reference/v21
+     * @see https://docs.coinone.co.kr/reference/find-balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
@@ -522,7 +532,7 @@ export default class coinone extends Exchange {
      * @method
      * @name coinone#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-     * @see https://docs.coinone.co.kr/v1.0/reference/orderbook
+     * @see https://docs.coinone.co.kr/reference/orderbook
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -572,8 +582,8 @@ export default class coinone extends Exchange {
      * @method
      * @name coinone#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://docs.coinone.co.kr/v1.0/reference/tickers
-     * @see https://docs.coinone.co.kr/v1.0/reference/ticker
+     * @see https://docs.coinone.co.kr/reference/tickers
+     * @see https://docs.coinone.co.kr/reference/ticker
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -638,7 +648,7 @@ export default class coinone extends Exchange {
      * @method
      * @name coinone#fetchTicker
      * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-     * @see https://docs.coinone.co.kr/v1.0/reference/ticker
+     * @see https://docs.coinone.co.kr/reference/ticker
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
@@ -827,7 +837,7 @@ export default class coinone extends Exchange {
      * @method
      * @name coinone#fetchTrades
      * @description get the list of most recent trades for a particular symbol
-     * @see https://docs.coinone.co.kr/v1.0/reference/recent-completed-orders
+     * @see https://docs.coinone.co.kr/reference/recent-completed-orders
      * @param {string} symbol unified symbol of the market to fetch trades for
      * @param {int} [since] timestamp in ms of the earliest trade to fetch
      * @param {int} [limit] the maximum amount of trades to fetch
@@ -873,7 +883,7 @@ export default class coinone extends Exchange {
      * @method
      * @name coinone#createOrder
      * @description create a trade order
-     * @see https://docs.coinone.co.kr/reference/order-v21
+     * @see https://docs.coinone.co.kr/reference/order-place-limit-order
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type must be 'limit'
      * @param {string} side 'buy' or 'sell'
