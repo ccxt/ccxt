@@ -6,7 +6,7 @@ package ccxt
 // cannot live on the shared IDerivedExchange; the base loops run only on prediction instances, so
 // the transpiler type-asserts DerivedExchange to this interface there.
 type IPredictionDispatch interface {
-	ParsePredictionOrder(order any, optionalArgs ...any) map[string]any
+	ParsePredictionOrder(order map[string]any, optionalArgs ...any) map[string]any
 	ParsePredictionTrade(trade map[string]any, optionalArgs ...any) map[string]any
 	ParsePredictionPosition(position map[string]any, optionalArgs ...any) map[string]any
 }

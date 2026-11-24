@@ -1589,7 +1589,7 @@ export default class hyperliquid extends Exchange {
         const orderStatusResponse = await this.publicPostInfo (this.extend (request, paramsValue));
         const orderStatus = this.infoDict (orderStatusResponse);
         const orderWrapper = this.safeDict (orderStatus, 'order', orderStatus);
-        const parsed = this.parsePredictionOrder (orderWrapper, undefined);
+        const parsed = this.parsePredictionOrder (this.extend ({}, orderWrapper), undefined);
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
             const outcomeObj = this.outcome (outcome);

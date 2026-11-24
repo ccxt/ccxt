@@ -2052,7 +2052,7 @@ export default class polymarket extends Exchange {
                 result.push (parsedItem);
             }
         } else {
-            result.push (this.parsePredictionOrder (response));
+            result.push (this.parsePredictionOrder (this.safeDict (response, 0, {})));
         }
         return result as PredictionOrder[];
     }
@@ -3382,7 +3382,7 @@ export default class polymarket extends Exchange {
             this.orders = new ArrayCacheByOutcomeById (limit);
         }
         const stored = this.orders;
-        const parsed = this.parsePredictionOrder (event);
+        const parsed = this.parsePredictionOrder (this.extend ({}, event));
         stored.append (parsed);
         client.resolve (stored, 'orders');
         const outcome = this.safeString (parsed, 'outcome');

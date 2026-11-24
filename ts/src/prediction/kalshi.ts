@@ -1877,7 +1877,7 @@ export default class kalshi extends Exchange {
             await this.loadOutcome (outcome);
         }
         const response = await this.kalshiPrivateGetPortfolioOrdersOrderId (this.extend ({ 'order_id': id }, params));
-        return this.parsePredictionOrder (this.safeDict (response, 'order', response));
+        return this.parsePredictionOrder (this.extend ({}, this.safeDict (response, 'order', response)));
     }
 
     /**
@@ -2127,7 +2127,7 @@ export default class kalshi extends Exchange {
         const response = await this.kalshiPrivateDeletePortfolioEventsOrdersOrderId (this.extend ({ 'order_id': id }, params));
         // the delete response is minimal (no ticker/action/id/status): pass the resolved outcome so
         // the parser can fill outcome/outcomeId/market/label, then backfill the id and canceled status
-        const order = this.parsePredictionOrder (this.safeDict (response, 'order', response), outcomeObj);
+        const order = this.parsePredictionOrder (this.extend ({}, this.safeDict (response, 'order', response)), outcomeObj);
         if (this.safeString (order, 'id') === undefined) {
             order['id'] = id;
         }
@@ -2163,13 +2163,12 @@ export default class kalshi extends Exchange {
         const restingOrdersLength = restingOrders.length;
         const canceledOrders: PredictionOrder[] = [];
         for (let i = 0; i < restingOrdersLength; i++) {
-            const restingOrder = restingOrders[i];
-            const orderId = this.safeString (restingOrder, 'order_id');
+            const orderId = this.safeString (restingOrders[i], 'order_id');
             if (orderId !== undefined) {
                 await this.kalshiPrivateDeletePortfolioEventsOrdersOrderId (this.extend ({ 'order_id': orderId }, params));
                 // the DELETE body is minimal — parse the already-fetched resting order instead, which
                 // carries the true side/outcome/price/count, then mark it canceled
-                const parsed = this.parsePredictionOrder (restingOrder);
+                const parsed = this.parsePredictionOrder (this.safeDict (restingOrders, i, {}));
                 parsed['status'] = 'canceled';
                 canceledOrders.push (parsed);
             }
