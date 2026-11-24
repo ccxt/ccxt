@@ -7266,6 +7266,9 @@ function dropLiteralClones(content: string): string {
 function borrowProMessageView(content: string): string {
     const head = /^([ \t]*)let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = \(if let Value::Dict\(__d\) = &(\w+) \{ __d\.clone\(\) \} else \{ std::sync::Arc::new\(indexmap::IndexMap::new\(\)\) \}\);\n[ \t]*let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;$/gm;
     return content.replace(head, (whole: string, ind: string, name: string, at: number) => {
+        // a borrowed map parameter already is the map (a shared reference: passing it on moves nothing)
+        const fnHead = content.slice(content.lastIndexOf('fn ', at), at);
+        if (new RegExp(`[(,]\\s*${name}: &(?:indexmap::IndexMap<String, Value>|crate::value::Dict)[,)]`).test(fnHead)) return `${ind}let __pro_message: &indexmap::IndexMap<String, Value> = ${name};`;
         const lines = content.slice(at + whole.length + 1).split('\n');
         let end = lines.findIndex((l) => /^ {0,4}\}\s*$/.test(l));
         if (end < 0) return whole;
@@ -7277,9 +7280,6 @@ function borrowProMessageView(content: string): string {
         const loop = /^\s*(?:for |while |loop\b)|[;{]\s*(?:for |while |loop \{)/;
         const capture = /\basync (?:move )?\{|\|[\w, :&]*\| ?\{/;
         if (code.slice(0, last + 1).some((l) => loop.test(l) || capture.test(l)) && code.some((l) => move.test(l))) return whole;
-        // a borrowed map parameter already is the map: the view is the parameter itself
-        const fnHead = content.slice(content.lastIndexOf('fn ', at), at);
-        if (new RegExp(`[(,]\\s*${name}: &(?:indexmap::IndexMap<String, Value>|crate::value::Dict)[,)]`).test(fnHead)) return `${ind}let __pro_message: &indexmap::IndexMap<String, Value> = &${name};`;
         return `${ind}let __pro_message_empty = indexmap::IndexMap::new();\n`
             + `${ind}let __pro_message: &indexmap::IndexMap<String, Value> = ${name}.as_map().unwrap_or(&__pro_message_empty);`;
     });
