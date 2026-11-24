@@ -12647,7 +12647,10 @@ function goTypedEndpointNilLocals (content: string): string {
             const reader = /((?:this\.|ccxt\.)?\w+\()$/.exec (before);
             const nilTest = /^ [!=]= nil\b/.test (after) && !/IsEqual\($/.test (before);
             const handOff = guarded && (u.index > guardAt) && /^[,)]/.test (after) && (reader !== null || /, $/.test (before));
-            safe = nilTest || handOff || ((reader !== null) && (GO_NIL_FOLD_READERS.test (reader[1]) || GO_ENDPOINT_KEY_READERS.test (reader[1])) && /^[,)]/.test (after));
+            // a comma-ok key read `x[k].(T)` answers nil for a nil map as for a non-map box (read unmasked: the key is a literal)
+            const at = fs0 + u.index + name.length;
+            const keyRead = /^\[(?:"[^"\n]*"|\w+)\]\.\((?:map\[string\]any|\[\]any)\)/.test (content.substring (at, at + 120));
+            safe = nilTest || handOff || keyRead || ((reader !== null) && (GO_NIL_FOLD_READERS.test (reader[1]) || GO_ENDPOINT_KEY_READERS.test (reader[1])) && /^[,)]/.test (after));
         }
         if (!safe || new RegExp ('&' + name + '\\b|' + name + '\\s*[-+*/]=').test (fn)) {
             continue;
