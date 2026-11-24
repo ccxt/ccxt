@@ -17187,6 +17187,8 @@ export const PARSE_MARKET_IDICT_PARAMS = {
     'parseWsOHLCV': 1,
     // ticker and candle rows: TS declares `market: Market`; parseOHLCVs forwards its own `market`
     'parseTicker': 1, 'parseOHLCV': 1, 'parseOHLCVs': 1,
+    // `market: Market` on the base and both overrides; every caller passes null or a dictionary
+    'handleMarketTypeAndParams': 1,
 };
 
 // ral-90c1: the same shadowed retype for a `currency: Currency` parameter (row writes are
@@ -18800,6 +18802,7 @@ export const CSHARP_STRING_PARAMS = {
     'handleApiKeyIndex': { 1: 'string?', 2: 'string', 3: 'string' },
     'handleDeriveSubaccountId': { 0: 'string' },
     'handleDeriveWalletAddress': { 0: 'string' },
+    'handleMarketTypeAndParams': { 3: 'string?' },
     'handleOption': { 1: 'string' },
     'handleOptionAndParams2': { 2: 'string?', 3: 'string?' },
     'handleOptionBoolAndParams': { 2: 'string' },
