@@ -3205,7 +3205,7 @@ export default class bitrue extends Exchange {
         return response;
     }
 
-    override parseMarginModification (data: any, market: Market = undefined): MarginModification {
+    override parseMarginModification (data: Dict, market: Market = undefined): MarginModification {
         //
         // setMargin
         //
@@ -3248,16 +3248,10 @@ export default class bitrue extends Exchange {
         if (!this.safeBool (market, 'swap', false)) {
             throw new NotSupported (this.id + ' setMargin only support swap markets');
         }
-        let response: NullableDict = undefined;
         const request: Dict = {
             'contractName': market['id'],
             'amount': this.parseToNumeric (amount),
         };
-        if (this.safeBool (market, 'linear', false)) {
-            response = await this.fapiV2PrivatePostPositionMargin (this.extend (request, params));
-        } else if (this.safeBool (market, 'inverse', false)) {
-            response = await this.dapiV2PrivatePostPositionMargin (this.extend (request, params));
-        }
         //
         //     {
         //         "code": 0,
@@ -3265,7 +3259,14 @@ export default class bitrue extends Exchange {
         //         "data": null
         //     }
         //
-        return this.parseMarginModification (response, market);
+        if (this.safeBool (market, 'linear', false)) {
+            const response = await this.fapiV2PrivatePostPositionMargin (this.extend (request, params));
+            return this.parseMarginModification (response, market);
+        } else if (this.safeBool (market, 'inverse', false)) {
+            const response = await this.dapiV2PrivatePostPositionMargin (this.extend (request, params));
+            return this.parseMarginModification (response, market);
+        }
+        throw new NotSupported (this.id + ' setMargin only support linear or inverse swap markets');
     }
 
     override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {

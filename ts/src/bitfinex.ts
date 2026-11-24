@@ -3893,10 +3893,10 @@ export default class bitfinex extends Exchange {
         //     ]
         //
         const data = this.safeValue (response, 0);
-        return this.parseMarginModification (data, market);
+        return this.parseMarginModificationRow (data, market);
     }
 
-    override parseMarginModification (data: List, market: Market = undefined): MarginModification {
+    parseMarginModificationRow (data: List, market: Market = undefined): MarginModification {
         //
         // setMargin
         //
