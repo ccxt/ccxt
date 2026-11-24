@@ -3739,7 +3739,7 @@ func (this *Nado) IsArchiveOrderClosed(order any) bool {
 	}
 	return Precise.StringGe(Precise.StringAbs(filled), Precise.StringAbs(amount))
 }
-func (this *Nado) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Nado) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// create order
 	//
@@ -3899,7 +3899,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) Order {
 		var rawOrder, _ = placeOrder["order"].(map[string]any)
 		var marketId *string = this.SafeString(placeOrder, "product_id")
 		marketResolved = this.SafeMarket(marketId, market)
-		var data map[string]any = SafeMapTyped(order, "data")
+		var data, _ = order["data"].(map[string]any)
 		id = this.SafeString(data, "digest")
 		if id == nil {
 			id = this.SafeString(placeOrder, "digest")
@@ -3917,7 +3917,7 @@ func (this *Nado) ParseOrder(order any, optionalArgs ...any) Order {
 			side = &sideStr3
 			amount = this.ParseX18(Precise.StringAbs(amountString))
 		}
-		var triggerStatus map[string]any = SafeMapTyped(order, "status")
+		var triggerStatus, _ = order["status"].(map[string]any)
 		if triggerStatus != nil {
 			var triggered, _ = triggerStatus["triggered"].(map[string]any)
 			if triggered != nil {
@@ -4241,7 +4241,7 @@ func (this *Nado) CalculateRateLimiterCost(api []string, method string, path str
 			}
 		}
 	}
-	var byQuery map[string]any = SafeMapTyped(config, "byQuery")
+	var byQuery, _ = config["byQuery"].(map[string]any)
 	if byQuery != nil {
 		var queryNames []string = nil
 		if byQuery != nil {

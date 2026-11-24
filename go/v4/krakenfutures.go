@@ -1450,7 +1450,10 @@ func (this *Krakenfutures) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol 
 		//        "serverTime": "2022-03-18T06:39:18.056Z"
 		//    }
 		//
-		rawTrades = ArrayTyped(this.SafeList(response, "history", []any{}))
+		rawTrades, _ = response["history"].([]any)
+		if rawTrades == nil {
+			rawTrades = []any{}
+		}
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(rawTrades, market, since, limit))}
@@ -1821,7 +1824,7 @@ func (this *Krakenfutures) createOrderBody(ch chan AsyncResult[Order], symbol st
 	var status *string = this.SafeString(sendStatus, "status")
 	this.VerifyOrderActionSuccess(status, "createOrder", []any{"filled"})
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(sendStatus, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, sendStatus), market)}
 	return nil
 }
 
@@ -2683,7 +2686,7 @@ func (this *Krakenfutures) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Krakenfutures) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// LIMIT
 	//
@@ -2969,7 +2972,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var orderDictFromFetchOrder map[string]any = SafeMapTyped(order, "order")
+	var orderDictFromFetchOrder, _ = order["order"].(map[string]any)
 	if orderDictFromFetchOrder != nil {
 		// order: {
 		//     type: 'ORDER',
@@ -3024,7 +3027,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 	var orderEvents []any = SafeListTyped(order, "orderEvents")
 	var errorStatus *string = this.SafeString(order, "status")
 	var orderEventsLength int = len(orderEvents)
-	if (InOp(order, "orderEvents")) && (errorStatus != nil) && (orderEventsLength == 0) {
+	if _, ok := order["orderEvents"]; ok && (errorStatus != nil) && (orderEventsLength == 0) {
 		// creteOrders error response
 		return this.SafeOrder(map[string]any{
 			"info":   order,
@@ -4953,14 +4956,14 @@ func (this *Krakenfutures) Sign(path string, optionalArgs ...any) map[string]any
 	var apiVersionsSrc, _ = this.Options["versions"].(map[string]any)
 	var apiVersions map[string]any
 	apiVersions, _ = apiVersionsSrc[apiName].(map[string]any)
-	var methodVersions map[string]any = SafeMapTyped(apiVersions, method)
+	var methodVersions, _ = apiVersions[method].(map[string]any)
 	var defaultVersion *string = this.SafeString(methodVersions, path, this.Version)
 	var version *string = this.SafeString(params, "version", defaultVersion)
 	var paramsOmitted any = this.Omit(params, "version")
 	var apiAccessSrc, _ = this.Options["access"].(map[string]any)
 	var apiAccess map[string]any
 	apiAccess, _ = apiAccessSrc[apiName].(map[string]any)
-	var methodAccess map[string]any = SafeMapTyped(apiAccess, method)
+	var methodAccess, _ = apiAccess[method].(map[string]any)
 	var access string = *this.SafeString(methodAccess, path, "public")
 	var endpoint string = *version + "/" + this.ImplodeParams(path, paramsOmitted)
 	var paramsOmitted2 any = this.Omit(paramsOmitted, this.ExtractParams(path))

@@ -3040,7 +3040,11 @@ func (this *Bybit) HandleOrder(client ccxt.ClientInterface, message map[string]a
 	var rawOrders, _ = message["data"].([]any)
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < len(rawOrders); i++ {
-		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(this.SafeDict(rawOrders, i, map[string]any{})))
+		rawOrdersDict211944, _ := rawOrders[i].(map[string]any)
+		if rawOrdersDict211944 == nil {
+			rawOrdersDict211944 = map[string]any{}
+		}
+		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrdersDict211944))
 		var symbol *string = this.SafeString(parsed, "symbol")
 		if symbol == nil {
 			continue

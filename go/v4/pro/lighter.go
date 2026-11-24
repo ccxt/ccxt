@@ -1848,7 +1848,7 @@ func (this *Lighter) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sym
 	}
 	rawMessage := r1.Value
 
-	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(this.DeepExtend(rawMessage, order), market)}
+	ch <- ccxt.AsyncResult[ccxt.Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, this.DeepExtend(rawMessage, order)), market)}
 	return nil
 }
 
@@ -2019,7 +2019,11 @@ func (this *Lighter) HandleOrders(client ccxt.ClientInterface, message map[strin
 		var market map[string]any = this.SafeMarket(marketId)
 		var orders []any = ccxt.SafeListTyped(data, marketId)
 		for j := 0; j < len(orders); j++ {
-			var order map[string]any = ccxt.OrderToMap(this.ParseOrder(this.SafeDict(orders, j, map[string]any{}), market))
+			ordersDict136147, _ := orders[j].(map[string]any)
+			if ordersDict136147 == nil {
+				ordersDict136147 = map[string]any{}
+			}
+			var order map[string]any = ccxt.OrderToMap(this.ParseOrder(ordersDict136147, market))
 			stored.Append(order)
 			var symbol *string = this.SafeString(order, "symbol")
 			if symbol != nil {

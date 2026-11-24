@@ -3057,7 +3057,7 @@ func (this *Coinbaseinternational) fetchPositionsWsBody(ch chan ccxt.AsyncResult
 		panic(r1.Err)
 	}
 	result := r1.Value
-	var positions []any = this.ParsePositions(result)
+	var positions []any = this.ParsePositions(this.ToArray(result))
 
 	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterByArrayPositions(positions, "symbol", symbolsResolved))}
 	return nil

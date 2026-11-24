@@ -2286,7 +2286,7 @@ func (this *Toobit) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	//         "priceType": "INPUT"                   // only in contract
 	//     }
 	//
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, response), market)}
 	return nil
 }
 func (this *Toobit) CreateOrderRequest(symbol string, typeVar string, side string, amount any, optionalArgs ...any) (map[string]any, map[string]any) {
@@ -2421,7 +2421,7 @@ func (this *Toobit) CreateContractOrderRequest(symbol string, typeVar string, si
 	}
 	return request, MapTyped(paramsOmitted)
 }
-func (this *Toobit) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Toobit) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder, cancelOrder
 	//
@@ -2622,7 +2622,7 @@ func (this *Toobit) cancelOrderBody(ch chan AsyncResult[Order], id string, optio
 		panic(OrderNotFound(this.Id + " order " + id + " can not be canceled, " + this.Json(response)))
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, response), market)}
 	return nil
 }
 
@@ -2837,7 +2837,7 @@ func (this *Toobit) fetchOrderBody(ch chan AsyncResult[Order], id string, option
 	//        "priceType": "INPUT"                 // only in CONTRACT
 	//    }
 	//
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, response), market)}
 	return nil
 }
 

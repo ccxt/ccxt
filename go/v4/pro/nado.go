@@ -1708,7 +1708,7 @@ func (this *Nado) cancelOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], ids
 	//         "id": 100
 	//     }
 	//
-	var data map[string]any = ccxt.SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var cancelledOrders []any = ccxt.SafeListTyped(data, "cancelled_orders")
 	var result []any = []any{}
 	for i := 0; i < len(cancelledOrders); i++ {
@@ -1778,7 +1778,7 @@ func (this *Nado) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], 
 		panic(r2.Err)
 	}
 	var response map[string]any = r2.Value
-	var data map[string]any = ccxt.SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var cancelledOrders []any = ccxt.SafeListTyped(data, "cancelled_orders")
 	var result []any = []any{}
 	for i := 0; i < len(cancelledOrders); i++ {

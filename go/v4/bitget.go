@@ -7492,7 +7492,7 @@ func (this *Bitget) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		if !(*this.SafeBool(market, "spot", false)) {
 			var maxDistanceForContracts int64 = 90 * int64(msInDay)
 			// endTime - startTime is historicalDuration here; an undefined endTime never passed this check
-			if (!IsEqual(calculatedEndTime, nil)) && (historicalDuration > maxDistanceForContracts) {
+			if (calculatedEndTime != nil) && (historicalDuration > maxDistanceForContracts) {
 				calculatedEndTime = this.Sum(calculatedStartTime, maxDistanceForContracts)
 				request["endTime"] = calculatedEndTime
 			}
@@ -7982,7 +7982,7 @@ func (this *Bitget) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitget) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Bitget) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder, editOrder, closePosition
 	//
@@ -8603,7 +8603,7 @@ func (this *Bitget) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		data = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, data), market)}
 	return nil
 }
 func (this *Bitget) CreateUtaOrderRequest(symbol *string, typeVar *string, side *string, amount any, optionalArgs ...any) map[string]any {
@@ -9569,7 +9569,7 @@ func (this *Bitget) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 		data = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, data), market)}
 	return nil
 }
 
@@ -9814,13 +9814,13 @@ func (this *Bitget) cancelOrderBody(ch chan AsyncResult[Order], id string, optio
 		order = this.SafeDict(orderInfo, 0, map[string]any{})
 	} else {
 		if isStockOrUta && (trigger != nil && *trigger == true) {
-			order = response
+			order = this.Extend(map[string]any{}, response)
 		} else {
 			order = data
 		}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, order), market)}
 	return nil
 }
 func (this *Bitget) CancelUtaOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
@@ -10148,7 +10148,7 @@ func (this *Bitget) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 			//     }
 			//
 			var timestamp *int64 = this.SafeInteger(response, "requestTime")
-			var responseData map[string]any = SafeMapTyped(response, "data")
+			var responseData, _ = response["data"].(map[string]any)
 			var marketId *string = this.SafeString(responseData, "symbol")
 			var parsedOrder map[string]any = OrderToMap(this.SafeOrder(map[string]any{
 				"info":      response,
@@ -10178,7 +10178,7 @@ func (this *Bitget) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 			response = r5.Value
 		}
 	}
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var resultList any = this.SafeListN(data, []any{"resultList", "successList", "list"})
 	var failureList []any = SafeList2Typed(data, "failure", "failureList")
 	var responseList any = nil
@@ -10395,7 +10395,7 @@ func (this *Bitget) fetchOrderBody(ch chan AsyncResult[Order], id string, option
 	if data != nil {
 		if true {
 
-			ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
+			ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, data), market)}
 			return nil
 		}
 	}
@@ -10409,7 +10409,7 @@ func (this *Bitget) fetchOrderBody(ch chan AsyncResult[Order], id string, option
 		first = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(first, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, first), market)}
 	return nil
 }
 
@@ -10636,7 +10636,7 @@ func (this *Bitget) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		}
 	}
 	var sinceResolved any
-	if IsEqual(sinceDefault, nil) {
+	if sinceDefault == nil {
 		sinceResolved = since
 	} else {
 		sinceResolved = sinceDefault
@@ -11243,7 +11243,7 @@ func (this *Bitget) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order
 		}
 	}
 	var sinceResolved any
-	if IsEqual(sinceDefault, nil) {
+	if sinceDefault == nil {
 		sinceResolved = since
 	} else {
 		sinceResolved = sinceDefault
@@ -13253,7 +13253,10 @@ func (this *Bitget) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		//         ]
 		//     }
 		//
-		result = ArrayTyped(this.SafeList(response, "data", []any{}))
+		result, _ = response["data"].([]any)
+		if result == nil {
+			result = []any{}
+		}
 	}
 	var rates []any = []any{}
 	for i := 0; i < len(result); i++ {
@@ -15933,7 +15936,7 @@ func (this *Bitget) closePositionBody(ch chan AsyncResult[Order], symbol string,
 	var data, _ = response["data"].(map[string]any)
 	var order []any = SafeList2Typed(data, "successList", "list")
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(order, 0, map[string]any{}), market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, this.SafeDict(order, 0, map[string]any{})), market)}
 	return nil
 }
 

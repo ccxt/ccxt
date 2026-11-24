@@ -839,7 +839,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]cc
 			continue
 		}
 		var outcomeObj map[string]any = this.SafeDictMap(outcomesMap, outcomeHandle, map[string]any{})
-		var info map[string]any = ccxt.SafeMapTyped(outcomeObj, "info")
+		var info, _ = outcomeObj["info"].(map[string]any)
 		var coin *string = this.SafeString(info, "coinName")
 		var mid *float64 = this.SafeNumber(mids, coin)
 		if mid == nil {
@@ -866,7 +866,7 @@ func (this *Hyperliquid) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]cc
  * @param {object} [market] the market the ticker belongs to
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Hyperliquid) ParsePredictionTicker(raw any, optionalArgs ...any) map[string]any {
+func (this *Hyperliquid) ParsePredictionTicker(raw map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "coin": "#10",
@@ -2074,7 +2074,7 @@ func (this *Hyperliquid) fetchOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 	orderStatusResponse := r.Value
 	var orderStatus map[string]any = this.InfoDict(orderStatusResponse)
 	var orderWrapper any = this.SafeDict(orderStatus, "order", orderStatus)
-	var parsed map[string]any = this.ParsePredictionOrder(orderWrapper, nil)
+	var parsed map[string]any = this.ParsePredictionOrder(this.Extend(map[string]any{}, orderWrapper), nil)
 	if outcome != nil {
 
 		r1 := <-this.LoadOutcomeAsync(outcome)
@@ -2105,7 +2105,7 @@ func (this *Hyperliquid) fetchOrderBody(ch chan ccxt.AsyncResult[ccxt.Prediction
  * @param {object} [market] the market the order belongs to
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Hyperliquid) ParsePredictionOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Hyperliquid) ParsePredictionOrder(order map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// from frontendOpenOrders:
 	// {
@@ -2128,7 +2128,7 @@ func (this *Hyperliquid) ParsePredictionOrder(order any, optionalArgs ...any) ma
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var entry map[string]any = this.SafeDictMap(order, "order", order) // eslint-disable-line
-	var status any = this.ParseOrderStatus(this.SafeString2(order, "ccxtStatus", "status"))
+	var status *string = this.ParseOrderStatus(this.SafeString2(order, "ccxtStatus", "status"))
 	var coin *string = this.SafeString(entry, "coin")
 	var outcomeObj map[string]any = this.SafeOutcome(coin, market)
 	var marketSymbol *string = this.SafeString(outcomeObj, "outcome")
@@ -2186,7 +2186,7 @@ func (this *Hyperliquid) ParsePredictionOrder(order any, optionalArgs ...any) ma
 		"trades":             []any{},
 	}, resolvedMarket)
 }
-func (this *Hyperliquid) ParseOrderStatus(status *string) any {
+func (this *Hyperliquid) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"triggered":      "open",
 		"filled":         "closed",
@@ -2199,10 +2199,12 @@ func (this *Hyperliquid) ParseOrderStatus(status *string) any {
 		return nil
 	}
 	if strings.HasSuffix(*status, "Rejected") {
-		return "rejected"
+		retStrVal := "rejected"
+		return &retStrVal
 	}
 	if strings.HasSuffix(*status, "Canceled") {
-		return "canceled"
+		retStrVal := "canceled"
+		return &retStrVal
 	}
 	return this.SafeString(statuses, status, status)
 }
@@ -2921,7 +2923,7 @@ func (this *Hyperliquid) HandlePublicAddress(methodName string, params any) (*st
 		return user, paramsAddress
 	}
 	if this.WalletAddress != "" {
-		return ccxt.SafeStringPtr(this.WalletAddress), paramsAddress
+		return &this.WalletAddress, paramsAddress
 	}
 	panic(ccxt.ArgumentsRequired(this.Id + " " + methodName + "() requires a user parameter or walletAddress to be set"))
 }

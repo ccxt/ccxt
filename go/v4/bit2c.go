@@ -984,7 +984,7 @@ func (this *Bit2c) fetchOrderBody(ch chan AsyncResult[Order], id string, optiona
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
-func (this *Bit2c) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Bit2c) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	//      createOrder
 	//      {

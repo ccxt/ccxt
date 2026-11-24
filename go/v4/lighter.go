@@ -1515,7 +1515,7 @@ func (this *Lighter) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	//     "predicted_execution_time_ms": 1766088500120
 	// }
 	//
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.DeepExtend(response, order), market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, this.DeepExtend(response, order)), market)}
 	return nil
 }
 
@@ -3319,7 +3319,7 @@ func (this *Lighter) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optiona
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market, since, limit))}
 	return nil
 }
-func (this *Lighter) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Lighter) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	//     {
 	//         "order_index": 281474977354074,

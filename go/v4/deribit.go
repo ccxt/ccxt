@@ -2618,7 +2618,7 @@ func (this *Deribit) ParseOrderType(orderType *string) *string {
 	}
 	return this.SafeString(orderTypes, orderType, orderType)
 }
-func (this *Deribit) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Deribit) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//
@@ -2793,7 +2793,7 @@ func (this *Deribit) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 		result = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, result), market)}
 	return nil
 }
 
@@ -3108,7 +3108,7 @@ func (this *Deribit) cancelOrderBody(ch chan AsyncResult[Order], id string, opti
 		result = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(result)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, result))}
 	return nil
 }
 

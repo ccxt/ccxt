@@ -602,14 +602,18 @@ func (this *Blofin) HandleBidAsk(client ccxt.ClientInterface, message map[string
 	var data []any
 	data, _ = message["data"].([]any)
 	for i := 0; i < len(data); i++ {
-		var ticker map[string]any = this.ParseWsBidAsk(this.SafeDict(data, i, map[string]any{}))
+		dataDict39347, _ := data[i].(map[string]any)
+		if dataDict39347 == nil {
+			dataDict39347 = map[string]any{}
+		}
+		var ticker map[string]any = this.ParseWsBidAsk(dataDict39347)
 		var symbol string = *this.SafeString(ticker, "symbol", "")
 		var messageHash string = "bidask:" + symbol
 		this.Bidsasks[symbol] = ccxt.TickerFromMap(ticker)
 		client.Resolve(ticker, messageHash)
 	}
 }
-func (this *Blofin) ParseWsBidAsk(ticker any, optionalArgs ...any) map[string]any {
+func (this *Blofin) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "instId")

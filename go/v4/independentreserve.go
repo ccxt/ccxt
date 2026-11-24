@@ -731,7 +731,7 @@ func (this *Independentreserve) fetchTickerBody(ch chan AsyncResult[Ticker], sym
 	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(response, market)}
 	return nil
 }
-func (this *Independentreserve) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Independentreserve) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// fetchOrder
 	//

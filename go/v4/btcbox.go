@@ -867,7 +867,7 @@ func (this *Btcbox) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Btcbox) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Btcbox) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	//     {
 	//         "id":11,

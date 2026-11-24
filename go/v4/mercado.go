@@ -905,7 +905,7 @@ func (this *Mercado) cancelOrderBody(ch chan AsyncResult[Order], id string, opti
 		order = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, order), market)}
 	return nil
 }
 func (this *Mercado) ParseOrderStatus(status *string) *string {
@@ -916,7 +916,7 @@ func (this *Mercado) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Mercado) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Mercado) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	//     {
 	//         "order_id": 4,
@@ -1042,7 +1042,7 @@ func (this *Mercado) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 	var responseData, _ = response["response_data"].(map[string]any)
 	var order, _ = responseData["order"].(map[string]any)
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, order), market)}
 	return nil
 }
 

@@ -749,10 +749,14 @@ func (this *Bittrade) fetchTradingLimitsByIdBody(ch chan AsyncResult[map[string]
 	//                 "market-sell-order-rate-must-less-than":  0.1,
 	//                  "market-buy-order-rate-must-less-than":  0.1        } }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTradingLimits(this.SafeDict(response, "data", map[string]any{}))}
+	responseDict48340, _ := response["data"].(map[string]any)
+	if responseDict48340 == nil {
+		responseDict48340 = map[string]any{}
+	}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseTradingLimits(responseDict48340)}
 	return nil
 }
-func (this *Bittrade) ParseTradingLimits(limits any, optionalArgs ...any) map[string]any {
+func (this *Bittrade) ParseTradingLimits(limits map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//   {                                  symbol: "aidocbtc",
 	//                  "buy-limit-must-less-than":  1.1,
@@ -2234,7 +2238,7 @@ func (this *Bittrade) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bittrade) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Bittrade) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	//     {                  id:  13997833014,
 	//                    "symbol": "ethbtc",

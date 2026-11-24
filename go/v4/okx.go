@@ -5691,7 +5691,14 @@ func (this *Okx) cancelOrderBody(ch chan AsyncResult[Order], id string, optional
 	var data []any
 	data, _ = response["data"].([]any)
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(data, 0, map[string]any{}), market)}
+	var dataDict395532 map[string]any
+	if len(data) > 0 {
+		dataDict395532, _ = data[0].(map[string]any)
+	}
+	if dataDict395532 == nil {
+		dataDict395532 = map[string]any{}
+	}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(dataDict395532, market)}
 	return nil
 }
 func (this *Okx) ParseIds(ids any) any {
@@ -6048,7 +6055,7 @@ func (this *Okx) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Okx) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Okx) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//
@@ -6536,7 +6543,14 @@ func (this *Okx) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalA
 	var data []any
 	data, _ = response["data"].([]any)
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(data, 0, map[string]any{}), market)}
+	var dataDict467332 map[string]any
+	if len(data) > 0 {
+		dataDict467332, _ = data[0].(map[string]any)
+	}
+	if dataDict467332 == nil {
+		dataDict467332 = map[string]any{}
+	}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(dataDict467332, market)}
 	return nil
 }
 
@@ -11901,7 +11915,7 @@ func (this *Okx) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[string]a
 			panic(r.Err)
 		}
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var request map[string]any = map[string]any{
 		"type": "3",
 	}
@@ -11949,7 +11963,7 @@ func (this *Okx) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[string]a
 	ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList(this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit))}
 	return nil
 }
-func (this *Okx) ParseSettlement(settlement map[string]any, market any) map[string]any {
+func (this *Okx) ParseSettlement(settlement map[string]any, market map[string]any) map[string]any {
 	//
 	//     {
 	//         "insId": "BTC-USD-230521-28500-P",
@@ -12216,7 +12230,7 @@ func (this *Okx) fetchAllGreeksBody(ch chan AsyncResult[map[string]Greeks], opti
 			market = this.Market(symbolsNormalized[0])
 			var marketId string = *this.SafeString(market, "id", "")
 			var optionParts []string = strings.Split(marketId, "-")
-			var marketInfo map[string]any = SafeMapTyped(market, "info")
+			var marketInfo, _ = market["info"].(map[string]any)
 			request["uly"] = marketInfo["uly"]
 			request["instFamily"] = marketInfo["instFamily"]
 			request["expTime"] = this.SafeString(optionParts, 2)
@@ -12408,7 +12422,14 @@ func (this *Okx) closePositionBody(ch chan AsyncResult[Order], symbol string, op
 	var data []any
 	data, _ = response["data"].([]any)
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(data, 0, map[string]any{}), market)}
+	var dataDict912332 map[string]any
+	if len(data) > 0 {
+		dataDict912332, _ = data[0].(map[string]any)
+	}
+	if dataDict912332 == nil {
+		dataDict912332 = map[string]any{}
+	}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(dataDict912332, market)}
 	return nil
 }
 

@@ -1311,7 +1311,7 @@ func (this *Bitopro) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status)
 }
-func (this *Bitopro) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Bitopro) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//         {

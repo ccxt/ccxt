@@ -109,12 +109,12 @@ func (this *Bitget) Describe() map[string]any {
 		},
 	})
 }
-func (this *Bitget) GetInstType(methodName string, market any, optionalArgs ...any) (*string, map[string]any) {
+func (this *Bitget) GetInstType(methodName string, market map[string]any, optionalArgs ...any) (*string, map[string]any) {
 	var uta bool = ccxt.GetArgBool(optionalArgs, 0, false)
 	_ = uta
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	var useProductType bool = (ccxt.IsEqual(market, nil)) || (*this.SafeBool(market, "swap", false)) || (*this.SafeBool(market, "future", false))
+	var useProductType bool = (market == nil) || (*this.SafeBool(market, "swap", false)) || (*this.SafeBool(market, "future", false))
 	var instTypeDefault any = "SPOT"
 	var paramsProductType map[string]any = params
 	if useProductType {
@@ -1811,7 +1811,7 @@ func (this *Bitget) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position]
 			panic(r.Err)
 		}
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var messageHash string = ""
 	var subscriptionHash string = "positions"
 	var instType any = "USDT-FUTURES"
@@ -2134,7 +2134,7 @@ func (this *Bitget) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 			panic(r.Err)
 		}
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var marketId any = nil
 	isTrigger, paramsTrigger := this.IsTriggerOrder(params)
 	var messageHash string = "order"
@@ -2750,7 +2750,7 @@ func (this *Bitget) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], op
 			panic(r.Err)
 		}
 	}
-	var market any = nil
+	var market map[string]any = nil
 	var messageHash string = "myTrades"
 	var symbolResolved *string = symbol
 	if symbol != nil {
@@ -3565,9 +3565,9 @@ func (this *Bitget) HandleErrorMessage(client ccxt.ClientInterface, message map[
 			if event != nil && *event == "error" {
 				var code *string = this.SafeString(message, "code")
 				var feedback string = this.Id + " " + this.Json(message)
-				this.ThrowExactlyMatchedException(ccxt.GetValue(this.Exceptions["ws"], "exact"), code, feedback)
+				this.ThrowExactlyMatchedException(this.ExceptionsWs["exact"], code, feedback)
 				var msg *string = this.SafeString(message, "msg", "")
-				this.ThrowBroadlyMatchedException(ccxt.GetValue(this.Exceptions["ws"], "broad"), msg, feedback)
+				this.ThrowBroadlyMatchedException(this.ExceptionsWs["broad"], msg, feedback)
 				panic(ccxt.ExchangeError(feedback))
 			}
 			return false

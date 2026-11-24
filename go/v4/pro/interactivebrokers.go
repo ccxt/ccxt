@@ -442,17 +442,17 @@ func (this *Interactivebrokers) ibkrUnsubscribeMarketDataBody(ch chan ccxt.Async
  * @param {string[]} [params.fields] the market data fields to stream
  * @returns {Array} the raw message and the params without fields
  */
-func (this *Interactivebrokers) IbkrMarketDataRequest(marketId *string, optionalArgs ...any) []any {
+func (this *Interactivebrokers) IbkrMarketDataRequest(marketId string, optionalArgs ...any) (string, map[string]any) {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var options, _ = this.Options["watchTickers"].(map[string]any)
 	var defaultFields []any = ccxt.SafeListTyped(options, "fields")
 	var fields any = this.SafeList(params, "fields", defaultFields)
-	var query map[string]any = this.OmitDict(params, "fields")
-	var request *string = ccxt.SafeStringPtr(ccxt.Add(ccxt.Add(ccxt.Add("smd+", marketId), "+"), this.Json(map[string]any{
+	var query map[string]any = this.Extend(map[string]any{}, this.Omit(params, "fields"))
+	var request string = "smd+" + marketId + "+" + this.Json(map[string]any{
 		"fields": fields,
-	})))
-	return []any{request, query}
+	})
+	return request, query
 }
 
 /**
@@ -583,9 +583,7 @@ func (this *Interactivebrokers) ibkrWatchMarketDataBody(ch chan ccxt.AsyncResult
 	}
 	for i := 0; i < len(marketSymbols); i++ {
 		var market map[string]any = this.Market(marketSymbols[i])
-		requestqueryVariable := this.IbkrMarketDataRequest(this.SafeString(market, "id"), params)
-		request := ccxt.GetValue(requestqueryVariable, 0)
-		query := ccxt.GetValue(requestqueryVariable, 1)
+		request, query := this.IbkrMarketDataRequest(*this.SafeString(market, "id", ""), params)
 		var subscription map[string]any = this.Extend(map[string]any{
 			"conid":  market["id"],
 			"symbol": market["symbol"],
@@ -867,9 +865,7 @@ func (this *Interactivebrokers) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.O
 	// reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
 	var future *ccxt.Future = client.ReusableFuture(messageHash)
 	// the last price stream, it builds the current candles
-	marketDataRequestqueryVariable := this.IbkrMarketDataRequest(this.SafeString(market, "id"), params)
-	marketDataRequest := ccxt.GetValue(marketDataRequestqueryVariable, 0)
-	query := ccxt.GetValue(marketDataRequestqueryVariable, 1)
+	marketDataRequest, query := this.IbkrMarketDataRequest(*this.SafeString(market, "id", ""), params)
 
 	r2 := <-this.IbkrSubscribeAsync(client, messageHash, marketDataRequest, map[string]any{
 		"conid":     market["id"],
@@ -1240,7 +1236,7 @@ func (this *Interactivebrokers) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt
 	if accountIdqueryPair.Err != nil {
 		panic(accountIdqueryPair.Err)
 	}
-	var accountId *string = accountIdqueryPair.Value.V
+	var accountId string = accountIdqueryPair.Value.V
 	var query map[string]any = accountIdqueryPair.Value.P
 	var bookExchange *string = this.SafeString(query, "exchange")
 
@@ -1253,7 +1249,7 @@ func (this *Interactivebrokers) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt
 	var messageHash string = "orderbook::" + unifiedSymbol
 	// reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
 	var future *ccxt.Future = client.ReusableFuture(messageHash)
-	var request any = ccxt.Add(ccxt.Add(ccxt.Add("sbd+", accountId), "+"), market["id"])
+	var request any = ccxt.Add("sbd+"+accountId+"+", market["id"])
 	if bookExchange != nil {
 		request = ccxt.Add(ccxt.Add(request, "+"), bookExchange)
 	}
@@ -1308,7 +1304,7 @@ func (this *Interactivebrokers) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bo
 	if accountIdqueryPair.Err != nil {
 		panic(accountIdqueryPair.Err)
 	}
-	var accountId *string = accountIdqueryPair.Value.V
+	var accountId string = accountIdqueryPair.Value.V
 	var query map[string]any = accountIdqueryPair.Value.P
 
 	r1 := <-this.IbkrConnectAsync()
@@ -1322,7 +1318,7 @@ func (this *Interactivebrokers) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bo
 		"symbols": []any{unifiedSymbol},
 	}, query)
 
-	r2 := <-this.IbkrUnsubscribeAsync(client, []any{"orderbook::" + unifiedSymbol}, ccxt.Add("ubd+", accountId), subscription)
+	r2 := <-this.IbkrUnsubscribeAsync(client, []any{"orderbook::" + unifiedSymbol}, "ubd+"+accountId, subscription)
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -1385,7 +1381,7 @@ func (this *Interactivebrokers) HandleOrderBook(client ccxt.ClientInterface, mes
 		var rowId string = "r" + *rowNumber
 		var price *string = this.SafeString(entry, "price")
 		if price == nil {
-			var previousRow map[string]any = ccxt.SafeMapTyped(ladder, rowId)
+			var previousRow, _ = ladder[rowId].(map[string]any)
 			price = this.SafeString(previousRow, "price")
 		}
 		ladder[rowId] = map[string]any{
@@ -1976,7 +1972,7 @@ func (this *Interactivebrokers) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.B
 	if accountIdqueryPair.Err != nil {
 		panic(accountIdqueryPair.Err)
 	}
-	var accountId *string = accountIdqueryPair.Value.V
+	var accountId string = accountIdqueryPair.Value.V
 	var query map[string]any = accountIdqueryPair.Value.P
 
 	r1 := <-this.IbkrConnectAsync()
@@ -1986,10 +1982,7 @@ func (this *Interactivebrokers) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.B
 	url := r1.Value
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "balance"
-	var subscribeHash any = nil
-	if accountId != nil {
-		subscribeHash = "sld::" + *accountId
-	}
+	var subscribeHash string = "sld::" + accountId
 	if !(client.SubscriptionHas(subscribeHash)) {
 		var options, _ = this.Options["watchBalance"].(map[string]any)
 		var fetchBalanceSnapshot *bool = this.SafeBool(options, "fetchBalanceSnapshot", true)
@@ -2015,7 +2008,7 @@ func (this *Interactivebrokers) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.B
 	var future *ccxt.Future = client.ReusableFuture(messageHash)
 	var emptyArgs string = "{}" // a separate literal, the php transpiler turns '+{}' into '+array()'
 
-	r3 := <-this.IbkrSubscribeAsync(client, subscribeHash, ccxt.Add(ccxt.Add(ccxt.Add("sld+", accountId), "+"), emptyArgs), map[string]any{
+	r3 := <-this.IbkrSubscribeAsync(client, subscribeHash, "sld+"+accountId+"+"+emptyArgs, map[string]any{
 		"accountId": accountId,
 	})
 	if r3.Err != nil {
@@ -2055,7 +2048,7 @@ func (this *Interactivebrokers) unWatchBalanceBody(ch chan ccxt.AsyncResult[bool
 	if accountIdqueryPair.Err != nil {
 		panic(accountIdqueryPair.Err)
 	}
-	var accountId *string = accountIdqueryPair.Value.V
+	var accountId string = accountIdqueryPair.Value.V
 	var query map[string]any = accountIdqueryPair.Value.P
 
 	r := <-this.IbkrConnectAsync()
@@ -2067,7 +2060,7 @@ func (this *Interactivebrokers) unWatchBalanceBody(ch chan ccxt.AsyncResult[bool
 	this.Balance = map[string]any{}
 	var emptyArgs string = "{}" // a separate literal, the php transpiler turns '+{}' into '+array()'
 
-	r1 := <-this.IbkrUnsubscribeAsync(client, []any{"balance", ccxt.Add("sld::", accountId)}, ccxt.Add(ccxt.Add(ccxt.Add("uld+", accountId), "+"), emptyArgs), query)
+	r1 := <-this.IbkrUnsubscribeAsync(client, []any{"balance", "sld::" + accountId}, "uld+"+accountId+"+"+emptyArgs, query)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}

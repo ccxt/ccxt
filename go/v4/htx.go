@@ -2477,10 +2477,14 @@ func (this *Htx) fetchTradingLimitsByIdBody(ch chan AsyncResult[map[string]any],
 	//                 "market-sell-order-rate-must-less-than":  0.1,
 	//                  "market-buy-order-rate-must-less-than":  0.1        } }
 	//
-	ch <- AsyncResult[map[string]any]{Value: this.ParseTradingLimits(this.SafeDict(response, "data", map[string]any{}))}
+	responseDict150640, _ := response["data"].(map[string]any)
+	if responseDict150640 == nil {
+		responseDict150640 = map[string]any{}
+	}
+	ch <- AsyncResult[map[string]any]{Value: this.ParseTradingLimits(responseDict150640)}
 	return nil
 }
-func (this *Htx) ParseTradingLimits(limits any, optionalArgs ...any) map[string]any {
+func (this *Htx) ParseTradingLimits(limits map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//   {                                "symbol": "aidocbtc",
 	//                  "buy-limit-must-less-than":  1.1,
@@ -3622,7 +3626,7 @@ func (this *Htx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
 		panic(NullResponse(this.Id + " fetchOrderBook() returned empty response"))
 	}
 	if _, ok := response["tick"]; ok {
-		var tick map[string]any = SafeMapTyped(response, "tick")
+		var tick, _ = response["tick"].(map[string]any)
 		if tick == nil {
 			panic(BadSymbol(this.Id + " fetchOrderBook() returned empty response: " + this.Json(response)))
 		}
@@ -5520,7 +5524,7 @@ func (this *Htx) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalA
 		order = this.SafeDict(this.SafeList(response, "data", []any{}), 0, map[string]any{})
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, order), market)}
 	return nil
 }
 func (this *Htx) ParseMarginBalanceHelper(balance any, code string, result map[string]any) map[string]any {
@@ -6668,7 +6672,7 @@ func (this *Htx) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Htx) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Htx) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// spot
 	//
@@ -7699,13 +7703,16 @@ func (this *Htx) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 			data = this.SafeList(response, "data", []any{})
 			result = this.SafeDictMap(data, 0, map[string]any{})
 		} else {
-			result = this.SafeDictMap(response, "data", map[string]any{})
+			result, _ = response["data"].(map[string]any)
+			if result == nil {
+				result = map[string]any{}
+			}
 		}
 		if result == nil {
 			panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 		}
 
-		ch <- AsyncResult[Order]{Value: OrderFromMap(this.Extend(OrderToMap(this.ParseOrder(result, market)), map[string]any{
+		ch <- AsyncResult[Order]{Value: OrderFromMap(this.Extend(OrderToMap(this.ParseOrder(this.Extend(map[string]any{}, result), market)), map[string]any{
 			"type":   typeVar,
 			"side":   side,
 			"price":  price,
@@ -7719,13 +7726,16 @@ func (this *Htx) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 		data = this.SafeDict(response, "data", map[string]any{})
 		result = this.SafeDictMap(data, "tp_order", map[string]any{})
 	} else {
-		result = this.SafeDictMap(response, "data", map[string]any{})
+		result, _ = response["data"].(map[string]any)
+		if result == nil {
+			result = map[string]any{}
+		}
 	}
 	if result == nil {
 		panic(NullResponse(this.Id + " parseOrder() returned empty response"))
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, result), market)}
 	return nil
 }
 
@@ -8409,7 +8419,7 @@ func (this *Htx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, op
 		ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseCancelOrders(response))}
 		return nil
 	}
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseCancelOrders(data))}
 	return nil
@@ -8562,7 +8572,7 @@ func (this *Htx) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		//         }
 		//     }
 		//
-		var data map[string]any = SafeMapTyped(response, "data")
+		var data, _ = response["data"].(map[string]any)
 
 		ch <- AsyncResult[[]Order]{Value: OrdersFromList([]any{OrderToMap(this.SafeOrder(map[string]any{
 			"info": data,
@@ -8667,7 +8677,7 @@ func (this *Htx) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 			ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseCancelOrders(response))}
 			return nil
 		}
-		var data map[string]any = SafeMapTyped(response, "data")
+		var data, _ = response["data"].(map[string]any)
 
 		ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseCancelOrders(data))}
 		return nil
@@ -10055,7 +10065,10 @@ func (this *Htx) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol s
 		data, _ = response["data"].([]any)
 		result = this.SafeDictMap(data, 0, map[string]any{})
 	} else {
-		result = this.SafeDictMap(response, "data", map[string]any{})
+		result, _ = response["data"].(map[string]any)
+		if result == nil {
+			result = map[string]any{}
+		}
 	}
 
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(result, market)}

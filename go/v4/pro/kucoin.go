@@ -3176,7 +3176,11 @@ func (this *Kucoin) HandleOrder(client ccxt.ClientInterface, message map[string]
 	//        "type": "open"
 	//    }
 	//
-	var data, _ = message["data"].(map[string]any)
+	var data map[string]any
+	data, _ = message["data"].(map[string]any)
+	if data == nil {
+		data = map[string]any{}
+	}
 	var tradeId *string = this.SafeString(data, "tradeId")
 	if tradeId != nil {
 		this.HandleMyTrade(client, message)

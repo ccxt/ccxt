@@ -2219,7 +2219,11 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan AsyncResult[[]MarketInterface],
 	data, _ = spot["products"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var spotMarket map[string]any = this.ParseSpotMarket(this.SafeDict(data, i, map[string]any{}), feeTier)
+		dataDict161053, _ := data[i].(map[string]any)
+		if dataDict161053 == nil {
+			dataDict161053 = map[string]any{}
+		}
+		var spotMarket map[string]any = this.ParseSpotMarket(dataDict161053, feeTier)
 		if spotMarket != nil {
 			result = append(result, spotMarket)
 		}
@@ -2258,7 +2262,7 @@ func (this *Coinbase) fetchMarketsV3Body(ch chan AsyncResult[[]MarketInterface],
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(newMarkets)}
 	return nil
 }
-func (this *Coinbase) ParseSpotMarket(market any, feeTier map[string]any) map[string]any {
+func (this *Coinbase) ParseSpotMarket(market map[string]any, feeTier map[string]any) map[string]any {
 	//
 	//         {
 	//             "product_id": "TONE-USD",
@@ -4479,7 +4483,7 @@ func (this *Coinbase) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
 	return nil
 }
-func (this *Coinbase) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Coinbase) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//
@@ -4552,7 +4556,7 @@ func (this *Coinbase) ParseOrder(order any, optionalArgs ...any) Order {
 	} else {
 		marketResolved = market
 	}
-	var orderConfiguration map[string]any = SafeMapTyped(order, "order_configuration")
+	var orderConfiguration, _ = order["order_configuration"].(map[string]any)
 	var limitGTC, _ = orderConfiguration["limit_limit_gtc"].(map[string]any)
 	var limitGTD, _ = orderConfiguration["limit_limit_gtd"].(map[string]any)
 	var limitIOC any = this.SafeDict(orderConfiguration, "sor_limit_ioc")
@@ -4851,7 +4855,7 @@ func (this *Coinbase) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	//         }
 	//     }
 	//
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, response), market)}
 	return nil
 }
 

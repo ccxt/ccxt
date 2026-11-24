@@ -2058,10 +2058,7 @@ func (this *Hitbtc) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transacti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var transactions any = nil
-	if r.Value != nil {
-		transactions = TransactionsToList(r.Value)
-	}
+	var transactions []any = TransactionsToList(r.Value)
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ToArray(transactions))}
 	return nil
@@ -2099,10 +2096,7 @@ func (this *Hitbtc) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var transactions any = nil
-	if r.Value != nil {
-		transactions = TransactionsToList(r.Value)
-	}
+	var transactions []any = TransactionsToList(r.Value)
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ToArray(transactions))}
 	return nil
@@ -2140,10 +2134,7 @@ func (this *Hitbtc) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var transactions any = nil
-	if r.Value != nil {
-		transactions = TransactionsToList(r.Value)
-	}
+	var transactions []any = TransactionsToList(r.Value)
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ToArray(transactions))}
 	return nil
@@ -2270,7 +2261,7 @@ func (this *Hitbtc) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	ch <- AsyncResult[OrderBook]{Value: OrderBookFromMap(this.ParseOrderBook(response, symbol, timestamp, "bid", "ask"))}
 	return nil
 }
-func (this *Hitbtc) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInterface {
+func (this *Hitbtc) ParseTradingFee(fee map[string]any, optionalArgs ...any) TradingFeeInterface {
 	//
 	//     {
 	//         "symbol":"ARVUSDT", // returned from fetchTradingFees only
@@ -2410,7 +2401,7 @@ func (this *Hitbtc) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 	//
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(response); i++ {
-		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(this.SafeDict(response, i, map[string]any{})))
+		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(this.Extend(map[string]any{}, this.SafeDict(response, i, map[string]any{}))))
 		var symbol *string = this.SafeString(fee, "symbol")
 		if symbol != nil {
 			result[*symbol] = fee
@@ -2778,7 +2769,14 @@ func (this *Hitbtc) fetchOrderBody(ch chan AsyncResult[Order], id string, option
 	//       }
 	//     ]
 	//
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(response, 0, map[string]any{}), market)}
+	var responseDict210232 map[string]any
+	if len(response) > 0 {
+		responseDict210232, _ = response[0].(map[string]any)
+	}
+	if responseDict210232 == nil {
+		responseDict210232 = map[string]any{}
+	}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(responseDict210232, market)}
 	return nil
 }
 
@@ -3484,7 +3482,7 @@ func (this *Hitbtc) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Hitbtc) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Hitbtc) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// limit
 	//     {

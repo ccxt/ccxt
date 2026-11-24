@@ -1973,7 +1973,7 @@ func (this *Tokocrypto) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Tokocrypto) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Tokocrypto) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// spot
 	//

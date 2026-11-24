@@ -1673,7 +1673,7 @@ func (this *Sxbet) cancelAllOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
  * @param {object} [market] the outcome object the order belongs to (resolved from the cache by outcomeId when omitted)
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Sxbet) ParsePredictionOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Sxbet) ParsePredictionOrder(order map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id": "0x112a4f19f20395aefcdb5d26f3f8aab0d96b1aff7ce346c0bfb13d9490340cdf",
@@ -2820,7 +2820,7 @@ func (this *Sxbet) ParseSxbetTickersByHash(outcomesList []string, rowsByHash map
  * @param {object} [market] the outcome object the ticker belongs to
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Sxbet) ParsePredictionTicker(raw any, optionalArgs ...any) map[string]any {
+func (this *Sxbet) ParsePredictionTicker(raw map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "marketHash": "0x48ce0ef287c59fb3bb3ca6deb80de0d5791eb761ea8e16d6f03c8e93ef28d1de",
@@ -2835,8 +2835,16 @@ func (this *Sxbet) ParsePredictionTicker(raw any, optionalArgs ...any) map[strin
 	var outcomeId *string = this.SafeString(outcomeObj, "outcomeId")
 	var marketHash *string = this.SafeString(raw, "marketHash")
 	var isOutcomeOne bool = (outcomeId == marketHash || (outcomeId != nil && marketHash != nil && *outcomeId == *marketHash))
-	var outcomeOneOdds map[string]any = this.SafeDictMap(raw, "outcomeOne", map[string]any{})
-	var outcomeTwoOdds map[string]any = this.SafeDictMap(raw, "outcomeTwo", map[string]any{})
+	var outcomeOneOdds map[string]any
+	outcomeOneOdds, _ = raw["outcomeOne"].(map[string]any)
+	if outcomeOneOdds == nil {
+		outcomeOneOdds = map[string]any{}
+	}
+	var outcomeTwoOdds map[string]any
+	outcomeTwoOdds, _ = raw["outcomeTwo"].(map[string]any)
+	if outcomeTwoOdds == nil {
+		outcomeTwoOdds = map[string]any{}
+	}
 	var ownOdds any = outcomeTwoOdds
 	if isOutcomeOne {
 		ownOdds = outcomeOneOdds
@@ -3863,7 +3871,7 @@ func (this *Sxbet) HandleOrder(client ccxt.ClientInterface, rows []any) {
 	for i := 0; i < rowsLength; i++ {
 		var rawRow any = ccxt.DerefScalar(rows[i])
 		var row any = this.SafeDict(rawRow, "order", rawRow)
-		var order map[string]any = this.ParsePredictionOrder(row)
+		var order map[string]any = this.ParsePredictionOrder(this.Extend(map[string]any{}, row))
 		if this.Orders == nil {
 			var cacheLimit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 			this.Orders = ccxt.NewArrayCacheByOutcomeById(cacheLimit)

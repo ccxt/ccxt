@@ -1696,7 +1696,7 @@ func (this *Apex) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingRa
 	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(data, unifiedSymbols))}
 	return nil
 }
-func (this *Apex) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Apex) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// {
 	//     "id": "1234",

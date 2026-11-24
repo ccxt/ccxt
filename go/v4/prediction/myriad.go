@@ -1865,10 +1865,10 @@ func (this *Myriad) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Myriad) ParsePredictionOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Myriad) ParsePredictionOrder(order map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var inner map[string]any = ccxt.SafeMapTyped(order, "order")
+	var inner, _ = order["order"].(map[string]any)
 	var orderHash *string = this.SafeString2(order, "orderHash", "hash")
 	var sideInt *int64 = this.SafeInteger(inner, "side")
 	var side string = "buy"
@@ -3392,7 +3392,7 @@ func (this *Myriad) fetchTradingFeeBody(ch chan ccxt.AsyncResult[ccxt.Prediction
  * @param {object} [market] the outcome object the ticker belongs to
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Myriad) ParsePredictionTicker(raw any, optionalArgs ...any) map[string]any {
+func (this *Myriad) ParsePredictionTicker(raw map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id": "756",
@@ -4009,7 +4009,7 @@ func (this *Myriad) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pr
 	var responses []any = r1.Value
 	for i := 0; i < len(marketKeys); i++ {
 		var key string = marketKeys[i]
-		var response any = responses[i]
+		var response map[string]any = this.SafeDictMap(responses, i, map[string]any{})
 		var grouped any = outcomesByMarket[key]
 		for j := 0; j < ccxt.GetArrayLength(grouped); j++ {
 			var outcomeObj any = ccxt.GetValue(grouped, j)
@@ -4269,7 +4269,7 @@ func (this *Myriad) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
 	var result []any = []any{}
 	var rawQuestionsLength int = len(rawQuestions)
 	for i := 0; i < rawQuestionsLength; i++ {
-		var ev map[string]any = this.ParseEvent(this.SafeDict(rawQuestions, i, map[string]any{}))
+		var ev map[string]any = this.ParseEvent(this.Extend(map[string]any{}, rawQuestions[i]))
 		var evMarkets []any = ccxt.SafeListTyped(ev, "markets")
 		var evMarketsLength int = len(evMarkets)
 		var filteredMarkets []any = []any{}
@@ -4333,7 +4333,7 @@ func (this *Myriad) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
  * @param {object} rawEvent the raw myriad question object
  * @returns {object} an event structure
  */
-func (this *Myriad) ParseEvent(rawEvent any) map[string]any {
+func (this *Myriad) ParseEvent(rawEvent map[string]any) map[string]any {
 	var questionSlug *string = this.SafeString(rawEvent, "slug", this.SafeString(rawEvent, "id"))
 	var rawMarkets []any = ccxt.SafeListTyped(rawEvent, "markets")
 	var marketsList []any = []any{}

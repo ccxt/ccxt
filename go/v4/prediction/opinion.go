@@ -861,7 +861,7 @@ func (this *Opinion) fetchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTic
  * @param {object} [market] the outcome object the ticker belongs to
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Opinion) ParsePredictionTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Opinion) ParsePredictionTicker(ticker map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "price": {
@@ -879,9 +879,9 @@ func (this *Opinion) ParsePredictionTicker(ticker any, optionalArgs ...any) map[
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
 	var marketAny any = market
-	var priceResponse map[string]any = ccxt.SafeMapTyped(ticker, "price")
+	var priceResponse, _ = ticker["price"].(map[string]any)
 	var priceResult, _ = priceResponse["result"].(map[string]any)
-	var bookResponse map[string]any = ccxt.SafeMapTyped(ticker, "book")
+	var bookResponse, _ = ticker["book"].(map[string]any)
 	var bookResult, _ = bookResponse["result"].(map[string]any)
 	var bids []any = ccxt.SafeListTyped(bookResult, "bids")
 	var asks []any = ccxt.SafeListTyped(bookResult, "asks")
@@ -1611,7 +1611,7 @@ func (this *Opinion) ParseOrderStatus(status *string) *string {
  * @param {object} [market] the outcome object the order belongs to
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Opinion) ParsePredictionOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Opinion) ParsePredictionOrder(order map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "orderId": "...",
@@ -3028,22 +3028,27 @@ func (this *Opinion) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
  * @param {int} status the numeric order status
  * @returns {string} a unified order status, or undefined
  */
-func (this *Opinion) ParseWsOrderStatus(status *int64) any {
+func (this *Opinion) ParseWsOrderStatus(status *int64) *string {
 	// per the venue docs: 1 pending, 2 finished, 3 canceled, 4 expired, 5 failed
 	if status != nil && *status == 1 {
-		return "open"
+		retStrVal := "open"
+		return &retStrVal
 	}
 	if status != nil && *status == 2 {
-		return "closed"
+		retStrVal := "closed"
+		return &retStrVal
 	}
 	if status != nil && *status == 3 {
-		return "canceled"
+		retStrVal := "canceled"
+		return &retStrVal
 	}
 	if status != nil && *status == 4 {
-		return "expired"
+		retStrVal := "expired"
+		return &retStrVal
 	}
 	if status != nil && *status == 5 {
-		return "rejected"
+		retStrVal := "rejected"
+		return &retStrVal
 	}
 	return nil
 }

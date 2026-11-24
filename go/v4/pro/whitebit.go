@@ -1487,7 +1487,7 @@ func (this *Whitebit) HandleErrorMessage(client ccxt.ClientInterface, message ma
 			if error != nil {
 				var code *string = this.SafeString(message, "code")
 				var feedback string = this.Id + " " + this.Json(message)
-				this.ThrowExactlyMatchedException(ccxt.GetValue(this.Exceptions["ws"], "exact"), code, feedback)
+				this.ThrowExactlyMatchedException(this.ExceptionsWs["exact"], code, feedback)
 			}
 			return nil
 		}(this)

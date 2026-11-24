@@ -2752,7 +2752,7 @@ func (this *Woo) ParseTimeInForce(timeInForce *string) *string {
 	}
 	return this.SafeString(timeInForces, timeInForce)
 }
-func (this *Woo) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Woo) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//     {
@@ -3580,7 +3580,7 @@ func (this *Woo) fetchAccountsBody(ch chan AsyncResult[[]Account], optionalArgs 
 	var subAccountResponse map[string]any = mainAccountResponsesubAccountResponseVariable[1]
 	var mainData map[string]any = this.SafeDictMap(mainAccountResponse, "data", map[string]any{})
 	var mainRows []any = []any{mainData}
-	var subData map[string]any = SafeMapTyped(subAccountResponse, "data")
+	var subData, _ = subAccountResponse["data"].(map[string]any)
 	var subRows []any = this.SafeListSlice(subData, "rows", []any{})
 	var rows []any = this.ArrayConcat(mainRows, subRows)
 

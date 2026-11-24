@@ -2227,7 +2227,7 @@ func (this *Bingx) HandleOrder(client ccxt.ClientInterface, message map[string]a
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var stored ccxt.WsArrayCache = this.Orders
-	var parsedOrder map[string]any = ccxt.OrderToMap(this.ParseOrder(data))
+	var parsedOrder map[string]any = ccxt.OrderToMap(this.ParseOrder(this.Extend(map[string]any{}, data)))
 	if !isSpot {
 		// The envelope T is the order update time; o.T is the trade time.
 		var updateTimestamp *int64 = this.SafeInteger(message, "T")

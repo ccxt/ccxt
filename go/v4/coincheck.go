@@ -541,7 +541,7 @@ func (this *Coincheck) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optiona
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(result)}
 	return nil
 }
-func (this *Coincheck) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Coincheck) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// fetchOpenOrders
 	//

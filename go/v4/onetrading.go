@@ -1628,7 +1628,7 @@ func (this *Onetrading) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Onetrading) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Onetrading) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//
@@ -1910,7 +1910,7 @@ func (this *Onetrading) cancelOrderBody(ch chan AsyncResult[Order], id string, o
 	//
 	// responds with an empty body
 	//
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, response))}
 	return nil
 }
 

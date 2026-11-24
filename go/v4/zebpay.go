@@ -715,7 +715,10 @@ func (this *Zebpay) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface]
 		//       } ,
 		//     "statusCode": 200,
 		// }
-		data = this.SafeDictMap(response, "data", map[string]any{})
+		data, _ = response["data"].(map[string]any)
+		if data == nil {
+			data = map[string]any{}
+		}
 	} else {
 
 		r2 := <-this.PublicSwapGetV1ExchangeTradefee(this.Extend(request, params))
@@ -1698,7 +1701,11 @@ func (this *Zebpay) cancelOrderBody(ch chan AsyncResult[Order], id string, optio
 	//        },
 	//    }
 	//
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(response, "data", map[string]any{}))}
+	responseDict117532, _ := response["data"].(map[string]any)
+	if responseDict117532 == nil {
+		responseDict117532 = map[string]any{}
+	}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(responseDict117532)}
 	return nil
 }
 
@@ -1952,7 +1959,7 @@ func (this *Zebpay) fetchOrderBody(ch chan AsyncResult[Order], id string, option
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(responseData, market)}
 	return nil
 }
-func (this *Zebpay) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Zebpay) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	//      {
 	//          "clientOrderId": "64507d02921f1c0001ff6892-123-zeb",

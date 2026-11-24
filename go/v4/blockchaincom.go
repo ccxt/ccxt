@@ -715,7 +715,7 @@ func (this *Blockchaincom) ParseOrderState(state *string) *string {
 	}
 	return this.SafeString(states, state, state)
 }
-func (this *Blockchaincom) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Blockchaincom) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	//     {
 	//         "clOrdId": "00001",

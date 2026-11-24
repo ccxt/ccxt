@@ -153,8 +153,8 @@ func (this *Kraken) OrderRequestWs(method string, symbol string, typeVar string,
 	if cost != nil {
 		orderParams["order_qty"] = this.ParseToNumeric(this.CostToPrecision(symbol, cost))
 	}
-	var stopLoss map[string]any = ccxt.SafeMapTyped(paramsPostOnly, "stopLoss")
-	var takeProfit map[string]any = ccxt.SafeMapTyped(paramsPostOnly, "takeProfit")
+	var stopLoss, _ = paramsPostOnly["stopLoss"].(map[string]any)
+	var takeProfit, _ = paramsPostOnly["takeProfit"].(map[string]any)
 	var presetStopLoss *string = this.SafeString(stopLoss, "triggerPrice")
 	var presetTakeProfit *string = this.SafeString(takeProfit, "triggerPrice")
 	var presetStopLossLimit *string = this.SafeString(stopLoss, "price")
@@ -2486,7 +2486,7 @@ func (this *Kraken) HandleErrorMessage(client ccxt.ClientInterface, message map[
 	var errorMessage *string = this.SafeString2(message, "errorMessage", "error")
 	if errorMessage != nil {
 		var requestId *string = this.SafeString2(message, "reqid", "req_id")
-		var broad any = ccxt.GetValue(this.Exceptions["ws"], "broad")
+		var broad any = this.ExceptionsWs["broad"]
 		var broadKey any = this.FindBroadlyMatchedKey(broad, errorMessage)
 		var exception any = nil
 		if broadKey == nil {

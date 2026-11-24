@@ -1096,9 +1096,9 @@ func (this *Woofipro) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 	var tokenResponsechainResponseVariable []map[string]any = r.Value
 	var tokenResponse map[string]any = tokenResponsechainResponseVariable[0]
 	var chainResponse map[string]any = tokenResponsechainResponseVariable[1]
-	var tokenData map[string]any = SafeMapTyped(tokenResponse, "data")
+	var tokenData, _ = tokenResponse["data"].(map[string]any)
 	var tokenRows []any = SafeListTyped(tokenData, "rows")
-	var chainData map[string]any = SafeMapTyped(chainResponse, "data")
+	var chainData, _ = chainResponse["data"].(map[string]any)
 	var chainRows []any = SafeListTyped(chainData, "rows")
 	var indexedChains map[string]any = this.IndexBy(chainRows, "chain_id")
 	for i := 0; i < len(tokenRows); i++ {
@@ -2384,7 +2384,7 @@ func (this *Woofipro) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(rows, market, timeframe, since, limit))}
 	return nil
 }
-func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Woofipro) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// Possible input functions:
 	// * createOrder
@@ -3364,7 +3364,7 @@ func (this *Woofipro) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 		parsedOrders = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(parsedOrders, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, parsedOrders), market)}
 	return nil
 }
 

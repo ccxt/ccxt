@@ -583,7 +583,7 @@ func (this *Bitvavo) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(response))}
 	return nil
 }
-func (this *Bitvavo) ParseMarkets(markets any) []any {
+func (this *Bitvavo) ParseMarkets(markets []any) []any {
 	var result []any = []any{}
 	var defaultFees map[string]any
 	defaultFees, _ = this.Fees["trading"].(map[string]any)
@@ -591,8 +591,8 @@ func (this *Bitvavo) ParseMarkets(markets any) []any {
 		defaultFees = map[string]any{}
 	}
 	var feesByCategory, _ = this.Fees["byCategory"].(map[string]any)
-	for i := 0; i < GetArrayLength(markets); i++ {
-		var market map[string]any = SafeMapTyped(markets, i)
+	for i := 0; i < len(markets); i++ {
+		var market, _ = markets[i].(map[string]any)
 		var id *string = this.SafeString(market, "market")
 		var baseId *string = this.SafeString(market, "base")
 		var quoteId *string = this.SafeString(market, "quote")
@@ -2754,7 +2754,7 @@ func (this *Bitvavo) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitvavo) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Bitvavo) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// cancelOrder, cancelAllOrders
 	//

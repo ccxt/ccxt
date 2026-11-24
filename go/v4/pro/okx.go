@@ -3225,7 +3225,7 @@ func (this *Okx) HandleMyTrades(client ccxt.ClientInterface, message map[string]
 		var rawOrder, _ = rawOrders[i].(map[string]any)
 		var tradeId string = *this.SafeString(rawOrder, "tradeId", "")
 		if len(tradeId) > 0 {
-			var order map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrders[i]))
+			var order map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrder))
 			filteredOrders = append(filteredOrders, order)
 		}
 	}

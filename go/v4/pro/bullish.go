@@ -639,7 +639,11 @@ func (this *Bullish) HandleOrders(client ccxt.ClientInterface, message map[strin
 		var orders ccxt.WsArrayCache = this.Orders
 		var symbols map[string]any = map[string]any{}
 		for i := 0; i < len(rawOrders); i++ {
-			var parsedOrder map[string]any = ccxt.OrderToMap(this.ParseOrder(this.SafeDict(rawOrders, i, map[string]any{})))
+			rawOrdersDict47953, _ := rawOrders[i].(map[string]any)
+			if rawOrdersDict47953 == nil {
+				rawOrdersDict47953 = map[string]any{}
+			}
+			var parsedOrder map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrdersDict47953))
 			orders.Append(parsedOrder)
 			var symbol *string = this.SafeString(parsedOrder, "symbol")
 			if symbol != nil {

@@ -1183,7 +1183,11 @@ func (this *Cryptomus) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Or
 	result, _ = response["result"].([]any)
 	var orders []any = []any{}
 	for i := 0; i < len(result); i++ {
-		orders = append(orders, OrderToMap(this.ParseOrder(this.SafeDict(result, i, map[string]any{}), market)))
+		resultDict88942, _ := result[i].(map[string]any)
+		if resultDict88942 == nil {
+			resultDict88942 = map[string]any{}
+		}
+		orders = append(orders, OrderToMap(this.ParseOrder(resultDict88942, market)))
 	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(orders)}
@@ -1271,7 +1275,7 @@ func (this *Cryptomus) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optiona
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(result, market, nil, nil))}
 	return nil
 }
-func (this *Cryptomus) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Cryptomus) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//     {
@@ -1335,7 +1339,7 @@ func (this *Cryptomus) ParseOrder(order any, optionalArgs ...any) Order {
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var dateTime *string = this.SafeString(order, "createdAt")
 	var timestamp *int64 = this.Parse8601(dateTime)
-	var deal map[string]any = SafeMapTyped(order, "deal")
+	var deal, _ = order["deal"].(map[string]any)
 	var averageFilledPrice *float64 = this.SafeNumber(deal, "averageFilledPrice")
 	var typeVar *string = this.SafeString(order, "type")
 	var side *string = this.SafeString(order, "direction")
@@ -1477,7 +1481,11 @@ func (this *Cryptomus) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradi
 	var takerFee *string = this.SafeString(currentFeeTier, "taker_percent")
 	makerFee = Precise.StringDiv(makerFee, "100")
 	takerFee = Precise.StringDiv(takerFee, "100")
-	var feeTiers []any = this.SafeListSlice(data, "tariff_steps", []any{})
+	var feeTiers []any
+	feeTiers, _ = data["tariff_steps"].([]any)
+	if feeTiers == nil {
+		feeTiers = []any{}
+	}
 	var result map[string]any = map[string]any{}
 	var tiers map[string]any = this.ParseFeeTiers(feeTiers)
 	var symbols []string = this.Symbols

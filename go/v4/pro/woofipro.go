@@ -1243,14 +1243,18 @@ func (this *Woofipro) HandleOrderUpdate(client ccxt.ClientInterface, message map
 	//         }
 	//     }
 	//
-	var topic *string = this.SafeString(message, "topic")
+	var topic string = *this.SafeString(message, "topic", "")
 	var dataList, _ = message["data"].([]any)
 	if dataList != nil {
 		// algoexecutionreport
 		for i := 0; i < len(dataList); i++ {
 			var tradeId *string = this.OmitZero(this.SafeString(dataList, "tradeId"))
 			if tradeId != nil {
-				this.HandleMyTrade(client, this.SafeDict(dataList, i, map[string]any{}))
+				dataListDict93048, _ := dataList[i].(map[string]any)
+				if dataListDict93048 == nil {
+					dataListDict93048 = map[string]any{}
+				}
+				this.HandleMyTrade(client, dataListDict93048)
 			}
 			this.HandleOrder(client, this.SafeDict(dataList, i, map[string]any{}), topic)
 		}
@@ -1268,7 +1272,7 @@ func (this *Woofipro) HandleOrderUpdate(client ccxt.ClientInterface, message map
 		this.HandleOrder(client, data, topic)
 	}
 }
-func (this *Woofipro) HandleOrder(client ccxt.ClientInterface, message any, topic any) {
+func (this *Woofipro) HandleOrder(client ccxt.ClientInterface, message any, topic string) {
 	var parsed map[string]any = this.ParseWsOrder(message)
 	var symbol *string = this.SafeString(parsed, "symbol")
 	var orderId *string = this.SafeString(parsed, "id")
@@ -1301,11 +1305,11 @@ func (this *Woofipro) HandleOrder(client ccxt.ClientInterface, message any, topi
 		}
 		cachedOrders.Append(parsed)
 		client.Resolve(this.Orders, topic)
-		var messageHashSymbol any = ccxt.Add(ccxt.Add(topic, ":"), symbol)
+		var messageHashSymbol string = topic + ":" + *symbol
 		client.Resolve(this.Orders, messageHashSymbol)
 	}
 }
-func (this *Woofipro) HandleMyTrade(client ccxt.ClientInterface, message any) {
+func (this *Woofipro) HandleMyTrade(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// {
 	//     symbol: 'PERP_XRP_USDC',
@@ -1681,7 +1685,7 @@ func (this *Woofipro) HandleBalance(client ccxt.ClientInterface, message map[str
 	if data == nil {
 		data = map[string]any{}
 	}
-	var balances map[string]any = ccxt.SafeMapTyped(data, "balances")
+	var balances, _ = data["balances"].(map[string]any)
 	var keys []string = nil
 	if balances != nil {
 		keys = make([]string, 0, len(balances))

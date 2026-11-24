@@ -2436,7 +2436,7 @@ func (this *Upbit) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Upbit) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Upbit) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	// {
 	//   "market": "KRW-USDT",
 	//   "uuid": "3b67e543-8ad3-48d0-8451-0dad315cae73",

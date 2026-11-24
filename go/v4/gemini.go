@@ -1958,7 +1958,7 @@ func (this *Gemini) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalanceList(response))}
 	return nil
 }
-func (this *Gemini) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Gemini) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder (private)
 	//

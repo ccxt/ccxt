@@ -1326,7 +1326,7 @@ func (this *Coinone) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Coinone) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Coinone) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//

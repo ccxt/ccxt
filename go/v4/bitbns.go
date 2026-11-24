@@ -774,7 +774,7 @@ func (this *Bitbns) ParseStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitbns) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Bitbns) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//

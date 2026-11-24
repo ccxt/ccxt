@@ -2846,7 +2846,7 @@ func (this *Bullish) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market))}
 	return nil
 }
-func (this *Bullish) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Bullish) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// fetchOrders, fetchOrder
 	//     {

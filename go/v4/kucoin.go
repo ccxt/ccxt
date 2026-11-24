@@ -4021,7 +4021,10 @@ func (this *Kucoin) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, 
 		//         }
 		//     }
 		//
-		result = this.SafeDictMap(response, "data", map[string]any{})
+		result, _ = response["data"].(map[string]any)
+		if result == nil {
+			result = map[string]any{}
+		}
 	}
 
 	ch <- AsyncResult[Ticker]{Value: TickerFromMap(this.ParseSpotOrUtaTicker(result, market))}
@@ -5393,7 +5396,7 @@ func (this *Kucoin) createSpotOrderBody(ch chan AsyncResult[Order], symbol strin
 		data = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, data), market)}
 	return nil
 }
 func (this *Kucoin) CreateSpotOrderRequest(symbol string, typeVar string, side *string, amount any, optionalArgs ...any) map[string]any {
@@ -5599,7 +5602,7 @@ func (this *Kucoin) createContractOrderBody(ch chan AsyncResult[Order], symbol s
 		data = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, data), market)}
 	return nil
 }
 func (this *Kucoin) CreateContractOrderRequest(symbol string, typeVar string, side *string, amount any, optionalArgs ...any) map[string]any {
@@ -5848,7 +5851,7 @@ func (this *Kucoin) createUtaOrderBody(ch chan AsyncResult[Order], symbol string
 		data = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, data), market)}
 	return nil
 }
 func (this *Kucoin) CreateUtaOrderRequest(symbol string, typeVar string, side string, amount any, optionalArgs ...any) map[string]any {
@@ -6516,7 +6519,7 @@ func (this *Kucoin) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 		data = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, data), market)}
 	return nil
 }
 
@@ -6736,7 +6739,11 @@ func (this *Kucoin) cancelSpotOrderBody(ch chan AsyncResult[Order], id string, o
 			response = r6.Value
 		}
 
-		ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(response, "data", map[string]any{}))}
+		responseDict510136, _ := response["data"].(map[string]any)
+		if responseDict510136 == nil {
+			responseDict510136 = map[string]any{}
+		}
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(responseDict510136)}
 		return nil
 	} else {
 		request["orderId"] = id
@@ -6792,7 +6799,11 @@ func (this *Kucoin) cancelSpotOrderBody(ch chan AsyncResult[Order], id string, o
 			//        }
 			//    }
 			//
-			ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(response, "data", map[string]any{}))}
+			responseDict513040, _ := response["data"].(map[string]any)
+			if responseDict513040 == nil {
+				responseDict513040 = map[string]any{}
+			}
+			ch <- AsyncResult[Order]{Value: this.ParseOrder(responseDict513040)}
 			return nil
 		} else {
 
@@ -6986,7 +6997,7 @@ func (this *Kucoin) cancelUtaOrderBody(ch chan AsyncResult[Order], id string, op
 		data = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, data), market)}
 	return nil
 }
 
@@ -8379,7 +8390,7 @@ func (this *Kucoin) fetchSpotOrderBody(ch chan AsyncResult[Order], id string, op
 		responseData = this.SafeDict(this.SafeList(response, "data", []any{}), 0, map[string]any{})
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(responseData, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, responseData), market)}
 	return nil
 }
 
@@ -8491,7 +8502,7 @@ func (this *Kucoin) fetchContractOrderBody(ch chan AsyncResult[Order], id string
 		responseData = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(responseData, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, responseData), market)}
 	return nil
 }
 
@@ -8611,7 +8622,7 @@ func (this *Kucoin) fetchUtaOrderBody(ch chan AsyncResult[Order], id string, opt
 		data = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, data), market)}
 	return nil
 }
 func (this *Kucoin) HandleTradeType(optionalArgs ...any) *string {
@@ -8646,7 +8657,7 @@ func (this *Kucoin) HandleTradeType(optionalArgs ...any) *string {
 	}
 	return tradeType
 }
-func (this *Kucoin) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Kucoin) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var tradeType *string = this.SafeString(order, "tradeType")
@@ -8666,7 +8677,7 @@ func (this *Kucoin) ParseOrder(order any, optionalArgs ...any) Order {
 		return OrderFromMap(this.ParseSpotOrder(order, marketResolved))
 	}
 }
-func (this *Kucoin) ParseContractOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Kucoin) ParseContractOrder(order map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// fetchOrder, fetchOrdersByStatus
 	//
@@ -8807,7 +8818,7 @@ func (this *Kucoin) ParseContractOrder(order any, optionalArgs ...any) map[strin
 		"trades":              nil,
 	}, marketResolved))
 }
-func (this *Kucoin) ParseSpotOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Kucoin) ParseSpotOrder(order map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// createOrder
 	//
@@ -8994,7 +9005,7 @@ func (this *Kucoin) ParseSpotOrder(order any, optionalArgs ...any) map[string]an
 		"trades":             nil,
 	}, market))
 }
-func (this *Kucoin) ParseUtaOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Kucoin) ParseUtaOrder(order map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// createOrder
 	//     {
@@ -11297,7 +11308,7 @@ func (this *Kucoin) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 		"datetime":  nil,
 	}
 	if isolated {
-		var data map[string]any = SafeMapTyped(response, "data")
+		var data, _ = response["data"].(map[string]any)
 		var assets []any = SafeListTyped(data, "assets")
 		for i := 0; i < len(assets); i++ {
 			var entry, _ = assets[i].(map[string]any)
@@ -11321,7 +11332,7 @@ func (this *Kucoin) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs
 			}
 		}
 	} else if cross {
-		var data map[string]any = SafeMapTyped(response, "data")
+		var data, _ = response["data"].(map[string]any)
 		var accounts []any = SafeListTyped(data, "accounts")
 		for i := 0; i < len(accounts); i++ {
 			var balance any = accounts[i]
@@ -11562,7 +11573,7 @@ func (this *Kucoin) fetchUtaBalanceBody(ch chan AsyncResult[Balances], optionalA
 		}
 		response = r2.Value
 	}
-	var data map[string]any = SafeMapTyped(response, "data")
+	var data, _ = response["data"].(map[string]any)
 	var timestamp *int64 = this.SafeInteger(data, "ts")
 	var result map[string]any = map[string]any{
 		"info":      response,
@@ -15032,7 +15043,10 @@ func (this *Kucoin) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string,
 		//       ]
 		//   }
 		//
-		orders = ArrayTyped(this.SafeList(response, "data", []any{}))
+		orders, _ = response["data"].([]any)
+		if orders == nil {
+			orders = []any{}
+		}
 	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market))}
@@ -15583,7 +15597,7 @@ func (this *Kucoin) closePositionBody(ch chan AsyncResult[Order], symbol string,
 		response = r2.Value
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, response), market)}
 	return nil
 }
 
@@ -16075,7 +16089,7 @@ func (this *Kucoin) Sign(path string, optionalArgs ...any) map[string]any {
 	//
 	var versions, _ = this.Options["versions"].(map[string]any)
 	var apiVersions, _ = versions[apiName].(map[string]any)
-	var methodVersions map[string]any = SafeMapTyped(apiVersions, method)
+	var methodVersions, _ = apiVersions[method].(map[string]any)
 	var defaultVersion *string = this.SafeString(methodVersions, path, this.Options["version"])
 	var version *string = this.SafeString(params, "version", defaultVersion)
 	var paramsOmitted any = this.Omit(params, "version")

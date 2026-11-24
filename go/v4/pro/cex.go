@@ -134,8 +134,8 @@ func (this *Cex) HandleBalance(client ccxt.ClientInterface, message map[string]a
 	if data == nil {
 		data = map[string]any{}
 	}
-	var freeBalance map[string]any = ccxt.SafeMapTyped(data, "balance")
-	var usedBalance map[string]any = ccxt.SafeMapTyped(data, "obalance")
+	var freeBalance, _ = data["balance"].(map[string]any)
+	var usedBalance, _ = data["obalance"].(map[string]any)
 	if this.Balance == nil {
 		this.Balance = map[string]any{}
 	}
@@ -1201,7 +1201,11 @@ func (this *Cex) HandleOrdersSnapshot(client ccxt.ClientInterface, message map[s
 	var myOrders ccxt.WsArrayCache = this.Orders
 	for i := 0; i < len(rawOrders); i++ {
 		var market map[string]any = this.SafeMarket(symbol)
-		var order map[string]any = ccxt.OrderToMap(this.ParseOrder(this.SafeDict(rawOrders, i, map[string]any{}), market))
+		rawOrdersDict98143, _ := rawOrders[i].(map[string]any)
+		if rawOrdersDict98143 == nil {
+			rawOrdersDict98143 = map[string]any{}
+		}
+		var order map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrdersDict98143, market))
 		order["status"] = "open"
 		myOrders.Append(order)
 	}

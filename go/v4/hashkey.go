@@ -3643,7 +3643,7 @@ func (this *Hashkey) cancelOrderBody(ch chan AsyncResult[Order], id string, opti
 		panic(NotSupported(this.Id + " " + methodName + "() is not supported for " + *marketType + " type of markets"))
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, response))}
 	return nil
 }
 
@@ -3861,7 +3861,7 @@ func (this *Hashkey) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 		panic(NotSupported(this.Id + " " + methodName + "() is not supported for " + *marketType + " type of markets"))
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, response))}
 	return nil
 }
 
@@ -4239,7 +4239,7 @@ func (this *Hashkey) HandleTriggerOptionAndParams(params any, methodName any, op
 	}()
 	return []any{isTriggerStop, paramsStop}
 }
-func (this *Hashkey) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Hashkey) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder spot
 	//     {

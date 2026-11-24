@@ -1639,7 +1639,11 @@ func (this *Phemex) HandleOrders(client ccxt.ClientInterface, message map[string
 		}
 		trades = ccxt.ArrayTyped(this.SafeList(ordersDict, "fills", []any{}))
 		for i := 0; i < len(orders); i++ {
-			var parsedOrder map[string]any = ccxt.OrderToMap(this.ParseOrder(this.SafeDict(orders, i, map[string]any{})))
+			ordersDict131653, _ := orders[i].(map[string]any)
+			if ordersDict131653 == nil {
+				ordersDict131653 = map[string]any{}
+			}
+			var parsedOrder map[string]any = ccxt.OrderToMap(this.ParseOrder(ordersDict131653))
 			parsedOrders = append(parsedOrders, parsedOrder)
 		}
 	} else {

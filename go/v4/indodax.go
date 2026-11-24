@@ -1010,7 +1010,7 @@ func (this *Indodax) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Indodax) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Indodax) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	//     {
 	//         "order_id": "12345",
@@ -1481,7 +1481,7 @@ func (this *Indodax) cancelOrderBody(ch chan AsyncResult[Order], id string, opti
 	//
 	var data, _ = response["return"].(map[string]any)
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(data)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, data))}
 	return nil
 }
 

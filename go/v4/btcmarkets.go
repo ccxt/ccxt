@@ -1587,7 +1587,7 @@ func (this *Btcmarkets) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Btcmarkets) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Btcmarkets) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//

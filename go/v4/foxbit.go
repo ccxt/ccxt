@@ -2589,7 +2589,7 @@ func (this *Foxbit) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Foxbit) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Foxbit) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = this.SafeString(order, "market_symbol")

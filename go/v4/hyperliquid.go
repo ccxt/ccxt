@@ -4223,7 +4223,7 @@ func (this *Hyperliquid) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Fundi
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.FilterBySymbolSinceLimit(sorted, symbol, since, limit))}
 	return nil
 }
-func (this *Hyperliquid) GetDexFromHip3Symbol(market any) *string {
+func (this *Hyperliquid) GetDexFromHip3Symbol(market map[string]any) *string {
 	var baseName string = *this.SafeString(market, "baseName", "")
 	var part []string = strings.Split(baseName, ":")
 	var partsLength int = len(part)
@@ -4653,10 +4653,10 @@ func (this *Hyperliquid) fetchOrderBody(ch chan AsyncResult[Order], id string, o
 	//         "status": "order"
 	//     }
 	//
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(response, "order", map[string]any{}), market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDictMap(response, "order", map[string]any{}), market)}
 	return nil
 }
-func (this *Hyperliquid) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Hyperliquid) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrdersWs error
 	//
@@ -4756,14 +4756,14 @@ func (this *Hyperliquid) ParseOrder(order any, optionalArgs ...any) Order {
 	_ = market
 	var error *string = this.SafeString(order, "error")
 	if error != nil {
-		var finalOrder any = order // java req
+		var finalOrder map[string]any = order // java req
 		return this.SafeOrder(map[string]any{
 			"info":   finalOrder,
 			"status": "rejected",
 		})
 	}
 	var entry any = this.SafeDictN(order, []any{"order", "resting", "filled"}, order)
-	var filled map[string]any = SafeMapTyped(order, "filled")
+	var filled, _ = order["filled"].(map[string]any)
 	var coin *string = this.SafeString(entry, "coin")
 	var marketId *string = nil
 	if coin != nil {
@@ -4778,7 +4778,7 @@ func (this *Hyperliquid) ParseOrder(order any, optionalArgs ...any) Order {
 	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var timestamp *int64 = this.SafeInteger(entry, "timestamp")
 	var status *string = this.SafeString2(order, "status", "ccxtStatus")
-	var orderOmitted any = this.Omit(order, []any{"ccxtStatus"})
+	var orderOmitted map[string]any = this.OmitDict(order, []any{"ccxtStatus"})
 	var side *string = this.SafeString(entry, "side")
 	if side != nil {
 		var sideStr string
@@ -4845,7 +4845,7 @@ func (this *Hyperliquid) ParseOrder(order any, optionalArgs ...any) Order {
 		"trades":              nil,
 	}, marketResolved)
 }
-func (this *Hyperliquid) ParseOrderStatus(status *string) any {
+func (this *Hyperliquid) ParseOrderStatus(status *string) *string {
 	if status == nil {
 		return nil
 	}
@@ -4858,10 +4858,12 @@ func (this *Hyperliquid) ParseOrderStatus(status *string) any {
 		"marginCanceled": "canceled",
 	}
 	if strings.HasSuffix(*status, "Rejected") {
-		return "rejected"
+		retStrVal := "rejected"
+		return &retStrVal
 	}
 	if strings.HasSuffix(*status, "Canceled") {
-		return "canceled"
+		retStrVal := "canceled"
+		return &retStrVal
 	}
 	return this.SafeString(statuses, status, status)
 }
@@ -6962,7 +6964,7 @@ func (this *Hyperliquid) HandlePublicAddress(methodName string, params any) (*st
 		return user, paramsAddress
 	}
 	if this.WalletAddress != "" {
-		return SafeStringPtr(this.WalletAddress), paramsAddress
+		return &this.WalletAddress, paramsAddress
 	}
 	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a user parameter inside 'params' or the wallet address set"))
 }

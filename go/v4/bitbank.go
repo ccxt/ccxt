@@ -983,7 +983,7 @@ func (this *Bitbank) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitbank) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Bitbank) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(order, "order_id")
@@ -1073,7 +1073,7 @@ func (this *Bitbank) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	var response map[string]any = r1.Value
 	var data, _ = response["data"].(map[string]any)
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, data), market)}
 	return nil
 }
 
@@ -1213,7 +1213,7 @@ func (this *Bitbank) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 	//
 	var data, _ = response["data"].(map[string]any)
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, data), market)}
 	return nil
 }
 

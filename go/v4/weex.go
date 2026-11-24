@@ -4105,7 +4105,7 @@ func (this *Weex) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order],
 			panic(r.Err)
 		}
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -4185,7 +4185,7 @@ func (this *Weex) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order],
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
 	return nil
 }
-func (this *Weex) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Weex) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder (spot)
 	//     {
@@ -4387,7 +4387,7 @@ func (this *Weex) ParseOrderType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Weex) HandleOrderOrPositionError(errorCode *string, errorMessage *string, order any) {
+func (this *Weex) HandleOrderOrPositionError(errorCode *string, errorMessage *string, order map[string]any) {
 	var errorCodeValue string
 	if errorCode == nil {
 		errorCodeValue = ""
@@ -6039,7 +6039,7 @@ func (this *Weex) addMarginBody(ch chan AsyncResult[MarginModification], symbol 
  * @param {object} market a unified market structure
  * @returns {string} the market id for the request
  */
-func (this *Weex) ToSandboxMarketId(market any) *string {
+func (this *Weex) ToSandboxMarketId(market map[string]any) *string {
 	var sandboxMode *bool = this.SafeBool(this.Options, "sandboxMode", false)
 	var baseId *string = this.SafeString(market, "baseId")
 	if (sandboxMode != nil && *sandboxMode) && (baseId != nil) {

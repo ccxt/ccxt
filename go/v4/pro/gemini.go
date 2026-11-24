@@ -1000,7 +1000,7 @@ func (this *Gemini) HandleOrder(client ccxt.ClientInterface, message []any) {
 	}
 	var orders ccxt.WsArrayCache = this.Orders
 	for i := 0; i < len(message); i++ {
-		var order map[string]any = this.ParseWsOrder(this.SafeValue(message, i))
+		var order map[string]any = this.ParseWsOrder(this.SafeDict(message, i, map[string]any{}))
 		orders.Append(order)
 	}
 	client.Resolve(this.Orders, messageHash)

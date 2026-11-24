@@ -925,7 +925,7 @@ func (this *Luno) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Luno) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Luno) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	//     {
 	//         "base": "string",

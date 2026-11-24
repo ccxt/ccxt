@@ -472,7 +472,11 @@ func (this *Limitless) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketIn
 	}
 	for i := 0; i < len(eventKeys); i++ {
 		var eventKey string = eventKeys[i]
-		eventsDict[eventKey] = this.ParseEvent(this.SafeDict(eventGroups, eventKey, map[string]any{}))
+		eventGroupsDict32552, _ := eventGroups[eventKey].(map[string]any)
+		if eventGroupsDict32552 == nil {
+			eventGroupsDict32552 = map[string]any{}
+		}
+		eventsDict[eventKey] = this.ParseEvent(eventGroupsDict32552)
 	}
 	this.Events = eventsDict
 	var marketsLength int = len(markets)
@@ -803,7 +807,7 @@ func (this *Limitless) ExpandGroupRows(rawRows []any) []any {
 	}
 	return result
 }
-func (this *Limitless) ParseEvent(event any) map[string]any {
+func (this *Limitless) ParseEvent(event map[string]any) map[string]any {
 	// {
 	//    "groupId":"trump-out-as-president-before-2027-1768933068297",
 	//    "title":"💎 Trump out as President before 2027?",
@@ -1210,7 +1214,7 @@ func (this *Limitless) fetchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionT
  * @param {object} [market] the outcome object the ticker belongs to
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Limitless) ParsePredictionTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Limitless) ParsePredictionTicker(ticker map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id": "36814",
@@ -1279,7 +1283,7 @@ func (this *Limitless) ParsePredictionTicker(ticker any, optionalArgs ...any) ma
 	_ = market
 	var raw any = ticker
 	var book map[string]any = nil
-	if ccxt.InOp(ticker, "market") {
+	if _, ok := ticker["market"]; ok {
 		raw = this.SafeDict(ticker, "market", map[string]any{})
 		book = this.SafeDictMap(ticker, "book")
 	}
@@ -2256,7 +2260,7 @@ func (this *Limitless) fetchOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOr
  * @param {object} [market] the outcome object the order belongs to
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Limitless) ParsePredictionOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Limitless) ParsePredictionOrder(order map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// fetchOrders, fetchOpenOrders, fetchClosedOrders
 	//     {
@@ -2368,7 +2372,7 @@ func (this *Limitless) ParsePredictionOrder(order any, optionalArgs ...any) map[
 	//     }
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var data map[string]any = ccxt.SafeMapTyped(order, "data")
+	var data, _ = order["data"].(map[string]any)
 	var rawOrder any = this.SafeDict(data, "order", order)
 	// createOrder returns the order nested under an 'order' key
 	var wrappedOrder map[string]any = this.SafeDictMap(rawOrder, "order")
@@ -3874,7 +3878,11 @@ func (this *Limitless) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	}
 	var eventKeysLength int = len(eventKeys)
 	for i := 0; i < eventKeysLength; i++ {
-		var ev map[string]any = this.ParseEvent(this.SafeDict(eventGroups, eventKeys[i], map[string]any{}))
+		eventGroupsDict302140, _ := eventGroups[eventKeys[i]].(map[string]any)
+		if eventGroupsDict302140 == nil {
+			eventGroupsDict302140 = map[string]any{}
+		}
+		var ev map[string]any = this.ParseEvent(eventGroupsDict302140)
 		result = append(result, ev)
 	}
 	// setEvents keys events by id/slug/handle; populateOutcomes rebuilds the outcome cache

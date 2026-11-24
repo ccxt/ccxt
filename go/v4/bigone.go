@@ -1792,7 +1792,7 @@ func (this *Bigone) ParseType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Bigone) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Bigone) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	//    {
 	//        "id": "42154072252",

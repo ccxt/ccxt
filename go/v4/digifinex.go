@@ -3013,7 +3013,7 @@ func (this *Digifinex) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Digifinex) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Digifinex) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// spot: createOrder
 	//

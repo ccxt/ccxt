@@ -1637,9 +1637,9 @@ func (this *Xt) fetchSwapAndFutureMarketsBody(ch chan AsyncResult[[]MarketInterf
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(swapAndFutureMarkets))}
 	return nil
 }
-func (this *Xt) ParseMarkets(markets any) []any {
+func (this *Xt) ParseMarkets(markets []any) []any {
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(markets); i++ {
+	for i := 0; i < len(markets); i++ {
 		var parsed map[string]any = this.ParseMarket(this.SafeValue(markets, i))
 		if parsed != nil {
 			result = append(result, parsed)
@@ -3641,7 +3641,7 @@ func (this *Xt) createContractOrderBody(ch chan AsyncResult[Order], symbol strin
 		}
 		request["positionSide"] = requestType
 	}
-	var response map[string]any = nil
+	var response any = nil
 	var triggerPrice *float64 = this.SafeNumber2(paramsOmitted4, "triggerPrice", "stopPrice")
 	var stopLoss *float64 = this.SafeNumber2(paramsOmitted4, "stopLoss", "triggerStopPrice")
 	var takeProfit *float64 = this.SafeNumber2(paramsOmitted4, "takeProfit", "triggerProfitPrice")
@@ -3689,14 +3689,14 @@ func (this *Xt) createContractOrderBody(ch chan AsyncResult[Order], symbol strin
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			response = r1.Value
+			response = r1.Raw
 		} else if *this.SafeBool(market, "inverse", false) {
 
 			r2 := <-this.PrivateInversePostFutureTradeV1EntrustCreateTrack(this.Extend(request, paramsOmitted3))
 			if r2.Err != nil {
 				panic(r2.Err)
 			}
-			response = r2.Value
+			response = r2.Raw
 		}
 	} else if isTrigger {
 		if timeInForce == nil {
@@ -3719,14 +3719,14 @@ func (this *Xt) createContractOrderBody(ch chan AsyncResult[Order], symbol strin
 			if r3.Err != nil {
 				panic(r3.Err)
 			}
-			response = r3.Value
+			response = r3.Raw
 		} else if *this.SafeBool(market, "inverse", false) {
 
 			r4 := <-this.PrivateInversePostFutureTradeV1EntrustCreatePlan(this.Extend(request, paramsOmitted2))
 			if r4.Err != nil {
 				panic(r4.Err)
 			}
-			response = r4.Value
+			response = r4.Raw
 		}
 	} else if isStopLoss || isTakeProfit {
 		if isStopLoss {
@@ -3741,14 +3741,14 @@ func (this *Xt) createContractOrderBody(ch chan AsyncResult[Order], symbol strin
 			if r5.Err != nil {
 				panic(r5.Err)
 			}
-			response = r5.Value
+			response = r5.Raw
 		} else if *this.SafeBool(market, "inverse", false) {
 
 			r6 := <-this.PrivateInversePostFutureTradeV1EntrustCreateProfit(this.Extend(request, paramsOmitted))
 			if r6.Err != nil {
 				panic(r6.Err)
 			}
-			response = r6.Value
+			response = r6.Raw
 		}
 	} else {
 		request["orderSide"] = strings.ToUpper(side)
@@ -3759,14 +3759,14 @@ func (this *Xt) createContractOrderBody(ch chan AsyncResult[Order], symbol strin
 			if r7.Err != nil {
 				panic(r7.Err)
 			}
-			response = r7.Value
+			response = r7.Raw
 		} else if *this.SafeBool(market, "inverse", false) {
 
 			r8 := <-this.PrivateInversePostFutureTradeV1OrderCreate(this.Extend(request, paramsOmitted4))
 			if r8.Err != nil {
 				panic(r8.Err)
 			}
-			response = r8.Value
+			response = r8.Raw
 		}
 	}
 
@@ -3778,7 +3778,7 @@ func (this *Xt) createContractOrderBody(ch chan AsyncResult[Order], symbol strin
 	//         "result": "206410760006650176"
 	//     }
 	//
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, response), market)}
 	return nil
 }
 
@@ -4995,7 +4995,11 @@ func (this *Xt) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalA
 		return nil
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(response, "result", map[string]any{}), market)}
+	responseDict369432, _ := response["result"].(map[string]any)
+	if responseDict369432 == nil {
+		responseDict369432 = map[string]any{}
+	}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(responseDict369432, market)}
 	return nil
 }
 
@@ -5215,7 +5219,7 @@ func (this *Xt) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, opt
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList([]any{OrderToMap(this.SafeOrder(response))})}
 	return nil
 }
-func (this *Xt) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Xt) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// spot: createOrder
 	//
@@ -7894,7 +7898,11 @@ func (this *Xt) editOrderBody(ch chan AsyncResult[Order], id string, symbol stri
 		return nil
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(response, "result", map[string]any{}), market)}
+	responseDict581832, _ := response["result"].(map[string]any)
+	if responseDict581832 == nil {
+		responseDict581832 = map[string]any{}
+	}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(responseDict581832, market)}
 	return nil
 }
 func (this *Xt) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {

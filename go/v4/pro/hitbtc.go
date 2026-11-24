@@ -689,7 +689,11 @@ func (this *Hitbtc) HandleTicker(client ccxt.ClientInterface, message map[string
 		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = this.SafeSymbol(marketId, market)
-		var ticker map[string]any = this.ParseWsTicker(this.SafeDict(data, marketId, map[string]any{}), market)
+		dataDict52047, _ := data[marketId].(map[string]any)
+		if dataDict52047 == nil {
+			dataDict52047 = map[string]any{}
+		}
+		var ticker map[string]any = this.ParseWsTicker(dataDict52047, market)
 		if symbol != nil {
 			this.Tickers[*symbol] = ccxt.TickerFromMap(ticker)
 		}
@@ -699,7 +703,7 @@ func (this *Hitbtc) HandleTicker(client ccxt.ClientInterface, message map[string
 	}
 	client.Resolve(result, topic)
 }
-func (this *Hitbtc) ParseWsTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Hitbtc) ParseWsTicker(ticker map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "t": 1614815872000,             // Timestamp in milliseconds
@@ -853,7 +857,11 @@ func (this *Hitbtc) HandleBidAsk(client ccxt.ClientInterface, message map[string
 		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = this.SafeSymbol(marketId, market)
-		var ticker map[string]any = this.ParseWsBidAsk(this.SafeDict(data, marketId, map[string]any{}), market)
+		dataDict65047, _ := data[marketId].(map[string]any)
+		if dataDict65047 == nil {
+			dataDict65047 = map[string]any{}
+		}
+		var ticker map[string]any = this.ParseWsBidAsk(dataDict65047, market)
 		if symbol != nil {
 			this.Bidsasks[*symbol] = ccxt.TickerFromMap(ticker)
 		}
@@ -863,7 +871,7 @@ func (this *Hitbtc) HandleBidAsk(client ccxt.ClientInterface, message map[string
 	}
 	client.Resolve(result, topic)
 }
-func (this *Hitbtc) ParseWsBidAsk(ticker any, optionalArgs ...any) map[string]any {
+func (this *Hitbtc) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(ticker, "t")
@@ -1049,7 +1057,7 @@ func (this *Hitbtc) HandleTrades(client ccxt.ClientInterface, message map[string
 				this.Trades[*symbol] = stored
 			}
 		}
-		var trades any = this.ParseWsTrades(data[marketId], market)
+		var trades any = this.ParseWsTrades(this.SafeList(data, marketId, []any{}), market)
 		for j := 0; j < ccxt.GetArrayLength(trades); j++ {
 			stored.Append(ccxt.GetValue(trades, j))
 		}
@@ -2054,7 +2062,7 @@ func (this *Hitbtc) HandleOrderRequest(client ccxt.ClientInterface, message map[
 		var parsedOrders []any = []any{}
 		var rowsLength int = len(rows)
 		for i := 0; i < rowsLength; i++ {
-			var parsedOrder any = this.ParseWsOrder(rows[i])
+			var parsedOrder any = this.ParseWsOrder(this.SafeDict(rows, i, map[string]any{}))
 			parsedOrders = append(parsedOrders, parsedOrder)
 		}
 		client.Resolve(parsedOrders, messageHash)

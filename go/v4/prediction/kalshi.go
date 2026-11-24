@@ -1020,11 +1020,11 @@ func (this *Kalshi) fetchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTick
 		"ticker": ticker,
 	}
 
-	responseReply := <-this.KalshiPublicGetMarketsTicker(this.Extend(request, params))
-	if responseReply.Err != nil {
-		panic(responseReply.Err)
+	r1 := <-this.KalshiPublicGetMarketsTicker(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
 	}
-	var response map[string]any = responseReply.Value
+	response := r1.Raw
 	//
 	//     {
 	//         "market": {
@@ -1080,11 +1080,7 @@ func (this *Kalshi) fetchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTick
 	//         }
 	//     }
 	//
-	var raw map[string]any
-	raw, _ = response["market"].(map[string]any)
-	if raw == nil {
-		raw = response
-	}
+	var raw map[string]any = this.Extend(map[string]any{}, this.SafeDict(response, "market", response))
 
 	ch <- ccxt.AsyncResult[ccxt.PredictionTicker]{Value: ccxt.PredictionTickerFromMap(this.ParsePredictionTicker(raw, outcomeObj))}
 	return nil
@@ -1208,7 +1204,7 @@ func (this *Kalshi) ParsePredictionOpenInterest(interest any, optionalArgs ...an
  * @param {object} [market] the outcome object the ticker belongs to
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Kalshi) ParsePredictionTicker(raw any, optionalArgs ...any) map[string]any {
+func (this *Kalshi) ParsePredictionTicker(raw map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "market": {
@@ -1426,6 +1422,9 @@ func (this *Kalshi) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pr
 		var rawMarkets, _ = response["markets"].([]any)
 		for i := 0; i < len(rawMarkets); i++ {
 			var raw, _ = rawMarkets[i].(map[string]any)
+			if raw == nil {
+				raw = map[string]any{}
+			}
 			var marketTicker *string = this.SafeString(raw, "ticker")
 			var marketTickerInOutcomesByTicker bool
 			if marketTicker != nil {
@@ -1436,7 +1435,7 @@ func (this *Kalshi) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pr
 			}
 			var grouped any = outcomesByTicker[*marketTicker]
 			for j := 0; j < ccxt.GetArrayLength(grouped); j++ {
-				var ticker map[string]any = this.ParsePredictionTicker(rawMarkets[i], ccxt.GetValue(grouped, j))
+				var ticker map[string]any = this.ParsePredictionTicker(raw, ccxt.GetValue(grouped, j))
 				var symbolKey *string = this.SafeString(ticker, "outcome")
 				if symbolKey != nil {
 					result[*symbolKey] = ticker
@@ -2626,7 +2625,7 @@ func (this *Kalshi) fetchOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder
 	}
 	response := r1.Raw
 
-	ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: ccxt.PredictionOrderFromMap(this.ParsePredictionOrder(this.SafeDict(response, "order", response)))}
+	ch <- ccxt.AsyncResult[ccxt.PredictionOrder]{Value: ccxt.PredictionOrderFromMap(this.ParsePredictionOrder(this.Extend(map[string]any{}, this.SafeDict(response, "order", response))))}
 	return nil
 }
 
@@ -2639,7 +2638,7 @@ func (this *Kalshi) fetchOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder
  * @param {object} [market] the outcome object the order belongs to
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Kalshi) ParsePredictionOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Kalshi) ParsePredictionOrder(order map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(order, "order_id")
@@ -2973,7 +2972,7 @@ func (this *Kalshi) cancelOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrde
 	response := r1.Raw
 	// the delete response is minimal (no ticker/action/id/status): pass the resolved outcome so
 	// the parser can fill outcome/outcomeId/market/label, then backfill the id and canceled status
-	var order map[string]any = this.ParsePredictionOrder(this.SafeDict(response, "order", response), outcomeObj)
+	var order map[string]any = this.ParsePredictionOrder(this.Extend(map[string]any{}, this.SafeDict(response, "order", response)), outcomeObj)
 	if this.SafeString(order, "id") == nil {
 		order["id"] = id
 	}
@@ -3033,8 +3032,7 @@ func (this *Kalshi) cancelAllOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	var restingOrdersLength int = len(restingOrders)
 	var canceledOrders []any = []any{}
 	for i := 0; i < restingOrdersLength; i++ {
-		var restingOrder, _ = restingOrders[i].(map[string]any)
-		var orderId *string = this.SafeString(restingOrder, "order_id")
+		var orderId *string = this.SafeString(restingOrders[i], "order_id")
 		if orderId != nil {
 
 			r2 := <-this.KalshiPrivateDeletePortfolioEventsOrdersOrderId(this.Extend(map[string]any{
@@ -3045,7 +3043,11 @@ func (this *Kalshi) cancelAllOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 			}
 			// the DELETE body is minimal — parse the already-fetched resting order instead, which
 			// carries the true side/outcome/price/count, then mark it canceled
-			var parsed map[string]any = this.ParsePredictionOrder(restingOrders[i])
+			restingOrdersDict217058, _ := restingOrders[i].(map[string]any)
+			if restingOrdersDict217058 == nil {
+				restingOrdersDict217058 = map[string]any{}
+			}
+			var parsed map[string]any = this.ParsePredictionOrder(restingOrdersDict217058)
 			parsed["status"] = "canceled"
 			canceledOrders = append(canceledOrders, parsed)
 		}
@@ -3674,7 +3676,7 @@ func (this *Kalshi) ParseEvent(rawEvent map[string]any) map[string]any {
 	if created == nil {
 		created = earliestCreated
 	}
-	var literal262228 map[string]any = map[string]any{
+	var literal262128 map[string]any = map[string]any{
 		"id":                    ticker,
 		"slug":                  ticker,
 		"event":                 nil,
@@ -3697,9 +3699,9 @@ func (this *Kalshi) ParseEvent(rawEvent map[string]any) map[string]any {
 		"info":                  rawEvent,
 	}
 	if eventSlug != nil {
-		literal262228["event"] = *eventSlug
+		literal262128["event"] = *eventSlug
 	}
-	return this.Extend(literal262228)
+	return this.Extend(literal262128)
 }
 
 /**

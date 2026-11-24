@@ -1952,8 +1952,8 @@ func (this *Blofin) CreateOrderRequest(symbol *string, typeVar *string, side *st
 	if postOnly {
 		request["type"] = "post_only"
 	}
-	var stopLoss map[string]any = SafeMapTyped(query, "stopLoss")
-	var takeProfit map[string]any = SafeMapTyped(query, "takeProfit")
+	var stopLoss, _ = query["stopLoss"].(map[string]any)
+	var takeProfit, _ = query["takeProfit"].(map[string]any)
 	query = this.OmitDict(query, []any{"stopLoss", "takeProfit", "hedged"})
 	var hasStopLoss bool = (stopLoss != nil)
 	var hasTakeProfit bool = (takeProfit != nil)
@@ -1994,7 +1994,7 @@ func (this *Blofin) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Blofin) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Blofin) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// response similar for REST & WS
 	//
@@ -2231,7 +2231,7 @@ func (this *Blofin) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			dataDict = map[string]any{}
 		}
 
-		ch <- AsyncResult[Order]{Value: this.ParseOrder(dataDict, market)}
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, dataDict), market)}
 		return nil
 	}
 	var data []any
@@ -2240,7 +2240,7 @@ func (this *Blofin) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	if 0 < len(data) {
 		first, _ = data[0].(map[string]any)
 	}
-	var order map[string]any = OrderToMap(this.ParseOrder(first, market))
+	var order map[string]any = OrderToMap(this.ParseOrder(this.Extend(map[string]any{}, first), market))
 	order["type"] = typeVar
 	order["side"] = side
 
@@ -2396,7 +2396,7 @@ func (this *Blofin) cancelOrderBody(ch chan AsyncResult[Order], id string, optio
 		var triggerResponse map[string]any = r2.Value
 		var triggerData, _ = triggerResponse["data"].(map[string]any)
 
-		ch <- AsyncResult[Order]{Value: this.ParseOrder(triggerData, market)}
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, triggerData), market)}
 		return nil
 	}
 
@@ -2412,7 +2412,7 @@ func (this *Blofin) cancelOrderBody(ch chan AsyncResult[Order], id string, optio
 		order, _ = data[0].(map[string]any)
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, order), market)}
 	return nil
 }
 

@@ -2272,7 +2272,7 @@ func (this *Bitfinex) ParseTimeInForce(orderType *string) string {
 	}
 	return *this.SafeString(orderTypes, orderType, "GTC")
 }
-func (this *Bitfinex) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Bitfinex) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var orderList []any = SafeListTyped(order, "result")
@@ -4266,7 +4266,7 @@ func (this *Bitfinex) HandleErrors(code int64, reason string, url string, method
 	retBoolVal := true
 	return &retBoolVal
 }
-func (this *Bitfinex) ParseLedgerEntryType(typeVar *string) any {
+func (this *Bitfinex) ParseLedgerEntryType(typeVar *string) *string {
 	if typeVar == nil {
 		return nil
 	} else if (func() int {
@@ -4280,14 +4280,16 @@ func (this *Bitfinex) ParseLedgerEntryType(typeVar *string) any {
 		}
 		return strings.Index(*typeVar, "charged")
 	}() >= 0) {
-		return "fee"
+		retStrVal := "fee"
+		return &retStrVal
 	} else if func() int {
 		if typeVar == nil {
 			return -1
 		}
 		return strings.Index(*typeVar, "rebate")
 	}() >= 0 {
-		return "rebate"
+		retStrVal := "rebate"
+		return &retStrVal
 	} else if (func() int {
 		if typeVar == nil {
 			return -1
@@ -4299,21 +4301,24 @@ func (this *Bitfinex) ParseLedgerEntryType(typeVar *string) any {
 		}
 		return strings.Index(*typeVar, "withdrawal")
 	}() >= 0) {
-		return "transaction"
+		retStrVal := "transaction"
+		return &retStrVal
 	} else if func() int {
 		if typeVar == nil {
 			return -1
 		}
 		return strings.Index(*typeVar, "transfer")
 	}() >= 0 {
-		return "transfer"
+		retStrVal := "transfer"
+		return &retStrVal
 	} else if func() int {
 		if typeVar == nil {
 			return -1
 		}
 		return strings.Index(*typeVar, "payment")
 	}() >= 0 {
-		return "payout"
+		retStrVal := "payout"
+		return &retStrVal
 	} else if (func() int {
 		if typeVar == nil {
 			return -1
@@ -4325,7 +4330,8 @@ func (this *Bitfinex) ParseLedgerEntryType(typeVar *string) any {
 		}
 		return strings.Index(*typeVar, "position")
 	}() >= 0) {
-		return "trade"
+		retStrVal := "trade"
+		return &retStrVal
 	} else {
 		return typeVar
 	}
@@ -4349,7 +4355,7 @@ func (this *Bitfinex) ParseLedgerEntry(item map[string]any, optionalArgs ...any)
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var itemList []any = SafeListTyped(item, "result")
-	var typeVar any = nil
+	var typeVar *string = nil
 	var id *string = this.SafeString(itemList, 0)
 	var currencyId *string = this.SafeString(itemList, 1)
 	var code *string = this.SafeCurrencyCode(currencyId, currency)

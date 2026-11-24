@@ -848,7 +848,7 @@ func (this *Hibachi) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, uppercaseStatus, status)
 }
-func (this *Hibachi) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Hibachi) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(order, "symbol")

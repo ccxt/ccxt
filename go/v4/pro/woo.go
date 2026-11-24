@@ -1739,14 +1739,18 @@ func (this *Woo) HandleOrderUpdate(client ccxt.ClientInterface, message map[stri
 	//         }
 	//     }
 	//
-	var topic *string = this.SafeString(message, "topic")
+	var topic string = *this.SafeString(message, "topic", "")
 	var dataList, _ = message["data"].([]any)
 	if dataList != nil {
 		// algoexecutionreportv2
 		for i := 0; i < len(dataList); i++ {
 			var tradeId *string = this.OmitZero(this.SafeString(dataList, "tradeId"))
 			if tradeId != nil {
-				this.HandleMyTrade(client, this.SafeDict(dataList, i, map[string]any{}))
+				dataListDict123248, _ := dataList[i].(map[string]any)
+				if dataListDict123248 == nil {
+					dataListDict123248 = map[string]any{}
+				}
+				this.HandleMyTrade(client, dataListDict123248)
 			}
 			this.HandleOrder(client, this.SafeDict(dataList, i, map[string]any{}), topic)
 		}
@@ -1764,7 +1768,7 @@ func (this *Woo) HandleOrderUpdate(client ccxt.ClientInterface, message map[stri
 		this.HandleOrder(client, data, topic)
 	}
 }
-func (this *Woo) HandleOrder(client ccxt.ClientInterface, message any, topic any) {
+func (this *Woo) HandleOrder(client ccxt.ClientInterface, message any, topic string) {
 	var parsed map[string]any = this.ParseWsOrder(message)
 	var symbol *string = this.SafeString(parsed, "symbol")
 	var orderId *string = this.SafeString(parsed, "id")
@@ -1799,11 +1803,11 @@ func (this *Woo) HandleOrder(client ccxt.ClientInterface, message any, topic any
 		}
 		cachedOrders.Append(parsed)
 		client.Resolve(this.Orders, topic)
-		var messageHashSymbol any = ccxt.Add(ccxt.Add(topic, ":"), symbol)
+		var messageHashSymbol string = topic + ":" + *symbol
 		client.Resolve(this.Orders, messageHashSymbol)
 	}
 }
-func (this *Woo) HandleMyTrade(client ccxt.ClientInterface, message any) {
+func (this *Woo) HandleMyTrade(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//    {
 	//     "msgType": 0,  // execution report

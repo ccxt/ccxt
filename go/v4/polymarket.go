@@ -2408,7 +2408,7 @@ func (this *Polymarket) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Polymarket) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Polymarket) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// GET /v1/account/orders and /v1/account/open-orders use long names
 	//
@@ -2476,7 +2476,7 @@ func (this *Polymarket) ParseOrder(order any, optionalArgs ...any) Order {
 		}
 		typeVar = &typeVarStr
 	}
-	var tpsl map[string]any = SafeMapTyped(order, "tpsl")
+	var tpsl, _ = order["tpsl"].(map[string]any)
 	var stopLossPrice *string = nil
 	var takeProfitPrice *string = nil
 	if tpsl != nil {

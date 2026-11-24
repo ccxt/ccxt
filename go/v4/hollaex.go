@@ -1703,7 +1703,7 @@ func (this *Hollaex) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Hollaex) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Hollaex) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder, fetchOpenOrder, fetchOpenOrders
 	//
@@ -1744,7 +1744,7 @@ func (this *Hollaex) ParseOrder(order any, optionalArgs ...any) Order {
 	var amount *string = this.SafeString(order, "size")
 	var filled *string = this.SafeString(order, "filled")
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
-	var meta map[string]any = SafeMapTyped(order, "meta")
+	var meta, _ = order["meta"].(map[string]any)
 	var postOnly *bool = this.SafeBool(meta, "post_only", false)
 	return this.SafeOrder(map[string]any{
 		"id":                 id,

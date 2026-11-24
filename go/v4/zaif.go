@@ -855,7 +855,7 @@ func (this *Zaif) cancelOrderBody(ch chan AsyncResult[Order], id string, optiona
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(data)}
 	return nil
 }
-func (this *Zaif) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Zaif) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	//     {
 	//         "currency_pair": "btc_jpy",

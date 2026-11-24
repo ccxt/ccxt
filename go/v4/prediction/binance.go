@@ -1029,7 +1029,7 @@ func (this *Binance) fetchTickerBody(ch chan ccxt.AsyncResult[ccxt.PredictionTic
  * @param {object} [market] the outcome object the ticker belongs to
  * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
  */
-func (this *Binance) ParsePredictionTicker(raw any, optionalArgs ...any) map[string]any {
+func (this *Binance) ParsePredictionTicker(raw map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     { "marketId": 5567895, "lastTradePrice": "0.52" }
 	//
@@ -1135,7 +1135,7 @@ func (this *Binance) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.P
 			response = r1.Raw
 			responsesByMarketId[*marketId] = response
 		}
-		var ticker map[string]any = this.ParsePredictionTicker(response, outcomeObj)
+		var ticker map[string]any = this.ParsePredictionTicker(this.Extend(map[string]any{}, response), outcomeObj)
 		var symbolKey *string = this.SafeString(ticker, "outcome", outcomes[i])
 		if symbolKey != nil {
 			result[*symbolKey] = ticker
@@ -1267,7 +1267,7 @@ func (this *Binance) fetchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
  * @param {object} [outcomeObj] the ourtome the order belongs to
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Binance) ParsePredictionOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Binance) ParsePredictionOrder(order map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "orderId": "54124",
@@ -1297,7 +1297,7 @@ func (this *Binance) ParsePredictionOrder(order any, optionalArgs ...any) map[st
 	//
 	var outcomeObj map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = outcomeObj
-	var status any = this.ParseOrderStatus(this.SafeString(order, "status"))
+	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var outcomeObjResolved map[string]any = outcomeObj
 	if outcomeObjResolved == nil {
 		var marketId *string = this.SafeString(order, "marketId")
@@ -1341,7 +1341,7 @@ func (this *Binance) ParsePredictionOrder(order any, optionalArgs ...any) map[st
 		"trades":             []any{},
 	}, outcomeObjResolved)
 }
-func (this *Binance) ParseOrderStatus(status *string) any {
+func (this *Binance) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"OPENING": "open",
 		"FILLED":  "closed",
@@ -1350,10 +1350,12 @@ func (this *Binance) ParseOrderStatus(status *string) any {
 		return nil
 	}
 	if strings.HasSuffix(*status, "Rejected") {
-		return "rejected"
+		retStrVal := "rejected"
+		return &retStrVal
 	}
 	if strings.HasSuffix(*status, "Canceled") {
-		return "canceled"
+		retStrVal := "canceled"
+		return &retStrVal
 	}
 	return this.SafeString(statuses, status, status)
 }

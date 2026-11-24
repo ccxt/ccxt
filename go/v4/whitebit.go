@@ -1741,8 +1741,8 @@ func (this *Whitebit) fetchFundingLimitsBody(ch chan AsyncResult[map[string]any]
 		}
 		// Add fee information if available
 		if feeData != nil {
-			var depositFee map[string]any = SafeMapTyped(feeData, "deposit")
-			var withdrawFee map[string]any = SafeMapTyped(feeData, "withdraw")
+			var depositFee, _ = feeData["deposit"].(map[string]any)
+			var withdrawFee, _ = feeData["withdraw"].(map[string]any)
 			if depositFee != nil {
 				var depositFeeData map[string]any = map[string]any{
 					"fixed": this.SafeNumber(depositFee, "fixed"),
@@ -2052,7 +2052,11 @@ func (this *Whitebit) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 						var marketId *string = this.SafeString(order, "market")
 						var marketNew map[string]any = this.SafeMarket(marketId, nil, "_")
 
-						ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(orders, i, map[string]any{}), marketNew)}
+						ordersDict150448, _ := orders[i].(map[string]any)
+						if ordersDict150448 == nil {
+							ordersDict150448 = map[string]any{}
+						}
+						ch <- AsyncResult[Order]{Value: this.ParseOrder(ordersDict150448, marketNew)}
 						chSent = true
 						return nil
 					}
@@ -2109,7 +2113,11 @@ func (this *Whitebit) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 						var orderId *string = this.SafeString(order, "id", "")
 						if orderId != nil && *orderId == id {
 
-							ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(marketOrders, j, map[string]any{}), marketNew)}
+							marketOrdersDict152852, _ := marketOrders[j].(map[string]any)
+							if marketOrdersDict152852 == nil {
+								marketOrdersDict152852 = map[string]any{}
+							}
+							ch <- AsyncResult[Order]{Value: this.ParseOrder(marketOrdersDict152852, marketNew)}
 							chSent = true
 							return nil
 						}
@@ -2256,7 +2264,8 @@ func (this *Whitebit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		}
 		response = r3.Value
 	}
-	var resultList []any = SafeListTyped(response, "result")
+	var resultList []any
+	resultList, _ = response["result"].([]any)
 	if resultList != nil {
 
 		ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.ParseTickers(resultList, symbolsNormalized))}
@@ -2273,7 +2282,11 @@ func (this *Whitebit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
-		var ticker map[string]any = TickerToMap(this.ParseTicker(this.SafeDictMap(response, marketId, map[string]any{}), market))
+		responseDict164945, _ := response[marketId].(map[string]any)
+		if responseDict164945 == nil {
+			responseDict164945 = map[string]any{}
+		}
+		var ticker map[string]any = TickerToMap(this.ParseTicker(responseDict164945, market))
 		var symbol *string = this.SafeString(ticker, "symbol")
 		if symbol != nil {
 			result[*symbol] = ticker
@@ -3697,7 +3710,11 @@ func (this *Whitebit) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 		var marketNew map[string]any = this.SafeMarket(marketId, nil, "_")
 		var orders []any = SafeListTyped(response, marketId)
 		for j := 0; j < len(orders); j++ {
-			var order map[string]any = OrderToMap(this.ParseOrder(this.SafeDict(orders, j, map[string]any{}), marketNew))
+			ordersDict259347, _ := orders[j].(map[string]any)
+			if ordersDict259347 == nil {
+				ordersDict259347 = map[string]any{}
+			}
+			var order map[string]any = OrderToMap(this.ParseOrder(ordersDict259347, marketNew))
 			results = append(results, this.Extend(order, map[string]any{
 				"status": "closed",
 			}))
@@ -3720,7 +3737,7 @@ func (this *Whitebit) ParseOrderType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Whitebit) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Whitebit) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder, fetchOpenOrders, cancelOrder
 	//

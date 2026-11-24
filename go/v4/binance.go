@@ -8550,7 +8550,7 @@ func (this *Binance) ParseOrderTypeByMarket(typeVar *string, marketType string) 
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Binance) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Binance) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// spot
 	//
@@ -14144,7 +14144,7 @@ func (this *Binance) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(response, currency)}
 	return nil
 }
-func (this *Binance) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInterface {
+func (this *Binance) ParseTradingFee(fee map[string]any, optionalArgs ...any) TradingFeeInterface {
 	//
 	// spot
 	//     [
@@ -14285,7 +14285,7 @@ func (this *Binance) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface
 		panic(NullResponse(this.Id + " parseTradingFee() returned empty response"))
 	}
 
-	ch <- AsyncResult[TradingFeeInterface]{Value: this.ParseTradingFee(data, market)}
+	ch <- AsyncResult[TradingFeeInterface]{Value: this.ParseTradingFee(this.Extend(map[string]any{}, data), market)}
 	return nil
 }
 
@@ -14414,7 +14414,7 @@ func (this *Binance) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 		}
 		var fees []any = this.ToArray(response)
 		for i := 0; i < len(fees); i++ {
-			var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(fees[i]))
+			var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(this.Extend(map[string]any{}, fees[i])))
 			var symbol *string = this.SafeString(fee, "symbol")
 			if symbol != nil {
 				spotFees[*symbol] = fee

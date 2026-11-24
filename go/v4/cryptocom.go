@@ -1939,7 +1939,7 @@ func (this *Cryptocom) fetchOrderBody(ch chan AsyncResult[Order], id string, opt
 		order = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, order), market)}
 	return nil
 }
 func (this *Cryptocom) CreateOrderRequest(symbol string, typeVar string, side string, amount any, optionalArgs ...any) map[string]any {
@@ -2104,7 +2104,7 @@ func (this *Cryptocom) createOrderBody(ch chan AsyncResult[Order], symbol string
 		result = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, result), market)}
 	return nil
 }
 
@@ -2394,7 +2394,7 @@ func (this *Cryptocom) editOrderBody(ch chan AsyncResult[Order], id string, symb
 		result = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(result)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, result))}
 	return nil
 }
 func (this *Cryptocom) EditOrderRequest(id *string, symbol string, optionalArgs ...any) map[string]any {
@@ -2536,7 +2536,7 @@ func (this *Cryptocom) cancelOrderBody(ch chan AsyncResult[Order], id string, op
 		result = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, result), market)}
 	return nil
 }
 
@@ -3443,7 +3443,7 @@ func (this *Cryptocom) ParseTimeInForce(timeInForce *string) *string {
 	}
 	return this.SafeString(timeInForces, timeInForce, timeInForce)
 }
-func (this *Cryptocom) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Cryptocom) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder, cancelOrder
 	//
@@ -4755,7 +4755,7 @@ func (this *Cryptocom) closePositionBody(ch chan AsyncResult[Order], symbol stri
 	//
 	var result, _ = response["result"].(map[string]any)
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, result), market)}
 	return nil
 }
 

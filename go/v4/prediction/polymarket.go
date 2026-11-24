@@ -1624,7 +1624,7 @@ func (this *Polymarket) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccx
  * @param {object} [market] the outcome object the ticker belongs to
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-func (this *Polymarket) ParsePredictionTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *Polymarket) ParsePredictionTicker(ticker map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "midpoint": {
@@ -1660,8 +1660,8 @@ func (this *Polymarket) ParsePredictionTicker(ticker any, optionalArgs ...any) m
 	//
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var midpointData map[string]any = ccxt.SafeMapTyped(ticker, "midpoint")
-	var bookData map[string]any = ccxt.SafeMapTyped(ticker, "book")
+	var midpointData, _ = ticker["midpoint"].(map[string]any)
+	var bookData, _ = ticker["book"].(map[string]any)
 	var mid *float64 = this.SafeNumber(midpointData, "mid")
 	var bids []any = ccxt.SafeListTyped(bookData, "bids")
 	var asks []any = ccxt.SafeListTyped(bookData, "asks")
@@ -1684,7 +1684,7 @@ func (this *Polymarket) ParsePredictionTicker(ticker any, optionalArgs ...any) m
 	// on the complementary token it is the OTHER side's price, so only the per-token
 	// last-trade-price endpoint value is usable here; that endpoint reports "0" for a
 	// never-traded token, which also falls back to the mid
-	var lastTradeData map[string]any = ccxt.SafeMapTyped(ticker, "lastTrade")
+	var lastTradeData, _ = ticker["lastTrade"].(map[string]any)
 	var last *float64 = this.SafeNumber(lastTradeData, "price")
 	if (last == nil) || (last != nil && *last == 0) {
 		last = mid
@@ -2814,7 +2814,7 @@ func (this *Polymarket) fetchOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionO
  * @param {object} [market] the outcome object the order belongs to
  * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Polymarket) ParsePredictionOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Polymarket) ParsePredictionOrder(order map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// {
 	//     "errorMsg":"",
@@ -3030,7 +3030,14 @@ func (this *Polymarket) createOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 			result = append(result, parsedItem)
 		}
 	} else {
-		result = append(result, this.ParsePredictionOrder(response))
+		var responseDict205452 map[string]any
+		if len(response) > 0 {
+			responseDict205452, _ = response[0].(map[string]any)
+		}
+		if responseDict205452 == nil {
+			responseDict205452 = map[string]any{}
+		}
+		result = append(result, this.ParsePredictionOrder(responseDict205452))
 	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionOrder]{Value: ccxt.PredictionOrdersFromList(result)}
@@ -3816,7 +3823,7 @@ func (this *Polymarket) fetchEventBody(ch chan ccxt.AsyncResult[ccxt.PredictionE
 	ch <- ccxt.AsyncResult[ccxt.PredictionEvent]{Value: ccxt.PredictionEventFromMap(event)}
 	return nil
 }
-func (this *Polymarket) ParseEvent(rawEvent any) map[string]any {
+func (this *Polymarket) ParseEvent(rawEvent map[string]any) map[string]any {
 	// {
 	//     "id": "73113",
 	//     "ticker": "ukraine-agrees-not-to-join-nato-before-2027",
@@ -3941,7 +3948,7 @@ func (this *Polymarket) ParseEvent(rawEvent any) map[string]any {
 func (this *Polymarket) ParseEvents(rawEvents []any) []any {
 	var result []any = []any{}
 	for i := 0; i < len(rawEvents); i++ {
-		result = append(result, this.ParseEvent(this.SafeDict(rawEvents, i, map[string]any{})))
+		result = append(result, this.ParseEvent(this.Extend(map[string]any{}, rawEvents[i])))
 	}
 	return result
 }
@@ -4941,7 +4948,7 @@ func (this *Polymarket) HandleOrder(client ccxt.ClientInterface, event any) {
 		this.Orders = ccxt.NewArrayCacheByOutcomeById(limit)
 	}
 	var stored ccxt.WsArrayCache = this.Orders
-	var parsed map[string]any = this.ParsePredictionOrder(event)
+	var parsed map[string]any = this.ParsePredictionOrder(this.Extend(map[string]any{}, event))
 	stored.Append(parsed)
 	client.Resolve(stored, "orders")
 	var outcome *string = this.SafeString(parsed, "outcome")

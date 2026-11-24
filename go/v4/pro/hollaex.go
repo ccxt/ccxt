@@ -736,7 +736,7 @@ func (this *Hollaex) HandleErrorMessage(client ccxt.ClientInterface, message map
 			// try block:
 			if error != nil {
 				var feedback string = this.Id + " " + this.Json(message)
-				this.ThrowExactlyMatchedException(ccxt.GetValue(this.Exceptions["ws"], "exact"), this.SafeString(message, "error"), feedback)
+				this.ThrowExactlyMatchedException(this.ExceptionsWs["exact"], this.SafeString(message, "error"), feedback)
 			}
 			return nil
 		}(this)

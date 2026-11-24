@@ -3066,7 +3066,7 @@ func (this *Coinbaseinternational) createOrderBody(ch chan AsyncResult[Order], s
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
 	return nil
 }
-func (this *Coinbaseinternational) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Coinbaseinternational) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder, editOrder
 	//

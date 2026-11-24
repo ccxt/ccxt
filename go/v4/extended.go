@@ -1541,7 +1541,7 @@ func (this *Extended) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 	ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(this.ParseFundingHistories(result, market, since, limit))}
 	return nil
 }
-func (this *Extended) ParseFundingHistory(history any, optionalArgs ...any) any {
+func (this *Extended) ParseFundingHistory(history map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "id": 8341,
@@ -1582,7 +1582,11 @@ func (this *Extended) ParseFundingHistories(histories []any, optionalArgs ...any
 	_ = limit
 	var result []any = []any{}
 	for i := 0; i < len(histories); i++ {
-		result = append(result, this.ParseFundingHistory(this.SafeDict(histories, i, map[string]any{}), market))
+		historiesDict116651, _ := histories[i].(map[string]any)
+		if historiesDict116651 == nil {
+			historiesDict116651 = map[string]any{}
+		}
+		result = append(result, this.ParseFundingHistory(historiesDict116651, market))
 	}
 	var symbol *string
 	if market == nil {
@@ -4513,7 +4517,14 @@ func (this *Extended) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 		var data []any
 		data, _ = response["data"].([]any)
 
-		ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(data, 0, map[string]any{}), market)}
+		var dataDict315036 map[string]any
+		if len(data) > 0 {
+			dataDict315036, _ = data[0].(map[string]any)
+		}
+		if dataDict315036 == nil {
+			dataDict315036 = map[string]any{}
+		}
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(dataDict315036, market)}
 		return nil
 	} else {
 		if false {
@@ -4831,7 +4842,7 @@ func (this *Extended) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Extended) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Extended) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	//     {
 	//         "id": 1784963886257016832,
@@ -4884,9 +4895,9 @@ func (this *Extended) ParseOrder(order any, optionalArgs ...any) Order {
 	var amount *string = this.SafeString(order, "qty")
 	var filled *string = this.SafeString(order, "filledQty")
 	var feeCost *string = this.SafeString(order, "payedFee")
-	var trigger map[string]any = SafeMapTyped(order, "trigger")
-	var takeProfit map[string]any = SafeMapTyped(order, "takeProfit")
-	var stopLoss map[string]any = SafeMapTyped(order, "stopLoss")
+	var trigger, _ = order["trigger"].(map[string]any)
+	var takeProfit, _ = order["takeProfit"].(map[string]any)
+	var stopLoss, _ = order["stopLoss"].(map[string]any)
 	var fee map[string]any = map[string]any{
 		"cost": feeCost,
 	}

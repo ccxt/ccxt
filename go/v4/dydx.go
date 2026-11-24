@@ -1107,11 +1107,11 @@ func (this *Dydx) HandlePublicAddress(methodName string, params any) (*string, m
 		return user, paramsAddress
 	}
 	if this.WalletAddress != "" {
-		return SafeStringPtr(this.WalletAddress), paramsAddress
+		return &this.WalletAddress, paramsAddress
 	}
 	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires a user parameter inside 'params' or the walletAddress set"))
 }
-func (this *Dydx) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Dydx) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// {
 	//     "id": "dad46410-3444-5566-a129-19a619300fb7",
@@ -1642,7 +1642,7 @@ func (this *Dydx) SignDydxTx(privateKey *string, message any, memo *string, chai
 func (this *Dydx) RetrieveCredentials() any {
 	var credentials any = this.SafeDict(this.Options, "dydxCredentials")
 	if credentials != nil {
-		return credentials
+		return this.SafeDict(this.Options, "dydxCredentials", map[string]any{})
 	}
 	var privateKeyOption *string = this.SafeString(this.Options, "privateKey")
 	if privateKeyOption != nil {
@@ -1656,7 +1656,7 @@ func (this *Dydx) RetrieveCredentials() any {
 		"publicKey":  this.BinaryToBase16(GetValue(credentials, "publicKey")),
 	}
 	this.Options["dydxCredentials"] = credentials
-	return credentials
+	return this.SafeDict(this.Options, "dydxCredentials", map[string]any{})
 }
 func (this *Dydx) FetchDydxAccountAsync() <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
@@ -1711,7 +1711,7 @@ func (this *Dydx) fetchDydxAccountBody(ch chan AsyncResult[map[string]any]) any 
 	if account == nil {
 		account = map[string]any{}
 	}
-	var pubKey map[string]any = SafeMapTyped(account, "pub_key")
+	var pubKey, _ = account["pub_key"].(map[string]any)
 	account["pub_key"] = map[string]any{
 		"key": pubKey["key"],
 	}

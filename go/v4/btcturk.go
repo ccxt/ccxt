@@ -1312,7 +1312,7 @@ func (this *Btcturk) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Btcturk) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Btcturk) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// fetchOrders / fetchOpenOrders
 	//     {

@@ -2353,7 +2353,7 @@ func (this *Delta) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Delta) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Delta) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder, cancelOrder, editOrder, fetchOpenOrders, fetchClosedOrders
 	//
@@ -2449,7 +2449,7 @@ func (this *Delta) ParseOrder(order any, optionalArgs ...any) Order {
 	if feeCostString != nil {
 		var feeCurrencyCode *string = nil
 		if marketValue != nil {
-			var marketInfo map[string]any = SafeMapTyped(marketValue, "info")
+			var marketInfo, _ = marketValue["info"].(map[string]any)
 			var settlingAsset, _ = marketInfo["settling_asset"].(map[string]any)
 			var feeCurrencyId *string = this.SafeString(settlingAsset, "symbol")
 			feeCurrencyCode = this.SafeCurrencyCode(feeCurrencyId)
@@ -4155,7 +4155,7 @@ func (this *Delta) fetchSettlementHistoryBody(ch chan AsyncResult[[]map[string]a
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -4240,7 +4240,7 @@ func (this *Delta) fetchSettlementHistoryBody(ch chan AsyncResult[[]map[string]a
 	ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList(this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit))}
 	return nil
 }
-func (this *Delta) ParseSettlement(settlement map[string]any, market any) map[string]any {
+func (this *Delta) ParseSettlement(settlement map[string]any, market map[string]any) map[string]any {
 	//
 	//     {
 	//         "contract_value": "0.001",
@@ -4304,7 +4304,7 @@ func (this *Delta) ParseSettlement(settlement map[string]any, market any) map[st
 		"datetime":  datetime,
 	}
 }
-func (this *Delta) ParseSettlements(settlements []any, market any) []any {
+func (this *Delta) ParseSettlements(settlements []any, market map[string]any) []any {
 	var result []any = []any{}
 	for i := 0; i < len(settlements); i++ {
 		var settlementRow map[string]any = this.Extend(map[string]any{}, settlements[i])

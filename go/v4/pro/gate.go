@@ -2199,11 +2199,13 @@ func (this *Gate) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 	marketType, marketQuery := this.HandleMarketTypeAndParams("watchPositions", market, params)
 	var query any = marketQuery
 	var typeVar *string = marketType
-	var messageHash any = ccxt.Add(marketType, ":positions")
+	var messageHash string = "swap:positions"
+	if (marketType != nil) && (marketType == nil || *marketType != "spot") {
+		messageHash = *marketType + ":positions"
+	}
 	if marketType != nil && *marketType == "spot" {
 		typeVarStr := "swap"
 		typeVar = &typeVarStr
-		messageHash = "swap:positions"
 	}
 	var typeId string = this.GetSupportedMapping(typeVar, map[string]any{
 		"future": "futures",
@@ -2214,7 +2216,7 @@ func (this *Gate) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 		if symbolsNormalized == nil {
 			panic(ccxt.ArgumentsRequired(this.Id + " watchPositions() symbols is required"))
 		}
-		messageHash = ccxt.Add(messageHash, "::"+strings.Join(symbolsNormalized, ","))
+		messageHash += "::" + strings.Join(symbolsNormalized, ",")
 	}
 	var channel string = typeId + ".positions"
 	var subType *string = nil
@@ -2975,10 +2977,10 @@ func (this *Gate) HandleErrorMessage(client ccxt.ClientInterface, message map[st
 					}
 				}()
 				// try block:
-				this.ThrowExactlyMatchedException(ccxt.GetValue(this.Exceptions["ws"], "exact"), code, this.Json(message))
+				this.ThrowExactlyMatchedException(this.ExceptionsWs["exact"], code, this.Json(message))
 				this.ThrowExactlyMatchedException(this.Exceptions["exact"], code, this.Json(errs))
 				var errorMessage *string = this.SafeString(error, "message", this.SafeString(errs, "message"))
-				this.ThrowBroadlyMatchedException(ccxt.GetValue(this.Exceptions["ws"], "broad"), errorMessage, this.Json(message))
+				this.ThrowBroadlyMatchedException(this.ExceptionsWs["broad"], errorMessage, this.Json(message))
 				panic(ccxt.ExchangeError(this.Json(message)))
 
 			}(this)
@@ -3495,12 +3497,12 @@ func (this *Gate) requestPrivateBody(ch chan ccxt.AsyncResult[any], url any, req
 	ch <- ccxt.AsyncResult[any]{Value: r.Value}
 	return nil
 }
-func (this *Gate) SubscribePrivateAsync(url *string, messageHash any, payload any, channel string, params any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
+func (this *Gate) SubscribePrivateAsync(url *string, messageHash string, payload any, channel string, params any, optionalArgs ...any) <-chan ccxt.AsyncResult[any] {
 	ch := make(chan ccxt.AsyncResult[any], 1)
 	go this.subscribePrivateBody(ch, url, messageHash, payload, channel, params, optionalArgs...)
 	return ch
 }
-func (this *Gate) subscribePrivateBody(ch chan ccxt.AsyncResult[any], url *string, messageHash any, payload any, channel string, params any, optionalArgs ...any) any {
+func (this *Gate) subscribePrivateBody(ch chan ccxt.AsyncResult[any], url *string, messageHash string, payload any, channel string, params any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var requiresUid bool = ccxt.GetArgBool(optionalArgs, 0, false)

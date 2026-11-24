@@ -1075,7 +1075,7 @@ func (this *Bitflyer) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitflyer) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Bitflyer) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.Parse8601(this.SafeString(order, "child_order_date"))
@@ -1299,10 +1299,7 @@ func (this *Bitflyer) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var orders any = nil
-	if r.Value != nil {
-		orders = OrdersToList(r.Value)
-	}
+	var orders []any = OrdersToList(r.Value)
 	var ordersById map[string]any = this.IndexBy(orders, "id")
 	var found, _ = ordersById[id].(map[string]any)
 	if found != nil {

@@ -2080,7 +2080,7 @@ func (this *Alpaca) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
 	return nil
 }
-func (this *Alpaca) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Alpaca) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	//    {
 	//        "id":"6ecfcc34-4bed-4b53-83ba-c564aa832a81",
@@ -2641,10 +2641,7 @@ func (this *Alpaca) fetchDepositsWithdrawalsBody(ch chan AsyncResult[[]Transacti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var transactions any = nil
-	if r.Value != nil {
-		transactions = TransactionsToList(r.Value)
-	}
+	var transactions []any = TransactionsToList(r.Value)
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ToArray(transactions))}
 	return nil
@@ -2682,10 +2679,7 @@ func (this *Alpaca) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var transactions any = nil
-	if r.Value != nil {
-		transactions = TransactionsToList(r.Value)
-	}
+	var transactions []any = TransactionsToList(r.Value)
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ToArray(transactions))}
 	return nil
@@ -2723,10 +2717,7 @@ func (this *Alpaca) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var transactions any = nil
-	if r.Value != nil {
-		transactions = TransactionsToList(r.Value)
-	}
+	var transactions []any = TransactionsToList(r.Value)
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ToArray(transactions))}
 	return nil

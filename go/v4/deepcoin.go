@@ -2153,7 +2153,7 @@ func (this *Deepcoin) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		data = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, data), market)}
 	return nil
 }
 func (this *Deepcoin) CreateOrderRequest(symbol string, typeVar string, side string, amount any, optionalArgs ...any) map[string]any {
@@ -2597,7 +2597,7 @@ func (this *Deepcoin) fetchClosedOrderBody(ch chan AsyncResult[Order], id string
 		entry = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(entry, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, entry), market)}
 	return nil
 }
 
@@ -2655,7 +2655,7 @@ func (this *Deepcoin) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, 
 		entry = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(entry, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, entry), market)}
 	return nil
 }
 
@@ -3153,7 +3153,7 @@ func (this *Deepcoin) cancelOrderBody(ch chan AsyncResult[Order], id string, opt
 		data = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, data), market)}
 	return nil
 }
 
@@ -3344,7 +3344,7 @@ func (this *Deepcoin) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 		data = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(data)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, data))}
 	return nil
 }
 
@@ -3401,7 +3401,7 @@ func (this *Deepcoin) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []strin
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market))}
 	return nil
 }
-func (this *Deepcoin) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Deepcoin) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// regular order
 	//     {
@@ -4363,7 +4363,14 @@ func (this *Deepcoin) closePositionBody(ch chan AsyncResult[Order], symbol strin
 	var data []any
 	data, _ = response["data"].([]any)
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(data, 0, map[string]any{}), market)}
+	var dataDict310332 map[string]any
+	if len(data) > 0 {
+		dataDict310332, _ = data[0].(map[string]any)
+	}
+	if dataDict310332 == nil {
+		dataDict310332 = map[string]any{}
+	}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(dataDict310332, market)}
 	return nil
 }
 func (this *Deepcoin) Sign(path string, optionalArgs ...any) map[string]any {

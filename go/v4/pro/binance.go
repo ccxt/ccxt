@@ -217,7 +217,7 @@ func (this *Binance) DescribeData() any {
 		},
 	}
 }
-func (this *Binance) RequestId(url any) int64 {
+func (this *Binance) RequestId(url string) int64 {
 	var options map[string]any
 	options, _ = this.Options["requestId"].(map[string]any)
 	if options == nil {
@@ -225,14 +225,14 @@ func (this *Binance) RequestId(url any) int64 {
 	}
 	var previousValue int64 = *this.SafeInteger(options, url, 0)
 	var newValue int64 = previousValue + 1
-	ccxt.AddElementToObject(options, url, newValue)
+	options[url] = newValue
 	this.Options["requestId"] = options
 	return newValue
 }
 func (this *Binance) IsSpotUrl(client ccxt.ClientInterface) bool {
 	return (strings.Index(client.GetUrl(), "/stream") > -1) || (strings.Index(client.GetUrl(), "demo-stream") > -1)
 }
-func (this *Binance) Stream(typeVar any, subscriptionHash *string, optionalArgs ...any) any {
+func (this *Binance) Stream(typeVar any, subscriptionHash *string, optionalArgs ...any) string {
 	var numSubscriptions int64 = ccxt.GetArgInt64(optionalArgs, 0, 1)
 	_ = numSubscriptions
 	var streamBySubscriptionsHash map[string]any
@@ -244,9 +244,9 @@ func (this *Binance) Stream(typeVar any, subscriptionHash *string, optionalArgs 
 	if stream == nil {
 		var previousStreamIndex *int64 = this.SafeInteger(this.Options, "streamIndex", int64(-1))
 		var streamLimits, _ = this.Options["streamLimits"].(map[string]any)
-		var streamLimit *int64 = this.SafeInteger(streamLimits, typeVar)
+		var streamLimit int64 = *this.SafeInteger(streamLimits, typeVar, 50)
 		var streamIndex int64 = *previousStreamIndex + 1
-		var normalizedIndex any = ccxt.Mod(streamIndex, streamLimit)
+		var normalizedIndex any = (streamIndex % streamLimit)
 		this.Options["streamIndex"] = streamIndex
 		stream = this.NumberToString(normalizedIndex)
 		if subscriptionHash != nil {
@@ -277,7 +277,7 @@ func (this *Binance) Stream(typeVar any, subscriptionHash *string, optionalArgs 
 		}
 		this.Options["numSubscriptionsByStream"] = numSubscriptionsByStream
 	}
-	return stream
+	return *stream
 }
 func (this *Binance) GetWsUrl(typeVar any, category string) string {
 	var urlsApi map[string]any = this.UrlsApi
@@ -506,7 +506,7 @@ func (this *Binance) watchLiquidationsForSymbolsBody(ch chan ccxt.AsyncResult[[]
 	}
 	var numSubscriptions int = len(subscriptionHashes)
 	streamHashStr := streamHash
-	var url any = ccxt.Add(this.GetWsUrl(typeVar, this.GetFutureWsCategory("forceOrder"))+"/", this.Stream(typeVar, &streamHashStr, numSubscriptions))
+	var url string = this.GetWsUrl(typeVar, this.GetFutureWsCategory("forceOrder")) + "/" + this.Stream(typeVar, &streamHashStr, numSubscriptions)
 	var requestId int64 = this.RequestId(url)
 	var request map[string]any = map[string]any{
 		"method": "SUBSCRIBE",
@@ -1015,7 +1015,7 @@ func (this *Binance) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.
 	}
 	var messageHashesLength int = len(messageHashes)
 	streamHashStr := streamHash
-	var url any = ccxt.Add(this.GetWsUrl(typeVar, this.GetFutureWsCategory(name))+"/", this.Stream(typeVar, &streamHashStr, messageHashesLength))
+	var url string = this.GetWsUrl(typeVar, this.GetFutureWsCategory(name)) + "/" + this.Stream(typeVar, &streamHashStr, messageHashesLength)
 	var requestId int64 = this.RequestId(url)
 	var request map[string]any = map[string]any{
 		"method": "SUBSCRIBE",
@@ -1109,7 +1109,7 @@ func (this *Binance) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[boo
 	}
 	var messageHashesLength int = len(subMessageHashes)
 	streamHashStr := streamHash
-	var url any = ccxt.Add(this.GetWsUrl(typeVar, this.GetFutureWsCategory("depth"))+"/", this.Stream(typeVar, &streamHashStr, messageHashesLength))
+	var url string = this.GetWsUrl(typeVar, this.GetFutureWsCategory("depth")) + "/" + this.Stream(typeVar, &streamHashStr, messageHashesLength)
 	var requestId int64 = this.RequestId(url)
 	var request map[string]any = map[string]any{
 		"method": "UNSUBSCRIBE",
@@ -1230,7 +1230,7 @@ func (this *Binance) fetchOrderBookWsBody(ch chan ccxt.AsyncResult[ccxt.OrderBoo
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
-	var requestId int64 = this.RequestId(url)
+	var requestId int64 = this.RequestId(*url)
 	var messageHash string = strconv.FormatInt(requestId, 10)
 	returnRateLimits, paramsReturnRateLimits := this.HandleOptionBoolAndParams(params, "fetchOrderBookWs", "returnRateLimits", false)
 	payload["returnRateLimits"] = returnRateLimits
@@ -1288,12 +1288,12 @@ func (this *Binance) HandleFetchOrderBook(client ccxt.ClientInterface, message m
 	orderbook["nonce"] = this.SafeInteger2(result, "lastUpdateId", "u")
 	client.Resolve(orderbook, messageHash)
 }
-func (this *Binance) FetchOrderBookSnapshotAsync(client ccxt.ClientInterface, message any, subscription map[string]any) <-chan ccxt.AsyncResult[bool] {
+func (this *Binance) FetchOrderBookSnapshotAsync(client ccxt.ClientInterface, message map[string]any, subscription map[string]any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.fetchOrderBookSnapshotBody(ch, client, message, subscription)
 	return ch
 }
-func (this *Binance) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, message any, subscription map[string]any) any {
+func (this *Binance) fetchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, message map[string]any, subscription map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var symbol *string = this.SafeString(subscription, "symbol", "")
@@ -1547,7 +1547,7 @@ func (this *Binance) HandleOrderBook(client ccxt.ClientInterface, message map[st
 		}
 	}
 }
-func (this *Binance) HandleOrderBookSubscription(client ccxt.ClientInterface, message any, subscription map[string]any) {
+func (this *Binance) HandleOrderBookSubscription(client ccxt.ClientInterface, message map[string]any, subscription map[string]any) {
 	var defaultLimit *int64 = this.SafeInteger(this.Options, "watchOrderBookLimit", 1000)
 	// const messageHash = this.safeString (subscription, 'messageHash')
 	var symbolOfSubscription *string = this.SafeString(subscription, "symbol")                   // watchOrderBook
@@ -1704,7 +1704,7 @@ func (this *Binance) watchTradesForSymbolsBody(ch chan ccxt.AsyncResult[[]ccxt.T
 	var query map[string]any = this.OmitDict(paramsOmitted, "type")
 	var subParamsLength int = len(subParams)
 	streamHashStr := streamHash
-	var url any = ccxt.Add(this.GetWsUrl(typeVar, this.GetFutureWsCategory(*name))+"/", this.Stream(typeVar, &streamHashStr, subParamsLength))
+	var url string = this.GetWsUrl(typeVar, this.GetFutureWsCategory(*name)) + "/" + this.Stream(typeVar, &streamHashStr, subParamsLength)
 	var requestId int64 = this.RequestId(url)
 	var request map[string]any = map[string]any{
 		"method": "SUBSCRIBE",
@@ -1825,7 +1825,7 @@ func (this *Binance) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool],
 	var query map[string]any = this.OmitDict(paramsOmitted, "type")
 	var subParamsLength int = len(subParams)
 	streamHashStr := streamHash
-	var url any = ccxt.Add(this.GetWsUrl(typeVar, this.GetFutureWsCategory(*name))+"/", this.Stream(typeVar, &streamHashStr, subParamsLength))
+	var url string = this.GetWsUrl(typeVar, this.GetFutureWsCategory(*name)) + "/" + this.Stream(typeVar, &streamHashStr, subParamsLength)
 	var requestId int64 = this.RequestId(url)
 	var request map[string]any = map[string]any{
 		"method": "UNSUBSCRIBE",
@@ -2361,7 +2361,7 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[strin
 		subscribeHashes = append(subscribeHashes, "ohlcv::"+*this.SafeString(market, "symbol", "")+"::"+*timeframeString)
 	}
 	argStr := "multipleOHLCV"
-	var url any = ccxt.Add(this.GetWsUrl(wsUrlType, this.GetFutureWsCategory(klineType))+"/", this.Stream(wsUrlType, &argStr))
+	var url string = this.GetWsUrl(wsUrlType, this.GetFutureWsCategory(klineType)) + "/" + this.Stream(wsUrlType, &argStr)
 	var requestId int64 = this.RequestId(url)
 	var request map[string]any = map[string]any{
 		"method": "SUBSCRIBE",
@@ -2478,7 +2478,7 @@ func (this *Binance) unWatchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 		messageHashes = append(messageHashes, "unsubscribe::ohlcv::"+*this.SafeString(market, "symbol", "")+"::"+*timeframeString)
 	}
 	argStr := "multipleOHLCV"
-	var url any = ccxt.Add(this.GetWsUrl(wsUrlType, this.GetFutureWsCategory(klineType))+"/", this.Stream(wsUrlType, &argStr))
+	var url string = this.GetWsUrl(wsUrlType, this.GetFutureWsCategory(klineType)) + "/" + this.Stream(wsUrlType, &argStr)
 	var requestId int64 = this.RequestId(url)
 	var request map[string]any = map[string]any{
 		"method": "UNSUBSCRIBE",
@@ -2689,7 +2689,7 @@ func (this *Binance) fetchTickerWsBody(ch chan ccxt.AsyncResult[ccxt.Ticker], sy
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
-	var requestId int64 = this.RequestId(url)
+	var requestId int64 = this.RequestId(*url)
 	var messageHash string = strconv.FormatInt(requestId, 10)
 	var subscription map[string]any = map[string]any{
 		"method": this.HandleTickerWs,
@@ -2765,7 +2765,7 @@ func (this *Binance) fetchOHLCVWsBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], sy
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
-	var requestId int64 = this.RequestId(url)
+	var requestId int64 = this.RequestId(*url)
 	var messageHash string = strconv.FormatInt(requestId, 10)
 	returnRateLimits, paramsReturnRateLimits := this.HandleOptionBoolAndParams(params, "fetchOHLCVWs", "returnRateLimits", false)
 	var payload map[string]any = map[string]any{
@@ -3507,7 +3507,7 @@ func (this *Binance) watchMultiTickerHelperBody(ch chan ccxt.AsyncResult[any], m
 		streamHash = *channel + "::" + strings.Join(symbolsNormalized, ",")
 	}
 	streamHashStr := streamHash
-	var url any = ccxt.Add(this.GetWsUrl(rawMarketType, this.GetFutureWsCategory(*channel))+"/", this.Stream(rawMarketType, &streamHashStr))
+	var url string = this.GetWsUrl(rawMarketType, this.GetFutureWsCategory(*channel)) + "/" + this.Stream(rawMarketType, &streamHashStr)
 	var requestId int64 = this.RequestId(url)
 	var ternaryStr257222 string = "SUBSCRIBE"
 	if isUnsubscribe == true {
@@ -3962,7 +3962,7 @@ func (this *Binance) ensureUserDataStreamWsSubscribeSignatureBody(ch chan ccxt.A
 
 		return nil
 	}
-	var requestId int64 = this.RequestId(url)
+	var requestId int64 = this.RequestId(*url)
 	var requestHash string = strconv.FormatInt(requestId, 10)
 	var message map[string]any = map[string]any{
 		"id":     requestHash,
@@ -4143,7 +4143,7 @@ func (this *Binance) ensureUserDataStreamWsSubscribeListenTokenBody(ch chan ccxt
 				}
 				var expirationTime *int64 = this.SafeInteger(response, "expirationTime")
 				// Step 2: Subscribe to user data stream via WebSocket API
-				var requestId int64 = this.RequestId(url)
+				var requestId int64 = this.RequestId(*url)
 				var requestHash string = strconv.FormatInt(requestId, 10)
 				var message map[string]any = map[string]any{
 					"id":     requestHash,
@@ -4689,7 +4689,7 @@ func (this *Binance) fetchBalanceWsBody(ch chan ccxt.AsyncResult[ccxt.Balances],
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
-	var requestId int64 = this.RequestId(url)
+	var requestId int64 = this.RequestId(*url)
 	var messageHash string = strconv.FormatInt(requestId, 10)
 	returnRateLimits, paramsReturnRateLimits := this.HandleOptionBoolAndParams(params, "fetchBalanceWs", "returnRateLimits", false)
 	var payload map[string]any = map[string]any{
@@ -4852,7 +4852,7 @@ func (this *Binance) fetchPositionsWsBody(ch chan ccxt.AsyncResult[[]ccxt.Positi
 		}
 	}
 	var payload map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	var symbolsNormalized []string = this.MarketSymbols(symbols, "swap", true, true, true)
 	if symbolsNormalized != nil {
 		var symbolsLength int = len(symbolsNormalized)
@@ -4878,7 +4878,7 @@ func (this *Binance) fetchPositionsWsBody(ch chan ccxt.AsyncResult[[]ccxt.Positi
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
-	var requestId int64 = this.RequestId(url)
+	var requestId int64 = this.RequestId(*url)
 	var messageHash string = strconv.FormatInt(requestId, 10)
 	returnRateLimits, paramsReturnRateLimits := this.HandleOptionBoolAndParams(params, "fetchPositionsWs", "returnRateLimits", false)
 	payload["returnRateLimits"] = returnRateLimits
@@ -5217,7 +5217,7 @@ func (this *Binance) ResolveAuthType(methodName string, optionalArgs ...any) (*s
 	// index it positionally instead, so no receiver is declared-but-unread
 	return typeVar, subType, paramsSubType
 }
-func (this *Binance) GetMarketType(method string, market any, optionalArgs ...any) *string {
+func (this *Binance) GetMarketType(method string, market map[string]any, optionalArgs ...any) *string {
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var typeVar *string = nil
@@ -5283,7 +5283,7 @@ func (this *Binance) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sym
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
-	var requestId int64 = this.RequestId(url)
+	var requestId int64 = this.RequestId(*url)
 	var messageHash string = strconv.FormatInt(requestId, 10)
 	var sor *bool = this.SafeBool2(params, "sor", "SOR", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, "sor", "SOR")
@@ -5478,7 +5478,7 @@ func (this *Binance) editOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id st
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
-	var requestId int64 = this.RequestId(url)
+	var requestId int64 = this.RequestId(*url)
 	var messageHash string = strconv.FormatInt(requestId, 10)
 	var isSwap bool = ((marketType != nil && *marketType == "linear") || (marketType != nil && *marketType == "inverse"))
 	var payload any = map[string]any{}
@@ -5619,7 +5619,7 @@ func (this *Binance) HandleEditOrderWs(client ccxt.ClientInterface, message map[
 	var newSpotOrder, _ = result["newOrderResponse"].(map[string]any)
 	var order map[string]any = nil
 	if newSpotOrder != nil {
-		order = ccxt.OrderToMap(this.ParseOrder(newSpotOrder))
+		order = ccxt.OrderToMap(this.ParseOrder(this.Extend(map[string]any{}, newSpotOrder)))
 	} else {
 		order = ccxt.OrderToMap(this.ParseOrder(result))
 	}
@@ -5672,7 +5672,7 @@ func (this *Binance) cancelOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id 
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
-	var requestId int64 = this.RequestId(url)
+	var requestId int64 = this.RequestId(*url)
 	var messageHash string = strconv.FormatInt(requestId, 10)
 	returnRateLimits, paramsReturnRateLimits := this.HandleOptionBoolAndParams(params, "cancelOrderWs", "returnRateLimits", false)
 	var payload map[string]any = map[string]any{
@@ -5759,7 +5759,7 @@ func (this *Binance) cancelAllOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
-	var requestId int64 = this.RequestId(url)
+	var requestId int64 = this.RequestId(*url)
 	var messageHash string = strconv.FormatInt(requestId, 10)
 	returnRateLimits, paramsReturnRateLimits := this.HandleOptionBoolAndParams(params, "cancelAllOrdersWs", "returnRateLimits", false)
 	var payload map[string]any = map[string]any{
@@ -5829,7 +5829,7 @@ func (this *Binance) fetchOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], id s
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
-	var requestId int64 = this.RequestId(url)
+	var requestId int64 = this.RequestId(*url)
 	var messageHash string = strconv.FormatInt(requestId, 10)
 	returnRateLimits, paramsReturnRateLimits := this.HandleOptionBoolAndParams(params, "fetchOrderWs", "returnRateLimits", false)
 	var payload map[string]any = map[string]any{
@@ -5912,7 +5912,7 @@ func (this *Binance) fetchOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order], o
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
-	var requestId int64 = this.RequestId(url)
+	var requestId int64 = this.RequestId(*url)
 	var messageHash string = strconv.FormatInt(requestId, 10)
 	returnRateLimits, paramsReturnRateLimits := this.HandleOptionBoolAndParams(params, "fetchOrdersWs", "returnRateLimits", false)
 	var payload map[string]any = map[string]any{
@@ -6029,7 +6029,7 @@ func (this *Binance) fetchOpenOrdersWsBody(ch chan ccxt.AsyncResult[[]ccxt.Order
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
-	var requestId int64 = this.RequestId(url)
+	var requestId int64 = this.RequestId(*url)
 	var messageHash string = strconv.FormatInt(requestId, 10)
 	returnRateLimits, paramsReturnRateLimits := this.HandleOptionBoolAndParams(params, "fetchOpenOrdersWs", "returnRateLimits", false)
 	var payload map[string]any = map[string]any{
@@ -6635,9 +6635,9 @@ func (this *Binance) HandleOrderUpdate(client ccxt.ClientInterface, message map[
 	var messageValue any = message
 	if (e != nil && *e == "ORDER_TRADE_UPDATE") || (e != nil && *e == "ALGO_UPDATE") {
 		messageValue = orderValue
-		if (e != nil && *e == "ALGO_UPDATE") && (this.SafeInteger(messageValue, "T") == nil) {
+		if (e != nil && *e == "ALGO_UPDATE") && (this.SafeInteger(orderValue, "T") == nil) {
 			// keep the outer event time, the algo payload carries no timestamps
-			messageValue = this.Extend(messageValue, map[string]any{
+			messageValue = this.Extend(orderValue, map[string]any{
 				"T": this.SafeInteger(message, "T"),
 			})
 		}
@@ -7281,7 +7281,7 @@ func (this *Binance) fetchMyTradesWsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade],
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
-	var requestId int64 = this.RequestId(url)
+	var requestId int64 = this.RequestId(*url)
 	var messageHash string = strconv.FormatInt(requestId, 10)
 	returnRateLimits, paramsReturnRateLimits := this.HandleOptionBoolAndParams(params, "fetchMyTradesWs", "returnRateLimits", false)
 	var payload map[string]any = map[string]any{
@@ -7368,7 +7368,7 @@ func (this *Binance) fetchTradesWsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], s
 	if url == nil {
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
-	var requestId int64 = this.RequestId(url)
+	var requestId int64 = this.RequestId(*url)
 	var messageHash string = strconv.FormatInt(requestId, 10)
 	returnRateLimits, paramsReturnRateLimits := this.HandleOptionBoolAndParams(params, "fetchTradesWs", "returnRateLimits", false)
 	var payload map[string]any = map[string]any{

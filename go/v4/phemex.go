@@ -1352,7 +1352,7 @@ func (this *Phemex) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	//         ]
 	//     }
 	//
-	var v2ProductsData map[string]any = SafeMapTyped(v2Products, "data")
+	var v2ProductsData, _ = v2Products["data"].(map[string]any)
 	var products any = this.SafeList(v2ProductsData, "products", []any{})
 	var perpetualProductsV2 []any = this.SafeListSlice(v2ProductsData, "perpProductsV2", []any{})
 	products = this.ArrayConcat(products, perpetualProductsV2)
@@ -2944,7 +2944,7 @@ func (this *Phemex) ParseTimeInForce(timeInForce *string) *string {
 	}
 	return this.SafeString(timeInForces, timeInForce, timeInForce)
 }
-func (this *Phemex) ParseSpotOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Phemex) ParseSpotOrder(order map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// spot
 	//
@@ -3063,7 +3063,7 @@ func (this *Phemex) ParseOrderSide(side *string) *string {
 	}
 	return this.SafeString(sides, side, side)
 }
-func (this *Phemex) ParseSwapOrder(order any, optionalArgs ...any) map[string]any {
+func (this *Phemex) ParseSwapOrder(order map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "bizError":0,
@@ -3253,11 +3253,14 @@ func (this *Phemex) ParseSwapOrder(order any, optionalArgs ...any) map[string]an
 		"trades":             nil,
 	}))
 }
-func (this *Phemex) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Phemex) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var isSwap *bool = this.SafeBool(market, "swap", false)
-	var hasPnl bool = (InOp(order, "closedPnl")) || (InOp(order, "closedPnlRv")) || (InOp(order, "totalPnlRv"))
+	_, has1 := order["closedPnl"]
+	_, has2 := order["closedPnlRv"]
+	_, has3 := order["totalPnlRv"]
+	var hasPnl bool = has1 || has2 || has3
 	if (isSwap != nil && *isSwap) || hasPnl {
 		return OrderFromMap(this.ParseSwapOrder(order, market))
 	}
@@ -3633,7 +3636,7 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		data = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, data), market)}
 	return nil
 }
 
@@ -3748,7 +3751,7 @@ func (this *Phemex) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 		data = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, data), market)}
 	return nil
 }
 
@@ -3830,7 +3833,7 @@ func (this *Phemex) cancelOrderBody(ch chan AsyncResult[Order], id string, optio
 		data = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, data), market)}
 	return nil
 }
 

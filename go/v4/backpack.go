@@ -3726,7 +3726,7 @@ func (this *Backpack) CreateOrderRequest(symbol *string, typeVar *string, side *
 		}
 	}
 	var bracketKeys []any = []any{}
-	var takeProfit map[string]any = SafeMapTyped(paramsPostOnly, "takeProfit")
+	var takeProfit, _ = paramsPostOnly["takeProfit"].(map[string]any)
 	if takeProfit != nil {
 		var takeProfitTriggerPrice *string = this.SafeString(takeProfit, "triggerPrice")
 		if takeProfitTriggerPrice != nil {
@@ -3738,7 +3738,7 @@ func (this *Backpack) CreateOrderRequest(symbol *string, typeVar *string, side *
 		}
 		bracketKeys = append(bracketKeys, "takeProfit")
 	}
-	var stopLoss map[string]any = SafeMapTyped(paramsPostOnly, "stopLoss")
+	var stopLoss, _ = paramsPostOnly["stopLoss"].(map[string]any)
 	if stopLoss != nil {
 		var stopLossTriggerPrice *string = this.SafeString(stopLoss, "triggerPrice")
 		if stopLossTriggerPrice != nil {
@@ -3896,7 +3896,11 @@ func (this *Backpack) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, 
 		}
 		var rfqResponse []any = r1.Value
 		for i := 0; i < len(rfqResponse); i++ {
-			var order map[string]any = OrderToMap(this.ParseOrder(this.SafeDict(rfqResponse, i, map[string]any{}), market))
+			rfqResponseDict286347, _ := rfqResponse[i].(map[string]any)
+			if rfqResponseDict286347 == nil {
+				rfqResponseDict286347 = map[string]any{}
+			}
+			var order map[string]any = OrderToMap(this.ParseOrder(rfqResponseDict286347, market))
 			if this.SafeString(order, "id") != nil && *this.SafeString(order, "id") == id {
 
 				ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
@@ -3981,7 +3985,11 @@ func (this *Backpack) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 		response = responseRecv.Value
 	}
 	for i := 0; i < len(response); i++ {
-		var order map[string]any = OrderToMap(this.ParseOrder(this.SafeDict(response, i, map[string]any{}), market))
+		responseDict291243, _ := response[i].(map[string]any)
+		if responseDict291243 == nil {
+			responseDict291243 = map[string]any{}
+		}
+		var order map[string]any = OrderToMap(this.ParseOrder(responseDict291243, market))
 		if this.SafeString(order, "id") != nil && *this.SafeString(order, "id") == id {
 
 			ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
@@ -4205,10 +4213,10 @@ func (this *Backpack) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySinceLimit(this.SortBy(orders, "timestamp"), since, limit))}
 	return nil
 }
-func (this *Backpack) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Backpack) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var rfq map[string]any = SafeMapTyped(order, "rfq")
+	var rfq, _ = order["rfq"].(map[string]any)
 	if rfq != nil {
 		var parsed map[string]any = OrderToMap(this.ParseOrder(rfq, market))
 		parsed["info"] = order

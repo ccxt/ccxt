@@ -169,7 +169,7 @@ func (this *Hashkey) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symb
 	ch <- ccxt.AsyncResult[[]ccxt.OHLCV]{Value: ccxt.OHLCVsFromList(this.FilterBySinceLimit(ohlcv, since, limitResolved, 0, true))}
 	return nil
 }
-func (this *Hashkey) HandleOHLCV(client ccxt.ClientInterface, message any) {
+func (this *Hashkey) HandleOHLCV(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "symbol": "DOGEUSDT",
@@ -199,7 +199,7 @@ func (this *Hashkey) HandleOHLCV(client ccxt.ClientInterface, message any) {
 	var marketId *string = this.SafeString(message, "symbol")
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol string = *this.SafeString(market, "symbol", "")
-	var params map[string]any = ccxt.SafeMapTyped(message, "params")
+	var params, _ = message["params"].(map[string]any)
 	var klineType *string = this.SafeString(params, "klineType")
 	var timeframe *string = this.FindTimeframe(klineType)
 	if timeframe == nil {
@@ -285,7 +285,7 @@ func (this *Hashkey) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker], symb
 	ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(r1.Value)}
 	return nil
 }
-func (this *Hashkey) HandleTicker(client ccxt.ClientInterface, message any) {
+func (this *Hashkey) HandleTicker(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "symbol": "ETHUSDT",
@@ -380,7 +380,7 @@ func (this *Hashkey) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Hashkey) HandleTrades(client ccxt.ClientInterface, message any) {
+func (this *Hashkey) HandleTrades(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "symbol": "ETHUSDT",
@@ -469,7 +469,7 @@ func (this *Hashkey) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	ch <- ccxt.AsyncResult[ccxt.OrderBookInterface]{Value: orderbook.Limit()}
 	return nil
 }
-func (this *Hashkey) HandleOrderBook(client ccxt.ClientInterface, message any) {
+func (this *Hashkey) HandleOrderBook(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "symbol": "ETHUSDT",
@@ -586,7 +586,7 @@ func (this *Hashkey) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opt
 	ch <- ccxt.AsyncResult[[]ccxt.Order]{Value: ccxt.OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true))}
 	return nil
 }
-func (this *Hashkey) HandleOrder(client ccxt.ClientInterface, message any) {
+func (this *Hashkey) HandleOrder(client ccxt.ClientInterface, message map[string]any) {
 	//
 	// swap
 	//     {
@@ -746,7 +746,7 @@ func (this *Hashkey) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], o
 	ch <- ccxt.AsyncResult[[]ccxt.Trade]{Value: ccxt.TradesFromList(this.FilterBySinceLimit(trades, since, limitResolved, "timestamp", true))}
 	return nil
 }
-func (this *Hashkey) HandleMyTrade(client ccxt.ClientInterface, message any, optionalArgs ...any) {
+func (this *Hashkey) HandleMyTrade(client ccxt.ClientInterface, message map[string]any, optionalArgs ...any) {
 	//
 	//     {
 	//         "e": "ticketInfo",
@@ -931,7 +931,7 @@ func (this *Hashkey) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 	ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(this.FilterBySymbolsSinceLimit(this.Positions, symbolsNormalized, since, limit, true))}
 	return nil
 }
-func (this *Hashkey) HandlePosition(client ccxt.ClientInterface, message any) {
+func (this *Hashkey) HandlePosition(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "e": "outboundContractPositionInfo",
@@ -964,7 +964,7 @@ func (this *Hashkey) HandlePosition(client ccxt.ClientInterface, message any) {
 	var symbol string = *this.SafeString(parsed, "symbol", "")
 	client.Resolve(parsed, messageHash+":"+symbol)
 }
-func (this *Hashkey) ParseWsPosition(position any, optionalArgs ...any) map[string]any {
+func (this *Hashkey) ParseWsPosition(position map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "s")
@@ -1100,7 +1100,7 @@ func (this *Hashkey) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], cli
 	}
 	return nil
 }
-func (this *Hashkey) HandleBalance(client ccxt.ClientInterface, message any) {
+func (this *Hashkey) HandleBalance(client ccxt.ClientInterface, message map[string]any) {
 	//
 	//     {
 	//         "e": "outboundContractAccountInfo",        // event type
@@ -1135,7 +1135,7 @@ func (this *Hashkey) HandleBalance(client ccxt.ClientInterface, message any) {
 	if balance == nil {
 		balance = map[string]any{}
 	}
-	ccxt.AddElementToObject(balance, "info", message)
+	balance["info"] = message
 	var currencyId *string = this.SafeString(balanceUpdate, "a")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var account map[string]any = this.Account()
@@ -1299,12 +1299,19 @@ func (this *Hashkey) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], list
 	return nil
 }
 func (this *Hashkey) HandleListMessage(client ccxt.ClientInterface, message []any) {
-	this.HandleStreamMessage(client, this.SafeDict(message, 0, map[string]any{}))
+	var messageDict91042 map[string]any
+	if len(message) > 0 {
+		messageDict91042, _ = message[0].(map[string]any)
+	}
+	if messageDict91042 == nil {
+		messageDict91042 = map[string]any{}
+	}
+	this.HandleStreamMessage(client, messageDict91042)
 }
 func (this *Hashkey) HandleMessage(client ccxt.ClientInterface, message map[string]any) {
 	this.HandleStreamMessage(client, message)
 }
-func (this *Hashkey) HandleStreamMessage(client ccxt.ClientInterface, message any) {
+func (this *Hashkey) HandleStreamMessage(client ccxt.ClientInterface, message map[string]any) {
 	var topic *string = this.SafeString2(message, "topic", "e")
 	if topic != nil && *topic == "kline" {
 		this.HandleOHLCV(client, message)

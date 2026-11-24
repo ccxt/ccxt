@@ -1724,7 +1724,7 @@ func (this *Bitso) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitso) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Bitso) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(order, "oid")
@@ -1877,7 +1877,14 @@ func (this *Bitso) fetchOrderBody(ch chan AsyncResult[Order], id string, optiona
 	var numOrders int = len(payload)
 	if numOrders == 1 {
 
-		ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(payload, 0, map[string]any{}))}
+		var payloadDict141136 map[string]any
+		if len(payload) > 0 {
+			payloadDict141136, _ = payload[0].(map[string]any)
+		}
+		if payloadDict141136 == nil {
+			payloadDict141136 = map[string]any{}
+		}
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(payloadDict141136)}
 		return nil
 	}
 	panic(OrderNotFound(this.Id + ": The order " + id + " not found."))

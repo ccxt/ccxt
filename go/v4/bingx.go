@@ -2521,7 +2521,10 @@ func (this *Bingx) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol
 		dataList, _ = response["data"].([]any)
 		data = this.SafeDictMap(dataList, 0, map[string]any{})
 	} else {
-		data = this.SafeDictMap(response, "data", map[string]any{})
+		data, _ = response["data"].(map[string]any)
+		if data == nil {
+			data = map[string]any{}
+		}
 	}
 
 	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(data, market)}
@@ -4435,8 +4438,8 @@ func (this *Bingx) CreateOrderRequest(symbol string, typeVar *string, side *stri
 		var isTrailingAmountOrder bool = (trailingAmount != nil)
 		var isTrailingPercentOrder bool = (trailingPercent != nil)
 		var isTrailing bool = isTrailingAmountOrder || isTrailingPercentOrder
-		var stopLossDict map[string]any = SafeMapTyped(paramsPostOnly, "stopLoss")
-		var takeProfitDict map[string]any = SafeMapTyped(paramsPostOnly, "takeProfit")
+		var stopLossDict, _ = paramsPostOnly["stopLoss"].(map[string]any)
+		var takeProfitDict, _ = paramsPostOnly["takeProfit"].(map[string]any)
 		var hasStopLoss bool = (stopLossDict != nil)
 		var hasTakeProfit bool = (takeProfitDict != nil)
 		// only omit these keys if they are set ! https://github.com/ccxt/ccxt/pull/29185
@@ -4972,7 +4975,7 @@ func (this *Bingx) ParseOrderType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Bingx) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Bingx) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// spot
 	// createOrder, createOrders, cancelOrder
@@ -5258,7 +5261,7 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var newOrder map[string]any = this.SafeDict2Map(order, "newOrderResponse", "orderOpenResponse")
-	var orderData any
+	var orderData map[string]any
 	if newOrder != nil {
 		orderData = newOrder
 	} else {
@@ -5579,7 +5582,7 @@ func (this *Bingx) cancelOrderBody(ch chan AsyncResult[Order], id string, option
 		order = data
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, order), market)}
 	return nil
 }
 
@@ -5933,7 +5936,7 @@ func (this *Bingx) fetchOrderBody(ch chan AsyncResult[Order], id string, optiona
 		order = data
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, order), market)}
 	return nil
 }
 
@@ -8656,10 +8659,10 @@ func (this *Bingx) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface],
 		}
 	}
 
-	ch <- AsyncResult[TradingFeeInterface]{Value: this.ParseTradingFee(commission, market)}
+	ch <- AsyncResult[TradingFeeInterface]{Value: this.ParseTradingFee(this.Extend(map[string]any{}, commission), market)}
 	return nil
 }
-func (this *Bingx) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInterface {
+func (this *Bingx) ParseTradingFee(fee map[string]any, optionalArgs ...any) TradingFeeInterface {
 	//
 	//     {
 	//         "takerCommissionRate": 0.001,

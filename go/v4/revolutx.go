@@ -1208,7 +1208,7 @@ func (this *Revolutx) ParseOrderStatus(status *string) *string {
  * @param {object} [market] the market the order was placed in
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Revolutx) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Revolutx) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var orderId *string = this.SafeString2(order, "id", "venue_order_id")
@@ -1229,9 +1229,9 @@ func (this *Revolutx) ParseOrder(order any, optionalArgs ...any) Order {
 	//     "take_profit": { "trigger_price": "125000.00", "type": "limit", "trigger_direction": "ge", "limit_price": "124900.00", ... }
 	//     "stop_loss": { "trigger_price": "115000.00", "type": "market", "trigger_direction": "le", ... }
 	//
-	var conditional map[string]any = SafeMapTyped(order, "conditional")
-	var takeProfit map[string]any = this.SafeDictMap(order, "take_profit")
-	var stopLoss map[string]any = this.SafeDictMap(order, "stop_loss")
+	var conditional, _ = order["conditional"].(map[string]any)
+	var takeProfit, _ = order["take_profit"].(map[string]any)
+	var stopLoss, _ = order["stop_loss"].(map[string]any)
 	var triggerPrice *string = nil
 	if orderType != nil && *orderType == "conditional" {
 		triggerPrice = this.SafeString(conditional, "trigger_price")

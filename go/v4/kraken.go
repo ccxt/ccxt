@@ -2313,7 +2313,7 @@ func (this *Kraken) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 	// it's impossible to know if the order was created using cost or base currency
 	// because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
 	// this usingCost flag is used to help the parsing but omitted from the order
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(result)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, result))}
 	return nil
 }
 
@@ -2507,7 +2507,7 @@ func (this *Kraken) ParseOrderType(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Kraken) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//
@@ -2609,9 +2609,9 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var isUsingCost *bool = this.SafeBool(order, "usingCost", false)
-	var orderOmitted any = this.Omit(order, "usingCost")
-	var description map[string]any = SafeMapTyped(orderOmitted, "descr")
-	var orderDescriptionObj map[string]any = SafeMapTyped(orderOmitted, "descr") // can be null
+	var orderOmitted map[string]any = this.OmitDict(order, "usingCost")
+	var description, _ = orderOmitted["descr"].(map[string]any)
+	var orderDescriptionObj, _ = orderOmitted["descr"].(map[string]any) // can be null
 	var orderDescription *string
 	if orderDescriptionObj != nil {
 		orderDescription = this.SafeString(orderDescriptionObj, "order")
@@ -3102,7 +3102,7 @@ func (this *Kraken) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 		result = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, result), market)}
 	return nil
 }
 
@@ -4397,13 +4397,17 @@ func (this *Kraken) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	if resultList != nil {
 		rawWithdrawals = resultList
 	} else {
-		rawWithdrawals = this.AddPaginationCursorToResult(this.SafeDict(response, "result", map[string]any{}))
+		responseDict329963, _ := response["result"].(map[string]any)
+		if responseDict329963 == nil {
+			responseDict329963 = map[string]any{}
+		}
+		rawWithdrawals = this.AddPaginationCursorToResult(responseDict329963)
 	}
 
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactionsByType("withdrawal", rawWithdrawals, code, since, limit))}
 	return nil
 }
-func (this *Kraken) AddPaginationCursorToResult(result any) any {
+func (this *Kraken) AddPaginationCursorToResult(result map[string]any) any {
 	var cursor *string = this.SafeString(result, "next_cursor")
 	var data any = this.SafeList(result, "withdrawals", []any{})
 	var dataLength int = GetArrayLength(data)

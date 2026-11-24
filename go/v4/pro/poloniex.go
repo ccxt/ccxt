@@ -1549,6 +1549,9 @@ func (this *Poloniex) HandleOrder(client ccxt.ClientInterface, message map[strin
 	var marketIds []string = []string{}
 	for i := 0; i < len(data); i++ {
 		var order, _ = data[i].(map[string]any)
+		if order == nil {
+			order = map[string]any{}
+		}
 		var marketId *string = this.SafeString(order, "symbol")
 		var eventType *string = this.SafeString(order, "eventType")
 		if marketId != nil {
@@ -1585,10 +1588,10 @@ func (this *Poloniex) HandleOrder(client ccxt.ClientInterface, message map[strin
 						previousOrder["lastTradeTimestamp"] = nil
 					}
 				}
-				totalCostLit75 := "0"
-				var totalCost *string = &totalCostLit75
-				totalAmountLit76 := "0"
-				var totalAmount *string = &totalAmountLit76
+				totalCostLit78 := "0"
+				var totalCost *string = &totalCostLit78
+				totalAmountLit79 := "0"
+				var totalAmount *string = &totalAmountLit79
 				var previousOrderTrades []any = ccxt.SafeListTyped(previousOrder, "trades")
 				for j := 0; j < len(previousOrderTrades); j++ {
 					var previousOrderTrade, _ = previousOrderTrades[j].(map[string]any)

@@ -1622,12 +1622,12 @@ func (this *Interactivebrokers) IbkrHasFreshSessionToken() bool {
  * @param {string} [params.accountId] the account id to use
  * @returns {Array} the account id and the params without accountId
  */
-func (this *Interactivebrokers) LoadAccountIdAsync(optionalArgs ...any) <-chan AsyncResult[MapPair[*string]] {
-	ch := make(chan AsyncResult[MapPair[*string]], 1)
+func (this *Interactivebrokers) LoadAccountIdAsync(optionalArgs ...any) <-chan AsyncResult[MapPair[string]] {
+	ch := make(chan AsyncResult[MapPair[string]], 1)
 	go this.loadAccountIdBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Interactivebrokers) loadAccountIdBody(ch chan AsyncResult[MapPair[*string]], optionalArgs ...any) any {
+func (this *Interactivebrokers) loadAccountIdBody(ch chan AsyncResult[MapPair[string]], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1646,7 +1646,7 @@ func (this *Interactivebrokers) loadAccountIdBody(ch chan AsyncResult[MapPair[*s
 		panic(ArgumentsRequired(this.Id + " requires an accountId in params[\"accountId\"] or options[\"accountId\"], fetchAccounts() returned no accounts"))
 	}
 
-	ch <- AsyncResult[MapPair[*string]]{Value: MapPair[*string]{V: accountId, P: query}}
+	ch <- AsyncResult[MapPair[string]]{Value: MapPair[string]{V: *accountId, P: query}}
 	return nil
 }
 
@@ -1682,7 +1682,7 @@ func (this *Interactivebrokers) fetchBalanceBody(ch chan AsyncResult[Balances], 
 	if accountIdaccountQueryPair.Err != nil {
 		panic(accountIdaccountQueryPair.Err)
 	}
-	var accountId *string = accountIdaccountQueryPair.Value.V
+	var accountId string = accountIdaccountQueryPair.Value.V
 	var accountQuery map[string]any = accountIdaccountQueryPair.Value.P
 	var accountParams map[string]any = this.Extend(map[string]any{}, accountQuery)
 	withPositions, positionsQuery := this.HandleOptionBoolAndParams(accountParams, "fetchBalance", "positions", true)
@@ -2074,12 +2074,12 @@ func (this *Interactivebrokers) IbkrDisambiguateContractSymbols(markets any) []a
 	}
 	return result
 }
-func (this *Interactivebrokers) FetchSecWithDetailsAsync(plainEntries map[string]any) <-chan AsyncResult[any] {
-	ch := make(chan AsyncResult[any], 1)
+func (this *Interactivebrokers) FetchSecWithDetailsAsync(plainEntries map[string]any) <-chan AsyncResult[[]any] {
+	ch := make(chan AsyncResult[[]any], 1)
 	go this.fetchSecWithDetailsBody(ch, plainEntries)
 	return ch
 }
-func (this *Interactivebrokers) fetchSecWithDetailsBody(ch chan AsyncResult[any], plainEntries map[string]any) any {
+func (this *Interactivebrokers) fetchSecWithDetailsBody(ch chan AsyncResult[[]any], plainEntries map[string]any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var detailIds []string = nil
@@ -2093,7 +2093,7 @@ func (this *Interactivebrokers) fetchSecWithDetailsBody(ch chan AsyncResult[any]
 	var numDetails int = len(detailIds)
 	if numDetails == 0 {
 
-		ch <- AsyncResult[any]{Value: entries}
+		ch <- AsyncResult[[]any]{Value: entries}
 		return nil
 	}
 	var chunkSize int = 330 // above this number, response becomes unreliable
@@ -2143,7 +2143,7 @@ func (this *Interactivebrokers) fetchSecWithDetailsBody(ch chan AsyncResult[any]
 		}
 	}
 
-	ch <- AsyncResult[any]{Value: entries}
+	ch <- AsyncResult[[]any]{Value: entries}
 	return nil
 }
 func (this *Interactivebrokers) FetchForexMarketsAsync(optionalArgs ...any) <-chan AsyncResult[any] {
@@ -2193,7 +2193,7 @@ func (this *Interactivebrokers) fetchForexMarketsBody(ch chan AsyncResult[any], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	detailMarkets := r1.Value
+	var detailMarkets []any = r1.Value
 
 	ch <- AsyncResult[any]{Value: this.ParseMarkets(detailMarkets)}
 	return nil
@@ -2248,7 +2248,7 @@ func (this *Interactivebrokers) fetchCryptoMarketsBody(ch chan AsyncResult[any],
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	detailMarkets := r1.Value
+	var detailMarkets []any = r1.Value
 
 	ch <- AsyncResult[any]{Value: this.ParseMarkets(detailMarkets)}
 	return nil
@@ -2411,16 +2411,15 @@ func (this *Interactivebrokers) fetchFuturesAndSwapMarketsBody(ch chan AsyncResu
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	details := r2.Value
+	var details []any = r2.Value
 	// generic tickers (e.g. SOL, XRP, ADA, XLM) are queried by bare symbol, so trsrv/futures can return
 	// unrelated contracts listed on other venues (e.g. EUREX), only the crypto futures venues are kept
 	var allowedVenues []string = []string{"CME", "CFE", "COINDERIV"}
 	var detailMarkets []any = []any{}
-	for i := 0; i < GetArrayLength(details); i++ {
-		var detail any = GetValue(details, i)
-		var venue *string = this.SafeString(detail, "listingExchange")
+	for i := 0; i < len(details); i++ {
+		var venue *string = this.SafeString(GetValue(details, i), "listingExchange")
 		if this.InArray(venue, allowedVenues) {
-			detailMarkets = append(detailMarkets, detail)
+			detailMarkets = append(detailMarkets, this.SafeDict(details, i))
 		}
 	}
 	var markets []any = this.ParseMarkets(detailMarkets)
@@ -2492,17 +2491,16 @@ func (this *Interactivebrokers) fetchCfdMarketsBody(ch chan AsyncResult[any], op
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	detailMarkets := r1.Value
+	var detailMarkets []any = r1.Value
 	// keep the order of options.fetchMarkets.cfdExchanges, the first exchange wins the plain symbol on collisions
 	var result []any = []any{}
-	var detailMarketsLength int = GetArrayLength(detailMarkets)
+	var detailMarketsLength int = len(detailMarkets)
 	for i := 0; i < len(cfdExchanges); i++ {
 		var cfdExchange string = *this.SafeString(cfdExchanges, i, "")
 		for j := 0; j < detailMarketsLength; j++ {
-			var detail any = GetValue(detailMarkets, j)
-			var listingExchange string = *this.SafeString(detail, "listingExchange", "")
+			var listingExchange string = *this.SafeString(GetValue(detailMarkets, j), "listingExchange", "")
 			if listingExchange == cfdExchange {
-				result = append(result, detail)
+				result = append(result, this.SafeDict(detailMarkets, j))
 			}
 		}
 	}
@@ -2625,7 +2623,7 @@ func (this *Interactivebrokers) fetchBondMarketsBody(ch chan AsyncResult[any], o
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	detailMarkets := r2.Value
+	var detailMarkets []any = r2.Value
 	var markets []any = this.ParseMarkets(detailMarkets)
 	// bonds sharing the issuer, coupon and maturity (e.g. a bill and a strip) are told apart by the conid, e.g. US-T-270215-265342934.SMART/USD
 	var seen map[string]any = map[string]any{}
@@ -2694,7 +2692,7 @@ func (this *Interactivebrokers) fetchStockMarketsBody(ch chan AsyncResult[any], 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	markets := r1.Value
+	var markets []any = r1.Value
 
 	ch <- AsyncResult[any]{Value: this.ParseMarkets(markets)}
 	return nil
@@ -3019,7 +3017,7 @@ func (this *Interactivebrokers) ParseMarket(market any) map[string]any {
 	} else if isFuture {
 		marketType = "future"
 	}
-	var literal208841 map[string]any = map[string]any{
+	var literal208641 map[string]any = map[string]any{
 		"id":             id,
 		"symbol":         symbol,
 		"quote":          quote,
@@ -3067,16 +3065,16 @@ func (this *Interactivebrokers) ParseMarket(market any) map[string]any {
 		"info":    market,
 	}
 	if isContract {
-		literal208841["linear"] = true
+		literal208641["linear"] = true
 	} else {
-		literal208841["linear"] = nil
+		literal208641["linear"] = nil
 	}
 	if isContract {
-		literal208841["inverse"] = false
+		literal208641["inverse"] = false
 	} else {
-		literal208841["inverse"] = nil
+		literal208641["inverse"] = nil
 	}
-	return this.SafeMarketStructure(literal208841)
+	return this.SafeMarketStructure(literal208641)
 }
 
 /**
@@ -3760,10 +3758,7 @@ func (this *Interactivebrokers) fetchAccountsBody(ch chan AsyncResult[[]Account]
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var portfolioAccounts any = nil
-	if r.Value != nil {
-		portfolioAccounts = r.Value
-	}
+	var portfolioAccounts []any = r.Value
 	var accountIds []string = ObjectKeys(this.IndexBy(portfolioAccounts, "accountId"))
 	var length int = len(accountIds)
 	if length == 0 {
@@ -3777,7 +3772,7 @@ func (this *Interactivebrokers) fetchAccountsBody(ch chan AsyncResult[[]Account]
 		}
 	}
 	var accounts []any = []any{}
-	for i := 0; i < GetArrayLength(portfolioAccounts); i++ {
+	for i := 0; i < len(portfolioAccounts); i++ {
 		accounts = append(accounts, this.ParseAccount(this.Extend(map[string]any{}, GetValue(portfolioAccounts, i))))
 	}
 
@@ -4099,7 +4094,7 @@ func (this *Interactivebrokers) createOrderBody(ch chan AsyncResult[Order], symb
 	if accountIdparamsWithoutAccoundIdPair.Err != nil {
 		panic(accountIdparamsWithoutAccoundIdPair.Err)
 	}
-	var accountId *string = accountIdparamsWithoutAccoundIdPair.Value.V
+	var accountId string = accountIdparamsWithoutAccoundIdPair.Value.V
 	var paramsWithoutAccoundId map[string]any = accountIdparamsWithoutAccoundIdPair.Value.P
 	var orderRequest map[string]any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, paramsWithoutAccoundId)
 	orderRequest["acctId"] = accountId
@@ -4126,7 +4121,8 @@ func (this *Interactivebrokers) createOrderBody(ch chan AsyncResult[Order], symb
 	//
 	//     [ { "order_id": "1370093239", "order_status": "PreSubmitted", "encrypt_message": "1" } ]
 	//
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
+	resultMap285532, _ := result.(map[string]any)
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(resultMap285532, market)}
 	return nil
 }
 func (this *Interactivebrokers) CreateTestOrderAsync(symbol string, typeVar any, side any, amount any, optionalArgs ...any) <-chan AsyncResult[any] {
@@ -4157,7 +4153,7 @@ func (this *Interactivebrokers) createTestOrderBody(ch chan AsyncResult[any], sy
 	if accountIdparamsWithoutAccoundIdPair.Err != nil {
 		panic(accountIdparamsWithoutAccoundIdPair.Err)
 	}
-	var accountId *string = accountIdparamsWithoutAccoundIdPair.Value.V
+	var accountId string = accountIdparamsWithoutAccoundIdPair.Value.V
 	var paramsWithoutAccoundId map[string]any = accountIdparamsWithoutAccoundIdPair.Value.P
 	var orderRequest map[string]any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, paramsWithoutAccoundId)
 	orderRequest["acctId"] = accountId
@@ -4412,7 +4408,7 @@ func (this *Interactivebrokers) editOrderBody(ch chan AsyncResult[Order], id str
 	if accountIdqueryPair.Err != nil {
 		panic(accountIdqueryPair.Err)
 	}
-	var accountId *string = accountIdqueryPair.Value.V
+	var accountId string = accountIdqueryPair.Value.V
 	var query map[string]any = accountIdqueryPair.Value.P
 	var orderRequest map[string]any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, query)
 	orderRequest["acctId"] = accountId
@@ -4433,7 +4429,8 @@ func (this *Interactivebrokers) editOrderBody(ch chan AsyncResult[Order], id str
 	if r3.Value != nil {
 		result = r3.Value
 	}
-	var order map[string]any = OrderToMap(this.ParseOrder(result, market))
+	resultMap305539, _ := result.(map[string]any)
+	var order map[string]any = OrderToMap(this.ParseOrder(resultMap305539, market))
 	order["type"] = typeVar
 	order["side"] = side
 	order["amount"] = *amount
@@ -4486,7 +4483,7 @@ func (this *Interactivebrokers) cancelOrderBody(ch chan AsyncResult[Order], id s
 	if accountIdqueryPair.Err != nil {
 		panic(accountIdqueryPair.Err)
 	}
-	var accountId *string = accountIdqueryPair.Value.V
+	var accountId string = accountIdqueryPair.Value.V
 	var query map[string]any = accountIdqueryPair.Value.P
 	var request map[string]any = map[string]any{
 		"accountId": accountId,
@@ -4497,12 +4494,12 @@ func (this *Interactivebrokers) cancelOrderBody(ch chan AsyncResult[Order], id s
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var response map[string]any = r2.Value
+	response := r2.Raw
 
 	//
 	//     { "msg": "Request was submitted", "order_id": 123456789, "conid": 265598, "account": "U1234567" }
 	//
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, response), market)}
 	return nil
 }
 
@@ -4591,7 +4588,7 @@ func (this *Interactivebrokers) fetchOrderBody(ch chan AsyncResult[Order], id st
 		panic(NullResponse(this.Id + " fetchOrder() returned empty response"))
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, response), market)}
 	return nil
 }
 
@@ -5053,7 +5050,7 @@ func (this *Interactivebrokers) ParseOrderTimeInForce(timeInForce *string) *stri
 	}
 	return this.SafeString(timeInForces, timeInForce, timeInForce)
 }
-func (this *Interactivebrokers) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Interactivebrokers) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder / editOrder
 	//
@@ -5300,7 +5297,7 @@ func (this *Interactivebrokers) fetchMyTradesFromTransactionsBody(ch chan AsyncR
 	if accountIdaccountQueryPair.Err != nil {
 		panic(accountIdaccountQueryPair.Err)
 	}
-	var accountId *string = accountIdaccountQueryPair.Value.V
+	var accountId string = accountIdaccountQueryPair.Value.V
 	var accountQuery map[string]any = accountIdaccountQueryPair.Value.P
 	currency, query := this.HandleOptionAndParams(accountQuery, "fetchMyTrades", "currency", this.SafeString(options, "transactionsCurrency", "USD"))
 	var days any = (*this.SafeInteger(options, "transactionsDays", 90))
@@ -5532,7 +5529,7 @@ func (this *Interactivebrokers) fetchPositionsBody(ch chan AsyncResult[[]Positio
 	if accountIdqueryPair.Err != nil {
 		panic(accountIdqueryPair.Err)
 	}
-	var accountId *string = accountIdqueryPair.Value.V
+	var accountId string = accountIdqueryPair.Value.V
 	var query map[string]any = accountIdqueryPair.Value.P
 	var request map[string]any = map[string]any{
 		"accountId": accountId,
@@ -5607,7 +5604,7 @@ func (this *Interactivebrokers) fetchPositionsForSymbolBody(ch chan AsyncResult[
 	if accountIdqueryPair.Err != nil {
 		panic(accountIdqueryPair.Err)
 	}
-	var accountId *string = accountIdqueryPair.Value.V
+	var accountId string = accountIdqueryPair.Value.V
 	var query map[string]any = accountIdqueryPair.Value.P
 	var request map[string]any = map[string]any{
 		"accountId": accountId,
@@ -5646,11 +5643,11 @@ func (this *Interactivebrokers) fetchPositionsForSymbolBody(ch chan AsyncResult[
 	}
 	var result []any = []any{}
 	for i := 0; i < len(positions); i++ {
-		positionsDict384449, _ := positions[i].(map[string]any)
-		if positionsDict384449 == nil {
-			positionsDict384449 = map[string]any{}
+		positionsDict384249, _ := positions[i].(map[string]any)
+		if positionsDict384249 == nil {
+			positionsDict384249 = map[string]any{}
 		}
-		var position map[string]any = PositionToMap(this.ParsePosition(positionsDict384449, market))
+		var position map[string]any = PositionToMap(this.ParsePosition(positionsDict384249, market))
 		if Precise.StringGt(this.SafeString(position, "contracts", "0"), "0") {
 			result = append(result, position)
 		}

@@ -1666,7 +1666,7 @@ func (this *Latoken) ParseTimeInForce(timeInForce *string) *string {
 	}
 	return this.SafeString(timeInForces, timeInForce, timeInForce)
 }
-func (this *Latoken) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Latoken) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//

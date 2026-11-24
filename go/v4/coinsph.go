@@ -2222,7 +2222,7 @@ func (this *Coinsph) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market))}
 	return nil
 }
-func (this *Coinsph) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Coinsph) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder POST /openapi/v1/order
 	//     {

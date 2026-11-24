@@ -2147,7 +2147,7 @@ func (this *Poloniex) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Poloniex) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Poloniex) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// fetchOpenOrder
 	//
@@ -2460,7 +2460,10 @@ func (this *Poloniex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 		//                "qCcy": "USDT"
 		//            },
 		//
-		response = ArrayTyped(this.SafeList(raw, "data", []any{}))
+		response, _ = raw["data"].([]any)
+		if response == nil {
+			response = []any{}
+		}
 	} else if isTrigger != nil && *isTrigger == true {
 
 		responseRecv := <-this.PrivateGetSmartorders(this.Extend(request, paramsOmitted))
@@ -2688,7 +2691,7 @@ func (this *Poloniex) createOrderBody(ch chan AsyncResult[Order], symbol string,
 	//         "clientOrderId" : ""
 	//     }
 	//
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, response), market)}
 	return nil
 }
 
@@ -2999,7 +3002,7 @@ func (this *Poloniex) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 		"type": typeVar,
 	})
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(response, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, response), market)}
 	return nil
 }
 func (this *Poloniex) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
@@ -3059,7 +3062,11 @@ func (this *Poloniex) cancelOrderBody(ch chan AsyncResult[Order], id string, opt
 		//        }
 		//    }
 		//
-		ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(raw, "data", map[string]any{}))}
+		rawDict239736, _ := raw["data"].(map[string]any)
+		if rawDict239736 == nil {
+			rawDict239736 = map[string]any{}
+		}
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(rawDict239736)}
 		return nil
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
@@ -3098,7 +3105,7 @@ func (this *Poloniex) cancelOrderBody(ch chan AsyncResult[Order], id string, opt
 	//       "message":""
 	//   }
 	//
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(response)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, response))}
 	return nil
 }
 
@@ -3258,7 +3265,10 @@ func (this *Poloniex) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optional
 		//        ]
 		//    }
 		//
-		response = ArrayTyped(this.SafeList(raw, "data", []any{}))
+		response, _ = raw["data"].([]any)
+		if response == nil {
+			response = []any{}
+		}
 
 		ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market))}
 		return nil
@@ -3384,7 +3394,7 @@ func (this *Poloniex) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 	//         "updateTime": 1646196019020
 	//     }
 	//
-	var order map[string]any = OrderToMap(this.ParseOrder(response))
+	var order map[string]any = OrderToMap(this.ParseOrder(this.Extend(map[string]any{}, response)))
 	order["id"] = idValue
 
 	ch <- AsyncResult[Order]{Value: OrderFromMap(order)}
@@ -3412,10 +3422,7 @@ func (this *Poloniex) fetchOrderStatusBody(ch chan AsyncResult[*string], id stri
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var orders any = nil
-	if r1.Value != nil {
-		orders = OrdersToList(r1.Value)
-	}
+	var orders []any = OrdersToList(r1.Value)
 	var indexed map[string]any = this.IndexBy(orders, "id")
 	var statuses map[string]any = map[string]any{
 		"true":  "open",

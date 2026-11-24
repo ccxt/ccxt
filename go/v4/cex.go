@@ -1159,7 +1159,11 @@ func (this *Cex) ParseTradingFees(response map[string]any, optionalArgs ...any) 
 		if useKeyAsId == true {
 			market = this.SafeMarket(key)
 		}
-		var parsed map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(response[key], market))
+		responseDict89049, _ := response[key].(map[string]any)
+		if responseDict89049 == nil {
+			responseDict89049 = map[string]any{}
+		}
+		var parsed map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(responseDict89049, market))
 		var parsedSymbol *string = this.SafeString(parsed, "symbol")
 		if parsedSymbol != nil {
 			result[*parsedSymbol] = parsed
@@ -1175,7 +1179,7 @@ func (this *Cex) ParseTradingFees(response map[string]any, optionalArgs ...any) 
 	}
 	return result
 }
-func (this *Cex) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInterface {
+func (this *Cex) ParseTradingFee(fee map[string]any, optionalArgs ...any) TradingFeeInterface {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return TradingFeeInterfaceFromMap(map[string]any{
@@ -1652,7 +1656,7 @@ func (this *Cex) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Cex) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Cex) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	//                "orderId": "1313003",
 	//                "clientOrderId": "037F0AFEB93A",

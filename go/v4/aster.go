@@ -3071,7 +3071,7 @@ func (this *Aster) ParseOrderType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Aster) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Aster) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// swap
 	//     {

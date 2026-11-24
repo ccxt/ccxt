@@ -1307,7 +1307,7 @@ func (this *Paradex) SafeMarket(optionalArgs ...any) map[string]any {
 	}
 	return this.Exchange.SafeMarket(marketId, market, delimiter, marketType)
 }
-func (this *Paradex) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInterface {
+func (this *Paradex) ParseTradingFee(fee map[string]any, optionalArgs ...any) TradingFeeInterface {
 	//
 	//     {
 	//         "symbol": "BTC-USD-PERP",
@@ -1331,7 +1331,7 @@ func (this *Paradex) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInt
 	_ = market
 	var marketId *string = this.SafeString(fee, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
-	var feeConfig map[string]any = SafeMapTyped(fee, "fee_config")
+	var feeConfig, _ = fee["fee_config"].(map[string]any)
 	var apiFee, _ = feeConfig["api_fee"].(map[string]any)
 	var makerFee, _ = apiFee["maker_fee"].(map[string]any)
 	var takerFee, _ = apiFee["taker_fee"].(map[string]any)
@@ -1476,7 +1476,7 @@ func (this *Paradex) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	var loadedFees []any = this.FilterLoadedSummaries(fees)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(loadedFees); i++ {
-		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(loadedFees[i]))
+		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(this.Extend(map[string]any{}, loadedFees[i])))
 		var symbol *string = this.SafeString(fee, "symbol")
 		if symbol != nil {
 			result[*symbol] = fee
@@ -2636,7 +2636,7 @@ func (this *Paradex) authenticateRestBody(ch chan AsyncResult[*string], optional
 	ch <- AsyncResult[*string]{Value: token}
 	return nil
 }
-func (this *Paradex) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Paradex) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// {
 	//     "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
@@ -3312,7 +3312,7 @@ func (this *Paradex) createOrdersBody(ch chan AsyncResult[[]Order], orders []map
 	for i := 0; i < len(orders); i++ {
 		var responseOrder map[string]any = SafeMapTyped(responseOrders, i)
 		if responseOrder != nil {
-			result = append(result, OrderToMap(this.ParseOrder(responseOrder)))
+			result = append(result, OrderToMap(this.ParseOrder(this.Extend(map[string]any{}, responseOrder))))
 		} else {
 			var error map[string]any = SafeMapTyped(errors, i)
 			result = append(result, OrderToMap(this.SafeOrder(map[string]any{

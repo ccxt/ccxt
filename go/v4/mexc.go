@@ -2171,7 +2171,10 @@ func (this *Mexc) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string, o
 		//         ]
 		//     }
 		//
-		trades = ArrayTyped(this.SafeList(response, "data", []any{}))
+		trades, _ = response["data"].([]any)
+		if trades == nil {
+			trades = []any{}
+		}
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
@@ -3705,7 +3708,7 @@ func (this *Mexc) fetchOrderBody(ch chan AsyncResult[Order], id string, optional
 		data = this.SafeDict(response, "data", map[string]any{})
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, data), market)}
 	return nil
 }
 
@@ -4391,7 +4394,14 @@ func (this *Mexc) cancelOrderBody(ch chan AsyncResult[Order], id string, optiona
 			}
 			var marginRows []any = marginRowsRecv.Value
 
-			ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(marginRows, 0, map[string]any{}), market)}
+			var marginRowsDict335140 map[string]any
+			if len(marginRows) > 0 {
+				marginRowsDict335140, _ = marginRows[0].(map[string]any)
+			}
+			if marginRowsDict335140 == nil {
+				marginRowsDict335140 = map[string]any{}
+			}
+			ch <- AsyncResult[Order]{Value: this.ParseOrder(marginRowsDict335140, market)}
 			return nil
 		} else {
 
@@ -4464,7 +4474,7 @@ func (this *Mexc) cancelOrderBody(ch chan AsyncResult[Order], id string, optiona
 		}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, data), market)}
 	return nil
 }
 
@@ -4649,7 +4659,7 @@ func (this *Mexc) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		return nil
 	}
 }
-func (this *Mexc) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Mexc) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// spot
 	//    createOrder
@@ -5521,7 +5531,10 @@ func (this *Mexc) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs .
 		//         ]
 		//     }
 		//
-		trades = ArrayTyped(this.SafeList(response, "data", []any{}))
+		trades, _ = response["data"].([]any)
+		if trades == nil {
+			trades = []any{}
+		}
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit))}
@@ -5614,7 +5627,10 @@ func (this *Mexc) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string, 
 		//         ]
 		//     }
 		//
-		trades = ArrayTyped(this.SafeList(response, "data", []any{}))
+		trades, _ = response["data"].([]any)
+		if trades == nil {
+			trades = []any{}
+		}
 	}
 
 	ch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ParseTrades(trades, market, since, limit, query))}

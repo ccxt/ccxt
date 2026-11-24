@@ -1991,7 +1991,7 @@ func (this *Bit2me) ParseOrderType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Bit2me) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Bit2me) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder, cancelOrder, fetchOrder, fetchOrders
 	//

@@ -3437,7 +3437,7 @@ func (this *Bitstamp) ParseTransactionStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bitstamp) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Bitstamp) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	//   from fetch order:
 	//     { status: "Finished",

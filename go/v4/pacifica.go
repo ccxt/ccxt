@@ -3508,7 +3508,14 @@ func (this *Pacifica) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 	var lastIdx int = len(sorted)
 	if lastIdx > 0 {
 
-		ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(sorted, 0, map[string]any{}), market)}
+		var sortedDict250836 map[string]any
+		if len(sorted) > 0 {
+			sortedDict250836, _ = sorted[0].(map[string]any)
+		}
+		if sortedDict250836 == nil {
+			sortedDict250836 = map[string]any{}
+		}
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(sortedDict250836, market)}
 		return nil
 	}
 
@@ -3559,7 +3566,7 @@ func (this *Pacifica) ParseOrderType(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Pacifica) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Pacifica) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// fetchOpenOrders
 	//   [

@@ -3456,7 +3456,7 @@ func (this *Btse) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(rows, market, since, limit))}
 	return nil
 }
-func (this *Btse) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Btse) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder - spot
 	//     {

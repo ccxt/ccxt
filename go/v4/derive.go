@@ -1088,10 +1088,7 @@ func (this *Derive) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface],
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var instruments any = nil
-	if r.Value != nil {
-		instruments = MapSliceToList(r.Value)
-	}
+	var instruments []any = MapSliceToList(r.Value)
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(instruments))}
 	return nil
@@ -1115,10 +1112,7 @@ func (this *Derive) fetchSwapMarketsBody(ch chan AsyncResult[[]MarketInterface],
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var instruments any = nil
-	if r.Value != nil {
-		instruments = MapSliceToList(r.Value)
-	}
+	var instruments []any = MapSliceToList(r.Value)
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(instruments))}
 	return nil
@@ -1142,10 +1136,7 @@ func (this *Derive) fetchOptionMarketsBody(ch chan AsyncResult[[]MarketInterface
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var instruments any = nil
-	if r.Value != nil {
-		instruments = MapSliceToList(r.Value)
-	}
+	var instruments []any = MapSliceToList(r.Value)
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(instruments))}
 	return nil
@@ -3687,7 +3678,7 @@ func (this *Derive) ParseOrderStatus(status *string) *string {
 	}
 	return nil
 }
-func (this *Derive) ParseOrder(rawOrder any, optionalArgs ...any) Order {
+func (this *Derive) ParseOrder(rawOrder map[string]any, optionalArgs ...any) Order {
 	//
 	//     {
 	//         "subaccount_id": 86815,
@@ -5611,7 +5602,7 @@ func (this *Derive) HandleDeriveWalletAddress(methodName string, params any) (*s
 	}
 	// v3 abolished the separate derive wallet: the owner wallet is the user's own EOA, so the walletAddress credential is the default; set deriveWalletAddress explicitly only when signing with a session key registered to another owner wallet
 	if this.WalletAddress != "" {
-		return SafeStringPtr(this.WalletAddress), this.Extend(paramsDeriveWalletAddress)
+		return &this.WalletAddress, this.Extend(paramsDeriveWalletAddress)
 	}
 	panic(ArgumentsRequired(this.Id + " " + methodName + "() requires the walletAddress credential, a deriveWalletAddress parameter inside 'params', or exchange.options['deriveWalletAddress'] = ADDRESS."))
 }

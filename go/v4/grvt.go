@@ -4091,7 +4091,7 @@ func (this *Grvt) fetchOrderBody(ch chan AsyncResult[Order], id string, optional
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(result)}
 	return nil
 }
-func (this *Grvt) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Grvt) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// fetchOrders, fetchOpenOrders, fetchOrder, createOrder
 	//
@@ -4187,8 +4187,8 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) Order {
 	var filled *string = nil
 	var avgPrice *string = nil
 	var legs []any = SafeListTyped(order, "legs")
-	var metadata map[string]any = SafeMapTyped(order, "metadata")
-	var stateObj map[string]any = SafeMapTyped(order, "state")
+	var metadata, _ = order["metadata"].(map[string]any)
+	var stateObj, _ = order["state"].(map[string]any)
 	var filledAmounts []any = SafeListTyped(stateObj, "traded_size")
 	var avgPrices []any = SafeListTyped(stateObj, "avg_fill_price")
 	var primaryOrderIndex int = 0

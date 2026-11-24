@@ -3172,7 +3172,7 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan AsyncResult[[]MarketInterface]
 		response = this.SafeDictMap(promises, 0, map[string]any{})
 		preLaunchMarkets = this.SafeDict(promises, 1, map[string]any{})
 	}
-	var data map[string]any = SafeMapTyped(response, "result")
+	var data, _ = response["result"].(map[string]any)
 	var markets []any = SafeListTyped(data, "list")
 	var paginationCursor *string = this.SafeString(data, "nextPageCursor")
 	if paginationCursor != nil {
@@ -5369,7 +5369,7 @@ func (this *Bybit) ParseTimeInForce(timeInForce *string) *string {
 	}
 	return this.SafeString(timeInForces, timeInForce, timeInForce)
 }
-func (this *Bybit) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Bybit) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// v1 for usdc normal account
 	//     {
@@ -5491,7 +5491,8 @@ func (this *Bybit) ParseOrder(order any, optionalArgs ...any) Order {
 		}
 	}
 	var marketId *string = this.SafeString(order, "symbol")
-	var isContract bool = (InOp(order, "tpslMode"))
+	_, has1 := order["tpslMode"]
+	var isContract bool = has1
 	var marketType *string = nil
 	if market != nil {
 		marketType = this.SafeString(market, "type")
@@ -5530,7 +5531,7 @@ func (this *Bybit) ParseOrder(order any, optionalArgs ...any) Order {
 	var rawStatus *string = this.SafeString(order, "orderStatus")
 	var status *string = this.ParseOrderStatus(rawStatus)
 	var fee map[string]any = nil
-	var cumFeeDetail map[string]any = SafeMapTyped(order, "cumFeeDetail")
+	var cumFeeDetail, _ = order["cumFeeDetail"].(map[string]any)
 	var feeCoins []string = nil
 	if cumFeeDetail != nil {
 		feeCoins = make([]string, 0, len(cumFeeDetail))
@@ -11416,7 +11417,7 @@ func (this *Bybit) fetchSettlementHistoryBody(ch chan AsyncResult[[]map[string]a
 		}
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		var symbolMarket map[string]any = this.Market(symbol)
 		market = symbolMarket
@@ -11505,7 +11506,7 @@ func (this *Bybit) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[string
 		}
 	}
 	var request map[string]any = map[string]any{}
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		var symbolMarket map[string]any = this.Market(symbol)
 		market = symbolMarket
@@ -11561,7 +11562,7 @@ func (this *Bybit) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[string
 	ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList(this.FilterBySymbolSinceLimit(sorted, this.SafeString(market, "symbol"), since, limit))}
 	return nil
 }
-func (this *Bybit) ParseSettlement(settlement map[string]any, market any) map[string]any {
+func (this *Bybit) ParseSettlement(settlement map[string]any, market map[string]any) map[string]any {
 	//
 	// fetchSettlementHistory
 	//
@@ -11594,7 +11595,7 @@ func (this *Bybit) ParseSettlement(settlement map[string]any, market any) map[st
 		"datetime":  this.Iso8601(timestamp),
 	}
 }
-func (this *Bybit) ParseSettlements(settlements []any, market any) []any {
+func (this *Bybit) ParseSettlements(settlements []any, market map[string]any) []any {
 	//
 	// fetchSettlementHistory
 	//

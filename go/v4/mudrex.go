@@ -1056,7 +1056,7 @@ func (this *Mudrex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 			riskData = riskResponse
 		}
 
-		ch <- AsyncResult[Order]{Value: this.ParseOrder(riskData, market)}
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, riskData), market)}
 		return nil
 	}
 	var lev *int64 = this.SafeInteger(params, "leverage", 1)
@@ -1176,7 +1176,7 @@ func (this *Mudrex) editOrderBody(ch chan AsyncResult[Order], id string, symbol 
 		data = response
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, data), market)}
 	return nil
 }
 func (this *Mudrex) ParseOrderStatus(status *string) *string {
@@ -1195,7 +1195,7 @@ func (this *Mudrex) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Mudrex) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Mudrex) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var oms *string = this.SafeString(order, "symbol")
@@ -1326,7 +1326,7 @@ func (this *Mudrex) cancelOrderBody(ch chan AsyncResult[Order], id string, optio
 		data = response
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, data), market)}
 	return nil
 }
 
@@ -1378,7 +1378,7 @@ func (this *Mudrex) fetchOrderBody(ch chan AsyncResult[Order], id string, option
 		data = response
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, data), market)}
 	return nil
 }
 
@@ -1446,7 +1446,11 @@ func (this *Mudrex) fetchOrdersByStateBody(ch chan AsyncResult[[]Order], state s
 	}
 	var orders []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		orders = append(orders, OrderToMap(this.ParseOrder(this.SafeDict(rows, i, map[string]any{}), market)))
+		rowsDict97742, _ := rows[i].(map[string]any)
+		if rowsDict97742 == nil {
+			rowsDict97742 = map[string]any{}
+		}
+		orders = append(orders, OrderToMap(this.ParseOrder(rowsDict97742, market)))
 	}
 
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.FilterBySymbolSinceLimit(orders, symbol, since, limit))}
@@ -1848,7 +1852,7 @@ func (this *Mudrex) closePositionBody(ch chan AsyncResult[Order], symbol string,
 			partialData = partialResponse
 		}
 
-		ch <- AsyncResult[Order]{Value: this.ParseOrder(partialData, market)}
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, partialData), market)}
 		return nil
 	}
 	var closeParams map[string]any = this.OmitDict(params, []any{"position_id"})
@@ -1864,7 +1868,7 @@ func (this *Mudrex) closePositionBody(ch chan AsyncResult[Order], symbol string,
 		data = response
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, data), market)}
 	return nil
 }
 

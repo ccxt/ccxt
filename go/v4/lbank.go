@@ -2008,7 +2008,7 @@ func (this *Lbank) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(balanceResult)}
 	return nil
 }
-func (this *Lbank) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInterface {
+func (this *Lbank) ParseTradingFee(fee map[string]any, optionalArgs ...any) TradingFeeInterface {
 	//
 	//      {
 	//          "symbol":"skt_usdt",
@@ -2100,7 +2100,7 @@ func (this *Lbank) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFe
 	fees, _ = response["data"].([]any)
 	var result map[string]any = map[string]any{}
 	for i := 0; i < len(fees); i++ {
-		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(fees[i]))
+		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(this.Extend(map[string]any{}, fees[i])))
 		var symbol *string = this.SafeString(fee, "symbol")
 		if symbol != nil {
 			result[*symbol] = fee
@@ -2297,7 +2297,7 @@ func (this *Lbank) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Lbank) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Lbank) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// fetchOrderSupplement (private)
 	//
@@ -2632,7 +2632,14 @@ func (this *Lbank) fetchOrderDefaultBody(ch chan AsyncResult[Order], id string, 
 	var numOrders int = len(result)
 	if numOrders == 1 {
 
-		ch <- AsyncResult[Order]{Value: this.ParseOrder(this.SafeDict(result, 0, map[string]any{}))}
+		var resultDict200136 map[string]any
+		if len(result) > 0 {
+			resultDict200136, _ = result[0].(map[string]any)
+		}
+		if resultDict200136 == nil {
+			resultDict200136 = map[string]any{}
+		}
+		ch <- AsyncResult[Order]{Value: this.ParseOrder(resultDict200136)}
 		return nil
 	} else {
 		panic(BadRequest(this.Id + " fetchOrder() can only fetch one order at a time"))

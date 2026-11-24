@@ -2093,12 +2093,12 @@ func (this *PredictionExchange) SafePredictionOrderBook(orderbook any, optionalA
 	// omit (not delete) — `del dict['symbol']` raises KeyError in python/php when absent
 	return this.Extend(this.Omit(orderbook, "symbol"), identity)
 }
-func (this *PredictionExchange) ParsePredictionTicker(ticker any, optionalArgs ...any) map[string]any {
+func (this *PredictionExchange) ParsePredictionTicker(ticker map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parsePredictionTicker() is not supported yet"))
 }
-func (this *PredictionExchange) ParsePredictionOrder(order any, optionalArgs ...any) map[string]any {
+func (this *PredictionExchange) ParsePredictionOrder(order map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parsePredictionOrder() is not supported yet"))
@@ -2185,7 +2185,11 @@ func (this *PredictionExchange) ParsePredictionOrders(orders any, optionalArgs .
 	var rows []any = this.ToArray(orders)
 	var results []any = []any{}
 	for i := 0; i < len(rows); i++ {
-		var parsed map[string]any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionOrder(rows[i], outcomeObj)
+		rowsDict160054, _ := rows[i].(map[string]any)
+		if rowsDict160054 == nil {
+			rowsDict160054 = map[string]any{}
+		}
+		var parsed map[string]any = this.DerivedExchange.(IPredictionDispatch).ParsePredictionOrder(rowsDict160054, outcomeObj)
 		var order map[string]any = this.Extend(parsed, params)
 		results = append(results, order)
 	}

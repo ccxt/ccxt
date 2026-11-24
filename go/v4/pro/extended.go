@@ -365,7 +365,7 @@ func (this *Extended) HandleBalance(client ccxt.ClientInterface, message map[str
 		data = map[string]any{}
 	}
 	this.Balance["info"] = data
-	var balance map[string]any = ccxt.SafeMapTyped(data, "balance")
+	var balance, _ = data["balance"].(map[string]any)
 	if balance != nil {
 		var currencyId *string = this.SafeString(balance, "collateralName")
 		var code *string = this.SafeCurrencyCode(currencyId)
@@ -711,7 +711,11 @@ func (this *Extended) HandleOrders(client ccxt.ClientInterface, message map[stri
 		return
 	}
 	for i := 0; i < len(rawOrders); i++ {
-		var order map[string]any = ccxt.OrderToMap(this.ParseOrder(this.SafeDict(rawOrders, i, map[string]any{})))
+		rawOrdersDict51043, _ := rawOrders[i].(map[string]any)
+		if rawOrdersDict51043 == nil {
+			rawOrdersDict51043 = map[string]any{}
+		}
+		var order map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrdersDict51043))
 		var symbol *string = this.SafeString(order, "symbol")
 		if symbol != nil {
 			symbols[*symbol] = true

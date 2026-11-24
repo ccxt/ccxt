@@ -1996,7 +1996,7 @@ func (this *Ndax) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Ndax) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Ndax) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// createOrder
 	//
@@ -3214,7 +3214,7 @@ func (this *Ndax) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 	//
 	if IsString(response) {
 
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(JsonParse(response), currency, since, limit))}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(this.ToArray(JsonParse(response)), currency, since, limit))}
 		return nil
 	}
 

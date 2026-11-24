@@ -1266,7 +1266,7 @@ func (this *Modetrade) HandleOrderUpdate(client ccxt.ClientInterface, message ma
 	//         }
 	//     }
 	//
-	var topic *string = this.SafeString(message, "topic")
+	var topic string = *this.SafeString(message, "topic", "")
 	var data any = this.SafeValue(message, "data")
 	var dataIsArray bool = ccxt.IsArray(data)
 	if dataIsArray {
@@ -1299,10 +1299,15 @@ func (this *Modetrade) HandleOrderUpdate(client ccxt.ClientInterface, message ma
 		if tradeId != nil {
 			this.HandleMyTrade(client, data)
 		}
-		this.HandleOrder(client, data, topic)
+		var dataDict map[string]any
+		dataDict, _ = message["data"].(map[string]any)
+		if dataDict == nil {
+			dataDict = map[string]any{}
+		}
+		this.HandleOrder(client, dataDict, topic)
 	}
 }
-func (this *Modetrade) HandleOrder(client ccxt.ClientInterface, message any, topic any) {
+func (this *Modetrade) HandleOrder(client ccxt.ClientInterface, message any, topic string) {
 	var parsed map[string]any = this.ParseWsOrder(message)
 	var symbol *string = this.SafeString(parsed, "symbol")
 	var orderId *string = this.SafeString(parsed, "id")
@@ -1337,7 +1342,7 @@ func (this *Modetrade) HandleOrder(client ccxt.ClientInterface, message any, top
 		}
 		cachedOrders.Append(parsed)
 		client.Resolve(this.Orders, topic)
-		client.Resolve(this.Orders, ccxt.Add(ccxt.Add(topic, ":"), symbol))
+		client.Resolve(this.Orders, topic+":"+*symbol)
 	}
 }
 func (this *Modetrade) HandleMyTrade(client ccxt.ClientInterface, message any) {
@@ -1721,7 +1726,7 @@ func (this *Modetrade) HandleBalance(client ccxt.ClientInterface, message map[st
 	if data == nil {
 		data = map[string]any{}
 	}
-	var balances map[string]any = ccxt.SafeMapTyped(data, "balances")
+	var balances, _ = data["balances"].(map[string]any)
 	var keys []string = nil
 	if balances != nil {
 		keys = make([]string, 0, len(balances))

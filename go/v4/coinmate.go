@@ -1599,7 +1599,7 @@ func (this *Coinmate) ParseOrderType(typeVar *string) *string {
 	}
 	return this.SafeString(types, typeVar, typeVar)
 }
-func (this *Coinmate) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Coinmate) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// limit sell
 	//

@@ -1261,7 +1261,7 @@ func (this *Bitteam) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 		result = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, result), market)}
 	return nil
 }
 
@@ -1499,7 +1499,7 @@ func (this *Bitteam) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		order = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(order, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, order), market)}
 	return nil
 }
 
@@ -1555,7 +1555,7 @@ func (this *Bitteam) cancelOrderBody(ch chan AsyncResult[Order], id string, opti
 		result = map[string]any{}
 	}
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(result)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, result))}
 	return nil
 }
 
@@ -1619,7 +1619,7 @@ func (this *Bitteam) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(orders, market))}
 	return nil
 }
-func (this *Bitteam) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Bitteam) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// fetchOrders
 	//     {
@@ -1723,7 +1723,7 @@ func (this *Bitteam) ParseOrder(order any, optionalArgs ...any) Order {
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "status"))
 	var typeVar *string = this.ParseOrderType(this.SafeString(order, "type"))
 	var side *string = this.SafeString(order, "side")
-	var feeRaw map[string]any = SafeMapTyped(order, "fee")
+	var feeRaw, _ = order["fee"].(map[string]any)
 	var price *string = this.SafeString(order, "price")
 	var amount *string = this.SafeString(order, "quantity")
 	var filled *string = this.SafeString(order, "executed")

@@ -1150,7 +1150,11 @@ func (this *Apex) HandleOrder(client ccxt.ClientInterface, lists []any) {
 	var orders ccxt.WsArrayCache = this.Orders
 	var symbols map[string]any = map[string]any{}
 	for i := 0; i < len(lists); i++ {
-		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(this.SafeDict(lists, i, map[string]any{})))
+		listsDict79944, _ := lists[i].(map[string]any)
+		if listsDict79944 == nil {
+			listsDict79944 = map[string]any{}
+		}
+		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(listsDict79944))
 		var symbol *string = this.SafeString(parsed, "symbol")
 		if symbol != nil {
 			symbols[*symbol] = true

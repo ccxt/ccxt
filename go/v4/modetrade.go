@@ -2299,7 +2299,7 @@ func (this *Modetrade) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(rows, market, timeframe, since, limit))}
 	return nil
 }
-func (this *Modetrade) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Modetrade) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// Possible input functions:
 	// * createOrder

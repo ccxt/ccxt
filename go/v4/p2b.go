@@ -1171,7 +1171,7 @@ func (this *P2b) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 	//
 	var result, _ = response["result"].(map[string]any)
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(result, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, result), market)}
 	return nil
 }
 
@@ -1245,7 +1245,7 @@ func (this *P2b) cancelOrderBody(ch chan AsyncResult[Order], id string, optional
 	//
 	var result, _ = response["result"].(map[string]any)
 
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(result)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(this.Extend(map[string]any{}, result))}
 	return nil
 }
 
@@ -1666,7 +1666,7 @@ func (this *P2b) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(orders)}
 	return nil
 }
-func (this *P2b) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *P2b) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// cancelOrder, fetchOpenOrders, createOrder
 	//

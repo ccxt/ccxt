@@ -326,7 +326,11 @@ func (this *Bitvavo) HandleBidAsk(client ccxt.ClientInterface, message map[strin
 	var tickers, _ = message["data"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(tickers); i++ {
-		var ticker map[string]any = this.ParseWsBidAsk(this.SafeDict(tickers, i, map[string]any{}))
+		tickersDict22047, _ := tickers[i].(map[string]any)
+		if tickersDict22047 == nil {
+			tickersDict22047 = map[string]any{}
+		}
+		var ticker map[string]any = this.ParseWsBidAsk(tickersDict22047)
 		var symbol string = *this.SafeString(ticker, "symbol", "")
 		this.Bidsasks[symbol] = ccxt.TickerFromMap(ticker)
 		result = append(result, ticker)
@@ -335,7 +339,7 @@ func (this *Bitvavo) HandleBidAsk(client ccxt.ClientInterface, message map[strin
 	}
 	client.Resolve(result, event)
 }
-func (this *Bitvavo) ParseWsBidAsk(ticker any, optionalArgs ...any) map[string]any {
+func (this *Bitvavo) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "market")
@@ -1185,13 +1189,16 @@ func (this *Bitvavo) HandleOrderBook(client ccxt.ClientInterface, message map[st
 		return
 	}
 	if this.SafeInteger(orderbook, "nonce") == nil {
-		var subscription any = this.SafeValue(client.SubscriptionsSnapshot(), messageHash, map[string]any{})
+		var subscription map[string]any = client.SubscriptionDict(messageHash)
+		if subscription == nil {
+			subscription = map[string]any{}
+		}
 		// multi-symbol watches share one subscription object, so the
 		// snapshot-in-flight flag must be tracked per market
 		var flagKey string = "watchingOrderBookSnapshot@" + *this.SafeString(message, "market", "")
 		var watchingOrderBookSnapshot *bool = this.SafeBool(subscription, flagKey)
 		if watchingOrderBookSnapshot == nil {
-			ccxt.AddElementToObject(subscription, flagKey, true)
+			subscription[flagKey] = true
 			client.SubscriptionSet(messageHash, subscription)
 			var options, _ = this.Options["watchOrderBookSnapshot"].(map[string]any)
 			var delay *int64 = this.SafeInteger(options, "delay", this.RateLimit)
@@ -1204,15 +1211,15 @@ func (this *Bitvavo) HandleOrderBook(client ccxt.ClientInterface, message map[st
 		client.Resolve(orderbook, messageHash)
 	}
 }
-func (this *Bitvavo) WatchOrderBookSnapshotAsync(client ccxt.ClientInterface, message map[string]any, subscription any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
+func (this *Bitvavo) WatchOrderBookSnapshotAsync(client ccxt.ClientInterface, message map[string]any, subscription map[string]any) <-chan ccxt.AsyncResult[ccxt.OrderBookInterface] {
 	ch := make(chan ccxt.AsyncResult[ccxt.OrderBookInterface], 1)
 	go this.watchOrderBookSnapshotBody(ch, client, message, subscription)
 	return ch
 }
-func (this *Bitvavo) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], client ccxt.ClientInterface, message map[string]any, subscription any) any {
+func (this *Bitvavo) watchOrderBookSnapshotBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInterface], client ccxt.ClientInterface, message map[string]any, subscription map[string]any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	var params map[string]any = ccxt.SafeMapTyped(subscription, "params")
+	var params, _ = subscription["params"].(map[string]any)
 	// multi-symbol watches share one subscription object without a marketId,
 	// in that case the buffered delta message identifies the market
 	var marketId *string = this.SafeString2(subscription, "marketId", "market", this.SafeString(message, "market"))
@@ -2690,7 +2697,7 @@ func (this *Bitvavo) HandleOrder(client ccxt.ClientInterface, message map[string
 	var market map[string]any = this.SafeMarket(marketId, nil, "-")
 	var symbol string = *this.SafeString(market, "symbol", "")
 	var messageHash string = "order:" + symbol
-	var order map[string]any = ccxt.OrderToMap(this.ParseOrder(message, market))
+	var order map[string]any = ccxt.OrderToMap(this.ParseOrder(this.Extend(map[string]any{}, message), market))
 	if this.Orders == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "ordersLimit", 1000)
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)

@@ -2597,7 +2597,7 @@ func (this *Bithumb) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Bithumb) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	//
 	// generation 1: fetchOrder

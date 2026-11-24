@@ -7076,7 +7076,7 @@ func (this *Gate) ParseOrderStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Gate) ParseOrder(order any, optionalArgs ...any) Order {
+func (this *Gate) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	//
 	// SPOT
 	// createOrder/cancelOrder/fetchOrder/editOrder
@@ -7287,7 +7287,7 @@ func (this *Gate) ParseOrder(order any, optionalArgs ...any) Order {
 		})
 	}
 	var put map[string]any = SafeDict2Typed(order, "put", "initial")
-	var trigger map[string]any = SafeMapTyped(order, "trigger")
+	var trigger, _ = order["trigger"].(map[string]any)
 	var contract *string = this.SafeString(put, "contract")
 	var typeVar *string = this.SafeString(put, "type")
 	var timeInForce *string = this.SafeStringUpper2(put, "time_in_force", "tif")
@@ -7412,15 +7412,15 @@ func (this *Gate) ParseOrder(order any, optionalArgs ...any) Order {
 		lastTradeTimestampValue := this.ParseToInt(lastTradeTimestampStr)
 		lastTradeTimestamp = &lastTradeTimestampValue
 	}
-	var initial map[string]any = SafeMapTyped(order, "initial")
+	var initial, _ = order["initial"].(map[string]any)
 	var reduceOnlyInitial *bool = this.SafeBool(initial, "is_reduce_only")
 	var reduceOnly *bool = this.SafeBool(order, "is_reduce_only", reduceOnlyInitial)
 	var clientOrderId *string = this.SafeString(order, "text")
 	if clientOrderId == nil {
-		if InOp(order, "initial") {
+		if _, ok := order["initial"]; ok {
 			clientOrderId = this.SafeString(initial, "text")
-		} else if InOp(order, "trigger") {
-			var triggerOrder map[string]any = SafeMapTyped(order, "trigger")
+		} else if _, ok := order["trigger"]; ok {
+			var triggerOrder, _ = order["trigger"].(map[string]any)
 			clientOrderId = this.SafeString(triggerOrder, "text")
 		}
 	}
