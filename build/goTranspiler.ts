@@ -7379,6 +7379,8 @@ const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
     'getCurrencyName': [ 0 ], 'withdraw': [ 0, 2 ],
     // prediction `method: string` / `eventIdOrSlug: string`: callers pass literals only (none for getEvent)
     'ethRpc': [ 1 ], 'getEvent': [ 0 ],
+    // `signEvmTransaction (tx: Dict, privateKey: string)`: its one caller passes this.privateKey
+    'signEvmTransaction': [ 1 ],
     // account names: every caller passes a typed-wrapper string or a nil-guarded market type
     'convertTypeToAccount': [ 0 ],
     // `targetUrl: string`; no generated Go caller (the hand-written fetch builds the proxy url itself)

@@ -2565,7 +2565,7 @@ func (this *BaseExchange) FetchOutcomesAsync(outcomeSymbols []string) <-chan Asy
 
 // SignEvmTransaction is a default stub so every exchange satisfies IDerivedExchange.
 // EVM prediction exchanges (limitless, myriad) override it — it needs the noble crypto imports.
-func (this *BaseExchange) SignEvmTransaction(tx any, privateKey any) any {
+func (this *BaseExchange) SignEvmTransaction(tx map[string]any, privateKey string) string {
 	_ = tx
 	_ = privateKey
 	panic(NotSupported(this.Id + " signEvmTransaction() is not supported yet"))

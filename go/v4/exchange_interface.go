@@ -483,7 +483,7 @@ type IDerivedExchange interface {
 	FetchEventsAsync(optionalArgs ...any) <-chan AsyncResult[[]PredictionEvent]
 	FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResult[PredictionOutcome]
 	FetchOutcomesAsync(outcomeSymbols []string) <-chan AsyncResult[map[string]PredictionOutcome]
-	SignEvmTransaction(tx any, privateKey any) any
+	SignEvmTransaction(tx map[string]any, privateKey string) string
 	FetchLeverageTiersAsync(optionalArgs ...any) <-chan AsyncResult[LeverageTiers]
 	ParseDepositAddresses(addresses []any, optionalArgs ...any) []any
 	FetchTradingFeesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]TradingFeeInterface]
