@@ -6,6 +6,7 @@ import { AuthenticationError, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Balances, Dict, Int, Num, OHLCV, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -802,7 +803,7 @@ export default class interactivebrokers extends interactivebrokersRest {
             request = request + '+' + bookExchange;
         }
         await this.ibkrSubscribe (client, messageHash, request, { 'conid': market['id'], 'symbol': unifiedSymbol, 'accountId': accountId });
-        const orderbook = await future;
+        const orderbook: WsOrderBook = await future;
         return orderbook.limit ();
     }
 
