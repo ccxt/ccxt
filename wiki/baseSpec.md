@@ -17,6 +17,7 @@ add margin
 **Supported exchanges:**
 [aster](/exchanges/aster.md#addmargin)
 [binance](/exchanges/binance.md#addmargin)
+[bingx](/exchanges/bingx.md#addmargin)
 [bitget](/exchanges/bitget.md#addmargin)
 [delta](/exchanges/delta.md#addmargin)
 [digifinex](/exchanges/digifinex.md#addmargin)
@@ -477,6 +478,7 @@ cancels an open order
 [hyperliquid](/exchanges/hyperliquid.md#cancelorder)
 [independentreserve](/exchanges/independentreserve.md#cancelorder)
 [indodax](/exchanges/indodax.md#cancelorder)
+[interactivebrokers](/exchanges/interactivebrokers.md#cancelorder)
 [kraken](/exchanges/kraken.md#cancelorder)
 [krakenfutures](/exchanges/krakenfutures.md#cancelorder)
 [kucoin](/exchanges/kucoin.md#cancelorder)
@@ -1156,6 +1158,7 @@ create a trade order
 [hyperliquid](/exchanges/hyperliquid.md#createorder)
 [independentreserve](/exchanges/independentreserve.md#createorder)
 [indodax](/exchanges/indodax.md#createorder)
+[interactivebrokers](/exchanges/interactivebrokers.md#createorder)
 [kraken](/exchanges/kraken.md#createorder)
 [krakenfutures](/exchanges/krakenfutures.md#createorder)
 [kucoin](/exchanges/kucoin.md#createorder)
@@ -1657,6 +1660,7 @@ edit a trade order
 [bitget](/exchanges/bitget.md#editorder)
 [bitstamp](/exchanges/bitstamp.md#editorder)
 [bitvavo](/exchanges/bitvavo.md#editorder)
+[blofin](/exchanges/blofin.md#editorder)
 [btse](/exchanges/btse.md#editorder)
 [bullish](/exchanges/bullish.md#editorder)
 [bybit](/exchanges/bybit.md#editorder)
@@ -1672,6 +1676,7 @@ edit a trade order
 [gate](/exchanges/gate.md#editorder)
 [hibachi](/exchanges/hibachi.md#editorder)
 [hyperliquid](/exchanges/hyperliquid.md#editorder)
+[interactivebrokers](/exchanges/interactivebrokers.md#editorder)
 [kraken](/exchanges/kraken.md#editorder)
 [krakenfutures](/exchanges/krakenfutures.md#editorder)
 [kucoin](/exchanges/kucoin.md#editorder)
@@ -1894,6 +1899,7 @@ fetch all the accounts associated with a profile
 [extended](/exchanges/extended.md#fetchaccounts)
 [hashkey](/exchanges/hashkey.md#fetchaccounts)
 [htx](/exchanges/htx.md#fetchaccounts)
+[interactivebrokers](/exchanges/interactivebrokers.md#fetchaccounts)
 [kucoin](/exchanges/kucoin.md#fetchaccounts)
 [lighter](/exchanges/lighter.md#fetchaccounts)
 [luno](/exchanges/luno.md#fetchaccounts)
@@ -2021,6 +2027,7 @@ before crypto positions were included — read `info['account']['cash']` where `
 [hyperliquid](/exchanges/hyperliquid.md#fetchbalance)
 [independentreserve](/exchanges/independentreserve.md#fetchbalance)
 [indodax](/exchanges/indodax.md#fetchbalance)
+[interactivebrokers](/exchanges/interactivebrokers.md#fetchbalance)
 [kraken](/exchanges/kraken.md#fetchbalance)
 [krakenfutures](/exchanges/krakenfutures.md#fetchbalance)
 [kucoin](/exchanges/kucoin.md#fetchbalance)
@@ -2104,6 +2111,7 @@ fetches the bid and ask price and volume for multiple markets
 [bitrue](/exchanges/bitrue.md#fetchbidsasks)
 [bybit](/exchanges/bybit.md#fetchbidsasks)
 [coinbase](/exchanges/coinbase.md#fetchbidsasks)
+[interactivebrokers](/exchanges/interactivebrokers.md#fetchbidsasks)
 [kucoinfutures](/exchanges/kucoinfutures.md#fetchbidsasks)
 [mexc](/exchanges/mexc.md#fetchbidsasks)
 [polymarket](/exchanges/polymarket.md#fetchbidsasks)
@@ -2244,6 +2252,7 @@ fetches information on multiple canceled orders made by the user
 [derive](/exchanges/derive.md#fetchcanceledandclosedorders)
 [hashkey](/exchanges/hashkey.md#fetchcanceledandclosedorders)
 [hyperliquid](/exchanges/hyperliquid.md#fetchcanceledandclosedorders)
+[interactivebrokers](/exchanges/interactivebrokers.md#fetchcanceledandclosedorders)
 [nado](/exchanges/nado.md#fetchcanceledandclosedorders)
 [pacifica](/exchanges/pacifica.md#fetchcanceledandclosedorders)
 [weex](/exchanges/weex.md#fetchcanceledandclosedorders)
@@ -2287,6 +2296,7 @@ fetches information on multiple canceled orders made by the user
 [hibachi](/exchanges/hibachi.md#fetchcanceledorders)
 [htx](/exchanges/htx.md#fetchcanceledorders)
 [hyperliquid](/exchanges/hyperliquid.md#fetchcanceledorders)
+[interactivebrokers](/exchanges/interactivebrokers.md#fetchcanceledorders)
 [krakenfutures](/exchanges/krakenfutures.md#fetchcanceledorders)
 [mexc](/exchanges/mexc.md#fetchcanceledorders)
 [nado](/exchanges/nado.md#fetchcanceledorders)
@@ -2377,6 +2387,7 @@ fetches information on multiple closed orders made by the user
 [hyperliquid](/exchanges/hyperliquid.md#fetchclosedorders)
 [independentreserve](/exchanges/independentreserve.md#fetchclosedorders)
 [indodax](/exchanges/indodax.md#fetchclosedorders)
+[interactivebrokers](/exchanges/interactivebrokers.md#fetchclosedorders)
 [kraken](/exchanges/kraken.md#fetchclosedorders)
 [krakenfutures](/exchanges/krakenfutures.md#fetchclosedorders)
 [kucoin](/exchanges/kucoin.md#fetchclosedorders)
@@ -3335,7 +3346,7 @@ fetch the deposit and withdrawal limits for a currency
 <a name="fetchFundingRate" id="fetchfundingrate"></a>
 
 ## fetchFundingRate
-fetch the current funding rate
+fetches the current funding rate for a market
 
 **Kind**: instance   
 **Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
@@ -3343,10 +3354,11 @@ fetch the current funding rate
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbol | <code>string</code> | Yes | unified market symbol |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the funding rate for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 **Supported exchanges:**
+[apex](/exchanges/apex.md#fetchfundingrate)
 [aster](/exchanges/aster.md#fetchfundingrate)
 [backpack](/exchanges/backpack.md#fetchfundingrate)
 [binance](/exchanges/binance.md#fetchfundingrate)
@@ -3376,6 +3388,7 @@ fetch the current funding rate
 [okx](/exchanges/okx.md#fetchfundingrate)
 [paradex](/exchanges/paradex.md#fetchfundingrate)
 [phemex](/exchanges/phemex.md#fetchfundingrate)
+[poloniex](/exchanges/poloniex.md#fetchfundingrate)
 [polymarket](/exchanges/polymarket.md#fetchfundingrate)
 [whitebit](/exchanges/whitebit.md#fetchfundingrate)
 [woo](/exchanges/woo.md#fetchfundingrate)
@@ -3451,18 +3464,19 @@ fetches historical funding rate prices
 <a name="fetchFundingRates" id="fetchfundingrates"></a>
 
 ## fetchFundingRates
-fetch the current funding rate for multiple symbols
+fetches the current funding rates for multiple markets
 
 **Kind**: instance   
-**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure)
+**Returns**: <code>Array&lt;object&gt;</code> - a dictionary of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure), indexed by market symbol
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | list of unified market symbols |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the funding rates for, all markets are returned when not assigned |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 **Supported exchanges:**
+[apex](/exchanges/apex.md#fetchfundingrates)
 [aster](/exchanges/aster.md#fetchfundingrates)
 [binance](/exchanges/binance.md#fetchfundingrates)
 [bingx](/exchanges/bingx.md#fetchfundingrates)
@@ -3621,6 +3635,7 @@ fetches the last price for multiple markets
 [binance](/exchanges/binance.md#fetchlastprices)
 [hashkey](/exchanges/hashkey.md#fetchlastprices)
 [htx](/exchanges/htx.md#fetchlastprices)
+[interactivebrokers](/exchanges/interactivebrokers.md#fetchlastprices)
 [toobit](/exchanges/toobit.md#fetchlastprices)
 [weex](/exchanges/weex.md#fetchlastprices)
 
@@ -4006,6 +4021,7 @@ fetches mark prices for multiple markets
 **Supported exchanges:**
 [binance](/exchanges/binance.md#fetchmarkprices)
 [bingx](/exchanges/bingx.md#fetchmarkprices)
+[interactivebrokers](/exchanges/interactivebrokers.md#fetchmarkprices)
 [kucoin](/exchanges/kucoin.md#fetchmarkprices)
 [okx](/exchanges/okx.md#fetchmarkprices)
 [weex](/exchanges/weex.md#fetchmarkprices)
@@ -4029,6 +4045,7 @@ retrieve information on the maximum leverage, for different trade sizes for a si
 **Supported exchanges:**
 [bingx](/exchanges/bingx.md#fetchmarketleveragetiers)
 [bitget](/exchanges/bitget.md#fetchmarketleveragetiers)
+[blofin](/exchanges/blofin.md#fetchmarketleveragetiers)
 [btse](/exchanges/btse.md#fetchmarketleveragetiers)
 [bybit](/exchanges/bybit.md#fetchmarketleveragetiers)
 [digifinex](/exchanges/digifinex.md#fetchmarketleveragetiers)
@@ -4110,6 +4127,7 @@ retrieves data on all markets for alpaca
 [hyperliquid](/exchanges/hyperliquid.md#fetchmarkets)
 [independentreserve](/exchanges/independentreserve.md#fetchmarkets)
 [indodax](/exchanges/indodax.md#fetchmarkets)
+[interactivebrokers](/exchanges/interactivebrokers.md#fetchmarkets)
 [kraken](/exchanges/kraken.md#fetchmarkets)
 [krakenfutures](/exchanges/krakenfutures.md#fetchmarkets)
 [kucoin](/exchanges/kucoin.md#fetchmarkets)
@@ -4365,6 +4383,7 @@ fetch all trades made by the user
 [htx](/exchanges/htx.md#fetchmytrades)
 [hyperliquid](/exchanges/hyperliquid.md#fetchmytrades)
 [independentreserve](/exchanges/independentreserve.md#fetchmytrades)
+[interactivebrokers](/exchanges/interactivebrokers.md#fetchmytrades)
 [kraken](/exchanges/kraken.md#fetchmytrades)
 [krakenfutures](/exchanges/krakenfutures.md#fetchmytrades)
 [kucoin](/exchanges/kucoin.md#fetchmytrades)
@@ -4521,6 +4540,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 [htx](/exchanges/htx.md#fetchohlcv)
 [hyperliquid](/exchanges/hyperliquid.md#fetchohlcv)
 [indodax](/exchanges/indodax.md#fetchohlcv)
+[interactivebrokers](/exchanges/interactivebrokers.md#fetchohlcv)
 [kraken](/exchanges/kraken.md#fetchohlcv)
 [krakenfutures](/exchanges/krakenfutures.md#fetchohlcv)
 [kucoin](/exchanges/kucoin.md#fetchohlcv)
@@ -4675,6 +4695,7 @@ Retrieves the open interest for a list of symbols
 [hitbtc](/exchanges/hitbtc.md#fetchopeninterests)
 [htx](/exchanges/htx.md#fetchopeninterests)
 [hyperliquid](/exchanges/hyperliquid.md#fetchopeninterests)
+[interactivebrokers](/exchanges/interactivebrokers.md#fetchopeninterests)
 [kucoin](/exchanges/kucoin.md#fetchopeninterests)
 [modetrade](/exchanges/modetrade.md#fetchopeninterests)
 [nado](/exchanges/nado.md#fetchopeninterests)
@@ -4792,6 +4813,7 @@ fetch all unfilled currently open orders
 [hyperliquid](/exchanges/hyperliquid.md#fetchopenorders)
 [independentreserve](/exchanges/independentreserve.md#fetchopenorders)
 [indodax](/exchanges/indodax.md#fetchopenorders)
+[interactivebrokers](/exchanges/interactivebrokers.md#fetchopenorders)
 [kraken](/exchanges/kraken.md#fetchopenorders)
 [krakenfutures](/exchanges/krakenfutures.md#fetchopenorders)
 [kucoin](/exchanges/kucoin.md#fetchopenorders)
@@ -4989,6 +5011,7 @@ fetches information on an order made by the user
 [hyperliquid](/exchanges/hyperliquid.md#fetchorder)
 [independentreserve](/exchanges/independentreserve.md#fetchorder)
 [indodax](/exchanges/indodax.md#fetchorder)
+[interactivebrokers](/exchanges/interactivebrokers.md#fetchorder)
 [kraken](/exchanges/kraken.md#fetchorder)
 [krakenfutures](/exchanges/krakenfutures.md#fetchorder)
 [kucoin](/exchanges/kucoin.md#fetchorder)
@@ -5323,6 +5346,7 @@ fetches information on multiple orders made by the user
 [hollaex](/exchanges/hollaex.md#fetchorders)
 [htx](/exchanges/htx.md#fetchorders)
 [hyperliquid](/exchanges/hyperliquid.md#fetchorders)
+[interactivebrokers](/exchanges/interactivebrokers.md#fetchorders)
 [krakenfutures](/exchanges/krakenfutures.md#fetchorders)
 [latoken](/exchanges/latoken.md#fetchorders)
 [lbank](/exchanges/lbank.md#fetchorders)
@@ -5647,6 +5671,7 @@ fetch all open positions
 [hitbtc](/exchanges/hitbtc.md#fetchpositions)
 [htx](/exchanges/htx.md#fetchpositions)
 [hyperliquid](/exchanges/hyperliquid.md#fetchpositions)
+[interactivebrokers](/exchanges/interactivebrokers.md#fetchpositions)
 [kraken](/exchanges/kraken.md#fetchpositions)
 [krakenfutures](/exchanges/krakenfutures.md#fetchpositions)
 [kucoin](/exchanges/kucoin.md#fetchpositions)
@@ -5716,6 +5741,7 @@ fetch all open positions for specific symbol
 [btse](/exchanges/btse.md#fetchpositionsforsymbol)
 [deepcoin](/exchanges/deepcoin.md#fetchpositionsforsymbol)
 [hashkey](/exchanges/hashkey.md#fetchpositionsforsymbol)
+[interactivebrokers](/exchanges/interactivebrokers.md#fetchpositionsforsymbol)
 [okx](/exchanges/okx.md#fetchpositionsforsymbol)
 [weex](/exchanges/weex.md#fetchpositionsforsymbol)
 
@@ -5926,6 +5952,7 @@ the latest known information on the availability of the exchange API
 [hashkey](/exchanges/hashkey.md#fetchstatus)
 [htx](/exchanges/htx.md#fetchstatus)
 [hyperliquid](/exchanges/hyperliquid.md#fetchstatus)
+[interactivebrokers](/exchanges/interactivebrokers.md#fetchstatus)
 [kraken](/exchanges/kraken.md#fetchstatus)
 [kucoin](/exchanges/kucoin.md#fetchstatus)
 [lighter](/exchanges/lighter.md#fetchstatus)
@@ -6154,6 +6181,7 @@ fetches price tickers for multiple markets, statistical information calculated o
 [htx](/exchanges/htx.md#fetchtickers)
 [hyperliquid](/exchanges/hyperliquid.md#fetchtickers)
 [indodax](/exchanges/indodax.md#fetchtickers)
+[interactivebrokers](/exchanges/interactivebrokers.md#fetchtickers)
 [kraken](/exchanges/kraken.md#fetchtickers)
 [krakenfutures](/exchanges/krakenfutures.md#fetchtickers)
 [kucoin](/exchanges/kucoin.md#fetchtickers)
@@ -7088,6 +7116,7 @@ remove margin from a position
 **Supported exchanges:**
 [aster](/exchanges/aster.md#reducemargin)
 [binance](/exchanges/binance.md#reducemargin)
+[bingx](/exchanges/bingx.md#reducemargin)
 [bitget](/exchanges/bitget.md#reducemargin)
 [delta](/exchanges/delta.md#reducemargin)
 [digifinex](/exchanges/digifinex.md#reducemargin)
@@ -7495,6 +7524,7 @@ sign in, must be called prior to using other authenticated methods
 [aster](/exchanges/aster.md#signin)
 [bullish](/exchanges/bullish.md#signin)
 [grvt](/exchanges/grvt.md#signin)
+[interactivebrokers](/exchanges/interactivebrokers.md#signin)
 [ndax](/exchanges/ndax.md#signin)
 
 ---

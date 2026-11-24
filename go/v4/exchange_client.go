@@ -364,10 +364,13 @@ func (this *Client) SendAsync(message any) <-chan AsyncResult[bool] {
 	go func() {
 		// ? if (isNode)
 		if this.IsMock {
-			// static ws tests: record the outgoing frame so the test can assert it
+			// static ws tests: record the outgoing frame so the test can assert it,
+			// non-json text frames (e.g. interactivebrokers 'sbd+...') are kept as the raw string
 			var parsed any
 			if err := json.Unmarshal([]byte(msgStr), &parsed); err == nil {
 				this.MockSentMessages = append(this.MockSentMessages, parsed)
+			} else {
+				this.MockSentMessages = append(this.MockSentMessages, msgStr)
 			}
 			future.Resolve(true)
 			ch <- AsyncResult[bool]{Value: true}

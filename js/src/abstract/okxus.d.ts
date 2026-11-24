@@ -147,6 +147,7 @@ declare abstract class okx extends _okx {
     privateGetAssetDepositHistory(params?: {}): Promise<Dict>;
     privateGetAssetWithdrawalHistory(params?: {}): Promise<Dict>;
     privateGetAssetDepositWithdrawStatus(params?: {}): Promise<Dict>;
+    privateGetAssetTravelRuleGetLocked(params?: {}): Promise<Dict>;
     privateGetAssetMonthlyStatement(params?: {}): Promise<Dict>;
     privateGetAssetConvertCurrencies(params?: {}): Promise<Dict>;
     privateGetAssetConvertCurrencyPair(params?: {}): Promise<Dict>;
@@ -340,6 +341,7 @@ declare abstract class okx extends _okx {
     privatePostAssetWithdrawal(params?: {}): Promise<Dict>;
     privatePostAssetWithdrawalLightning(params?: {}): Promise<Dict>;
     privatePostAssetCancelWithdrawal(params?: {}): Promise<Dict>;
+    privatePostAssetTravelRuleUnlock(params?: {}): Promise<Dict>;
     privatePostAssetConvertDustAssets(params?: {}): Promise<Dict>;
     privatePostAssetMonthlyStatement(params?: {}): Promise<Dict>;
     privatePostAssetConvertEstimateQuote(params?: {}): Promise<Dict>;

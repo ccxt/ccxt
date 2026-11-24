@@ -1,6 +1,6 @@
 [package]
 name = "ccxt-prediction"
-version = "4.5.93"
+version = "4.5.94"
 edition = "2021"
 description = "CCXT – CryptoCurrency eXchange Trading Library (Rust) – typed prediction-market API"
 license = "MIT"
@@ -36,4 +36,4 @@ all = ["binance", "hyperliquid", "kalshi", "limitless", "myriad", "opinion", "po
 [dependencies]
 # The engine holding the prediction exchanges (ccxt_base::prediction::<id>); this
 # crate re-exports it at its root (`ccxt_prediction::Kalshi`, `::types::…`).
-ccxt-base = { path = "../ccxt-base", version = "4.5.93", features = ["engine"] }
+ccxt-base = { path = "../ccxt-base", version = "4.5.94", features = ["engine"] }

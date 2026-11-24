@@ -397,6 +397,11 @@ func (this *BaseExchange) CleanWsData() {
 	this.Positions = nil
 	this.PositionsByType = map[string]WsArrayCache{}
 }
+func (this *BaseExchange) BeforeClose() any {
+	// called first by close (), a derived exchange overrides it to stop its own background loops
+	// (e.g. scheduled keep-alive requests that would otherwise keep the event loop alive)
+	return nil
+}
 
 func (this *BaseExchange) SafeDictN(dictionaryOrList any, keys any, optionalArgs ...any) any {
 	/**
@@ -5662,11 +5667,11 @@ func (this *BaseExchange) fetchTransactionFeeBody(ch chan AsyncResult[map[string
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes706615 map[string]any = r.Value
-	if retRes706615 == nil {
+	var retRes715515 map[string]any = r.Value
+	if retRes715515 == nil {
 		ch <- AsyncResult[map[string]any]{Value: nil}
 	} else {
-		ch <- AsyncResult[map[string]any]{Value: retRes706615}
+		ch <- AsyncResult[map[string]any]{Value: retRes715515}
 	}
 	return nil
 }
@@ -11538,12 +11543,12 @@ func (this *Exchange) cancelOrdersWithClientOrderIdsBody(ch chan AsyncResult[[]O
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	retRes1048315Recv, _ := OrdersToList(r.Value), r.Value != nil
-	var retRes1048315 []any = retRes1048315Recv
-	if retRes1048315 == nil {
+	retRes1057215Recv, _ := OrdersToList(r.Value), r.Value != nil
+	var retRes1057215 []any = retRes1057215Recv
+	if retRes1057215 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1048315)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes1057215)}
 	}
 	return nil
 }

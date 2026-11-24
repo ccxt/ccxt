@@ -231,6 +231,9 @@ public final class Encode {
     }
 
     public static String intToBase16(Object number) {
+        if (number instanceof BigInteger) {
+            return ((BigInteger) number).toString(16); // big integers, e.g. the result of modPow
+        }
         long n = Long.parseLong(String.valueOf(number));
         return Long.toHexString(n);
     }

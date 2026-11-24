@@ -78,6 +78,7 @@ var htx = require('./src/htx.js');
 var hyperliquid = require('./src/hyperliquid.js');
 var independentreserve = require('./src/independentreserve.js');
 var indodax = require('./src/indodax.js');
+var interactivebrokers = require('./src/interactivebrokers.js');
 var kraken = require('./src/kraken.js');
 var krakenfutures = require('./src/krakenfutures.js');
 var kucoin = require('./src/kucoin.js');
@@ -161,6 +162,7 @@ var hollaex$1 = require('./src/pro/hollaex.js');
 var htx$1 = require('./src/pro/htx.js');
 var hyperliquid$1 = require('./src/pro/hyperliquid.js');
 var independentreserve$1 = require('./src/pro/independentreserve.js');
+var interactivebrokers$1 = require('./src/pro/interactivebrokers.js');
 var kraken$1 = require('./src/pro/kraken.js');
 var krakenfutures$1 = require('./src/pro/krakenfutures.js');
 var kucoin$1 = require('./src/pro/kucoin.js');
@@ -202,7 +204,7 @@ var sxbet = require('./src/prediction/sxbet.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.93';
+const version = '4.5.94';
 const exchanges = {
     'alpaca': alpaca["default"],
     'apex': apex["default"],
@@ -272,6 +274,7 @@ const exchanges = {
     'hyperliquid': hyperliquid["default"],
     'independentreserve': independentreserve["default"],
     'indodax': indodax["default"],
+    'interactivebrokers': interactivebrokers["default"],
     'kraken': kraken["default"],
     'krakenfutures': krakenfutures["default"],
     'kucoin': kucoin["default"],
@@ -357,6 +360,7 @@ const pro = {
     'htx': htx$1["default"],
     'hyperliquid': hyperliquid$1["default"],
     'independentreserve': independentreserve$1["default"],
+    'interactivebrokers': interactivebrokers$1["default"],
     'kraken': kraken$1["default"],
     'krakenfutures': krakenfutures$1["default"],
     'kucoin': kucoin$1["default"],
@@ -525,6 +529,7 @@ exports.htx = htx["default"];
 exports.hyperliquid = hyperliquid["default"];
 exports.independentreserve = independentreserve["default"];
 exports.indodax = indodax["default"];
+exports.interactivebrokers = interactivebrokers["default"];
 exports.kraken = kraken["default"];
 exports.krakenfutures = krakenfutures["default"];
 exports.kucoin = kucoin["default"];

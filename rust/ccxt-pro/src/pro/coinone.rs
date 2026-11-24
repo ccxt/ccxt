@@ -611,8 +611,8 @@ impl Coinone {
             let mut keys: Vec<Value> = Value::Array(methods.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_271: bool = true;
-                while { if !__for_first_271 { i += 1; } __for_first_271 = false; i < (keys.len() as i64) } {
+                let mut __for_first_272: bool = true;
+                while { if !__for_first_272 { i += 1; } __for_first_272 = false; i < (keys.len() as i64) } {
                 let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 if Value::Int(topic.as_str().zip(key.as_deref()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                     let mut method: Option<String> = methods.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);

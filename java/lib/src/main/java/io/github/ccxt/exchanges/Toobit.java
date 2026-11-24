@@ -702,7 +702,7 @@ public class Toobit extends ToobitApi
                     put( "sandbox", false );
                     put( "createOrder", new HashMap<String, Object>() {{
                         put( "marginMode", false );
-                        put( "triggerPrice", true );
+                        put( "triggerPrice", false );
                         put( "triggerPriceType", null );
                         put( "triggerDirection", false );
                         put( "stopLossPrice", false );
@@ -737,7 +737,7 @@ public class Toobit extends ToobitApi
                         put( "marginMode", false );
                         put( "trigger", false );
                         put( "trailing", false );
-                        put( "symbolRequired", false );
+                        put( "symbolRequired", true );
                     }} );
                     put( "fetchOpenOrders", new HashMap<String, Object>() {{
                         put( "marginMode", false );

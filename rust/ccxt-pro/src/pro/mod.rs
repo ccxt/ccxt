@@ -102,6 +102,8 @@ pub mod htx;
 pub mod hyperliquid;
 #[cfg(feature = "independentreserve")]
 pub mod independentreserve;
+#[cfg(feature = "interactivebrokers")]
+pub mod interactivebrokers;
 #[cfg(feature = "kraken")]
 pub mod kraken;
 #[cfg(feature = "krakenfutures")]
@@ -255,6 +257,8 @@ pub use htx::Htx;
 pub use hyperliquid::Hyperliquid;
 #[cfg(feature = "independentreserve")]
 pub use independentreserve::Independentreserve;
+#[cfg(feature = "interactivebrokers")]
+pub use interactivebrokers::Interactivebrokers;
 #[cfg(feature = "kraken")]
 pub use kraken::Kraken;
 #[cfg(feature = "krakenfutures")]
@@ -411,6 +415,8 @@ pub async fn with_exchange<V: crate::exchange::ExchangeVisitor>(id: &str, config
         "hyperliquid" => Some(visitor.visit(hyperliquid::Hyperliquid::new(config)).await),
         #[cfg(feature = "independentreserve")]
         "independentreserve" => Some(visitor.visit(independentreserve::Independentreserve::new(config)).await),
+        #[cfg(feature = "interactivebrokers")]
+        "interactivebrokers" => Some(visitor.visit(interactivebrokers::Interactivebrokers::new(config)).await),
         #[cfg(feature = "kraken")]
         "kraken" => Some(visitor.visit(kraken::Kraken::new(config)).await),
         #[cfg(feature = "krakenfutures")]

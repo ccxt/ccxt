@@ -60,7 +60,7 @@ export default class poloniex extends Exchange {
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': undefined, // has but not implemented
                 'fetchGreeks': false,
@@ -460,6 +460,7 @@ export default class poloniex extends Exchange {
             'exceptions': {
                 'exact': {
                     // General
+                    '401': PermissionDenied, // {"code":401,"message":"Illegal of ip"}
                     '500': ExchangeNotAvailable, // Internal System Error
                     '603': RequestTimeout, // Internal Request Timeout
                     '601': BadRequest, // Invalid Parameter
@@ -607,7 +608,12 @@ export default class poloniex extends Exchange {
                     '12004': PermissionDenied, // NOT_KYC_VERIFIED
                     '21001': OperationRejected, // POSITION_NOT_EXIST
                 },
-                'broad': {},
+                'broad': {
+                    // the spot auth failure answers with code 400, which collides with the futures ILLEGAL_PARAM, so the auth families are matched by message
+                    'Invalid Apikey or Signature': AuthenticationError,
+                    'ApiKey not exist': AuthenticationError,
+                    'Illegal of ip': PermissionDenied,
+                },
             },
         });
     }
@@ -2886,6 +2892,88 @@ export default class poloniex extends Exchange {
     }
     /**
      * @method
+     * @name poloniex#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-current-funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async fetchFundingRate(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!this.safeBool(market, 'swap', false)) {
+            throw new BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.swapPublicGetV3MarketFundingRate(this.extend(request, params));
+        //
+        //    {
+        //        "code": 200,
+        //        "msg": "Success",
+        //        "data": {
+        //            "s": "BTC_USDT_PERP",
+        //            "fR": "0.0001",
+        //            "fT": "1795276800000",
+        //            "nFR": "0.0001",
+        //            "nFT": "1795305600000"
+        //        }
+        //    }
+        //
+        const data = this.safeDict(response, 'data', {});
+        return this.parseFundingRate(data, market);
+    }
+    parseFundingRate(contract, market = undefined) {
+        //
+        //    {
+        //        "s": "BTC_USDT_PERP",
+        //        "fR": "0.0001",
+        //        "fT": "1795276800000",
+        //        "nFR": "0.0001",
+        //        "nFT": "1795305600000"
+        //    }
+        //
+        const marketId = this.safeString(contract, 's');
+        // fR and fT are the funding that already settled, nFR and nFT the one about to be applied
+        const previousFundingTimestamp = this.safeInteger(contract, 'fT');
+        const fundingTimestamp = this.safeInteger(contract, 'nFT');
+        const intervalMilliseconds = Precise.stringSub(this.safeString(contract, 'nFT'), this.safeString(contract, 'fT'));
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol(marketId, market),
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeNumber(contract, 'nFR'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601(fundingTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': this.safeNumber(contract, 'fR'),
+            'previousFundingTimestamp': previousFundingTimestamp,
+            'previousFundingDatetime': this.iso8601(previousFundingTimestamp),
+            'interval': this.parseFundingInterval(intervalMilliseconds),
+        };
+    }
+    parseFundingInterval(interval) {
+        const intervals = {
+            '3600000': '1h',
+            '7200000': '2h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h',
+        };
+        return this.safeString(intervals, interval, interval);
+    }
+    /**
+     * @method
      * @name poloniex#createDepositAddress
      * @description create a currency deposit address
      * @see https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses
@@ -4024,8 +4112,8 @@ export default class poloniex extends Exchange {
         if ((responseCode !== undefined) && (responseCode !== '200')) {
             const message = this.safeString2(response, 'message', 'msg');
             const feedback = this.id + ' ' + body;
-            this.throwExactlyMatchedException(this.exceptions['exact'], responseCode, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], message, feedback);
+            this.throwExactlyMatchedException(this.exceptions['exact'], responseCode, feedback);
             throw new ExchangeError(feedback); // unknown message
         }
         return undefined;

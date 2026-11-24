@@ -26,3 +26,6 @@ def test_array_slice():
     test_shared_methods.assert_deep_equal(exchange, None, 'testArraySlice', exchange.array_slice(arr, 3, 6), ['d', 'e', 'f'])
     test_shared_methods.assert_deep_equal(exchange, None, 'testArraySlice', exchange.array_slice(arr, 2), ['c', 'd', 'e', 'f'])
     test_shared_methods.assert_deep_equal(exchange, None, 'testArraySlice', exchange.array_slice(arr, -2), ['e', 'f'])
+    # an end index of 0 is a valid (empty) range, not "no end index"
+    test_shared_methods.assert_deep_equal(exchange, None, 'testArraySlice', exchange.array_slice(arr, 0, 0), [])
+    test_shared_methods.assert_deep_equal(exchange, None, 'testArraySlice', exchange.array_slice(arr, 3, 3), [])

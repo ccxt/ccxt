@@ -329,8 +329,8 @@ impl Hashkey {
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).at(&timeframe);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_364: bool = true;
-            while { if !__for_first_364 { i += 1; } __for_first_364 = false; i < (data.len() as i64) } {
+            let mut __for_first_365: bool = true;
+            while { if !__for_first_365 { i += 1; } __for_first_365 = false; i < (data.len() as i64) } {
             let mut candle: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -506,8 +506,8 @@ impl Hashkey {
             data = self.sort_by(data, Value::Str("t".into()), &[]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_365: bool = true;
-                while { if !__for_first_365 { i += 1; } __for_first_365 = false; i < (data.len() as i64) } {
+                let mut __for_first_366: bool = true;
+                while { if !__for_first_366 { i += 1; } __for_first_366 = false; i < (data.len() as i64) } {
                 let mut trade: Option<crate::value::Dict> = self.safe_dict(data.clone(), Value::Int(i), &[]).into_opt_dict();
                 let mut parsed: crate::value::Dict = self.parse_ws_trade(&trade, Some(&market)).into_dict();
                 stored.append(Value::Dict(parsed));
@@ -931,8 +931,8 @@ impl Hashkey {
         }  else {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_366: bool = true;
-                while { if !__for_first_366 { i += 1; } __for_first_366 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut __for_first_367: bool = true;
+                while { if !__for_first_367 { i += 1; } __for_first_367 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), symbol.as_deref().unwrap_or("null")).into()));
             }

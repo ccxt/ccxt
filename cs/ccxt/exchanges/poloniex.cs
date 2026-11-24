@@ -49,7 +49,7 @@ public partial class poloniex : Exchange
                 { "fetchFundingHistory", false },
                 { "fetchFundingInterval", false },
                 { "fetchFundingIntervals", false },
-                { "fetchFundingRate", false },
+                { "fetchFundingRate", true },
                 { "fetchFundingRateHistory", false },
                 { "fetchFundingRates", null },
                 { "fetchGreeks", false },
@@ -646,6 +646,7 @@ public partial class poloniex : Exchange
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
+                    { "401", typeof(PermissionDenied) },
                     { "500", typeof(ExchangeNotAvailable) },
                     { "603", typeof(RequestTimeout) },
                     { "601", typeof(BadRequest) },
@@ -787,7 +788,11 @@ public partial class poloniex : Exchange
                     { "12004", typeof(PermissionDenied) },
                     { "21001", typeof(OperationRejected) },
                 } },
-                { "broad", new Dictionary<string, object>() {} },
+                { "broad", new Dictionary<string, object>() {
+                    { "Invalid Apikey or Signature", typeof(AuthenticationError) },
+                    { "ApiKey not exist", typeof(AuthenticationError) },
+                    { "Illegal of ip", typeof(PermissionDenied) },
+                } },
             } },
         });
     }
@@ -3291,6 +3296,96 @@ public partial class poloniex : Exchange
 
     /**
      * @method
+     * @name poloniex#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-current-funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    public async override Task<ccxt.FundingRate> FetchFundingRate(string symbol, IDictionary<string, object> parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        Dictionary<string, object> market = this.market(symbol);
+        if (!(this.safeBool(market, "swap", false) == true))
+        {
+            throw new BadSymbol ((this.id + " fetchFundingRate() supports swap contracts only")) ;
+        }
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
+        };
+        Dictionary<string, object> response = await this.swapPublicGetV3MarketFundingRate(this.extend(request, parameters));
+        //
+        //    {
+        //        "code": 200,
+        //        "msg": "Success",
+        //        "data": {
+        //            "s": "BTC_USDT_PERP",
+        //            "fR": "0.0001",
+        //            "fT": "1795276800000",
+        //            "nFR": "0.0001",
+        //            "nFT": "1795305600000"
+        //        }
+        //    }
+        //
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate(data, market));
+    }
+
+    public override Dictionary<string, object> parseFundingRate(object contract, IDictionary<string, object> market = null)
+    {
+        //
+        //    {
+        //        "s": "BTC_USDT_PERP",
+        //        "fR": "0.0001",
+        //        "fT": "1795276800000",
+        //        "nFR": "0.0001",
+        //        "nFT": "1795305600000"
+        //    }
+        //
+        string? marketId = this.safeString(contract, "s");
+        // fR and fT are the funding that already settled, nFR and nFT the one about to be applied
+        Int64? previousFundingTimestamp = this.safeInteger(contract, "fT");
+        Int64? fundingTimestamp = this.safeInteger(contract, "nFT");
+        string? intervalMilliseconds = Precise.stringSub(this.safeString(contract, "nFT"), this.safeString(contract, "fT"));
+        return new Dictionary<string, object>() {
+            { "info", contract },
+            { "symbol", this.safeSymbol(marketId, market) },
+            { "markPrice", null },
+            { "indexPrice", null },
+            { "interestRate", null },
+            { "estimatedSettlePrice", null },
+            { "timestamp", null },
+            { "datetime", null },
+            { "fundingRate", this.safeNumber(contract, "nFR") },
+            { "fundingTimestamp", fundingTimestamp },
+            { "fundingDatetime", this.iso8601(fundingTimestamp) },
+            { "nextFundingRate", null },
+            { "nextFundingTimestamp", null },
+            { "nextFundingDatetime", null },
+            { "previousFundingRate", this.safeNumber(contract, "fR") },
+            { "previousFundingTimestamp", previousFundingTimestamp },
+            { "previousFundingDatetime", this.iso8601(previousFundingTimestamp) },
+            { "interval", this.parseFundingInterval(intervalMilliseconds) },
+        };
+    }
+
+    public virtual string? parseFundingInterval(string? interval)
+    {
+        Dictionary<string, object> intervals = new Dictionary<string, object>() {
+            { "3600000", "1h" },
+            { "7200000", "2h" },
+            { "14400000", "4h" },
+            { "28800000", "8h" },
+            { "57600000", "16h" },
+            { "86400000", "24h" },
+        };
+        return this.safeString(intervals, interval, interval);
+    }
+
+    /**
+     * @method
      * @name poloniex#createDepositAddress
      * @description create a currency deposit address
      * @see https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses
@@ -4588,8 +4683,8 @@ public partial class poloniex : Exchange
         {
             string? message = this.safeString2(response, "message", "msg");
             string feedback = ((this.id + " ") + (body));
-            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), responseCode, feedback);
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
+            this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), responseCode, feedback);
             throw new ExchangeError (feedback) ;
         }
         return null;

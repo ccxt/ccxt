@@ -42,6 +42,7 @@ var FunctionsMap = map[string]any{
 	"json":                            TestJson,
 	"keysort":                         TestKeysort,
 	"mergeBalanceAccount":             TestMergeBalanceAccount,
+	"modPow":                          TestModPow,
 	"networkMethods":                  TestNetworkMethods,
 	"numberToBE":                      TestNumberToBE,
 	"numberToString":                  TestNumberToString,

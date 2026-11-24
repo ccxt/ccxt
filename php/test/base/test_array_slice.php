@@ -20,4 +20,7 @@ function test_array_slice() {
     assert_deep_equal($exchange, null, 'testArraySlice', $exchange->array_slice($arr, 3, 6), ['d', 'e', 'f']);
     assert_deep_equal($exchange, null, 'testArraySlice', $exchange->array_slice($arr, 2), ['c', 'd', 'e', 'f']);
     assert_deep_equal($exchange, null, 'testArraySlice', $exchange->array_slice($arr, -2), ['e', 'f']);
+    // an end index of 0 is a valid (empty) range, not "no end index"
+    assert_deep_equal($exchange, null, 'testArraySlice', $exchange->array_slice($arr, 0, 0), []);
+    assert_deep_equal($exchange, null, 'testArraySlice', $exchange->array_slice($arr, 3, 3), []);
 }

@@ -491,7 +491,7 @@ class toobit extends Exchange {
                     'sandbox' => false,
                     'createOrder' => array(
                         'marginMode' => false,
-                        'triggerPrice' => true,
+                        'triggerPrice' => false,
                         'triggerPriceType' => null,
                         'triggerDirection' => false,
                         'stopLossPrice' => false,
@@ -526,7 +526,7 @@ class toobit extends Exchange {
                         'marginMode' => false,
                         'trigger' => false,
                         'trailing' => false,
-                        'symbolRequired' => false,
+                        'symbolRequired' => true,
                     ),
                     'fetchOpenOrders' => array(
                         'marginMode' => false,
