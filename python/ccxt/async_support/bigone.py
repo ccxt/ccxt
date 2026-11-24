@@ -616,7 +616,7 @@ class bigone(Exchange, ImplicitAPI):
         promises = [self.publicGetAssetPairs(params), self.contractPublicGetSymbols(params)]
         promisesResult = await asyncio.gather(*promises)
         response = self.safe_dict(promisesResult, 0)
-        contractResponse = self.safe_value(promisesResult, 1)
+        contractMarkets = self.safe_list(promisesResult, 1, [])
         #
         #     {
         #         "code":0,
@@ -731,7 +731,6 @@ class bigone(Exchange, ImplicitAPI):
                 'created': None,
                 'info': market,
             }))
-        contractMarkets = self.to_array(contractResponse)
         for i in range(0, len(contractMarkets)):
             market = contractMarkets[i]
             baseId = self.safe_string(market, 'baseCurrency')

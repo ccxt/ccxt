@@ -960,7 +960,7 @@ class woo(Exchange, ImplicitAPI):
             'info': trade,
         }, marketResolved)
 
-    def parse_token_and_fee_temp(self, item: dict, feeTokenKeys: list[str], feeAmountKeys: list[str]):
+    def parse_token_and_fee_temp(self, item: dict, feeTokenKeys: list[str], feeAmountKeys: list[str]) -> dict:
         feeCost = self.safe_string_n(item, feeAmountKeys)
         fee = None
         if feeCost is not None:

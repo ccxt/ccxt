@@ -5632,7 +5632,7 @@ class mexc(Exchange, ImplicitAPI):
             'hedged': (positionMode == 1),
         }
 
-    def fetch_transaction_fees(self, codes: Strings = None, params: dict = {}):
+    def fetch_transaction_fees(self, codes: Strings = None, params: dict = {}) -> dict:
         """
         fetch deposit and withdrawal fees
 

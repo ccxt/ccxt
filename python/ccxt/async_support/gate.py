@@ -2531,7 +2531,7 @@ class gate(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    async def fetch_transaction_fees(self, codes: Strings = None, params: dict = {}):
+    async def fetch_transaction_fees(self, codes: Strings = None, params: dict = {}) -> dict:
         """
  @deprecated
         please use fetchDepositWithdrawFees instead

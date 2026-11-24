@@ -9906,7 +9906,7 @@ class binance(Exchange, ImplicitAPI):
             'tag': tag,
         }
 
-    async def fetch_transaction_fees(self, codes: Strings = None, params: dict = {}):
+    async def fetch_transaction_fees(self, codes: Strings = None, params: dict = {}) -> dict:
         """
  @deprecated
         please use fetchDepositWithdrawFees instead
@@ -10708,16 +10708,18 @@ class binance(Exchange, ImplicitAPI):
             position = positions[i]
             marketId = self.safe_string(position, 'symbol')
             market = self.safe_market(marketId, None, None, 'contract')
-            code = market['quote'] if (self.safe_bool(market, 'linear', False)) else market['base']
+            marginCode = self.safe_string(market, 'base', '')
+            if self.safe_bool(market, 'linear', False):
+                marginCode = self.safe_string(market, 'quote', '')
             maintenanceMargin = self.safe_string(position, 'maintMargin')
             # check for maintenance margin so empty positions are not returned
             isPositionOpen = (maintenanceMargin != '0') and (maintenanceMargin != '0.00000000')
             if not filterClosed or isPositionOpen:
                 # sometimes not all the codes are correctly returned...
-                if code in balances:
+                if marginCode in balances:
                     parsed = self.parse_account_position(self.extend(position, {
-                        'crossMargin': self.safe_string(balances[code], 'crossMargin'),
-                        'crossWalletBalance': self.safe_string(balances[code], 'crossWalletBalance'),
+                        'crossMargin': self.safe_string(balances[marginCode], 'crossMargin'),
+                        'crossWalletBalance': self.safe_string(balances[marginCode], 'crossWalletBalance'),
                     }), market)
                     result.append(parsed)
         return result
@@ -12127,7 +12129,9 @@ class binance(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        market = None if (symbol is None) else self.market(symbol)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         type, paramsMarketType = self.handle_market_type_and_params('fetchSettlementHistory', market, params)
         if type != 'option':
             raise NotSupported(self.id + ' fetchSettlementHistory() supports option markets only')
@@ -12169,7 +12173,9 @@ class binance(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        market = None if (symbol is None) else self.market(symbol)
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
         type, paramsMarketType = self.handle_market_type_and_params('fetchMySettlementHistory', market, params)
         if type != 'option':
             raise NotSupported(self.id + ' fetchMySettlementHistory() supports option markets only')

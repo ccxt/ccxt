@@ -3210,10 +3210,8 @@ class cryptocom(Exchange, ImplicitAPI):
     def params_to_string(self, object: object, level: float) -> str:
         maxLevel = 3
         depth = self.parse_to_int(level)
-        if depth >= maxLevel:
+        if (depth >= maxLevel) or (isinstance(object, str)):
             return str(object)
-        if isinstance(object, str):
-            return object
         returnString = ''
         paramsKeys = None
         if isinstance(object, list):

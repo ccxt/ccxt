@@ -2184,7 +2184,7 @@ class bybit(ccxt.async_support.bybit):
                 rawBalances = self.array_concat(rawBalances, self.safe_list(result, 'coin', []))
             info = self.safe_list(message, 'data', [])
         for i in range(0, len(rawBalances)):
-            self.parse_ws_balance(rawBalances[i], account)
+            self.parse_ws_balance(self.safe_dict(rawBalances, i, {}), account)
         if account is not None:
             if self.safe_dict(self.balance, account) is None:
                 self.balance[account] = {}

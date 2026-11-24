@@ -675,7 +675,7 @@ class mexc(ccxt.async_support.mexc):
             market = self.safe_market(self.symbol(self.safe_string(message, 'symbol')))
             data = self.safe_dict(message, 'publicSpotKline', {})
             timeframeId = self.safe_string(data, 'interval')
-            timeframe = self.find_timeframe(timeframeId, self.options['timeframes'])
+            timeframe = self.find_timeframe(timeframeId, self.safe_dict(self.options, 'timeframes'))
             parsed = self.parse_ws_ohlcv(data, market)
         else:
             d = self.safe_dict_2(message, 'd', 'data', {})

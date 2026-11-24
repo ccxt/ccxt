@@ -758,7 +758,7 @@ class whitebit(Exchange, ImplicitAPI):
             },
         })
 
-    def fetch_transaction_fees(self, codes: Strings = None, params: dict = {}):
+    def fetch_transaction_fees(self, codes: Strings = None, params: dict = {}) -> dict:
         """
  @deprecated
         please use fetchDepositWithdrawFees instead

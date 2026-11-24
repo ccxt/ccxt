@@ -805,7 +805,7 @@ class woofipro(Exchange, ImplicitAPI):
             'info': token,
         })
 
-    def parse_token_and_fee_temp(self, item: dict, feeTokenKey: str, feeAmountKey: str):
+    def parse_token_and_fee_temp(self, item: dict, feeTokenKey: str, feeAmountKey: str) -> dict:
         feeCost = self.safe_string(item, feeAmountKey)
         fee = None
         if feeCost is not None:

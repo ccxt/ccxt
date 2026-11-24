@@ -1193,7 +1193,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             timestamp = self.safe_integer(clearinghouseState, 'time')
             self.handle_positions(client, message)
         for i in range(0, len(rawBalances)):
-            self.parse_ws_balance(rawBalances[i], account)
+            self.parse_ws_balance(self.safe_dict(rawBalances, i, {}), account)
         if not (account in self.balance):
             self.balance[account] = {}
         self.balance[account]['info'] = info

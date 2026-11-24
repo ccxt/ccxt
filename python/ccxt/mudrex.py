@@ -885,8 +885,7 @@ class mudrex(Exchange, ImplicitAPI):
             response = self.privateGetFuturesOrdersHistory(request)
         else:
             response = self.privateGetFuturesOrders(request)
-        data = self.safe_value(response, 'data', [])
-        rows = self.to_array(data)
+        rows = self.safe_list(response, 'data', [])
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -952,10 +951,7 @@ class mudrex(Exchange, ImplicitAPI):
             self.load_markets()
         q = {}
         response = self.privateGetFuturesPositions(self.extend(q, params))
-        data = self.safe_value(response, 'data', [])
-        if data is None:
-            return []
-        rows = self.to_array(data)
+        rows = self.safe_list(response, 'data', [])
         outPos = []
         for i in range(0, len(rows)):
             symRaw = self.safe_string(rows[i], 'symbol')
