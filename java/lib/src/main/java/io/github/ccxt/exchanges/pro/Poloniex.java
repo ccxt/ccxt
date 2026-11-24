@@ -242,12 +242,12 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the poloniex api
      * @returns {object} true once the exchange acknowledges the unsubscribe
      */
-    public CompletableFuture<Object> unSubscribe(String name, Object symbols, Object messageHashes, Map<String, Object> parameters)
+    public CompletableFuture<Object> unSubscribe(String name, List<?> symbols, List<?> messageHashes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unSubscribeCore(name, symbols, messageHashes, parameters));
     }
 
-    private Object unSubscribeCore(String name, Object symbols, Object messageHashes, Map<String, Object> parameters)
+    private Object unSubscribeCore(String name, List<?> symbols, List<?> messageHashes, Map<String, Object> parameters)
     {
 
         String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");

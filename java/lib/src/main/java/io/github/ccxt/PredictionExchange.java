@@ -2179,7 +2179,7 @@ public Map<String, Object> describe()
     }
 
     // eslint-disable-next-line no-unused-vars
-    public Object signEvmTransaction(Map<String, Object> tx, Object privateKey)
+    public String signEvmTransaction(Map<String, Object> tx, String privateKey)
     {
         throw new NotSupported((this.id + " signEvmTransaction() must be overridden by the exchange")) ;
     }
@@ -2233,7 +2233,7 @@ public Map<String, Object> describe()
             put( "value", value );
             put( "data", data );
         }};
-        Map<String, Object> signed = (Map<String, Object>) this.signEvmTransaction(tx, this.privateKey);
+        String signed = this.signEvmTransaction(tx, this.privateKey);
         return (this.ethRpc(rpcUrl, "eth_sendRawTransaction", new ArrayList<Object>(Arrays.asList(signed)))).join();
 
     }

@@ -1399,7 +1399,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         client.resolve(newPositions, "positions");
     }
 
-    public Map<String, Object> parseWsPosition(Object position, Map<String, Object> market)
+    public Map<String, Object> parseWsPosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         //     {

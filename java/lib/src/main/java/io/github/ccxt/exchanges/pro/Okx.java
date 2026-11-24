@@ -2352,7 +2352,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             throw new ArgumentsRequired((this.id + " watchMyTrades() type is required")) ;
         }
         String uppercaseType = type.toUpperCase();
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchMyTrades", paramsOmitted, (String) null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchMyTrades", paramsOmitted, null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         if (java.util.Objects.equals(uppercaseType, "SPOT"))
@@ -2596,7 +2596,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             throw new ArgumentsRequired((this.id + " watchOrders() type is required")) ;
         }
         String uppercaseType = type.toUpperCase();
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchOrders", paramsOmitted, (String) null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchOrders", paramsOmitted, null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         if (java.util.Objects.equals(uppercaseType, "SPOT"))

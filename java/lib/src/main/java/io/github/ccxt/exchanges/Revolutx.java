@@ -1406,7 +1406,7 @@ public class Revolutx extends RevolutxApi
      * @param {boolean} singleLeg whether the order has only this leg
      * @returns {object} the leg request
      */
-    public Map<String, Object> createTriggerLegRequest(String symbol, String type, Object price, String triggerPrice, Object leg, Boolean singleLeg)
+    public Map<String, Object> createTriggerLegRequest(String symbol, String type, Object price, String triggerPrice, Map<String, Object> leg, Boolean singleLeg)
     {
         String legTriggerPrice = this.safeString2(leg, "triggerPrice", "stopPrice", triggerPrice);
         if (java.util.Objects.equals(legTriggerPrice, null))

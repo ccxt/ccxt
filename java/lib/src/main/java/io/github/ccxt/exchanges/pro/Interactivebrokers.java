@@ -1038,8 +1038,8 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             put( "symbol", unifiedSymbol );
             put( "accountId", accountId );
         }})).join();
-        Object orderbook = future.getFuture().join();
-        return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) future.getFuture().join();
+        return orderbook.limit();
 
     }
 

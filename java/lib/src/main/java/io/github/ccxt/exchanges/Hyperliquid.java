@@ -1297,7 +1297,7 @@ public class Hyperliquid extends HyperliquidApi
         Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", null, paramsPublicAddress, null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBalance", paramsMarketType, (String) null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBalance", paramsMarketType, null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         var isUnifiedEnabledparamsValueVariable = (this.isUnifiedEnabled("fetchBalance", userAddress, shouldRefresh, paramsMarginMode)).join();
@@ -6133,12 +6133,12 @@ public class Hyperliquid extends HyperliquidApi
      * @param {int} [params.expiresAfter] time in ms after which the sub-account will expire
      * @returns {object} a response object
      */
-    public CompletableFuture<Map<String, Object>> createSubAccount(Object name, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> createSubAccount(String name, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createSubAccountCore(name, parameters));
     }
 
-    private Map<String, Object> createSubAccountCore(Object name, Map<String, Object> parameters)
+    private Map<String, Object> createSubAccountCore(String name, Map<String, Object> parameters)
     {
 
         Long nonce = this.incrementingNonce();

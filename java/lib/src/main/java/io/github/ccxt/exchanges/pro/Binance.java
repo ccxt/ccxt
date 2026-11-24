@@ -1140,7 +1140,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> message = new HashMap<String, Object>() {{
             put( "id", messageHash );
             put( "method", "depth" );
-            put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsOmitted))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v10 -> (Map<String, Object>) hx4J40v10; case Object hx4J40v10 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v10.getClass().getName()); }))) );
+            put( "params", Binance.this.signParams(Binance.this.extend(payload, paramsOmitted)) );
         }};
         Map<String, Object> subscription = new HashMap<String, Object>() {{
             put( "method", "handleFetchOrderBook");
@@ -2461,7 +2461,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> message = new HashMap<String, Object>() {{
             put( "id", messageHash );
             put( "method", method );
-            put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsMethod))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v9 -> (Map<String, Object>) hx4J40v9; case Object hx4J40v9 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v9.getClass().getName()); }))) );
+            put( "params", Binance.this.signParams(Binance.this.extend(payload, paramsMethod)) );
         }};
         Object ticker = (this.watch(url, messageHash, message, messageHash, subscription)).join();
         return ticker;
@@ -3191,7 +3191,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     }
 
-    public Ticker parseWsTicker(Object message, String marketType)
+    public Ticker parseWsTicker(Map<String, Object> message, String marketType)
     {
         // markPrice
         //   {
@@ -3830,7 +3830,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             (this.ensureUserDataStreamWsSubscribeSignature("spot")).join();
             return null;
         }
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("authenticate", paramsPortfolioMargin, (String) null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("authenticate", paramsPortfolioMargin, null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         Boolean isIsolatedMargin = (java.util.Objects.equals(marginMode, "isolated"));
@@ -4377,7 +4377,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> message = new HashMap<String, Object>() {{
             put( "id", messageHash );
             put( "method", method );
-            put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsMethod))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v8 -> (Map<String, Object>) hx4J40v8; case Object hx4J40v8 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v8.getClass().getName()); }))) );
+            put( "params", Binance.this.signParams(Binance.this.extend(payload, paramsMethod)) );
         }};
         Map<String, Object> subscription = new HashMap<String, Object>() {{
             put( "method", "handlePositionsWs");
@@ -4771,7 +4771,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> message = new HashMap<String, Object>() {{
             put( "id", messageHash );
             put( "method", "order.place" );
-            put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsOmitted2))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); }))) );
+            put( "params", Binance.this.signParams(Binance.this.extend(payload, paramsOmitted2)) );
         }};
         if (Boolean.TRUE.equals(test))
         {
@@ -4956,7 +4956,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> message = new HashMap<String, Object>() {{
             put( "id", messageHash );
             put( "method", ((Boolean.TRUE.equals(isSwap))) ? "order.modify" : "order.cancelReplace" );
-            put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payloadWithLimits, paramsReturnRateLimits))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); }))) );
+            put( "params", Binance.this.signParams(Binance.this.extend(payloadWithLimits, paramsReturnRateLimits)) );
         }};
         Map<String, Object> subscription = new HashMap<String, Object>() {{
             put( "method", "handleEditOrderWs");
@@ -5154,7 +5154,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> message = new HashMap<String, Object>() {{
             put( "id", messageHash );
             put( "method", "order.cancel" );
-            put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsOmitted))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); }))) );
+            put( "params", Binance.this.signParams(Binance.this.extend(payload, paramsOmitted)) );
         }};
         if (Boolean.TRUE.equals(shouldUseAlgoOrder))
         {
@@ -5217,7 +5217,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> message = new HashMap<String, Object>() {{
             put( "id", messageHash );
             put( "method", "openOrders.cancelAll" );
-            put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsReturnRateLimits))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); }))) );
+            put( "params", Binance.this.signParams(Binance.this.extend(payload, paramsReturnRateLimits)) );
         }};
         Map<String, Object> subscription = new HashMap<String, Object>() {{
             put( "method", "handleOrdersWs");
@@ -5287,7 +5287,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> message = new HashMap<String, Object>() {{
             put( "id", messageHash );
             put( "method", "order.status" );
-            put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsReturnRateLimits))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); }))) );
+            put( "params", Binance.this.signParams(Binance.this.extend(payload, paramsReturnRateLimits)) );
         }};
         Map<String, Object> subscription = new HashMap<String, Object>() {{
             put( "method", "handleOrderWs");
@@ -5352,7 +5352,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> message = new HashMap<String, Object>() {{
             put( "id", messageHash );
             put( "method", "allOrders" );
-            put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsReturnRateLimits))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); }))) );
+            put( "params", Binance.this.signParams(Binance.this.extend(payload, paramsReturnRateLimits)) );
         }};
         Map<String, Object> subscription = new HashMap<String, Object>() {{
             put( "method", "handleOrdersWs");
@@ -5447,7 +5447,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> message = new HashMap<String, Object>() {{
             put( "id", messageHash );
             put( "method", "openOrders.status" );
-            put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsReturnRateLimits))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); }))) );
+            put( "params", Binance.this.signParams(Binance.this.extend(payload, paramsReturnRateLimits)) );
         }};
         Map<String, Object> subscription = new HashMap<String, Object>() {{
             put( "method", "handleOrdersWs");
@@ -5548,7 +5548,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         mapLiteral9.put("subType", subType);
         Map<String, Object> paramsExtended = this.extend(paramsValue, mapLiteral9); // needed inside authenticate for isolated margin
         (this.authenticate(paramsExtended)).join();
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchOrders", paramsExtended, (String) null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchOrders", paramsExtended, null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         String urlType = type;
@@ -6005,10 +6005,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             this.handleOrder(client, message);
             return;
         }
+        Map<String, Object> orderValue = (Map<String, Object>) this.safeDict(message, "o", message);
         Map<String, Object> messageValue = message;
         if ((java.util.Objects.equals(e, "ORDER_TRADE_UPDATE")) || (java.util.Objects.equals(e, "ALGO_UPDATE")))
         {
-            messageValue = (Map<String, Object>) this.safeDict(message, "o", message);
+            messageValue = orderValue;
             if ((java.util.Objects.equals(e, "ALGO_UPDATE")) && (java.util.Objects.equals(this.safeInteger(messageValue, "T"), null)))
             {
                 // keep the outer event time, the algo payload carries no timestamps
@@ -6441,7 +6442,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         client.resolve(newPositions, (accountType + ":positions"));
     }
 
-    public Map<String, Object> parseWsPosition(Object position, Map<String, Object> market)
+    public Map<String, Object> parseWsPosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         //     {
@@ -6501,7 +6502,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         return this.safePosition(mapLiteral14);
     }
 
-    public Object parseWsOptionsPosition(Object position, Map<String, Object> market)
+    public Object parseWsOptionsPosition(Map<String, Object> position, Map<String, Object> market)
     {
         //
         //  from BALANCE_POSITION_UPDATE event P[] array:
@@ -6620,7 +6621,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> message = new HashMap<String, Object>() {{
             put( "id", messageHash );
             put( "method", "myTrades" );
-            put( "params", Binance.this.signParams(((Map<String, Object>) (switch ((Object) (Binance.this.extend(payload, paramsReturnRateLimits))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); }))) );
+            put( "params", Binance.this.signParams(Binance.this.extend(payload, paramsReturnRateLimits)) );
         }};
         Map<String, Object> subscription = new HashMap<String, Object>() {{
             put( "method", "handleTradesWs");

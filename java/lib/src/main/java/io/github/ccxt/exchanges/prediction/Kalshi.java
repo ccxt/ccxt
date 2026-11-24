@@ -3137,7 +3137,7 @@ public class Kalshi extends KalshiApi
     {
 
         Map<String, Object> fullEvent = (this.fetchRawEventByTicker(id, parameters)).join();
-        Map<String, Object> eventVar = this.parseEvent(fullEvent);
+        Map<String, Object> eventVar = this.parseEvent(this.extend(new HashMap<String, Object>() {{}}, fullEvent));
         this.indexEventOutcomes(eventVar);
         return eventVar;
 

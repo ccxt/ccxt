@@ -1599,7 +1599,7 @@ public class Bitteam extends BitteamApi
         return this.safeString(statuses, status, status);
     }
 
-    public String parseValueToPricision(Map<String, Object> valueObject, String valueKey, Object preciseObject, String precisionKey)
+    public String parseValueToPricision(Map<String, Object> valueObject, String valueKey, Map<String, Object> preciseObject, String precisionKey)
     {
         String valueRawString = this.safeString(valueObject, valueKey);
         String precisionRawString = this.safeString(preciseObject, precisionKey);

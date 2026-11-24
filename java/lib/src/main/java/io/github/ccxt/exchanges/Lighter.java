@@ -719,12 +719,12 @@ public class Lighter extends LighterApi
 
     }
 
-    public CompletableFuture<Map<String, Object>> createSubAccount(Object name, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> createSubAccount(String name, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createSubAccountCore(name, parameters));
     }
 
-    private Map<String, Object> createSubAccountCore(Object name, Map<String, Object> parameters)
+    private Map<String, Object> createSubAccountCore(String name, Map<String, Object> parameters)
     {
 
         List<Object> apiKeyIndexparamsApiKeyIndexVariable = (List<Object>) this.handleApiKeyIndex(parameters, "createSubAccount", "apiKeyIndex", "api_key_index", null);

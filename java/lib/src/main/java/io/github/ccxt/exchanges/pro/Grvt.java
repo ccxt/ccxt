@@ -164,12 +164,12 @@ public class Grvt extends io.github.ccxt.exchanges.Grvt
         }
     }
 
-    public CompletableFuture<Object> subscribeMultiple(Object messageHashes, Map<String, Object> request, Object rawHashes, Boolean publicOrPrivate)
+    public CompletableFuture<Object> subscribeMultiple(List<?> messageHashes, Map<String, Object> request, List<?> rawHashes, Boolean publicOrPrivate)
     {
         return BaseExchange.supplyAsync(() -> this.subscribeMultipleCore(messageHashes, request, rawHashes, publicOrPrivate));
     }
 
-    private Object subscribeMultipleCore(Object messageHashes, Map<String, Object> request, Object rawHashes, Boolean publicOrPrivate)
+    private Object subscribeMultipleCore(List<?> messageHashes, Map<String, Object> request, List<?> rawHashes, Boolean publicOrPrivate)
     {
 
         Map<String, Object> payload = new HashMap<String, Object>() {{

@@ -2301,13 +2301,15 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(message, "o", message);
         String e = this.safeString(message, "e");
         Boolean isOrderUpdate = (java.util.Objects.equals(e, "ORDER_TRADE_UPDATE")) || (java.util.Objects.equals(e, "ALGO_UPDATE"));
-        Map<String, Object> tradeMessage = message;
-        if (Boolean.TRUE.equals(isOrderUpdate))
-        {
-            tradeMessage = rawOrder;
-        }
+        Map<String, Object> tradeOrder = this.safeDict(message, "o", null);
         this.handleOrder(client, rawOrder);
-        this.handleMyTrade(client, tradeMessage);
+        if (Boolean.TRUE.equals(isOrderUpdate) && (!java.util.Objects.equals(tradeOrder, null)))
+        {
+            this.handleMyTrade(client, tradeOrder);
+        } else
+        {
+            this.handleMyTrade(client, message);
+        }
     }
 
     public void handleMyTrade(Client client, Map<String, Object> message)

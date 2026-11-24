@@ -3688,18 +3688,10 @@ public class Bitrue extends BitrueApi
         {
             throw new NotSupported((this.id + " setMargin only support swap markets")) ;
         }
-        Map<String, Object> response = null;
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "contractName", market.get("id") );
             put( "amount", Bitrue.this.parseToNumeric(amount) );
         }};
-        if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
-        {
-            response = (this.fapiV2PrivatePostPositionMargin(this.extend(request, parameters))).join();
-        } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
-        {
-            response = (this.dapiV2PrivatePostPositionMargin(this.extend(request, parameters))).join();
-        }
         //
         //     {
         //         "code": 0,
@@ -3707,7 +3699,16 @@ public class Bitrue extends BitrueApi
         //         "data": null
         //     }
         //
-        return this.parseMarginModification(response, market);
+        if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+        {
+            Map<String, Object> response = (this.fapiV2PrivatePostPositionMargin(this.extend(request, parameters))).join();
+            return this.parseMarginModification(response, market);
+        } else if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
+        {
+            Map<String, Object> response = (this.dapiV2PrivatePostPositionMargin(this.extend(request, parameters))).join();
+            return this.parseMarginModification(response, market);
+        }
+        throw new NotSupported((this.id + " setMargin only support linear or inverse swap markets")) ;
 
     }
 

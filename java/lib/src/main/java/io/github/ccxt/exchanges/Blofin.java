@@ -2961,6 +2961,7 @@ public class Blofin extends BlofinApi
             currency = this.currency(code);
             request.put("currency", currency.get("id"));
         }
+        String depositId = this.safeString(request, "depositId", "");
         Map<String, Object> response = (this.privateGetAssetDepositHistory(this.extend(request, parameters))).join();
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         // only accept a row that matches the requested id, in case the
@@ -2969,12 +2970,12 @@ public class Blofin extends BlofinApi
         for (var i = 0; (dataLength != null && i < dataLength); i++)
         {
             Map<String, Object> entry = this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            if (java.util.Objects.equals(this.safeString(entry, "depositId"), id))
+            if (java.util.Objects.equals(this.safeString(entry, "depositId"), depositId))
             {
                 return this.parseTransaction(entry, currency);
             }
         }
-        throw new ExchangeError(((this.id + " fetchDeposit() could not find deposit ") + id)) ;
+        throw new ExchangeError(((this.id + " fetchDeposit() could not find deposit ") + depositId)) ;
 
     }
 
@@ -3008,7 +3009,11 @@ public class Blofin extends BlofinApi
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         if (Boolean.TRUE.equals(hasId))
         {
-            request.put("withdrawId", id);
+            {
+                HashMap<String, Object> hx4NewMap2 = new HashMap<String, Object>();
+                hx4NewMap2.put("withdrawId", id);
+                request = hx4NewMap2;
+            }
         }
         Map<String, Object> currency = null;
         if (!java.util.Objects.equals(code, null))
@@ -3016,6 +3021,7 @@ public class Blofin extends BlofinApi
             currency = this.currency(code);
             request.put("currency", currency.get("id"));
         }
+        String withdrawId = this.safeString(request, "withdrawId", "");
         Map<String, Object> response = (this.privateGetAssetWithdrawalHistory(this.extend(request, parameters))).join();
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         // only accept a row that matches the requested id (or clientId), in
@@ -3027,7 +3033,7 @@ public class Blofin extends BlofinApi
             Boolean matches = false;
             if (Boolean.TRUE.equals(hasId))
             {
-                matches = (java.util.Objects.equals(this.safeString(entry, "withdrawId"), id));
+                matches = (java.util.Objects.equals(this.safeString(entry, "withdrawId"), withdrawId));
             } else
             {
                 matches = (java.util.Objects.equals(this.safeString(entry, "clientId"), clientId));
@@ -3037,7 +3043,7 @@ public class Blofin extends BlofinApi
                 return this.parseTransaction(entry, currency);
             }
         }
-        String reference = ((Boolean.TRUE.equals(hasId))) ? id : clientId;
+        String reference = ((Boolean.TRUE.equals(hasId))) ? withdrawId : clientId;
         throw new ExchangeError(((this.id + " fetchWithdrawal() could not find withdrawal ") + reference)) ;
 
     }
@@ -3880,7 +3886,7 @@ public class Blofin extends BlofinApi
         }
         String marginMode = null;
         Map<String, Object> query = null;
-        Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchLeverages", parameters, (String) null);
+        Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchLeverages", parameters, null);
         marginMode = marginModequeryVariable.first();
         query = marginModequeryVariable.second();
         if (java.util.Objects.equals(marginMode, null))
@@ -3939,7 +3945,7 @@ public class Blofin extends BlofinApi
         }
         String marginMode = null;
         Map<String, Object> query = null;
-        Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchLeverage", parameters, (String) null);
+        Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchLeverage", parameters, null);
         marginMode = marginModequeryVariable.first();
         query = marginModequeryVariable.second();
         if (java.util.Objects.equals(marginMode, null))

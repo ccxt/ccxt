@@ -929,7 +929,7 @@ public class Myriad extends MyriadApi
         }};
     }
 
-    public Object signEvmTransaction(Map<String, Object> tx, Object privateKey)
+    public String signEvmTransaction(Map<String, Object> tx, String privateKey)
     {
         // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex.
         // tx fields (nonce/gas/fees/value) are hex strings; chainId is an int. Verified
@@ -1448,7 +1448,7 @@ public class Myriad extends MyriadApi
         domain.put("version", domainVersion);
         domain.put("chainId", this.parseToInt(networkId));
         domain.put("verifyingContract", exchangeAddress);
-        Object encoded = this.ethEncodeStructuredData(domain, types, message);
+        byte[] encoded = this.ethEncodeStructuredData(domain, types, message);
         Object digest = this.hash(encoded, keccak(), "hex");
         Map<String,Object> signature = ecdsa(digest, this.remove0xPrefix(this.privateKey), secp256k1(), null);
         String rRaw = this.safeString(signature, "r", "");

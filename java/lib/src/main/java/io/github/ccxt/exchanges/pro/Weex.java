@@ -112,12 +112,12 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         return requestId;
     }
 
-    public CompletableFuture<Object> subscribePublic(Object messageHashes, Object channels, Boolean isContract, Map<String, Object> parameters, Map<String, Object> subscription)
+    public CompletableFuture<Object> subscribePublic(List<?> messageHashes, Object channels, Boolean isContract, Map<String, Object> parameters, Map<String, Object> subscription)
     {
         return BaseExchange.supplyAsync(() -> this.subscribePublicCore(messageHashes, channels, isContract, parameters, subscription));
     }
 
-    private Object subscribePublicCore(Object messageHashes, Object channels, Boolean isContract, Map<String, Object> parameters, Map<String, Object> subscription)
+    private Object subscribePublicCore(List<?> messageHashes, Object channels, Boolean isContract, Map<String, Object> parameters, Map<String, Object> subscription)
     {
 
         Long id = this.requestId();

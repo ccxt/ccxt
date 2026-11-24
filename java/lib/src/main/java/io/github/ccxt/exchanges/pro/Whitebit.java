@@ -549,7 +549,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
     }
 
-    public void handleMyTrades(Client client, Map<String, Object> message, Object subscription)
+    public void handleMyTrades(Client client, Map<String, Object> message, Map<String, Object> subscription)
     {
         //
         //   {
@@ -705,7 +705,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
 
     }
 
-    public void handleOrder(Client client, Map<String, Object> message, Object subscription)
+    public void handleOrder(Client client, Map<String, Object> message, Map<String, Object> subscription)
     {
         //
         // {
@@ -1369,9 +1369,9 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             switch (method)
             {
                 case "handleBalance" -> this.handleBalance(client, message);
-                case "handleMyTrades" -> this.handleMyTrades(client, message, null);
+                case "handleMyTrades" -> this.handleMyTrades(client, message, new HashMap<String, Object>());
                 case "handleOHLCV" -> this.handleOHLCV(client, message);
-                case "handleOrder" -> this.handleOrder(client, message, null);
+                case "handleOrder" -> this.handleOrder(client, message, new HashMap<String, Object>());
                 case "handleOrderBook" -> this.handleOrderBook(client, message);
                 case "handleTicker" -> this.handleTicker(client, message);
                 case "handleTrades" -> this.handleTrades(client, message);

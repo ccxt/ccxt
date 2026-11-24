@@ -569,17 +569,17 @@ public class Binance extends BinanceApi
      * @param {object} [rest] extra params forwarded verbatim to the search endpoint
      * @returns {object[]} raw market topic objects with usable nested markets
      */
-    public CompletableFuture<List<Object>> fetchEventsByQuery(Object queries, Object limit, Map<String, Object> rest)
+    public CompletableFuture<List<Object>> fetchEventsByQuery(List<?> queries, Object limit, Map<String, Object> rest)
     {
         return BaseExchange.supplyAsync(() -> this.fetchEventsByQueryCore(queries, limit, rest));
     }
 
-    private List<Object> fetchEventsByQueryCore(Object queries, Object limit, Map<String, Object> rest)
+    private List<Object> fetchEventsByQueryCore(List<?> queries, Object limit, Map<String, Object> rest)
     {
 
         Map<String, Object> seen = new HashMap<String, Object>() {{}};
         List<Object> collected = new ArrayList<Object>(Arrays.asList());
-        Integer queriesLength = ((List<?>)queries).size();
+        Integer queriesLength = queries.size();
         Long limitValue = 20L;
         if (!java.util.Objects.equals(limit, null))
         {

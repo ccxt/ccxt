@@ -307,12 +307,12 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
 
     }
 
-    public CompletableFuture<Object> watchPublic(Object topics, Object messageHashes, Map<String, Object> parameters, Boolean unwatch)
+    public CompletableFuture<Object> watchPublic(List<?> topics, List<?> messageHashes, Map<String, Object> parameters, Boolean unwatch)
     {
         return BaseExchange.supplyAsync(() -> this.watchPublicCore(topics, messageHashes, parameters, unwatch));
     }
 
-    private Object watchPublicCore(Object topics, Object messageHashes, Map<String, Object> parameters, Boolean unwatch)
+    private Object watchPublicCore(List<?> topics, List<?> messageHashes, Map<String, Object> parameters, Boolean unwatch)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -340,12 +340,12 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
 
     }
 
-    public CompletableFuture<Object> watchPrivate(Object topics, Object messageHashes, Map<String, Object> parameters, Boolean unwatch)
+    public CompletableFuture<Object> watchPrivate(Object topics, List<?> messageHashes, Map<String, Object> parameters, Boolean unwatch)
     {
         return BaseExchange.supplyAsync(() -> this.watchPrivateCore(topics, messageHashes, parameters, unwatch));
     }
 
-    private Object watchPrivateCore(Object topics, Object messageHashes, Map<String, Object> parameters, Boolean unwatch)
+    private Object watchPrivateCore(Object topics, List<?> messageHashes, Map<String, Object> parameters, Boolean unwatch)
     {
 
         this.checkRequiredCredentials(true);

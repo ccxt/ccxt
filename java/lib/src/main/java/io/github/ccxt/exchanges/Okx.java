@@ -6850,7 +6850,7 @@ public class Okx extends OkxApi
         method = this.safeString(paramsPaginate, "method", method);
         Map<String, Object> paramsOmitted = this.omit(paramsPaginate, "method");
         Map<String, Object> request = new HashMap<String, Object>() {{}};
-        Pair<String, Map<String, Object>> marginModeOptionparamsMarginModeVariable = this.handleMarginModeAndParams("fetchLedger", paramsOmitted, (String) null);
+        Pair<String, Map<String, Object>> marginModeOptionparamsMarginModeVariable = this.handleMarginModeAndParams("fetchLedger", paramsOmitted, null);
         String marginModeOption = marginModeOptionparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeOptionparamsMarginModeVariable.second();
         String marginMode = marginModeOption;

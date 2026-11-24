@@ -2259,7 +2259,7 @@ public class Bitfinex extends BitfinexApi
         {
             orderType = "FOK";
         }
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters, (String) null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters, null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         if (Boolean.TRUE.equals((this.safeBool(market, "spot", false))) && (java.util.Objects.equals(marginMode, null)))
@@ -4715,11 +4715,11 @@ public class Bitfinex extends BitfinexApi
         //     ]
         //
         Object data = this.safeValue(response, 0);
-        return this.parseMarginModification((Map<String, Object>) (data), market);
+        return this.parseMarginModificationRow(data, market);
 
     }
 
-    public Map<String, Object> parseMarginModification(Map<String, Object> data, Map<String, Object> market)
+    public Map<String, Object> parseMarginModificationRow(Object data, Map<String, Object> market)
     {
         //
         // setMargin

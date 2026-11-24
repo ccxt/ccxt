@@ -4798,7 +4798,7 @@ public class Binance extends BinanceApi
 
     }
 
-    public Map<String, Object> parseCurrenciesCustom(Object responseCurrencies, Object marginablesById)
+    public Map<String, Object> parseCurrenciesCustom(Object responseCurrencies, Map<String, Object> marginablesById)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)responseCurrencies).size(); i++)
@@ -5873,7 +5873,7 @@ public class Binance extends BinanceApi
         paramsSubType = isPortfolioMarginparamsSubTypeVariable.second();
         String marginMode = null;
         Map<String, Object> query = null;
-        Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchBalance", paramsSubType, (String) null);
+        Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchBalance", paramsSubType, null);
         marginMode = marginModequeryVariable.first();
         query = marginModequeryVariable.second();
         query = this.omit(query, "type");
@@ -9476,7 +9476,7 @@ public class Binance extends BinanceApi
         Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPortfolioMarginVariable = this.handleOptionBoolAndParams2(paramsAlgo, "createOrder", "papi", "portfolioMargin", false);
         Boolean isPortfolioMargin = isPortfolioMarginparamsPortfolioMarginVariable.first();
         Map<String, Object> paramsPortfolioMargin = isPortfolioMarginparamsPortfolioMarginVariable.second();
-        Pair<String, Map<String, Object>> marginModeparamsPapiVariable = this.handleMarginModeAndParams("createOrder", paramsPortfolioMargin, (String) null);
+        Pair<String, Map<String, Object>> marginModeparamsPapiVariable = this.handleMarginModeAndParams("createOrder", paramsPortfolioMargin, null);
         String marginMode = marginModeparamsPapiVariable.first();
         Map<String, Object> paramsPapi = marginModeparamsPapiVariable.second();
         // keys dropped from the request params, extended below as the order shape is resolved
@@ -10097,7 +10097,7 @@ public class Binance extends BinanceApi
         subType = (String) ((List<Object>) subTypeparamsStockVariable).get(0);
         paramsStock = subTypeparamsStockVariable.second();
         String marginMode = null;
-        Pair<String, Map<String, Object>> marginModeparamsStockVariable = this.handleMarginModeAndParams("fetchOrder", paramsStock, (String) null);
+        Pair<String, Map<String, Object>> marginModeparamsStockVariable = this.handleMarginModeAndParams("fetchOrder", paramsStock, null);
         marginMode = marginModeparamsStockVariable.first();
         paramsStock = marginModeparamsStockVariable.second();
         Boolean isPortfolioMargin = null;
@@ -10265,7 +10265,7 @@ public class Binance extends BinanceApi
         subType = (String) ((List<Object>) subTypeparamsPaginateVariable).get(0);
         paramsPaginate = subTypeparamsPaginateVariable.second();
         String marginMode = null;
-        Pair<String, Map<String, Object>> marginModeparamsPaginateVariable = this.handleMarginModeAndParams("fetchOrders", paramsPaginate, (String) null);
+        Pair<String, Map<String, Object>> marginModeparamsPaginateVariable = this.handleMarginModeAndParams("fetchOrders", paramsPaginate, null);
         marginMode = marginModeparamsPaginateVariable.first();
         paramsPaginate = marginModeparamsPaginateVariable.second();
         Boolean isPortfolioMargin = null;
@@ -10645,7 +10645,7 @@ public class Binance extends BinanceApi
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         String marginMode = null;
         Map<String, Object> paramsMarginMode = null;
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters, (String) null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters, null);
         marginMode = marginModeparamsMarginModeVariable.first();
         paramsMarginMode = marginModeparamsMarginModeVariable.second();
         Boolean isPortfolioMargin = null;
@@ -11272,7 +11272,7 @@ public class Binance extends BinanceApi
         subType = (String) ((List<Object>) subTypeparamsStockVariable).get(0);
         paramsStock = subTypeparamsStockVariable.second();
         String marginMode = null;
-        Pair<String, Map<String, Object>> marginModeparamsStockVariable = this.handleMarginModeAndParams("cancelOrder", paramsStock, (String) null);
+        Pair<String, Map<String, Object>> marginModeparamsStockVariable = this.handleMarginModeAndParams("cancelOrder", paramsStock, null);
         marginMode = marginModeparamsStockVariable.first();
         paramsStock = marginModeparamsStockVariable.second();
         Boolean isPortfolioMargin = null;
@@ -11473,7 +11473,7 @@ public class Binance extends BinanceApi
         Boolean isInverseType = this.isInverse(type, subType);
         paramsStock = this.omit(paramsStock, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
         String marginMode = null;
-        Pair<String, Map<String, Object>> marginModeparamsStockVariable = this.handleMarginModeAndParams("cancelAllOrders", paramsStock, (String) null);
+        Pair<String, Map<String, Object>> marginModeparamsStockVariable = this.handleMarginModeAndParams("cancelAllOrders", paramsStock, null);
         marginMode = marginModeparamsStockVariable.first();
         paramsStock = marginModeparamsStockVariable.second();
         Object response = null;
@@ -11818,7 +11818,7 @@ public class Binance extends BinanceApi
             response = (this.eapiPrivateGetUserTrades(this.extend(request, paramsPaginate))).join();
         } else
         {
-            Pair<String, Map<String, Object>> marginModeparamsPaginateVariable = this.handleMarginModeAndParams("fetchMyTrades", paramsPaginate, (String) null);
+            Pair<String, Map<String, Object>> marginModeparamsPaginateVariable = this.handleMarginModeAndParams("fetchMyTrades", paramsPaginate, null);
             marginMode = marginModeparamsPaginateVariable.first();
             paramsPaginate = marginModeparamsPaginateVariable.second();
             Boolean isPortfolioMargin = null;
@@ -16069,7 +16069,8 @@ public class Binance extends BinanceApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < settlements.size(); i++)
         {
-            ((List<Object>)result).add(this.parseSettlement(this.extend(new HashMap<String, Object>() {{}}, (settlements == null || i < 0 || i >= settlements.size() ? null : settlements.get(i))), market));
+            Map<String, Object> settlementRow = this.extend(new HashMap<String, Object>() {{}}, (settlements == null || i < 0 || i >= settlements.size() ? null : settlements.get(i)));
+            ((List<Object>)result).add(this.parseSettlement(settlementRow, market));
         }
         return result;
     }

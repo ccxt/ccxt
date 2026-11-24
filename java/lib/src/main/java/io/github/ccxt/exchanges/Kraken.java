@@ -4439,7 +4439,7 @@ public class Kraken extends KrakenApi
                 mapLiteral14.put("nonce", nonce);
                 bodySigned = this.urlencodeNested(this.extend(mapLiteral14, parameters));
             }
-            Object auth = this.encode((nonce + bodySigned));
+            byte[] auth = this.encode((nonce + bodySigned));
             Object hash = this.hash(auth, sha256(), "binary");
             byte[] binary = this.encode(url);
             byte[] binhash = this.binaryConcat(binary, hash);

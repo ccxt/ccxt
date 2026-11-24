@@ -2687,7 +2687,7 @@ public class Whitebit extends WhitebitApi
         {
             throw new NotSupported((this.id + " createOrder() timeInForce IOC is only supported for limit orders")) ;
         }
-        Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("createOrder", paramsOmitted, (String) null);
+        Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("createOrder", paramsOmitted, null);
         String marginMode = marginModequeryVariable.first();
         Map<String, Object> query = marginModequeryVariable.second();
         if (Boolean.TRUE.equals(postOnly))
@@ -4606,7 +4606,7 @@ public class Whitebit extends WhitebitApi
 
     }
 
-    public Map<String, Object> parseFundingHistory(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingHistory(Map<String, Object> contract, Map<String, Object> market)
     {
         //
         //     {
@@ -4632,10 +4632,10 @@ public class Whitebit extends WhitebitApi
         }};
     }
 
-    public List<Object> parseFundingHistories(Object contracts, Map<String, Object> market, Long since, Long limit)
+    public List<Object> parseFundingHistories(List<?> contracts, Map<String, Object> market, Long since, Long limit)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)contracts).size(); i++)
+        for (var i = 0; i < contracts.size(); i++)
         {
             Map<String, Object> contract = this.safeDict(contracts, i, null);
             ((List<Object>)result).add(this.parseFundingHistory(contract, market));

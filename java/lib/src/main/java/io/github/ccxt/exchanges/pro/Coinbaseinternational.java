@@ -255,12 +255,12 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
      * @param {string} [params.route] auto (default), deribit, or coinbase; overrides options.route
      * @returns {boolean} true when unsubscription has been requested
      */
-    public CompletableFuture<Object> unSubscribe(Object channels, Object isPrivate, Map<String, Object> parameters)
+    public CompletableFuture<Object> unSubscribe(List<?> channels, Object isPrivate, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unSubscribeCore(channels, isPrivate, parameters));
     }
 
-    private Object unSubscribeCore(Object channels, Object isPrivate, Map<String, Object> parameters)
+    private Object unSubscribeCore(List<?> channels, Object isPrivate, Map<String, Object> parameters)
     {
 
         Map<String, Object> paramsResolved = this.handleRouteAndParams("unSubscribe", parameters);
@@ -273,7 +273,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             (this.authenticate(new HashMap<String, Object>() {{}})).join();
         }
         List<String> unWatchMessageHashes = new ArrayList<String>(Arrays.asList());
-        Integer channelsLength = ((List<?>)channels).size();
+        Integer channelsLength = channels.size();
         for (var i = 0; (channelsLength != null && i < channelsLength); i++)
         {
             unWatchMessageHashes.add(("unsubscribe:" + this.safeString(channels, i, "")));

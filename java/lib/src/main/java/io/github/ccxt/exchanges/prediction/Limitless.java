@@ -2708,7 +2708,7 @@ public class Limitless extends LimitlessApi
         return this.signHash((String) (this.hashMessage(message)), (String) ((privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0)))));
     }
 
-    public Object signEvmTransaction(Map<String, Object> tx, Object privateKey)
+    public String signEvmTransaction(Map<String, Object> tx, String privateKey)
     {
         // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex
         String accessList = this.rlpEncodeList(new ArrayList<Object>(Arrays.asList()));

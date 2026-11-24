@@ -3668,7 +3668,7 @@ public class Nado extends NadoApi
     put( "type", "uint128" );
 }})) );
         }};
-        Object encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
+        byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
         return this.signHash((String) (this.hash(encoded, keccak(), "hex")), (String) (this.privateKey));
     }
 
@@ -3695,7 +3695,7 @@ public class Nado extends NadoApi
     put( "type", "uint64" );
 }})) );
         }};
-        Object encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
+        byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
         return this.signHash((String) (this.hash(encoded, keccak(), "hex")), (String) (this.privateKey));
     }
 
@@ -3719,7 +3719,7 @@ public class Nado extends NadoApi
     put( "type", "uint64" );
 }})) );
         }};
-        Object encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
+        byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
         return this.signHash((String) (this.hash(encoded, keccak(), "hex")), (String) (this.privateKey));
     }
 
@@ -3740,7 +3740,7 @@ public class Nado extends NadoApi
     put( "type", "uint64" );
 }})) );
         }};
-        Object encoded = this.ethEncodeStructuredData(domain, messageTypes, tx);
+        byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, tx);
         return this.signHash((String) (this.hash(encoded, keccak(), "hex")), (String) (this.privateKey));
     }
 

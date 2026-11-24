@@ -1111,7 +1111,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
 
     }
 
-    public void handleOrders(Client client, Map<String, Object> message, Object subscription)
+    public void handleOrders(Client client, Map<String, Object> message, Map<String, Object> subscription)
     {
         //
         //    {
@@ -1627,12 +1627,12 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
 
     }
 
-    public CompletableFuture<Object> watchPublicMultiple(Object messageHashes, Object topics, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchPublicMultiple(List<?> messageHashes, List<?> topics, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchPublicMultipleCore(messageHashes, topics, parameters));
     }
 
-    private Object watchPublicMultipleCore(Object messageHashes, Object topics, Map<String, Object> parameters)
+    private Object watchPublicMultipleCore(List<?> messageHashes, List<?> topics, Map<String, Object> parameters)
     {
 
         String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
@@ -1648,12 +1648,12 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
 
     }
 
-    public CompletableFuture<Object> unWatchPublicMultiple(String topic, List<?> symbols, List<?> messageHashes, Object subMessageHashes, Object topics, Map<String, Object> parameters, Map<String, Object> subExtend)
+    public CompletableFuture<Object> unWatchPublicMultiple(String topic, List<?> symbols, List<?> messageHashes, List<?> subMessageHashes, List<?> topics, Map<String, Object> parameters, Map<String, Object> subExtend)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchPublicMultipleCore(topic, symbols, messageHashes, subMessageHashes, topics, parameters, subExtend));
     }
 
-    private Object unWatchPublicMultipleCore(String topic, List<?> symbols, List<?> messageHashes, Object subMessageHashes, Object topics, Map<String, Object> parameters, Map<String, Object> subExtend)
+    private Object unWatchPublicMultipleCore(String topic, List<?> symbols, List<?> messageHashes, List<?> subMessageHashes, List<?> topics, Map<String, Object> parameters, Map<String, Object> subExtend)
     {
 
         String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
@@ -1786,7 +1786,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
         if ((!java.util.Objects.equals(channel, null)) && channel.startsWith("user.order"))
         {
             // channel might be user.order.BTC_USDT
-            this.handleOrders(client, result, (Object) null);
+            this.handleOrders(client, result, (Map<String, Object>) null);
         }
         String method = methods.get(channel);
         if (!java.util.Objects.equals(method, null))
@@ -1796,7 +1796,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 case "handleBalance" -> this.handleBalance(client, result);
                 case "handleOHLCV" -> this.handleOHLCV(client, result);
                 case "handleOrderBook" -> this.handleOrderBook(client, result);
-                case "handleOrders" -> this.handleOrders(client, result, null);
+                case "handleOrders" -> this.handleOrders(client, result, new HashMap<String, Object>());
                 case "handlePositions" -> this.handlePositions(client, result);
                 case "handleTicker" -> this.handleTicker(client, result);
                 case "handleTrades" -> this.handleTrades(client, result);

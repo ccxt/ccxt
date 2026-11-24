@@ -122,12 +122,12 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
 
     }
 
-    public CompletableFuture<Object> subscribePublicMultiple(Object messageHashes, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribePublicMultiple(List<?> messageHashes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.subscribePublicMultipleCore(messageHashes, parameters));
     }
 
-    private Object subscribePublicMultipleCore(Object messageHashes, Map<String, Object> parameters)
+    private Object subscribePublicMultipleCore(List<?> messageHashes, Map<String, Object> parameters)
     {
 
         String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");

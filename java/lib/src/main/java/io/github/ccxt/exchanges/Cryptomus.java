@@ -1339,7 +1339,7 @@ public class Cryptomus extends CryptomusApi
         takerFee = Precise.stringDiv(takerFee, "100");
         List<Object> feeTiers = this.safeList(data, "tariff_steps", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        Map<String, Object> tiers = this.parseFeeTiers(feeTiers, null);
+        Map<String, Object> tiers = this.parseFeeTiers(feeTiers, (Map<String, Object>) null);
         List<String> symbols = this.symbols;
         if (java.util.Objects.equals(symbols, null))
         {

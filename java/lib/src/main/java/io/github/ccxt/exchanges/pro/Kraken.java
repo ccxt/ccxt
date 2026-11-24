@@ -994,7 +994,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         List<String> unsubMessageHashes = new ArrayList<String>(Arrays.asList());
         for (var i = 0; i < symbolsNormalized.size(); i++)
         {
-            unsubMessageHashes.add(("unsubscribe:" + this.getMessageHash("trade", null, (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)))));
+            unsubMessageHashes.add(("unsubscribe:" + this.getMessageHash("trade", null, this.symbol((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i))))));
         }
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "method", "unsubscribe" );
@@ -1601,7 +1601,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
     }
 
-    public void handleMyTrades(Client client, Map<String, Object> message, Object subscription)
+    public void handleMyTrades(Client client, Map<String, Object> message, Map<String, Object> subscription)
     {
         //
         //     {
@@ -1754,7 +1754,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
 
     }
 
-    public void handleOrders(Client client, Map<String, Object> message, Object subscription)
+    public void handleOrders(Client client, Map<String, Object> message, Map<String, Object> subscription)
     {
         //
         //     {
@@ -2197,10 +2197,10 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 switch (method)
                 {
                     case "handleBalance" -> this.handleBalance(client, message);
-                    case "handleMyTrades" -> this.handleMyTrades(client, message, null);
+                    case "handleMyTrades" -> this.handleMyTrades(client, message, new HashMap<String, Object>());
                     case "handleOHLCV" -> this.handleOHLCV(client, message);
                     case "handleOrderBook" -> this.handleOrderBook(client, message);
-                    case "handleOrders" -> this.handleOrders(client, message, null);
+                    case "handleOrders" -> this.handleOrders(client, message, new HashMap<String, Object>());
                     case "handleTicker" -> this.handleTicker(client, message);
                     case "handleTrades" -> this.handleTrades(client, message);
                     case null, default -> throw new RuntimeException("Method not found: " + method + " with 2 args on " + this.getClass().getName());

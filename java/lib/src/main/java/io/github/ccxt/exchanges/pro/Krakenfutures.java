@@ -157,12 +157,12 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
      * @param {object} [params] extra parameters specific to the krakenfutures api
      * @returns {object} data from the websocket stream
      */
-    public CompletableFuture<Object> subscribePublic(String name, Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribePublic(String name, List<?> symbols, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.subscribePublicCore(name, symbols, parameters));
     }
 
-    private Object subscribePublicCore(String name, Object symbols, Map<String, Object> parameters)
+    private Object subscribePublicCore(String name, List<?> symbols, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))

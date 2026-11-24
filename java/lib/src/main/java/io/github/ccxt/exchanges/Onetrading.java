@@ -836,8 +836,8 @@ public class Onetrading extends OnetradingApi
         Map<String, Object> futuresFees = this.safeDict(response, 1, new HashMap<String, Object>() {{}});
         List<Object> spotFeeTiers = this.safeList(spotFees, "fee_tiers", new ArrayList<Object>(Arrays.asList()));
         List<Object> futuresFeeTiers = this.safeList(futuresFees, "fee_tiers", new ArrayList<Object>(Arrays.asList()));
-        Map<String, Object> spotTiers = this.parseFeeTiers(spotFeeTiers, null);
-        Map<String, Object> futuresTiers = this.parseFeeTiers(futuresFeeTiers, null);
+        Map<String, Object> spotTiers = this.parseFeeTiers(spotFeeTiers, (Map<String, Object>) null);
+        Map<String, Object> futuresTiers = this.parseFeeTiers(futuresFeeTiers, (Map<String, Object>) null);
         Map<String, Object> firstSpotTier = this.safeDict(spotTiers, 0, new HashMap<String, Object>() {{}});
         Map<String, Object> firstFuturesTier = this.safeDict(futuresTiers, 0, new HashMap<String, Object>() {{}});
         Map<String, Object> result = new HashMap<String, Object>() {{}};

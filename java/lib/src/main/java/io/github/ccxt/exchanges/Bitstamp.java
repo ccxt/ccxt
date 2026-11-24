@@ -2220,7 +2220,8 @@ public class Bitstamp extends BitstampApi
         List<Object> feesList = this.toArray(fees);
         for (var i = 0; i < feesList.size(); i++)
         {
-            Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) ((feesList == null || i < 0 || i >= feesList.size() ? null : feesList.get(i))), (Map<String, Object>) null);
+            Map<String, Object> feeRow = this.safeDict(feesList, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> fee = this.parseTradingFee(feeRow, (Map<String, Object>) null);
             String symbol = this.safeString(fee, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {

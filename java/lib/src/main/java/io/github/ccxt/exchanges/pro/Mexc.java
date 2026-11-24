@@ -1342,7 +1342,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
 
     }
 
-    public void handleMyTrade(Client client, Map<String, Object> message, Object subscription)
+    public void handleMyTrade(Client client, Map<String, Object> message, Map<String, Object> subscription)
     {
         //
         //    {
@@ -2584,7 +2584,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             this.handleBalance(client, message);
         } else if (java.util.Objects.equals(channelId, "private.deals.v3.api.pb"))
         {
-            this.handleMyTrade(client, message, (Object) null);
+            this.handleMyTrade(client, message, (Map<String, Object>) null);
         } else if (java.util.Objects.equals(channelId, "private.orders.v3.api.pb"))
         {
             this.handleOrder(client, message);
@@ -2652,7 +2652,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             {
                 case "handleBalance" -> this.handleBalance(client, message);
                 case "handleFundingRate" -> this.handleFundingRate(client, message);
-                case "handleMyTrade" -> this.handleMyTrade(client, message, null);
+                case "handleMyTrade" -> this.handleMyTrade(client, message, new HashMap<String, Object>());
                 case "handleOHLCV" -> this.handleOHLCV(client, message);
                 case "handleOrder" -> this.handleOrder(client, message);
                 case "handleOrderBook" -> this.handleOrderBook(client, message);

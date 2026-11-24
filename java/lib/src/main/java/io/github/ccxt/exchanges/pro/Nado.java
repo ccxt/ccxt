@@ -1539,7 +1539,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
     put( "type", "uint64" );
 }})) );
         }};
-        Object encoded = this.ethEncodeStructuredData(domain, messageTypes, tx);
+        byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, tx);
         return this.signHash((String) (this.hash(encoded, keccak(), "hex")), (String) (this.privateKey));
     }
 
@@ -1559,17 +1559,17 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         }};
     }
 
-    public CompletableFuture<Object> watchPublicMultiple(String streamType, List<Object> markets, Object messageHashes, Map<String, Object> parameters, Object subscriptionParams)
+    public CompletableFuture<Object> watchPublicMultiple(String streamType, List<Object> markets, List<?> messageHashes, Map<String, Object> parameters, Object subscriptionParams)
     {
         return BaseExchange.supplyAsync(() -> this.watchPublicMultipleCore(streamType, markets, messageHashes, parameters, subscriptionParams));
     }
 
-    private Object watchPublicMultipleCore(String streamType, List<Object> markets, Object messageHashes, Map<String, Object> parameters, Object subscriptionParams)
+    private Object watchPublicMultipleCore(String streamType, List<Object> markets, List<?> messageHashes, Map<String, Object> parameters, Object subscriptionParams)
     {
 
         String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "subscriptions");
         Client client = this.client(url);
-        for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
+        for (var i = 0; i < messageHashes.size(); i++)
         {
             String messageHash = this.safeString(messageHashes, i, "");
             boolean clientSubscription = (this.safeValue(client.subscriptions, messageHash)) != null;

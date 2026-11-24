@@ -3886,7 +3886,7 @@ public class Gate extends GateApi
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit, false);
     }
 
-    public Map<String, Object> parseFundingHistory(Object info, Map<String, Object> market)
+    public Map<String, Object> parseFundingHistory(Map<String, Object> info, Map<String, Object> market)
     {
         //
         //    {
@@ -9677,7 +9677,8 @@ public class Gate extends GateApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < settlements.size(); i++)
         {
-            ((List<Object>)result).add(this.parseSettlement(this.extend(new HashMap<String, Object>() {{}}, (settlements == null || i < 0 || i >= settlements.size() ? null : settlements.get(i))), market));
+            Map<String, Object> settlementRow = this.extend(new HashMap<String, Object>() {{}}, (settlements == null || i < 0 || i >= settlements.size() ? null : settlements.get(i)));
+            ((List<Object>)result).add(this.parseSettlement(settlementRow, market));
         }
         return result;
     }

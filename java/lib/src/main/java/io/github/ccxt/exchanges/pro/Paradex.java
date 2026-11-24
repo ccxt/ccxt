@@ -726,15 +726,17 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             throw new ArgumentsRequired((this.id + " watchTradesForSymbols() requires a non-empty array of symbols")) ;
         }
         List<String> channels = new ArrayList<String>(Arrays.asList());
+        List<String> messageHashes = new ArrayList<String>(Arrays.asList());
         for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
         {
             Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
             String marketId = this.safeString(market, "id", "");
             channels.add(("trades." + marketId));
+            messageHashes.add(("trades." + marketId));
         }
         String url = this.getWsUrl();
         // handleTrade resolves the channel of each market
-        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.subscribeChannels(url, channels, channels, parameters)).join();
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.subscribeChannels(url, messageHashes, channels, parameters)).join();
         Map<String, Object> first = this.safeDict(trades, 0, null);
         String tradeSymbol = this.safeString(first, "symbol");
         Long limitResolved = limit;
@@ -795,14 +797,16 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         }
         List<String> symbolsNormalized = this.marketSymbols(symbols, null, false, false, false);
         List<String> channels = new ArrayList<String>(Arrays.asList());
+        List<String> subMessageHashes = new ArrayList<String>(Arrays.asList());
         for (var i = 0; i < symbolsNormalized.size(); i++)
         {
             Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
             String marketId = this.safeString(market, "id", "");
             channels.add(("trades." + marketId));
+            subMessageHashes.add(("trades." + marketId));
         }
         // the watchers of a market wait on its channel
-        return (this.unsubscribeChannels((String) (this.getWsUrl()), "trades", channels, channels, symbolsNormalized, parameters)).join();
+        return (this.unsubscribeChannels((String) (this.getWsUrl()), "trades", channels, subMessageHashes, symbolsNormalized, parameters)).join();
 
     }
 
@@ -1000,8 +1004,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
         {
             Map<String, Object> feedMarket = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
-            ((List<Object>)feeds).add(this.getOrderBookChannel(this.safeString(feedMarket, "id"), true));
-            ((List<Object>)feeds).add(this.getOrderBookChannel(this.safeString(feedMarket, "id"), false));
+            ((List<Object>)feeds).add(this.getOrderBookChannel(this.safeString(feedMarket, "id", ""), true));
+            ((List<Object>)feeds).add(this.getOrderBookChannel(this.safeString(feedMarket, "id", ""), false));
         }
         (this.waitForPendingUnsubscribe(url, feeds)).join();
         Client client = this.client(url);
@@ -1010,8 +1014,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
         {
             Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
-            String deltasChannel = this.getOrderBookChannel(this.safeString(market, "id"), true);
-            String snapshotChannel = this.getOrderBookChannel(this.safeString(market, "id"), false);
+            String deltasChannel = this.getOrderBookChannel(this.safeString(market, "id", ""), true);
+            String snapshotChannel = this.getOrderBookChannel(this.safeString(market, "id", ""), false);
             // one feed per market on a connection: both send BookEvent frames, which do not name their channel,
             // and the 15-level snapshots would cut a full-depth book down. The deltas feed is a superset, it stays
             // the market stays on the deltas feed from the first call that asks for it, a call made while the
@@ -1095,8 +1099,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         {
             Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
             // the feed the market is on, a market is on one of them at a time
-            String deltasChannel = this.getOrderBookChannel(this.safeString(market, "id"), true);
-            String snapshotChannel = this.getOrderBookChannel(this.safeString(market, "id"), false);
+            String deltasChannel = this.getOrderBookChannel(this.safeString(market, "id", ""), true);
+            String snapshotChannel = this.getOrderBookChannel(this.safeString(market, "id", ""), false);
             String channel = (((java.util.Objects.equals(deltasOption, true)))) ? deltasChannel : snapshotChannel;
             // a market switching to the deltas feed is on neither feed until its snapshot unsubscribe is acknowledged
             String requestedHash = (deltasChannel + ":requested");
@@ -1200,7 +1204,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         }
         if (java.util.Objects.equals(this.safeString(data, "update_type"), "d"))
         {
-            String deltasChannel = this.getOrderBookChannel((String) (marketId), true);
+            String deltasChannel = this.getOrderBookChannel(this.safeString(data, "market", ""), true);
             io.github.ccxt.ws.WsOrderBook stored = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
             // a delta applies only to the book of the deltas feed
             if ((java.util.Objects.equals(stored, null)) || !(client.subscriptions.containsKey(deltasChannel)))

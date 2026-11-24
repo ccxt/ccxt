@@ -3133,7 +3133,7 @@ public class Toobit extends ToobitApi
 
     }
 
-    public Map<String, Object> parseTradingFee(Object data, Map<String, Object> market)
+    public Map<String, Object> parseTradingFee(Map<String, Object> data, Map<String, Object> market)
     {
         String marketId = this.safeString(data, "symbol");
         return new HashMap<String, Object>() {{

@@ -1319,7 +1319,7 @@ public class Woo extends WooApi
         return this.safeTrade(mapLiteral2, marketResolved);
     }
 
-    public Object parseTokenAndFeeTemp(Map<String, Object> item, Object feeTokenKeys, Object feeAmountKeys)
+    public Object parseTokenAndFeeTemp(Map<String, Object> item, List<?> feeTokenKeys, List<?> feeAmountKeys)
     {
         String feeCost = this.safeStringN(item, feeAmountKeys);
         Map<String, Object> fee = null;
@@ -1841,7 +1841,7 @@ public class Woo extends WooApi
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("symbol", market.get("id"));
         request.put("side", orderSide);
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", paramsOmitted, (String) null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", paramsOmitted, null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         if (!java.util.Objects.equals(marginMode, null))

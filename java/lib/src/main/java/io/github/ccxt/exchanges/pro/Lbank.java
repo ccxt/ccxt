@@ -274,7 +274,8 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             put( "topic", "ohlcv" );
             put( "symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(market.get("symbol"), java.util.Objects.requireNonNullElse(timeframe, "1m"))))) );
         }};
-        return (this.unSubscribe(((("ohlcv:" + market.get("symbol")) + ":") + timeframeId), request, subscription, parameters)).join();
+        String symbolValue = this.safeString(market, "symbol", "");
+        return (this.unSubscribe(((("ohlcv:" + symbolValue) + ":") + timeframeId), request, subscription, parameters)).join();
 
     }
 
@@ -643,7 +644,8 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             put( "topic", "trades" );
             put( "symbols", new ArrayList<Object>(Arrays.asList(market.get("symbol"))) );
         }};
-        return (this.unSubscribe(("trades:" + market.get("symbol")), request, subscription, parameters)).join();
+        String symbolValue = this.safeString(market, "symbol", "");
+        return (this.unSubscribe(("trades:" + symbolValue), request, subscription, parameters)).join();
 
     }
 

@@ -2136,7 +2136,7 @@ public class Predictfun extends PredictfunApi
 }}));
         // ethEncodeStructuredData returns the EIP-712 digest, which is both what gets signed and
         // the order hash the venue indexes the order by
-        Object encoded = this.ethEncodeStructuredData(domain, new HashMap<String, Object>() {{
+        byte[] encoded = this.ethEncodeStructuredData(domain, new HashMap<String, Object>() {{
             put( "Order", orderStruct );
         }}, order);
         // ethEncodeStructuredData returns the 0x1901 || domainSeparator || structHash preimage,
@@ -3166,7 +3166,7 @@ public class Predictfun extends PredictfunApi
      * @param {string} privateKey the wallet private key
      * @returns {string} the signed raw transaction
      */
-    public Object signEvmTransaction(Map<String, Object> tx, Object privateKey)
+    public String signEvmTransaction(Map<String, Object> tx, String privateKey)
     {
         String accessList = this.rlpEncodeList(new ArrayList<Object>(Arrays.asList()));
         List<Object> fields = new ArrayList<Object>(Arrays.asList(this.rlpEncodeBytes((String) (this.intToRlpHex(this.safeInteger(tx, "chainId")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "nonce")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "gasLimit")))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "to"))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "value", "0x0")))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "data", "0x"))), accessList));

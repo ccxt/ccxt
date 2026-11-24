@@ -1097,20 +1097,20 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
                 String tradeId = this.omitZero(this.safeString(dataList, "tradeId"));
                 if (!java.util.Objects.equals(tradeId, null))
                 {
-                    this.handleMyTrade(client, (Map<String, Object>) ((dataList == null || i < 0 || i >= dataList.size() ? null : dataList.get(i))));
+                    this.handleMyTrade(client, this.safeDict(dataList, i, new HashMap<String, Object>() {{}}));
                 }
-                this.handleOrder(client, (Map<String, Object>) ((dataList == null || i < 0 || i >= dataList.size() ? null : dataList.get(i))), (String) (topic));
+                this.handleOrder(client, this.safeDict(dataList, i, new HashMap<String, Object>() {{}}), (String) (topic));
             }
         } else
         {
-            Object data = this.safeValue(message, "data");
+            Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
             // executionreport
             String tradeId = this.omitZero(this.safeString(data, "tradeId"));
             if (!java.util.Objects.equals(tradeId, null))
             {
-                this.handleMyTrade(client, (Map<String, Object>) (data));
+                this.handleMyTrade(client, data);
             }
-            this.handleOrder(client, (Map<String, Object>) (data), (String) (topic));
+            this.handleOrder(client, data, (String) (topic));
         }
     }
 

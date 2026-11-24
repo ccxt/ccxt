@@ -217,20 +217,20 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
      * @param {object} [params] extra parameters specific to the hitbtc api
      * @returns {boolean} true once the exchange acknowledges the unsubscribe
      */
-    public CompletableFuture<Object> unSubscribePublic(String name, String messageHashPrefix, Object symbols, Map<String, Object> subscription, Map<String, Object> parameters)
+    public CompletableFuture<Object> unSubscribePublic(String name, String messageHashPrefix, List<?> symbols, Map<String, Object> subscription, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unSubscribePublicCore(name, messageHashPrefix, symbols, subscription, parameters));
     }
 
-    private Object unSubscribePublicCore(String name, String messageHashPrefix, Object symbols, Map<String, Object> subscription, Map<String, Object> parameters)
+    private Object unSubscribePublicCore(String name, String messageHashPrefix, List<?> symbols, Map<String, Object> subscription, Map<String, Object> parameters)
     {
 
         String url = (String)((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");
         List<String> subMessageHashes = new ArrayList<String>(Arrays.asList());
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)symbols).size(); i++)
+        for (var i = 0; i < symbols.size(); i++)
         {
-            String subMessageHash = ((messageHashPrefix + "::") + (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
+            String subMessageHash = ((messageHashPrefix + "::") + (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
             subMessageHashes.add(subMessageHash);
             messageHashes.add(("unsubscribe:" + subMessageHash));
         }
@@ -1496,7 +1496,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("createOrder", market, parameters, null);
         String marketType = marketTypeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", paramsMarketType, (String) null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", paramsMarketType, null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         Pair<Map<String, Object>, Map<String, Object>> orderRequestparamsValueVariable = this.createOrderRequest(market, marketType, type, side, amount, price, marginMode, paramsMarginMode);
@@ -1553,7 +1553,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelOrderWs", market, parameters, null);
         String marketType = marketTypeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-        Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("cancelOrderWs", paramsMarketType, (String) null);
+        Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("cancelOrderWs", paramsMarketType, null);
         String marginMode = marginModequeryVariable.first();
         Map<String, Object> query = marginModequeryVariable.second();
         request = this.extend(request, query);
@@ -1602,7 +1602,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("cancelAllOrdersWs", market, parameters, null);
         String marketType = marketTypeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("cancelAllOrdersWs", paramsMarketType, (String) null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("cancelAllOrdersWs", paramsMarketType, null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         if (java.util.Objects.equals(marketType, "swap"))
@@ -1655,7 +1655,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchOpenOrdersWs", market, parameters, null);
         String marketType = marketTypeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = marketTypeparamsMarketTypeVariable.second();
-        Pair<String, Map<String, Object>> marginModeVariable = this.handleMarginModeAndParams("fetchOpenOrdersWs", paramsMarketType, (String) null);
+        Pair<String, Map<String, Object>> marginModeVariable = this.handleMarginModeAndParams("fetchOpenOrdersWs", paramsMarketType, null);
         String marginMode = marginModeVariable.first();
         if (java.util.Objects.equals(marketType, "swap"))
         {

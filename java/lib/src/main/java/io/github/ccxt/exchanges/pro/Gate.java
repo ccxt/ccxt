@@ -1353,10 +1353,11 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         // }
         //
         Object rawResult = this.safeValue(message, "result");
+        List<Object> tradeRows = this.safeList(message, "result", null);
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        if ((rawResult instanceof List))
+        if (!java.util.Objects.equals(tradeRows, null))
         {
-            result = (List<Object>) this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
+            result = tradeRows;
         } else
         {
             result = new ArrayList<Object>(Arrays.asList(rawResult));
@@ -2985,12 +2986,12 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     }
 
-    public CompletableFuture<Object> subscribePublicMultiple(String url, Object messageHashes, Object payload, String channel, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribePublicMultiple(String url, List<?> messageHashes, Object payload, String channel, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.subscribePublicMultipleCore(url, messageHashes, payload, channel, parameters));
     }
 
-    private Object subscribePublicMultipleCore(String url, Object messageHashes, Object payload, String channel, Map<String, Object> parameters)
+    private Object subscribePublicMultipleCore(String url, List<?> messageHashes, Object payload, String channel, Map<String, Object> parameters)
     {
 
         Long requestId = this.requestId();

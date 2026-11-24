@@ -385,12 +385,12 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
 
     }
 
-    public CompletableFuture<Object> subscribeMultiple(String url, Object messageHashes, String topic, Object subscriptionHashes, Map<String, Object> parameters, Object subscription)
+    public CompletableFuture<Object> subscribeMultiple(String url, List<?> messageHashes, String topic, List<?> subscriptionHashes, Map<String, Object> parameters, Object subscription)
     {
         return BaseExchange.supplyAsync(() -> this.subscribeMultipleCore(url, messageHashes, topic, subscriptionHashes, parameters, subscription));
     }
 
-    private Object subscribeMultipleCore(String url, Object messageHashes, String topic, Object subscriptionHashes, Map<String, Object> parameters, Object subscription)
+    private Object subscribeMultipleCore(String url, List<?> messageHashes, String topic, List<?> subscriptionHashes, Map<String, Object> parameters, Object subscription)
     {
 
         String requestId = String.valueOf(this.requestId());
@@ -402,7 +402,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         }};
         Map<String, Object> message = this.extend(request, parameters);
         Client client = this.client(url);
-        for (var i = 0; i < ((List<?>)subscriptionHashes).size(); i++)
+        for (var i = 0; i < subscriptionHashes.size(); i++)
         {
             String subscriptionHash = this.safeString(subscriptionHashes, i, "");
             if (!(client.subscriptions.containsKey(subscriptionHash)))
@@ -414,12 +414,12 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
 
     }
 
-    public CompletableFuture<Object> unSubscribeMultiple(String url, Object messageHashes, String topic, Object subscriptionHashes, Map<String, Object> parameters, Object subscription)
+    public CompletableFuture<Object> unSubscribeMultiple(String url, List<?> messageHashes, String topic, List<?> subscriptionHashes, Map<String, Object> parameters, Object subscription)
     {
         return BaseExchange.supplyAsync(() -> this.unSubscribeMultipleCore(url, messageHashes, topic, subscriptionHashes, parameters, subscription));
     }
 
-    private Object unSubscribeMultipleCore(String url, Object messageHashes, String topic, Object subscriptionHashes, Map<String, Object> parameters, Object subscription)
+    private Object unSubscribeMultipleCore(String url, List<?> messageHashes, String topic, List<?> subscriptionHashes, Map<String, Object> parameters, Object subscription)
     {
 
         String requestId = String.valueOf(this.requestId());
@@ -435,7 +435,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             ((Map<String, Object>)subscription).put(requestId, requestId);
         }
         Client client = this.client(url);
-        for (var i = 0; i < ((List<?>)subscriptionHashes).size(); i++)
+        for (var i = 0; i < subscriptionHashes.size(); i++)
         {
             String subscriptionHash = this.safeString(subscriptionHashes, i, "");
             if (!(client.subscriptions.containsKey(subscriptionHash)))

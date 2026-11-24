@@ -2262,7 +2262,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         }
     }
 
-    public Object parseWsLiquidation(Object liquidation, Map<String, Object> market)
+    public Object parseWsLiquidation(Map<String, Object> liquidation, Map<String, Object> market)
     {
         //
         //     {

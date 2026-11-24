@@ -1434,12 +1434,12 @@ public class Bingx extends BingxApi
         }});
     }
 
-    public CompletableFuture<List<Object>> fetchSpotMarkets(Object parameters)
+    public CompletableFuture<List<Object>> fetchSpotMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchSpotMarketsCore(parameters));
     }
 
-    private List<Object> fetchSpotMarketsCore(Object parameters)
+    private List<Object> fetchSpotMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.spotV1PublicGetCommonSymbols(parameters)).join();
@@ -1476,12 +1476,12 @@ public class Bingx extends BingxApi
 
     }
 
-    public CompletableFuture<List<Object>> fetchSwapMarkets(Object parameters)
+    public CompletableFuture<List<Object>> fetchSwapMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchSwapMarketsCore(parameters));
     }
 
-    private List<Object> fetchSwapMarketsCore(Object parameters)
+    private List<Object> fetchSwapMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.swapV2PublicGetQuoteContracts(parameters)).join();
@@ -1521,12 +1521,12 @@ public class Bingx extends BingxApi
 
     }
 
-    public CompletableFuture<List<Object>> fetchInverseSwapMarkets(Object parameters)
+    public CompletableFuture<List<Object>> fetchInverseSwapMarkets(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchInverseSwapMarketsCore(parameters));
     }
 
-    private List<Object> fetchInverseSwapMarketsCore(Object parameters)
+    private List<Object> fetchInverseSwapMarketsCore(Map<String, Object> parameters)
     {
 
         Map<String, Object> response = (this.cswapV1PublicGetMarketContracts(parameters)).join();
