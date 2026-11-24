@@ -2364,7 +2364,8 @@ export default class bingx extends Exchange {
             //     ]
             // }
             //
-            return this.parseTicker (this.safeDict (response['data'], 0, {}) as Dict, market);
+            const rows = this.safeList (response, 'data', []);
+            return this.parseTicker (this.safeDict (rows, 0, {}), market);
         } else {
             response = await this.swapV2PublicGetQuotePremiumIndex (this.extend (request, paramsSubType));
             //

@@ -180,15 +180,14 @@ export default class bitvavo extends bitvavoRest {
         const tickers: Dict[] = this.safeList (message, 'data', []);
         const result: List = [];
         for (let i = 0; i < tickers.length; i++) {
-            const data = tickers[i];
-            const marketId = this.safeString (data, 'market');
+            const marketId = this.safeString (tickers[i], 'market');
             const market = this.safeMarket (marketId, undefined, '-');
-            const ticker = this.parseTicker (data, market);
+            const ticker = this.parseTicker (this.safeDict (tickers, i, {}), market);
             const symbol = this.safeString (ticker, 'symbol');
             this.tickers[symbol as string] = ticker;
             result.push (ticker);
             if (event !== undefined) {
-                const messageHash = event + '@' + this.safeString (data, 'market', '');
+                const messageHash = event + '@' + this.safeString (tickers[i], 'market', '');
                 client.resolve (ticker, messageHash);
             }
         }

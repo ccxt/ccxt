@@ -1203,10 +1203,9 @@ export default class poloniex extends poloniexRest {
         const data: Dict[] = this.safeList (message, 'data', []);
         const newTickers: Dict = {};
         for (let i = 0; i < data.length; i++) {
-            const item = data[i];
-            const marketId = this.safeString (item, 'symbol');
+            const marketId = this.safeString (data[i], 'symbol');
             if (marketId !== undefined) {
-                const ticker = this.parseTicker (item);
+                const ticker = this.parseTicker (this.safeDict (data, i, {}));
                 const symbol = this.safeString (ticker, 'symbol');
                 if (symbol !== undefined) {
                     this.tickers[symbol] = ticker;

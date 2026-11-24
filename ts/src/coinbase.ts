@@ -2242,11 +2242,10 @@ export default class coinbase extends Exchange {
         const data: Dict[] = this.safeList (response, 'products', []);
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
-            const marketId = this.safeString (entry, 'product_id');
+            const marketId = this.safeString (data[i], 'product_id');
             const market = this.safeMarket (marketId, undefined, '-');
             const symbol = this.safeString (market, 'symbol', '');
-            result[symbol] = this.parseTicker (entry, market);
+            result[symbol] = this.parseTicker (this.safeDict (data, i, {}), market);
         }
         return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
     }

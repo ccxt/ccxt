@@ -928,10 +928,9 @@ export default class gate extends gateRest {
         }
         const isTicker = (objectName === 'ticker'); // whether ticker or bid-ask
         for (let i = 0; i < results.length; i++) {
-            const rawTicker = results[i];
-            const marketId = this.safeString (rawTicker, 's');
+            const marketId = this.safeString (results[i], 's');
             const market = this.safeMarket (marketId, undefined, '_', marketType);
-            const parsedItem = this.parseTicker (rawTicker, market);
+            const parsedItem = this.parseTicker (this.safeDict (results, i, {}), market);
             const symbol = parsedItem['symbol'];
             if (isTicker) {
                 if (symbol !== undefined) {
