@@ -17228,6 +17228,8 @@ export const SIGNATURE_ARG_TYPES = {
     'parseIsolatedBorrowRate': { 0: 'IDictionary<string, object>' },
     // `contract: NullableDict` on the base and every override; every caller passes a dictionary row
     'parseFundingRate': { 0: 'IDictionary<string, object>' },
+    // `timeframes: NullableDict` on the base and the onetrading override; no body writes it, every caller passes a dictionary or nothing
+    'findTimeframe': { 1: 'IDictionary<string, object>' },
 };
 
 // parse* cores whose `market: Market` parameter prints `IDictionary<string, object>` on every

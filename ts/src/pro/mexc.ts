@@ -711,7 +711,7 @@ export default class mexc extends mexcRest {
             market = this.safeMarket (this.symbol (this.safeString (message, 'symbol')));
             const data = this.safeDict (message, 'publicSpotKline', {});
             const timeframeId = this.safeString (data, 'interval');
-            timeframe = this.findTimeframe (timeframeId, this.options['timeframes']);
+            timeframe = this.findTimeframe (timeframeId, this.safeDict (this.options, 'timeframes'));
             parsed = this.parseWsOHLCV (data, market);
         } else {
             const d = this.safeDict2 (message, 'd', 'data', {});
