@@ -2204,7 +2204,7 @@ export default class sxbet extends Exchange {
         return await client.future ('centrifugoConnected');
     }
 
-    async pong (client: Client, message: any = undefined) {
+    async pong (client: Client) {
         // Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
         await client.send ('{}');
     }
