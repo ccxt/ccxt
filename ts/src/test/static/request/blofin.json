@@ -28,7 +28,7 @@
                 "method": "editOrder",
                 "url": "https://openapi.blofin.com/api/v1/trade/amend-algo",
                 "input": [
-                    "10031298269",
+                    "10031298518",
                     "LTC/USDT:USDT",
                     "market",
                     "buy",
@@ -36,10 +36,10 @@
                     null,
                     {
                         "trigger": true,
-                        "triggerPrice": 27.82
+                        "triggerPrice": 27.95
                     }
                 ],
-                "output": "{\"instId\":\"LTC-USDT\",\"algoId\":\"10031298269\",\"newSize\":\"0.02\",\"newTriggerPrice\":\"27.82\"}"
+                "output": "{\"instId\":\"LTC-USDT\",\"algoId\":\"10031298518\",\"newSize\":\"0.02\",\"newTriggerPrice\":\"27.95\",\"newOrderPrice\":\"-1\"}"
             },
             {
                 "description": "edit price and amount",

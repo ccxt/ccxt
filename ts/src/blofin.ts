@@ -1887,7 +1887,9 @@ export default class blofin extends Exchange {
             if (triggerPrice !== undefined) {
                 request['newTriggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
             }
-            if (price !== undefined) {
+            if (type === 'market') {
+                request['newOrderPrice'] = '-1';
+            } else if (price !== undefined) {
                 request['newOrderPrice'] = this.priceToPrecision (symbol, price);
             }
             response = await this.privatePostTradeAmendAlgo (this.extend (request, query));

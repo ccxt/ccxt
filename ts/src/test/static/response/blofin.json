@@ -73,7 +73,7 @@
                 "description": "edit trigger order",
                 "method": "editOrder",
                 "input": [
-                    "10031298269",
+                    "10031298518",
                     "LTC/USDT:USDT",
                     "market",
                     "buy",
@@ -81,31 +81,31 @@
                     null,
                     {
                         "trigger": true,
-                        "triggerPrice": 27.82
+                        "triggerPrice": 27.95
                     }
                 ],
                 "httpResponse": {
                     "code": "0",
                     "msg": "success",
                     "data": {
-                        "algoId": "10031298269",
+                        "algoId": "10031298518",
                         "clientOrderId": null,
                         "requestId": null,
                         "msg": null,
                         "code": "0",
-                        "ts": "1795520500978"
+                        "ts": "1795521022174"
                     }
                 },
                 "parsedResponse": {
                     "info": {
-                        "algoId": "10031298269",
+                        "algoId": "10031298518",
                         "clientOrderId": null,
                         "requestId": null,
                         "msg": null,
                         "code": "0",
-                        "ts": "1795520500978"
+                        "ts": "1795521022174"
                     },
-                    "id": "10031298269",
+                    "id": "10031298518",
                     "clientOrderId": null,
                     "timestamp": null,
                     "datetime": null,
