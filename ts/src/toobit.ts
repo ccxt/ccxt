@@ -1820,7 +1820,7 @@ export default class toobit extends Exchange {
         //         "priceType": "INPUT"                   // only in contract
         //     }
         //
-        return this.parseOrder (response, market);
+        return this.parseOrder (this.extend ({}, response), market);
     }
 
     createOrderRequest (symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}): [ Dict, Dict ] {
@@ -2111,7 +2111,7 @@ export default class toobit extends Exchange {
         if (status !== 'open') {
             throw new OrderNotFound (this.id + ' order ' + id + ' can not be canceled, ' + this.json (response));
         }
-        return this.parseOrder (response, market);
+        return this.parseOrder (this.extend ({}, response), market);
     }
 
     /**
@@ -2268,7 +2268,7 @@ export default class toobit extends Exchange {
         //        "priceType": "INPUT"                 // only in CONTRACT
         //    }
         //
-        return this.parseOrder (response, market);
+        return this.parseOrder (this.extend ({}, response), market);
     }
 
     /**

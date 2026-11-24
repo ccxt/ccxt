@@ -1539,7 +1539,7 @@ export default class onetrading extends Exchange {
         //
         // responds with an empty body
         //
-        return this.parseOrder (response as Dict);
+        return this.parseOrder (this.extend ({}, response));
     }
 
     /**

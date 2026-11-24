@@ -4393,7 +4393,7 @@ export default class bingx extends Exchange {
         //
         const data = this.safeDict (response, 'data', {});
         const order = this.safeDict (data, 'order', data) as Dict;
-        return this.parseOrder (order, market);
+        return this.parseOrder (this.extend ({}, order), market);
     }
 
     /**
@@ -4893,7 +4893,7 @@ export default class bingx extends Exchange {
         }
         const data = this.safeDict (response, 'data', {});
         const order = this.safeDict (data, 'order', data) as Dict;
-        return this.parseOrder (order, market);
+        return this.parseOrder (this.extend ({}, order), market);
     }
 
     /**

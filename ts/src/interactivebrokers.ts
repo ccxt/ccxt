@@ -3092,7 +3092,7 @@ export default class interactivebrokers extends Exchange {
         //
         //     { "msg": "Request was submitted", "order_id": 123456789, "conid": 265598, "account": "U1234567" }
         //
-        return this.parseOrder (response, market);
+        return this.parseOrder (this.extend ({}, response), market);
     }
 
     /**
@@ -3155,7 +3155,7 @@ export default class interactivebrokers extends Exchange {
         if (response === undefined) {
             throw new NullResponse (this.id + ' fetchOrder() returned empty response');
         }
-        return this.parseOrder (response, market);
+        return this.parseOrder (this.extend ({}, response), market);
     }
 
     /**

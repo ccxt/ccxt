@@ -3010,7 +3010,7 @@ export default class phemex extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {}) as Dict;
-        return this.parseOrder (data, market);
+        return this.parseOrder (this.extend ({}, data), market);
     }
 
     /**
@@ -3087,7 +3087,7 @@ export default class phemex extends Exchange {
             response = await this.privatePutSpotOrders (this.extend (request, paramsOmitted3));
         }
         const data = this.safeDict (response, 'data', {}) as Dict;
-        return this.parseOrder (data, market);
+        return this.parseOrder (this.extend ({}, data), market);
     }
 
     /**
@@ -3133,7 +3133,7 @@ export default class phemex extends Exchange {
             response = await this.privateDeleteSpotOrders (this.extend (request, paramsOmitted));
         }
         const data = this.safeDict (response, 'data', {}) as Dict;
-        return this.parseOrder (data, market);
+        return this.parseOrder (this.extend ({}, data), market);
     }
 
     /**

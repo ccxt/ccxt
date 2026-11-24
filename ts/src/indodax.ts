@@ -1103,7 +1103,7 @@ export default class indodax extends Exchange {
         //    }
         //
         const data = this.safeDict (response, 'return');
-        return this.parseOrder (data as Dict);
+        return this.parseOrder (this.extend ({}, data));
     }
 
     /**

@@ -731,7 +731,7 @@ export default class mudrex extends Exchange {
             }
             const riskResponse = await this.privatePostFuturesPositionsPositionIdRiskorder (this.extend (riskRequest, paramsOmitted));
             const riskData = this.safeDict (riskResponse, 'data', riskResponse);
-            return this.parseOrder (riskData, market);
+            return this.parseOrder (this.extend ({}, riskData), market);
         }
         const lev = this.safeInteger (params, 'leverage', 1);
         if ((type === 'market') && (price === undefined)) {
@@ -801,7 +801,7 @@ export default class mudrex extends Exchange {
         }
         const response = await this.privatePatchFuturesOrdersOrderId (this.extend (request, params));
         const data = this.safeDict (response, 'data', response);
-        return this.parseOrder (data, market);
+        return this.parseOrder (this.extend ({}, data), market);
     }
 
     parseOrderStatus (status: Str): Str {
@@ -911,7 +911,7 @@ export default class mudrex extends Exchange {
         };
         const response = await this.privateDeleteFuturesOrdersOrderId (this.extend (request, params));
         const data = this.safeDict (response, 'data', response);
-        return this.parseOrder (data, market);
+        return this.parseOrder (this.extend ({}, data), market);
     }
 
     /**
@@ -937,7 +937,7 @@ export default class mudrex extends Exchange {
         };
         const response = await this.privateGetFuturesOrdersOrderId (this.extend (request, params));
         const data = this.safeDict (response, 'data', response);
-        return this.parseOrder (data, market);
+        return this.parseOrder (this.extend ({}, data), market);
     }
 
     /**
@@ -1206,12 +1206,12 @@ export default class mudrex extends Exchange {
             const partialParams: Dict = this.omit (params, [ 'order_type', 'limit_price', 'amount', 'position_id' ]);
             const partialResponse: Dict = await this.privatePostFuturesPositionsPositionIdClosePartial (this.extend (request, partialParams));
             const partialData = this.safeDict (partialResponse, 'data', partialResponse);
-            return this.parseOrder (partialData, market);
+            return this.parseOrder (this.extend ({}, partialData), market);
         }
         const closeParams: Dict = this.omit (params, [ 'position_id' ]);
         const response: Dict = await this.privatePostFuturesPositionsPositionIdClose (this.extend (request, closeParams));
         const data = this.safeDict (response, 'data', response);
-        return this.parseOrder (data, market);
+        return this.parseOrder (this.extend ({}, data), market);
     }
 
     /**

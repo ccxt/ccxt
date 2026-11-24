@@ -5893,7 +5893,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        return this.parseOrder (data, market);
+        return this.parseOrder (this.extend ({}, data), market);
     }
 
     createUtaOrderRequest (symbol: Str, type: Str, side: Str, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
@@ -6670,7 +6670,7 @@ export default class bitget extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data', {});
-        return this.parseOrder (data, market);
+        return this.parseOrder (this.extend ({}, data), market);
     }
 
     /**
@@ -6843,12 +6843,12 @@ export default class bitget extends Exchange {
             order = this.safeDict (orderInfo, 0, {});
         } else {
             if (isStockOrUta && (trigger === true)) {
-                order = response;
+                order = this.extend ({}, response);
             } else {
                 order = data;
             }
         }
-        return this.parseOrder (order, market);
+        return this.parseOrder (this.extend ({}, order), market);
     }
 
     async cancelUtaOrders (ids: string[], symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
@@ -7272,7 +7272,7 @@ export default class bitget extends Exchange {
         const data = this.safeDict (response, 'data');
         if ((data !== undefined)) {
             if (!Array.isArray (data)) {
-                return this.parseOrder (data, market);
+                return this.parseOrder (this.extend ({}, data), market);
             }
         }
         const dataList = this.safeList (response, 'data', []);
@@ -7281,7 +7281,7 @@ export default class bitget extends Exchange {
             throw new OrderNotFound (this.id + ' fetchOrder() could not find order id ' + id + ' in ' + this.json (response));
         }
         const first = this.safeDict (dataList, 0, {});
-        return this.parseOrder (first, market);
+        return this.parseOrder (this.extend ({}, first), market);
         // const first = this.safeDict (data, 0, data);
         // return this.parseOrder (first, market);
     }
@@ -11618,7 +11618,7 @@ export default class bitget extends Exchange {
         }
         const data = this.safeDict (response, 'data', {});
         const order = this.safeList2 (data, 'successList', 'list', []);
-        return this.parseOrder (this.safeDict (order, 0, {}), market);
+        return this.parseOrder (this.extend ({}, this.safeDict (order, 0, {})), market);
     }
 
     /**

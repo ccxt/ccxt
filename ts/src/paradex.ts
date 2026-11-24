@@ -2371,7 +2371,7 @@ export default class paradex extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const responseOrder = this.safeDict (responseOrders, i);
             if (responseOrder !== undefined) {
-                result.push (this.parseOrder (responseOrder));
+                result.push (this.parseOrder (this.extend ({}, responseOrder)));
             } else {
                 const error = this.safeDict (errors, i);
                 result.push (this.safeOrder ({

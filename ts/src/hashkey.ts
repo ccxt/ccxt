@@ -3076,7 +3076,7 @@ export default class hashkey extends Exchange {
         } else {
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
-        return this.parseOrder (response as Dict);
+        return this.parseOrder (this.extend ({}, response));
     }
 
     /**
@@ -3271,7 +3271,7 @@ export default class hashkey extends Exchange {
         } else {
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
-        return this.parseOrder (response as Dict);
+        return this.parseOrder (this.extend ({}, response));
     }
 
     /**

@@ -2831,7 +2831,7 @@ export default class xt extends Exchange {
         //         "result": "206410760006650176"
         //     }
         //
-        return this.parseOrder (response as Dict, market);
+        return this.parseOrder (this.extend ({}, response), market);
     }
 
     /**

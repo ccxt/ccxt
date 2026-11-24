@@ -4188,7 +4188,7 @@ export default class binance extends binanceRest {
         const newSpotOrder = this.safeDict (result, 'newOrderResponse');
         let order: Order;
         if (newSpotOrder !== undefined) {
-            order = this.parseOrder (newSpotOrder);
+            order = this.parseOrder (this.extend ({}, newSpotOrder));
         } else {
             order = this.parseOrder (result);
         }

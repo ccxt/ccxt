@@ -1555,7 +1555,7 @@ export default class deepcoin extends Exchange {
             response = await this.privatePostDeepcoinTradeOrder (request);
         }
         const data = this.safeDict (response, 'data', {}) as Dict;
-        return this.parseOrder (data, market);
+        return this.parseOrder (this.extend ({}, data), market);
     }
 
     createOrderRequest (symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = undefined, params: Dict = {}): Dict {
@@ -1918,7 +1918,7 @@ export default class deepcoin extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         const entry = this.safeDict (data, 0, {}) as Dict;
-        return this.parseOrder (entry, market);
+        return this.parseOrder (this.extend ({}, entry), market);
     }
 
     /**
@@ -1950,7 +1950,7 @@ export default class deepcoin extends Exchange {
             throw new OrderNotFound (this.id + ' fetchOpenOrder() could not find order id ' + id);
         }
         const entry = this.safeDict (data, 0, {}) as Dict;
-        return this.parseOrder (entry, market);
+        return this.parseOrder (this.extend ({}, entry), market);
     }
 
     /**
@@ -2274,7 +2274,7 @@ export default class deepcoin extends Exchange {
             response = await this.privatePostDeepcoinTradeCancelOrder (this.extend (request, params));
         }
         const data = this.safeDict (response, 'data', {}) as Dict;
-        return this.parseOrder (data, market);
+        return this.parseOrder (this.extend ({}, data), market);
     }
 
     /**
@@ -2383,7 +2383,7 @@ export default class deepcoin extends Exchange {
             response = await this.privatePostDeepcoinTradeReplaceOrder (this.extend (request, params));
         }
         const data = this.safeDict (response, 'data', {}) as Dict;
-        return this.parseOrder (data);
+        return this.parseOrder (this.extend ({}, data));
     }
 
     /**

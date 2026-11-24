@@ -1765,7 +1765,7 @@ export default class kraken extends Exchange {
         // it's impossible to know if the order was created using cost or base currency
         // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
         // this usingCost flag is used to help the parsing but omitted from the order
-        return this.parseOrder (result);
+        return this.parseOrder (this.extend ({}, result));
     }
 
     /**
@@ -2406,7 +2406,7 @@ export default class kraken extends Exchange {
         //     }
         //
         const result = this.safeDict (response, 'result', {}) as Dict;
-        return this.parseOrder (result, market);
+        return this.parseOrder (this.extend ({}, result), market);
     }
 
     /**

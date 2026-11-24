@@ -3926,7 +3926,7 @@ export default class htx extends Exchange {
         if (order === undefined) {
             order = this.safeDict (this.safeList (response, 'data', []), 0, {});
         }
-        return this.parseOrder (order, market);
+        return this.parseOrder (this.extend ({}, order), market);
     }
 
     parseMarginBalanceHelper (balance: Dict, code: string, result: Dict): Dict {
@@ -5633,7 +5633,7 @@ export default class htx extends Exchange {
             if (result === undefined) {
                 throw new NullResponse (this.id + ' parseOrder() returned empty response');
             }
-            return this.extend (this.parseOrder (result, market), {
+            return this.extend (this.parseOrder (this.extend ({}, result), market), {
                 'type': type,
                 'side': side,
                 'price': price,
@@ -5651,7 +5651,7 @@ export default class htx extends Exchange {
         if (result === undefined) {
             throw new NullResponse (this.id + ' parseOrder() returned empty response');
         }
-        return this.parseOrder (result, market) as Order;
+        return this.parseOrder (this.extend ({}, result), market) as Order;
     }
 
     /**

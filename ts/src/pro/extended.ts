@@ -501,13 +501,13 @@ export default class extended extends extendedRest {
         }
         const orders = this.orders;
         const data = this.safeDict (message, 'data', {});
-        const rawOrders = this.safeList (data, 'orders');
+        const rawOrders = this.safeList (data, 'orders', []);
         const symbols: Dict = {};
         const first = this.safeDict (rawOrders, 0);
         if (first === undefined) {
             return;
         }
-        for (let i = 0; i < (rawOrders as any[]).length; i++) {
+        for (let i = 0; i < rawOrders.length; i++) {
             const order = this.parseOrder (this.safeDict (rawOrders, i, {}));
             const symbol = this.safeString (order, 'symbol');
             symbols[symbol as string] = true;

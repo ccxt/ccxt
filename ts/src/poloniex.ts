@@ -2121,7 +2121,7 @@ export default class poloniex extends Exchange {
         //         "clientOrderId" : ""
         //     }
         //
-        return this.parseOrder (response, market);
+        return this.parseOrder (this.extend ({}, response), market);
     }
 
     /**
@@ -2359,7 +2359,7 @@ export default class poloniex extends Exchange {
             'side': side,
             'type': type,
         });
-        return this.parseOrder (response, market);
+        return this.parseOrder (this.extend ({}, response), market);
     }
 
     override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
@@ -2417,7 +2417,7 @@ export default class poloniex extends Exchange {
         //       "message":""
         //   }
         //
-        return this.parseOrder (response);
+        return this.parseOrder (this.extend ({}, response));
     }
 
     /**
@@ -2613,7 +2613,7 @@ export default class poloniex extends Exchange {
         //         "updateTime": 1646196019020
         //     }
         //
-        const order = this.parseOrder (response);
+        const order = this.parseOrder (this.extend ({}, response));
         order['id'] = idValue;
         return order;
     }

@@ -954,7 +954,7 @@ export default class p2b extends Exchange {
         //    }
         //
         const result = this.safeDict (response, 'result') as Dict;
-        return this.parseOrder (result, market);
+        return this.parseOrder (this.extend ({}, result), market);
     }
 
     /**
@@ -1003,7 +1003,7 @@ export default class p2b extends Exchange {
         //    }
         //
         const result = this.safeDict (response, 'result') as Dict;
-        return this.parseOrder (result);
+        return this.parseOrder (this.extend ({}, result));
     }
 
     /**
