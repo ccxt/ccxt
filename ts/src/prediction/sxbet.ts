@@ -7,6 +7,7 @@ import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, DuplicateOrderId, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NotSupported, OrderNotFillable, OrderNotFound, PermissionDenied } from '../base/errors.js';
 import type Client from '../base/ws/Client.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 import type { OrderSide, OrderType, Balances, Dict, Endpoint, Int, int, Market, NullableDict, Num, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionSettlement, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams, Bool } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
@@ -2358,7 +2359,7 @@ export default class sxbet extends Exchange {
             // return the freshly-seeded book immediately instead of blocking until the next publication
             client.resolve (this.safeValue (this.orderbooks, sym), messageHash);
         }
-        const orderbook = await future;
+        const orderbook: WsOrderBook = await future;
         return orderbook.limit ();
     }
 

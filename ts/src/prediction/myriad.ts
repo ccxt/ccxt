@@ -13,6 +13,7 @@ import type { OrderSide, OrderType, Int, Str, Num, Dict, int, Strings, Predictio
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, NotSupported, ExchangeError, InvalidOrder, InsufficientFunds, OrderNotFound, BadSymbol, AuthenticationError, RateLimitExceeded, BadRequest } from '../base/errors.js';
 import type Client from '../base/ws/Client.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 // ---------------------------------------------------------------------------
 
@@ -3322,7 +3323,7 @@ export default class myriad extends Exchange {
             // return the freshly-seeded book immediately instead of blocking until the next delta
             client.resolve (this.safeValue (this.orderbooks, sym), messageHash);
         }
-        const orderbook = await future;
+        const orderbook: WsOrderBook = await future;
         return orderbook.limit ();
     }
 
