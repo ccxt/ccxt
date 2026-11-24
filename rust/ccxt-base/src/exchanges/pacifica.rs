@@ -862,7 +862,7 @@ impl crate::exchange_generated::ExchangeBase for Pacifica {
                 "create_order_request" => { let __t = self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_f64), args.get(4).and_then(crate::Value::as_f64),
                     &args[5.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![Value::Dict(__t.0), __t.1]) },
                 "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
-                "create_orders_request" => crate::Value::Dict(self.create_orders_request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
+                "create_orders_request" => crate::Value::Dict(self.create_orders_request(crate::value::dict_rows(std::sync::Arc::new(args.get(0).and_then(crate::Value::as_array).cloned().unwrap_or_default())), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "create_sub_account" => self.create_sub_account(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
@@ -899,11 +899,11 @@ impl crate::exchange_generated::ExchangeBase for Pacifica {
                 "fetch_trading_fee" => crate::types::IntoRaw::into_raw(self.fetch_trading_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trading_fees" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "handle_builder_fee_approval" => self.handle_builder_fee_approval().await,
+                "handle_builder_fee_approval" => crate::Value::from(self.handle_builder_fee_approval().await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "handle_origin_and_single_address" => { let __t = self.handle_origin_and_single_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
-                "initialize_client" => self.initialize_client().await,
+                "initialize_client" => crate::Value::from(self.initialize_client().await),
                 "load_account_settings" => { self.load_account_settings(&args[..].iter().collect::<Vec<_>>()).await; crate::Value::Null },
                 "parse_account_settings" => crate::Value::Dict(self.parse_account_settings(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1913,29 +1913,27 @@ impl Pacifica {
 })]);
 }
 
-    pub async fn initialize_client(&mut self) -> Value {
+    pub async fn initialize_client(&mut self) -> bool {
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             self.handle_builder_fee_approval().await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if _try_result.is_err() {
-            return Value::Bool(false);
+            return false;
         }
-        return Value::Bool(true);
-
-    Value::Null
+        return true;
 }
 
-    pub async fn handle_builder_fee_approval(&mut self) -> Value {
+    pub async fn handle_builder_fee_approval(&mut self) -> bool {
         if self.isSandboxModeEnabled.as_bool() == Some(true) {
-            return Value::Bool(false);
+            return false;
         }
         let buildFee: bool = self.safe_bool_k_opt(&self.options, "builderFee", &[Value::Bool(true)]).unwrap_or(true);
         if !buildFee {
-            return Value::Bool(false);
+            return false;
         }
         let approvedBuilderFee: bool = self.safe_bool_k_opt(&self.options, "approvedBuilderFee", &[Value::Bool(false)]).unwrap_or(false);
         if approvedBuilderFee {
-            return Value::Bool(true);
+            return true;
         }
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let builder: String = self.safe_string_k(&self.options, "builderCode", &[Value::Str("CCXT".into())]).as_str().unwrap_or("CCXT").to_string(); // case sensitive
@@ -1946,9 +1944,7 @@ if _try_result.is_err() {
 if _try_result.is_err() {
             { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("builderFee".into(), Value::Bool(false)); }; // disable builder fee if an error occurs
         }
-        return Value::Bool(true);
-
-    Value::Null
+        return true;
 }
 
 /*
@@ -2352,7 +2348,7 @@ if _try_result.is_err() {
         if (setting.is_none()) {
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbol.clone());
+        m.insert("symbol".to_string(), symbol);
         m.insert("marginMode".to_string(), self.handle_option(Value::Str("fetchMarginMode".into()), Value::Str("defaultMarginMode".into()), &[Value::Str("cross".into())]));
     m
 });
@@ -3032,7 +3028,7 @@ if _try_result.is_err() {
 });
 }
 
-    pub fn create_orders_request(&self, mut orders: Value, optional_args: &[&Value]) -> crate::value::Dict {
+    pub fn create_orders_request(&self, orders: Vec<crate::value::Dict>, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -3043,7 +3039,7 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (orders.len() as i64) } {
-            let order: crate::value::Dict = self.safe_dict_t(&orders, Value::Int(i));
+            let order: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or_default();
             let symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
             let side: Option<String> = self.safe_string_k_opt(&order, "side", &[]);
             let price: Option<String> = self.safe_string_k_opt(&order, "price", &[]);
@@ -3088,7 +3084,7 @@ if _try_result.is_err() {
     pub async fn create_orders(&mut self, orders: Vec<crate::types::OrderRequest>, params: impl Into<crate::Params> + Send) -> crate::Result<Vec<crate::types::Order>> {
         let __args: Vec<Value> = vec![crate::types::IntoRaw::into_raw(orders), params.into().into_value()];
         let mut __it = __args.into_iter();
-        let orders = __it.next().unwrap_or_default();
+        let orders: Vec<crate::value::Dict> = crate::value::dict_rows(std::sync::Arc::new(__it.next().unwrap_or_default().as_array().cloned().unwrap_or_default()));
         let __optional_args: Vec<Value> = __it.collect();
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
@@ -4582,7 +4578,7 @@ if _try_result.is_err() {
         }
         let symbolValue: String = self.symbol(symbol.as_str());
         let ois: crate::types::OpenInterests = (match self.fetch_open_interests((Value::from(vec![Value::from(symbolValue.as_str())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut oi: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(ois), Value::from(symbolValue.as_str()));
+        let mut oi: Option<crate::value::Dict> = crate::types::RecordRows::row_dict(&ois, Value::from(symbolValue.as_str()));
         if (oi.is_none()) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOpenInterest() could not find open interest for ").into()), symbolValue)));
         }

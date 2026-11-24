@@ -62,7 +62,7 @@ impl crate::exchange_generated::ExchangeBase for Phemex {
             match method {
                 "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
                 "from_en" => crate::Value::from(self.from_en(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
-                "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+                "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "parse_perpetual_ticker" => self.parse_perpetual_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_swap_ticker" => self.parse_swap_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_swap_order" => Value::Dict(self.parse_ws_swap_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -98,7 +98,7 @@ impl Phemex {
             "from_en" => { self.from_en(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_authenticate" => { self.handle_authenticate(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default()); },
-            "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_message" => { self.handle_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -1937,10 +1937,9 @@ impl Phemex {
     Default::default()
 }
 
-    pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
+    pub fn handle_message(&mut self, mut client: Value, message: &crate::value::Dict) {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         // private spot update
         // {
         //     "orders": { closed: [ ], fills: [ ], open: [] },
@@ -2041,40 +2040,40 @@ impl Phemex {
             let method: Value = self.safe_value(&__ch.subscriptions, Value::from(id.as_str()), &[]);
             __ch.remove_subscription(id.as_str());
             if !(match &(method) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
-                self.handle_authenticate(&client, &message);
+                self.handle_authenticate(&client, &Value::from(message));
                 return;
             }
         }
-        if (matches!(&message, Value::Dict(__d) if __d.contains_key("result"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("error"))) {
-            self.handle_un_subscription(&client, message.as_map().unwrap_or(&Default::default()));
+        if (__pro_message.contains_key("result")) || (__pro_message.contains_key("error")) {
+            self.handle_un_subscription(&client, message);
             return;
         }
         let methodName: String = (match __pro_message.get("method").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
-        if (matches!(&message, Value::Dict(__d) if __d.contains_key("market24h"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("spot_market24h"))) || (methodName.contains("perp_market24h_pack_p")) {
-            self.handle_ticker(&client, message.as_map().unwrap_or(&Default::default()));
+        if (__pro_message.contains_key("market24h")) || (__pro_message.contains_key("spot_market24h")) || (methodName.contains("perp_market24h_pack_p")) {
+            self.handle_ticker(&client, message);
             return;
-        }  else if (matches!(&message, Value::Dict(__d) if __d.contains_key("trades"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("trades_p"))) {
-            self.handle_trades(&client, message.as_map().unwrap_or(&Default::default()));
+        }  else if (__pro_message.contains_key("trades")) || (__pro_message.contains_key("trades_p")) {
+            self.handle_trades(&client, message);
             return;
-        }  else if (matches!(&message, Value::Dict(__d) if __d.contains_key("kline"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("kline_p"))) {
-            self.handle_ohlcv(client.clone(), message.as_map().unwrap_or(&Default::default()));
+        }  else if (__pro_message.contains_key("kline")) || (__pro_message.contains_key("kline_p")) {
+            self.handle_ohlcv(client.clone(), message);
             return;
-        }  else if (matches!(&message, Value::Dict(__d) if __d.contains_key("book"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("orderbook_p"))) {
-            self.handle_order_book(client.clone(), message.as_map().unwrap_or(&Default::default()));
+        }  else if (__pro_message.contains_key("book")) || (__pro_message.contains_key("orderbook_p")) {
+            self.handle_order_book(client.clone(), message);
             return;
         }
-        if (matches!(&message, Value::Dict(__d) if __d.contains_key("orders"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("orders_p"))) {
-            self.handle_orders(&client, message.as_map().unwrap_or(&Default::default()));
+        if (__pro_message.contains_key("orders")) || (__pro_message.contains_key("orders_p")) {
+            self.handle_orders(&client, message);
         }
-        if (matches!(&message, Value::Dict(__d) if __d.contains_key("accounts"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("accounts_p"))) || (matches!(&message, Value::Dict(__d) if __d.contains_key("wallets"))) {
+        if (__pro_message.contains_key("accounts")) || (__pro_message.contains_key("accounts_p")) || (__pro_message.contains_key("wallets")) {
             let mut type_var: String = "spot".to_string();
-            if (matches!(&message, Value::Dict(__d) if __d.contains_key("accounts"))) {
+            if (__pro_message.contains_key("accounts")) {
                 type_var = "swap".to_string();
             }
-            if (matches!(&message, Value::Dict(__d) if __d.contains_key("accounts_p"))) {
+            if (__pro_message.contains_key("accounts_p")) {
                 type_var = "perpetual".to_string();
             }
-            let accounts: crate::value::List = self.safe_list_n(message, Value::from(vec![Value::Str("accounts".into()), Value::Str("accounts_p".into()), Value::Str("wallets".into())]), &[Value::from(vec![])]).into_list();
+            let accounts: crate::value::List = self.safe_list_n(&message, Value::from(vec![Value::Str("accounts".into()), Value::Str("accounts_p".into()), Value::Str("wallets".into())]), &[Value::from(vec![])]).into_list();
             self.handle_balance(&client, &accounts, type_var.as_str());
         }
 }

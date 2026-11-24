@@ -273,7 +273,7 @@ impl crate::exchange::DerivedExchange for Grvt {
         if (self.safe_bool_k(&order, "ack", &[]) != Value::Null) {
             return Some(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), order.clone());
+        m.insert("info".to_string(), order);
         m.insert("id".to_string(), Value::Null);
     m
 }), None));

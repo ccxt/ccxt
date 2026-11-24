@@ -285,7 +285,7 @@ impl crate::exchange::DerivedExchange for Bitopro {
 }
     fn parse_market(&self, market: impl Into<crate::Value>) -> Option<crate::value::Dict> {
         let market: Value = market.into();
-        let active: Value = Value::Bool(!(self.safe_bool_k(&market, "maintain", &[Value::Bool(false)]).as_bool() == Some(true)));
+        let active: bool = !(self.safe_bool_k(&market, "maintain", &[Value::Bool(false)]).as_bool() == Some(true));
         let id: Option<String> = self.safe_string_k_opt(&market, "pair", &[]);
         if (id.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " parseMarket() missing id")));
@@ -359,7 +359,7 @@ impl crate::exchange::DerivedExchange for Bitopro {
         m.insert("amount".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(&market, "basePrecision", &[])]), &[]));
     m
 }));
-        m.insert("active".to_string(), active);
+        m.insert("active".to_string(), Value::Bool(active));
         m.insert("created".to_string(), Value::Null);
         m.insert("info".to_string(), market);
     m

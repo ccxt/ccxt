@@ -563,7 +563,7 @@ impl crate::exchange_generated::ExchangeBase for Luno {
                 "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_order_book" => crate::types::IntoRaw::into_raw(self.fetch_order_book(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_orders" => crate::types::IntoRaw::into_raw(self.fetch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_orders_by_state" => self.fetch_orders_by_state(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "fetch_orders_by_state" => Value::Arr(self.fetch_orders_by_state(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -1587,7 +1587,7 @@ impl Luno {
         }).await?))
     }
 
-    pub async fn fetch_orders_by_state(&mut self, state: Option<&str>, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_orders_by_state(&mut self, state: Option<&str>, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[&Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1610,9 +1610,7 @@ impl Luno {
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let response: crate::value::Dict = self.private_get_listorders(&[&__ws_arg_5]).await.unwrap_or_default();
         let orders: crate::value::List = self.safe_list_k_t(&response, "orders");
-        return Value::Arr(self.parse_orders(&orders, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
-
-    Value::Null
+        return self.parse_orders(&orders, market.as_ref(), &[&Value::from(since), &Value::from(limit)]);
 }
 
 /*
@@ -1636,7 +1634,7 @@ impl Luno {
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
         let params: crate::value::Dict = get_arg_dict(optional_args, 3);
-        return self.fetch_orders_by_state(None, symbol.as_str(), since, limit, &[&Value::Dict(params)]).await;
+        return Value::Arr(self.fetch_orders_by_state(None, symbol.as_str(), since, limit, &[&Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -1662,7 +1660,7 @@ impl Luno {
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
         let params: crate::value::Dict = get_arg_dict(optional_args, 3);
-        return self.fetch_orders_by_state(Some("PENDING"), symbol.as_str(), since, limit, &[&Value::Dict(params)]).await;
+        return Value::Arr(self.fetch_orders_by_state(Some("PENDING"), symbol.as_str(), since, limit, &[&Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -1688,7 +1686,7 @@ impl Luno {
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
         let params: crate::value::Dict = get_arg_dict(optional_args, 3);
-        return self.fetch_orders_by_state(Some("COMPLETE"), symbol.as_str(), since, limit, &[&Value::Dict(params)]).await;
+        return Value::Arr(self.fetch_orders_by_state(Some("COMPLETE"), symbol.as_str(), since, limit, &[&Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }

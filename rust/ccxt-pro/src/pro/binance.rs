@@ -6605,7 +6605,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 let mut __for_first_26: bool = true;
                 while { if !__for_first_26 { j += 1; } __for_first_26 = false; j < (fills.len() as i64) } {
                 let fill: crate::value::Dict = fills.get(j as usize).cloned().unwrap_or_default();
-                let isMaker: Value = (Value::Bool(self.safe_string_k(&fill, "m", &[]).as_str() == Some("MAKER")));
+                let isMaker: bool = self.safe_string_k(&fill, "m", &[]).as_str() == Some("MAKER");
                 // normalize fill fields to the flat format parseWsTrade/handleMyTrade expect
                 let normalizedTrade: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
@@ -6615,7 +6615,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                         m.insert("L".to_string(), self.safe_string_k(&fill, "p", &[]));
                         m.insert("l".to_string(), self.safe_string_k(&fill, "q", &[]));
                         m.insert("T".to_string(), self.safe_integer_k(&fill, "T", &[]));
-                        m.insert("m".to_string(), isMaker);
+                        m.insert("m".to_string(), Value::Bool(isMaker));
                         m.insert("n".to_string(), self.safe_string_k(&fill, "f", &[]));
                         m.insert("i".to_string(), self.safe_string_k(&order, "oid", &[]));
                         m.insert("S".to_string(), Value::from(side.as_str()));

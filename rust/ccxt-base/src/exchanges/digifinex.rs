@@ -1118,7 +1118,7 @@ impl crate::exchange::DerivedExchange for Digifinex {
             return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.as_str()));
-        m.insert("method".to_string(), method.clone());
+        m.insert("method".to_string(), method);
         m.insert("body".to_string(), requestBody);
         m.insert("headers".to_string(), Value::Map(privateHeaders));
     m
@@ -5870,7 +5870,7 @@ impl Digifinex {
         //
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
-        return self.parse_leverage_tiers(&data, &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Str("instrument_id".into())]);
+        return Value::Dict(self.parse_leverage_tiers(&data, &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Str("instrument_id".into())]));
         Value::Null
         }).await?))
     }

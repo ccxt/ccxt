@@ -970,7 +970,7 @@ impl crate::exchange::DerivedExchange for Deribit {
             return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(signedUrl));
-        m.insert("method".to_string(), method.clone());
+        m.insert("method".to_string(), method);
         m.insert("body".to_string(), Value::Null);
         m.insert("headers".to_string(), Value::Map(signedHeaders));
     m
@@ -2609,7 +2609,7 @@ impl Deribit {
                 if (kind.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " method() missing kind")));
                 }
-                let future: Value = Value::Bool((!(swap) && (kind.as_deref().unwrap_or_default().contains("future"))));
+                let future: bool = (!(swap) && (kind.as_deref().unwrap_or_default().contains("future")));
                 if (kind.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " method() missing kind")));
                 }
@@ -2623,7 +2623,7 @@ impl Deribit {
                 let mut optionType: Option<String> = None;
                 let mut symbol: Option<String> = id.clone();
                 let mut type_var: String = "swap".to_string();
-                if matches!(&future, Value::Bool(true)) {
+                if future {
                     type_var = "future".to_string();
                 }  else if option {
                     type_var = "option".to_string();
@@ -2636,7 +2636,7 @@ impl Deribit {
                     symbol = Some(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")));
                 }  else if !isComboMarket {
                     symbol = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null")));
-                    if option || matches!(&future, Value::Bool(true)) {
+                    if option || future {
                         symbol = Some(format!("{}{}", symbol.as_deref().unwrap_or("null"), (Value::Str(format!("{}{}", Value::Str("-".into()), self.yymmdd(Value::from(expiry), &[Value::Str("".into())])).into()))));
                         if option {
                             strike = self.safe_number_k(&market, "strike", &[]).as_f64();
@@ -2671,7 +2671,7 @@ impl Deribit {
                         m.insert("spot".to_string(), Value::Bool(isSpot));
                         m.insert("margin".to_string(), Value::Bool(false));
                         m.insert("swap".to_string(), Value::Bool(swap));
-                        m.insert("future".to_string(), future);
+                        m.insert("future".to_string(), Value::Bool(future));
                         m.insert("option".to_string(), Value::Bool(option));
                         m.insert("active".to_string(), self.safe_bool_k(&market, "is_active", &[]));
                         m.insert("contract".to_string(), Value::Bool(!isSpot));

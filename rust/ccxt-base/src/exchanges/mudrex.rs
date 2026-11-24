@@ -434,7 +434,7 @@ impl crate::exchange::DerivedExchange for Mudrex {
                     return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.as_str()));
-        m.insert("method".to_string(), methodUpper.clone());
+        m.insert("method".to_string(), methodUpper);
         m.insert("body".to_string(), Value::Null);
         m.insert("headers".to_string(), Value::Map(requestHeaders.clone()));
     m
@@ -444,7 +444,7 @@ impl crate::exchange::DerivedExchange for Mudrex {
                 return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.as_str()));
-        m.insert("method".to_string(), methodUpper.clone());
+        m.insert("method".to_string(), methodUpper);
         m.insert("body".to_string(), bodyStr.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(requestHeaders.clone()));
     m
@@ -494,7 +494,7 @@ impl crate::exchange_generated::ExchangeBase for Mudrex {
                 "fetch_open_orders" => crate::types::IntoRaw::into_raw(self.fetch_open_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_orders" => crate::types::IntoRaw::into_raw(self.fetch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_orders_by_state" => self.fetch_orders_by_state(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "fetch_orders_by_state" => crate::Value::Arr(self.fetch_orders_by_state(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_positions_history" => crate::types::IntoRaw::into_raw(self.fetch_positions_history(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -1619,7 +1619,7 @@ impl Mudrex {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
  */
-    pub async fn fetch_orders_by_state(&mut self, state: &str, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[&Value]) -> Value {
+    pub async fn fetch_orders_by_state(&mut self, state: &str, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[&Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1641,8 +1641,7 @@ impl Mudrex {
         }  else {
             response = self.private_get_futures_orders(&[&Value::Dict(request)]).await;
         }
-        let data: Value = self.safe_value_k(&response, "data", &[Value::from(vec![])]);
-        let rows: crate::value::List = self.to_array_t(data);
+        let rows: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut market: Option<crate::types::Market> = None;
         if (symbol.is_some()) {
             market = Some(match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -1658,9 +1657,7 @@ impl Mudrex {
 })])).as_ref(), market.as_ref()).map_or(Value::Null, Value::Dict));
         }
         }
-        return Value::Arr(self.filter_by_symbol_since_limit(Value::from(orders), symbol, since, limit, &[]));
-
-    Value::Null
+        return self.filter_by_symbol_since_limit(Value::from(orders), symbol, since, limit, &[]);
 }
 
 /*
@@ -1684,7 +1681,7 @@ impl Mudrex {
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
         let params: crate::value::Dict = get_arg_dict(optional_args, 3);
-        return self.fetch_orders_by_state("closed", symbol.as_str(), since, limit, &[&Value::Dict(params)]).await;
+        return Value::Arr(self.fetch_orders_by_state("closed", symbol.as_str(), since, limit, &[&Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -1710,7 +1707,7 @@ impl Mudrex {
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
         let params: crate::value::Dict = get_arg_dict(optional_args, 3);
-        return self.fetch_orders_by_state("open", symbol.as_str(), since, limit, &[&Value::Dict(params)]).await;
+        return Value::Arr(self.fetch_orders_by_state("open", symbol.as_str(), since, limit, &[&Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -1736,7 +1733,7 @@ impl Mudrex {
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
         let params: crate::value::Dict = get_arg_dict(optional_args, 3);
-        return self.fetch_orders_by_state("closed", symbol.as_str(), since, limit, &[&Value::Dict(params)]).await;
+        return Value::Arr(self.fetch_orders_by_state("closed", symbol.as_str(), since, limit, &[&Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -1768,11 +1765,7 @@ impl Mudrex {
         });
         let __ws_arg_19 = self.extend(Value::Map(q), &[&params]);
         let response: crate::value::Dict = self.private_get_futures_positions(&[&__ws_arg_19]).await.unwrap_or_default();
-        let data: Value = self.safe_value_k(&response, "data", &[Value::from(vec![])]);
-        if (data == Value::Null) {
-            return Value::from(vec![]);
-        }
-        let rows: crate::value::List = self.to_array_t(data);
+        let rows: crate::value::List = self.safe_list_k_t(&response, "data");
         let mut outPos: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;

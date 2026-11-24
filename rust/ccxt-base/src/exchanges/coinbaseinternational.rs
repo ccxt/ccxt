@@ -999,9 +999,9 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
             return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(requestUrl));
-        m.insert("method".to_string(), method.clone());
+        m.insert("method".to_string(), method);
         m.insert("body".to_string(), Value::Null);
-        m.insert("headers".to_string(), requestHeaders.clone());
+        m.insert("headers".to_string(), requestHeaders);
     m
 }));
         }

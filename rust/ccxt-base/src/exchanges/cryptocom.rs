@@ -863,7 +863,7 @@ impl crate::exchange_generated::ExchangeBase for Cryptocom {
                 "fetch_orders" => crate::types::IntoRaw::into_raw(self.fetch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_position" => crate::types::IntoRaw::into_raw(self.fetch_position(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_settlement_history" => Value::Arr(self.fetch_settlement_history(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..]).await),
+                "fetch_settlement_history" => crate::Value::Arr(self.fetch_settlement_history(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..]).await),
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -2509,7 +2509,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let symbolValue: String = self.symbol(symbol.as_str());
         let tickers: crate::types::Tickers = (match self.fetch_tickers((Value::from(vec![Value::from(symbolValue.as_str())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut ticker: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(tickers), Value::from(symbolValue));
+        let mut ticker: Option<crate::value::Dict> = crate::types::RecordRows::row_dict(&tickers, Value::from(symbolValue));
         return ticker.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -4883,11 +4883,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let object: Value = object.into();
         let maxLevel: i64 = 3;
         let depth: Option<i64> = self.parse_to_int(level);
-        if depth >= Some(maxLevel) {
+        if (depth >= Some(maxLevel)) || (matches!(&object, Value::Str(_))) {
             return to_string_val(&object).as_str().unwrap_or_default().to_owned();
-        }
-        if matches!(&object, Value::Str(_)) {
-            return object.as_str().unwrap_or_default().to_owned();
         }
         let mut returnString: String = "".to_string();
         let mut paramsKeys: Value = Value::Null;

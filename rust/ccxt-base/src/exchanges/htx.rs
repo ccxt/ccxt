@@ -9350,8 +9350,8 @@ impl Htx {
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
         m.insert("status".to_string(), Value::Null);
         m.insert("symbol".to_string(), Value::Null);
-        m.insert("type".to_string(), type_var.clone());
-        m.insert("side".to_string(), side.clone());
+        m.insert("type".to_string(), type_var);
+        m.insert("side".to_string(), side);
         m.insert("price".to_string(), Value::from(price));
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("filled".to_string(), Value::Null);
@@ -11924,7 +11924,7 @@ impl Htx {
         //    }
         //
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
-        return self.parse_leverage_tiers(&data, &[Value::from(symbols), Value::Str("contract_code".into())]);
+        return Value::Dict(self.parse_leverage_tiers(&data, &[Value::from(symbols), Value::Str("contract_code".into())]));
         Value::Null
         }).await?))
     }

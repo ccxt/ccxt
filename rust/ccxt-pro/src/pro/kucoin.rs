@@ -65,8 +65,8 @@ impl crate::exchange_generated::ExchangeBase for Kucoin {
                 "get_current_position" => self.get_current_position(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "get_message_hash" => self.get_message_hash(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
                 "get_uta_url" => self.get_uta_url().await,
-                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
-                "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
+                "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "handle_system_status" => crate::Value::Dict(self.handle_system_status(args.get(0).cloned().unwrap_or(crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
                 "load_balance_snapshot" => { self.load_balance_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "load_position_snapshot" => { self.load_position_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
@@ -142,8 +142,8 @@ impl Kucoin {
             "handle_bid_asks" => { self.handle_bid_asks(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()); },
             "handle_book_delta" => { self.handle_book_delta(&mut <Option<crate::pro::order_book::Book>>::from(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_contract_ticker" => { self.handle_contract_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
+            "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_my_trade" => { self.handle_my_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -1296,7 +1296,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("askVolume".to_string(), self.safe_number(&ask, Value::Int(1), &[]));
         m.insert("bid".to_string(), self.safe_number(&bid, Value::Int(0), &[]));
         m.insert("bidVolume".to_string(), self.safe_number(&bid, Value::Int(1), &[]));
-        m.insert("info".to_string(), ticker.clone());
+        m.insert("info".to_string(), ticker);
     m
 }), Some(&marketResolved));
         }  else {
@@ -4427,7 +4427,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
 }
 
-    pub fn handle_error_message(&mut self, client: &Value, mut message: Value) -> bool {
+    pub fn handle_error_message(&mut self, client: &Value, message: &crate::value::Dict) -> bool {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         //
         //    {
@@ -4456,13 +4456,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
             { let __bf03d0 = &mut self.options; let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("urls".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(type_var.to_string(), Value::Null); } }
         }
-        self.handle_errors(1, "", (client.url()).as_str().unwrap_or_default(), "", &indexmap::IndexMap::new(), data.as_str(), message, Some(&indexmap::IndexMap::new()), None).map_or(Value::Null, Value::Bool);
+        self.handle_errors(1, "", (client.url()).as_str().unwrap_or_default(), "", &indexmap::IndexMap::new(), data.as_str(), Value::from(message), Some(&indexmap::IndexMap::new()), None).map_or(Value::Null, Value::Bool);
         return false;
 }
 
-    pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+    pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         let type_var: Option<String> = self.safe_string2_opt(&message, Value::Str("type".into()), Value::Str("message".into()), &[]);
         let methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4475,15 +4474,15 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         });
         let method: Option<String> = self.safe_value(&methods, type_var.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         if (method.is_some()) {
-            self.dispatch_ws_handler(&method, &[&client.as_value(), &message]);
-        }  else if (matches!(&message, Value::Dict(__d) if __d.contains_key("T"))) {
-            self.handle_subject(&client.as_value(), &message);
-        }  else if (matches!(&message, Value::Dict(__d) if __d.contains_key("result"))) {
+            self.dispatch_ws_handler(&method, &[&client.as_value(), &Value::from(message)]);
+        }  else if (__pro_message.contains_key("T")) {
+            self.handle_subject(&client.as_value(), &Value::from(message));
+        }  else if (__pro_message.contains_key("result")) {
             let result: bool = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Bool(_)) => __v, _ => Value::Bool(true) }).as_bool().unwrap_or(true);
             if !result {
-                Value::Bool(self.handle_error_message(&client.as_value(), message.clone()));
+                Value::Bool(self.handle_error_message(&client.as_value(), message));
             }
-            self.handle_subscription_status(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
+            self.handle_subscription_status(&client.as_value(), message);
         }
 }
 

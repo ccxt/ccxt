@@ -140,7 +140,7 @@ impl crate::exchange::DerivedExchange for Bit2me {
             let resolvedMarket: crate::types::Market = self.safe_market(None, market, &[]);
             return Some(self.safe_trade(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), trade.clone());
+        m.insert("info".to_string(), trade);
         m.insert("id".to_string(), Value::Null);
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&resolvedMarket, "symbol"));
         m.insert("timestamp".to_string(), Value::from(publicTimestamp));

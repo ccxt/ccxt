@@ -837,7 +837,7 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
             return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.as_str()));
-        m.insert("method".to_string(), method.clone());
+        m.insert("method".to_string(), method);
         m.insert("body".to_string(), Value::from(requestBody.as_deref()));
         m.insert("headers".to_string(), requestHeaders.clone().map_or(Value::Null, Value::Dict));
     m
@@ -930,7 +930,7 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
                 "fetch_canceled_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_cfd_markets" => self.fetch_cfd_markets(&args[..]).await,
                 "fetch_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_closed_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_coinbase_derivatives_symbols" => self.fetch_coinbase_derivatives_symbols().await,
+                "fetch_coinbase_derivatives_symbols" => crate::Value::Arr(self.fetch_coinbase_derivatives_symbols().await),
                 "fetch_crypto_markets" => self.fetch_crypto_markets(&args[..]).await,
                 "fetch_forex_markets" => self.fetch_forex_markets(&args[..]).await,
                 "fetch_futures_and_swap_markets" => self.fetch_futures_and_swap_markets(&args[..]).await,
@@ -945,7 +945,7 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
                 "fetch_open_orders" => crate::types::IntoRaw::into_raw(self.fetch_open_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_order" => crate::types::IntoRaw::into_raw(self.fetch_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "fetch_orders" => crate::types::IntoRaw::into_raw(self.fetch_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_orders_by_status_filter" => self.fetch_orders_by_status_filter(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..]).await,
+                "fetch_orders_by_status_filter" => crate::Value::Arr(self.fetch_orders_by_status_filter(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..]).await),
                 "fetch_portfolio_accounts" => self.fetch_portfolio_accounts(&args[..]).await,
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_positions_for_symbol" => crate::types::IntoRaw::into_raw(self.fetch_positions_for_symbol(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -3393,7 +3393,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @see https://www.interactivebrokers.com/campus/ibkr-api-page/cpapi-v1/#scanner-run
  * @returns {string[]} the unique IBKR symbols, e.g. [ 'BIP', 'ETP', 'BIT', ... ]
  */
-    pub async fn fetch_coinbase_derivatives_symbols(&mut self) -> Value {
+    pub async fn fetch_coinbase_derivatives_symbols(&mut self) -> crate::value::List {
         let scanTypes: crate::value::List = std::sync::Arc::new(vec![Value::Str("MOST_ACTIVE".into()), Value::Str("NOT_YET_TRADED_TODAY".into())]); // these two ones cover all coinbase symbols
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
@@ -3448,9 +3448,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
         }
         }
-        return Value::Arr(result);
-
-    Value::Null
+        return result;
 }
 
 /*
@@ -3478,7 +3476,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let coinbaseDerivSymbols: crate::value::List = self.fetch_coinbase_derivatives_symbols().await.into_list();
+        let coinbaseDerivSymbols: crate::value::List = self.fetch_coinbase_derivatives_symbols().await;
         let cmeSymbols: Value = Value::Array(cryptoCmeFutureSymbols.keys().cloned().map(Value::from).collect());
         let cfeSymbols: Value = Value::Array(cryptoCboeFutureSymbols.keys().cloned().map(Value::from).collect());
         let targetSymbols: Value = self.arrays_concat(Value::from(vec![Value::Arr(coinbaseDerivSymbols), cmeSymbols, cfeSymbols]));
@@ -4950,7 +4948,7 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
         let params: crate::value::Dict = get_arg_dict(optional_args, 3);
-        return self.fetch_orders_by_status_filter("open", symbol.as_str(), since, limit, &[Value::Dict(params)]).await;
+        return Value::Arr(self.fetch_orders_by_status_filter("open", symbol.as_str(), since, limit, &[Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -4978,7 +4976,7 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
         let params: crate::value::Dict = get_arg_dict(optional_args, 3);
-        return self.fetch_orders_by_status_filter("closed", symbol.as_str(), since, limit, &[Value::Dict(params)]).await;
+        return Value::Arr(self.fetch_orders_by_status_filter("closed", symbol.as_str(), since, limit, &[Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -5006,7 +5004,7 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
         let since: Option<i64> = since;
         let limit: Option<i64> = limit;
         let params: crate::value::Dict = get_arg_dict(optional_args, 3);
-        return self.fetch_orders_by_status_filter("canceled", symbol.as_str(), since, limit, &[Value::Dict(params)]).await;
+        return Value::Arr(self.fetch_orders_by_status_filter("canceled", symbol.as_str(), since, limit, &[Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -5072,7 +5070,7 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn fetch_orders_by_status_filter(&mut self, status: &str, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
+    pub async fn fetch_orders_by_status_filter(&mut self, status: &str, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> crate::value::List {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -5088,9 +5086,7 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
         let orders: crate::value::List = self.fetch_live_orders_raw(&[params]).await;
         let parsed: crate::value::List = self.parse_orders(&orders, market.as_ref(), &[&Value::Null, &Value::Null]);
         let filtered: crate::value::List = self.filter_by(Value::Arr(parsed), Value::Str("status".into()), Value::from(status), &[]);
-        return Value::Arr(self.filter_by_symbol_since_limit(&filtered, symbol, since, limit, &[]));
-
-    Value::Null
+        return self.filter_by_symbol_since_limit(&filtered, symbol, since, limit, &[]);
 }
 
 /*

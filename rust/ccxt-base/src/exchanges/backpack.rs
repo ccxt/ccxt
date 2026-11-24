@@ -506,7 +506,7 @@ impl crate::exchange::DerivedExchange for Backpack {
         let rfq: bool = rawType.as_deref() == Some("RFQ");
         let security: Option<crate::value::Dict> = self.safe_dict_k_o(&market, "security");
         let baseSymbol: String = self.safe_string_k(&market, "baseSymbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let stock: Value = Value::Bool((self.safe_string_k(&market, "rwaMarketType", &[]).as_str() == Some("STOCK")) || (security.is_some()) || (baseSymbol.ends_with(".US")) || (baseSymbol.ends_with(".HK")));
+        let stock: bool = (self.safe_string_k(&market, "rwaMarketType", &[]).as_str() == Some("STOCK")) || (security.is_some()) || (baseSymbol.ends_with(".US")) || (baseSymbol.ends_with(".HK"));
         let typeOfMarket: Option<String> = self.parse_market_type(rawType.as_deref());
         let mut linear: Option<bool> = None;
         let mut inverse: Option<bool> = None;
@@ -579,8 +579,8 @@ impl crate::exchange::DerivedExchange for Backpack {
         m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("spot".to_string(), Value::Bool(type_var.as_deref() == Some("spot")));
-        m.insert("margin".to_string(), Value::Bool((type_var.as_deref() == Some("spot")) && !(matches!(&stock, Value::Bool(true))) && !rfq));
-        m.insert("stock".to_string(), stock);
+        m.insert("margin".to_string(), Value::Bool((type_var.as_deref() == Some("spot")) && !stock && !rfq));
+        m.insert("stock".to_string(), Value::Bool(stock));
         m.insert("executionModel".to_string(), (if rfq { Value::Str("rfq".into()) } else { Value::Null }));
         m.insert("swap".to_string(), Value::Bool(type_var.as_deref() == Some("swap")));
         m.insert("future".to_string(), Value::Bool(false));

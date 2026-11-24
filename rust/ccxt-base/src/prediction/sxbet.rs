@@ -3493,7 +3493,7 @@ impl Sxbet {
                         let mut i: i64 = 0;
             let mut __for_first_36: bool = true;
             while { if !__for_first_36 { i += 1; } __for_first_36 = false; i < rowsLength } {
-            let refreshed: Value = self.apply_sxbet_ws_snapshot(rows.get(i as usize).cloned().unwrap_or(Value::Null));
+            let refreshed: crate::value::List = self.apply_sxbet_ws_snapshot(rows.get(i as usize).cloned().unwrap_or(Value::Null)).into_list();
             let refreshedLength: i64 = refreshed.len() as i64;
             {
                                 let mut j: i64 = 0;

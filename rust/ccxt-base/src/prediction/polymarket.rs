@@ -1928,7 +1928,7 @@ impl Polymarket {
             let active: bool = self.safe_bool_k_opt(&market, "active", &[Value::Bool(false)]).unwrap_or(false);
             let mut closed: bool = self.safe_bool_k_opt(&market, "closed", &[Value::Bool(false)]).unwrap_or(false);
             // resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
-            let marketResolved: Value = Value::Bool((closed || (self.safe_string_lower_k(&market, "umaResolutionStatus", &[]).as_str() == Some("resolved"))));
+            let marketResolved: bool = (closed || (self.safe_string_lower_k(&market, "umaResolutionStatus", &[]).as_str() == Some("resolved")));
             let mut resolvedOutcome: Option<String> = None;
             // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
             let tickSize: Option<f64> = self.safe_number2(&market, Value::Str("orderPriceMinTickSize".into()), Value::Str("minimumTickSize".into()), &[Value::Float(0.01)]).as_f64();
@@ -1987,7 +1987,7 @@ impl Polymarket {
                 let outcomeHandle: Option<String> = self.slug_to_outcome_symbol(Value::from(eventSlug.as_deref()), Value::from(marketSlug.as_deref()), Value::from(outcomeLabel.as_deref())).as_str().map(str::to_owned);
                 let mut winnerRaw: Option<bool> = None;
                 let mut settleFractionRaw: Option<i64> = None;
-                if matches!(&marketResolved, Value::Bool(true)) && (outcomePrice.is_some()) {
+                if marketResolved && (outcomePrice.is_some()) {
                     // a genuinely-settled polymarket outcome is at 1 (won) or 0 (lost). a market
                     // that is only closed-for-trading (not yet UMA-resolved) still has fractional
                     // prices — don't report a fractional mid as a final settleFraction; leave the
@@ -2052,7 +2052,7 @@ impl Polymarket {
                     m.insert("option".to_string(), Value::Bool(false));
                     m.insert("prediction".to_string(), Value::Bool(true));
                     m.insert("active".to_string(), Value::Bool((active && !(closed))));
-                    m.insert("resolved".to_string(), marketResolved);
+                    m.insert("resolved".to_string(), Value::Bool(marketResolved));
                     m.insert("resolvedOutcome".to_string(), marketResolvedOutcome.map(Value::from).unwrap_or(Value::Null));
                     m.insert("contract".to_string(), Value::Bool(false));
                     m.insert("linear".to_string(), Value::Null);
@@ -4164,7 +4164,7 @@ impl Polymarket {
         if id.as_str().unwrap_or("").contains("-") {
             let __ws_arg_19 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("slug".to_string(), id.clone());
+        m.insert("slug".to_string(), id);
     m
 }), &[&params]);
             response = self.gamma_public_get_events_slug_slug(&[&__ws_arg_19]).await;

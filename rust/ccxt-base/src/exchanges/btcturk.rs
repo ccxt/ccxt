@@ -1086,7 +1086,7 @@ impl Btcturk {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let tickers: crate::types::Tickers = (match self.fetch_tickers(Some(vec![symbol.to_string()]), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut ticker: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(tickers), symbol);
+        let mut ticker: Option<crate::value::Dict> = crate::types::RecordRows::row_dict(&tickers, &symbol);
         return ticker.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))

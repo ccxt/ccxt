@@ -374,7 +374,7 @@ impl crate::exchange::DerivedExchange for Kalshi {
 
     None
 }
-    fn parse_my_trade(&self, fill: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_my_trade(&self, fill: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let fill: Value = fill.into();
         let id: Option<String> = self.safe_string2_opt(&fill, Value::Str("fill_id".into()), Value::Str("trade_id".into()), &[]);
         let orderId: Option<String> = self.safe_string_k_opt(&fill, "order_id", &[]);
@@ -426,7 +426,7 @@ impl crate::exchange::DerivedExchange for Kalshi {
                 m
             }));
         }
-        return Value::Dict(self.safe_prediction_trade(Value::Map({
+        return Some(self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), fill);
@@ -447,7 +447,7 @@ impl crate::exchange::DerivedExchange for Kalshi {
     m
 }), &[crate::Value::from(market)]));
 
-    Value::Null
+    None
 }
     fn parse_prediction_trade(&self, trade: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let trade: Value = trade.into();
@@ -2488,7 +2488,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_20: bool = true;
             while { if !__for_first_20 { i += 1; } __for_first_20 = false; i < fillsLength } {
-            trades.push(<Self as crate::exchange::DerivedExchange>::parse_my_trade(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(fills.get(i as usize).cloned().unwrap_or(Value::Null)).as_ref(), outcomeObj.as_ref()));
+            trades.push(<Self as crate::exchange::DerivedExchange>::parse_my_trade(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(fills.get(i as usize).cloned().unwrap_or(Value::Null)).as_ref(), outcomeObj.as_ref()).map_or(Value::Null, Value::Dict));
         }
         }
         let wantedOutcomeObj: Option<crate::types::Market> = (if (outcome != Value::Null) { self.outcome(outcome.as_str()) } else { None });

@@ -288,7 +288,7 @@ impl crate::exchange::DerivedExchange for Bitfinex {
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), Value::Bool(true));
-        m.insert("contract".to_string(), Value::Bool(!(spot)));
+        m.insert("contract".to_string(), Value::Bool(!spot));
         m.insert("linear".to_string(), (if swap { Value::Bool(true) } else { Value::Null }));
         m.insert("inverse".to_string(), (if swap { Value::Bool(false) } else { Value::Null }));
         m.insert("maker".to_string(), self.safe_number(self.fees.get("trading").cloned().unwrap_or(Value::Null), Value::Str("maker".into()), &[]));

@@ -478,7 +478,7 @@ impl crate::exchange::DerivedExchange for Bitstamp {
             let direction: String = (if (self.safe_string_k(&parsedTrade, "side", &[]).as_str() == Some("buy")) { "in".to_string() } else { "out".to_string() });
             return Some(self.safe_ledger_entry(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), item.clone());
+        m.insert("info".to_string(), item);
         m.insert("id".to_string(), parsedTrade.get("id").cloned().unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), parsedTrade.get("timestamp").cloned().unwrap_or(Value::Null));
         m.insert("datetime".to_string(), parsedTrade.get("datetime").cloned().unwrap_or(Value::Null));

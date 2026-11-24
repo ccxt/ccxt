@@ -189,7 +189,7 @@ impl crate::exchange::DerivedExchange for Blofin {
             let cost: Option<f64> = self.parse_number(crate::precise::Precise::stringMul(&price, &amount), &[]).as_f64();
             let result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("info".to_string(), trade.clone());
+                    m.insert("info".to_string(), trade);
                     m.insert("timestamp".to_string(), Value::from(timestamp));
                     m.insert("datetime".to_string(), self.iso8601(timestamp));
                     m.insert("symbol".to_string(), Value::from(spotSymbol));
@@ -368,7 +368,7 @@ impl crate::exchange::DerivedExchange for Blofin {
         let market: Value = market.into();
         let id: Option<String> = self.safe_string_k_opt(&market, "instId", &[]);
         let type_var: Option<String> = self.safe_string_lower_k_opt(&market, "instType", &[]);
-        let spot: Value = (Value::Bool(type_var.as_deref() == Some("spot")));
+        let spot: bool = type_var.as_deref() == Some("spot");
         let future: bool = type_var.as_deref() == Some("future");
         let swap: bool = type_var.as_deref() == Some("swap");
         let option: bool = type_var.as_deref() == Some("option");
@@ -419,9 +419,9 @@ impl crate::exchange::DerivedExchange for Blofin {
         m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
         m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
-        m.insert("spot".to_string(), spot.clone());
+        m.insert("spot".to_string(), Value::Bool(spot));
         m.insert("option".to_string(), Value::Bool(option));
-        m.insert("margin".to_string(), Value::Bool((matches!(&spot, Value::Bool(true)) && crate::precise::Precise::stringGt(&maxLeverage, &Value::Str("1".into())).as_bool() == Some(true))));
+        m.insert("margin".to_string(), Value::Bool((spot && crate::precise::Precise::stringGt(&maxLeverage, &Value::Str("1".into())).as_bool() == Some(true))));
         m.insert("swap".to_string(), Value::Bool(swap));
         m.insert("future".to_string(), Value::Bool(future));
         m.insert("active".to_string(), Value::Bool(isActive));
@@ -1216,7 +1216,7 @@ impl crate::exchange::DerivedExchange for Blofin {
             return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.as_str()));
-        m.insert("method".to_string(), method.clone());
+        m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(signedHeaders));
     m

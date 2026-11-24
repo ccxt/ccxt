@@ -6364,7 +6364,7 @@ impl Bingx {
         if isTwapOrder {
             let twapRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("mainOrderId".to_string(), id.clone());
+                    m.insert("mainOrderId".to_string(), id);
                 m
             });
             let __ws_arg_26 = self.extend(Value::Map(twapRequest), &[&paramsOmitted]);
@@ -6752,7 +6752,7 @@ impl Bingx {
         if isTwapOrder {
             let twapRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("mainOrderId".to_string(), id.clone());
+                    m.insert("mainOrderId".to_string(), id);
                 m
             });
             let __ws_arg_38 = self.extend(Value::Map(twapRequest), &[&paramsOmitted]);
@@ -7584,7 +7584,7 @@ impl Bingx {
             if (defaultNetworkForCurrency.is_some()) {
                 return self.safe_dict(crate::types::IntoRaw::into_raw(addressStructures.clone()), defaultNetworkForCurrency.map(Value::from).unwrap_or(Value::Null), &[]);
             }  else {
-                let mut keys: crate::value::List = crate::value::List::new((crate::types::IntoRaw::into_raw(addressStructures.clone())).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+                let mut keys: crate::value::List = crate::value::List::new(addressStructures.keys().cloned().map(Value::from).collect());
                 let key: Option<String> = self.safe_string_opt(&keys, Value::Int(0), &[]);
                 return self.safe_dict(crate::types::IntoRaw::into_raw(addressStructures), key.map(Value::from).unwrap_or(Value::Null), &[]);
             }
@@ -8177,14 +8177,14 @@ impl Bingx {
             let m = indexmap::IndexMap::new();
             m
         });
-        let responseCodes: Vec<Value> = Value::Array((crate::types::IntoRaw::into_raw(response.clone())).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let responseCodes: Vec<Value> = Value::Array(response.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (responseCodes.len() as i64) } {
             let code: Option<&str> = responseCodes.get(i as usize).and_then(Value::as_str);
             if (codes == Value::Null) || (self.in_array(Value::from(code.as_deref()), &codes)) {
-                let entry: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(response.clone()), Value::from(code.as_deref()));
+                let entry: Option<crate::value::Dict> = crate::types::RecordRows::row_dict(&response, Value::from(code.as_deref()));
                 depositWithdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), <Self as crate::exchange::DerivedExchange>::parse_deposit_withdraw_fee(self, &entry, None).map_or(Value::Null, Value::Dict));
             }
         }

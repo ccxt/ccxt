@@ -391,7 +391,7 @@ impl crate::exchange::DerivedExchange for Revolutx {
 
     None
 }
-    fn parse_my_trade(&self, trade: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_my_trade(&self, trade: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let trade: Value = trade.into();
         let id: Option<String> = self.safe_string_k_opt(&trade, "tid", &[]);
         let orderId: Option<String> = self.safe_string_k_opt(&trade, "oid", &[]);
@@ -408,7 +408,7 @@ impl crate::exchange::DerivedExchange for Revolutx {
             cost = self.parse_number(crate::precise::Precise::stringMul(&priceString, &amountString), &[]).as_f64();
         }
         let symbol: Option<String> = self.safe_symbol(None, market, &[]).as_str().map(str::to_owned);
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade);
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -425,9 +425,9 @@ impl crate::exchange::DerivedExchange for Revolutx {
         m.insert("fee".to_string(), Value::Null);
         m.insert("fees".to_string(), Value::from(vec![]));
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
@@ -1160,7 +1160,7 @@ impl Revolutx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let tickers: crate::types::Tickers = (match self.fetch_tickers(Some(vec![symbol.to_string()]), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut ticker: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(tickers), &symbol);
+        let mut ticker: Option<crate::value::Dict> = crate::types::RecordRows::row_dict(&tickers, &symbol);
         if (ticker.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchTicker() could not find ticker for symbol ").into()), symbol)));
         }
@@ -2131,7 +2131,7 @@ impl Revolutx {
             let mut __for_first_9: bool = true;
             while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (data.len() as i64) } {
             let trade: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
-            result.push(<Self as crate::exchange::DerivedExchange>::parse_my_trade(self, Some(&trade), Some(&market)));
+            result.push(<Self as crate::exchange::DerivedExchange>::parse_my_trade(self, Some(&trade), Some(&market)).map_or(Value::Null, Value::Dict));
         }
         }
         return Value::from(result);

@@ -274,7 +274,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
         let base: Option<String> = self.safe_currency_code(baseId.as_deref(), None);
         let quote: Option<String> = self.safe_currency_code(Some(quoteId.as_str()), None);
         let settle: Option<String> = self.safe_currency_code(settleId.as_deref(), None);
-        let crossAllowed: Value = Value::Bool(!(self.safe_bool_k(&market, "isolated_only", &[Value::Bool(false)]).as_bool() == Some(true)));
+        let crossAllowed: bool = !(self.safe_bool_k(&market, "isolated_only", &[Value::Bool(false)]).as_bool() == Some(true));
         return Some(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), numericId.map(Value::from).unwrap_or(Value::Null));
@@ -304,7 +304,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
         m.insert("optionType".to_string(), Value::Null);
         m.insert("marginModes".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cross".to_string(), crossAllowed);
+        m.insert("cross".to_string(), Value::Bool(crossAllowed));
         m.insert("isolated".to_string(), Value::Bool(true));
     m
 }));
@@ -1560,7 +1560,7 @@ impl Polymarket {
         // instrument_id filter and always answer with every instrument, so
         // the single-market call reuses the bulk fetch and selects one row
         let tickers: crate::types::Tickers = (match self.fetch_tickers((Value::from(vec![Value::from(symbolResolved.as_str())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut ticker: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(tickers), Value::from(symbolResolved.as_str()));
+        let mut ticker: Option<crate::value::Dict> = crate::types::RecordRows::row_dict(&tickers, Value::from(symbolResolved.as_str()));
         if (ticker.is_none()) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchTicker() could not find a ticker for ").into()), symbolResolved)));
         }
@@ -1921,7 +1921,7 @@ impl Polymarket {
         // and always answers with every instrument, so the single-market call
         // reuses the bulk fetch and selects the requested row
         let fundingRates: crate::types::FundingRates = (match self.fetch_funding_rates((Value::from(vec![Value::from(symbolResolved.as_str())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut fundingRate: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(fundingRates), Value::from(symbolResolved.as_str()));
+        let mut fundingRate: Option<crate::value::Dict> = crate::types::RecordRows::row_dict(&fundingRates, Value::from(symbolResolved.as_str()));
         if (fundingRate.is_none()) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchFundingRate() could not find the funding rate for ").into()), symbolResolved)));
         }
@@ -2071,7 +2071,7 @@ impl Polymarket {
         // and always answers with every instrument, so the single-market call
         // reuses the bulk fetch and selects the requested row
         let openInterests: crate::types::OpenInterests = (match self.fetch_open_interests((Value::from(vec![Value::from(symbolResolved.as_str())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut openInterest: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(openInterests), Value::from(symbolResolved.as_str()));
+        let mut openInterest: Option<crate::value::Dict> = crate::types::RecordRows::row_dict(&openInterests, Value::from(symbolResolved.as_str()));
         if (openInterest.is_none()) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOpenInterest() could not find the open interest for ").into()), symbolResolved)));
         }

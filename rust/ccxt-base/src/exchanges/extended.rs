@@ -938,7 +938,7 @@ impl crate::exchange_generated::ExchangeBase for Extended {
                 "parse_account" => Value::Dict(self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "parse_funding_histories" => self.parse_funding_histories(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
+                "parse_funding_histories" => crate::Value::Arr(self.parse_funding_histories(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
                 "parse_funding_history" => crate::Value::Dict(self.parse_funding_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_funding_rate_history" => Value::Dict(self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ledger_entry" => Value::Dict(self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -2321,7 +2321,7 @@ impl Extended {
             result.push(Value::Dict(entry));
         }
         }
-        return self.parse_funding_histories(Value::from(result), market.as_ref(), &[Value::from(since), Value::from(limit)]);
+        return Value::Arr(self.parse_funding_histories(Value::from(result), market.as_ref(), &[Value::from(since), Value::from(limit)]));
         Value::Null
         }).await?))
     }
@@ -2359,7 +2359,7 @@ impl Extended {
 });
 }
 
-    pub fn parse_funding_histories(&self, histories: impl Into<crate::Value>, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {
+    pub fn parse_funding_histories(&self, histories: impl Into<crate::Value>, market: Option<&crate::types::Market>, optional_args: &[Value]) -> crate::value::List {
         let histories: Value = histories.into();
         let since = get_arg(optional_args, 0, Value::Null);
         let limit = get_arg(optional_args, 1, Value::Null);
@@ -2375,9 +2375,7 @@ impl Extended {
         }
         }
         let symbol: Option<String> = (if (market.is_none()) { None } else { self.safe_string_k_opt(&market, "symbol", &[]) });
-        return Value::Arr(self.filter_by_symbol_since_limit(Value::from(result), symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]));
-
-    Value::Null
+        return self.filter_by_symbol_since_limit(Value::from(result), symbol.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 }
 
 

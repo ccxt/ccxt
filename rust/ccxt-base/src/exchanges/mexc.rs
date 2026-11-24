@@ -1366,7 +1366,7 @@ impl crate::exchange_generated::ExchangeBase for Mexc {
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "create_spot_order" => self.create_spot_order(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                    args.get(3).and_then(crate::Value::as_f64), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_text).as_deref(), &args[6.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "create_spot_order_request" => crate::Value::Dict(self.create_spot_order_request(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(),
                     args.get(3).and_then(crate::Value::as_f64), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_text).as_deref(), &args[6.min(args.len())..].iter().collect::<Vec<_>>())),
                 "create_swap_order" => self.create_swap_order(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64),
@@ -1418,7 +1418,7 @@ impl crate::exchange_generated::ExchangeBase for Mexc {
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "handle_margin_mode_and_params" => { let __t = self.handle_margin_mode_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
-                "modify_margin_helper" => self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "modify_margin_helper" => self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64), args.get(2).and_then(crate::Value::as_text).as_deref(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_balance_helper" => Value::Dict(self.parse_balance_helper(args.get(0).and_then(crate::Value::as_map).unwrap_or(&Default::default()))),
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
@@ -4597,7 +4597,7 @@ impl Mexc {
         let marginMode: Option<String> = marginModequeryVariable.0.as_str().map(str::to_owned);
         let query: crate::value::Dict = marginModequeryVariable.1;
         if (market).spot {
-            return self.create_spot_order(Some(&market), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Value::from(amount), &[&Value::from(price), &marginMode.clone().map(Value::from).unwrap_or(Value::Null), &Value::from(&query)]).await;
+            return self.create_spot_order(Some(&market), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Some(amount), price, marginMode.as_deref(), &[&Value::from(&query)]).await;
         }  else {
             return self.create_swap_order(Some(&market), type_var, side.as_str().unwrap_or_default(), Some(amount), price, marginMode.as_deref(), &[&Value::Dict(query)]).await;
         }
@@ -4687,10 +4687,8 @@ impl Mexc {
  * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-    pub async fn create_spot_order(&mut self, market: Option<&crate::types::Market>, type_var: &str, side: &str, mut amount: Value, optional_args: &[&Value]) -> Value {
-        let price = get_arg(optional_args, 0, Value::Null);
-        let marginMode = get_arg(optional_args, 1, Value::Null);
-        let params = get_arg(optional_args, 2, Value::Map({
+    pub async fn create_spot_order(&mut self, market: Option<&crate::types::Market>, type_var: &str, side: &str, amount: Option<f64>, price: Option<f64>, marginMode: Option<&str>, optional_args: &[&Value]) -> Value {
+        let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
@@ -4699,7 +4697,7 @@ impl Mexc {
         }
         let test: bool = self.safe_bool_k_opt(&params, "test", &[Value::Bool(false)]).unwrap_or(false);
         let paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("test".into()), &[]);
-        let request: crate::value::Dict = self.create_spot_order_request(market, Some(type_var), Some(side), amount.as_f64(), price.as_f64(), marginMode.as_str(), &[&Value::Dict(paramsOmitted)]);
+        let request: crate::value::Dict = self.create_spot_order_request(market, Some(type_var), Some(side), amount, price, marginMode, &[&Value::Dict(paramsOmitted)]);
         let mut response: Option<crate::value::Dict> = None;
         if test {
             response = self.spot_private_post_order_test(&[&Value::from(&request)]).await;
@@ -4729,10 +4727,10 @@ impl Mexc {
         order.insert("side".into(), Value::from(side));
         order.insert("type".into(), Value::from(type_var));
         if (self.safe_string_k(&order, "price", &[]) == Value::Null) {
-            order.insert("price".into(), price);
+            order.insert("price".into(), Value::from(price));
         }
         if (self.safe_string_k(&order, "amount", &[]) == Value::Null) {
-            order.insert("amount".into(), amount);
+            order.insert("amount".into(), Value::from(amount));
         }
         return Value::Map(order);
 
@@ -5604,7 +5602,7 @@ impl Mexc {
             if (method.as_deref() == Some("contractPrivatePostPlanorderCancel")) {
                 return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), id.clone());
+        m.insert("id".to_string(), id);
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("info".to_string(), response.clone().map_or(Value::Null, Value::Dict));
     m
@@ -6362,7 +6360,7 @@ impl Mexc {
         }).await?))
     }
 
-    pub async fn modify_margin_helper(&mut self, symbol: &str, mut amount: Value, addOrReduce: Option<&str>, optional_args: &[&Value]) -> Value {
+    pub async fn modify_margin_helper(&mut self, symbol: &str, amount: Option<f64>, addOrReduce: Option<&str>, optional_args: &[&Value]) -> Value {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -6377,7 +6375,7 @@ impl Mexc {
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("positionId".to_string(), Value::from(positionId));
-                m.insert("amount".to_string(), amount);
+                m.insert("amount".to_string(), Value::from(amount));
                 m.insert("type".to_string(), Value::from(addOrReduce));
             m
         });
@@ -6407,7 +6405,7 @@ impl Mexc {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let params: crate::value::Dict = get_arg_dict(optional_args, 0);
-        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), Some("SUB"), &[&Value::Dict(params)]).await;
+        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Some(amount), Some("SUB"), &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -6431,7 +6429,7 @@ impl Mexc {
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let params: crate::value::Dict = get_arg_dict(optional_args, 0);
-        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), Some("ADD"), &[&Value::Dict(params)]).await;
+        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Some(amount), Some("ADD"), &[&Value::Dict(params)]).await;
         Value::Null
         }).await?))
     }
@@ -6820,7 +6818,7 @@ impl Mexc {
         //     }
         //
         let data: Option<crate::value::List> = self.safe_list_k_o(&response, "data");
-        return self.parse_leverage_tiers(&data, &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Str("symbol".into())]);
+        return Value::Dict(self.parse_leverage_tiers(&data, &[symbolsNormalized.map_or(Value::Null, Value::Arr), Value::Str("symbol".into())]));
         Value::Null
         }).await?))
     }
@@ -6976,7 +6974,7 @@ impl Mexc {
             if (defaultNetworkForCurrency.is_some()) {
                 key = defaultNetworkForCurrency;
             }  else {
-                let mut keys: crate::value::List = crate::value::List::new((crate::types::IntoRaw::into_raw(addressStructures.clone())).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default());
+                let mut keys: crate::value::List = crate::value::List::new(addressStructures.keys().cloned().map(Value::from).collect());
                 key = self.safe_string_opt(&keys, Value::Int(0), &[]);
             }
         }

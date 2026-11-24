@@ -63,7 +63,7 @@ impl crate::exchange_generated::ExchangeBase for Deepcoin {
                 "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
                 "create_public_request" => crate::Value::Dict(self.create_public_request(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>())),
                 "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null))),
-                "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+                "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
                 "order_book_suffix" => { let __t = self.order_book_suffix(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "parse_position_side" => self.parse_position_side(args.get(0).and_then(crate::Value::as_text).as_deref()),
@@ -106,7 +106,7 @@ impl Deepcoin {
             "create_public_request" => { Value::Dict(self.create_public_request(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).copied().cloned().unwrap_or_default()).as_ref(), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..])); },
             "handle_book_delta" => { self.handle_book_delta(&mut <Option<crate::pro::order_book::Book>>::from(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_my_trade" => { self.handle_my_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -1646,30 +1646,29 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
 }
 
-    pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+    pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         let m: Option<String> = (match __pro_message.get("m").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (m.is_some()) && (m.as_deref() != Some("Success")) {
-            Value::Bool(self.handle_error_message(&client.as_value(), &message));
+            Value::Bool(self.handle_error_message(&client.as_value(), &Value::from(message)));
         }
         let action: Option<String> = self.safe_string2_opt(&message, Value::Str("a".into()), Value::Str("action".into()), &[]);
         if (action.as_deref() == Some("RecvTopicAction")) {
-            self.handle_subscription_status(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
+            self.handle_subscription_status(&client.as_value(), message);
         }  else if (action.as_deref() == Some("PO")) {
-            self.handle_ticker(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
+            self.handle_ticker(&client.as_value(), message);
         }  else if (action.as_deref() == Some("PMT")) {
-            self.handle_trades(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
+            self.handle_trades(&client.as_value(), message);
         }  else if (action.as_deref() == Some("PK")) {
-            self.handle_ohlcv(client.as_value(), message.as_map().unwrap_or(&Default::default()));
+            self.handle_ohlcv(client.as_value(), message);
         }  else if (action.as_deref() == Some("PMO")) {
-            self.handle_order_book(client.as_value(), message.clone());
+            self.handle_order_book(client.as_value(), Value::from(message));
         }  else if (action.as_deref() == Some("PushTrade")) {
-            self.handle_my_trade(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
+            self.handle_my_trade(&client.as_value(), message);
         }  else if (action.as_deref() == Some("PushOrder")) {
-            self.handle_order(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
+            self.handle_order(&client.as_value(), message);
         }  else if (action.as_deref() == Some("PushPosition")) {
-            self.handle_position(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
+            self.handle_position(&client.as_value(), message);
         }
 }
 

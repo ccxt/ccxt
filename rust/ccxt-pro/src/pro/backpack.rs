@@ -63,7 +63,7 @@ impl crate::exchange_generated::ExchangeBase for Backpack {
                 "get_cache_index" => self.get_cache_index(args.get(0).cloned().unwrap_or(crate::Value::Null), crate::value::dict_rows(std::sync::Arc::new(args.get(1).and_then(crate::Value::as_array).cloned().unwrap_or_default()))),
                 "handle_balance" => self.handle_balance(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
                 "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()))),
-                "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+                "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "handle_stock_ticker" => self.handle_stock_ticker(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
                 "handle_unsubscriptions" => { self.handle_unsubscriptions(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -120,7 +120,7 @@ impl Backpack {
             "handle_bid_asks" => { self.handle_bid_asks(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()); },
             "handle_book_delta" => { self.handle_book_delta(&mut <Option<crate::pro::order_book::Book>>::from(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order" => { self.handle_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -1067,8 +1067,8 @@ impl Backpack {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let query: Value = Value::Dict(self.prepare_ws_stock_params("watchOHLCV", params).await);
-        let result: crate::types::OHLCVsBySymbol = (match self.watch_ohlcv_for_symbols(vec![vec![symbol.to_string(), timeframe.to_string()]], since, limit, query).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let query: crate::value::Dict = self.prepare_ws_stock_params("watchOHLCV", params).await;
+        let result: crate::types::OHLCVsBySymbol = (match self.watch_ohlcv_for_symbols(vec![vec![symbol.to_string(), timeframe.to_string()]], since, limit, Value::Dict(query)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
 
         return crate::value::KeyRead::read(&&result, &symbol).as_map().and_then(|__m| timeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         Value::Null
@@ -1099,8 +1099,8 @@ impl Backpack {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let query: Value = Value::Dict(self.prepare_ws_stock_params("watchOHLCV", params).await);
-        return crate::types::IntoRaw::into_raw(self.un_watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbol, timeframe])])).to_str_vec_vec(), query).await);
+        let query: crate::value::Dict = self.prepare_ws_stock_params("watchOHLCV", params).await;
+        return crate::types::IntoRaw::into_raw(self.un_watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbol, timeframe])])).to_str_vec_vec(), Value::Dict(query)).await);
         Value::Null
         }).await?))
     }
@@ -1290,8 +1290,8 @@ impl Backpack {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let query: Value = Value::Dict(self.prepare_ws_stock_params("watchTrades", params).await);
-        return crate::types::IntoRaw::into_raw(self.watch_trades_for_symbols(vec![symbol.to_string()], since, limit, query).await);
+        let query: crate::value::Dict = self.prepare_ws_stock_params("watchTrades", params).await;
+        return crate::types::IntoRaw::into_raw(self.watch_trades_for_symbols(vec![symbol.to_string()], since, limit, Value::Dict(query)).await);
         Value::Null
         }).await?))
     }
@@ -1318,8 +1318,8 @@ impl Backpack {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let query: Value = Value::Dict(self.prepare_ws_stock_params("watchTrades", params).await);
-        return crate::types::IntoRaw::into_raw(self.un_watch_trades_for_symbols(vec![symbol.to_string()], query).await);
+        let query: crate::value::Dict = self.prepare_ws_stock_params("watchTrades", params).await;
+        return crate::types::IntoRaw::into_raw(self.un_watch_trades_for_symbols(vec![symbol.to_string()], Value::Dict(query)).await);
         Value::Null
         }).await?))
     }
@@ -1559,8 +1559,8 @@ impl Backpack {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let query: Value = Value::Dict(self.prepare_ws_stock_params("watchOrderBook", params).await);
-        return crate::types::IntoRaw::into_raw(self.watch_order_book_for_symbols(vec![symbol.to_string()], limit, query).await);
+        let query: crate::value::Dict = self.prepare_ws_stock_params("watchOrderBook", params).await;
+        return crate::types::IntoRaw::into_raw(self.watch_order_book_for_symbols(vec![symbol.to_string()], limit, Value::Dict(query)).await);
         Value::Null
         }).await?))
     }
@@ -1641,8 +1641,8 @@ impl Backpack {
     let m = indexmap::IndexMap::new();
     m
 }));
-        let query: Value = Value::Dict(self.prepare_ws_stock_params("watchOrderBook", params).await);
-        return crate::types::IntoRaw::into_raw(self.un_watch_order_book_for_symbols(vec![symbol.to_string()], query).await);
+        let query: crate::value::Dict = self.prepare_ws_stock_params("watchOrderBook", params).await;
+        return crate::types::IntoRaw::into_raw(self.un_watch_order_book_for_symbols(vec![symbol.to_string()], Value::Dict(query)).await);
         Value::Null
         }).await?))
     }
@@ -2466,34 +2466,33 @@ impl Backpack {
     Default::default()
 }
 
-    pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
-        if (Value::Bool(self.handle_error_message(&client.as_value(), message.as_map().unwrap_or(&Default::default()))).as_bool() != Some(true)) {
+    pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
+        if (Value::Bool(self.handle_error_message(&client.as_value(), message)).as_bool() != Some(true)) {
             return;
         }
         let data: crate::value::Dict = __pro_message.key_dict("data");
         let event: Option<String> = self.safe_string_k_opt(&data, "e", &[]);
         if (event.as_deref() == Some("stockPrice")) || (event.as_deref() == Some("stockIndicativeQuote")) {
-            self.handle_stock_ticker(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
+            self.handle_stock_ticker(&client.as_value(), message);
         }  else if (event.as_deref() == Some("balanceUpdate")) {
-            self.handle_balance(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
+            self.handle_balance(&client.as_value(), message);
         }  else if (event.as_deref() == Some("rfqAccepted")) || (event.as_deref() == Some("rfqCandidate")) || (event.as_deref() == Some("rfqAcceptedBinding")) || (event.as_deref() == Some("rfqFilled")) || (event.as_deref() == Some("rfqCancelled")) || (event.as_deref() == Some("quoteAccepted")) || (event.as_deref() == Some("quoteCancelled")) {
-            self.handle_order(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
+            self.handle_order(&client.as_value(), message);
         }  else if (event.as_deref() == Some("ticker")) || (event.as_deref() == Some("externalTicker")) {
-            self.handle_ticker(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
+            self.handle_ticker(&client.as_value(), message);
         }  else if (event.as_deref() == Some("bookTicker")) {
-            self.handle_bid_ask(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
+            self.handle_bid_ask(&client.as_value(), message);
         }  else if (event.as_deref() == Some("kline")) {
-            self.handle_ohlcv(client.as_value(), message.as_map().unwrap_or(&Default::default()));
+            self.handle_ohlcv(client.as_value(), message);
         }  else if (event.as_deref() == Some("trade")) {
-            self.handle_trades(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
+            self.handle_trades(&client.as_value(), message);
         }  else if (event.as_deref() == Some("depth")) {
-            self.handle_order_book(client.as_value(), message.as_map().unwrap_or(&Default::default()));
+            self.handle_order_book(client.as_value(), message);
         }  else if (event.as_deref() == Some("orderAccepted")) || (event.as_deref() == Some("orderUpdate")) || (event.as_deref() == Some("orderFill")) || (event.as_deref() == Some("orderCancelled")) || (event.as_deref() == Some("orderExpired")) || (event.as_deref() == Some("orderModified")) || (event.as_deref() == Some("triggerPlaced")) || (event.as_deref() == Some("triggerFailed")) {
-            self.handle_order(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
+            self.handle_order(&client.as_value(), message);
         }  else if (event.as_deref() == Some("positionAdjusted")) || (event.as_deref() == Some("positionOpened")) || (event.as_deref() == Some("positionClosed")) || (event.as_deref() == Some("positionUpdated")) {
-            self.handle_positions(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
+            self.handle_positions(&client.as_value(), message);
         }
 }
 

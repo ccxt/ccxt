@@ -61,8 +61,8 @@ impl crate::exchange_generated::ExchangeBase for Bullish {
         Box::pin(async move {
             match method {
                 "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()))),
-                "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
+                "handle_pong" => crate::Value::Dict(self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "request_id" => crate::Value::from(self.request_id()),
                 "separate_bids_or_asks" => Value::Arr(self.separate_bids_or_asks(args.get(0).cloned().unwrap_or(crate::Value::Null))),
@@ -90,11 +90,11 @@ impl Bullish {
         match __n {
             "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_my_trades" => { self.handle_my_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_orders" => { self.handle_orders(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_pong" => { self.handle_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_pong" => { self.handle_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_positions" => { self.handle_positions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -214,7 +214,7 @@ impl Bullish {
     Value::Null
 }
 
-    pub fn handle_pong(&self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_pong(&self, mut client: Value, message: &crate::value::Dict) -> crate::value::Dict {
         //
         //     {
         //         "id": "7",
@@ -227,9 +227,7 @@ impl Bullish {
         //     }
         //
         crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
-        return message;
-
-    Value::Null
+        return std::sync::Arc::clone(message);
 }
 
     pub async fn watch_public(&mut self, url: &str, messageHash: &str, optional_args: &[Value]) -> Value {
@@ -1156,37 +1154,36 @@ impl Bullish {
         return false;
 }
 
-    pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+    pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         let dataType: Option<String> = (match __pro_message.get("dataType").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let result: Option<crate::value::Dict> = self.safe_dict_k_o(&__pro_message, "result");
         if (result.is_some()) {
             let response: Option<String> = self.safe_string_k_opt(&result, "message", &[]);
             if (response.as_deref() == Some("Keep alive pong")) {
-                self.handle_pong(client.as_value(), message.clone());
+                Value::Dict(self.handle_pong(client.as_value(), message));
             }
         }  else if (dataType.is_some()) {
             if (dataType.as_deref() == Some("V1TAAnonymousTradeUpdate")) {
-                self.handle_trades(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
+                self.handle_trades(&client.as_value(), message);
             }
             if (dataType.as_deref() == Some("V1TATickerResponse")) {
-                self.handle_ticker(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
+                self.handle_ticker(&client.as_value(), message);
             }
             if (dataType.as_deref() == Some("V1TALevel2")) {
-                self.handle_order_book(client.as_value(), message.as_map().unwrap_or(&Default::default()));
+                self.handle_order_book(client.as_value(), message);
             }
             if (dataType.as_deref() == Some("V1TAOrder")) {
-                self.handle_orders(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
+                self.handle_orders(&client.as_value(), message);
             }
             if (dataType.as_deref() == Some("V1TATrade")) {
-                self.handle_my_trades(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
+                self.handle_my_trades(&client.as_value(), message);
             }
             if (dataType.as_deref() == Some("V1TAAssetAccount")) {
-                self.handle_balance(&client.as_value(), message.clone());
+                self.handle_balance(&client.as_value(), Value::from(message));
             }
             if (dataType.as_deref() == Some("V1TAErrorResponse")) {
-                Value::Bool(self.handle_error_message(&client.as_value(), message.as_map().unwrap_or(&Default::default())));
+                Value::Bool(self.handle_error_message(&client.as_value(), message));
             }
         }
 }

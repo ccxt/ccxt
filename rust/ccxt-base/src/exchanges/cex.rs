@@ -438,16 +438,16 @@ impl crate::exchange::DerivedExchange for Cex {
             let networkId: Option<&str> = keys.get(j as usize).and_then(Value::as_str);
             let mut rawNetwork: Option<crate::value::Dict> = (if let Some(Value::Dict(__m)) = rawNetworks.get(networkId.as_deref().unwrap_or("null")) { Some(std::sync::Arc::clone(__m)) } else { None });
             let networkCode: Option<String> = self.network_id_to_code(networkId.as_deref(), code.as_deref());
-            let deposit: Value = Value::Bool(self.safe_string_k(&rawNetwork, "deposit", &[]).as_str() == Some("enabled"));
-            let withdraw: Value = Value::Bool(self.safe_string_k(&rawNetwork, "withdrawal", &[]).as_str() == Some("enabled"));
+            let deposit: bool = self.safe_string_k(&rawNetwork, "deposit", &[]).as_str() == Some("enabled");
+            let withdraw: bool = self.safe_string_k(&rawNetwork, "withdrawal", &[]).as_str() == Some("enabled");
             if (networkCode.is_some()) {
                 networks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::from(networkId.as_deref()));
         m.insert("network".to_string(), Value::from(networkCode.as_deref()));
         m.insert("margin".to_string(), Value::Null);
-        m.insert("deposit".to_string(), deposit);
-        m.insert("withdraw".to_string(), withdraw);
+        m.insert("deposit".to_string(), Value::Bool(deposit));
+        m.insert("withdraw".to_string(), Value::Bool(withdraw));
         m.insert("active".to_string(), Value::Null);
         m.insert("fee".to_string(), self.safe_number_k(&rawNetwork, "withdrawalFee", &[]));
         m.insert("precision".to_string(), Value::from(currencyPrecision));
@@ -594,7 +594,7 @@ impl crate::exchange::DerivedExchange for Cex {
                 return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.as_str()));
-        m.insert("method".to_string(), method.clone());
+        m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyJson.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(headersJson));
     m
@@ -617,7 +617,7 @@ impl crate::exchange::DerivedExchange for Cex {
             return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.as_str()));
-        m.insert("method".to_string(), method.clone());
+        m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodySigned.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(headersSigned));
     m
@@ -688,10 +688,10 @@ impl crate::exchange_generated::ExchangeBase for Cex {
                 "sign" => Value::Dict(self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..])),
                 "transfer" => crate::types::IntoRaw::into_raw(self.transfer(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).cloned().unwrap_or_default()).await),
-                "transfer_between_main_and_sub_account" => self.transfer_between_main_and_sub_account(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
-                "transfer_between_sub_accounts" => self.transfer_between_sub_accounts(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "transfer_between_main_and_sub_account" => crate::Value::Dict(self.transfer_between_main_and_sub_account(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
+                    args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await),
+                "transfer_between_sub_accounts" => crate::Value::Dict(self.transfer_between_sub_accounts(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
+                    args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 // Fall through to the base-only methods (cancelOrderWithClientOrderId, …).
                 _ => self.call_dynamic_base(method, args).await,
             }
@@ -2488,9 +2488,9 @@ impl Cex {
         let params: crate::value::Dict = get_arg_dict(optional_args, 0);
         let mut transfer: Value = Value::Null;
         if (toAccount.as_str() != Some("")) && (fromAccount.as_str() != Some("")) {
-            transfer = self.transfer_between_sub_accounts(code.as_str().unwrap_or_default(), Value::from(amount), fromAccount.as_str().unwrap_or_default(), toAccount.as_str().unwrap_or_default(), &[&Value::from(&params)]).await;
+            transfer = Value::Dict(self.transfer_between_sub_accounts(code.as_str().unwrap_or_default(), amount, fromAccount.as_str().unwrap_or_default(), toAccount.as_str().unwrap_or_default(), &[&Value::from(&params)]).await);
         }  else {
-            transfer = self.transfer_between_main_and_sub_account(code.as_str().unwrap_or_default(), Value::from(amount), fromAccount.as_str().unwrap_or_default(), toAccount.as_str().unwrap_or_default(), &[&Value::Dict(params)]).await;
+            transfer = Value::Dict(self.transfer_between_main_and_sub_account(code.as_str().unwrap_or_default(), amount, fromAccount.as_str().unwrap_or_default(), toAccount.as_str().unwrap_or_default(), &[&Value::Dict(params)]).await);
         }
         let fillResponseFromRequest: Option<bool> = self.handle_option(Value::Str("transfer".into()), Value::Str("fillResponseFromRequest".into()), &[Value::Bool(true)]).as_bool();
         let mut filled: indexmap::IndexMap<String, Value> = ({
@@ -2506,7 +2506,7 @@ impl Cex {
         }).await?))
     }
 
-    pub async fn transfer_between_main_and_sub_account(&mut self, code: &str, mut amount: Value, fromAccount: &str, toAccount: &str, optional_args: &[&Value]) -> Value {
+    pub async fn transfer_between_main_and_sub_account(&mut self, code: &str, amount: f64, fromAccount: &str, toAccount: &str, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2521,7 +2521,7 @@ impl Cex {
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount".to_string(), Value::from(self.currency_to_precision(Some(code), amount, &[])));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(Some(code), Value::from(amount), &[])));
                 m.insert("accountId".to_string(), Value::from(targetAccount));
                 m.insert("clientTxId".to_string(), guid.map(Value::from).unwrap_or(Value::Null));
             m
@@ -2548,12 +2548,10 @@ impl Cex {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, Some(&data), Some(&currency)).map_or(Value::Null, Value::Dict);
-
-    Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, Some(&data), Some(&currency)).unwrap_or_default();
 }
 
-    pub async fn transfer_between_sub_accounts(&mut self, code: &str, mut amount: Value, fromAccount: &str, toAccount: &str, optional_args: &[&Value]) -> Value {
+    pub async fn transfer_between_sub_accounts(&mut self, code: &str, amount: f64, fromAccount: &str, toAccount: &str, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2565,7 +2563,7 @@ impl Cex {
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("amount".to_string(), Value::from(self.currency_to_precision(Some(code), amount, &[])));
+                m.insert("amount".to_string(), Value::from(self.currency_to_precision(Some(code), Value::from(amount), &[])));
                 m.insert("fromAccountId".to_string(), Value::from(fromAccount));
                 m.insert("toAccountId".to_string(), Value::from(toAccount));
             m
@@ -2581,9 +2579,7 @@ impl Cex {
         //    }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, Some(&data), Some(&currency)).map_or(Value::Null, Value::Dict);
-
-    Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, Some(&data), Some(&currency)).unwrap_or_default();
 }
 
 

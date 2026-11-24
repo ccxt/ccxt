@@ -1110,7 +1110,7 @@ impl Opinion {
         if isSlug {
             let __ws_arg_6 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("slug".to_string(), id.clone());
+        m.insert("slug".to_string(), id);
     m
 }), &[&params]);
             response = self.opinion_public_get_market_slug_slug(&[&__ws_arg_6]).await;

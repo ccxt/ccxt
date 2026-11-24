@@ -63,7 +63,7 @@ impl crate::exchange_generated::ExchangeBase for Bitrue {
                 "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
                 "convert_from_raw_quantity" => self.convert_from_raw_quantity(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "find_swap_market_by_ws_base_quote" => crate::types::IntoRaw::into_raw(self.find_swap_market_by_ws_base_quote(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
-                "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+                "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "keep_alive_listen_key" => { self.keep_alive_listen_key(&args[..]).await; crate::Value::Null },
                 "parse_contract_bids_asks" => crate::Value::Arr(self.parse_contract_bids_asks(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "parse_ws_ohlcv" => Value::Arr(self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -96,7 +96,7 @@ impl Bitrue {
             "authenticate" => crate::exchange_stubs::enqueue_spawn("authenticate", args.iter().copied().cloned().collect::<Vec<_>>()),
             "convert_from_raw_quantity" => { self.convert_from_raw_quantity(args.get(0).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_ohlcv" => { self.handle_ohlcv(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -1320,22 +1320,21 @@ if _try_result.is_err() {
         client.send(&[Value::Map(pong)]);
 }
 
-    pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
-        if (matches!(&message, Value::Dict(__d) if __d.contains_key("channel"))) {
+    pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
+        if (__pro_message.contains_key("channel")) {
             let channel: Option<String> = (match __pro_message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
             if channel.as_deref().unwrap_or_default().contains("_depth_step") {
-                self.handle_order_book(client.as_value(), message.as_map().unwrap_or(&Default::default()));
+                self.handle_order_book(client.as_value(), message);
             }  else if channel.as_deref().unwrap_or_default().contains("_trade_ticker") {
-                self.handle_trades(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
+                self.handle_trades(&client.as_value(), message);
             }  else if channel.as_deref().unwrap_or_default().contains("_kline_") {
-                self.handle_ohlcv(client.as_value(), message.as_map().unwrap_or(&Default::default()));
+                self.handle_ohlcv(client.as_value(), message);
             }  else if channel.as_deref().unwrap_or_default().contains("_ticker") {
-                self.handle_ticker(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
+                self.handle_ticker(&client.as_value(), message);
             }
-        }  else if (matches!(&message, Value::Dict(__d) if __d.contains_key("ping"))) {
-            self.handle_ping(client.as_value(), message.clone());
+        }  else if (__pro_message.contains_key("ping")) {
+            self.handle_ping(client.as_value(), Value::from(message));
         }  else {
             let event: Option<String> = (match __pro_message.get("e") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
             let handlers: indexmap::IndexMap<String, Value> = ({
@@ -1346,7 +1345,7 @@ if _try_result.is_err() {
             });
             let handler: Option<String> = self.safe_value(&handlers, event.map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
             if (handler.is_some()) {
-                self.dispatch_ws_handler(&handler, &[&client.as_value(), &message]);
+                self.dispatch_ws_handler(&handler, &[&client.as_value(), &Value::from(message)]);
             }
         }
 }

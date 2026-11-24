@@ -1750,7 +1750,7 @@ impl Upbit {
     m
 }));
         let orderbooks: crate::types::OrderBooks = (match self.fetch_order_books(Some(vec![symbol.to_string()]), limit, params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut orderbook: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(orderbooks), symbol);
+        let mut orderbook: Option<crate::value::Dict> = crate::types::RecordRows::row_dict(&orderbooks, &symbol);
         return orderbook.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -1888,7 +1888,7 @@ impl Upbit {
     m
 }));
         let tickers: crate::types::Tickers = (match self.fetch_tickers(Some(vec![symbol.to_string()]), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut ticker: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(tickers), symbol);
+        let mut ticker: Option<crate::value::Dict> = crate::types::RecordRows::row_dict(&tickers, &symbol);
         return ticker.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))

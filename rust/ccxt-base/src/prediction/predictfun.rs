@@ -2449,7 +2449,7 @@ impl Predictfun {
                 partyToParse = self.extend(partyToParse, &[Value::Map(takerParty)]);
                 flattenTrades.push(self.extend(&entry, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("partyToParse".to_string(), partyToParse.clone());
+                        m.insert("partyToParse".to_string(), partyToParse);
                     m
                 })]));
             }  else {

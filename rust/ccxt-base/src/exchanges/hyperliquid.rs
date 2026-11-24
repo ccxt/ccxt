@@ -407,9 +407,9 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         }
         let pricePrecisionStr: Option<String> = self.number_to_string(pricePrecision);
         let mut isDelisted: Option<bool> = self.safe_bool_k_opt(&market, "isDelisted", &[]);
-        let mut active: Value = Value::Bool(true);
+        let mut active: bool = true;
         if (isDelisted.is_some()) {
-            active = Value::Bool(!(isDelisted == Some(true)));
+            active = !(isDelisted == Some(true));
         }
         return Some(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -428,7 +428,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         m.insert("swap".to_string(), Value::Bool(swap));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), active);
+        m.insert("active".to_string(), Value::Bool(active));
         m.insert("contract".to_string(), Value::Bool(contract));
         m.insert("linear".to_string(), Value::Bool(true));
         m.insert("inverse".to_string(), Value::Bool(false));
@@ -1119,18 +1119,18 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_trading_fee" => crate::types::IntoRaw::into_raw(self.fetch_trading_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "handle_builder_fee_approval" => self.handle_builder_fee_approval().await,
+                "handle_builder_fee_approval" => crate::Value::from(self.handle_builder_fee_approval().await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "handle_public_address" => { let __t = self.handle_public_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "info_list" => Value::Arr(Self::info_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "initialize_client" => self.initialize_client().await,
+                "initialize_client" => crate::Value::from(self.initialize_client().await),
                 "is_unified_enabled" => { let __t = self.is_unified_enabled(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await; Value::from(vec![__t.0.map_or(Value::Null, Value::Bool), Value::Dict(__t.1)]) },
                 "market" => crate::types::IntoRaw::into_raw(self.market(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
-                "modify_margin_helper" => crate::Value::Dict(self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await),
+                "modify_margin_helper" => crate::Value::Dict(self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_create_edit_order_args" => { let __t = self.parse_create_edit_order_args(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..].iter().collect::<Vec<_>>());
+                    args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_f64), &args[6.min(args.len())..].iter().collect::<Vec<_>>());
                     Value::from(vec![Value::Dict(__t.0), Value::Dict(__t.1)]) },
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -2615,7 +2615,7 @@ impl Hyperliquid {
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let rates: crate::types::FundingRates = (match self.fetch_funding_rates((Value::from(vec![Value::from((market).symbol.clone())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut rate: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(rates), Value::from((market).symbol.clone()));
+        let mut rate: Option<crate::value::Dict> = crate::types::RecordRows::row_dict(&rates, Value::from((market).symbol.clone()));
         if (rate.is_none()) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchFundingRate() could not find a funding rate for ").into()), symbol)));
         }
@@ -3320,12 +3320,12 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub async fn initialize_client(&mut self) -> Value {
+    pub async fn initialize_client(&mut self) -> bool {
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             // each call settles before the next: they write this.options, which a parallel Promise.all would race on in Go
             let refSet: bool = self.safe_bool_k_opt(&self.options, "refSet", &[Value::Bool(false)]).unwrap_or(false);
             { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("refSet".into(), Value::Bool(true)); }
-            let feeApproved: bool = self.handle_builder_fee_approval().await.as_bool().unwrap_or_default();
+            let feeApproved: bool = self.handle_builder_fee_approval().await;
             if feeApproved {
                 { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("approvedBuilderFee".into(), Value::Bool(true)); }
             }  else {
@@ -3339,18 +3339,16 @@ if _try_result.is_err() {
                 Value::from(vec![__t.0.map_or(Value::Null, Value::Bool), Value::Dict(__t.1)]) }])).await; // for now only fetchBalance requires the unified knowledge, but we can extend this to other methods as needed
          #[allow(unreachable_code)] { Value::Null }})).await;
 if _try_result.is_err() {
-            return Value::Bool(false);
+            return false;
         }
-        return Value::Bool(true);
-
-    Value::Null
+        return true;
 }
 
-    pub async fn handle_builder_fee_approval(&mut self) -> Value {
+    pub async fn handle_builder_fee_approval(&mut self) -> bool {
         let buildFee: bool = self.safe_bool_k_opt(&self.options, "builderFee", &[Value::Bool(true)]).unwrap_or(true);
         let approvedBuilderFee: bool = self.safe_bool_k_opt(&self.options, "approvedBuilderFee", &[Value::Bool(false)]).unwrap_or(false);
         if approvedBuilderFee {
-            return Value::Bool(true);
+            return true;
         }
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let builder: String = self.safe_string_k(&self.options, "builder", &[Value::Str("0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6".into())]).as_str().unwrap_or("0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6").to_string();
@@ -3363,11 +3361,9 @@ if _try_result.is_err() {
             self.approve_builder_fee(builder.as_str(), maxFeeRate.as_str()).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if _try_result.is_err() {
-            return Value::Bool(false);
+            return false;
         }
-        return Value::Bool(true);
-
-    Value::Null
+        return true;
 }
 
 /*
@@ -3613,7 +3609,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let orderglobalParamsVariable = self.parse_create_edit_order_args(None, symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Value::from(amount), &[&Value::from(price), &Value::Dict(params)]);
+        let orderglobalParamsVariable = self.parse_create_edit_order_args(None, symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Value::from(amount), price, &[&Value::Dict(params)]);
         let order: Value = Value::Dict(orderglobalParamsVariable.0);
         let globalParams: crate::value::Dict = orderglobalParamsVariable.1;
         let orders: Vec<crate::types::Order> = (match self.create_orders(crate::types::FromRaw::from_raw(Value::from(vec![order])), Value::Dict(globalParams)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3776,7 +3772,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if (self.safe_string(&statuses, Value::Int(i), &[]).as_str() == Some("waitingForTrigger")) {
                 ordersToBeParsed.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("status".to_string(), order.clone());
+                        m.insert("status".to_string(), order);
                     m
                 })); // tp/sl orders can return a string like "waitingForTrigger",
             }  else {
@@ -4656,7 +4652,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (id == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " editOrder() requires an id argument")));
         }
-        let orderglobalParamsVariable = self.parse_create_edit_order_args(id.as_str(), symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Value::from(amount), &[&Value::from(price), &Value::Dict(params)]);
+        let orderglobalParamsVariable = self.parse_create_edit_order_args(id.as_str(), symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Value::from(amount), price, &[&Value::Dict(params)]);
         let order: Value = Value::Dict(orderglobalParamsVariable.0);
         let globalParams: crate::value::Dict = orderglobalParamsVariable.1;
         let orders: Vec<crate::types::Order> = (match self.edit_orders(crate::types::FromRaw::from_raw(Value::from(vec![order])), Value::Dict(globalParams)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -5721,7 +5717,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let params: crate::value::Dict = get_arg_dict(optional_args, 0);
-        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), "add", &[&Value::Dict(params)]).await);
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Some(amount), "add", &[&Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
@@ -5747,12 +5743,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         Ok(crate::types::FromRaw::from_raw(crate::runtime::call_typed(async move {
         let optional_args: &[Value] = &__optional_args;
         let params: crate::value::Dict = get_arg_dict(optional_args, 0);
-        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), "reduce", &[&Value::Dict(params)]).await);
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Some(amount), "reduce", &[&Value::Dict(params)]).await);
         Value::Null
         }).await?))
     }
 
-    pub async fn modify_margin_helper(&mut self, symbol: &str, mut amount: Value, type_var: &str, optional_args: &[&Value]) -> crate::value::Dict {
+    pub async fn modify_margin_helper(&mut self, symbol: &str, amount: Option<f64>, type_var: &str, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -5762,7 +5758,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let mut market: crate::types::Market = (match self.market(symbol) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let asset: Option<i64> = self.parse_to_int(Value::from((market).base_id.as_deref()));
-        let szAbs: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&Value::from(self.amount_to_precision(Some(symbol), amount)), &Value::Str("1000000".into())));
+        let szAbs: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&Value::from(self.amount_to_precision(Some(symbol), Value::from(amount))), &Value::Str("1000000".into())));
         let sz: Option<i64> = (if (type_var == "reduce") { (if let Some(__v) = szAbs { Some(-__v) } else { None }) } else { szAbs });
         let nonce: i64 = self.incrementing_nonce();
         let updateAction: indexmap::IndexMap<String, Value> = ({
@@ -5847,12 +5843,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 strAmount = Some(format!("{}{}", Value::Str(format!("{}{}", strAmount.as_deref().unwrap_or("null"), " subaccount:").into()), self.format_vault_address(vaultAddressRaw.as_deref()).map(Value::from).unwrap_or(Value::Null)));
             }
             let strAmountFinal: Option<String> = strAmount; // java req
-            let toPerp: Value = Value::Bool((toAccount.as_str() == Some("perp")) || (toAccount.as_str() == Some("swap")));
+            let toPerp: bool = (toAccount.as_str() == Some("perp")) || (toAccount.as_str() == Some("swap"));
             let transferPayload: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("hyperliquidChain".to_string(), (if isSandboxMode { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));
                     m.insert("amount".to_string(), Value::from(strAmountFinal.as_deref()));
-                    m.insert("toPerp".to_string(), toPerp.clone());
+                    m.insert("toPerp".to_string(), Value::Bool(toPerp));
                     m.insert("nonce".to_string(), Value::from(nonce));
                 m
             });
@@ -5865,7 +5861,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("signatureChainId".to_string(), Value::Str("0x66eee".into()));
         m.insert("type".to_string(), Value::Str("usdClassTransfer".into()));
         m.insert("amount".to_string(), strAmountFinal.map(Value::from).unwrap_or(Value::Null));
-        m.insert("toPerp".to_string(), toPerp);
+        m.insert("toPerp".to_string(), Value::Bool(toPerp));
         m.insert("nonce".to_string(), Value::from(nonce));
     m
 }));
@@ -6557,7 +6553,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let ois: crate::types::OpenInterests = (match self.fetch_open_interests((Value::from(vec![Value::from(symbolValue.as_str())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut openInterest: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(ois), Value::from(symbolValue));
+        let mut openInterest: Option<crate::value::Dict> = crate::types::RecordRows::row_dict(&ois, Value::from(symbolValue));
         return openInterest.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -6843,9 +6839,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub fn parse_create_edit_order_args(&self, id: Option<&str>, symbol: &str, type_var: &str, side: &str, mut amount: Value, optional_args: &[&Value]) -> (crate::value::Dict, crate::value::Dict) {
-        let price = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
+    pub fn parse_create_edit_order_args(&self, id: Option<&str>, symbol: &str, type_var: &str, side: &str, mut amount: Value, price: Option<f64>, optional_args: &[&Value]) -> (crate::value::Dict, crate::value::Dict) {
+        let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
@@ -6861,7 +6856,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("type".to_string(), Value::from(type_var));
                 m.insert("side".to_string(), Value::from(side));
                 m.insert("amount".to_string(), amount);
-                m.insert("price".to_string(), price);
+                m.insert("price".to_string(), Value::from(price));
                 m.insert("params".to_string(), Value::Dict(params2));
             m
         });

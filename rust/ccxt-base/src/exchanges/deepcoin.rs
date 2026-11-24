@@ -358,7 +358,7 @@ impl crate::exchange::DerivedExchange for Deepcoin {
         //
         let id: Option<String> = self.safe_string_k_opt(&market, "instId", &[]);
         let type_var: Option<String> = self.safe_string_lower_k_opt(&market, "instType", &[]);
-        let spot: Value = (Value::Bool(type_var.as_deref() == Some("spot")));
+        let spot: bool = type_var.as_deref() == Some("spot");
         let swap: bool = type_var.as_deref() == Some("swap");
         let baseId: Option<String> = self.safe_string_k_opt(&market, "baseCcy", &[]);
         let quoteId: String = self.safe_string_k(&market, "quoteCcy", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -387,7 +387,7 @@ impl crate::exchange::DerivedExchange for Deepcoin {
         let maxLimitSize: Option<String> = self.safe_string_k_opt(&market, "maxLmtSz", &[]);
         let maxAmount: Option<f64> = self.parse_number(crate::precise::Precise::stringMax(&maxMarketSize, &maxLimitSize), &[]).as_f64();
         let state: Option<String> = self.safe_string_k_opt(&market, "state", &[]);
-        let isMargin: Value = Value::Bool(matches!(&spot, Value::Bool(true)) && crate::precise::Precise::stringGt(&maxLeverage, &Value::Str("1".into())).as_bool() == Some(true));
+        let isMargin: bool = spot && crate::precise::Precise::stringGt(&maxLeverage, &Value::Str("1".into())).as_bool() == Some(true);
         let isInverse: Value = (if swap { (Value::Bool(isLinear != Some(true))) } else { Value::Null });
         let __ws_arg_2 = self.safe_number_k(&market, "ctVal", &[]);
         let __ws_arg_3 = self.safe_number_k(&market, "lotSz", &[]);
@@ -406,8 +406,8 @@ impl crate::exchange::DerivedExchange for Deepcoin {
         m.insert("quoteId".to_string(), Value::from(quoteId));
         m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
-        m.insert("spot".to_string(), spot);
-        m.insert("margin".to_string(), isMargin);
+        m.insert("spot".to_string(), Value::Bool(spot));
+        m.insert("margin".to_string(), Value::Bool(isMargin));
         m.insert("swap".to_string(), Value::Bool(swap));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
@@ -836,7 +836,7 @@ impl crate::exchange::DerivedExchange for Deepcoin {
             return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.as_str()));
-        m.insert("method".to_string(), method.clone());
+        m.insert("method".to_string(), method);
         m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(privateHeaders));
     m
@@ -874,8 +874,8 @@ impl crate::exchange_generated::ExchangeBase for Deepcoin {
                 "create_market_sell_order_with_cost" => crate::types::IntoRaw::into_raw(self.create_market_sell_order_with_cost(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_order_request" => crate::Value::Dict(self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null),
-                    &args[4.min(args.len())..].iter().collect::<Vec<_>>())),
+                "create_order_request" => crate::Value::Dict(self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64),
+                    args.get(4).and_then(crate::Value::as_f64), &args[5.min(args.len())..].iter().collect::<Vec<_>>())),
                 "create_regular_order_request" => crate::Value::Dict(self.create_regular_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_f64), args.get(4).and_then(crate::Value::as_f64),
                     &args[5.min(args.len())..].iter().collect::<Vec<_>>())),
                 "create_trigger_order_request" => crate::Value::Dict(self.create_trigger_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_f64), args.get(4).and_then(crate::Value::as_f64),
@@ -2665,7 +2665,7 @@ impl Deepcoin {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let triggerPrice: Option<String> = self.safe_string_k_opt(&params, "triggerPrice", &[]);
-        let request: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Value::from(amount), &[&Value::from(price), &Value::Dict(params)]);
+        let request: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), Some(amount), price, &[&Value::Dict(params)]);
         let mut response: Option<crate::value::Dict> = None;
         if (triggerPrice.is_some()) {
             // trigger orders
@@ -2697,9 +2697,8 @@ impl Deepcoin {
         }).await?))
     }
 
-    pub fn create_order_request(&self, symbol: Option<&str>, type_var: &str, side: &str, mut amount: Value, optional_args: &[&Value]) -> crate::value::Dict {
-        let price = get_arg(optional_args, 0, Value::Null);
-        let params = get_arg(optional_args, 1, Value::Map({
+    pub fn create_order_request(&self, symbol: Option<&str>, type_var: &str, side: &str, amount: Option<f64>, price: Option<f64>, optional_args: &[&Value]) -> crate::value::Dict {
+        let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
@@ -2726,9 +2725,9 @@ impl Deepcoin {
             }
         }
         if isTriggerOrder {
-            return self.create_trigger_order_request(symbol, Some(type_var), Some(side), amount.as_f64(), price.as_f64(), &[&params]);
+            return self.create_trigger_order_request(symbol, Some(type_var), Some(side), amount, price, &[&params]);
         }  else {
-            return self.create_regular_order_request(symbol, Some(type_var), Some(side), amount.as_f64(), price.as_f64(), &[&params]);
+            return self.create_regular_order_request(symbol, Some(type_var), Some(side), amount, price, &[&params]);
         }
 }
 

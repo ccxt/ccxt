@@ -1553,7 +1553,7 @@ impl Bigone {
         let promises: crate::value::List = std::sync::Arc::new(vec![self.public_get_asset_pairs(&[&params]).await, self.call_method(Value::Str("contract_public_get_symbols".into()), &[&params]).await]);
         let promisesResult: crate::value::List = promise_all(&Value::Arr(promises)).await;
         let response: crate::value::Dict = self.safe_dict_t(&promisesResult, Value::Int(0));
-        let contractResponse: Value = self.safe_value(&promisesResult, Value::Int(1), &[]);
+        let contractMarkets: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_t(&promisesResult, Value::Int(1)));
         //
         //     {
         //         "code":0,
@@ -1688,7 +1688,6 @@ impl Bigone {
 })])));
         }
         }
-        let contractMarkets: Vec<crate::value::Dict> = crate::value::dict_rows(self.to_array_t(contractResponse));
         {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
@@ -1830,7 +1829,7 @@ impl Bigone {
             return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market)).map_or(Value::Null, Value::Dict);
         }  else {
             let tickers: crate::types::Tickers = (match self.fetch_tickers(Some(vec![symbol.to_string()]), Value::Dict(paramsMarketType)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut spotTicker: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(tickers), symbol);
+            let mut spotTicker: Option<crate::value::Dict> = crate::types::RecordRows::row_dict(&tickers, &symbol);
             return spotTicker.map_or(Value::Null, Value::Dict);
         }
         Value::Null

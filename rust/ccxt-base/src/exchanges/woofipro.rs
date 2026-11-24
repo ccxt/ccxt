@@ -4878,7 +4878,7 @@ impl Woofipro {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let marginModes: crate::types::MarginModes = (match self.fetch_margin_modes((Value::from(vec![Value::from((market).symbol.clone())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut marginMode: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(marginModes), Value::from((market).symbol.clone()));
+        let mut marginMode: Option<crate::value::Dict> = crate::types::RecordRows::row_dict(&marginModes, Value::from((market).symbol.clone()));
         if (marginMode.is_none()) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchMarginMode() did not return a margin mode for ").into()), (market).symbol)));
         }

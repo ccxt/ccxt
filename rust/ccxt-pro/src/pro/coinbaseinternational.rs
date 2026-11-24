@@ -1052,19 +1052,19 @@ impl Coinbaseinternational {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let tickers: Value = crate::types::IntoRaw::into_raw(self.watch_tickers(symbols, Value::Dict(paramsResolved)).await);
+        let tickers: crate::types::Tickers = (match self.watch_tickers(symbols, Value::Dict(paramsResolved)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut result: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
         });
-        let tickerSymbols: Vec<Value> = object_keys(&tickers).as_array().cloned().unwrap_or_default();
+        let tickerSymbols: Vec<Value> = Value::Array(tickers.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let tickerSymbolsLength: i64 = tickerSymbols.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_8: bool = true;
             while { if !__for_first_8 { i += 1; } __for_first_8 = false; i < tickerSymbolsLength } {
             let symbol: Option<String> = tickerSymbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let ticker: indexmap::IndexMap<String, Value> = (if let (Some(__m), Some(__k)) = (tickers.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().cloned().unwrap_or_default();
+            let ticker: indexmap::IndexMap<String, Value> = (match symbol.as_deref() { Some(__k) => crate::value::KeyRead::key_read(&&tickers, __k), None => Value::Null }).as_map().cloned().unwrap_or_default();
             let __ws_arg_7 = self.extend(Value::Map({
     let m = indexmap::IndexMap::new();
     m

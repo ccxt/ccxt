@@ -759,7 +759,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
                 return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.as_str()));
-        m.insert("method".to_string(), method.clone());
+        m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyStream.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(headersStream));
     m
@@ -809,7 +809,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
             return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.as_str()));
-        m.insert("method".to_string(), method.clone());
+        m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodySigned.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(headersSigned));
     m

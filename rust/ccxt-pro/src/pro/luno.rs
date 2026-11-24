@@ -101,7 +101,7 @@ impl crate::exchange_generated::ExchangeBase for Luno {
             match method {
                 "custom_parse_bid_ask" => Value::Arr(self.custom_parse_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>())),
                 "custom_parse_order_book" => crate::Value::Dict(self.custom_parse_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>())),
-                "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
+                "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); crate::Value::Null },
                 "is_order_book_delta_in_sequence" => self.is_order_book_delta_in_sequence(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "parse_order_book_bids_asks" => Value::Arr(self.parse_order_book_bids_asks(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -124,8 +124,8 @@ impl Luno {
             "custom_parse_bid_ask" => { Value::Arr(self.custom_parse_bid_ask(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])); },
             "custom_parse_order_book" => { self.custom_parse_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]); },
             "handle_book_delta" => { self.handle_book_delta(&mut <Option<crate::pro::order_book::Book>>::from(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
+            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, args.get(2).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "is_order_book_delta_in_sequence" => { self.is_order_book_delta_in_sequence(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default()); },
             "parse_order_book_bids_asks" => { Value::Arr(self.parse_order_book_bids_asks(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>())); },
@@ -354,9 +354,8 @@ impl Luno {
         }).await?))
     }
 
-    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value, subscription: &indexmap::IndexMap<String, Value>) {
-        let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
-        let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
+    pub fn handle_order_book(&mut self, mut client: Value, message: &crate::value::Dict, subscription: &indexmap::IndexMap<String, Value>) {
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         //
         //     {
         //         "sequence": "24352",
@@ -401,16 +400,16 @@ impl Luno {
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         let asks: Option<crate::value::List> = (match __pro_message.get("asks").cloned() { Some(Value::Arr(__l)) => Some(__l), _ => None });
         if (asks.is_none()) {
-            let inSequence: bool = self.is_order_book_delta_in_sequence(client.clone(), message.as_map().unwrap_or(&Default::default()), symbol.as_str()).as_bool() == Some(true);
+            let inSequence: bool = self.is_order_book_delta_in_sequence(client.clone(), message, symbol.as_str()).as_bool() == Some(true);
             if !inSequence {
                 return;
             }
         }
         if (asks.is_some()) {
-            let snapshot: crate::value::Dict = self.custom_parse_order_book(message.clone(), Value::from(symbol), &[&Value::from(timestamp), &Value::Str("bids".into()), &Value::Str("asks".into()), &Value::Str("price".into()), &Value::Str("volume".into()), &Value::Str("id".into())]);
+            let snapshot: crate::value::Dict = self.custom_parse_order_book(Value::from(message), Value::from(symbol), &[&Value::from(timestamp), &Value::Str("bids".into()), &Value::Str("asks".into()), &Value::Str("price".into()), &Value::Str("volume".into()), &Value::Str("id".into())]);
             orderbook.reset(Value::Dict(snapshot));
         }  else {
-            self.handle_book_delta(&mut orderbook, message);
+            self.handle_book_delta(&mut orderbook, Value::from(message));
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         }
@@ -649,14 +648,14 @@ impl Luno {
     Value::Null
 }
 
-    pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
+    pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
         let subscriptions: Vec<Value> = object_values(&(client).subscriptions).as_array().cloned().unwrap_or_default();
         let subscriptionsLength: i64 = subscriptions.len() as i64;
         if (subscriptionsLength == 0) {
             return;
         }
         let subscription: crate::value::Dict = self.safe_dict_t(&subscriptions, Value::Int(0));
-        self.handle_order_book(client.as_value(), message.clone(), &subscription);
-        self.handle_trades(&client.as_value(), message.as_map().unwrap_or(&Default::default()), &subscription);
+        self.handle_order_book(client.as_value(), message, &subscription);
+        self.handle_trades(&client.as_value(), message, &subscription);
 }
 }

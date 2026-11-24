@@ -6458,7 +6458,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let riskLimits: Option<crate::value::List> = self.safe_list_k_o(&data, "riskLimits");
-        return self.parse_leverage_tiers(&riskLimits, &[symbols, Value::Str("symbol".into())]);
+        return Value::Dict(self.parse_leverage_tiers(&riskLimits, &[symbols, Value::Str("symbol".into())]));
         Value::Null
         }).await?))
     }
@@ -6575,7 +6575,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
                     m.insert("moveOp".to_string(), Value::from(direction));
-                    m.insert("amountEv".to_string(), scaledAmmount.clone());
+                    m.insert("amountEv".to_string(), scaledAmmount);
                 m
             });
             let __ws_arg_64 = self.extend(request, &[&params]);

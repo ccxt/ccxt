@@ -914,7 +914,7 @@ impl crate::exchange::DerivedExchange for Lbank {
             return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url.as_str()));
-        m.insert("method".to_string(), method.clone());
+        m.insert("method".to_string(), method);
         m.insert("body".to_string(), Value::from(bodySigned));
         m.insert("headers".to_string(), Value::Map(headersSigned));
     m
@@ -2064,7 +2064,7 @@ impl Lbank {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if (market).swap {
             let responseForSwap: crate::types::Tickers = (match self.fetch_tickers((Value::from(vec![Value::from((market).symbol.clone())])).to_opt_str_vec(), params.clone()).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut swapTicker: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(responseForSwap), Value::from((market).symbol.clone()));
+            let mut swapTicker: Option<crate::value::Dict> = crate::types::RecordRows::row_dict(&responseForSwap, Value::from((market).symbol.clone()));
             return swapTicker.map_or(Value::Null, Value::Dict);
         }
         let request: indexmap::IndexMap<String, Value> = ({
@@ -2463,7 +2463,7 @@ impl Lbank {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let responseForSwap: crate::types::FundingRates = (match self.fetch_funding_rates((Value::from(vec![Value::from((market).symbol.clone())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut fundingRate: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(responseForSwap), Value::from((market).symbol.clone()));
+        let mut fundingRate: Option<crate::value::Dict> = crate::types::RecordRows::row_dict(&responseForSwap, Value::from((market).symbol.clone()));
         return fundingRate.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -2651,7 +2651,7 @@ impl Lbank {
     m
 })]);
         let result: crate::types::TradingFees = (match self.fetch_trading_fees(__ws_arg_10).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut fee: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(result), symbol);
+        let mut fee: Option<crate::value::Dict> = crate::types::RecordRows::row_dict(&result, &symbol);
         return fee.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))

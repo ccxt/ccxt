@@ -1061,7 +1061,7 @@ impl crate::exchange::DerivedExchange for Bullish {
                 let signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(&self.secret), "sha256", &[Value::Str("hex".into())]);
                 headers = Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("BX-TIMESTAMP".to_string(), timestamp.clone());
+                        m.insert("BX-TIMESTAMP".to_string(), timestamp);
                         m.insert("BX-NONCE".to_string(), Value::from(nonce.as_str()));
                         m.insert("BX-SIGNATURE".to_string(), Value::from(signature));
                     m

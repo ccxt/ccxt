@@ -2817,7 +2817,7 @@ impl Poloniex {
         });
         if (market).contract {
             let tickers: crate::types::Tickers = (match self.fetch_tickers((Value::from(vec![Value::from((market).symbol.clone())])).to_opt_str_vec(), params.clone()).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut contractTicker: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(tickers), symbol);
+            let mut contractTicker: Option<crate::value::Dict> = crate::types::RecordRows::row_dict(&tickers, &symbol);
             return contractTicker.map_or(Value::Null, Value::Dict);
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);

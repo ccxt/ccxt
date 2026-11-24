@@ -2012,7 +2012,7 @@ impl Alpaca {
         }
         let symbolValue: String = self.symbol(symbol.as_str());
         let tickers: crate::types::Tickers = (match self.fetch_tickers((Value::from(vec![Value::from(symbolValue.as_str())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut ticker: Option<crate::value::Dict> = self.safe_dict_o(crate::types::IntoRaw::into_raw(tickers), Value::from(symbolValue));
+        let mut ticker: Option<crate::value::Dict> = crate::types::RecordRows::row_dict(&tickers, Value::from(symbolValue));
         return ticker.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
