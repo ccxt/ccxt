@@ -964,7 +964,8 @@ export default class modetrade extends modetradeRest {
             if (tradeId !== undefined) {
                 this.handleMyTrade (client, data);
             }
-            this.handleOrder (client, data, topic);
+            const dataDict = this.safeDict (message, 'data', {});
+            this.handleOrder (client, dataDict, topic);
         }
     }
 

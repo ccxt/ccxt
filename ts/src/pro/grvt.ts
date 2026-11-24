@@ -953,7 +953,7 @@ export default class grvt extends grvtRest {
         client.resolve (this.orders, 'order::' + this.safeString (order, 'symbol', ''));
     }
 
-    override parseWsOrder (order: any, market: Market = undefined): Order {
+    override parseWsOrder (order: Dict, market: Market = undefined): Order {
         // same as REST api
         return this.parseOrder (this.extend ({}, order), market);
     }

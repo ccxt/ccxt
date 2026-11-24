@@ -2068,7 +2068,7 @@ export default class kucoin extends kucoinRest {
         return this.safeString (statuses, status, status);
     }
 
-    override parseWsOrder (order: any, market: Market = undefined) {
+    override parseWsOrder (order: Dict, market: Market = undefined) {
         //
         // /spotMarket/tradeOrders
         //
@@ -2278,7 +2278,7 @@ export default class kucoin extends kucoinRest {
         //        "type": "open"
         //    }
         //
-        const data = this.safeDict (message, 'data');
+        const data = this.safeDict (message, 'data', {});
         const tradeId = this.safeString (data, 'tradeId');
         if (tradeId !== undefined) {
             this.handleMyTrade (client, message);

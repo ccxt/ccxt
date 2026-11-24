@@ -4989,9 +4989,9 @@ export default class binance extends binanceRest {
         let messageValue: Dict = message;
         if ((e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE')) {
             messageValue = orderValue;
-            if ((e === 'ALGO_UPDATE') && (this.safeInteger (messageValue, 'T') === undefined)) {
+            if ((e === 'ALGO_UPDATE') && (this.safeInteger (orderValue, 'T') === undefined)) {
                 // keep the outer event time, the algo payload carries no timestamps
-                messageValue = this.extend (messageValue, { 'T': this.safeInteger (message, 'T') });
+                messageValue = this.extend (orderValue, { 'T': this.safeInteger (message, 'T') });
             }
         }
         if ((e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE')) {

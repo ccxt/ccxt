@@ -1021,7 +1021,7 @@ export default class poloniex extends poloniexRest {
         const orders = this.orders;
         const marketIds: string[] = [];
         for (let i = 0; i < data.length; i++) {
-            const order = this.safeDict (data, i);
+            const order = this.safeDict (data, i, {});
             const marketId = this.safeString (order, 'symbol');
             const eventType = this.safeString (order, 'eventType');
             if (marketId !== undefined) {
@@ -1106,7 +1106,7 @@ export default class poloniex extends poloniexRest {
         return message;
     }
 
-    override parseWsOrder (order: any, market: Market = undefined) {
+    override parseWsOrder (order: Dict, market: Market = undefined) {
         //
         //    {
         //        "symbol": "BTC_USDT",

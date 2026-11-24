@@ -1483,7 +1483,7 @@ export default class hitbtc extends hitbtcRest {
             const parsedOrders: Order[] = [];
             const rowsLength = rows.length;
             for (let i = 0; i < rowsLength; i++) {
-                const parsedOrder = this.parseWsOrder (rows[i]);
+                const parsedOrder = this.parseWsOrder (this.safeDict (rows, i, {}));
                 parsedOrders.push (parsedOrder);
             }
             client.resolve (parsedOrders, messageHash);

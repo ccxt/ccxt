@@ -1979,6 +1979,9 @@ const WS_HANDLER_IDICT_MESSAGE: Record<string, string[]> = {
     kucoin: [ 'handleOrderBookSubscription' ],
     woo: [ 'handleOrderBookSubscription' ],
 };
+// handleOrder: every caller passes a dict-typed local (binance messageValue / normalizedOrder, modetrade order / dataDict)
+WS_HANDLER_IDICT_MESSAGE.binance.push ('handleOrder');
+WS_HANDLER_IDICT_MESSAGE.modetrade.push ('handleOrder');
 
 // `sign()` / `handleErrors()` parameter types keyed by POSITION (overrides rename parameters; types are
 // invariant), matching the hand-written base Exchange.cs. No `Var` shadow: every body write is a literal or
