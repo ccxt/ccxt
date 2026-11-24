@@ -12576,6 +12576,9 @@ function goTypedRecvLocals (content: string): string {
 // the `[]any` slot of ParseOpenInterests / ParseMarkets, ToArray and IndexBy: both read a nil slice as untyped nil),
 // so x takes the receive's type and the guard goes.
 const GO_NIL_FOLD_READERS = /^(?:this\.(?:Safe(?:String|Integer|Number|Bool|Float|Dict|List|Value|Timestamp)\w*|IsEmpty|ToArray|IndexBy)|(?:ccxt\.)?(?:SafeMapTyped|SafeListTyped\w*|GetValue|GetArrayLength)|this\.(?:ParseOpenInterests|ParseMarkets))\($/;
+// Readers that only hand their first argument to ToArray: a nil []any and the untyped nil both give a nil slice (a nil
+// map would give []any{}), so they are admitted for a []any fold only.
+const GO_NIL_FOLD_LIST_READERS = /^this\.(?:ParseLedger|ParseTransactions|ParseCurrencies|FilterBySymbolSinceLimit|FilterByArray)\($/;
 function goTypedNilFoldLocals (content: string): string {
     if (!/\n\t+var \w+ any = nil\n\t+if r\d*\.Value != nil \{\n/.test (content)) {
         return content;
@@ -12612,7 +12615,8 @@ function goTypedNilFoldLocals (content: string): string {
             const after = rest.substring (u.index + name.length, u.index + name.length + 8);
             const reader = /((?:this\.|ccxt\.)?\w+\()$/.exec (before);
             const nilTest = /^ [!=]= nil\b/.test (after) && !/IsEqual\($/.test (before);
-            safe = nilTest || ((reader !== null) && GO_NIL_FOLD_READERS.test (reader[1]) && /^[,)]/.test (after));
+            const listReader = (reader !== null) && (type === '[]any') && GO_NIL_FOLD_LIST_READERS.test (reader[1]);
+            safe = nilTest || ((reader !== null) && (GO_NIL_FOLD_READERS.test (reader[1]) || listReader) && /^[,)]/.test (after));
         }
         if (!safe || new RegExp ('&' + name + '\\b|var ' + name + '\\b|' + name + '\\s*[-+*/]?:?=(?!=)').test (rest)) {
             continue;
@@ -12767,6 +12771,8 @@ function goTypedNilFoldLocalsCheck (ok: SelfTestOk): void {
     ok (out.includes ('\tvar d any = nil\n'), 'fold handed on as a value kept: ' + out);
     const arr = goTypedNilFoldLocals ('package ccxt\n\nfunc (this *Zz) g() any {\n' + fold ('r', 'FetchOrdersAsync()', 'e', 'OrdersToList(r.Value)') + '\treturn this.ToArray(e)\n}\n');
     ok (arr.includes ('\tvar e []any = OrdersToList(r.Value)\n'), 'ToArray-read fold typed: ' + arr);
+    const led = goTypedNilFoldLocals ('package ccxt\n\nfunc (this *Zz) h() any {\n' + fold ('r', 'FetchOrdersAsync()', 'g', 'OrdersToList(r.Value)') + fold ('r1', 'FetchOrdersAsync()', 'k', 'OrdersToList(r1.Value)') + '\treturn []any{this.ParseLedger(g, nil), this.FilterBy(k, "s", "o")}\n}\n');
+    ok (led.includes ('\tvar g []any = OrdersToList(r.Value)\n') && led.includes ('\tvar k any = nil\n'), 'ToArray-only reader fold typed, FilterBy kept: ' + led);
 }
 
 // `var x map[string]any = SafeMapTyped(m, k)` with `m` one map[string]any declaration and a literal or string key: the
