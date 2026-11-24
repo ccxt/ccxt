@@ -1626,8 +1626,8 @@ function javaRepoMethodUsesIndex (): any {
     return javaRepoMethodIndex;
 }
 
-// Every Java declaration of a method name in java/lib and java/tests, as parameter type lists; a name with a
-// varargs, generic or multi-line declaration answers undefined (unknown), and so does a missing Java tree.
+// Every hand-written Java declaration of a method name in java/lib and java/tests, as parameter type lists; a name
+// with a varargs, generic or multi-line declaration answers undefined (unknown), and so does a missing Java tree.
 let javaDeclarationIndex: Map<string, string[][] | undefined> | undefined;
 function javaDeclarationsIndex (): Map<string, string[][] | undefined> {
     if (javaDeclarationIndex !== undefined) {
@@ -1653,10 +1653,12 @@ function javaDeclarationsIndex (): Map<string, string[][] | undefined> {
                 visit (full);
                 continue;
             }
-            if (!entry.name.endsWith ('.java')) {
+            if (!entry.name.endsWith ('.java') || /[\\/]io[\\/]github[\\/]ccxt[\\/]exchanges[\\/]/.test (full)) {
                 continue;
             }
-            for (const line of fs.readFileSync (full, 'utf8').split ('\n')) {
+            // venue classes and the base tiers below the delimiter are counted from their TS declarations
+            // below, so the answer never depends on the tree an earlier print left behind
+            for (const line of fs.readFileSync (full, 'utf8').split ('// METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT')[0].split ('\n')) {
                 if (line.length > 400 || !line.includes ('(')) {
                     continue;
                 }
@@ -1699,8 +1701,69 @@ function javaDeclarationsIndex (): Map<string, string[][] | undefined> {
     };
     visit (path.resolve (__dirname, '..', 'java', 'lib', 'src', 'main', 'java'));
     visit (path.resolve (__dirname, '..', 'java', 'tests', 'src'));
+    javaAddPrintedDeclarations (index);
     javaDeclarationIndex = index;
     return index;
+}
+
+// TS parameter aliases whose Java slot type is fixed; any other spelling stays distinct (keeps the cast)
+const JAVA_TS_PARAMETER_TYPES: Record<string, string> = { 'string': 'String', 'Str': 'String', 'Dict': 'Map<String,Object>', 'NullableDict': 'Map<String,Object>', 'Market': 'Map<String,Object>', 'Int': 'Long', 'any': 'Object' };
+function javaPrintedTypeOfTs (text: string): string {
+    return JAVA_TS_PARAMETER_TYPES[text] ?? ('ts:' + text);
+}
+
+// every non-override ts/src class method is one printed Java declaration per distinct TS parameter-type list;
+// an override prints its ancestor's Java parameter types, so it adds none; two TS spellings count twice (keeps the cast)
+function javaAddPrintedDeclarations (index: Map<string, string[][] | undefined>): void {
+    const handWritten = new Set (index.keys ());
+    const visitDir = (dir: string) => {
+        if (!fs.existsSync (dir)) {
+            return;
+        }
+        for (const entry of fs.readdirSync (dir, { withFileTypes: true }).sort ((a, b) => (a.name < b.name ? -1 : (a.name > b.name ? 1 : 0)))) {
+            const full = path.join (dir, entry.name);
+            if (entry.isDirectory ()) {
+                if (entry.name !== 'static_dependencies' && entry.name !== 'node_modules') {
+                    visitDir (full);
+                }
+                continue;
+            }
+            const text = isTsIndexSource (entry.name) && !/\.nooverloads\.\d+\.ts$/.test (entry.name) ? readTsIndexSource (full) : undefined;
+            if (text === undefined) {
+                continue;
+            }
+            const source: any = ts.createSourceFile (full, text, ts.ScriptTarget.Latest, true);
+            const inBase = /[\\/]ts[\\/]src[\\/]base[\\/]/.test (full);
+            // top-level class members only: walking every method body materializes the whole ts/src AST
+            const visit = (n: any) => {
+                if (ts.isMethodDeclaration (n) && n.body !== undefined && n.name !== undefined && ts.isIdentifier (n.name)) {
+                    const name = n.name.text;
+                    if (inBase && handWritten.has (name)) {
+                        // a base method Java declares by hand is not printed
+                    } else if ((ts.getModifiers (n) ?? []).some ((m: any) => m.kind === ts.SyntaxKind.OverrideKeyword)) {
+                        // an override keeps its ancestor's printed Java parameter types
+                    } else if (index.has (name) && index.get (name) === undefined) {
+                        // unknown stays unknown
+                    } else if (n.parameters.some ((p: any) => p.dotDotDotToken !== undefined)) {
+                        index.set (name, undefined);
+                    } else {
+                        const types = n.parameters.map ((p: any) => javaPrintedTypeOfTs (p.type === undefined ? 'any' : p.type.getText (source).replace (/\s+/g, '')));
+                        const list = index.get (name) ?? [];
+                        if (!list.some ((t) => t.join (',') === types.join (','))) {
+                            list.push (types);
+                        }
+                        index.set (name, list);
+                    }
+                }
+            };
+            for (const statement of source.statements) {
+                if (ts.isClassDeclaration (statement)) {
+                    statement.members.forEach (visit);
+                }
+            }
+        }
+    };
+    visitDir (path.resolve (__dirname, '..', 'ts', 'src'));
 }
 
 // main process only: scan the Java tree once, before any worker starts or any Java file is rewritten
