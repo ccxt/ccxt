@@ -6716,6 +6716,10 @@ export function csharpTypeOfValue (csharp, node, context) {
         if (listBucketMapStringKeyRead (csharp, node, context)) {
             return 'List<object>';
         }
+        // a string-keyed read of the hand-written `IDictionary<string, List<object>> markets_by_id` (or a local holding it)
+        if (listValuedMemberRead (csharp, node, context)) {
+            return 'List<object>';
+        }
         break;
     }
     case ts.SyntaxKind.NewExpression: {
@@ -25419,3 +25423,20 @@ csharpLocalDeclaration = function (csharp, declaration, context) {
     }
     return { type: TUPLE_SLOT_DICT_TYPE };
 };
+
+// `this.markets_by_id[k]` / `m[k]` with `m` typed by it: the declared value type (null when the key is missing)
+function listValuedMemberRead (csharp, node, context) {
+    const receiver = stripParens (node.expression);
+    const key = stripParens (node.argumentExpression);
+    if (receiver === undefined || key === undefined || csharpWriteTarget (node)) {
+        return false;
+    }
+    const receiverType = (receiver.kind === ts.SyntaxKind.PropertyAccessExpression && receiver.expression?.kind === ts.SyntaxKind.ThisKeyword)
+        ? CSHARP_LOCAL_WS_MEMBER_TYPES[receiver.name?.text]
+        : csharpTypeOfValue (csharp, receiver, context);
+    if (receiverType !== 'IDictionary<string, List<object>>') {
+        return false;
+    }
+    // the guarded print `m[(string)k]` yields the declared value type whatever the key's box
+    return !ts.isNumericLiteral (key);
+}
