@@ -17163,6 +17163,8 @@ export const SIGNATURE_ARG_TYPES = {
     'handleDelta': { 0: 'ccxt.pro.IOrderBookSide' },
     // `orderbook: NullableDict` on the base and every override; no body writes it, the only caller passes a dict
     'getCacheIndex': { 0: 'IDictionary<string, object>' },
+    // `info: Dict` on the base and every override; bodies only read it, both callers pass a dictionary
+    'parseIsolatedBorrowRate': { 0: 'IDictionary<string, object>' },
 };
 
 // parse* cores whose `market: Market` parameter prints `IDictionary<string, object>` on every
