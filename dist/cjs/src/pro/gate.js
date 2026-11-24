@@ -913,10 +913,9 @@ class gate extends gate$1["default"] {
         }
         const isTicker = (objectName === 'ticker'); // whether ticker or bid-ask
         for (let i = 0; i < results.length; i++) {
-            const rawTicker = results[i];
-            const marketId = this.safeString(rawTicker, 's');
+            const marketId = this.safeString(results[i], 's');
             const market = this.safeMarket(marketId, undefined, '_', marketType);
-            const parsedItem = this.parseTicker(rawTicker, market);
+            const parsedItem = this.parseTicker(this.safeDict(results, i, {}), market);
             const symbol = parsedItem['symbol'];
             if (isTicker) {
                 if (symbol !== undefined) {
@@ -1485,18 +1484,19 @@ class gate extends gate$1["default"] {
         if (!this.isEmpty(symbolsNormalized)) {
             market = this.getMarketFromSymbols(symbolsNormalized);
         }
-        let type = undefined;
-        let query = undefined;
-        [type, query] = this.handleMarketTypeAndParams('watchPositions', market, params);
-        if (type === 'spot') {
+        const [marketType, marketQuery] = this.handleMarketTypeAndParams('watchPositions', market, params);
+        let query = marketQuery;
+        let type = marketType;
+        let messageHash = marketType + ':positions';
+        if (marketType === 'spot') {
             type = 'swap';
+            messageHash = 'swap:positions';
         }
         const typeId = this.getSupportedMapping(type, {
             'future': 'futures',
             'swap': 'futures',
             'option': 'options',
         });
-        let messageHash = type + ':positions';
         if (!this.isEmpty(symbolsNormalized)) {
             if (symbolsNormalized === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' watchPositions() symbols is required');

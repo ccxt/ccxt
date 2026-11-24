@@ -344,7 +344,7 @@ export default class myriad extends Exchange {
     async fetchEvent(id, params = {}) {
         if (id.indexOf(':') < 0) {
             const rawQuestion = await this.fetchRawQuestionById(id, params);
-            const orderBookEvent = this.parseEvent(rawQuestion);
+            const orderBookEvent = this.parseEvent(this.extend({}, rawQuestion));
             this.indexEventOutcomes(orderBookEvent);
             return orderBookEvent;
         }
@@ -3029,8 +3029,7 @@ export default class myriad extends Exchange {
         const result = [];
         const rawQuestionsLength = rawQuestions.length;
         for (let i = 0; i < rawQuestionsLength; i++) {
-            const rawQuestion = rawQuestions[i];
-            const ev = this.parseEvent(rawQuestion);
+            const ev = this.parseEvent(this.safeDict(rawQuestions, i, {}));
             const evMarkets = this.safeList(ev, 'markets', []);
             const evMarketsLength = evMarkets.length;
             const filteredMarkets = [];

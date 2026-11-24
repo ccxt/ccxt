@@ -1134,8 +1134,7 @@ class phemex extends phemex$1["default"] {
                 const baseCurrency = this.safeString(market, 'baseCurrency');
                 const currencyValues = this.safeDict(currenciesByCode, baseCurrency, {});
                 const valueScale = this.safeString(currencyValues, 'valueScale', '8');
-                market = this.extend(market, { 'valueScale': valueScale });
-                market = this.parseSpotMarket(market);
+                market = this.parseSpotMarket(this.extend(market, { 'valueScale': valueScale }));
             }
             if (market !== undefined) {
                 result.push(market);

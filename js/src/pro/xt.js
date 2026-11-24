@@ -1650,9 +1650,10 @@ export default class xt extends xtRest {
                 delete client.subscriptions['token'];
             }
             this.getListenKey(true);
-            return;
+            return false;
         }
         const error = new ExchangeError(this.id + ' ' + this.json(message));
         client.reject(error);
+        return false;
     }
 }

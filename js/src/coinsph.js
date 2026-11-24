@@ -957,7 +957,7 @@ export default class coinsph extends Exchange {
         else {
             ticker = await this.publicGetOpenapiQuoteV1Ticker24hr(this.extend(request, params));
         }
-        return this.parseTicker(ticker, market);
+        return this.parseTicker(this.extend({}, ticker), market);
     }
     parseTicker(ticker, market = undefined) {
         //

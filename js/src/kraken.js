@@ -1164,7 +1164,8 @@ export default class kraken extends Exchange {
         };
         const response = await this.publicGetTicker(this.extend(request, params));
         const tickerResult = this.safeDict(response, 'result', {});
-        return this.parseTicker(this.safeDict(tickerResult, market['id'], {}), market);
+        const marketId = this.safeString(market, 'id', '');
+        return this.parseTicker(this.safeDict(tickerResult, marketId, {}), market);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //

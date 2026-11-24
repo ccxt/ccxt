@@ -1,5 +1,5 @@
 import paradexRest from '../paradex.js';
-import type { Int, int, Str, Trade, Order, Dict, NullableDict, OrderBook, Ticker, Strings, Tickers, Bool, Market, FundingRate, FundingRates, Position, Balances, Liquidation } from '../base/types.js';
+import type { Int, int, Str, Trade, Order, Dict, NullableDict, OrderBook, Ticker, Strings, Tickers, Market, FundingRate, FundingRates, Position, Balances, Liquidation } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class paradex extends paradexRest {
     describe(): Dict;
@@ -435,7 +435,7 @@ export default class paradex extends paradexRest {
     parseSbeFill(frameHex: string, blockLength: number, frameLength: number): NullableDict;
     parseSbePosition(frameHex: string, blockLength: number, frameLength: number): NullableDict;
     parseSbeAccount(frameHex: string, blockLength: number, frameLength: number): NullableDict;
-    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleErrorMessage(client: Client, message: Dict): boolean;
     handleBinaryMessage(client: Client, message: unknown): void;
     handleMessage(client: Client, message: Dict): void;
     handleStreamMessage(client: Client, message: Dict): void;

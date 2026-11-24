@@ -388,7 +388,7 @@ class hashkey extends hashkey$1["default"] {
         let messageHash = 'orders';
         const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
         if (symbol !== undefined) {
-            messageHash = 'orders' + ':' + symbolResolved;
+            messageHash = 'orders' + ':' + this.symbol(symbol);
         }
         const orders = await this.watchPrivate(messageHash);
         let limitResolved = limit;
@@ -509,7 +509,7 @@ class hashkey extends hashkey$1["default"] {
         let messageHash = 'myTrades';
         const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
         if (symbol !== undefined) {
-            messageHash = 'myTrades' + ':' + symbolResolved;
+            messageHash = 'myTrades' + ':' + this.symbol(symbol);
         }
         const trades = await this.watchPrivate(messageHash);
         let limitResolved = limit;

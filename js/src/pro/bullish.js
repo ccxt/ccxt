@@ -788,6 +788,7 @@ export default class bullish extends bullishRest {
         catch (e) {
             client.reject(e);
         }
+        return false;
     }
     handleMessage(client, message) {
         const dataType = this.safeString(message, 'dataType');

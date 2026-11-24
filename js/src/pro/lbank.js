@@ -1000,6 +1000,7 @@ export default class lbank extends lbankRest {
         const errMsg = this.safeString(message, 'message', '');
         const error = new ExchangeError(this.id + ' ' + errMsg);
         client.reject(error);
+        return false;
     }
     async handlePing(client, message) {
         //

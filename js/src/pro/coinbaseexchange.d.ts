@@ -1,5 +1,5 @@
 import coinbaseexchangeRest from '../coinbaseexchange.js';
-import type { Tickers, Int, Ticker, Str, Strings, OrderBook, Trade, Order, Dict, Bool, Market } from '../base/types.js';
+import type { Tickers, Int, Ticker, Str, Strings, OrderBook, Trade, Order, Dict, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class coinbaseexchange extends coinbaseexchangeRest {
     describe(): Dict;
@@ -123,6 +123,6 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
     handleDeltas(bookside: any, deltas: any[]): void;
     handleOrderBook(client: Client, message: Dict): void;
     handleSubscriptionStatus(client: Client, message: Dict): Dict;
-    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleErrorMessage(client: Client, message: Dict): boolean;
     handleMessage(client: Client, message: Dict): void;
 }

@@ -1000,6 +1000,7 @@ class lbank extends lbank$1["default"] {
         const errMsg = this.safeString(message, 'message', '');
         const error = new errors.ExchangeError(this.id + ' ' + errMsg);
         client.reject(error);
+        return false;
     }
     async handlePing(client, message) {
         //

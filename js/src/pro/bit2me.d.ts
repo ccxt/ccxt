@@ -165,6 +165,6 @@ export default class bit2me extends bit2meRest {
     authenticate(params?: {}): Promise<any>;
     handleAuthenticate(client: Client, message: Dict): void;
     handleSubscriptionStatus(client: Client, message: Dict): Dict;
-    handleErrorMessage(client: Client, message: Dict): void;
+    handleErrorMessage(client: Client, message: Dict): boolean;
     handleMessage(client: Client, message: Dict): void;
 }

@@ -315,17 +315,17 @@ export default class onetrading extends onetradingRest {
             ],
         };
         const request = this.deepExtend(subscribe, params);
-        let trades = await this.watch(url, messageHash, request, subscribeHash, request);
+        const trades = await this.watch(url, messageHash, request, subscribeHash, request);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = trades.getLimit(symbolResolved, limit);
         }
-        trades = this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved);
-        const numTrades = trades.length;
+        const filtered = this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved);
+        const numTrades = filtered.length;
         if (numTrades === 0) {
             return await this.watchMyTrades(symbolResolved, since, limitResolved, params);
         }
-        return trades;
+        return filtered;
     }
     /**
      * @method
@@ -484,17 +484,17 @@ export default class onetrading extends onetradingRest {
             ],
         };
         const request = this.deepExtend(subscribe, params);
-        let orders = await this.watch(url, messageHash, request, subscribeHash, request);
+        const orders = await this.watch(url, messageHash, request, subscribeHash, request);
         let limitResolved = limit;
         if (this.newUpdates) {
             limitResolved = orders.getLimit(symbolResolved, limit);
         }
-        orders = this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved);
-        const numOrders = orders.length;
+        const filtered = this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved);
+        const numOrders = filtered.length;
         if (numOrders === 0) {
             return await this.watchOrders(symbolResolved, since, limitResolved, params);
         }
-        return orders;
+        return filtered;
     }
     handleTrading(client, message) {
         //

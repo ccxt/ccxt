@@ -957,7 +957,7 @@ class coinsph extends coinsph$1["default"] {
         else {
             ticker = await this.publicGetOpenapiQuoteV1Ticker24hr(this.extend(request, params));
         }
-        return this.parseTicker(ticker, market);
+        return this.parseTicker(this.extend({}, ticker), market);
     }
     parseTicker(ticker, market = undefined) {
         //

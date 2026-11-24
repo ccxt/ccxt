@@ -849,6 +849,7 @@ class bit2me extends bit2me$1["default"] {
                 }
             }
         }
+        return false;
     }
     handleMessage(client, message) {
         const event = this.safeString(message, 'event');

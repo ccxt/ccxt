@@ -1225,6 +1225,9 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
         const symbol = this.safeSymbol(marketId);
         const timestamp = this.safeInteger(data, 'timestamp');
         const channel = this.safeString(params, 'channel');
+        if (channel === undefined) {
+            throw new errors.ExchangeError(this.id + ' order book update has no channel');
+        }
         const channelParts = channel.split('.');
         const channelPartsLength = channelParts.length;
         const isGrouped = channelPartsLength === 5;

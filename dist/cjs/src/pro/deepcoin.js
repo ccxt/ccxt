@@ -1328,6 +1328,7 @@ class deepcoin extends deepcoin$1["default"] {
         catch (e) {
             client.reject(e, messageHash);
         }
+        return false;
     }
 }
 

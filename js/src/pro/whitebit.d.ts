@@ -1,5 +1,5 @@
 import whitebitRest from '../whitebit.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, List, Market, Strings, Tickers, Bool } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict, List, Market, Strings, Tickers } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class whitebit extends whitebitRest {
     describe(): Dict;
@@ -115,7 +115,7 @@ export default class whitebit extends whitebitRest {
     watchPrivate(messageHash: string, method: string, reqParams?: any[], params?: Dict): Promise<any>;
     authenticate(params?: Dict): Promise<number>;
     handleAuthenticate(client: Client, message: Dict): Dict;
-    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleErrorMessage(client: Client, message: Dict): boolean;
     handleMessage(client: Client, message: Dict): void;
     handleSubscriptionStatus(client: Client, message: Dict, id: Int): void;
     handlePong(client: Client, message: Dict): Dict;

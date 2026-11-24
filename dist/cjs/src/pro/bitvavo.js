@@ -173,15 +173,14 @@ class bitvavo extends bitvavo$1["default"] {
         const tickers = this.safeList(message, 'data', []);
         const result = [];
         for (let i = 0; i < tickers.length; i++) {
-            const data = tickers[i];
-            const marketId = this.safeString(data, 'market');
+            const marketId = this.safeString(tickers[i], 'market');
             const market = this.safeMarket(marketId, undefined, '-');
-            const ticker = this.parseTicker(data, market);
+            const ticker = this.parseTicker(this.safeDict(tickers, i, {}), market);
             const symbol = this.safeString(ticker, 'symbol');
             this.tickers[symbol] = ticker;
             result.push(ticker);
             if (event !== undefined) {
-                const messageHash = event + '@' + this.safeString(data, 'market', '');
+                const messageHash = event + '@' + this.safeString(tickers[i], 'market', '');
                 client.resolve(ticker, messageHash);
             }
         }
@@ -1783,7 +1782,7 @@ class bitvavo extends bitvavo$1["default"] {
         //
         const error = this.safeString(message, 'error');
         if (error === undefined) {
-            return undefined;
+            return false;
         }
         const code = this.safeInteger(error, 'errorCode');
         const action = this.safeString(message, 'action');
@@ -1802,7 +1801,7 @@ class bitvavo extends bitvavo$1["default"] {
             client.reject(feedback, messageHash);
             return true;
         }
-        return undefined;
+        return false;
     }
     handleMessage(client, message) {
         //

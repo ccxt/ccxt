@@ -1398,14 +1398,14 @@ class bitrue extends bitrue$1["default"] {
             else if (this.safeBool(market, 'inverse', false)) {
                 response = await this.dapiV1PublicGetTicker(this.extend(request, params));
             }
-            data = response;
+            data = this.extend(data, response);
         }
         else if (this.safeBool(market, 'spot', false)) {
             const request = {
                 'symbol': market['id'],
             };
             response = await this.spotV1PublicGetTicker24hr(this.extend(request, params));
-            data = this.safeDict(response, 0, {});
+            data = this.extend(data, this.safeDict(response, 0, {}));
         }
         else {
             throw new errors.NotSupported(this.id + ' fetchTicker only support spot & swap markets');

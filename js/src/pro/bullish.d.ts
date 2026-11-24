@@ -97,6 +97,6 @@ export default class bullish extends bullishRest {
      */
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: Dict): Promise<Position[]>;
     handlePositions(client: Client, message: Dict): void;
-    handleErrorMessage(client: Client, message: Dict): void;
+    handleErrorMessage(client: Client, message: Dict): boolean;
     handleMessage(client: Client, message: Dict): void;
 }

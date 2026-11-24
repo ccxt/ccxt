@@ -2358,7 +2358,8 @@ class bingx extends bingx$1["default"] {
             //     ]
             // }
             //
-            return this.parseTicker(this.safeDict(response['data'], 0, {}), market);
+            const rows = this.safeList(response, 'data', []);
+            return this.parseTicker(this.safeDict(rows, 0, {}), market);
         }
         else {
             response = await this.swapV2PublicGetQuotePremiumIndex(this.extend(request, paramsSubType));

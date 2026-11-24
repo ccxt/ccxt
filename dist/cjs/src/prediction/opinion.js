@@ -201,7 +201,7 @@ class opinion extends opinion$1["default"] {
                 fetchedRawRows.push(raw);
                 const marketType = this.safeInteger(raw, 'marketType');
                 if (marketType === 1) {
-                    const event = this.parseEvent(raw);
+                    const event = this.parseEvent(this.safeDict(rawMarkets, i, {}));
                     const childMarkets = this.safeList(event, 'markets', []);
                     const childMarketsLength = childMarkets.length;
                     for (let ci = 0; ci < childMarketsLength; ci++) {
@@ -458,7 +458,7 @@ class opinion extends opinion$1["default"] {
             this.markets = this.createSafeDictionary();
         }
         for (let i = 0; i < rawEventsLength; i++) {
-            const event = this.parseEvent(rawEvents[i]);
+            const event = this.parseEvent(this.safeDict(rawEvents, i, {}));
             parsedEvents.push(event);
             // register the parsed markets so populateOutcomes can index their outcomes
             const eventMarkets = this.safeList(event, 'markets', []);

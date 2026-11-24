@@ -367,7 +367,7 @@ class polymarket extends polymarket$1["default"] {
             for (let mi = 0; mi < ccxtMarkets.length; mi++) {
                 flatMarkets.push(ccxtMarkets[mi]);
             }
-            const parsedEvent = this.parseEvent(rawEvent);
+            const parsedEvent = this.parseEvent(this.extend({}, rawEvent));
             const eventSlug = this.safeString(rawEvent, 'slug');
             if ((eventSlug !== undefined) && (eventSlug !== '')) {
                 const eventKey = this.shortenSlug(eventSlug);
@@ -2502,7 +2502,7 @@ class polymarket extends polymarket$1["default"] {
                 }
                 this.markets[m['market']] = m;
             }
-            const parsedEvent = this.parseEvent(eventForParsing);
+            const parsedEvent = this.parseEvent(this.extend({}, eventForParsing));
             result.push(parsedEvent);
         }
         // populateOutcomes rebuilds the outcome cache from the markets registered above; the
@@ -2545,7 +2545,7 @@ class polymarket extends polymarket$1["default"] {
         if (eventForParsing === undefined) {
             eventForParsing = {};
         }
-        const event = this.parseEvent(eventForParsing);
+        const event = this.parseEvent(this.extend({}, eventForParsing));
         this.indexEventOutcomes(event);
         return event;
     }
@@ -2668,7 +2668,7 @@ class polymarket extends polymarket$1["default"] {
     parseEvents(rawEvents) {
         const result = [];
         for (let i = 0; i < rawEvents.length; i++) {
-            result.push(this.parseEvent(rawEvents[i]));
+            result.push(this.parseEvent(this.safeDict(rawEvents, i, {})));
         }
         return result;
     }

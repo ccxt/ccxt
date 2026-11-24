@@ -1649,10 +1649,11 @@ class xt extends xt$1["default"] {
                 delete client.subscriptions['token'];
             }
             this.getListenKey(true);
-            return;
+            return false;
         }
         const error = new errors.ExchangeError(this.id + ' ' + this.json(message));
         client.reject(error);
+        return false;
     }
 }
 

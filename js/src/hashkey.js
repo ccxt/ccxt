@@ -4417,8 +4417,8 @@ export default class hashkey extends Exchange {
             return fee;
         }
         else if (this.safeBool(market, 'swap', false)) {
-            response = await this.privateGetApiV1FuturesCommissionRate(this.extend({ 'symbol': market['id'] }, params));
-            return this.parseTradingFee(response, market);
+            const swapResponse = await this.privateGetApiV1FuturesCommissionRate(this.extend({ 'symbol': market['id'] }, params));
+            return this.parseTradingFee(swapResponse, market);
             //
             //     {
             //         "openMakerFee": "0.00025",

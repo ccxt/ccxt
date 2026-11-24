@@ -612,7 +612,7 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         const symbol = this.safeString(subscription, 'symbol');
         const timeframe = this.safeString(subscription, 'timeframe');
         const market = this.safeMarket(marketId);
-        const stored = this.safeValue(this.safeDict(this.ohlcvs, symbol, {}), timeframe);
+        const stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             return;
         }

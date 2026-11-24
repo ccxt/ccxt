@@ -857,7 +857,7 @@ class woofipro extends woofipro$1["default"] {
         const price = this.safeString(trade, 'executed_price');
         const amount = this.safeString(trade, 'executed_quantity');
         const order_id = this.safeString(trade, 'order_id');
-        const fee = this.parseTokenAndFeeTemp(trade, 'fee_asset', 'fee');
+        const fee = this.parseTokenAndFeeTemp(this.extend({}, trade), 'fee_asset', 'fee');
         const side = this.safeStringLower(trade, 'side');
         const id = this.safeString(trade, 'id');
         let takerOrMaker = undefined;

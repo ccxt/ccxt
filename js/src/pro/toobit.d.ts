@@ -1,5 +1,5 @@
 import toobitRest from '../toobit.js';
-import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, List, Market, Strings, Tickers, Balances, Position, Bool } from '../base/types.js';
+import type { Int, Str, Ticker, OrderBook, Order, Trade, OHLCV, Dict, List, Market, Strings, Tickers, Balances, Position } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class toobit extends toobitRest {
     describe(): Dict;
@@ -185,5 +185,5 @@ export default class toobit extends toobitRest {
     setWsOptions(entry: Dict): void;
     keepAliveListenKey(params?: Dict): Promise<void>;
     getUserStreamUrl(): string;
-    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleErrorMessage(client: Client, message: Dict): boolean;
 }

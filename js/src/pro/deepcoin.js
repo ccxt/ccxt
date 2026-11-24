@@ -1329,5 +1329,6 @@ export default class deepcoin extends deepcoinRest {
         catch (e) {
             client.reject(e, messageHash);
         }
+        return false;
     }
 }

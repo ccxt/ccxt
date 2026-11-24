@@ -555,7 +555,7 @@ class predictfun extends predictfun$1["default"] {
         const rawTopicsLength = rawTopics.length;
         const result = [];
         for (let i = 0; i < rawTopicsLength; i++) {
-            const parsedEvent = this.parseEvent(rawTopics[i]);
+            const parsedEvent = this.parseEvent(this.extend({}, rawTopics[i]));
             result.push(parsedEvent);
             const parsedMarkets = this.safeList(parsedEvent, 'markets', []);
             const parsedMarketsLength = parsedMarkets.length;

@@ -935,7 +935,7 @@ class woo extends woo$1["default"] {
         const price = this.safeString2(trade, 'executed_price', 'executedPrice');
         const amount = this.safeString2(trade, 'executed_quantity', 'executedQuantity');
         const order_id = this.safeString2(trade, 'order_id', 'orderId');
-        const fee = this.parseTokenAndFeeTemp(trade, ['fee_asset', 'feeAsset'], ['fee']);
+        const fee = this.parseTokenAndFeeTemp(this.extend({}, trade), ['fee_asset', 'feeAsset'], ['fee']);
         const cost = Precise["default"].stringMul(price, amount);
         const side = this.safeStringLower(trade, 'side');
         const id = this.safeString(trade, 'id');

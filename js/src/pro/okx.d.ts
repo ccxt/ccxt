@@ -1,5 +1,5 @@
 import okxRest from '../okx.js';
-import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, Liquidation, Bool, Market, int } from '../base/types.js';
+import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, Liquidation, Market, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class okx extends okxRest {
@@ -435,7 +435,7 @@ export default class okx extends okxRest {
     handleAuthenticate(client: Client, message: Dict): void;
     ping(client: Client): string;
     handlePong(client: Client, message: any): void;
-    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleErrorMessage(client: Client, message: Dict): boolean;
     handleTextMessage(client: Client, message: string): void;
     handleMessage(client: Client, message: Dict): void;
     handleUnSubscriptionTrades(client: Client, symbol: string, channel: string): void;

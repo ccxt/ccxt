@@ -1429,10 +1429,10 @@ export default class bitget extends bitgetRest {
         if (uta) {
             instType = 'UTA';
         }
-        messageHash = instType + ':positions' + messageHash;
         const args = {
             'instType': instType,
         };
+        messageHash = this.safeString(args, 'instType', '') + ':positions' + messageHash;
         let topicOrChannel = 'channel';
         if (uta) {
             topicOrChannel = 'topic';

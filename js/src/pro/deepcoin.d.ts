@@ -162,5 +162,5 @@ export default class deepcoin extends deepcoinRest {
     handleMessage(client: Client, message: Dict): void;
     handleSubscriptionStatus(client: Client, message: Dict): void;
     handleUnSubscription(client: Client, subscription: Dict): void;
-    handleErrorMessage(client: Client, message: Dict): void;
+    handleErrorMessage(client: Client, message: Dict): boolean;
 }

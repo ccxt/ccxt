@@ -781,11 +781,10 @@ class pacifica extends pacifica$1["default"] {
         const parsedTickers = [];
         const data = this.safeList(message, 'data', []);
         for (let i = 0; i < data.length; i++) {
-            const info = data[i];
-            const marketId = this.safeString(info, 'symbol');
+            const marketId = this.safeString(data[i], 'symbol');
             const market = this.safeMarket(marketId);
             const symbol = this.safeString(market, 'symbol', '');
-            const ticker = this.parseTicker(info, market);
+            const ticker = this.parseTicker(this.safeDict(data, i, {}), market);
             this.tickers[symbol] = ticker;
             parsedTickers.push(ticker);
         }

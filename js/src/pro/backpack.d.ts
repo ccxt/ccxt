@@ -1,5 +1,5 @@
 import backpackRest from '../backpack.js';
-import type { Balances, Bool, Dict, NullableDict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import type { Balances, Dict, NullableDict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
 export default class backpack extends backpackRest {
@@ -395,5 +395,5 @@ export default class backpack extends backpackRest {
     handlePositions(client: Client, message: Dict): void;
     parseWsPosition(position: Dict, market?: Market): Position;
     handleMessage(client: Client, message: Dict): void;
-    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleErrorMessage(client: Client, message: Dict): boolean;
 }

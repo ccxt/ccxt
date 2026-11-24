@@ -400,7 +400,7 @@ export default class bybit extends bybitRest {
     watchTopics(url: string, messageHashes: string[], topics: string[], params?: Dict): Promise<any>;
     unWatchTopics(url: string, topic: string, symbols: Strings, messageHashes: string[], subMessageHashes: string[], topics: string[], params?: Dict, subExtension?: Dict): Promise<any>;
     authenticate(url: string, params?: Dict): Promise<any>;
-    handleErrorMessage(client: Client, message: Dict): Bool;
+    handleErrorMessage(client: Client, message: Dict): boolean;
     handleMessage(client: Client, message: Dict): void;
     ping(client: Client): Dict;
     handlePong(client: Client, message: Dict): Dict;

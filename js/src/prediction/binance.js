@@ -178,7 +178,7 @@ export default class binance extends Exchange {
         const flatMarkets = [];
         const rawTopicsLength = rawTopics.length;
         for (let i = 0; i < rawTopicsLength; i++) {
-            const parsedEvent = this.parseEvent(rawTopics[i]);
+            const parsedEvent = this.parseEvent(this.extend({}, rawTopics[i]));
             parsedEvents.push(parsedEvent);
             const eventMarkets = this.safeList(parsedEvent, 'markets', []);
             const eventMarketsLength = eventMarkets.length;
@@ -410,7 +410,7 @@ export default class binance extends Exchange {
         const rawTopicsLength = rawTopics.length;
         const result = [];
         for (let i = 0; i < rawTopicsLength; i++) {
-            const parsedEvent = this.parseEvent(rawTopics[i]);
+            const parsedEvent = this.parseEvent(this.extend({}, rawTopics[i]));
             result.push(parsedEvent);
             const parsedMarkets = this.safeList(parsedEvent, 'markets', []);
             const parsedMarketsLength = parsedMarkets.length;

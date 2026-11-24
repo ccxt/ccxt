@@ -850,6 +850,7 @@ export default class bit2me extends bit2meRest {
                 }
             }
         }
+        return false;
     }
     handleMessage(client, message) {
         const event = this.safeString(message, 'event');

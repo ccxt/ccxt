@@ -4707,7 +4707,7 @@ export default class bitget extends Exchange {
             const rows = this.safeList(utaResponse, 'data', []);
             const utaResult = {};
             for (let i = 0; i < rows.length; i++) {
-                const entry = rows[i];
+                const entry = this.safeDict(rows, i, {});
                 const entryMarketId = this.safeString(entry, 'symbol');
                 if ((entryMarketId === undefined) || (this.markets_by_id === undefined) || !(entryMarketId in this.markets_by_id)) {
                     continue; // skip ids missing from the loaded market map, a raw id must not become a unified symbol key
@@ -4814,7 +4814,7 @@ export default class bitget extends Exchange {
         const data = this.safeList(response, 'data', []);
         const result = {};
         for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
+            const entry = this.safeDict(data, i, {});
             const marketId = this.safeString(entry, 'symbol');
             const symbol = this.safeSymbol(marketId, undefined, undefined, marketType);
             const market = this.market(symbol);
