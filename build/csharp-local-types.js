@@ -18585,6 +18585,10 @@ CORE_LIST_ARGS['parseTransfers'] = Object.assign ({}, CORE_LIST_ARGS['parseTrans
 CORE_LIST_ARGS['parseOpenInterestsHistory'] = Object.assign ({}, CORE_LIST_ARGS['parseOpenInterestsHistory'] ?? {}, { 0: 'IList<object>' });
 // base parseLedger: every caller passes a list (bitget/hyperliquid rows via safeList / infoList, dydx List<Dictionary>); no override
 CORE_LIST_ARGS['parseLedger'] = Object.assign ({}, CORE_LIST_ARGS['parseLedger'] ?? {}, { 0: 'IList<object>' });
+// base parsePositions: the declared `positions: List`; every caller passes a list (coinbaseinternational ws via toArray); no override
+CORE_LIST_ARGS['parsePositions'] = Object.assign ({}, CORE_LIST_ARGS['parsePositions'] ?? {}, { 0: 'IList<object>' });
+// base parseTransactions: the declared `List` first parameter; every caller passes a list (ndax via toArray)
+CORE_LIST_ARGS['parseTransactions'] = Object.assign ({}, CORE_LIST_ARGS['parseTransactions'] ?? {}, { 0: 'IList<object>' });
 
 // ===== native Math.Min / Math.Max on a guarded nullable integer parameter =====
 //

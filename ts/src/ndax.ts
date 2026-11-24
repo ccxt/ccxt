@@ -2387,7 +2387,7 @@ export default class ndax extends Exchange {
         //    ]"
         //
         if (typeof response === 'string') {
-            return this.parseTransactions (JSON.parse (response), currency, since, limit);
+            return this.parseTransactions (this.toArray (JSON.parse (response)), currency, since, limit);
         }
         return this.parseTransactions (response, currency, since, limit);
     }
