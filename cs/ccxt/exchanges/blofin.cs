@@ -79,7 +79,7 @@ public partial class blofin : Exchange
                 { "fetchLeverageTiers", false },
                 { "fetchMarginMode", true },
                 { "fetchMarginModes", false },
-                { "fetchMarketLeverageTiers", false },
+                { "fetchMarketLeverageTiers", true },
                 { "fetchMarkets", true },
                 { "fetchMarkOHLCV", false },
                 { "fetchMySettlementHistory", false },
@@ -3617,6 +3617,73 @@ public partial class blofin : Exchange
             { "stopLossPrice", null },
             { "takeProfitPrice", null },
         });
+    }
+
+    /**
+     * @method
+     * @name blofin#fetchMarketLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+     * @see https://docs.blofin.com/index.html#get-position-tiers
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
+     * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+     */
+    public async override Task<List<ccxt.LeverageTier>> FetchMarketLeverageTiers(string symbol, IDictionary<string, object> parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if ((this.markets == null))
+        {
+            await this.loadMarkets();
+        }
+        Dictionary<string, object> market = this.market(symbol);
+        (string?, IDictionary<string, object>) marginModequeryVariable = this.handleMarginModeAndParams("fetchMarketLeverageTiers", parameters, "cross");
+        string? marginMode = marginModequeryVariable.Item1;
+        IDictionary<string, object> query = (marginModequeryVariable.Item2);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "instId", (market.ContainsKey("id") ? market["id"] : null) },
+            { "marginMode", marginMode },
+        };
+        Dictionary<string, object> response = await this.publicGetMarketPositionTiers(this.extend(request, query));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "symbol": "LTC-USDT",
+        //                 "marginMode": "cross",
+        //                 "minSize": "0",
+        //                 "maxSize": "500",
+        //                 "maintenanceMarginRate": "0.0065",
+        //                 "maxLeverage": "50"
+        //             }
+        //         ]
+        //     }
+        //
+        List<object> data = this.safeList(response, "data", new List<object>() {});
+        return ccxt.BaseExchange.ToLeverageTierList(this.parseMarketLeverageTiers(data, market));
+    }
+
+    public override List<object> parseMarketLeverageTiers(object info, IDictionary<string, object> market = null)
+    {
+        List<object> tiers = new List<object>() {};
+        for (int i = 0; i < getArrayLength(info); i++)
+        {
+            IDictionary<string, object> tier = this.safeDict(info, i);
+            string? marketId = this.safeString(tier, "symbol");
+            tiers.Add(new Dictionary<string, object>() {
+                { "tier", this.sum(i, 1) },
+                { "symbol", this.safeSymbol(marketId, market) },
+                { "currency", this.safeString(market, "quote") },
+                { "minNotional", this.safeNumber(tier, "minSize") },
+                { "maxNotional", this.safeNumber(tier, "maxSize") },
+                { "maintenanceMarginRate", this.safeNumber(tier, "maintenanceMarginRate") },
+                { "maxLeverage", this.safeNumber(tier, "maxLeverage") },
+                { "info", tier },
+            });
+        }
+        return tiers;
     }
 
     /**

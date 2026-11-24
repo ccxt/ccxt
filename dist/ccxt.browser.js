@@ -187075,7 +187075,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
     }
 }
 // this is updated by vss.js when building
-_define_property(BaseExchange, "ccxtVersion", '4.5.93');
+_define_property(BaseExchange, "ccxtVersion", '4.5.94');
 class Exchange extends BaseExchange {
     async closePosition(symbol, side = undefined, params = {}) {
         throw new _errors_js__rspack_import_2.NotSupported(this.id + ' closePosition() is not supported yet');
@@ -277951,7 +277951,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
                 'fetchLeverageTiers': false,
                 'fetchMarginMode': true,
                 'fetchMarginModes': false,
-                'fetchMarketLeverageTiers': false,
+                'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMySettlementHistory': false,
@@ -281160,6 +281160,63 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined
         });
+    }
+    /**
+     * @method
+     * @name blofin#fetchMarketLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+     * @see https://docs.blofin.com/index.html#get-position-tiers
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
+     * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+     */ async fetchMarketLeverageTiers(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const [marginMode, query] = this.handleMarginModeAndParams('fetchMarketLeverageTiers', params, 'cross');
+        const request = {
+            'instId': market['id'],
+            'marginMode': marginMode
+        };
+        const response = await this.publicGetMarketPositionTiers(this.extend(request, query));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "symbol": "LTC-USDT",
+        //                 "marginMode": "cross",
+        //                 "minSize": "0",
+        //                 "maxSize": "500",
+        //                 "maintenanceMarginRate": "0.0065",
+        //                 "maxLeverage": "50"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList(response, 'data', []);
+        return this.parseMarketLeverageTiers(data, market);
+    }
+    parseMarketLeverageTiers(info, market = undefined) {
+        const tiers = [];
+        for(let i = 0; i < info.length; i++){
+            const tier = this.safeDict(info, i);
+            const marketId = this.safeString(tier, 'symbol');
+            tiers.push({
+                'tier': this.sum(i, 1),
+                'symbol': this.safeSymbol(marketId, market),
+                'currency': this.safeString(market, 'quote'),
+                'minNotional': this.safeNumber(tier, 'minSize'),
+                'maxNotional': this.safeNumber(tier, 'maxSize'),
+                'maintenanceMarginRate': this.safeNumber(tier, 'maintenanceMarginRate'),
+                'maxLeverage': this.safeNumber(tier, 'maxLeverage'),
+                'info': tier
+            });
+        }
+        return tiers;
     }
     /**
      * @method
@@ -495603,7 +495660,7 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
                 'fetchFundingHistory': false,
                 'fetchFundingInterval': false,
                 'fetchFundingIntervals': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': undefined,
                 'fetchGreeks': false,
@@ -498672,6 +498729,87 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
             'datetime': this.iso8601(timestamp),
             'nonce': undefined
         };
+    }
+    /**
+     * @method
+     * @name poloniex#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-current-funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */ async fetchFundingRate(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!this.safeBool(market, 'swap', false)) {
+            throw new _base_errors_js__rspack_import_2.BadSymbol(this.id + ' fetchFundingRate() supports swap contracts only');
+        }
+        const request = {
+            'symbol': market['id']
+        };
+        const response = await this.swapPublicGetV3MarketFundingRate(this.extend(request, params));
+        //
+        //    {
+        //        "code": 200,
+        //        "msg": "Success",
+        //        "data": {
+        //            "s": "BTC_USDT_PERP",
+        //            "fR": "0.0001",
+        //            "fT": "1795276800000",
+        //            "nFR": "0.0001",
+        //            "nFT": "1795305600000"
+        //        }
+        //    }
+        //
+        const data = this.safeDict(response, 'data', {});
+        return this.parseFundingRate(data, market);
+    }
+    parseFundingRate(contract, market = undefined) {
+        //
+        //    {
+        //        "s": "BTC_USDT_PERP",
+        //        "fR": "0.0001",
+        //        "fT": "1795276800000",
+        //        "nFR": "0.0001",
+        //        "nFT": "1795305600000"
+        //    }
+        //
+        const marketId = this.safeString(contract, 's');
+        // fR and fT are the funding that already settled, nFR and nFT the one about to be applied
+        const previousFundingTimestamp = this.safeInteger(contract, 'fT');
+        const fundingTimestamp = this.safeInteger(contract, 'nFT');
+        const intervalMilliseconds = _base_Precise_js__rspack_import_3/* .Precise.stringSub */.Y.stringSub(this.safeString(contract, 'nFT'), this.safeString(contract, 'fT'));
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol(marketId, market),
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeNumber(contract, 'nFR'),
+            'fundingTimestamp': fundingTimestamp,
+            'fundingDatetime': this.iso8601(fundingTimestamp),
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': this.safeNumber(contract, 'fR'),
+            'previousFundingTimestamp': previousFundingTimestamp,
+            'previousFundingDatetime': this.iso8601(previousFundingTimestamp),
+            'interval': this.parseFundingInterval(intervalMilliseconds)
+        };
+    }
+    parseFundingInterval(interval) {
+        const intervals = {
+            '3600000': '1h',
+            '7200000': '2h',
+            '14400000': '4h',
+            '28800000': '8h',
+            '57600000': '16h',
+            '86400000': '24h'
+        };
+        return this.safeString(intervals, interval, interval);
     }
     /**
      * @method
@@ -700119,7 +700257,7 @@ SOFTWARE.
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.5.93';
+const version = '4.5.94';
 //-----------------------------------------------------------------------------
 
 

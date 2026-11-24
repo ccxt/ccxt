@@ -19,6 +19,17 @@
                 "output": "{\"instId\":\"LTC-USDT\",\"orderId\":\"6000004088597\",\"newSize\":\"0.2\",\"newPrice\":\"24.5\"}"
             }
         ],
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "fetchMarketLeverageTiers",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://openapi.blofin.com/api/v1/market/position-tiers?instId=CATI-USDT&marginMode=cross",
+                "input": [
+                    "CATI/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "fetchMarkPrice": [
             {
                 "description": "fetch mark price",

@@ -273,6 +273,10 @@ pub mod independentreserve_api;
 pub mod indodax;
 #[cfg(feature = "indodax")]
 pub mod indodax_api;
+#[cfg(feature = "interactivebrokers")]
+pub mod interactivebrokers;
+#[cfg(feature = "interactivebrokers")]
+pub mod interactivebrokers_api;
 #[cfg(feature = "kraken")]
 pub mod kraken;
 #[cfg(feature = "kraken")]
@@ -554,6 +558,8 @@ pub use hyperliquid::Hyperliquid;
 pub use independentreserve::Independentreserve;
 #[cfg(feature = "indodax")]
 pub use indodax::Indodax;
+#[cfg(feature = "interactivebrokers")]
+pub use interactivebrokers::Interactivebrokers;
 #[cfg(feature = "kraken")]
 pub use kraken::Kraken;
 #[cfg(feature = "krakenfutures")]
@@ -766,6 +772,8 @@ pub async fn with_exchange<V: crate::exchange::ExchangeVisitor>(id: &str, config
         "independentreserve" => Some(visitor.visit(independentreserve::Independentreserve::new(config)).await),
         #[cfg(feature = "indodax")]
         "indodax" => Some(visitor.visit(indodax::Indodax::new(config)).await),
+        #[cfg(feature = "interactivebrokers")]
+        "interactivebrokers" => Some(visitor.visit(interactivebrokers::Interactivebrokers::new(config)).await),
         #[cfg(feature = "kraken")]
         "kraken" => Some(visitor.visit(kraken::Kraken::new(config)).await),
         #[cfg(feature = "krakenfutures")]

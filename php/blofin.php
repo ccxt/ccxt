@@ -82,7 +82,7 @@ class blofin extends Exchange {
                 'fetchLeverageTiers' => false,
                 'fetchMarginMode' => true,
                 'fetchMarginModes' => false,
-                'fetchMarketLeverageTiers' => false,
+                'fetchMarketLeverageTiers' => true,
                 'fetchMarkets' => true,
                 'fetchMarkOHLCV' => false,
                 'fetchMySettlementHistory' => false,
@@ -3109,6 +3109,66 @@ class blofin extends Exchange {
             'stopLossPrice' => null,
             'takeProfitPrice' => null,
         ));
+    }
+
+    public function fetch_market_leverage_tiers(string $symbol, $params = array()): array {
+        /**
+         * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
+         *
+         * @see https://docs.blofin.com/index.html#get-position-tiers
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross'
+         * @return {array} a ~@link https://docs.ccxt.com/?id=leverage-tiers-structure leverage tiers structure~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $market = $this->market($symbol);
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchMarketLeverageTiers', $params, 'cross');
+        $request = array(
+            'instId' => $market['id'],
+            'marginMode' => $marginMode,
+        );
+        $response = $this->publicGetMarketPositionTiers($this->extend($request, $query));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "symbol": "LTC-USDT",
+        //                 "marginMode": "cross",
+        //                 "minSize": "0",
+        //                 "maxSize": "500",
+        //                 "maintenanceMarginRate": "0.0065",
+        //                 "maxLeverage": "50"
+        //             }
+        //         ]
+        //     }
+        //
+        $data = $this->safe_list($response, 'data', array());
+        return $this->parse_market_leverage_tiers($data, $market);
+    }
+
+    public function parse_market_leverage_tiers(mixed $info, ?array $market = null): array {
+        $tiers = array();
+        for ($i = 0; $i < count($info); $i++) {
+            $tier = $this->safe_dict($info, $i);
+            $marketId = $this->safe_string($tier, 'symbol');
+            $tiers[] = array(
+                'tier' => $this->sum($i, 1),
+                'symbol' => $this->safe_symbol($marketId, $market),
+                'currency' => $this->safe_string($market, 'quote'),
+                'minNotional' => $this->safe_number($tier, 'minSize'),
+                'maxNotional' => $this->safe_number($tier, 'maxSize'),
+                'maintenanceMarginRate' => $this->safe_number($tier, 'maintenanceMarginRate'),
+                'maxLeverage' => $this->safe_number($tier, 'maxLeverage'),
+                'info' => $tier,
+            );
+        }
+        return $tiers;
     }
 
     public function fetch_leverages(?array $symbols = null, $params = array()): array {

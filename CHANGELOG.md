@@ -1,3 +1,48 @@
+<a id="v4.5.94"></a>
+# [v4.5.94](https://github.com/ccxt/ccxt/releases/tag/v4.5.94) - 2026-11-23
+
+## What's Changed
+* fix(hyperliquid): fix awaitOutcome in GO by [@carlosmiei](https://github.com/carlosmiei) in [#31266](https://github.com/ccxt/ccxt/pull/31266)
+* fix(pro): prevent duplicate on_close unregistering replacement WS client, without the on_close flag ([#31073](https://github.com/ccxt/ccxt/issues/31073)) by [@carlotestor](https://github.com/carlotestor) in [#31265](https://github.com/ccxt/ccxt/pull/31265)
+* fix(base): parseMarkets skip for empty markets by [@ttodua](https://github.com/ttodua) in [#31250](https://github.com/ccxt/ccxt/pull/31250)
+* chore: reenable testHyperliquid test by [@carlosmiei](https://github.com/carlosmiei) in [#31262](https://github.com/ccxt/ccxt/pull/31262)
+* fix(mexc): parse realizedPnl in parsePosition by [@olgln](https://github.com/olgln) in [#31271](https://github.com/ccxt/ccxt/pull/31271)
+* fix(gate): watchMyLiquidations resolves the parsed liquidations by [@olgln](https://github.com/olgln) in [#31260](https://github.com/ccxt/ccxt/pull/31260)
+* kraken error mapping by [@ndubel](https://github.com/ndubel) in [#31259](https://github.com/ccxt/ccxt/pull/31259)
+* refactor(tokocrypto): parseMarket implementation by [@ttodua](https://github.com/ttodua) in [#31257](https://github.com/ccxt/ccxt/pull/31257)
+* rust: typed core signatures for fetchTicker/fetchTickers/fetchOrderBook/fetchTrades by [@carlotestor](https://github.com/carlotestor) in [#31136](https://github.com/ccxt/ccxt/pull/31136)
+* fix(php): array_slice by [@ttodua](https://github.com/ttodua) in [#31283](https://github.com/ccxt/ccxt/pull/31283)
+* docs(xt): document the tag param on withdraw instead of fetchFundingInterval by [@rayBastard](https://github.com/rayBastard) in [#31281](https://github.com/ccxt/ccxt/pull/31281)
+* fix: wrong method names in error messages (pacifica, toobit, woo) by [@mikeua](https://github.com/mikeua) in [#31280](https://github.com/ccxt/ccxt/pull/31280)
+* fix(blofin): count ws symbols as an array in php by [@AresArtemius](https://github.com/AresArtemius) in [#31279](https://github.com/ccxt/ccxt/pull/31279)
+* feat(okx): add unWatchMarkPrice and unWatchMarkPrices by [@olgln](https://github.com/olgln) in [#31274](https://github.com/ccxt/ccxt/pull/31274)
+* feat(bybit): add unWatchBidsAsks by [@olgln](https://github.com/olgln) in [#31273](https://github.com/ccxt/ccxt/pull/31273)
+* feat(paradex): markets and market data parity by [@amayvs](https://github.com/amayvs) in [#31167](https://github.com/ccxt/ccxt/pull/31167)
+* fix(okx): make unWatchMarkPrice async for rust build by [@carlosmiei](https://github.com/carlosmiei) in [#31286](https://github.com/ccxt/ccxt/pull/31286)
+* perf(build): Java transpile -54% by [@carlotestor](https://github.com/carlotestor) in [#31296](https://github.com/ccxt/ccxt/pull/31296)
+* chore: ignore pnpm files by [@ttodua](https://github.com/ttodua) in [#31295](https://github.com/ccxt/ccxt/pull/31295)
+* chore: update lighter FAQ by [@carlosmiei](https://github.com/carlosmiei) in [#31292](https://github.com/ccxt/ccxt/pull/31292)
+* docs(bingx): document addMargin and reduceMargin by [@rayBastard](https://github.com/rayBastard) in [#31297](https://github.com/ccxt/ccxt/pull/31297)
+* poloniex error mapping by [@ndubel](https://github.com/ndubel) in [#31294](https://github.com/ccxt/ccxt/pull/31294)
+* fix(blofin): watchOrders misses order updates across symbols by [@hoangbn](https://github.com/hoangbn) in [#30591](https://github.com/ccxt/ccxt/pull/30591)
+* fix(poloniex): classify api key failures as authentication errors by [@rayBastard](https://github.com/rayBastard) in [#31298](https://github.com/ccxt/ccxt/pull/31298)
+* fix(blofin): parse triggerPrice and the market price placeholder on trigger orders by [@AresArtemius](https://github.com/AresArtemius) in [#31290](https://github.com/ccxt/ccxt/pull/31290)
+* test(arraySlice): extra cases & python fix by [@ttodua](https://github.com/ttodua) in [#31287](https://github.com/ccxt/ccxt/pull/31287)
+* test(blofin): add fetchOrder response fixtures for the order and tpsl routes by [@AresArtemius](https://github.com/AresArtemius) in [#31289](https://github.com/ccxt/ccxt/pull/31289)
+* feat(okx): add travel rule endpoints and error mapping by [@carlosmiei](https://github.com/carlosmiei) in [#31300](https://github.com/ccxt/ccxt/pull/31300)
+* test: disable skip when running run-tests locally by [@ttodua](https://github.com/ttodua) in [#31299](https://github.com/ccxt/ccxt/pull/31299)
+* New exchange: InteractiveBrokers by [@ttodua](https://github.com/ttodua) in [#12340](https://github.com/ccxt/ccxt/pull/12340)
+* feat(poloniex): add fetchFundingRate by [@rayBastard](https://github.com/rayBastard) in [#31313](https://github.com/ccxt/ccxt/pull/31313)
+* chore: optimize release mem by [@carlosmiei](https://github.com/carlosmiei) in [#31322](https://github.com/ccxt/ccxt/pull/31322)
+
+## New Contributors
+* [@olgln](https://github.com/olgln) made their first contribution in [#31271](https://github.com/ccxt/ccxt/pull/31271)
+
+**Full Changelog**: https://github.com/ccxt/ccxt/compare/v4.5.93...v4.5.94
+
+[Changes][v4.5.94]
+
+
 <a id="v4.5.93"></a>
 # [v4.5.93](https://github.com/ccxt/ccxt/releases/tag/v4.5.93) - 2026-11-17
 
@@ -14831,6 +14876,7 @@
 [Changes][4.3.22]
 
 
+[v4.5.94]: https://github.com/ccxt/ccxt/compare/v4.5.93...v4.5.94
 [v4.5.93]: https://github.com/ccxt/ccxt/compare/v4.5.92...v4.5.93
 [v4.5.92]: https://github.com/ccxt/ccxt/compare/v4.5.91...v4.5.92
 [v4.5.91]: https://github.com/ccxt/ccxt/compare/v4.5.90...v4.5.91

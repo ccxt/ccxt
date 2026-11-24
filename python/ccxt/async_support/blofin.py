@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.blofin import ImplicitAPI
 import hashlib
-from ccxt.base.types import ADL, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Leverage, Leverages, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import ADL, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Leverage, Leverages, LeverageTier, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -100,7 +100,7 @@ class blofin(Exchange, ImplicitAPI):
                 'fetchLeverageTiers': False,
                 'fetchMarginMode': True,
                 'fetchMarginModes': False,
-                'fetchMarketLeverageTiers': False,
+                'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMySettlementHistory': False,
@@ -2912,6 +2912,62 @@ class blofin(Exchange, ImplicitAPI):
             'stopLossPrice': None,
             'takeProfitPrice': None,
         })
+
+    async def fetch_market_leverage_tiers(self, symbol: str, params: dict = {}) -> list[LeverageTier]:
+        """
+        retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+
+        https://docs.blofin.com/index.html#get-position-tiers
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.marginMode]: 'cross' or 'isolated', default is 'cross'
+        :returns dict: a `leverage tiers structure <https://docs.ccxt.com/?id=leverage-tiers-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(symbol)
+        marginMode, query = self.handle_margin_mode_and_params('fetchMarketLeverageTiers', params, 'cross')
+        request = {
+            'instId': market['id'],
+            'marginMode': marginMode,
+        }
+        response = await self.publicGetMarketPositionTiers(self.extend(request, query))
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "success",
+        #         "data": [
+        #             {
+        #                 "symbol": "LTC-USDT",
+        #                 "marginMode": "cross",
+        #                 "minSize": "0",
+        #                 "maxSize": "500",
+        #                 "maintenanceMarginRate": "0.0065",
+        #                 "maxLeverage": "50"
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_market_leverage_tiers(data, market)
+
+    def parse_market_leverage_tiers(self, info: object, market: Market = None) -> list[LeverageTier]:
+        tiers = []
+        for i in range(0, len(info)):
+            tier = self.safe_dict(info, i)
+            marketId = self.safe_string(tier, 'symbol')
+            tiers.append({
+                'tier': self.sum(i, 1),
+                'symbol': self.safe_symbol(marketId, market),
+                'currency': self.safe_string(market, 'quote'),
+                'minNotional': self.safe_number(tier, 'minSize'),
+                'maxNotional': self.safe_number(tier, 'maxSize'),
+                'maintenanceMarginRate': self.safe_number(tier, 'maintenanceMarginRate'),
+                'maxLeverage': self.safe_number(tier, 'maxLeverage'),
+                'info': tier,
+            })
+        return tiers
 
     async def fetch_leverages(self, symbols: Strings = None, params: dict = {}) -> Leverages:
         """

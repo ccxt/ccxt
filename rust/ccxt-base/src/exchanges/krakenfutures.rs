@@ -665,8 +665,8 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
             let mut executions: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_880: bool = true;
-                while { if !__for_first_880 { i += 1; } __for_first_880 = false; i < (orderEvents.len() as i64) } {
+                let mut __for_first_931: bool = true;
+                while { if !__for_first_931 { i += 1; } __for_first_931 = false; i < (orderEvents.len() as i64) } {
                 let mut item: crate::value::Dict = orderEvents.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
                 if (self.safe_string_k(&item, "type", &[]).as_str() == Some("EXECUTION")) {
                     executions.push(Value::from(&item));
@@ -722,8 +722,8 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
             let mut vwapSum: Option<String> = Some("0.0".to_string());
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_881: bool = true;
-                while { if !__for_first_881 { i += 1; } __for_first_881 = false; i < (trades.len() as i64) } {
+                let mut __for_first_932: bool = true;
+                while { if !__for_first_932 { i += 1; } __for_first_932 = false; i < (trades.len() as i64) } {
                 let mut trade: crate::value::Dict = self.safe_dict(&trades, Value::Int(i), &[]).into_dict();
                 let mut tradeAmount: Option<String> = self.safe_string_k_opt(&trade, "amount", &[]);
                 let mut tradePrice: Option<String> = self.safe_string_k_opt(&trade, "price", &[]);
@@ -904,8 +904,8 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
         let mut currencyIds: Vec<Value> = Value::Array(balances.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_883: bool = true;
-            while { if !__for_first_883 { i += 1; } __for_first_883 = false; i < (currencyIds.len() as i64) } {
+            let mut __for_first_934: bool = true;
+            while { if !__for_first_934 { i += 1; } __for_first_934 = false; i < (currencyIds.len() as i64) } {
             let mut currencyId: Option<&str> = currencyIds.get(i as usize).and_then(Value::as_str);
             let mut balance: Value = crate::value::KeyRead::read(&&balances, &Value::from(currencyId));
             let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
@@ -1337,8 +1337,8 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_887: bool = true;
-            while { if !__for_first_887 { i += 1; } __for_first_887 = false; i < (marginLevels.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut __for_first_938: bool = true;
+            while { if !__for_first_938 { i += 1; } __for_first_938 = false; i < (marginLevels.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut tier: crate::value::Dict = marginLevels.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut initialMargin: Option<String> = self.safe_string_k_opt(&tier, "initialMargin", &[]);
             let mut minNotional: Option<f64> = self.safe_number2(&tier, Value::Str("numNonContractUnits".into()), Value::Str("contracts".into()), &[]).as_f64();
@@ -2300,8 +2300,8 @@ impl Krakenfutures {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_868: bool = true;
-            while { if !__for_first_868 { i += 1; } __for_first_868 = false; i < (instruments.len() as i64) } {
+            let mut __for_first_919: bool = true;
+            while { if !__for_first_919 { i += 1; } __for_first_919 = false; i < (instruments.len() as i64) } {
             let mut market: crate::value::Dict = instruments.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
             let mut marketType: Option<String> = self.safe_string_k_opt(&market, "type", &[]);
@@ -2432,8 +2432,8 @@ impl Krakenfutures {
         let mut currencies: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
-            let mut __for_first_869: bool = true;
-            while { if !__for_first_869 { i += 1; } __for_first_869 = false; i < (settlementCurrencies.len() as i64) } {
+            let mut __for_first_920: bool = true;
+            while { if !__for_first_920 { i += 1; } __for_first_920 = false; i < (settlementCurrencies.len() as i64) } {
             let mut code: String = self.safe_string(&settlementCurrencies, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             std::sync::Arc::make_mut(&mut currencies).push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2713,8 +2713,8 @@ impl Krakenfutures {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_870: bool = true;
-            while { if !__for_first_870 { i += 1; } __for_first_870 = false; i < (feeSchedules.len() as i64) } {
+            let mut __for_first_921: bool = true;
+            while { if !__for_first_921 { i += 1; } __for_first_921 = false; i < (feeSchedules.len() as i64) } {
             let mut schedule: Option<crate::value::Dict> = feeSchedules.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
             let mut uid: Option<String> = self.safe_string_k_opt(&schedule, "uid", &[]);
             if (uid.is_some()) {
@@ -2729,8 +2729,8 @@ impl Krakenfutures {
         let mut symbols: crate::value::List = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_871: bool = true;
-            while { if !__for_first_871 { i += 1; } __for_first_871 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_922: bool = true;
+            while { if !__for_first_922 { i += 1; } __for_first_922 = false; i < (symbols.len() as i64) } {
             let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut uid: Option<String> = self.safe_string_k_opt(crate::value::KeyRead::key_read(&&market, "info"), "feeScheduleUid", &[]);
@@ -2766,8 +2766,8 @@ impl Krakenfutures {
         let mut takerFee: Option<String> = None;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_872: bool = true;
-            while { if !__for_first_872 { i += 1; } __for_first_872 = false; i < (tiers.len() as i64) } {
+            let mut __for_first_923: bool = true;
+            while { if !__for_first_923 { i += 1; } __for_first_923 = false; i < (tiers.len() as i64) } {
             let mut tier: crate::value::Dict = self.safe_dict(&tiers, Value::Int(i), &[]).into_dict();
             let mut tierVolume: Option<String> = self.safe_string_k_opt(&tier, "usdVolume", &[]);
             if (volume == Value::Null) || crate::precise::Precise::stringGe(&volume, &tierVolume).as_bool() == Some(true) {
@@ -3006,8 +3006,8 @@ impl Krakenfutures {
             let mut length: i64 = elements.len() as i64;
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_873: bool = true;
-                while { if !__for_first_873 { i += 1; } __for_first_873 = false; i < length } {
+                let mut __for_first_924: bool = true;
+                while { if !__for_first_924 { i += 1; } __for_first_924 = false; i < length } {
                 let mut index: i64 = (((length - 1)) - i);
                 let mut element: crate::value::Dict = self.safe_dict(&elements, index, &[]).into_dict();
                 let mut event: crate::value::Dict = self.safe_dict_k(&element, "event", &[Value::Map({
@@ -3285,8 +3285,8 @@ impl Krakenfutures {
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_874: bool = true;
-            while { if !__for_first_874 { i += 1; } __for_first_874 = false; i < (orders.len() as i64) } {
+            let mut __for_first_925: bool = true;
+            while { if !__for_first_925 { i += 1; } __for_first_925 = false; i < (orders.len() as i64) } {
             let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
             let mut marketId: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             let mut type_var: Option<String> = self.safe_string_k_opt(&rawOrder, "type", &[]);
@@ -3481,8 +3481,8 @@ impl Krakenfutures {
         if clientOrderIdsLength > 0 {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_875: bool = true;
-                while { if !__for_first_875 { i += 1; } __for_first_875 = false; i < (clientOrderIds.len() as i64) } {
+                let mut __for_first_926: bool = true;
+                while { if !__for_first_926 { i += 1; } __for_first_926 = false; i < (clientOrderIds.len() as i64) } {
                 orders.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("order".to_string(), Value::Str("cancel".into()));
@@ -3494,8 +3494,8 @@ impl Krakenfutures {
         }  else {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_876: bool = true;
-                while { if !__for_first_876 { i += 1; } __for_first_876 = false; i < (ids.len() as i64) } {
+                let mut __for_first_927: bool = true;
+                while { if !__for_first_927 { i += 1; } __for_first_927 = false; i < (ids.len() as i64) } {
                 orders.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("order".to_string(), Value::Str("cancel".into()));
@@ -3612,8 +3612,8 @@ impl Krakenfutures {
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_877: bool = true;
-            while { if !__for_first_877 { i += 1; } __for_first_877 = false; i < (orderEvents.len() as i64) } {
+            let mut __for_first_928: bool = true;
+            while { if !__for_first_928 { i += 1; } __for_first_928 = false; i < (orderEvents.len() as i64) } {
             let mut orderEvent: crate::value::Dict = self.safe_dict(&orderEvents, Value::Int(0), &[]).into_dict();
             let mut order: crate::value::Dict = self.safe_dict_k(&orderEvent, "order", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3830,8 +3830,8 @@ impl Krakenfutures {
         let mut closedOrders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_878: bool = true;
-            while { if !__for_first_878 { i += 1; } __for_first_878 = false; i < (allOrders.len() as i64) } {
+            let mut __for_first_929: bool = true;
+            while { if !__for_first_929 { i += 1; } __for_first_929 = false; i < (allOrders.len() as i64) } {
             let mut order: crate::value::Dict = self.safe_dict(&allOrders, Value::Int(i), &[]).into_dict();
             let mut event: crate::value::Dict = self.safe_dict_k(&order, "event", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3923,8 +3923,8 @@ impl Krakenfutures {
         let mut canceledAndRejected: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_879: bool = true;
-            while { if !__for_first_879 { i += 1; } __for_first_879 = false; i < (allOrders.len() as i64) } {
+            let mut __for_first_930: bool = true;
+            while { if !__for_first_930 { i += 1; } __for_first_930 = false; i < (allOrders.len() as i64) } {
             let mut order: crate::value::Dict = self.safe_dict(&allOrders, Value::Int(i), &[]).into_dict();
             let mut event: crate::value::Dict = self.safe_dict_k(&order, "event", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -4201,8 +4201,8 @@ impl Krakenfutures {
         let mut rows: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_882: bool = true;
-            while { if !__for_first_882 { i += 1; } __for_first_882 = false; i < (logs.len() as i64) } {
+            let mut __for_first_933: bool = true;
+            while { if !__for_first_933 { i += 1; } __for_first_933 = false; i < (logs.len() as i64) } {
             let mut row: crate::value::Dict = logs.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut asset: Option<String> = self.safe_string_k_opt(&row, "asset", &[]);
             let mut contract: Option<String> = self.safe_string_k_opt(&row, "contract", &[]);
@@ -4514,8 +4514,8 @@ impl Krakenfutures {
         let mut fundingRates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_884: bool = true;
-            while { if !__for_first_884 { i += 1; } __for_first_884 = false; i < (tickers.len() as i64) } {
+            let mut __for_first_935: bool = true;
+            while { if !__for_first_935 { i += 1; } __for_first_935 = false; i < (tickers.len() as i64) } {
             let mut entry: Option<crate::value::Dict> = self.safe_dict(&tickers, Value::Int(i), &[]).into_opt_dict();
             let mut entry_symbol: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             if (marketIds.is_some()) {
@@ -4591,8 +4591,8 @@ impl Krakenfutures {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_885: bool = true;
-            while { if !__for_first_885 { i += 1; } __for_first_885 = false; i < (rates.len() as i64) } {
+            let mut __for_first_936: bool = true;
+            while { if !__for_first_936 { i += 1; } __for_first_936 = false; i < (rates.len() as i64) } {
             let mut item: Option<crate::value::Dict> = self.safe_dict(&rates, Value::Int(i), &[]).into_opt_dict();
             let mut datetime: Option<String> = self.safe_string_k_opt(&item, "timestamp", &[]);
             result.push(Value::Map({
@@ -4765,8 +4765,8 @@ impl Krakenfutures {
         let mut updates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_886: bool = true;
-            while { if !__for_first_886 { i += 1; } __for_first_886 = false; i < (elements.len() as i64) } {
+            let mut __for_first_937: bool = true;
+            while { if !__for_first_937 { i += 1; } __for_first_937 = false; i < (elements.len() as i64) } {
             let mut event: crate::value::Dict = self.safe_dict_k(elements.get(i as usize).cloned().unwrap_or(Value::Null), "event", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

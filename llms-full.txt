@@ -57,15 +57,15 @@ go get github.com/ccxt/ccxt/go/v4
 ### Java
 ```
 dependencies {
-    implementation("io.github.ccxt:ccxt:4.5.93") // use the latest release
+    implementation("io.github.ccxt:ccxt:4.5.94") // use the latest release
 }
 ```
 
 ### Rust
 ```toml
 [dependencies]
-ccxt = "4.5.93"       # REST
-ccxt-pro = "4.5.93"   # WebSocket (optional)
+ccxt = "4.5.94"       # REST
+ccxt-pro = "4.5.94"   # WebSocket (optional)
 tokio = { version = "1", features = ["full"] }
 ```
 

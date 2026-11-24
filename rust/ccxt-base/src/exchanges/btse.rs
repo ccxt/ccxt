@@ -965,8 +965,8 @@ impl crate::exchange::DerivedExchange for Btse {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_494: bool = true;
-            while { if !__for_first_494 { i += 1; } __for_first_494 = false; i < (rows.len() as i64) } {
+            let mut __for_first_495: bool = true;
+            while { if !__for_first_495 { i += 1; } __for_first_495 = false; i < (rows.len() as i64) } {
             let mut row: crate::value::Dict = self.safe_dict(&rows, Value::Int(i), &[]).into_dict();
             let mut status: Option<String> = self.safe_string_k_opt(&row, "status", &[]);
             if (status.is_some()) {
@@ -2247,8 +2247,8 @@ impl Btse {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_480: bool = true;
-            while { if !__for_first_480 { i += 1; } __for_first_480 = false; i < (rates.len() as i64) } {
+            let mut __for_first_481: bool = true;
+            while { if !__for_first_481 { i += 1; } __for_first_481 = false; i < (rates.len() as i64) } {
             let mut rate: crate::value::Dict = rates.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut timestamp: Option<i64> = self.safe_integer_k(&rate, "timestamp", &[]).as_i64();
             if (timestamp.is_none()) || ((timestamp.is_some() && until.is_some() && timestamp <= until)) {
@@ -2347,8 +2347,8 @@ impl Btse {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_483: bool = true;
-            while { if !__for_first_483 { i += 1; } __for_first_483 = false; i < (response.len() as i64) } {
+            let mut __for_first_484: bool = true;
+            while { if !__for_first_484 { i += 1; } __for_first_484 = false; i < (response.len() as i64) } {
             let mut row: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[]).into_dict();
             let mut assets: Option<crate::value::List> = self.safe_list_k(&row, "assets", &[]).into_opt_list();
             if (assets.is_some()) {
@@ -2357,8 +2357,8 @@ impl Btse {
                 let mut inUse: crate::value::List = self.safe_list_k(&row, "assetsInUse", &[Value::from(vec![])]).into_list();
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_481: bool = true;
-                    while { if !__for_first_481 { j += 1; } __for_first_481 = false; j < (inUse.len() as i64) } {
+                    let mut __for_first_482: bool = true;
+                    while { if !__for_first_482 { j += 1; } __for_first_482 = false; j < (inUse.len() as i64) } {
                     let mut usedRow: crate::value::Dict = self.safe_dict(&inUse, Value::Int(j), &[]).into_dict();
                     let mut usedCode: Option<String> = self.safe_currency_code(self.safe_string_k(&usedRow, "currency", &[]), None);
                     if (usedCode.is_none()) {
@@ -2369,8 +2369,8 @@ impl Btse {
                 }
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_482: bool = true;
-                    while { if !__for_first_482 { j += 1; } __for_first_482 = false; j < (assets.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                    let mut __for_first_483: bool = true;
+                    while { if !__for_first_483 { j += 1; } __for_first_483 = false; j < (assets.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                     let mut assetRow: crate::value::Dict = self.safe_dict(&assets, Value::Int(j), &[]).into_dict();
                     let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(&assetRow, "currency", &[]), None);
                     if (code.is_none()) {
@@ -2395,8 +2395,8 @@ impl Btse {
         let mut codes: Vec<Value> = Value::Array(totals.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_484: bool = true;
-            while { if !__for_first_484 { i += 1; } __for_first_484 = false; i < (codes.len() as i64) } {
+            let mut __for_first_485: bool = true;
+            while { if !__for_first_485 { i += 1; } __for_first_485 = false; i < (codes.len() as i64) } {
             let mut code: Option<&str> = codes.get(i as usize).and_then(Value::as_str);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("total".into(), self.safe_string(&totals, Value::from(code.as_deref()), &[]));
@@ -2476,8 +2476,8 @@ impl Btse {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_486: bool = true;
-            while { if !__for_first_486 { i += 1; } __for_first_486 = false; i < (data.len() as i64) } {
+            let mut __for_first_487: bool = true;
+            while { if !__for_first_487 { i += 1; } __for_first_487 = false; i < (data.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[]).into_dict();
             let mut marketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
@@ -2489,8 +2489,8 @@ impl Btse {
                 let mut minNotional: Option<f64> = None;
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_485: bool = true;
-                    while { if !__for_first_485 { j += 1; } __for_first_485 = false; j < (levels.len() as i64) } {
+                    let mut __for_first_486: bool = true;
+                    while { if !__for_first_486 { j += 1; } __for_first_486 = false; j < (levels.len() as i64) } {
                     let mut level: crate::value::Dict = levels.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
                     let mut maxNotional: Option<f64> = self.safe_number_k(&level, "value", &[]).as_f64();
                     // the endpoint only reports the notional ladder, the
@@ -2724,8 +2724,8 @@ impl Btse {
         let mut rows: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_487: bool = true;
-            while { if !__for_first_487 { i += 1; } __for_first_487 = false; i < (data.len() as i64) } {
+            let mut __for_first_488: bool = true;
+            while { if !__for_first_488 { i += 1; } __for_first_488 = false; i < (data.len() as i64) } {
             let mut row: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             // spot rows do not carry an open interest
             if (self.safe_string_k(&row, "openInterest", &[]) != Value::Null) {
@@ -2808,8 +2808,8 @@ impl Btse {
         let mut rows: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_488: bool = true;
-            while { if !__for_first_488 { i += 1; } __for_first_488 = false; i < (data.len() as i64) } {
+            let mut __for_first_489: bool = true;
+            while { if !__for_first_489 { i += 1; } __for_first_489 = false; i < (data.len() as i64) } {
             let mut row: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             // spot rows do not carry a funding rate
             if (self.safe_string_k(&row, "fundingRate", &[]) != Value::Null) {
@@ -2890,8 +2890,8 @@ impl Btse {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_489: bool = true;
-            while { if !__for_first_489 { i += 1; } __for_first_489 = false; i < (trades.len() as i64) } {
+            let mut __for_first_490: bool = true;
+            while { if !__for_first_490 { i += 1; } __for_first_490 = false; i < (trades.len() as i64) } {
             let mut trade: crate::value::Dict = crate::value::KeyRead::read(&&trades, &Value::Int(i)).into_dict();
             let mut timestamp: Option<i64> = self.safe_integer_k(&trade, "timestamp", &[]).as_i64();
             if (timestamp.is_none()) || ((timestamp.is_some() && until.is_some() && timestamp <= until)) {
@@ -4138,8 +4138,8 @@ impl Btse {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_490: bool = true;
-            while { if !__for_first_490 { i += 1; } __for_first_490 = false; i < (responseList.len() as i64) } {
+            let mut __for_first_491: bool = true;
+            while { if !__for_first_491 { i += 1; } __for_first_491 = false; i < (responseList.len() as i64) } {
             let mut feeInfo: crate::value::Dict = self.safe_dict(&responseList, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4251,8 +4251,8 @@ impl Btse {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_491: bool = true;
-            while { if !__for_first_491 { i += 1; } __for_first_491 = false; i < (typesList.len() as i64) } {
+            let mut __for_first_492: bool = true;
+            while { if !__for_first_492 { i += 1; } __for_first_492 = false; i < (typesList.len() as i64) } {
             let mut historyType: String = self.safe_string(&typesList, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             allowed.insert(historyType.clone(), Value::Bool(true));
             allowed.insert(crate::runtime::stringify_param(&(Value::from(self.capitalize(Value::from(historyType.to_lowercase()))))), Value::Bool(true));
@@ -4261,8 +4261,8 @@ impl Btse {
         let mut rows: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_492: bool = true;
-            while { if !__for_first_492 { i += 1; } __for_first_492 = false; i < (rawRows.len() as i64) } {
+            let mut __for_first_493: bool = true;
+            while { if !__for_first_493 { i += 1; } __for_first_493 = false; i < (rawRows.len() as i64) } {
             let mut entry: crate::value::Dict = self.safe_dict(&rawRows, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -5023,8 +5023,8 @@ impl Btse {
         let mut marginMode: Option<String> = None;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_493: bool = true;
-            while { if !__for_first_493 { i += 1; } __for_first_493 = false; i < (safeResponse.len() as i64) } {
+            let mut __for_first_494: bool = true;
+            while { if !__for_first_494 { i += 1; } __for_first_494 = false; i < (safeResponse.len() as i64) } {
             let mut entrty: crate::value::Dict = self.safe_dict(&safeResponse, Value::Int(i), &[]).into_dict();
             let mut leverageValue: Option<i64> = self.safe_integer_k(&entrty, "leverage", &[]).as_i64();
             let mut positionDirection: Option<String> = self.safe_string_k_opt(&entrty, "positionDirection", &[]);

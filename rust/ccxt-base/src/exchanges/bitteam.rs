@@ -611,8 +611,8 @@ impl crate::exchange::DerivedExchange for Bitteam {
         let mut rawCurrencyIds: Vec<Value> = Value::Array(balanceByCurrencies.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_444: bool = true;
-            while { if !__for_first_444 { i += 1; } __for_first_444 = false; i < (rawCurrencyIds.len() as i64) } {
+            let mut __for_first_445: bool = true;
+            while { if !__for_first_445 { i += 1; } __for_first_445 = false; i < (rawCurrencyIds.len() as i64) } {
             let mut rawCurrencyId: Option<&str> = rawCurrencyIds.get(i as usize).and_then(Value::as_str);
             let mut currencyBalance: crate::value::Dict = self.safe_dict(&result, Value::from(rawCurrencyId.as_deref()), &[]).into_dict();
             let mut free: Option<String> = self.safe_string_k_opt(&currencyBalance, "free", &[]);
@@ -687,8 +687,8 @@ impl crate::exchange::DerivedExchange for Bitteam {
         let mut typeRaw: Option<String> = self.safe_string_k_opt(currency.clone(), "type", &[]);
         {
                         let mut j: i64 = 0;
-            let mut __for_first_442: bool = true;
-            while { if !__for_first_442 { j += 1; } __for_first_442 = false; j < (networkIds.len() as i64) } {
+            let mut __for_first_443: bool = true;
+            while { if !__for_first_443 { j += 1; } __for_first_443 = false; j < (networkIds.len() as i64) } {
             let mut networkId: Option<&str> = networkIds.get(j as usize).and_then(Value::as_str);
             let mut networkCode: Option<String> = self.network_id_to_code(&[Value::from(networkId.as_deref()), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut networkFee: Option<f64> = self.safe_number(feesByNetworkId.clone(), Value::from(networkId.as_deref()), &[]).as_f64();
@@ -2542,8 +2542,8 @@ impl Bitteam {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_443: bool = true;
-            while { if !__for_first_443 { i += 1; } __for_first_443 = false; i < (rawTickers.len() as i64) } {
+            let mut __for_first_444: bool = true;
+            while { if !__for_first_444 { i += 1; } __for_first_444 = false; i < (rawTickers.len() as i64) } {
             let mut rawTicker: crate::value::Dict = rawTickers.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &rawTicker, None).into_dict();
             tickers.push(Value::Dict(ticker));

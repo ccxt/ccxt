@@ -17,8 +17,8 @@ pub async fn testFetchOrders(mut exchange: Value, mut skippedProperties: Value, 
     let mut now: Value = Value::Int(exchange.milliseconds());
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1596: bool = true;
-        while { if !__for_first_1596 { i += 1; } __for_first_1596 = false; i < (orders.len() as i64) } {
+        let mut __for_first_1647: bool = true;
+        while { if !__for_first_1647 { i += 1; } __for_first_1647 = false; i < (orders.len() as i64) } {
         testOrder(exchange.clone(), skippedProperties.clone(), method.clone(), orders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), symbol.clone(), now.clone());
     }
     }
