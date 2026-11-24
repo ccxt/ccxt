@@ -1095,7 +1095,7 @@ func (this *Bingx) HandleOHLCV(client ccxt.ClientInterface, message map[string]a
 	}
 	for i := 0; i < len(candles); i++ {
 		var candle any = ccxt.GetValue(candles, i)
-		var parsed any = ccxt.OHLCVToList(this.ParseWsOHLCV(candle, market))
+		var parsed []any = ccxt.OHLCVToList(this.ParseWsOHLCV(candle, market))
 		stored.Append(parsed)
 	}
 	var resolveData []any = []any{symbol, unifiedTimeframe, stored}

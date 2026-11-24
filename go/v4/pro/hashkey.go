@@ -222,7 +222,7 @@ func (this *Hashkey) HandleOHLCV(client ccxt.ClientInterface, message any) {
 		if candle == nil {
 			candle = map[string]any{}
 		}
-		var parsed any = ccxt.OHLCVToList(this.ParseWsOHLCV(candle, market))
+		var parsed []any = ccxt.OHLCVToList(this.ParseWsOHLCV(candle, market))
 		stored.Append(parsed)
 	}
 	var messageHash string = "ohlcv:" + symbol + ":" + *timeframe

@@ -530,7 +530,7 @@ func (this *Coincheck) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optiona
 	if rawOrders == nil {
 		rawOrders = []any{}
 	}
-	var parsedOrders []any = ArrayTyped(this.ParseOrders(rawOrders, market, since, limit))
+	var parsedOrders []any = this.ParseOrders(rawOrders, market, since, limit)
 	var result []any = []any{}
 	for i := 0; i < len(parsedOrders); i++ {
 		result = append(result, this.Extend(parsedOrders[i], map[string]any{

@@ -924,7 +924,7 @@ func (this *Polymarket) HandleOHLCV(client ccxt.ClientInterface, message map[str
 	var ohlcv ccxt.WsArrayCache
 	ohlcv, _ = this.Ohlcvs[symbol][*timeframe].(ccxt.WsArrayCache)
 	for i := 0; i < len(rows); i++ {
-		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(rows[i], market))
+		var parsed []any = ccxt.OHLCVToList(this.ParseOHLCV(rows[i], market))
 		ohlcv.Append(parsed)
 	}
 	var messageHash string = "candles:" + *timeframe + ":" + symbol

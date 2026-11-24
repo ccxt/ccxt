@@ -4200,7 +4200,8 @@ func (this *Cryptocom) ParseSettlements(settlements []any, optionalArgs ...any) 
 	_ = market
 	var result []any = []any{}
 	for i := 0; i < len(settlements); i++ {
-		result = append(result, this.ParseSettlement(this.Extend(map[string]any{}, settlements[i]), market))
+		var settlementRow map[string]any = this.Extend(map[string]any{}, settlements[i])
+		result = append(result, this.ParseSettlement(settlementRow, market))
 	}
 	return result
 }
@@ -4359,11 +4360,11 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Funding
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes319119 []any = r1.Value
-		if retRes319119 == nil {
+		var retRes319219 []any = r1.Value
+		if retRes319219 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes319119)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes319219)}
 		}
 		return nil
 	}
@@ -4491,14 +4492,14 @@ func (this *Cryptocom) fetchPositionBody(ch chan AsyncResult[Position], symbol s
 	var data []any
 	data, _ = result["data"].([]any)
 
-	var dataDict329035 map[string]any
+	var dataDict329135 map[string]any
 	if len(data) > 0 {
-		dataDict329035, _ = data[0].(map[string]any)
+		dataDict329135, _ = data[0].(map[string]any)
 	}
-	if dataDict329035 == nil {
-		dataDict329035 = map[string]any{}
+	if dataDict329135 == nil {
+		dataDict329135 = map[string]any{}
 	}
-	ch <- AsyncResult[Position]{Value: this.ParsePosition(dataDict329035, market)}
+	ch <- AsyncResult[Position]{Value: this.ParsePosition(dataDict329135, market)}
 	return nil
 }
 
@@ -4580,11 +4581,11 @@ func (this *Cryptocom) fetchPositionsBody(ch chan AsyncResult[[]Position], optio
 	for i := 0; i < len(positions); i++ {
 		var marketId *string = this.SafeString(positions[i], "instrument_name")
 		var marketInner map[string]any = this.SafeMarket(marketId, nil, nil, "contract")
-		positionsDict335049, _ := positions[i].(map[string]any)
-		if positionsDict335049 == nil {
-			positionsDict335049 = map[string]any{}
+		positionsDict335149, _ := positions[i].(map[string]any)
+		if positionsDict335149 == nil {
+			positionsDict335149 = map[string]any{}
 		}
-		var position map[string]any = PositionToMap(this.ParsePosition(positionsDict335049, marketInner))
+		var position map[string]any = PositionToMap(this.ParsePosition(positionsDict335149, marketInner))
 		result = append(result, position)
 	}
 
@@ -4612,9 +4613,9 @@ func (this *Cryptocom) ParsePosition(position map[string]any, optionalArgs ...an
 	var symbol *string = this.SafeSymbol(marketId, marketResolved, nil, "contract")
 	var timestamp *int64 = this.SafeInteger(position, "update_timestamp_ms")
 	var amount *string = this.SafeString(position, "quantity")
-	var ternaryStr338220 string = "short"
+	var ternaryStr338320 string = "short"
 	if Precise.StringGt(amount, "0") {
-		ternaryStr338220 = "long"
+		ternaryStr338320 = "long"
 	}
 	return this.SafePosition(map[string]any{
 		"info":                        position,
@@ -4623,7 +4624,7 @@ func (this *Cryptocom) ParsePosition(position map[string]any, optionalArgs ...an
 		"timestamp":                   timestamp,
 		"datetime":                    this.Iso8601(timestamp),
 		"hedged":                      nil,
-		"side":                        ternaryStr338220,
+		"side":                        ternaryStr338320,
 		"contracts":                   this.ParseNumber(Precise.StringAbs(amount)),
 		"contractSize":                marketResolved["contractSize"],
 		"entryPrice":                  nil,
@@ -4994,16 +4995,16 @@ func (this *Cryptocom) Sign(path string, optionalArgs ...any) map[string]any {
 			"Content-Type": "application/json",
 		}
 	}
-	var literal366515 map[string]any = map[string]any{
+	var literal366615 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": requestHeaders,
 	}
 	if requestBody != nil {
-		literal366515["body"] = *requestBody
+		literal366615["body"] = *requestBody
 	}
-	return literal366515
+	return literal366615
 }
 func (this *Cryptocom) HandleErrors(code int64, reason string, url string, method string, headers map[string]any, body string, response any, requestHeaders map[string]any, requestBody *string) *bool {
 	var errorCode *string = this.SafeString(response, "code")

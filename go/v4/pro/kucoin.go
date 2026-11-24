@@ -3852,7 +3852,11 @@ func (this *Kucoin) HandleBalance(client ccxt.ClientInterface, message map[strin
 		if _, ok := this.Balance[*uniformType]; !ok {
 			this.Balance[*uniformType] = map[string]any{}
 		}
-		var balance map[string]any = this.SafeDictMap(this.Balance, uniformType, map[string]any{})
+		var balance map[string]any
+		balance, _ = this.Balance[*uniformType].(map[string]any)
+		if balance == nil {
+			balance = map[string]any{}
+		}
 		balance["info"] = data
 		var timestamp *int64 = this.SafeInteger2(data, "time", "timestamp")
 		if timestamp != nil {

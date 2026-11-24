@@ -1124,7 +1124,7 @@ func (this *Kraken) unWatchTradesForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false, true, false)
 	var unsubMessageHashes []string = []string{}
 	for i := 0; i < len(symbolsNormalized); i++ {
-		unsubMessageHashes = append(unsubMessageHashes, "unsubscribe:"+this.GetMessageHash("trade", nil, symbolsNormalized[i]))
+		unsubMessageHashes = append(unsubMessageHashes, "unsubscribe:"+this.GetMessageHash("trade", nil, this.Symbol(symbolsNormalized[i])))
 	}
 	var request map[string]any = map[string]any{
 		"method": "unsubscribe",

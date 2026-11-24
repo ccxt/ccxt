@@ -932,7 +932,11 @@ func (this *Bullish) HandleBalance(client ccxt.ClientInterface, message map[stri
 				parsedKeys = append(parsedKeys, objectKey)
 			}
 		}
-		var balance map[string]any = this.SafeDictMap(this.Balance, tradingAccountId, map[string]any{})
+		var balance map[string]any
+		balance, _ = this.Balance[*tradingAccountId].(map[string]any)
+		if balance == nil {
+			balance = map[string]any{}
+		}
 		for i := 0; i < len(parsedKeys); i++ {
 			var parsedKey string = parsedKeys[i]
 			ccxt.AddElementToObject(balance, parsedKey, parsed[parsedKey])
@@ -945,7 +949,11 @@ func (this *Bullish) HandleBalance(client ccxt.ClientInterface, message map[stri
 		account["total"] = this.SafeString(data, "availableQuantity")
 		account["used"] = this.SafeString(data, "lockedQuantity")
 		var code *string = this.SafeCurrencyCode(assetId)
-		var deltaBalance map[string]any = this.SafeDictMap(this.Balance, tradingAccountId, map[string]any{})
+		var deltaBalance map[string]any
+		deltaBalance, _ = this.Balance[*tradingAccountId].(map[string]any)
+		if deltaBalance == nil {
+			deltaBalance = map[string]any{}
+		}
 		deltaBalance["info"] = message
 		if (tradingAccountId != nil) && (code != nil) {
 			deltaBalance[*code] = account

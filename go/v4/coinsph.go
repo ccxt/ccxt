@@ -2503,7 +2503,11 @@ func (this *Coinsph) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	var result map[string]any = map[string]any{}
 	var fees []any = this.ToArray(response)
 	for i := 0; i < len(fees); i++ {
-		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(fees[i]))
+		var feeRow, _ = fees[i].(map[string]any)
+		if feeRow == nil {
+			feeRow = map[string]any{}
+		}
+		var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(feeRow))
 		var symbol *string = this.SafeString(fee, "symbol")
 		if symbol != nil {
 			result[*symbol] = fee
@@ -2513,7 +2517,7 @@ func (this *Coinsph) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
 	return nil
 }
-func (this *Coinsph) ParseTradingFee(fee any, optionalArgs ...any) TradingFeeInterface {
+func (this *Coinsph) ParseTradingFee(fee map[string]any, optionalArgs ...any) TradingFeeInterface {
 	//
 	//     {
 	//         "symbol": "ETHUSDT",

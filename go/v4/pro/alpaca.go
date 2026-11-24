@@ -275,7 +275,7 @@ func (this *Alpaca) HandleOHLCV(client ccxt.ClientInterface, message map[string]
 			this.Ohlcvs[*symbol]["1m"] = stored
 		}
 	}
-	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(message))
+	var parsed []any = ccxt.OHLCVToList(this.ParseOHLCV(message))
 	stored.Append(parsed)
 	var messageHash string = "ohlcv:" + *symbol
 	client.Resolve(stored, messageHash)

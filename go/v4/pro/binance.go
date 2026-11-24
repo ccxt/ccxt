@@ -4474,7 +4474,10 @@ func (this *Binance) keepAliveListenKeyBody(ch chan ccxt.AsyncResult[bool], opti
 								urlTypeStr2 := "optionPrivate"
 								urlType = &urlTypeStr2
 							}
-							var optionsType map[string]any = ccxt.SafeMapTyped(this.Options, typeVar)
+							var optionsType map[string]any
+							if typeVar != nil {
+								optionsType, _ = this.Options[*typeVar].(map[string]any)
+							}
 							var cachedListenKey *string = this.SafeString(optionsType, "listenKey")
 							url = this.GetPrivateWsUrl(urlType, cachedListenKey)
 						}
@@ -6624,9 +6627,14 @@ func (this *Binance) HandleOrderUpdate(client ccxt.ClientInterface, message map[
 		this.HandleOrder(client, message)
 		return
 	}
+	var orderValue map[string]any
+	orderValue, _ = message["o"].(map[string]any)
+	if orderValue == nil {
+		orderValue = message
+	}
 	var messageValue any = message
 	if (e != nil && *e == "ORDER_TRADE_UPDATE") || (e != nil && *e == "ALGO_UPDATE") {
-		messageValue = this.SafeDict(message, "o", message)
+		messageValue = orderValue
 		if (e != nil && *e == "ALGO_UPDATE") && (this.SafeInteger(messageValue, "T") == nil) {
 			// keep the outer event time, the algo payload carries no timestamps
 			messageValue = this.Extend(messageValue, map[string]any{
@@ -7580,9 +7588,9 @@ func (this *Binance) HandleMyTrade(client ccxt.ClientInterface, message any) {
 							}
 						}
 						if insertNewFeeCurrency {
-							retRes573132 := order["fees"]
-							ccxt.AppendToArray(&retRes573132, tradeFee)
-							ccxt.AddElementToObject(order, "fees", retRes573132)
+							retRes573232 := order["fees"]
+							ccxt.AppendToArray(&retRes573232, tradeFee)
+							ccxt.AddElementToObject(order, "fees", retRes573232)
 						}
 					} else if fee != nil {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {

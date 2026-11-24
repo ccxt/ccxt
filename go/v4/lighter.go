@@ -506,7 +506,7 @@ func (this *Lighter) loadAccountBody(ch chan AsyncResult[any], chainId any, priv
 	this.InitAuthObject(*accountIndex, *apiKeyIndex)
 	var cachedAuths map[string]any = SafeMapTyped(this.SafeDict(this.SafeDict(this.Options, "auths", map[string]any{}), accountIndex, map[string]any{}), apiKeyIndex)
 	var signer any = this.SafeValue(cachedAuths, "signer")
-	if !IsEqual(signer, nil) {
+	if signer != nil {
 
 		ch <- AsyncResult[any]{Value: signer}
 		return nil

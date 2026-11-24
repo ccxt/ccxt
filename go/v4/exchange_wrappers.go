@@ -2861,7 +2861,7 @@ func (this *Exchange) FetchUnifiedOrder(order Order, options ...FetchUnifiedOrde
 	for _, opt := range options {
 		opt(&opts)
 	}
-	r := <-this.FetchUnifiedOrderAsync(order, opts.Params)
+	r := <-this.FetchUnifiedOrderAsync(OrderToMap(order), opts.Params)
 	if r.Err != nil {
 		return Order{}, r.Err
 	}

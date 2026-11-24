@@ -10647,7 +10647,8 @@ func (this *Gate) ParseSettlements(settlements []any, optionalArgs ...any) []any
 	_ = market
 	var result []any = []any{}
 	for i := 0; i < len(settlements); i++ {
-		result = append(result, this.ParseSettlement(this.Extend(map[string]any{}, settlements[i]), market))
+		var settlementRow map[string]any = this.Extend(map[string]any{}, settlements[i])
+		result = append(result, this.ParseSettlement(settlementRow, market))
 	}
 	return result
 }
@@ -10699,11 +10700,11 @@ func (this *Gate) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes775519 []any = r1.Value
-		if retRes775519 == nil {
+		var retRes775619 []any = r1.Value
+		if retRes775619 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes775519)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes775619)}
 		}
 		return nil
 	}

@@ -391,7 +391,7 @@ func (this *Bittrade) HandleOHLCV(client ccxt.ClientInterface, message map[strin
 		}
 	}
 	var tick, _ = message["tick"].(map[string]any)
-	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(tick, market))
+	var parsed []any = ccxt.OHLCVToList(this.ParseOHLCV(tick, market))
 	stored.Append(parsed)
 	client.Resolve(stored, ch)
 }

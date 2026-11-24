@@ -2607,7 +2607,7 @@ func (this *Krakenfutures) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order],
 	ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(canceledAndRejected, market, since, limit))}
 	return nil
 }
-func (this *Krakenfutures) ParseOrderType(orderType any) *string {
+func (this *Krakenfutures) ParseOrderType(orderType *string) *string {
 	var typesMap map[string]any = map[string]any{
 		"lmt":  "limit",
 		"mkt":  "market",
@@ -2647,7 +2647,7 @@ func (this *Krakenfutures) VerifyOrderActionSuccess(status *string, method strin
 		}
 	}
 }
-func (this *Krakenfutures) ParseOrderStatus(status any) *string {
+func (this *Krakenfutures) ParseOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"placed":                     "open",
 		"cancelled":                  "canceled",

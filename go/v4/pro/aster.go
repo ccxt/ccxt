@@ -1894,7 +1894,7 @@ func (this *Aster) HandleOHLCV(client ccxt.ClientInterface, message map[string]a
 	if symbol != nil {
 		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
-	var parsed any = ccxt.OHLCVToList(this.ParseWsOHLCV(kline))
+	var parsed []any = ccxt.OHLCVToList(this.ParseWsOHLCV(kline))
 	stored.Append(parsed)
 	var messageHash string = "ohlcv:" + *symbol + ":" + *timeframe
 	var resolveData []any = []any{symbol, timeframe, stored}
@@ -2720,17 +2720,22 @@ func (this *Aster) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opt
 	return nil
 }
 func (this *Aster) HandleOrderUpdate(client ccxt.ClientInterface, message map[string]any) {
-	var rawOrder any = this.SafeDict(message, "o", message)
+	var rawOrder map[string]any
+	rawOrder, _ = message["o"].(map[string]any)
+	if rawOrder == nil {
+		rawOrder = message
+	}
 	var e *string = this.SafeString(message, "e")
 	var isOrderUpdate bool = (e != nil && *e == "ORDER_TRADE_UPDATE") || (e != nil && *e == "ALGO_UPDATE")
-	var tradeMessage any = message
-	if isOrderUpdate {
-		tradeMessage = rawOrder
-	}
+	var tradeOrder, _ = message["o"].(map[string]any)
 	this.HandleOrder(client, rawOrder)
-	this.HandleMyTrade(client, tradeMessage)
+	if isOrderUpdate && (tradeOrder != nil) {
+		this.HandleMyTrade(client, tradeOrder)
+	} else {
+		this.HandleMyTrade(client, message)
+	}
 }
-func (this *Aster) HandleMyTrade(client ccxt.ClientInterface, message any) {
+func (this *Aster) HandleMyTrade(client ccxt.ClientInterface, message map[string]any) {
 	var messageHash string = "myTrades"
 	var executionType *string = this.SafeString(message, "x")
 	if executionType != nil && *executionType == "TRADE" {

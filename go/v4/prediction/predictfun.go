@@ -2568,7 +2568,7 @@ func (this *Predictfun) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionPosition]{Value: ccxt.PredictionPositionsFromList(this.ParsePredictionPositions(rows))}
 		return nil
 	}
-	var parsed []any = ccxt.ArrayTyped(this.ParsePredictionPositions(rows))
+	var parsed []any = this.ParsePredictionPositions(rows)
 	// the venue filters by marketId only, so a set of outcome handles is applied here
 	var wanted map[string]any = map[string]any{}
 	var wantedOutcomes []any = this.ToArray(outcomes)
@@ -3409,7 +3409,7 @@ func (this *Predictfun) AdapterAddress(isYieldBearing bool) *string {
  * @param {string} privateKey the wallet private key
  * @returns {string} the signed raw transaction
  */
-func (this *Predictfun) SignEvmTransaction(tx any, privateKey any) any {
+func (this *Predictfun) SignEvmTransaction(tx map[string]any, privateKey string) string {
 	var accessList string = this.RlpEncodeList([]any{})
 	var fields []any = []any{this.RlpEncodeBytes(this.IntToRlpHex(this.SafeInteger(tx, "chainId"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "nonce"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "maxPriorityFeePerGas"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "maxFeePerGas"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "gasLimit"))), this.RlpEncodeBytes(this.Remove0xPrefix(this.SafeString(tx, "to"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "value", "0x0"))), this.RlpEncodeBytes(this.Remove0xPrefix(this.SafeString(tx, "data", "0x"))), accessList}
 	var payload string = "02" + this.RlpEncodeList(fields)
@@ -3692,7 +3692,7 @@ func (this *Predictfun) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], out
 		panic(ccxt.ArgumentsRequired(this.Id + " unWatchOrderBook() could not resolve the market id of " + outcome))
 	}
 	var topic string = "predictOrderbook/" + *marketId
-	var outcomes []any = ccxt.ArrayTyped(this.OutcomesByMarketId(marketId))
+	var outcomes []any = this.OutcomesByMarketId(marketId)
 	var outcomesLength int = len(outcomes)
 	var handles []any = []any{}
 	var subMessageHashes []any = []any{}
@@ -3754,7 +3754,7 @@ func (this *Predictfun) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], out
  * @returns {string[]} the message hashes
  */
 func (this *Predictfun) OrderBookMessageHashes(marketId string) []any {
-	var outcomes []any = ccxt.ArrayTyped(this.OutcomesByMarketId(&marketId))
+	var outcomes []any = this.OutcomesByMarketId(&marketId)
 	var outcomesLength int = len(outcomes)
 	var hashes []any = []any{}
 	for i := 0; i < outcomesLength; i++ {
@@ -4387,7 +4387,7 @@ func (this *Predictfun) HandleOrderBook(client ccxt.ClientInterface, message map
 		yesAsks = append(yesAsks, []any{this.ParseNumber(askPrice), askSize})
 		noBids = append(noBids, []any{this.ParseNumber(ccxt.Precise.StringSub("1", askPrice)), askSize})
 	}
-	var outcomes []any = ccxt.ArrayTyped(this.OutcomesByMarketId(marketId))
+	var outcomes []any = this.OutcomesByMarketId(marketId)
 	var outcomesLength int = len(outcomes)
 	for i := 0; i < outcomesLength; i++ {
 		var outcomeObj, _ = outcomes[i].(map[string]any)
@@ -4542,7 +4542,7 @@ func (this *Predictfun) HandleWalletEventTrade(client ccxt.ClientInterface, even
 func (this *Predictfun) WalletEventOutcome(details map[string]any) any {
 	var marketId *string = this.SafeString(details, "marketId")
 	var outcomeIndex *int64 = this.SafeInteger(details, "outcomeIndex")
-	var outcomes []any = ccxt.ArrayTyped(this.OutcomesByMarketId(marketId))
+	var outcomes []any = this.OutcomesByMarketId(marketId)
 	var outcomesLength int = len(outcomes)
 	for i := 0; i < outcomesLength; i++ {
 		var candidate any = outcomes[i]
@@ -4910,8 +4910,8 @@ func (this *Predictfun) Sign(path string, optionalArgs ...any) map[string]any {
 		panic(ccxt.AuthenticationError(this.Id + " sign() requires the \"apiKey\" credential for all endpoints"))
 	}
 	var apiGroup string = api[0]
-	var baseUrls any = this.Urls["api"]
-	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "predictfun"))
+	var baseUrls map[string]any = this.UrlsApi
+	var baseUrl *string = this.SafeString(baseUrls, apiGroup, baseUrls["predictfun"])
 	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if method == "GET" {

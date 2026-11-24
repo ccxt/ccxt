@@ -1889,7 +1889,7 @@ func (this *Okx) HandleOHLCV(client ccxt.ClientInterface, message map[string]any
 	// use a reverse lookup in a static map instead
 	var timeframe *string = this.FindTimeframe(interval)
 	for i := 0; i < len(data); i++ {
-		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data[i], market))
+		var parsed []any = ccxt.OHLCVToList(this.ParseOHLCV(data[i], market))
 		if symbol != nil && this.Ohlcvs[*symbol] == nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
@@ -3140,7 +3140,7 @@ func (this *Okx) HandleOrders(client ccxt.ClientInterface, message map[string]an
 			stored = this.Orders
 		}
 		var marketIds []string = []string{}
-		var parsed []any = ccxt.ArrayTyped(this.ParseOrders(orders))
+		var parsed []any = this.ParseOrders(orders)
 		for i := 0; i < len(parsed); i++ {
 			var order any = parsed[i]
 			stored.Append(order)
@@ -3368,7 +3368,7 @@ func (this *Okx) HandlePlaceOrders(client ccxt.ClientInterface, message map[stri
 		var stringMsg string = this.Json(message)
 		this.HandleErrors(1, "", client.GetUrl(), *method, map[string]any{}, stringMsg, message, map[string]any{}, nil)
 	}
-	var orders []any = ccxt.ArrayTyped(this.ParseOrders(args, nil, nil, nil))
+	var orders []any = this.ParseOrders(args, nil, nil, nil)
 	var first map[string]any
 	if 0 < len(orders) {
 		first, _ = orders[0].(map[string]any)

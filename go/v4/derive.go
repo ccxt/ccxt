@@ -1911,7 +1911,8 @@ func (this *Derive) ParseSettlements(settlements []any, optionalArgs ...any) []a
 	_ = market
 	var result []any = []any{}
 	for i := 0; i < len(settlements); i++ {
-		result = append(result, this.ParseSettlement(this.Extend(map[string]any{}, settlements[i]), market))
+		var settlementRow map[string]any = this.Extend(map[string]any{}, settlements[i])
+		result = append(result, this.ParseSettlement(settlementRow, market))
 	}
 	return result
 }
@@ -1952,7 +1953,7 @@ func (this *Derive) ParseTicker(ticker map[string]any, optionalArgs ...any) Tick
 	if change != nil {
 		percentage = Precise.StringMul(change, "100")
 	}
-	var literal137332 map[string]any = map[string]any{
+	var literal137432 map[string]any = map[string]any{
 		"symbol":        this.SafeSymbol(nil, market),
 		"timestamp":     timestamp,
 		"datetime":      this.Iso8601(timestamp),
@@ -1977,9 +1978,9 @@ func (this *Derive) ParseTicker(ticker map[string]any, optionalArgs ...any) Tick
 		"info":          ticker,
 	}
 	if percentage != nil {
-		literal137332["percentage"] = *percentage
+		literal137432["percentage"] = *percentage
 	}
-	return this.SafeTicker(literal137332, market)
+	return this.SafeTicker(literal137432, market)
 }
 
 /**
@@ -2023,11 +2024,11 @@ func (this *Derive) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes141819 []any = r1.Value
-		if retRes141819 == nil {
+		var retRes141919 []any = r1.Value
+		if retRes141919 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes141819)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes141919)}
 		}
 		return nil
 	}
@@ -2251,11 +2252,11 @@ func (this *Derive) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes159319 []any = r1.Value
-		if retRes159319 == nil {
+		var retRes159419 []any = r1.Value
+		if retRes159419 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes159319)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes159419)}
 		}
 		return nil
 	}
@@ -3771,7 +3772,7 @@ func (this *Derive) ParseOrder(rawOrder any, optionalArgs ...any) Order {
 	var lastUpdateTimestamp *int64 = this.SafeInteger(rawOrder, "last_update_timestamp")
 	var status *string = this.SafeString(order, "order_status")
 	var timeInForce *string = this.SafeString(order, "time_in_force")
-	var literal283831 map[string]any = map[string]any{
+	var literal283931 map[string]any = map[string]any{
 		"id":                  orderId,
 		"clientOrderId":       this.SafeString(order, "label"),
 		"timestamp":           timestamp,
@@ -3802,12 +3803,12 @@ func (this *Derive) ParseOrder(rawOrder any, optionalArgs ...any) Order {
 		"info": order,
 	}
 	if takeProfitPrice != nil {
-		literal283831["takeProfitPrice"] = *takeProfitPrice
+		literal283931["takeProfitPrice"] = *takeProfitPrice
 	}
 	if stopLossPrice != nil {
-		literal283831["stopLossPrice"] = *stopLossPrice
+		literal283931["stopLossPrice"] = *stopLossPrice
 	}
-	return this.SafeOrder(literal283831, marketResolved)
+	return this.SafeOrder(literal283931, marketResolved)
 }
 
 /**
@@ -3962,11 +3963,11 @@ func (this *Derive) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes296819 []any = r1.Value
-		if retRes296819 == nil {
+		var retRes296919 []any = r1.Value
+		if retRes296919 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes296819)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes296919)}
 		}
 		return nil
 	}
@@ -4290,11 +4291,11 @@ func (this *Derive) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes322619 []any = r1.Value
-		if retRes322619 == nil {
+		var retRes322719 []any = r1.Value
+		if retRes322719 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes322619)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes322719)}
 		}
 		return nil
 	}
@@ -4988,11 +4989,11 @@ func (this *Derive) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opt
 	transfers, _ = result["transfers"].([]any)
 	var parsed []any = []any{}
 	for i := 0; i < len(transfers); i++ {
-		transfersDict381762, _ := transfers[i].(map[string]any)
-		if transfersDict381762 == nil {
-			transfersDict381762 = map[string]any{}
+		transfersDict381862, _ := transfers[i].(map[string]any)
+		if transfersDict381862 == nil {
+			transfersDict381862 = map[string]any{}
 		}
-		var transfer map[string]any = this.Extend(TransferEntryToMap(this.ParseTransfer(transfersDict381762)), map[string]any{})
+		var transfer map[string]any = this.Extend(TransferEntryToMap(this.ParseTransfer(transfersDict381862)), map[string]any{})
 		parsed = append(parsed, transfer)
 	}
 	var sorted []any = this.SortBy(parsed, "timestamp")
@@ -5534,9 +5535,9 @@ func (this *Derive) ParseTransaction(transaction map[string]any, optionalArgs ..
 	}
 	// withdrawal rows carry the recipient address, deposit rows carry l1_sender/wallet instead
 	var addressTo *string = this.SafeString(transaction, "recipient")
-	var ternaryStr423420 string = "deposit"
+	var ternaryStr423520 string = "deposit"
 	if addressTo != nil {
-		ternaryStr423420 = "withdrawal"
+		ternaryStr423520 = "withdrawal"
 	}
 	return TransactionFromMap(map[string]any{
 		"info":        transaction,
@@ -5550,7 +5551,7 @@ func (this *Derive) ParseTransaction(transaction map[string]any, optionalArgs ..
 		"tag":         nil,
 		"tagFrom":     nil,
 		"tagTo":       nil,
-		"type":        ternaryStr423420,
+		"type":        ternaryStr423520,
 		"amount":      this.SafeNumber(transaction, "amount"),
 		"currency":    code,
 		"status":      this.ParseTransactionStatus(this.SafeString2(transaction, "batch_status", "tx_status")),

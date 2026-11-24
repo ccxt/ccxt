@@ -1538,7 +1538,9 @@ func (this *Coinbase) HandleSubscriptionStatus(client ccxt.ClientInterface, mess
 				var messageHash string = messageHashes[i]
 				var subHash *string = nil
 				if i >= 0 && i < len(subMessageHashes) {
-					subHash = ccxt.SafeStringPtr(subMessageHashes[i])
+					if s, ok := subMessageHashes[i].(string); ok {
+						subHash = &s
+					}
 				}
 				this.CleanUnsubscription(ccxt.AsClient(client), subHash, messageHash)
 			}

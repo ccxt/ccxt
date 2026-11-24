@@ -680,7 +680,7 @@ func (this *Grvt) HandleOHLCV(client ccxt.ClientInterface, message map[string]an
 	}
 	var stored ccxt.WsArrayCache
 	stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
-	var parsed any = ccxt.OHLCVToList(this.ParseWsOHLCV(data, market))
+	var parsed []any = ccxt.OHLCVToList(this.ParseWsOHLCV(data, market))
 	stored.Append(parsed)
 	var resolveData []any = []any{symbol, timeframe, stored}
 	client.Resolve(resolveData, messageHash)

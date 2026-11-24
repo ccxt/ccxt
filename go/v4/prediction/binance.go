@@ -1733,7 +1733,7 @@ func (this *Binance) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionPosition]{Value: ccxt.PredictionPositionsFromList(this.ParsePredictionPositions(data))}
 		return nil
 	}
-	var positions []any = ccxt.ArrayTyped(this.ParsePredictionPositions(data))
+	var positions []any = this.ParsePredictionPositions(data)
 	var filtered []any = []any{}
 	var positionsLength int = len(positions)
 	for i := 0; i < positionsLength; i++ {
@@ -1802,7 +1802,7 @@ func (this *Binance) fetchPositionBody(ch chan ccxt.AsyncResult[ccxt.PredictionP
 		positions = []any{}
 	}
 	var parsedPositions []any = this.ParsePredictionPositions(positions)
-	var filteredPositions []any = ccxt.ArrayTyped(this.FilterByOutcomeSinceLimit(parsedPositions, outcome, nil, nil))
+	var filteredPositions []any = this.FilterByOutcomeSinceLimit(parsedPositions, outcome, nil, nil)
 
 	ch <- ccxt.AsyncResult[ccxt.PredictionPosition]{Value: ccxt.PredictionPositionFromMap(this.SafeDictMap(filteredPositions, 0))}
 	return nil

@@ -816,7 +816,7 @@ func (this *Apex) HandleOHLCV(client ccxt.ClientInterface, message map[string]an
 		}
 	}
 	for i := 0; i < len(data); i++ {
-		var parsed any = ccxt.OHLCVToList(this.ParseWsOHLCV(data[i]))
+		var parsed []any = ccxt.OHLCVToList(this.ParseWsOHLCV(data[i]))
 		stored.Append(parsed)
 	}
 	var messageHash *string = nil

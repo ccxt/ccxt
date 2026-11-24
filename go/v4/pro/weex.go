@@ -1161,7 +1161,7 @@ func (this *Weex) HandleOHLCV(client ccxt.ClientInterface, message map[string]an
 		if entry == nil {
 			entry = map[string]any{}
 		}
-		var parsed any = ccxt.OHLCVToList(this.ParseWsOHLCV(entry))
+		var parsed []any = ccxt.OHLCVToList(this.ParseWsOHLCV(entry))
 		stored.Append(parsed)
 	}
 	var messageHash *string = nil

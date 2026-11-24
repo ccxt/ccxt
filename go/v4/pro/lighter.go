@@ -1408,7 +1408,7 @@ func (this *Lighter) HandleLiquidation(client ccxt.ClientInterface, message map[
 	var market map[string]any = this.SafeMarket(marketId)
 	var symbol *string = this.SafeString(market, "symbol")
 	var stored any = this.SafeValue(this.Liquidations, symbol)
-	if ccxt.IsEqual(stored, nil) {
+	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
 		this.Liquidations = ccxt.NewArrayCache(limit)
 		stored = this.Liquidations

@@ -88,12 +88,12 @@ func (this *Lbank) CheckContractMarket(market map[string]any, methodName string)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {boolean} true
  */
-func (this *Lbank) UnSubscribeAsync(subHash any, request map[string]any, subscription map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Lbank) UnSubscribeAsync(subHash string, request map[string]any, subscription map[string]any, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
 	go this.unSubscribeBody(ch, subHash, request, subscription, optionalArgs...)
 	return ch
 }
-func (this *Lbank) unSubscribeBody(ch chan ccxt.AsyncResult[bool], subHash any, request map[string]any, subscription map[string]any, optionalArgs ...any) any {
+func (this *Lbank) unSubscribeBody(ch chan ccxt.AsyncResult[bool], subHash string, request map[string]any, subscription map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -111,7 +111,7 @@ func (this *Lbank) unSubscribeBody(ch chan ccxt.AsyncResult[bool], subHash any, 
 						}
 						ret_ = func(this *Lbank) any {
 							// catch block:
-							panic(ccxt.NetworkError(ccxt.Add(ccxt.Add(this.Id+" could not unsubscribe ", subHash), ", the websocket connection is not open")))
+							panic(ccxt.NetworkError(this.Id + " could not unsubscribe " + subHash + ", the websocket connection is not open"))
 
 						}(this)
 					}
@@ -130,7 +130,7 @@ func (this *Lbank) unSubscribeBody(ch chan ccxt.AsyncResult[bool], subHash any, 
 	// lbank does not acknowledge an unsubscribe, it just stops streaming the channel,
 	// so the subscription is cleaned up as soon as the request is sent
 	this.CleanCache(subscription)
-	this.CleanUnsubscription(ccxt.AsClient(client), subHash, ccxt.Add("unsubscribe:", subHash))
+	this.CleanUnsubscription(ccxt.AsClient(client), subHash, "unsubscribe:"+subHash)
 
 	ch <- ccxt.AsyncResult[bool]{Value: true}
 	return nil
@@ -315,8 +315,9 @@ func (this *Lbank) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol strin
 		"topic":                "ohlcv",
 		"symbolsAndTimeframes": []any{[]any{market["symbol"], timeframe}},
 	}
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 
-	r1 := <-this.UnSubscribeAsync("ohlcv:"+market["symbol"].(string)+":"+*timeframeId, request, subscription, params)
+	r1 := <-this.UnSubscribeAsync("ohlcv:"+symbolValue+":"+*timeframeId, request, subscription, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -758,8 +759,9 @@ func (this *Lbank) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol stri
 		"topic":   "trades",
 		"symbols": []any{market["symbol"]},
 	}
+	var symbolValue string = *this.SafeString(market, "symbol", "")
 
-	r1 := <-this.UnSubscribeAsync("trades:"+market["symbol"].(string), request, subscription, params)
+	r1 := <-this.UnSubscribeAsync("trades:"+symbolValue, request, subscription, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -864,7 +866,7 @@ func (this *Lbank) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		}
 		side = &sideStr
 	}
-	var literal63631 map[string]any = map[string]any{
+	var literal63831 map[string]any = map[string]any{
 		"timestamp":    timestamp,
 		"datetime":     nil,
 		"symbol":       nil,
@@ -880,9 +882,9 @@ func (this *Lbank) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		"info":         trade,
 	}
 	if datetime != nil {
-		literal63631["datetime"] = *datetime
+		literal63831["datetime"] = *datetime
 	}
-	return ccxt.TradeToMap(this.SafeTrade(literal63631, market))
+	return ccxt.TradeToMap(this.SafeTrade(literal63831, market))
 }
 
 /**
@@ -1061,7 +1063,7 @@ func (this *Lbank) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	if (typeVar != nil && *typeVar == "market") && (side != nil && *side == "buy") {
 		cost = orderAmount
 	}
-	var literal78331 map[string]any = map[string]any{
+	var literal78531 map[string]any = map[string]any{
 		"info":                order,
 		"id":                  this.SafeString(orderUpdate, "uuid"),
 		"clientOrderId":       this.SafeString(orderUpdate, "customerID"),
@@ -1084,9 +1086,9 @@ func (this *Lbank) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 		"trades":              nil,
 	}
 	if cost != nil {
-		literal78331["cost"] = *cost
+		literal78531["cost"] = *cost
 	}
-	return ccxt.OrderToMap(this.SafeOrder(literal78331, market))
+	return ccxt.OrderToMap(this.SafeOrder(literal78531, market))
 }
 func (this *Lbank) ParseWsOrderStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{

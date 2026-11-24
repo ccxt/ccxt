@@ -730,12 +730,12 @@ func (this *Interactivebrokers) ibkrUnWatchMarketDataBody(ch chan ccxt.AsyncResu
 	for i := 0; i < len(marketSymbols); i++ {
 		subHashes = append(subHashes, topic+"::"+marketSymbols[i])
 	}
-	var ternaryStr42721 string = "ticker"
+	var ternaryStr42821 string = "ticker"
 	if topic == "bidask" {
-		ternaryStr42721 = "bidsasks"
+		ternaryStr42821 = "bidsasks"
 	}
 	var subscription map[string]any = map[string]any{
-		"topic":   ternaryStr42721,
+		"topic":   ternaryStr42821,
 		"symbols": ccxt.StringSliceToList(marketSymbols),
 	}
 
@@ -1634,9 +1634,9 @@ func (this *Interactivebrokers) unWatchOrdersBody(ch chan ccxt.AsyncResult[bool]
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	retRes103115 := r1.Value
+	retRes103215 := r1.Value
 	var resolved bool
-	switch resolvedBox := retRes103115.(type) {
+	switch resolvedBox := retRes103215.(type) {
 	case bool:
 		resolved = resolvedBox
 	case []any:
@@ -1842,9 +1842,9 @@ func (this *Interactivebrokers) unWatchMyTradesBody(ch chan ccxt.AsyncResult[boo
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	retRes115915 := r1.Value
+	retRes116015 := r1.Value
 	var resolved bool
-	switch resolvedBox := retRes115915.(type) {
+	switch resolvedBox := retRes116015.(type) {
 	case bool:
 		resolved = resolvedBox
 	case []any:

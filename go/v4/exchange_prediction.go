@@ -2364,7 +2364,7 @@ func (this *PredictionExchange) HexToRlpBytes(hexValue any) any {
 }
 
 // eslint-disable-next-line no-unused-vars
-func (this *PredictionExchange) SignEvmTransaction(tx any, privateKey any) any {
+func (this *PredictionExchange) SignEvmTransaction(tx map[string]any, privateKey string) string {
 	panic(NotSupported(this.Id + " signEvmTransaction() must be overridden by the exchange"))
 }
 func (this *PredictionExchange) EthRpcAsync(rpcUrl any, method string, rpcParams any) <-chan AsyncResult[any] {

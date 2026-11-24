@@ -1010,7 +1010,7 @@ func (this *Bitrue) HandleOHLCV(client ccxt.ClientInterface, message map[string]
 	if tick == nil {
 		return
 	}
-	var parsed any = ccxt.OHLCVToList(this.ParseWsOHLCV(tick, market))
+	var parsed []any = ccxt.OHLCVToList(this.ParseWsOHLCV(tick, market))
 	if _, ok := this.Ohlcvs[*symbol]; !ok {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}

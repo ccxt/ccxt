@@ -1676,7 +1676,7 @@ func (this *Pacifica) HandleOHLCV(client ccxt.ClientInterface, message map[strin
 			this.Ohlcvs[*symbol][*timeframe] = ohlcv
 		}
 	}
-	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data))
+	var parsed []any = ccxt.OHLCVToList(this.ParseOHLCV(data))
 	ohlcv.Append(parsed)
 	client.Resolve(ohlcv, messageHash)
 }

@@ -1414,14 +1414,16 @@ func (this *Bingx) ParseCurrency(rawCurrency any) map[string]any {
 		"type":      "crypto",
 	})
 }
-func (this *Bingx) FetchSpotMarketsAsync(params any) <-chan AsyncResult[[]MarketInterface] {
+func (this *Bingx) FetchSpotMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
 	ch := make(chan AsyncResult[[]MarketInterface], 1)
-	go this.fetchSpotMarketsBody(ch, params)
+	go this.fetchSpotMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bingx) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface], params any) any {
+func (this *Bingx) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
 
 	r := <-this.SpotV1PublicGetCommonSymbols(params)
 	if r.Err != nil {
@@ -1465,14 +1467,16 @@ func (this *Bingx) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(markets))}
 	return nil
 }
-func (this *Bingx) FetchSwapMarketsAsync(params any) <-chan AsyncResult[[]MarketInterface] {
+func (this *Bingx) FetchSwapMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
 	ch := make(chan AsyncResult[[]MarketInterface], 1)
-	go this.fetchSwapMarketsBody(ch, params)
+	go this.fetchSwapMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bingx) fetchSwapMarketsBody(ch chan AsyncResult[[]MarketInterface], params any) any {
+func (this *Bingx) fetchSwapMarketsBody(ch chan AsyncResult[[]MarketInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
 
 	r := <-this.SwapV2PublicGetQuoteContracts(params)
 	if r.Err != nil {
@@ -1519,14 +1523,16 @@ func (this *Bingx) fetchSwapMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(markets))}
 	return nil
 }
-func (this *Bingx) FetchInverseSwapMarketsAsync(params map[string]any) <-chan AsyncResult[[]MarketInterface] {
+func (this *Bingx) FetchInverseSwapMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
 	ch := make(chan AsyncResult[[]MarketInterface], 1)
-	go this.fetchInverseSwapMarketsBody(ch, params)
+	go this.fetchInverseSwapMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bingx) fetchInverseSwapMarketsBody(ch chan AsyncResult[[]MarketInterface], params map[string]any) any {
+func (this *Bingx) fetchInverseSwapMarketsBody(ch chan AsyncResult[[]MarketInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
 
 	r := <-this.CswapV1PublicGetMarketContracts(params)
 	if r.Err != nil {
@@ -9012,24 +9018,24 @@ func (this *Bingx) FetchCurrencies(params ...any) (Currencies, error) {
 	var res Currencies = NewCurrencies(r.Value)
 	return res, nil
 }
-func (this *Bingx) FetchSpotMarkets(params any) ([]MarketInterface, error) {
-	r := <-this.FetchSpotMarketsAsync(params)
+func (this *Bingx) FetchSpotMarkets(params ...any) ([]MarketInterface, error) {
+	r := <-this.FetchSpotMarketsAsync(params...)
 	if r.Err != nil {
 		return nil, r.Err
 	}
 	var res []MarketInterface = r.Value
 	return res, nil
 }
-func (this *Bingx) FetchSwapMarkets(params any) ([]MarketInterface, error) {
-	r := <-this.FetchSwapMarketsAsync(params)
+func (this *Bingx) FetchSwapMarkets(params ...any) ([]MarketInterface, error) {
+	r := <-this.FetchSwapMarketsAsync(params...)
 	if r.Err != nil {
 		return nil, r.Err
 	}
 	var res []MarketInterface = r.Value
 	return res, nil
 }
-func (this *Bingx) FetchInverseSwapMarkets(params map[string]any) ([]MarketInterface, error) {
-	r := <-this.FetchInverseSwapMarketsAsync(params)
+func (this *Bingx) FetchInverseSwapMarkets(params ...any) ([]MarketInterface, error) {
+	r := <-this.FetchInverseSwapMarketsAsync(params...)
 	if r.Err != nil {
 		return nil, r.Err
 	}

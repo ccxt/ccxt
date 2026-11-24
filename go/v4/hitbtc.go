@@ -2668,7 +2668,7 @@ func (this *Hitbtc) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 			panic(NotSupported(this.Id + " fetchClosedOrders() not support this market type"))
 		}
 	}
-	var parsed []any = ArrayTyped(this.ParseOrders(response, market, since, limit))
+	var parsed []any = this.ParseOrders(response, market, since, limit)
 	var result []any = []any{}
 	for i := 0; i < len(parsed); i++ {
 		var status *string = this.SafeString(parsed[i], "status")

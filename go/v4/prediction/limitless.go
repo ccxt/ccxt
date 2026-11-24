@@ -442,7 +442,7 @@ func (this *Limitless) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketIn
 	var eventGroups map[string]any = map[string]any{}
 	// group rows carry their tradeable children in a nested `markets` list — expand them
 	// into regular rows before parsing (a group row itself has no tokens)
-	var expandedRaw []any = ccxt.ArrayTyped(this.ExpandGroupRows(allRaw))
+	var expandedRaw []any = this.ExpandGroupRows(allRaw)
 	for i := 0; i < len(expandedRaw); i++ {
 		var raw any = expandedRaw[i]
 		var groupId *string = this.SafeStringN(raw, []any{"groupSlug", "groupId"}, this.SafeString(raw, "slug"))
@@ -2899,7 +2899,7 @@ func (this *Limitless) SignHash(hash string, privateKey string) string {
 func (this *Limitless) SignMessage(message any, privateKey string) string {
 	return this.SignHash(this.HashMessage(message), privateKey[max(len(privateKey)-64, 0):])
 }
-func (this *Limitless) SignEvmTransaction(tx any, privateKey any) any {
+func (this *Limitless) SignEvmTransaction(tx map[string]any, privateKey string) string {
 	// builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex
 	var accessList string = this.RlpEncodeList([]any{})
 	var fields []any = []any{this.RlpEncodeBytes(this.IntToRlpHex(this.SafeInteger(tx, "chainId"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "nonce"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "maxPriorityFeePerGas"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "maxFeePerGas"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "gasLimit"))), this.RlpEncodeBytes(this.Remove0xPrefix(this.SafeString(tx, "to"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "value", "0x0"))), this.RlpEncodeBytes(this.Remove0xPrefix(this.SafeString(tx, "data", "0x"))), accessList}
@@ -3840,7 +3840,7 @@ func (this *Limitless) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 	var eventGroups map[string]any = map[string]any{}
 	// group rows carry their tradeable children in a nested `markets` list — expand them
 	// into regular rows before parsing (a group row itself has no tokens)
-	var expandedMarkets []any = ccxt.ArrayTyped(this.ExpandGroupRows(rawMarkets))
+	var expandedMarkets []any = this.ExpandGroupRows(rawMarkets)
 	var rawMarketsLength int = len(expandedMarkets)
 	for i := 0; i < rawMarketsLength; i++ {
 		var raw any = expandedMarkets[i]

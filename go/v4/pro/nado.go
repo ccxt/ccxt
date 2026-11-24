@@ -2400,7 +2400,7 @@ func (this *Nado) HandleOHLCV(client ccxt.ClientInterface, message map[string]an
 			this.Ohlcvs[*symbol][*timeframe] = stored
 		}
 	}
-	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(message, market))
+	var parsed []any = ccxt.OHLCVToList(this.ParseOHLCV(message, market))
 	stored.Append(parsed)
 	var messageHash string = "ohlcv:" + *timeframe + ":" + *symbol
 	client.Resolve([]any{symbol, timeframe, stored}, messageHash)

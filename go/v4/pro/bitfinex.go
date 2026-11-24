@@ -427,7 +427,7 @@ func (this *Bitfinex) HandleOHLCV(client ccxt.ClientInterface, message []any, su
 	}
 	var ohlcvsLength int = ccxt.GetArrayLength(ohlcvs)
 	for i := 0; i < ohlcvsLength; i++ {
-		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(this.SafeList(ohlcvs, (ohlcvsLength-i)-1), market))
+		var parsed []any = ccxt.OHLCVToList(this.ParseOHLCV(this.SafeList(ohlcvs, (ohlcvsLength-i)-1), market))
 		stored.Append(parsed)
 	}
 	client.Resolve(stored, messageHash)
@@ -1438,7 +1438,9 @@ func (this *Bitfinex) HandleUnsubscriptionStatus(client ccxt.ClientInterface, me
 			var messageHash string = messageHashes[i]
 			var subHash *string = nil
 			if i >= 0 && i < len(subMessageHashes) {
-				subHash = ccxt.SafeStringPtr(subMessageHashes[i])
+				if s, ok := subMessageHashes[i].(string); ok {
+					subHash = &s
+				}
 			}
 			this.CleanUnsubscription(ccxt.AsClient(client), subHash, messageHash)
 		}

@@ -630,7 +630,7 @@ func (this *Polymarket) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketI
 	var eventsDict map[string]any = map[string]any{}
 	for rei := 0; rei < len(rawEvents); rei++ {
 		var rawEvent any = rawEvents[rei]
-		var ccxtMarkets []any = ccxt.ArrayTyped(this.ParseEventToMarkets(rawEvent))
+		var ccxtMarkets []any = this.ParseEventToMarkets(rawEvent)
 		for mi := 0; mi < len(ccxtMarkets); mi++ {
 			flatMarkets = append(flatMarkets, ccxtMarkets[mi])
 		}
@@ -1277,9 +1277,9 @@ func (this *Polymarket) fetchOutcomeBody(ch chan ccxt.AsyncResult[ccxt.Predictio
 			if this.Markets == nil {
 				this.Markets = map[string]any{}
 			}
-			var ccxtMarkets []any = ccxt.ArrayTyped(this.ParseEventToMarkets(map[string]any{
+			var ccxtMarkets []any = this.ParseEventToMarkets(map[string]any{
 				"markets": rawMarkets,
-			}))
+			})
 			var ccxtMarketsLength int = len(ccxtMarkets)
 			for i := 0; i < ccxtMarketsLength; i++ {
 				var mkt, _ = ccxtMarkets[i].(map[string]any)
@@ -1368,9 +1368,9 @@ func (this *Polymarket) fetchOutcomesBody(ch chan ccxt.AsyncResult[map[string]cc
 			} else {
 				rawMarkets = []any{}
 			}
-			var ccxtMarkets []any = ccxt.ArrayTyped(this.ParseEventToMarkets(map[string]any{
+			var ccxtMarkets []any = this.ParseEventToMarkets(map[string]any{
 				"markets": rawMarkets,
-			}))
+			})
 			for i := 0; i < len(ccxtMarkets); i++ {
 				var mkt, _ = ccxtMarkets[i].(map[string]any)
 				if mkt == nil {
@@ -2584,7 +2584,7 @@ func (this *Polymarket) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predi
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionPosition]{Value: ccxt.PredictionPositionsFromList(this.ParsePredictionPositions(positions))}
 		return nil
 	}
-	var parsed []any = ccxt.ArrayTyped(this.ParsePredictionPositions(positions))
+	var parsed []any = this.ParsePredictionPositions(positions)
 	var wantedIds map[string]any = map[string]any{}
 	if outcomes == nil {
 		panic(ccxt.ExchangeError(this.Id + " fetchPositions() missing outcomes"))
@@ -3986,8 +3986,8 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) map[string]any {
 	_ = params
 	var apiGroup string = api[0]
 	var access string = api[1]
-	var baseUrls any = this.Urls["api"]
-	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "gamma"))
+	var baseUrls map[string]any = this.UrlsApi
+	var baseUrl *string = this.SafeString(baseUrls, apiGroup, baseUrls["gamma"])
 	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
 	// an empty params container must not become a body: in PHP an empty array is
 	// indistinguishable from an empty dict, so a bare Array.isArray check would json it to "[]"

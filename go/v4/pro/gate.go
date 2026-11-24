@@ -1570,12 +1570,10 @@ func (this *Gate) HandleTrades(client ccxt.ClientInterface, message map[string]a
 	// }
 	//
 	var rawResult any = this.SafeValue(message, "result")
+	var tradeRows, _ = message["result"].([]any)
 	var result []any = []any{}
-	if ccxt.IsArray(rawResult) {
-		result, _ = message["result"].([]any)
-		if result == nil {
-			result = []any{}
-		}
+	if tradeRows != nil {
+		result = tradeRows
 	} else {
 		result = []any{rawResult}
 	}
@@ -1809,7 +1807,7 @@ func (this *Gate) HandleOHLCV(client ccxt.ClientInterface, message map[string]an
 		}
 		var marketId string = ccxt.Replace(subscription, prefix, "")
 		var symbol *string = this.SafeSymbol(marketId, nil, "_", marketType)
-		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(ohlcv))
+		var parsed []any = ccxt.OHLCVToList(this.ParseOHLCV(ohlcv))
 		if marketType == "spot" {
 			// spot's "v" is the volume in the quote currency, "a" in the base currency, which fetchOHLCV returns
 			parsed = []any{this.SafeTimestamp(ohlcv, "t"), this.SafeNumber(ohlcv, "o"), this.SafeNumber(ohlcv, "h"), this.SafeNumber(ohlcv, "l"), this.SafeNumber(ohlcv, "c"), this.SafeNumber(ohlcv, "a")}
@@ -2452,13 +2450,9 @@ func (this *Gate) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], option
 		market = marketResolved
 		symbolResolved = this.SafeString(market, "symbol")
 	}
-	var typeVar any = nil
+	var typeVar *string = nil
 	var query map[string]any = nil
-	var typeVarPtr *string = nil
-	typeVarPtr, query = this.HandleMarketTypeAndParams("watchOrders", market, params)
-	if typeVarPtr != nil {
-		typeVar = *typeVarPtr
-	}
+	typeVar, query = this.HandleMarketTypeAndParams("watchOrders", market, params)
 	var typeId string = this.GetSupportedMapping(typeVar, map[string]any{
 		"spot":   "spot",
 		"margin": "spot",
@@ -2504,7 +2498,7 @@ func (this *Gate) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], option
 	var isInverse bool = (subType != nil && *subType == "inverse")
 	var url *string = this.GetUrlByMarketType(typeVar, isInverse)
 	// uid required for non spot markets
-	var requiresUid bool = (typeVar != "spot")
+	var requiresUid bool = (typeVar == nil || *typeVar != "spot")
 
 	r1 := <-this.SubscribePrivateAsync(url, messageHash, payload, channel, query, requiresUid)
 	if r1.Err != nil {
@@ -2585,7 +2579,7 @@ func (this *Gate) HandleOrder(client ccxt.ClientInterface, message map[string]an
 		stored = this.Orders
 	}
 	var marketIds map[string]any = map[string]any{}
-	var parsedOrders []any = ccxt.ArrayTyped(this.ParseOrders(orders))
+	var parsedOrders []any = this.ParseOrders(orders)
 	for i := 0; i < len(parsedOrders); i++ {
 		// inject order status
 		var info map[string]any = ccxt.SafeMapTyped(parsedOrders[i], "info")
@@ -2699,13 +2693,9 @@ func (this *Gate) watchMyLiquidationsForSymbolsBody(ch chan ccxt.AsyncResult[[]c
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true)
 	var market map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
-	var typeVar any = nil
+	var typeVar *string = nil
 	var query map[string]any = nil
-	var typeVarPtr *string = nil
-	typeVarPtr, query = this.HandleMarketTypeAndParams("watchMyLiquidationsForSymbols", market, params)
-	if typeVarPtr != nil {
-		typeVar = *typeVarPtr
-	}
+	typeVar, query = this.HandleMarketTypeAndParams("watchMyLiquidationsForSymbols", market, params)
 	var typeId string = this.GetSupportedMapping(typeVar, map[string]any{
 		"future": "futures",
 		"swap":   "futures",
@@ -3076,7 +3066,9 @@ func (this *Gate) HandleUnSubscribe(client ccxt.ClientInterface, message map[str
 					var unsubHash string = messageHashes[j]
 					var subHash *string = nil
 					if j >= 0 && j < len(subMessageHashes) {
-						subHash = ccxt.SafeStringPtr(subMessageHashes[j])
+						if s, ok := subMessageHashes[j].(string); ok {
+							subHash = &s
+						}
 					}
 					this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 				}
@@ -3251,10 +3243,10 @@ func (this *Gate) GetTypeByMarket(market any) string {
 		return "futures"
 	}
 }
-func (this *Gate) GetUrlByMarketType(typeVar any, optionalArgs ...any) *string {
+func (this *Gate) GetUrlByMarketType(typeVar *string, optionalArgs ...any) *string {
 	var isInverse bool = ccxt.GetArgBool(optionalArgs, 0, false)
 	_ = isInverse
-	if (ccxt.IsEqual(typeVar, "swap")) || (ccxt.IsEqual(typeVar, "future")) {
+	if (typeVar != nil && *typeVar == "swap") || (typeVar != nil && *typeVar == "future") {
 		var settleKey string
 		if isInverse == true {
 			settleKey = "btc"

@@ -1025,7 +1025,7 @@ func (this *Myriad) ParseTradeQuote(quote map[string]any, optionalArgs ...any) m
 		"info":            quote,
 	}
 }
-func (this *Myriad) SignEvmTransaction(tx any, privateKey any) any {
+func (this *Myriad) SignEvmTransaction(tx map[string]any, privateKey string) string {
 	// builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex.
 	// tx fields (nonce/gas/fees/value) are hex strings; chainId is an int. Verified
 	// byte-identical to ethers' serialization
@@ -5534,8 +5534,8 @@ func (this *Myriad) Sign(path string, optionalArgs ...any) map[string]any {
 	params := ccxt.GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 	var apiGroup string = api[0]
-	var baseUrls any = this.Urls["api"]
-	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "myriad"))
+	var baseUrls map[string]any = this.UrlsApi
+	var baseUrl *string = this.SafeString(baseUrls, apiGroup, baseUrls["myriad"])
 	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	if method == "GET" {

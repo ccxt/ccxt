@@ -894,7 +894,7 @@ func (this *Bitget) HandleOHLCV(client ccxt.ClientInterface, message map[string]
 	}
 	var data, _ = message["data"].([]any)
 	for i := 0; i < len(data); i++ {
-		var parsed any = ccxt.OHLCVToList(this.ParseWsOHLCV(data[i], market))
+		var parsed []any = ccxt.OHLCVToList(this.ParseWsOHLCV(data[i], market))
 		stored.Append(parsed)
 	}
 	var messageHash string

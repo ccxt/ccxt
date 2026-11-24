@@ -1168,7 +1168,7 @@ func (this *Extended) HandleOHLCV(client ccxt.ClientInterface, message map[strin
 	ccxt.AddElementToObject(subscription, "nonce", nonce)
 	var data, _ = message["data"].([]any)
 	for i := 0; i < len(data); i++ {
-		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data[i]))
+		var parsed []any = ccxt.OHLCVToList(this.ParseOHLCV(data[i]))
 		stored.Append(parsed)
 	}
 	client.Resolve(stored, messageHash)

@@ -937,7 +937,7 @@ func (this *Deepcoin) HandleOHLCV(client ccxt.ClientInterface, message map[strin
 		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if data != nil {
-		var ohlcv any = ccxt.OHLCVToList(this.ParseWsOHLCV(data, market))
+		var ohlcv []any = ccxt.OHLCVToList(this.ParseWsOHLCV(data, market))
 		stored.Append(ohlcv)
 	}
 	var messageHash *string = nil

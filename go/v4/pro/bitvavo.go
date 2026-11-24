@@ -701,7 +701,7 @@ func (this *Bitvavo) HandleOHLCV(client ccxt.ClientInterface, message map[string
 		}
 	}
 	for i := 0; i < len(candles); i++ {
-		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(candles[i], market))
+		var parsed []any = ccxt.OHLCVToList(this.ParseOHLCV(candles[i], market))
 		stored.Append(parsed)
 	}
 	client.Resolve(stored, messageHash)
@@ -2772,7 +2772,7 @@ func (this *Bitvavo) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.SubscriptionSafe(messageHash)
-	if ccxt.IsEqual(future, nil) {
+	if future == nil {
 		var timestamp int64 = this.Milliseconds()
 		var stringTimestamp string = strconv.FormatInt(timestamp, 10)
 		var auth string = stringTimestamp + "GET/" + this.Version + "/websocket"

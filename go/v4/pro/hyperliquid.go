@@ -1709,7 +1709,7 @@ func (this *Hyperliquid) HandleOHLCV(client ccxt.ClientInterface, message map[st
 	if symbol != nil {
 		ohlcv, _ = this.Ohlcvs[*symbol][timeframe].(ccxt.WsArrayCache)
 	}
-	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data))
+	var parsed []any = ccxt.OHLCVToList(this.ParseOHLCV(data))
 	ohlcv.Append(parsed)
 	var messageHash string = "candles:" + timeframe + ":" + *symbol
 	client.Resolve(ohlcv, messageHash)
@@ -2035,7 +2035,11 @@ func (this *Hyperliquid) ParseWsBalance(balance any, optionalArgs ...any) {
 		account["total"] = this.SafeString(balance, "total")
 	}
 	if accountType != nil {
-		var accountBalance map[string]any = this.SafeDictMap(this.Balance, accountType, map[string]any{})
+		var accountBalance map[string]any
+		accountBalance, _ = this.Balance[*accountType].(map[string]any)
+		if accountBalance == nil {
+			accountBalance = map[string]any{}
+		}
 		if code != nil {
 			if code != nil {
 				accountBalance[*code] = account

@@ -2641,7 +2641,7 @@ func (this *Bybit) GetPrice(symbol *string, price *string) *string {
 	}
 	return price
 }
-func (this *Bybit) GetCost(symbol string, cost any) any {
+func (this *Bybit) GetCost(symbol string, cost *string) *string {
 	var market map[string]any = this.Market(symbol)
 	var emptyPrecisionPrice bool = (this.SafeNumber(market["precision"], "price") == nil)
 	if !emptyPrecisionPrice {
@@ -2999,14 +2999,16 @@ func (this *Bybit) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(result)}
 	return nil
 }
-func (this *Bybit) FetchSpotMarketsAsync(params any) <-chan AsyncResult[[]MarketInterface] {
+func (this *Bybit) FetchSpotMarketsAsync(optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
 	ch := make(chan AsyncResult[[]MarketInterface], 1)
-	go this.fetchSpotMarketsBody(ch, params)
+	go this.fetchSpotMarketsBody(ch, optionalArgs...)
 	return ch
 }
-func (this *Bybit) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface], params any) any {
+func (this *Bybit) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface], optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
 	var request map[string]any = map[string]any{
 		"category": "spot",
 	}
@@ -6000,7 +6002,7 @@ func (this *Bybit) CreateOrderRequest(symbol *string, typeVar *string, side *str
 		// UTA account can specify the cost of the order on both sides
 		if (cost != nil) || (price != nil) {
 			request["marketUnit"] = "quoteCoin"
-			var orderCost any = nil
+			var orderCost *string = nil
 			if cost != nil {
 				orderCost = cost
 			} else {
@@ -11621,7 +11623,8 @@ func (this *Bybit) ParseSettlements(settlements []any, market any) []any {
 	//
 	var result []any = []any{}
 	for i := 0; i < len(settlements); i++ {
-		result = append(result, this.ParseSettlement(this.Extend(map[string]any{}, settlements[i]), market))
+		var settlementRow map[string]any = this.Extend(map[string]any{}, settlements[i])
+		result = append(result, this.ParseSettlement(settlementRow, market))
 	}
 	return result
 }
@@ -12004,11 +12007,11 @@ func (this *Bybit) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation], o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes885719 []any = r1.Value
-		if retRes885719 == nil {
+		var retRes885819 []any = r1.Value
+		if retRes885819 == nil {
 			ch <- AsyncResult[[]Liquidation]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes885719)}
+			ch <- AsyncResult[[]Liquidation]{Value: LiquidationsFromList(retRes885819)}
 		}
 		return nil
 	}
@@ -12161,11 +12164,11 @@ func (this *Bybit) getLeverageTiersPaginatedBody(ch chan AsyncResult[[]LeverageT
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes898119 []any = r1.Value
-		if retRes898119 == nil {
+		var retRes898219 []any = r1.Value
+		if retRes898219 == nil {
 			ch <- AsyncResult[[]LeverageTier]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(retRes898119)}
+			ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(retRes898219)}
 		}
 		return nil
 	}
@@ -12237,11 +12240,11 @@ func (this *Bybit) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], op
 	}
 	var symbol *string = nil
 	if symbols != nil {
-		var symbolsElem902640 *string = nil
+		var symbolsElem902740 *string = nil
 		if 0 >= 0 && 0 < len(symbols) {
-			symbolsElem902640 = &symbols[0]
+			symbolsElem902740 = &symbols[0]
 		}
-		var market map[string]any = this.Market(symbolsElem902640)
+		var market map[string]any = this.Market(symbolsElem902740)
 		if *this.SafeBool(market, "spot", false) {
 			panic(NotSupported(this.Id + " fetchLeverageTiers() is not supported for spot market"))
 		}
@@ -12392,11 +12395,11 @@ func (this *Bybit) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory]
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes912519 []any = r1.Value
-		if retRes912519 == nil {
+		var retRes912619 []any = r1.Value
+		if retRes912619 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes912519)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes912619)}
 		}
 		return nil
 	}
@@ -13993,8 +13996,8 @@ func (this *Bybit) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	var res []MarketInterface = r.Value
 	return res, nil
 }
-func (this *Bybit) FetchSpotMarkets(params any) ([]MarketInterface, error) {
-	r := <-this.FetchSpotMarketsAsync(params)
+func (this *Bybit) FetchSpotMarkets(params ...any) ([]MarketInterface, error) {
+	r := <-this.FetchSpotMarketsAsync(params...)
 	if r.Err != nil {
 		return nil, r.Err
 	}

@@ -7912,7 +7912,10 @@ func (this *Htx) createOrdersBody(ch chan AsyncResult[[]Order], orders []map[str
 	//
 	var result []any = nil
 	if *this.SafeBool(market, "spot", false) {
-		result = this.SafeListSlice(response, "data", []any{})
+		result, _ = response["data"].([]any)
+		if result == nil {
+			result = []any{}
+		}
 	} else {
 		var data []any
 		data, _ = response["data"].([]any)
@@ -8910,7 +8913,7 @@ func (this *Htx) fetchWithdrawAddressesBody(ch chan AsyncResult[[]DepositAddress
 	if data == nil {
 		data = []any{}
 	}
-	var allAddresses []any = ArrayTyped(this.ParseDepositAddresses(data, []any{this.SafeString(currency, "code", "")}, false))
+	var allAddresses []any = this.ParseDepositAddresses(data, []any{this.SafeString(currency, "code", "")}, false)
 	var addresses []any = []any{}
 	for i := 0; i < len(allAddresses); i++ {
 		var address any = allAddresses[i]
@@ -11569,6 +11572,9 @@ func (this *Htx) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInterest
 	var data, _ = response["data"].(map[string]any)
 	var tick []any
 	tick, _ = data["tick"].([]any)
+	if tick == nil {
+		tick = []any{}
+	}
 
 	ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(this.ParseOpenInterestsHistory(tick, market, since, limit))}
 	return nil

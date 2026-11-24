@@ -1287,7 +1287,7 @@ func (this *Bybit) HandleOHLCV(client ccxt.ClientInterface, message map[string]a
 	var stored ccxt.WsArrayCache
 	stored, _ = this.Ohlcvs[symbol][*timeframe].(ccxt.WsArrayCache)
 	for i := 0; i < len(data); i++ {
-		var parsed any = ccxt.OHLCVToList(this.ParseWsOHLCV(data[i], market))
+		var parsed []any = ccxt.OHLCVToList(this.ParseWsOHLCV(data[i], market))
 		stored.Append(parsed)
 	}
 	var messageHash string = "ohlcv::" + symbol + "::" + *timeframe
@@ -3420,7 +3420,11 @@ func (this *Bybit) ParseWsBalance(balance any, optionalArgs ...any) {
 	// is the consistent total, the spot rows fall back to the wallet balance
 	account["total"] = this.SafeString2(balance, "equity", "walletBalance")
 	if accountType != nil {
-		var accountBalance map[string]any = this.SafeDictMap(this.Balance, accountType, map[string]any{})
+		var accountBalance map[string]any
+		accountBalance, _ = this.Balance[*accountType].(map[string]any)
+		if accountBalance == nil {
+			accountBalance = map[string]any{}
+		}
 		if code != nil {
 			accountBalance[*code] = account
 		}

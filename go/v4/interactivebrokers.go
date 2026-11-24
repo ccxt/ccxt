@@ -2423,7 +2423,7 @@ func (this *Interactivebrokers) fetchFuturesAndSwapMarketsBody(ch chan AsyncResu
 			detailMarkets = append(detailMarkets, detail)
 		}
 	}
-	var markets []any = ArrayTyped(this.ParseMarkets(detailMarkets))
+	var markets []any = this.ParseMarkets(detailMarkets)
 	var withSwaps bool = this.InArray("swap", types)
 	var withFutures bool = this.InArray("future", types)
 	var result []any = []any{}
@@ -2626,7 +2626,7 @@ func (this *Interactivebrokers) fetchBondMarketsBody(ch chan AsyncResult[any], o
 		panic(r2.Err)
 	}
 	detailMarkets := r2.Value
-	var markets []any = ArrayTyped(this.ParseMarkets(detailMarkets))
+	var markets []any = this.ParseMarkets(detailMarkets)
 	// bonds sharing the issuer, coupon and maturity (e.g. a bill and a strip) are told apart by the conid, e.g. US-T-270215-265342934.SMART/USD
 	var seen map[string]any = map[string]any{}
 	var result []any = []any{}
@@ -4823,7 +4823,7 @@ func (this *Interactivebrokers) fetchCanceledAndClosedOrdersBody(ch chan AsyncRe
 	if r2.Value != nil {
 		orders = MapSliceToList(r2.Value)
 	}
-	var parsed []any = ArrayTyped(this.ParseOrders(orders, market, nil, nil))
+	var parsed []any = this.ParseOrders(orders, market, nil, nil)
 	var result []any = []any{}
 	for i := 0; i < len(parsed); i++ {
 		var status *string = this.SafeString(parsed[i], "status")

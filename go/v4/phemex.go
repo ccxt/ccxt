@@ -4525,7 +4525,10 @@ func (this *Phemex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 	//
 	var data []any = nil
 	if isUSDTSettled {
-		data = this.SafeListSlice(response, "data", []any{})
+		data, _ = response["data"].([]any)
+		if data == nil {
+			data = []any{}
+		}
 	} else {
 		data = this.SafeListSlice(this.SafeDict(response, "data", map[string]any{}), "rows", []any{})
 	}

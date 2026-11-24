@@ -1287,7 +1287,7 @@ func (this *Deribit) HandleOHLCV(client ccxt.ClientInterface, message map[string
 		ohlcv = map[string]any{}
 	}
 	// data contains a single ccxt.OHLCV candle
-	var parsed any = ccxt.OHLCVToList(this.ParseWsOHLCV(ohlcv, market))
+	var parsed []any = ccxt.OHLCVToList(this.ParseWsOHLCV(ohlcv, market))
 	stored.Append(parsed)
 	if unifiedTimeframe != nil && this.Ohlcvs[symbol] != nil {
 		this.Ohlcvs[symbol][*unifiedTimeframe] = stored
@@ -1520,7 +1520,7 @@ func (this *Deribit) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 	var nonce *string = timeString
 	var messageHash string = "authenticated"
 	var future any = client.SubscriptionSafe(messageHash)
-	if ccxt.IsEqual(future, nil) {
+	if future == nil {
 		this.CheckRequiredCredentials()
 		var requestId int64 = this.RequestId()
 		var lineBreak string = "\n" // eslint-disable-line quotes

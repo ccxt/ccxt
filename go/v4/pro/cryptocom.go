@@ -1233,7 +1233,7 @@ func (this *Cryptocom) HandleOHLCV(client ccxt.ClientInterface, message map[stri
 	var data, _ = message["data"].([]any)
 	for i := 0; i < len(data); i++ {
 		var tick, _ = data[i].(map[string]any)
-		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(tick, market))
+		var parsed []any = ccxt.OHLCVToList(this.ParseOHLCV(tick, market))
 		stored.Append(parsed)
 	}
 	client.Resolve(stored, messageHash)
@@ -1340,7 +1340,7 @@ func (this *Cryptocom) HandleOrders(client ccxt.ClientInterface, message any, op
 			this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 		}
 		var stored ccxt.WsArrayCache = this.Orders
-		var parsed []any = ccxt.ArrayTyped(this.ParseOrders(orders))
+		var parsed []any = this.ParseOrders(orders)
 		for i := 0; i < len(parsed); i++ {
 			stored.Append(parsed[i])
 		}

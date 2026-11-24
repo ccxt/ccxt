@@ -1326,7 +1326,7 @@ func (this *Pacifica) loadAccountSettingsBody(ch chan AsyncResult[bool], optiona
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var settings any = this.HandleOption("loadAccountSettings", "settings")
-	if (IsEqual(settings, nil)) || (refresh == true) {
+	if (settings == nil) || (refresh == true) {
 		this.Options["settings"] = this.CreateSafeDictionary()
 
 		r := <-this.FetchAccountSettingsAsync(params)

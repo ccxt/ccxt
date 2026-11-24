@@ -465,7 +465,7 @@ func (this *P2b) HandleOHLCV(client ccxt.ClientInterface, message map[string]any
 	}
 	var timeframe *string = this.FindTimeframe(channel, timeframes)
 	var symbol *string = this.SafeString(market, "symbol")
-	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data, market))
+	var parsed []any = ccxt.OHLCVToList(this.ParseOHLCV(data, market))
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}

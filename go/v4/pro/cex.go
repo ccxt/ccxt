@@ -1519,7 +1519,7 @@ func (this *Cex) HandleInitOHLCV(client ccxt.ClientInterface, message map[string
 	}
 	var sorted []any = this.SortBy(data, 0)
 	for i := 0; i < len(sorted); i++ {
-		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(sorted[i], market))
+		var parsed []any = ccxt.OHLCVToList(this.ParseOHLCV(sorted[i], market))
 		stored.Append(parsed)
 	}
 	client.Resolve(stored, messageHash)

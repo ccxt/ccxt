@@ -157,7 +157,7 @@ func (this *Whitebit) HandleOHLCV(client ccxt.ClientInterface, message map[strin
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol string = *this.SafeString(market, "symbol", "")
 		var messageHash string = "candles" + ":" + symbol
-		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data, market))
+		var parsed []any = ccxt.OHLCVToList(this.ParseOHLCV(data, market))
 		if _, ok := this.Ohlcvs[symbol]; !ok {
 			this.Ohlcvs[symbol] = map[string]any{}
 		}

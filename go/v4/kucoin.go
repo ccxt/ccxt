@@ -15802,7 +15802,7 @@ func (this *Kucoin) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], o
 		data = []any{}
 	}
 	var result map[string]any = map[string]any{}
-	var tiers []any = ArrayTyped(this.ParseMarketLeverageTiers(data))
+	var tiers []any = this.ParseMarketLeverageTiers(data)
 	for i := 0; i < len(tiers); i++ {
 		var tier, _ = tiers[i].(map[string]any)
 		var symbol *string = this.SafeString(tier, "symbol")
@@ -16001,6 +16001,9 @@ func (this *Kucoin) fetchOpenInterestHistoryBody(ch chan AsyncResult[[]OpenInter
 	var response map[string]any = r2.Value
 	var data []any
 	data, _ = response["data"].([]any)
+	if data == nil {
+		data = []any{}
+	}
 
 	ch <- AsyncResult[[]OpenInterest]{Value: OpenInterestsFromList(this.ParseOpenInterestsHistory(data, market, since, limit))}
 	return nil

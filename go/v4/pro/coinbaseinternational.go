@@ -1666,7 +1666,7 @@ func (this *Coinbaseinternational) HandleOHLCV(client ccxt.ClientInterface, mess
 	if data == nil {
 		data = map[string]any{}
 	}
-	var parsed any = ccxt.OHLCVToList(this.ParseWsOHLCV(data, market))
+	var parsed []any = ccxt.OHLCVToList(this.ParseWsOHLCV(data, market))
 	stored.Append(parsed)
 	var resolved []any = []any{symbol, timeframe, stored}
 	client.Resolve(resolved, messageHash)
@@ -2376,7 +2376,7 @@ func (this *Coinbaseinternational) authenticateBody(ch chan ccxt.AsyncResult[*st
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future any = client.SubscriptionSafe(messageHash)
-	var subscribed bool = (!ccxt.IsEqual(future, nil))
+	var subscribed bool = (future != nil)
 	if subscribed {
 		var refreshAt *int64 = this.SafeInteger(this.Options, "wsAuthRefreshAt")
 		if _, ok := client.GetFutures()[messageHash]; (refreshAt != nil) && (this.Milliseconds() >= *refreshAt) && !ok {

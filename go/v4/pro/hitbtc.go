@@ -587,7 +587,10 @@ func (this *Hitbtc) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
 	methodName, paramsMethod := this.HandleParamString(params, "callerMethodName", "watchTickers") // watchTicker passes its own name, so options.watchTicker still applies to it
-	var options map[string]any = ccxt.SafeMapTyped(this.Options, methodName)
+	var options map[string]any
+	if methodName != nil {
+		options, _ = this.Options[*methodName].(map[string]any)
+	}
 	var defaultMethod string = *this.SafeString(options, "method", "ticker/{speed}/batch")
 	var method *string = this.SafeString2(paramsMethod, "method", "defaultMethod", defaultMethod)
 	var speedValue *string = this.SafeString(paramsMethod, "speed", "1s") // not named speed: the php transpiler would turn the '{speed}' literals into '{$speed}'
@@ -1283,7 +1286,7 @@ func (this *Hitbtc) HandleOHLCV(client ccxt.ClientInterface, message map[string]
 		// parsed one by one so the go and rust ports call hitbtc's parseWsOHLCV, not the base one
 		var rawOhlcvs []any = ccxt.SafeListTyped(data, marketId)
 		for j := 0; j < len(rawOhlcvs); j++ {
-			var parsed any = ccxt.OHLCVToList(this.ParseWsOHLCV(ccxt.DerefScalar(rawOhlcvs[j]), market))
+			var parsed []any = ccxt.OHLCVToList(this.ParseWsOHLCV(ccxt.DerefScalar(rawOhlcvs[j]), market))
 			stored.Append(parsed)
 		}
 		var messageHash string = channel + "::" + *symbol

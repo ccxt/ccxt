@@ -251,7 +251,7 @@ func (this *Opinion) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInte
 			fetchedRawRows = append(fetchedRawRows, raw)
 			var marketType *int64 = this.SafeInteger(raw, "marketType")
 			if marketType != nil && *marketType == 1 {
-				var event map[string]any = this.ParseEvent(this.SafeDict(rawMarkets, i, map[string]any{}))
+				var event map[string]any = this.ParseEvent(this.Extend(map[string]any{}, rawMarkets[i]))
 				var childMarkets []any = ccxt.SafeListTyped(event, "markets")
 				var childMarketsLength int = len(childMarkets)
 				for ci := 0; ci < childMarketsLength; ci++ {
@@ -588,7 +588,7 @@ func (this *Opinion) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionE
 		this.Markets = map[string]any{}
 	}
 	for i := 0; i < rawEventsLength; i++ {
-		var event map[string]any = this.ParseEvent(this.SafeDict(rawEvents, i, map[string]any{}))
+		var event map[string]any = this.ParseEvent(this.Extend(map[string]any{}, rawEvents[i]))
 		parsedEvents = append(parsedEvents, event)
 		// register the parsed markets so populateOutcomes can index their outcomes
 		var eventMarkets []any = ccxt.SafeListTyped(event, "markets")
@@ -668,7 +668,7 @@ func (this *Opinion) fetchEventBody(ch chan ccxt.AsyncResult[ccxt.PredictionEven
  * @param {object} rawEvent the raw opinion categorical market object
  * @returns {object} an event structure
  */
-func (this *Opinion) ParseEvent(rawEvent any) map[string]any {
+func (this *Opinion) ParseEvent(rawEvent map[string]any) map[string]any {
 	// {
 	//     "chainId": "56",
 	//     "childMarkets": [
@@ -2202,7 +2202,7 @@ func (this *Opinion) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionPosition]{Value: ccxt.PredictionPositionsFromList(this.ParsePredictionPositions(positions))}
 		return nil
 	}
-	var parsed []any = ccxt.ArrayTyped(this.ParsePredictionPositions(positions))
+	var parsed []any = this.ParsePredictionPositions(positions)
 	var wantedTokenIds map[string]any = map[string]any{}
 	// copy to a plain list so the strict null checks see one shape
 	var outcomesList []string
@@ -3260,8 +3260,8 @@ func (this *Opinion) Sign(path string, optionalArgs ...any) map[string]any {
 	_ = params
 	var apiGroup string = api[0]
 	var access string = api[1]
-	var baseUrls any = this.Urls["api"]
-	var baseUrl *string = this.SafeString(baseUrls, apiGroup, ccxt.GetValue(baseUrls, "opinion"))
+	var baseUrls map[string]any = this.UrlsApi
+	var baseUrl *string = this.SafeString(baseUrls, apiGroup, baseUrls["opinion"])
 	var url string = *baseUrl + "/" + this.ImplodeParams(path, params)
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var existingHeaders map[string]any = map[string]any{}

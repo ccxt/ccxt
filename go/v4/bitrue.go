@@ -4053,27 +4053,10 @@ func (this *Bitrue) setMarginBody(ch chan AsyncResult[MarginModification], symbo
 	if !(*this.SafeBool(market, "swap", false)) {
 		panic(NotSupported(this.Id + " setMargin only support swap markets"))
 	}
-	var response map[string]any = nil
 	var request map[string]any = map[string]any{
 		"contractName": market["id"],
 		"amount":       this.ParseToNumeric(amount),
 	}
-	if *this.SafeBool(market, "linear", false) {
-
-		r1 := <-this.FapiV2PrivatePostPositionMargin(this.Extend(request, params))
-		if r1.Err != nil {
-			panic(r1.Err)
-		}
-		response = r1.Value
-	} else if *this.SafeBool(market, "inverse", false) {
-
-		r2 := <-this.DapiV2PrivatePostPositionMargin(this.Extend(request, params))
-		if r2.Err != nil {
-			panic(r2.Err)
-		}
-		response = r2.Value
-	}
-
 	//
 	//     {
 	//         "code": 0,
@@ -4081,8 +4064,28 @@ func (this *Bitrue) setMarginBody(ch chan AsyncResult[MarginModification], symbo
 	//         "data": null
 	//     }
 	//
-	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.ParseMarginModification(response, market))}
-	return nil
+	if *this.SafeBool(market, "linear", false) {
+
+		r1 := <-this.FapiV2PrivatePostPositionMargin(this.Extend(request, params))
+		if r1.Err != nil {
+			panic(r1.Err)
+		}
+		var response map[string]any = r1.Value
+
+		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.ParseMarginModification(response, market))}
+		return nil
+	} else if *this.SafeBool(market, "inverse", false) {
+
+		r2 := <-this.DapiV2PrivatePostPositionMargin(this.Extend(request, params))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		var response map[string]any = r2.Value
+
+		ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.ParseMarginModification(response, market))}
+		return nil
+	}
+	panic(NotSupported(this.Id + " setMargin only support linear or inverse swap markets"))
 }
 func (this *Bitrue) Sign(path string, optionalArgs ...any) map[string]any {
 	var api []string = GetArgStringSlice(optionalArgs, 0, []string{"public"})

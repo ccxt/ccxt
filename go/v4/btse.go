@@ -1255,7 +1255,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 		ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.ParseFundingRateHistories(data, market, since, limit))}
 		return nil
 	}
-	var rates []any = ArrayTyped(this.ParseFundingRateHistories(data, market, since, limit))
+	var rates []any = this.ParseFundingRateHistories(data, market, since, limit)
 	var result []any = []any{}
 	for i := 0; i < len(rates); i++ {
 		var rate any = rates[i]

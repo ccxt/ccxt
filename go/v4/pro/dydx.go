@@ -575,7 +575,7 @@ func (this *Dydx) HandleOHLCV(client ccxt.ClientInterface, message map[string]an
 	var candles []any = ccxt.SafeListTyped(content, "candles")
 	var messageHash string = "ohlcv:" + symbol
 	var ohlcv any = this.SafeDict(candles, 0, content)
-	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(ohlcv, market))
+	var parsed []any = ccxt.OHLCVToList(this.ParseOHLCV(ohlcv, market))
 	if this.Ohlcvs[symbol] == nil {
 		this.Ohlcvs[symbol] = map[string]any{}
 	}

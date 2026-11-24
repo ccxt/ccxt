@@ -438,7 +438,7 @@ func (this *Kalshi) fetchMarketsBody(ch chan ccxt.AsyncResult[[]ccxt.MarketInter
 		var rawMarketsLength int = len(rawMarkets)
 		for i := 0; i < len(rawMarkets); i++ {
 			var raw any = rawMarkets[i]
-			var parsed []any = ccxt.ArrayTyped(this.ParseBinaryMarketToOutcomes(raw))
+			var parsed []any = this.ParseBinaryMarketToOutcomes(raw)
 			var eventTicker *string = this.SafeString(raw, "event_ticker")
 			var eventTitle *string = this.SafeString(raw, "title", eventTicker)
 			for j := 0; j < len(parsed); j++ {
@@ -735,7 +735,7 @@ func (this *Kalshi) HandleErrors(code int64, reason string, url string, method s
 	}
 	return nil
 }
-func (this *Kalshi) CalculateFee(symbol string, typeVar any, side any, amount any, price any, optionalArgs ...any) any {
+func (this *Kalshi) CalculateFee(symbol string, typeVar string, side string, amount float64, price float64, optionalArgs ...any) any {
 	// kalshi's trading fee is NOT a flat 7% — it is 0.07 * contracts * price * (1 - price), which
 	// peaks at price 0.5 and vanishes near 0 or 1. the describe() `taker: 0.07` is only the
 	// coefficient; compute the real per-contract formula here so fee estimates are accurate
@@ -2168,7 +2168,7 @@ func (this *Kalshi) fetchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Predictio
 		ch <- ccxt.AsyncResult[[]ccxt.PredictionPosition]{Value: ccxt.PredictionPositionsFromList(this.ParsePredictionPositions(positions))}
 		return nil
 	}
-	var parsed []any = ccxt.ArrayTyped(this.ParsePredictionPositions(positions))
+	var parsed []any = this.ParsePredictionPositions(positions)
 	var wantedTickers map[string]any = map[string]any{}
 	if outcomes == nil {
 		panic(ccxt.ExchangeError(this.Id + " fetchPositions() missing outcomes"))
@@ -3097,13 +3097,16 @@ func (this *Kalshi) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionEv
 	// map to kalshi's 'settled' (so resolved events ARE discoverable — previously they were
 	// silently rewritten to 'open'); 'all' sends no filter
 	var requestedStatus *string = this.SafeString(paramsOmitted, "status", this.SafeString(this.Options, "defaultEventStatus", "open"))
-	var status any = nil
+	var status *string = nil
 	if (requestedStatus != nil && *requestedStatus == "active") || (requestedStatus != nil && *requestedStatus == "open") {
-		status = "open"
+		statusStr := "open"
+		status = &statusStr
 	} else if (requestedStatus != nil && *requestedStatus == "closed") || (requestedStatus != nil && *requestedStatus == "inactive") {
-		status = "closed"
+		statusStr2 := "closed"
+		status = &statusStr2
 	} else if (requestedStatus != nil && *requestedStatus == "settled") || (requestedStatus != nil && *requestedStatus == "resolved") {
-		status = "settled"
+		statusStr3 := "settled"
+		status = &statusStr3
 	}
 	// anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
 	var rest map[string]any = this.OmitDict(paramsOmitted, []any{"status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug", "tags", "category", "series_ticker"})
@@ -3424,12 +3427,12 @@ func (this *Kalshi) resolveEventSeriesTickersBody(ch chan ccxt.AsyncResult[[]str
  * @param {object} [rest] extra params forwarded verbatim to the events endpoint
  * @returns {object[]} raw kalshi event objects with nested markets
  */
-func (this *Kalshi) FetchSeriesEventsAsync(seriesTickers any, status any, limit *int64, optionalArgs ...any) <-chan ccxt.AsyncResult[[]map[string]any] {
+func (this *Kalshi) FetchSeriesEventsAsync(seriesTickers any, status *string, limit *int64, optionalArgs ...any) <-chan ccxt.AsyncResult[[]map[string]any] {
 	ch := make(chan ccxt.AsyncResult[[]map[string]any], 1)
 	go this.fetchSeriesEventsBody(ch, seriesTickers, status, limit, optionalArgs...)
 	return ch
 }
-func (this *Kalshi) fetchSeriesEventsBody(ch chan ccxt.AsyncResult[[]map[string]any], seriesTickers any, status any, limit *int64, optionalArgs ...any) any {
+func (this *Kalshi) fetchSeriesEventsBody(ch chan ccxt.AsyncResult[[]map[string]any], seriesTickers any, status *string, limit *int64, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var rest map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -3524,7 +3527,7 @@ func (this *Kalshi) fetchEventBody(ch chan ccxt.AsyncResult[ccxt.PredictionEvent
 		panic(r.Err)
 	}
 	var fullEvent map[string]any = r.Value
-	var event map[string]any = this.ParseEvent(fullEvent)
+	var event map[string]any = this.ParseEvent(this.Extend(map[string]any{}, fullEvent))
 	this.IndexEventOutcomes(event)
 
 	ch <- ccxt.AsyncResult[ccxt.PredictionEvent]{Value: ccxt.PredictionEventFromMap(event)}
@@ -3539,7 +3542,7 @@ func (this *Kalshi) fetchEventBody(ch chan ccxt.AsyncResult[ccxt.PredictionEvent
  * @param {object} rawEvent the raw event object
  * @returns {object} an event structure
  */
-func (this *Kalshi) ParseEvent(rawEvent any) map[string]any {
+func (this *Kalshi) ParseEvent(rawEvent map[string]any) map[string]any {
 	// {
 	//         "available_on_brokers": true,
 	//         "category": "Politics",
@@ -3719,7 +3722,7 @@ func (this *Kalshi) Sign(path string, optionalArgs ...any) map[string]any {
 	_ = params
 	var apiGroup string = api[0]
 	var access string = api[1]
-	var baseUrls any = this.Urls["api"]
+	var baseUrls map[string]any = this.UrlsApi
 	var baseUrlDefault string = *this.SafeString(baseUrls, "kalshi", "")
 	var baseUrl string = *this.SafeString(baseUrls, apiGroup, baseUrlDefault)
 	var implodedPath string = this.ImplodeParams(path, params)
@@ -4387,7 +4390,7 @@ func (this *Kalshi) FetchRawEventByTicker(ticker string, options ...FetchRawEven
  * @param {object} [rest] extra params forwarded verbatim to the events endpoint
  * @returns {object[]} raw kalshi event objects with nested markets
  */
-func (this *Kalshi) FetchSeriesEvents(seriesTickers []string, status string, limit *int64, rest map[string]any) ([]map[string]any, error) {
+func (this *Kalshi) FetchSeriesEvents(seriesTickers []string, status *string, limit *int64, rest map[string]any) ([]map[string]any, error) {
 	r := <-this.FetchSeriesEventsAsync(seriesTickers, status, limit, rest)
 	if r.Err != nil {
 		return nil, r.Err

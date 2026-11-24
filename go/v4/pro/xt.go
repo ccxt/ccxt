@@ -1642,7 +1642,7 @@ func (this *Xt) HandleOHLCV(client ccxt.ClientInterface, message map[string]any)
 		}
 		var market map[string]any = this.SafeMarket(marketId, nil, nil, tradeType)
 		var symbol string = *this.SafeString(market, "symbol", "")
-		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data, market))
+		var parsed []any = ccxt.OHLCVToList(this.ParseOHLCV(data, market))
 		if this.Ohlcvs[symbol] == nil {
 			this.Ohlcvs[symbol] = map[string]any{}
 		}
@@ -2255,7 +2255,9 @@ func (this *Xt) HandleUnSubscription(client ccxt.ClientInterface, subscription m
 			var unsubHash string = messageHashes[j]
 			var subHash *string = nil
 			if j >= 0 && j < len(subMessageHashes) {
-				subHash = ccxt.SafeStringPtr(subMessageHashes[j])
+				if s, ok := subMessageHashes[j].(string); ok {
+					subHash = &s
+				}
 			}
 			this.CleanUnsubscription(ccxt.AsClient(client), subHash, unsubHash)
 		}

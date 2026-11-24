@@ -4307,7 +4307,8 @@ func (this *Delta) ParseSettlement(settlement map[string]any, market any) map[st
 func (this *Delta) ParseSettlements(settlements []any, market any) []any {
 	var result []any = []any{}
 	for i := 0; i < len(settlements); i++ {
-		result = append(result, this.ParseSettlement(this.Extend(map[string]any{}, settlements[i]), market))
+		var settlementRow map[string]any = this.Extend(map[string]any{}, settlements[i])
+		result = append(result, this.ParseSettlement(settlementRow, market))
 	}
 	return result
 }

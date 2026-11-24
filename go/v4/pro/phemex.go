@@ -2111,7 +2111,7 @@ func (this *Phemex) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var requestId int64 = this.RequestId()
 	var messageHash string = "authenticated"
 	var future any = client.SubscriptionSafe(messageHash)
-	if ccxt.IsEqual(future, nil) {
+	if future == nil {
 		var expiryDelta int64 = *this.SafeInteger(this.Options, "expires", 120)
 		var expiration int64 = this.Seconds() + expiryDelta
 		var payload string = this.ApiKey + strconv.FormatInt(expiration, 10)

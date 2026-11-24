@@ -5119,7 +5119,7 @@ func (this *Mexc) fetchTradingFeeBody(ch chan AsyncResult[TradingFeeInterface], 
 	})}
 	return nil
 }
-func (this *Mexc) CustomParseBalance(response map[string]any, marketType any) map[string]any {
+func (this *Mexc) CustomParseBalance(response map[string]any, marketType string) map[string]any {
 	//
 	// spot
 	//
@@ -5180,8 +5180,8 @@ func (this *Mexc) CustomParseBalance(response map[string]any, marketType any) ma
 	//         "tradeEnabled": true
 	//     }
 	//
-	var isMarginType bool = (IsEqual(marketType, "margin"))
-	var isSwapType bool = (IsEqual(marketType, "swap"))
+	var isMarginType bool = (marketType == "margin")
+	var isSwapType bool = (marketType == "swap")
 	var wallet []any = nil
 	if isMarginType {
 		wallet = this.SafeListSlice(response, "assets", []any{})
@@ -5275,19 +5275,15 @@ func (this *Mexc) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 			panic(r.Err)
 		}
 	}
-	var marketType any = nil
+	var marketType *string = nil
 	var request map[string]any = map[string]any{}
 	var paramsMarketType map[string]any = nil
-	var marketTypePtr *string = nil
-	marketTypePtr, paramsMarketType = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
-	if marketTypePtr != nil {
-		marketType = *marketTypePtr
-	}
+	marketType, paramsMarketType = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	var marginMode *string = this.SafeString(paramsMarketType, "marginMode")
 	var isMargin *bool = this.SafeBool(paramsMarketType, "margin", false)
 	var paramsOmitted2 map[string]any = this.OmitDict(paramsMarketType, []any{"margin", "marginMode"})
 	var response map[string]any = nil
-	if (marginMode != nil) || (isMargin != nil && *isMargin) || (marketType == "margin") {
+	if (marginMode != nil) || (isMargin != nil && *isMargin) || (marketType != nil && *marketType == "margin") {
 		var parsedSymbols any = nil
 		var symbol *string = this.SafeString(paramsOmitted2, "symbol")
 		if symbol == nil {
@@ -5301,7 +5297,8 @@ func (this *Mexc) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 			parsedSymbols = market["id"]
 		}
 		this.CheckRequiredArgument("fetchBalance", parsedSymbols, "symbol or symbols")
-		marketType = "margin"
+		marketTypeStr := "margin"
+		marketType = &marketTypeStr
 		request["symbols"] = parsedSymbols
 		var paramsOmitted map[string]any = this.OmitDict(paramsOmitted2, []any{"symbol", "symbols"})
 
@@ -5310,14 +5307,14 @@ func (this *Mexc) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 			panic(r1.Err)
 		}
 		response = r1.Value
-	} else if marketType == "spot" {
+	} else if marketType != nil && *marketType == "spot" {
 
 		r2 := <-this.SpotPrivateGetAccount(this.Extend(request, paramsOmitted2))
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
 		response = r2.Value
-	} else if marketType == "swap" {
+	} else if marketType != nil && *marketType == "swap" {
 
 		r3 := <-this.ContractPrivateGetAccountAssets(this.Extend(request, paramsOmitted2))
 		if r3.Err != nil {
@@ -5412,7 +5409,7 @@ func (this *Mexc) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 	//         ]
 	//     }
 	//
-	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.CustomParseBalance(response, marketType))}
+	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.CustomParseBalance(response, *marketType))}
 	return nil
 }
 
@@ -7495,35 +7492,31 @@ func (this *Mexc) ParseTransfer(transfer map[string]any, optionalArgs ...any) Tr
 		datetime = nil
 	}
 	var direction *string = this.SafeString(transfer, "type")
-	var accountFrom any = nil
-	var accountTo any = nil
+	var accountFrom *string = nil
+	var accountTo *string = nil
 	var fromAccountType *string = this.SafeString(transfer, "fromAccountType")
 	var toAccountType *string = this.SafeString(transfer, "toAccountType")
 	if (fromAccountType != nil) && (toAccountType != nil) {
 		accountFrom = fromAccountType
 		accountTo = toAccountType
 	} else if direction != nil {
+		var accountFromStr string
 		if direction != nil && *direction == "IN" {
-			accountFrom = "MAIN"
+			accountFromStr = "MAIN"
 		} else {
-			accountFrom = "CONTRACT"
+			accountFromStr = "CONTRACT"
 		}
+		accountFrom = &accountFromStr
+		var accountToStr string
 		if direction != nil && *direction == "IN" {
-			accountTo = "CONTRACT"
+			accountToStr = "CONTRACT"
 		} else {
-			accountTo = "MAIN"
+			accountToStr = "MAIN"
 		}
+		accountTo = &accountToStr
 	} else {
-		if derefPtr := this.SafeString(transfer, "from"); derefPtr != nil {
-			accountFrom = *derefPtr
-		} else {
-			accountFrom = nil
-		}
-		if derefPtr := this.SafeString(transfer, "to"); derefPtr != nil {
-			accountTo = *derefPtr
-		} else {
-			accountTo = nil
-		}
+		accountFrom = this.SafeString(transfer, "from")
+		accountTo = this.SafeString(transfer, "to")
 	}
 	return TransferEntryFromMap(map[string]any{
 		"info":        transfer,
@@ -7537,7 +7530,7 @@ func (this *Mexc) ParseTransfer(transfer map[string]any, optionalArgs ...any) Tr
 		"status":      this.ParseTransferStatus(this.SafeStringN(transfer, []any{"transact_state", "state", "status"})),
 	})
 }
-func (this *Mexc) ParseAccountId(status any) *string {
+func (this *Mexc) ParseAccountId(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"SPOT":     "spot",
 		"FUTURES":  "swap",

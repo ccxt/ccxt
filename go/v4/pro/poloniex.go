@@ -116,7 +116,7 @@ func (this *Poloniex) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
 	var future any = client.SubscriptionSafe(messageHash)
-	if ccxt.IsEqual(future, nil) {
+	if future == nil {
 		var accessPath string = "/ws"
 		var requestString string = "GET\n" + accessPath + "\nsignTimestamp=" + *timestamp
 		var signature string = this.Hmac(this.Encode(requestString), this.Encode(this.Secret), ccxt.Sha256, "base64")
@@ -1297,7 +1297,7 @@ func (this *Poloniex) HandleOHLCV(client ccxt.ClientInterface, message map[strin
 		timeframes = map[string]any{}
 	}
 	var timeframe *string = this.FindTimeframe(channel, timeframes)
-	var parsed any = ccxt.OHLCVToList(this.ParseWsOHLCV(data, market))
+	var parsed []any = ccxt.OHLCVToList(this.ParseWsOHLCV(data, market))
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}

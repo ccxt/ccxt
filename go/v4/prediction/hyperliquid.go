@@ -1985,7 +1985,7 @@ func (this *Hyperliquid) fetchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	for i := 0; i < len(historicalOrders); i++ {
 		var raw any = historicalOrders[i]
 		var entry any = this.SafeDict(raw, "order")
-		if ccxt.IsEqual(entry, nil) {
+		if entry == nil {
 			entry = raw
 		}
 		var oid *string = this.SafeString(entry, "oid")

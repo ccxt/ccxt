@@ -847,7 +847,7 @@ func (this *Blofin) HandleOHLCV(client ccxt.ClientInterface, message map[string]
 	}
 	for i := 0; i < len(data); i++ {
 		var candle any = this.SafeList(data, i)
-		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(candle, market))
+		var parsed []any = ccxt.OHLCVToList(this.ParseOHLCV(candle, market))
 		stored.Append(parsed)
 	}
 	var resolveData []any = []any{symbol, unifiedTimeframe, stored}

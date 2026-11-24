@@ -1746,12 +1746,16 @@ func (this *Woo) HandleOrderUpdate(client ccxt.ClientInterface, message map[stri
 		for i := 0; i < len(dataList); i++ {
 			var tradeId *string = this.OmitZero(this.SafeString(dataList, "tradeId"))
 			if tradeId != nil {
-				this.HandleMyTrade(client, dataList[i])
+				this.HandleMyTrade(client, this.SafeDict(dataList, i, map[string]any{}))
 			}
-			this.HandleOrder(client, dataList[i], topic)
+			this.HandleOrder(client, this.SafeDict(dataList, i, map[string]any{}), topic)
 		}
 	} else {
-		var data any = this.SafeValue(message, "data")
+		var data map[string]any
+		data, _ = message["data"].(map[string]any)
+		if data == nil {
+			data = map[string]any{}
+		}
 		// executionreport
 		var tradeId *string = this.OmitZero(this.SafeString(data, "tradeId"))
 		if tradeId != nil {

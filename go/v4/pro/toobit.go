@@ -507,7 +507,7 @@ func (this *Toobit) HandleOHLCV(client ccxt.ClientInterface, message map[string]
 	}
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
-		var parsed any = ccxt.OHLCVToList(this.ParseWsOHLCV(data[i], market))
+		var parsed []any = ccxt.OHLCVToList(this.ParseWsOHLCV(data[i], market))
 		stored.Append(parsed)
 	}
 	var messageHash *string = nil
@@ -534,7 +534,7 @@ func (this *Toobit) ParseWsOHLCV(ohlcv any, optionalArgs ...any) ccxt.OHLCV {
 	//
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(ohlcv, market))
+	var parsed []any = ccxt.OHLCVToList(this.ParseOHLCV(ohlcv, market))
 	return ccxt.OHLCVFromList(parsed)
 }
 

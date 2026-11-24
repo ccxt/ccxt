@@ -5293,10 +5293,10 @@ func (this *Bitfinex) setMarginBody(ch chan AsyncResult[MarginModification], sym
 	//
 	var data any = this.SafeValue(response, 0)
 
-	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.ParseMarginModification(data, market))}
+	ch <- AsyncResult[MarginModification]{Value: this.ParseMarginModificationRow(data, market)}
 	return nil
 }
-func (this *Bitfinex) ParseMarginModification(data any, optionalArgs ...any) map[string]any {
+func (this *Bitfinex) ParseMarginModificationRow(data any, optionalArgs ...any) MarginModification {
 	//
 	// setMargin
 	//
@@ -5313,7 +5313,7 @@ func (this *Bitfinex) ParseMarginModification(data any, optionalArgs ...any) map
 	if marginStatusRaw != nil && *marginStatusRaw == 1 {
 		marginStatus = "ok"
 	}
-	return map[string]any{
+	return MarginModificationFromMap(map[string]any{
 		"info":       data,
 		"symbol":     this.SafeString(market, "symbol"),
 		"type":       nil,
@@ -5324,7 +5324,7 @@ func (this *Bitfinex) ParseMarginModification(data any, optionalArgs ...any) map
 		"status":     marginStatus,
 		"timestamp":  nil,
 		"datetime":   nil,
-	}
+	})
 }
 
 /**

@@ -2201,7 +2201,10 @@ func (this *Digifinex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 		var data, _ = response["data"].(map[string]any)
 		candles = this.SafeListSlice(data, "candles", []any{})
 	} else {
-		candles = this.SafeListSlice(response, "data", []any{})
+		candles, _ = response["data"].([]any)
+		if candles == nil {
+			candles = []any{}
+		}
 	}
 
 	ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(this.ParseOHLCVs(candles, market, timeframe, since, limit))}
@@ -2727,7 +2730,7 @@ func (this *Digifinex) cancelOrderBody(ch chan AsyncResult[Order], id string, op
 		if numCanceledOrders != 1 {
 			panic(OrderNotFound(this.Id + " cancelOrder() " + *idValue + " not found"))
 		}
-		var orders []any = ArrayTyped(this.ParseCancelOrders(response))
+		var orders []any = this.ParseCancelOrders(response)
 		var canceled map[string]any
 		if 0 < len(orders) {
 			canceled, _ = orders[0].(map[string]any)
@@ -3929,7 +3932,10 @@ func (this *Digifinex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optio
 	//
 	var ledger []any = nil
 	if !isMargin && (marketType != nil && *marketType == "swap") {
-		ledger = this.SafeListSlice(response, "data", []any{})
+		ledger, _ = response["data"].([]any)
+		if ledger == nil {
+			ledger = []any{}
+		}
 	} else {
 		var data, _ = response["data"].(map[string]any)
 		ledger = this.SafeListSlice(data, "finance", []any{})
