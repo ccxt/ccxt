@@ -861,7 +861,7 @@ impl crate::exchange_generated::ExchangeBase for Bitfinex {
                 "get_currency_name" => self.get_currency_name(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
-                "is_fiat" => self.is_fiat(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "is_fiat" => crate::Value::from(self.is_fiat(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_currencies_custom" => crate::Value::Dict(self.parse_currencies_custom(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency_custom" => self.parse_currency_custom(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
@@ -2065,11 +2065,9 @@ impl Bitfinex {
 })]);
 }
 
-    pub fn is_fiat(&self, mut code: Value) -> Value {
+    pub fn is_fiat(&self, mut code: Value) -> bool {
         let fiat: crate::value::Dict = self.safe_dict_k_t(&self.options, "fiat");
-        return Value::Bool(self.safe_string(&fiat, code, &[]) != Value::Null);
-
-    Value::Null
+        return (self.safe_string(&fiat, code, &[]) != Value::Null);
 }
 
     pub fn get_currency_name(&self, code: &str) -> Value {

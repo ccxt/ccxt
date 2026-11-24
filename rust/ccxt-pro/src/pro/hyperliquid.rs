@@ -71,7 +71,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "handle_active_asset_ctx" => self.handle_active_asset_ctx(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
                 "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()))),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }),
+                "handle_pong" => crate::Value::Dict(self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
                 "handle_ws_tickers" => self.handle_ws_tickers(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
                 "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -170,6 +170,7 @@ impl Hyperliquid {
             "watch_ticker" => crate::exchange_stubs::enqueue_spawn("watch_ticker", args.iter().copied().cloned().collect::<Vec<_>>()),
             "watch_tickers" => crate::exchange_stubs::enqueue_spawn("watch_tickers", args.iter().copied().cloned().collect::<Vec<_>>()),
             "watch_trades" => crate::exchange_stubs::enqueue_spawn("watch_trades", args.iter().copied().cloned().collect::<Vec<_>>()),
+            "wrap_as_post_action" => { self.wrap_as_post_action(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)); },
             _ => {}
         }
     }
@@ -2713,7 +2714,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub fn handle_pong(&self, mut client: Value, message: &crate::value::Dict) -> Value {
+    pub fn handle_pong(&self, mut client: Value, message: &crate::value::Dict) -> crate::value::Dict {
         //
         //   {
         //       "channel": "pong"
@@ -2721,9 +2722,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         let __ws_arg_4 = self.milliseconds();
         crate::set_value(&mut client, &Value::Str("lastPong".into()), self.safe_integer_k(&message, "pong", &[Value::Int(__ws_arg_4)]));
-        return Value::from(message);
-
-    Value::Null
+        return std::sync::Arc::clone(message);
 }
 
     pub fn request_id(&mut self) -> i64 {

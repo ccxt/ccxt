@@ -373,14 +373,14 @@ impl crate::exchange::DerivedExchange for Indodax {
             }
         }  else {
             self.check_required_credentials(&[]);
-            let __ws_arg_14 = self.extend(Value::Map({
+            let __ws_arg_15 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("method".to_string(), Value::from(path));
         m.insert("timestamp".to_string(), Value::Int(<Self as crate::exchange_generated::ExchangeBase>::nonce(self)));
         m.insert("recvWindow".to_string(), self.options.get("recvWindow").cloned().unwrap_or(Value::Null));
     m
 }), &[params]);
-            privateBody = Some(self.urlencode(__ws_arg_14, &[]));
+            privateBody = Some(self.urlencode(__ws_arg_15, &[]));
             privateHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/x-www-form-urlencoded".into()));
@@ -437,7 +437,7 @@ impl crate::exchange_generated::ExchangeBase for Indodax {
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_time" => crate::types::IntoRaw::into_raw(self.fetch_time(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "fetch_transaction_fee" => self.fetch_transaction_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_transaction_fee" => self.fetch_transaction_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "nonce" => crate::Value::from(self.nonce()),
@@ -1660,8 +1660,12 @@ impl Indodax {
         //        }
         //    }
         //
-        let data: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "return");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, data.as_ref(), None).map_or(Value::Null, Value::Dict);
+        let data: crate::value::Dict = self.safe_dict_k_t(&response, "return");
+        let __ws_arg_10 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&data]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_10).as_ref(), None).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -1675,7 +1679,7 @@ impl Indodax {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-    pub async fn fetch_transaction_fee(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_transaction_fee(&mut self, code: &str, optional_args: &[Value]) -> Value {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -1683,14 +1687,14 @@ impl Indodax {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code.as_str());
+        let mut currency: crate::types::Currency = self.currency(Some(code));
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
             m
         });
-        let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.private_post_withdraw_fee(&[&__ws_arg_10]).await.unwrap_or_default();
+        let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.private_post_withdraw_fee(&[&__ws_arg_11]).await.unwrap_or_default();
         //
         //     {
         //         "success": 1,
@@ -1738,8 +1742,8 @@ impl Indodax {
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
             m
         });
-        let __ws_arg_11 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_post_withdraw_fee(&[&__ws_arg_11]).await.unwrap_or_default();
+        let __ws_arg_12 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_post_withdraw_fee(&[&__ws_arg_12]).await.unwrap_or_default();
         //
         //     {
         //         "success": 1,
@@ -1802,8 +1806,8 @@ impl Indodax {
             request.insert("start".into(), startTime.map(Value::from).unwrap_or(Value::Null));
             request.insert("end".into(), self.yyyymmdd(Value::Int(self.milliseconds()), &[]));
         }
-        let __ws_arg_12 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_post_trans_history(&[&__ws_arg_12]).await.unwrap_or_default();
+        let __ws_arg_13 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_post_trans_history(&[&__ws_arg_13]).await.unwrap_or_default();
         //
         //     {
         //         "success": 1,
@@ -1953,8 +1957,8 @@ impl Indodax {
         if (tagWithdrawTag.is_some()) && (tagWithdrawTag.as_deref() != Some("")) {
             request.insert("withdraw_memo".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
-        let response: crate::value::Dict = self.private_post_withdraw_coin(&[&__ws_arg_13]).await.unwrap_or_default();
+        let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
+        let response: crate::value::Dict = self.private_post_withdraw_coin(&[&__ws_arg_14]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))

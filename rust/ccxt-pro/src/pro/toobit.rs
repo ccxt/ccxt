@@ -52,7 +52,7 @@ impl Toobit {
 impl crate::exchange::DerivedExchange for Toobit {
     fn derived_parent(&self) -> Option<&impl crate::exchange_generated::ExchangeBase> { Some(&self.parent) }
     fn derived_parent_mut(&mut self) -> Option<&mut impl crate::exchange_generated::ExchangeBase> { Some(&mut self.parent) }
-    fn parse_my_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_my_trade(&self, trade: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Value {
         let trade: Value = trade.into();
         let marketId: Option<String> = self.safe_string_k_opt(&trade, "s", &[]);
         let ts: Option<String> = self.safe_string_k_opt(&trade, "t", &[]);
@@ -1466,7 +1466,7 @@ impl Toobit {
             let limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
-        let trade: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_my_trade(self, Value::Dict(std::sync::Arc::clone(message)), None).into_dict();
+        let trade: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_my_trade(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(Value::Dict(std::sync::Arc::clone(message))).as_ref(), None).into_dict();
         myTrades.append(Value::from(&trade));
         let mut messageHash: String = format!("{}{}", Value::Str("myTrades:".into()), self.safe_string_k(&trade, "symbol", &[Value::Str("".into())]));
         client.resolve(Value::from(&myTrades), messageHash.as_str());

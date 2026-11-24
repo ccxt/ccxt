@@ -731,7 +731,7 @@ impl crate::exchange_generated::ExchangeBase for Bigone {
                     args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "parse_contract_bids_asks" => Value::Arr(self.parse_contract_bids_asks(args.get(0).cloned().unwrap_or(crate::Value::Null))),
+                "parse_contract_bids_asks" => Value::Arr(self.parse_contract_bids_asks(args.get(0).and_then(crate::Value::as_map).unwrap_or(&Default::default()))),
                 "parse_contract_order_book" => self.parse_contract_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_i64)),
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -2021,16 +2021,15 @@ impl Bigone {
         }).await?))
     }
 
-    pub fn parse_contract_bids_asks(&self, bidsAsks: impl Into<crate::Value>) -> crate::value::List {
-        let bidsAsks: Value = bidsAsks.into();
-        let bidsAsksKeys: Vec<&str> = bidsAsks.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
+    pub fn parse_contract_bids_asks(&self, bidsAsks: &indexmap::IndexMap<String, Value>) -> crate::value::List {
+        let bidsAsksKeys: Vec<Value> = Value::Array(bidsAsks.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_3: bool = true;
             while { if !__for_first_3 { i += 1; } __for_first_3 = false; i < (bidsAsksKeys.len() as i64) } {
-            let price: Option<&str> = bidsAsksKeys.get(i as usize).copied();
-            let amount: Value = (if let (Some(__m), Some(__k)) = (bidsAsks.as_map(), price.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let price: Option<&str> = bidsAsksKeys.get(i as usize).and_then(Value::as_str);
+            let amount: Value = bidsAsks.get(price.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             result.push(Value::from(vec![self.parse_number(Value::from(price.as_deref()), &[]), self.parse_number(amount, &[])]));
         }
         }

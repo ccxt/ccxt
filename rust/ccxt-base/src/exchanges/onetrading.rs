@@ -2012,7 +2012,11 @@ impl Onetrading {
             let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_delete_account_orders_client_client_id(&[&__ws_arg_5]).await;
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, response.as_ref(), None);
+        let __ws_arg_6 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&response]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_6).as_ref(), None);
         None
         }).await?))
     }
@@ -2045,8 +2049,8 @@ impl Onetrading {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("instrument_code".into(), Value::from((market).id.as_deref()));
         }
-        let __ws_arg_6 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::List = self.private_delete_account_orders(&[&__ws_arg_6]).await.unwrap_or_default();
+        let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::List = self.private_delete_account_orders(&[&__ws_arg_7]).await.unwrap_or_default();
         return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Arr(response));
@@ -2083,8 +2087,8 @@ impl Onetrading {
                 m.insert("ids".to_string(), Value::Str(ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
             m
         });
-        let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::List = self.private_delete_account_orders(&[&__ws_arg_7]).await.unwrap_or_default();
+        let __ws_arg_8 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::List = self.private_delete_account_orders(&[&__ws_arg_8]).await.unwrap_or_default();
         //
         //     [
         //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
@@ -2127,8 +2131,8 @@ impl Onetrading {
                 m.insert("order_id".to_string(), id);
             m
         });
-        let __ws_arg_8 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_get_account_orders_order_id(&[&__ws_arg_8]).await.unwrap_or_default();
+        let __ws_arg_9 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_get_account_orders_order_id(&[&__ws_arg_9]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&response), None);
         None
         }).await?))
@@ -2179,8 +2183,8 @@ impl Onetrading {
         if (limit.is_some()) {
             request.insert("max_page_size".into(), Value::from(limit));
         }
-        let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.call_method_t("private_get_account_orders", &[&__ws_arg_9]).await;
+        let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.call_method_t("private_get_account_orders", &[&__ws_arg_10]).await;
         //
         //     {
         //         "order_history": [
@@ -2293,8 +2297,8 @@ impl Onetrading {
                 m.insert("with_cancelled_and_rejected".to_string(), Value::Bool(true));
             m
         });
-        let __ws_arg_10 = self.extend(Value::Map(request), &[&params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_open_orders(symbol.as_str(), since, limit, __ws_arg_10).await);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[&params]);
+        return crate::types::IntoRaw::into_raw(self.fetch_open_orders(symbol.as_str(), since, limit, __ws_arg_11).await);
         Value::Null
         }).await?))
     }
@@ -2333,8 +2337,8 @@ impl Onetrading {
         if (limit.is_some()) {
             request.insert("max_page_size".into(), Value::from(limit));
         }
-        let __ws_arg_11 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_get_account_orders_order_id_trades(&[&__ws_arg_11]).await.unwrap_or_default();
+        let __ws_arg_12 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_get_account_orders_order_id_trades(&[&__ws_arg_12]).await.unwrap_or_default();
         //
         //     {
         //         "trade_history": [
@@ -2420,8 +2424,8 @@ impl Onetrading {
         if (limit.is_some()) {
             request.insert("max_page_size".into(), Value::from(limit));
         }
-        let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_get_account_trades(&[&__ws_arg_12]).await.unwrap_or_default();
+        let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_get_account_trades(&[&__ws_arg_13]).await.unwrap_or_default();
         //
         //     {
         //         "trade_history": [

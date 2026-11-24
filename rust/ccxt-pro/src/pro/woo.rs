@@ -66,8 +66,8 @@ impl crate::exchange_generated::ExchangeBase for Woo {
                 "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null))),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_order_book_message" => self.handle_order_book_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).cloned().unwrap_or(crate::Value::Null)),
-                "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }),
-                "handle_subscribe" => self.handle_subscribe(args.get(0).cloned().unwrap_or(crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }),
+                "handle_pong" => crate::Value::Dict(self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
+                "handle_subscribe" => crate::Value::Dict(self.handle_subscribe(args.get(0).cloned().unwrap_or(crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
                 "handle_ticker" => self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "load_positions_snapshot" => { self.load_positions_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()).await; crate::Value::Null },
                 "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -124,7 +124,7 @@ impl Woo {
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_my_trade" => { self.handle_my_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default()); },
             "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book_message" => { self.handle_order_book_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_book_subscription" => { self.handle_order_book_subscription(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -1708,7 +1708,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         //         }
         //     }
         //
-        let topic: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
+        let topic: String = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "".to_string() });
         let dataList: Option<crate::value::List> = (match message.get("data") { Some(Value::Arr(__a)) => Some(__a.clone()), _ => None });
         if (dataList.is_some()) {
             {
@@ -1727,7 +1727,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                     let m = indexmap::IndexMap::new();
                     m
                 })]);
-                self.handle_order(client, __ws_arg_7, Value::from(topic.as_deref()));
+                self.handle_order(client, __ws_arg_7, topic.as_str());
             }
             }
         }  else {
@@ -1737,11 +1737,11 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             if (tradeId.is_some()) {
                 self.handle_my_trade(client, Value::from(&data));
             }
-            self.handle_order(client, Value::Dict(data), topic.map(Value::from).unwrap_or(Value::Null));
+            self.handle_order(client, Value::Dict(data), topic.as_str());
         }
 }
 
-    pub fn handle_order(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value, mut topic: Value) {
+    pub fn handle_order(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value, topic: &str) {
         let mut parsed: Value = Value::Dict(self.parse_ws_order(message, None));
         let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
         let orderId: Option<String> = self.safe_string_k_opt(&parsed, "id", &[]);
@@ -1766,8 +1766,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
                 if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("datetime".to_string(), self.safe_string_k(&order, "datetime", &[])); }
             }
             self.orders.append(parsed);
-            client.resolve(Value::from(&self.orders), &topic);
-            let messageHashSymbol: String = format!("{}{}", Value::Str(format!("{}{}", topic, ":").into()), symbol.as_deref().unwrap_or("null"));
+            client.resolve(Value::from(&self.orders), &Value::from(topic));
+            let messageHashSymbol: String = format!("{}{}", Value::Str(format!("{}{}", Value::from(topic), ":").into()), symbol.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&self.orders), messageHashSymbol.as_str());
         }
 }
@@ -2279,17 +2279,15 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         self.spawn(&[Value::Str("pong".into()), client, message]);
 }
 
-    pub fn handle_pong(&self, mut client: Value, message: &crate::value::Dict) -> Value {
+    pub fn handle_pong(&self, mut client: Value, message: &crate::value::Dict) -> crate::value::Dict {
         //
         // { event: "pong", ts: 1657117026090 }
         //
         crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
-        return Value::from(message);
-
-    Value::Null
+        return std::sync::Arc::clone(message);
 }
 
-    pub fn handle_subscribe(&mut self, mut client: Value, message: &crate::value::Dict) -> Value {
+    pub fn handle_subscribe(&mut self, mut client: Value, message: &crate::value::Dict) -> crate::value::Dict {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(&client);
         let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         //
@@ -2307,9 +2305,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if (method) {
             self.handle_order_book_subscription(client, Value::from(message), Value::Dict(subscription));
         }
-        return Value::from(message);
-
-    Value::Null
+        return std::sync::Arc::clone(message);
 }
 
     pub fn handle_auth(&self, client: &Value, message: &crate::value::Dict) {

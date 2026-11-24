@@ -978,7 +978,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             }
             let missingLength: i64 = missing.len() as i64;
             if missingLength > 0 {
-                self.fetch_outcomes(Value::from(missing)).await;
+                self.fetch_outcomes(&missing).await;
             }
             return Value::from(&self.pred().outcomes);
         }
@@ -1000,14 +1000,12 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
  * @param {string[]} outcomeSymbols the uncached outcome handles or ids to resolve
  * @returns {object} the outcome cache
  */
-    fn fetch_outcomes(&mut self, mut outcomeSymbols: Value) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn fetch_outcomes(&mut self, outcomeSymbols: &[crate::Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         // async-virtual: try the derived exchange first
-        if let Some(__v) = self.dispatch_to_derived("fetch_outcomes", &[outcomeSymbols.clone()]).await {
+        if let Some(__v) = self.dispatch_to_derived("fetch_outcomes", &{ let mut __args: Vec<crate::Value> = Vec::new(); __args.push(crate::Value::from(outcomeSymbols.to_vec())); __args }).await {
             if !matches!(__v, crate::Value::Null) { return __v; }
         }
 
-        let __outcomeSymbols_empty = Vec::new();
-        let outcomeSymbols = outcomeSymbols.as_array().unwrap_or(&__outcomeSymbols_empty);
         {
                         let mut i: i64 = 0;
             let mut __for_first_25: bool = true;
@@ -2391,7 +2389,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_30: bool = true;
             while { if !__for_first_30 { i += 1; } __for_first_30 = false; i < (rows.len() as i64) } {
-            let parsed: Value = Value::Dict(<Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_order(self, rows.get(i as usize).cloned().unwrap_or(Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj.clone()).as_ref()));
+            let parsed: Value = Value::Dict(<Self as crate::prediction_exchange_generated::PredictionBase>::parse_prediction_order(self, self.safe_dict(&rows, Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj.clone()).as_ref()));
             let order: crate::value::Dict = self.extend_t(parsed, &[&params]);
             std::sync::Arc::make_mut(&mut results).push(Value::Dict(order));
         }
@@ -2713,7 +2714,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
             "fetch_orders" => crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::fetch_orders(self, args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
             "fetch_outcome" => crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::fetch_outcome(self, args.get(0).cloned().unwrap_or(crate::Value::Null)).await),
-            "fetch_outcomes" => <Self as crate::prediction_exchange_generated::PredictionBase>::fetch_outcomes(self, args.get(0).cloned().unwrap_or(crate::Value::Null)).await,
+            "fetch_outcomes" => <Self as crate::prediction_exchange_generated::PredictionBase>::fetch_outcomes(self, args.get(0).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()).await,
             "fetch_position" => crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::fetch_position(self, args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
             "fetch_positions" => crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::fetch_positions(self, args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
             "fetch_settlements" => crate::types::IntoRaw::into_raw(<Self as crate::prediction_exchange_generated::PredictionBase>::fetch_settlements(self, args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),

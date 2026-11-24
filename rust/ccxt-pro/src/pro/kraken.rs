@@ -70,9 +70,9 @@ impl crate::exchange_generated::ExchangeBase for Kraken {
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()))),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }),
-                "handle_system_status" => self.handle_system_status(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }),
-                "handle_unsubscription_status" => self.handle_unsubscription_status(args.get(0).unwrap_or(&crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }),
+                "handle_pong" => crate::Value::Dict(self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
+                "handle_system_status" => crate::Value::Dict(self.handle_system_status(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
+                "handle_unsubscription_status" => crate::Value::Dict(self.handle_unsubscription_status(args.get(0).unwrap_or(&crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() })),
                 "load_markets" => crate::types::IntoRaw::into_raw(self.load_markets(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).cloned().unwrap_or_default()).await),
                 "order_request_ws" => { let __t = self.order_request_ws(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &mut { let __m = args.get(4).cloned().unwrap_or_default().as_map().cloned().unwrap_or_default();
                     __m }, args.get(5).cloned().unwrap_or(crate::Value::Null), &args[6.min(args.len())..].iter().collect::<Vec<_>>());
@@ -1439,11 +1439,9 @@ impl Kraken {
     Value::Null
 }
 
-    pub fn handle_pong(&self, mut client: Value, message: &crate::value::Dict) -> Value {
+    pub fn handle_pong(&self, mut client: Value, message: &crate::value::Dict) -> crate::value::Dict {
         crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
-        return Value::from(message);
-
-    Value::Null
+        return std::sync::Arc::clone(message);
 }
 
     pub async fn watch_heartbeat(&mut self, optional_args: &[&Value]) -> Value {
@@ -1670,10 +1668,8 @@ impl Kraken {
         return Some(joinedResult);
 }
 
-    pub fn handle_system_status(&self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) -> Value {
-        return Value::from(message);
-
-    Value::Null
+    pub fn handle_system_status(&self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) -> crate::value::Dict {
+        return std::sync::Arc::clone(message);
 }
 
     pub async fn authenticate(&mut self, optional_args: &[&Value]) -> Value {
@@ -2357,7 +2353,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
 }
 
-    pub fn handle_unsubscription_status(&mut self, client: &Value, message: &crate::value::Dict) -> Value {
+    pub fn handle_unsubscription_status(&mut self, client: &Value, message: &crate::value::Dict) -> crate::value::Dict {
         let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         //
         // one acknowledgement per symbol in the unsubscribe request
@@ -2396,9 +2392,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }));
             self.clean_unsubscription(client, subMessageHash.map(Value::from).unwrap_or(Value::Null), Value::from(unsubMessageHash), &[]);
         }
-        return Value::from(message);
-
-    Value::Null
+        return std::sync::Arc::clone(message);
 }
 
     pub fn handle_error_message(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) -> bool {

@@ -391,7 +391,7 @@ impl crate::exchange::DerivedExchange for Revolutx {
 
     None
 }
-    fn parse_my_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_my_trade(&self, trade: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Value {
         let trade: Value = trade.into();
         let id: Option<String> = self.safe_string_k_opt(&trade, "tid", &[]);
         let orderId: Option<String> = self.safe_string_k_opt(&trade, "oid", &[]);
@@ -2131,7 +2131,7 @@ impl Revolutx {
             let mut __for_first_9: bool = true;
             while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (data.len() as i64) } {
             let trade: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
-            result.push(<Self as crate::exchange::DerivedExchange>::parse_my_trade(self, &trade, Some(&market)));
+            result.push(<Self as crate::exchange::DerivedExchange>::parse_my_trade(self, Some(&trade), Some(&market)));
         }
         }
         return Value::from(result);

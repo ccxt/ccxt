@@ -1682,7 +1682,10 @@ impl Cex {
             if useKeyAsId.as_bool() == Some(true) {
                 market = Some(self.safe_market(key.as_deref(), None, &[]));
             }
-            let parsed: crate::value::Dict = self.parse_trading_fee((if let (Some(__m), Some(__k)) = (response.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), market.as_ref());
+            let parsed: crate::value::Dict = self.parse_trading_fee(self.safe_dict(&response, Value::from(key.as_deref()), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), market.as_ref());
             let parsedSymbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             if (parsedSymbol.is_some()) {
                 result.insert(parsedSymbol.as_deref().unwrap_or("null").to_string(), Value::Dict(parsed));

@@ -403,13 +403,13 @@ impl Coinbase {
     }
 
     /// Auto-generated wrapper for the `v3PrivatePostBrokerageOrdersEdit` implicit endpoint.
-    pub async fn v3_private_post_brokerage_orders_edit(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v3_private_post_brokerage_orders_edit".into()), optional_args).await
+    pub async fn v3_private_post_brokerage_orders_edit(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("v3_private_post_brokerage_orders_edit", optional_args).await
     }
 
     /// Auto-generated wrapper for the `v3PrivatePostBrokerageOrdersEditPreview` implicit endpoint.
-    pub async fn v3_private_post_brokerage_orders_edit_preview(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("v3_private_post_brokerage_orders_edit_preview".into()), optional_args).await
+    pub async fn v3_private_post_brokerage_orders_edit_preview(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("v3_private_post_brokerage_orders_edit_preview", optional_args).await
     }
 
     /// Auto-generated wrapper for the `v3PrivatePostBrokerageOrdersPreview` implicit endpoint.

@@ -2057,7 +2057,11 @@ impl Bitteam {
         //     }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&result), market.as_ref());
+        let __ws_arg_4 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&result]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_4).as_ref(), market.as_ref());
         None
         }).await?))
     }
@@ -2091,8 +2095,8 @@ impl Bitteam {
                 m.insert("type".to_string(), Value::Str("active".into()));
             m
         });
-        let __ws_arg_4 = self.extend(Value::Map(request), &[&params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since, limit, __ws_arg_4).await);
+        let __ws_arg_5 = self.extend(Value::Map(request), &[&params]);
+        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since, limit, __ws_arg_5).await);
         Value::Null
         }).await?))
     }
@@ -2126,8 +2130,8 @@ impl Bitteam {
                 m.insert("type".to_string(), Value::Str("closed".into()));
             m
         });
-        let __ws_arg_5 = self.extend(Value::Map(request), &[&params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since, limit, __ws_arg_5).await);
+        let __ws_arg_6 = self.extend(Value::Map(request), &[&params]);
+        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since, limit, __ws_arg_6).await);
         Value::Null
         }).await?))
     }
@@ -2161,8 +2165,8 @@ impl Bitteam {
                 m.insert("type".to_string(), Value::Str("cancelled".into()));
             m
         });
-        let __ws_arg_6 = self.extend(Value::Map(request), &[&params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since, limit, __ws_arg_6).await);
+        let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
+        return crate::types::IntoRaw::into_raw(self.fetch_orders(symbol.as_str(), since, limit, __ws_arg_7).await);
         Value::Null
         }).await?))
     }
@@ -2210,8 +2214,8 @@ impl Bitteam {
                 request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
             }
         }
-        let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_post_trade_api_ccxt_ordercreate(&[&__ws_arg_7]).await.unwrap_or_default();
+        let __ws_arg_8 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_post_trade_api_ccxt_ordercreate(&[&__ws_arg_8]).await.unwrap_or_default();
         //
         //     {
         //         "ok": true,
@@ -2236,7 +2240,11 @@ impl Bitteam {
         //     }
         //
         let order: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&order), Some(&market));
+        let __ws_arg_9 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&order]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_9).as_ref(), Some(&market));
         None
         }).await?))
     }
@@ -2268,8 +2276,8 @@ impl Bitteam {
                 m.insert("id".to_string(), id);
             m
         });
-        let __ws_arg_8 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_post_trade_api_ccxt_cancelorder(&[&__ws_arg_8]).await.unwrap_or_default();
+        let __ws_arg_10 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_post_trade_api_ccxt_cancelorder(&[&__ws_arg_10]).await.unwrap_or_default();
         //
         //     {
         //         "ok": true,
@@ -2279,7 +2287,11 @@ impl Bitteam {
         //     }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&result), None);
+        let __ws_arg_11 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&result]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_11).as_ref(), None);
         None
         }).await?))
     }
@@ -2315,8 +2327,8 @@ impl Bitteam {
         }  else {
             request.insert("pairId".into(), Value::Str("0".into())); // '0' for all markets
         }
-        let __ws_arg_9 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_post_trade_api_ccxt_cancel_all_order(&[&__ws_arg_9]).await.unwrap_or_default();
+        let __ws_arg_12 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_post_trade_api_ccxt_cancel_all_order(&[&__ws_arg_12]).await.unwrap_or_default();
         //
         //     {
         //         "ok": true,
@@ -2477,8 +2489,8 @@ impl Bitteam {
                 m.insert("name".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_10 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.public_get_trade_api_pair_name(&[&__ws_arg_10]).await.unwrap_or_default();
+        let __ws_arg_13 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.public_get_trade_api_pair_name(&[&__ws_arg_13]).await.unwrap_or_default();
         //
         //     {
         //         "ok": true,
@@ -2700,8 +2712,8 @@ impl Bitteam {
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_11 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::List = self.public_get_trade_api_cmc_trades_pair(&[&__ws_arg_11]).await.unwrap_or_default();
+        let __ws_arg_14 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::List = self.public_get_trade_api_cmc_trades_pair(&[&__ws_arg_14]).await.unwrap_or_default();
         return Value::Arr(self.parse_trades(&response, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
@@ -2743,8 +2755,8 @@ impl Bitteam {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_12 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_get_trade_api_ccxt_trades_of_user(&[&__ws_arg_12]).await.unwrap_or_default();
+        let __ws_arg_15 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_get_trade_api_ccxt_trades_of_user(&[&__ws_arg_15]).await.unwrap_or_default();
         //
         //     {
         //         "ok": true,
@@ -2950,8 +2962,8 @@ impl Bitteam {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_13 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_get_trade_api_transactions_of_user(&[&__ws_arg_13]).await.unwrap_or_default();
+        let __ws_arg_16 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_get_trade_api_transactions_of_user(&[&__ws_arg_16]).await.unwrap_or_default();
         //
         //     {
         //         "ok": true,

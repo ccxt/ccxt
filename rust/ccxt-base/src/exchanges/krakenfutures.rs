@@ -3176,10 +3176,14 @@ impl Krakenfutures {
         //         }
         //     }
         //
-        let sendStatus: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "sendStatus");
+        let sendStatus: crate::value::Dict = self.safe_dict_k_t(&response, "sendStatus");
         let status: Option<String> = self.safe_string_k_opt(&sendStatus, "status", &[]);
         self.verify_order_action_success(status.as_deref(), "createOrder", &[&Value::from(vec![Value::Str("filled".into())])]);
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, sendStatus.as_ref(), Some(&market));
+        let __ws_arg_5 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&sendStatus]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_5).as_ref(), Some(&market));
         None
         }).await?))
     }
@@ -3231,8 +3235,8 @@ impl Krakenfutures {
                 m.insert("batchOrder".to_string(), Value::from(ordersRequests));
             m
         });
-        let __ws_arg_5 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_post_batchorder(&[&__ws_arg_5]).await.unwrap_or_default();
+        let __ws_arg_6 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_post_batchorder(&[&__ws_arg_6]).await.unwrap_or_default();
         //
         // {
         //     "result": "success",
@@ -3294,8 +3298,8 @@ impl Krakenfutures {
         if (price.is_some()) {
             request.insert("limitPrice".into(), Value::from(price));
         }
-        let __ws_arg_6 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_post_editorder(&[&__ws_arg_6]).await.unwrap_or_default();
+        let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_post_editorder(&[&__ws_arg_7]).await.unwrap_or_default();
         let editStatus: crate::value::Dict = self.safe_dict_k_t(&response, "editStatus");
         let status: Option<String> = self.safe_string_k_opt(&editStatus, "status", &[]);
         self.verify_order_action_success(status.as_deref(), "editOrder", &[&Value::from(vec![Value::Str("filled".into())])]);
@@ -3333,8 +3337,8 @@ impl Krakenfutures {
                 m.insert("order_id".to_string(), id);
             m
         });
-        let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_post_cancelorder(&[&__ws_arg_7]).await.unwrap_or_default();
+        let __ws_arg_8 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_post_cancelorder(&[&__ws_arg_8]).await.unwrap_or_default();
         let cancelStatus: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "cancelStatus");
         let status: Option<String> = self.safe_string_k_opt(&cancelStatus, "status", &[]);
         self.verify_order_action_success(status.as_deref(), "cancelOrder", &[]);
@@ -3414,8 +3418,8 @@ impl Krakenfutures {
                 m.insert("batchOrder".to_string(), Value::from(orders));
             m
         });
-        let __ws_arg_8 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_post_batchorder(&[&__ws_arg_8]).await.unwrap_or_default();
+        let __ws_arg_9 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_post_batchorder(&[&__ws_arg_9]).await.unwrap_or_default();
         // {
         //     "result": "success",
         //     "serverTime": "2023-10-23T16:36:51.327Z",
@@ -3475,8 +3479,8 @@ impl Krakenfutures {
         if (symbol != Value::Null) {
             request.insert("symbol".into(), self.market_id(symbol.as_str()));
         }
-        let __ws_arg_9 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_post_cancelallorders(&[&__ws_arg_9]).await.unwrap_or_default();
+        let __ws_arg_10 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_post_cancelallorders(&[&__ws_arg_10]).await.unwrap_or_default();
         //
         //    {
         //        result: 'success',
@@ -3550,8 +3554,8 @@ impl Krakenfutures {
                 m.insert("timeout".to_string(), (if (timeout.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64)) { (Value::from(self.parse_to_int((match ((timeout).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))) } else { Value::Int(0) }));
             m
         });
-        let __ws_arg_10 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_post_cancelallordersafter(&[&__ws_arg_10]).await.unwrap_or_default();
+        let __ws_arg_11 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_post_cancelallordersafter(&[&__ws_arg_11]).await.unwrap_or_default();
         return Value::Dict(response);
         Value::Null
         }).await?))
@@ -3660,8 +3664,8 @@ impl Krakenfutures {
                 m.insert("orderIds".to_string(), Value::from(vec![id.clone()]));
             m
         });
-        let __ws_arg_11 = self.extend(Value::Map(request), &[&params]);
-        let orders: Vec<crate::types::Order> = (match self.fetch_orders(None, None, None, __ws_arg_11).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let __ws_arg_12 = self.extend(Value::Map(request), &[&params]);
+        let orders: Vec<crate::types::Order> = (match self.fetch_orders(None, None, None, __ws_arg_12).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut order: Option<crate::value::Dict> = (match orders.get(0) { Some(__row) => match &__row.raw { Value::Dict(__m) => Some(std::sync::Arc::clone(__m)), _ => None }, None => None });
         if (order.is_none()) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchOrder could not find order id ").into()), id)));
@@ -3718,11 +3722,11 @@ impl Krakenfutures {
         let mut response: Option<crate::value::Dict> = None;
         let paramsOmitted: crate::value::Dict = self.omit_t(&params, &["trigger", "stop"], &[]);
         if isTrigger {
-            let __ws_arg_12 = self.extend(&request, &[&paramsOmitted]);
-            response = self.history_get_triggers(&[&__ws_arg_12]).await;
+            let __ws_arg_13 = self.extend(&request, &[&paramsOmitted]);
+            response = self.history_get_triggers(&[&__ws_arg_13]).await;
         }  else {
-            let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-            response = self.history_get_orders(&[&__ws_arg_13]).await;
+            let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
+            response = self.history_get_orders(&[&__ws_arg_14]).await;
         }
         let allOrders: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "elements"));
         let mut closedOrders: Vec<Value> = Vec::new();
@@ -3802,11 +3806,11 @@ impl Krakenfutures {
         let isTrigger: bool = self.safe_bool2_opt(&params, Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).unwrap_or(false);
         let paramsOmitted: crate::value::Dict = self.omit_t(&params, &["trigger", "stop"], &[]);
         if isTrigger {
-            let __ws_arg_14 = self.extend(&request, &[&paramsOmitted]);
-            response = self.history_get_triggers(&[&__ws_arg_14]).await;
+            let __ws_arg_15 = self.extend(&request, &[&paramsOmitted]);
+            response = self.history_get_triggers(&[&__ws_arg_15]).await;
         }  else {
-            let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-            response = self.history_get_orders(&[&__ws_arg_15]).await;
+            let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
+            response = self.history_get_orders(&[&__ws_arg_16]).await;
         }
         let allOrders: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "elements"));
         let mut canceledAndRejected: Vec<Value> = Vec::new();
@@ -4044,8 +4048,8 @@ impl Krakenfutures {
             request.insert("before".into(), Value::from(until));
         }
         let paramsOmitted: crate::value::Dict = self.omit_t(&params, if (until.is_some()) { Value::Str("until".into()) } else { Value::Null }, &[]);
-        let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.history_get_account_log(&[&__ws_arg_16]).await.unwrap_or_default();
+        let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.history_get_account_log(&[&__ws_arg_17]).await.unwrap_or_default();
         //
         //    {
         //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
@@ -4143,8 +4147,8 @@ impl Krakenfutures {
             request.insert("before".into(), Value::from(until));
         }
         let paramsOmitted: crate::value::Dict = self.omit_t(&params, if (until.is_some()) { Value::Str("until".into()) } else { Value::Null }, &[]);
-        let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.history_get_account_log(&[&__ws_arg_17]).await.unwrap_or_default();
+        let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.history_get_account_log(&[&__ws_arg_18]).await.unwrap_or_default();
         //
         //    {
         //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
@@ -4443,8 +4447,8 @@ impl Krakenfutures {
                 m.insert("symbol".to_string(), self.safe_string_upper_k(&market, "id", &[]));
             m
         });
-        let __ws_arg_18 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.public_get_historicalfundingrates(&[&__ws_arg_18]).await.unwrap_or_default();
+        let __ws_arg_19 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.public_get_historicalfundingrates(&[&__ws_arg_19]).await.unwrap_or_default();
         //
         //    {
         //        "rates": [
@@ -4604,8 +4608,8 @@ impl Krakenfutures {
             request.insert("before".into(), Value::from(until));
         }
         let paramsOmitted: crate::value::Dict = self.omit_t(&params, if (until.is_some()) { Value::Str("until".into()) } else { Value::Null }, &[]);
-        let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.history_get_positions(&[&__ws_arg_19]).await.unwrap_or_default();
+        let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.history_get_positions(&[&__ws_arg_20]).await.unwrap_or_default();
         //
         //    {
         //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
@@ -4820,14 +4824,14 @@ impl Krakenfutures {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " transfer cannot transfer from ").into()), fromAccount).into()), " to ").into()), toAccount)));
             }
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
-            let __ws_arg_20 = self.extend(&request, &[&params]);
-            response = self.private_post_withdrawal(&[&__ws_arg_20]).await;
+            let __ws_arg_21 = self.extend(&request, &[&params]);
+            response = self.private_post_withdrawal(&[&__ws_arg_21]).await;
         }  else {
             request.insert("fromAccount".into(), self.parse_kraken_account_name(fromAccount.as_str().unwrap_or_default()));
             request.insert("toAccount".into(), self.parse_kraken_account_name(toAccount.as_str().unwrap_or_default()));
             request.insert("unit".into(), crate::value::KeyRead::key_read(&&currency, "id"));
-            let __ws_arg_21 = self.extend(Value::Map(request), &[&params]);
-            response = self.private_post_transfer(&[&__ws_arg_21]).await;
+            let __ws_arg_22 = self.extend(Value::Map(request), &[&params]);
+            response = self.private_post_transfer(&[&__ws_arg_22]).await;
         }
         //
         //    {
@@ -4882,8 +4886,8 @@ impl Krakenfutures {
                 m.insert("symbol".to_string(), marketIdUpper.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_22 = self.extend(Value::Map(request), &[&params]);
-        return self.private_put_leveragepreferences(&[&__ws_arg_22]).await;
+        let __ws_arg_23 = self.extend(Value::Map(request), &[&params]);
+        return self.private_put_leveragepreferences(&[&__ws_arg_23]).await;
         Value::Null
         }).await?))
     }
@@ -4963,8 +4967,8 @@ impl Krakenfutures {
                 m.insert("symbol".to_string(), marketIdUpper.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_23 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_get_leveragepreferences(&[&__ws_arg_23]).await.unwrap_or_default();
+        let __ws_arg_24 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_get_leveragepreferences(&[&__ws_arg_24]).await.unwrap_or_default();
         //
         //     {
         //         "result": "success",

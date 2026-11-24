@@ -1144,7 +1144,7 @@ impl crate::exchange_generated::ExchangeBase for Whitebit {
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
-                "is_fiat" => self.is_fiat(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
+                "is_fiat" => crate::Value::from(self.is_fiat(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_borrow_interest" => Value::Dict(self.parse_borrow_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -4634,7 +4634,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             m
         });
         let mut response: Option<crate::value::Dict> = None;
-        if self.is_fiat(code.as_str().unwrap_or_default()).as_bool() == Some(true) {
+        if self.is_fiat(code.as_str().unwrap_or_default()) {
             let provider: Option<String> = self.safe_string_k_opt(&params, "provider", &[]);
             if (provider.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchDepositAddress() requires a provider when the ticker is fiat")));
@@ -4957,7 +4957,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (tag.is_some()) {
             request.insert("memo".into(), tag.map(Value::from).unwrap_or(Value::Null));
         }
-        if self.is_fiat(code.as_str().unwrap_or_default()).as_bool() == Some(true) {
+        if self.is_fiat(code.as_str().unwrap_or_default()) {
             let provider: Option<String> = self.safe_string_k_opt(&paramsWithdrawTag, "provider", &[]);
             if (provider.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " withdraw() requires a provider when the ticker is fiat")));
@@ -5873,11 +5873,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     }
 
 
-    pub fn is_fiat(&self, currency: &str) -> Value {
+    pub fn is_fiat(&self, currency: &str) -> bool {
         let fiatCurrencies: crate::value::List = self.safe_list_k_t(&self.options, "fiatCurrencies");
-        return Value::Bool(self.in_array(Value::from(currency), Value::Arr(fiatCurrencies)));
-
-    Value::Null
+        return self.in_array(Value::from(currency), Value::Arr(fiatCurrencies));
 }
 
 /*

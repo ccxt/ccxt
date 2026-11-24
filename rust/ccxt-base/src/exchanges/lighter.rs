@@ -756,7 +756,7 @@ impl crate::exchange_generated::ExchangeBase for Lighter {
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_order_request" => self.create_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).and_then(crate::Value::as_f64), args.get(4).and_then(crate::Value::as_f64), &args[5.min(args.len())..].iter().collect::<Vec<_>>()),
-                "create_sub_account" => self.create_sub_account(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "create_sub_account" => self.create_sub_account(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "fetch_accounts" => crate::types::IntoRaw::into_raw(self.fetch_accounts(args.get(0).cloned().unwrap_or_default()).await),
@@ -1730,7 +1730,7 @@ impl Lighter {
         return (Value::from(self.parse_to_int(accountIndex)).as_i64(), paramsAccountIndex);
 }
 
-    pub async fn create_sub_account(&mut self, mut name: Value, optional_args: &[Value]) -> Value {
+    pub async fn create_sub_account(&mut self, name: &str, optional_args: &[Value]) -> Value {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -2418,7 +2418,11 @@ if _try_result.is_err() {
             m
         });
         let response: crate::value::Dict = self.call_method_t("public_post_send_tx", &[&Value::Map(request)]).await;
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(self.deep_extend(response, &[order])).as_ref(), Some(&market));
+        let __ws_arg_11 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[self.deep_extend(response, &[order])]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_11).as_ref(), Some(&market));
         None
         }).await?))
     }
@@ -2500,8 +2504,8 @@ if _try_result.is_err() {
             signRaw.insert("integrator_taker_fee".into(), self.safe_integer_k(&self.options, "integratorTakerFee", &[]));
             signRaw.insert("integrator_maker_fee".into(), self.safe_integer_k(&self.options, "integratorMakerFee", &[]));
         }
-        let __ws_arg_11 = self.extend(Value::Map(signRaw), &[&paramsOmitted]);
-        let txTypetxInfoVariable: Vec<Value> = self.lighter_sign_modify_order(signer, __ws_arg_11).as_array().cloned().unwrap_or_default();
+        let __ws_arg_12 = self.extend(Value::Map(signRaw), &[&paramsOmitted]);
+        let txTypetxInfoVariable: Vec<Value> = self.lighter_sign_modify_order(signer, __ws_arg_12).as_array().cloned().unwrap_or_default();
         let txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
         let txInfo: Option<String> = txTypetxInfoVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let request: indexmap::IndexMap<String, Value> = ({
@@ -2869,8 +2873,8 @@ if _try_result.is_err() {
         if (limit.is_some()) {
             request.insert("limit".into(), crate::runtime::Math::min(&Value::from(limit), &Value::Int(250)));
         }
-        let __ws_arg_12 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.public_get_order_book_orders(&[&__ws_arg_12]).await.unwrap_or_default();
+        let __ws_arg_13 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.public_get_order_book_orders(&[&__ws_arg_13]).await.unwrap_or_default();
         //
         //     {
         //         "code": 200,
@@ -2936,8 +2940,8 @@ if _try_result.is_err() {
                 m.insert("market_id".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_13 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.public_get_order_book_details(&[&__ws_arg_13]).await.unwrap_or_default();
+        let __ws_arg_14 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.public_get_order_book_details(&[&__ws_arg_14]).await.unwrap_or_default();
         //
         //     {
         //         "code": 200,
@@ -3098,8 +3102,8 @@ if _try_result.is_err() {
                 m.insert("end_timestamp".to_string(), Value::from(endTs));
             m
         });
-        let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.public_get_candles(&[&__ws_arg_14]).await.unwrap_or_default();
+        let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.public_get_candles(&[&__ws_arg_15]).await.unwrap_or_default();
         //
         // {
         //     "code": 200,
@@ -3152,8 +3156,8 @@ if _try_result.is_err() {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let __ws_arg_15 = self.extend(params, &[]);
-        let response: crate::value::Dict = self.public_get_funding_rates(&[&__ws_arg_15]).await.unwrap_or_default();
+        let __ws_arg_16 = self.extend(params, &[]);
+        let response: crate::value::Dict = self.public_get_funding_rates(&[&__ws_arg_16]).await.unwrap_or_default();
         //
         //     {
         //         "code": 200,
@@ -3219,8 +3223,8 @@ if _try_result.is_err() {
                 m.insert("value".to_string(), Value::from(accountIndex));
             m
         });
-        let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsAccountIndex]);
-        let response: crate::value::Dict = self.public_get_account(&[&__ws_arg_16]).await.unwrap_or_default();
+        let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsAccountIndex]);
+        let response: crate::value::Dict = self.public_get_account(&[&__ws_arg_17]).await.unwrap_or_default();
         //
         //     {
         //         "code": "200",
@@ -3285,12 +3289,12 @@ if _try_result.is_err() {
                     let asset: crate::value::Dict = assets.get(j as usize).cloned().unwrap_or_default();
                     let codeId: Option<String> = self.safe_string_k_opt(&asset, "symbol", &[]);
                     let code: Option<String> = self.safe_currency_code(codeId.as_deref(), None);
-                    let __ws_arg_17 = Value::Dict(self.account());
-                    let __ws_arg_18 = self.safe_dict(&result, Value::from(code.as_deref()), &[Value::Map({
+                    let __ws_arg_18 = Value::Dict(self.account());
+                    let __ws_arg_19 = self.safe_dict(&result, Value::from(code.as_deref()), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]);
-                    let mut balance: crate::value::Dict = self.extend_t(__ws_arg_17, &[__ws_arg_18]);
+                    let mut balance: crate::value::Dict = self.extend_t(__ws_arg_18, &[__ws_arg_19]);
                     { let __be_tmp = crate::precise::Precise::stringAdd(&crate::value::KeyRead::key_read(&&balance, "total"), &self.safe_string_k(&asset, "balance", &[])); std::sync::Arc::make_mut(&mut balance).insert("total".into(), __be_tmp); }
                     { let __be_tmp = crate::precise::Precise::stringAdd(&crate::value::KeyRead::key_read(&&balance, "used"), &self.safe_string_k(&asset, "locked_balance", &[])); std::sync::Arc::make_mut(&mut balance).insert("used".into(), __be_tmp); }
                     if (code.is_some()) {
@@ -3299,12 +3303,12 @@ if _try_result.is_err() {
                 }
                 }
             }  else {
-                let __ws_arg_19 = Value::Dict(self.account());
-                let __ws_arg_20 = self.safe_dict_k(&result, "USDC", &[Value::Map({
+                let __ws_arg_20 = Value::Dict(self.account());
+                let __ws_arg_21 = self.safe_dict_k(&result, "USDC", &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]);
-                let mut perpBalance: crate::value::Dict = self.extend_t(__ws_arg_19, &[__ws_arg_20]);
+                let mut perpBalance: crate::value::Dict = self.extend_t(__ws_arg_20, &[__ws_arg_21]);
                 let perpTotal: String = self.safe_string_k(&perpBalance, "total", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
                 let perpFree: String = self.safe_string_k(&perpBalance, "free", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
                 let perpUSDCTotal: String = self.safe_string_k(&account, "collateral", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
@@ -3385,8 +3389,8 @@ if _try_result.is_err() {
                 m.insert("value".to_string(), Value::from(accountIndex));
             m
         });
-        let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsAccountIndex]);
-        let response: crate::value::Dict = self.public_get_account(&[&__ws_arg_21]).await.unwrap_or_default();
+        let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsAccountIndex]);
+        let response: crate::value::Dict = self.public_get_account(&[&__ws_arg_22]).await.unwrap_or_default();
         //
         //     {
         //         "code": 200,
@@ -3491,8 +3495,8 @@ if _try_result.is_err() {
                 m.insert("value".to_string(), Value::from(accountIndex));
             m
         });
-        let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsAccountIndex]);
-        let response: crate::value::Dict = self.public_get_account(&[&__ws_arg_22]).await.unwrap_or_default();
+        let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsAccountIndex]);
+        let response: crate::value::Dict = self.public_get_account(&[&__ws_arg_23]).await.unwrap_or_default();
         //
         //     {
         //         "code": "200",
@@ -3578,8 +3582,8 @@ if _try_result.is_err() {
                 m.insert("account_index".to_string(), Value::from(accountIndex));
             m
         });
-        let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsApiKeyIndex]);
-        let response: crate::value::Dict = self.private_get_account_active_orders(&[&__ws_arg_23]).await.unwrap_or_default();
+        let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsApiKeyIndex]);
+        let response: crate::value::Dict = self.private_get_account_active_orders(&[&__ws_arg_24]).await.unwrap_or_default();
         //
         //     {
         //         "code": 200,
@@ -3679,8 +3683,8 @@ if _try_result.is_err() {
         if (limit.is_some()) {
             request.insert("limit".into(), crate::runtime::Math::min(&Value::from(limit), &Value::Int(100)));
         }
-        let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsApiKeyIndex]);
-        let response: crate::value::Dict = self.private_get_account_inactive_orders(&[&__ws_arg_24]).await.unwrap_or_default();
+        let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsApiKeyIndex]);
+        let response: crate::value::Dict = self.private_get_account_inactive_orders(&[&__ws_arg_25]).await.unwrap_or_default();
         //
         //     {
         //         "code": 200,
@@ -3884,8 +3888,8 @@ if _try_result.is_err() {
                 m.insert("account_index".to_string(), Value::from(accountIndex));
             m
         });
-        let __ws_arg_25 = self.extend(Value::Map(signRaw), &[&paramsOmitted]);
-        let txTypetxInfoVariable: Vec<Value> = self.lighter_sign_transfer(signer, __ws_arg_25).as_array().cloned().unwrap_or_default();
+        let __ws_arg_26 = self.extend(Value::Map(signRaw), &[&paramsOmitted]);
+        let txTypetxInfoVariable: Vec<Value> = self.lighter_sign_transfer(signer, __ws_arg_26).as_array().cloned().unwrap_or_default();
         let txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
         let txInfo: Option<String> = txTypetxInfoVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let request: indexmap::IndexMap<String, Value> = ({
@@ -3953,8 +3957,8 @@ if _try_result.is_err() {
         if (code != Value::Null) {
             currency = Some(self.currency(code.as_str()));
         }
-        let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsApiKeyIndex]);
-        let response: crate::value::Dict = self.private_get_transfer_history(&[&__ws_arg_26]).await.unwrap_or_default();
+        let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsApiKeyIndex]);
+        let response: crate::value::Dict = self.private_get_transfer_history(&[&__ws_arg_27]).await.unwrap_or_default();
         //
         //     {
         //         "code": 200,
@@ -4052,8 +4056,8 @@ if _try_result.is_err() {
             currency = Some(self.currency(code.as_str()));
             request.insert("coin".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
-        let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsApiKeyIndex]);
-        let response: crate::value::Dict = self.call_method_t("private_get_deposit_history", &[&__ws_arg_27]).await;
+        let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsApiKeyIndex]);
+        let response: crate::value::Dict = self.call_method_t("private_get_deposit_history", &[&__ws_arg_28]).await;
         //
         //     {
         //         "code": 200,
@@ -4135,8 +4139,8 @@ if _try_result.is_err() {
             currency = Some(self.currency(code.as_str()));
             request.insert("coin".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
-        let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsApiKeyIndex]);
-        let response: crate::value::Dict = self.private_get_withdraw_history(&[&__ws_arg_28]).await.unwrap_or_default();
+        let __ws_arg_29 = self.extend(Value::Map(request), &[&paramsApiKeyIndex]);
+        let response: crate::value::Dict = self.private_get_withdraw_history(&[&__ws_arg_29]).await.unwrap_or_default();
         //
         //     {
         //         "code": "200",
@@ -4237,8 +4241,8 @@ if _try_result.is_err() {
                 m.insert("account_index".to_string(), Value::from(accountIndex));
             m
         });
-        let __ws_arg_29 = self.extend(Value::Map(signRaw), &[&paramsOmitted]);
-        let txTypetxInfoVariable: Vec<Value> = self.lighter_sign_withdraw(signer, __ws_arg_29).as_array().cloned().unwrap_or_default();
+        let __ws_arg_30 = self.extend(Value::Map(signRaw), &[&paramsOmitted]);
+        let txTypetxInfoVariable: Vec<Value> = self.lighter_sign_withdraw(signer, __ws_arg_30).as_array().cloned().unwrap_or_default();
         let txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
         let txInfo: Option<String> = txTypetxInfoVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let request: indexmap::IndexMap<String, Value> = ({
@@ -4287,8 +4291,8 @@ if _try_result.is_err() {
         if (limit.is_some()) {
             request.insert("limit".into(), crate::runtime::Math::min(&Value::from(limit), &Value::Int(100)));
         }
-        let __ws_arg_30 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.public_get_recent_trades(&[&__ws_arg_30]).await.unwrap_or_default();
+        let __ws_arg_31 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.public_get_recent_trades(&[&__ws_arg_31]).await.unwrap_or_default();
         //
         //     {
         //         "code": 200,
@@ -4382,8 +4386,8 @@ if _try_result.is_err() {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("market_id".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
-        let __ws_arg_31 = self.extend(Value::Map(request), &[&paramsUntil]);
-        let response: crate::value::Dict = self.call_method_t("private_get_trades", &[&__ws_arg_31]).await;
+        let __ws_arg_32 = self.extend(Value::Map(request), &[&paramsUntil]);
+        let response: crate::value::Dict = self.call_method_t("private_get_trades", &[&__ws_arg_32]).await;
         //
         //     {
         //         "code": 200,
@@ -4546,8 +4550,8 @@ if _try_result.is_err() {
                 m.insert("account_index".to_string(), Value::from(accountIndex));
             m
         });
-        let __ws_arg_32 = self.extend(Value::Map(signRaw), &[&paramsAccountIndex]);
-        let txTypetxInfoVariable: Vec<Value> = self.lighter_sign_update_leverage(signer, __ws_arg_32).as_array().cloned().unwrap_or_default();
+        let __ws_arg_33 = self.extend(Value::Map(signRaw), &[&paramsAccountIndex]);
+        let txTypetxInfoVariable: Vec<Value> = self.lighter_sign_update_leverage(signer, __ws_arg_33).as_array().cloned().unwrap_or_default();
         let txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
         let txInfo: Option<String> = txTypetxInfoVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let request: indexmap::IndexMap<String, Value> = ({
@@ -4600,8 +4604,8 @@ if _try_result.is_err() {
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(method)).into()), " requires order id or client order id")));
         }
-        let __ws_arg_33 = self.extend(Value::Map(signRaw), &[&paramsOmitted]);
-        let txTypetxInfoVariable: Vec<Value> = self.lighter_sign_cancel_order(signer, __ws_arg_33).as_array().cloned().unwrap_or_default();
+        let __ws_arg_34 = self.extend(Value::Map(signRaw), &[&paramsOmitted]);
+        let txTypetxInfoVariable: Vec<Value> = self.lighter_sign_cancel_order(signer, __ws_arg_34).as_array().cloned().unwrap_or_default();
         let txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
         let txInfo: Option<String> = txTypetxInfoVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         return Value::from(vec![Value::from(txType), txInfo.map(Value::from).unwrap_or(Value::Null)]);
@@ -4676,8 +4680,8 @@ if _try_result.is_err() {
             let mut market: crate::types::Market = (match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             signRaw.insert("cancel_all_market_index".into(), Value::from(self.parse_to_int(Value::from((market).id.as_deref()))));
         }
-        let __ws_arg_34 = self.extend(Value::Map(signRaw), &[&paramsAccountIndex]);
-        let txTypetxInfoVariable: Vec<Value> = self.lighter_sign_cancel_all_orders(signer, __ws_arg_34).as_array().cloned().unwrap_or_default();
+        let __ws_arg_35 = self.extend(Value::Map(signRaw), &[&paramsAccountIndex]);
+        let txTypetxInfoVariable: Vec<Value> = self.lighter_sign_cancel_all_orders(signer, __ws_arg_35).as_array().cloned().unwrap_or_default();
         let txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
         let txInfo: Option<String> = txTypetxInfoVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         return Value::from(vec![Value::from(txType), txInfo.map(Value::from).unwrap_or(Value::Null)]);
@@ -4772,8 +4776,8 @@ if _try_result.is_err() {
                 m.insert("account_index".to_string(), Value::from(accountIndex));
             m
         });
-        let __ws_arg_35 = self.extend(Value::Map(signRaw), &[&paramsAccountIndex]);
-        let txTypetxInfoVariable: Vec<Value> = self.lighter_sign_cancel_all_orders(signer, __ws_arg_35).as_array().cloned().unwrap_or_default();
+        let __ws_arg_36 = self.extend(Value::Map(signRaw), &[&paramsAccountIndex]);
+        let txTypetxInfoVariable: Vec<Value> = self.lighter_sign_cancel_all_orders(signer, __ws_arg_36).as_array().cloned().unwrap_or_default();
         let txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
         let txInfo: Option<String> = txTypetxInfoVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let request: indexmap::IndexMap<String, Value> = ({
@@ -4811,8 +4815,8 @@ if _try_result.is_err() {
                 m.insert("direction".to_string(), Value::Int(1));
             m
         });
-        let __ws_arg_36 = self.extend(Value::Map(request), &[&params]);
-        return crate::types::IntoRaw::into_raw(self.set_margin(symbol.as_str().unwrap_or_default(), amount, __ws_arg_36).await);
+        let __ws_arg_37 = self.extend(Value::Map(request), &[&params]);
+        return crate::types::IntoRaw::into_raw(self.set_margin(symbol.as_str().unwrap_or_default(), amount, __ws_arg_37).await);
         Value::Null
         }).await?))
     }
@@ -4840,8 +4844,8 @@ if _try_result.is_err() {
                 m.insert("direction".to_string(), Value::Int(0));
             m
         });
-        let __ws_arg_37 = self.extend(Value::Map(request), &[&params]);
-        return crate::types::IntoRaw::into_raw(self.set_margin(symbol.as_str().unwrap_or_default(), amount, __ws_arg_37).await);
+        let __ws_arg_38 = self.extend(Value::Map(request), &[&params]);
+        return crate::types::IntoRaw::into_raw(self.set_margin(symbol.as_str().unwrap_or_default(), amount, __ws_arg_38).await);
         Value::Null
         }).await?))
     }
@@ -4903,8 +4907,8 @@ if _try_result.is_err() {
                 m.insert("account_index".to_string(), Value::from(accountIndex));
             m
         });
-        let __ws_arg_38 = self.extend(Value::Map(signRaw), &[&paramsAccountIndex]);
-        let txTypetxInfoVariable: Vec<Value> = self.lighter_sign_update_margin(signer, __ws_arg_38).as_array().cloned().unwrap_or_default();
+        let __ws_arg_39 = self.extend(Value::Map(signRaw), &[&paramsAccountIndex]);
+        let txTypetxInfoVariable: Vec<Value> = self.lighter_sign_update_margin(signer, __ws_arg_39).as_array().cloned().unwrap_or_default();
         let txType: Option<i64> = txTypetxInfoVariable.get(0).and_then(Value::as_i64);
         let txInfo: Option<String> = txTypetxInfoVariable.get(1).and_then(Value::as_str).map(str::to_owned);
         let request: indexmap::IndexMap<String, Value> = ({

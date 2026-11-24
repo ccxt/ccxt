@@ -94,7 +94,7 @@ impl crate::exchange::DerivedExchange for Alpaca {
 
     None
 }
-    fn parse_my_trade(&self, trade: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_my_trade(&self, trade: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Value {
         let trade: Value = trade.into();
         //
         //    {
@@ -856,7 +856,7 @@ impl Alpaca {
             let limit: i64 = self.safe_integer_k(&self.options, "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
-        let trade: Value = <Self as crate::exchange::DerivedExchange>::parse_my_trade(self, &rawOrder, None);
+        let trade: Value = <Self as crate::exchange::DerivedExchange>::parse_my_trade(self, Some(&rawOrder), None);
         if (trade == Value::Null) {
             return;
         }

@@ -889,7 +889,7 @@ impl crate::exchange_generated::ExchangeBase for Bitstamp {
                 "get_market_from_trade" => crate::types::IntoRaw::into_raw(self.get_market_from_trade(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
-                "is_fiat" => self.is_fiat(args.get(0).and_then(crate::Value::as_text).as_deref()),
+                "is_fiat" => crate::Value::from(self.is_fiat(args.get(0).and_then(crate::Value::as_text).as_deref())),
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currencies" => self.parse_currencies(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -2844,7 +2844,7 @@ impl Bitstamp {
         let fees: crate::value::Dict = self.safe_dict_k_t(&description, "fees");
         let fundingFees: crate::value::Dict = self.safe_dict_k_t(&fees, "funding");
         let withdrawFee: Option<f64> = self.safe_number_k(&fundingFees, "withdraw", &[]).as_f64();
-        if self.is_fiat(code).as_bool() == Some(true) {
+        if self.is_fiat(code) {
             currencyType = "fiat".to_string();
         }
         let tickSize: Option<f64> = self.parse_number(self.parse_precision(&[Value::from(self.number_to_string(Value::from(precision)))]), &[]).as_f64();
@@ -4310,10 +4310,8 @@ impl Bitstamp {
         return (if let Some(__s) = Some(code) { Value::Str(__s.to_lowercase().into()) } else { Value::Null }).as_str().map(str::to_owned);
 }
 
-    pub fn is_fiat(&self, code: Option<&str>) -> Value {
-        return Value::Bool((code == Some("USD")) || (code == Some("EUR")) || (code == Some("GBP")));
-
-    Value::Null
+    pub fn is_fiat(&self, code: Option<&str>) -> bool {
+        return (((code == Some("USD")) || (code == Some("EUR"))) || (code == Some("GBP")));
 }
 
 /*
@@ -4336,7 +4334,7 @@ impl Bitstamp {
     let m = indexmap::IndexMap::new();
     m
 }));
-        if self.is_fiat(code.as_str()).as_bool() == Some(true) {
+        if self.is_fiat(code.as_str()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fiat fetchDepositAddress() for ").into()), code).into()), " is not supported!")));
         }
         // the per-currency implicit methods (privatePostBtcAddress etc.) all route
@@ -4400,7 +4398,7 @@ impl Bitstamp {
         });
         let mut currency: Option<crate::types::Currency> = None;
         let mut response: Value = Value::Null;
-        if !(self.is_fiat(code.as_str()).as_bool() == Some(true)) {
+        if !self.is_fiat(code.as_str()) {
             if (code.as_str() == Some("XRP")) {
                 if (tagWithdrawTag.is_some()) {
                     request.insert("destination_tag".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));

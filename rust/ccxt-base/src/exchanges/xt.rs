@@ -1295,8 +1295,8 @@ impl crate::exchange::DerivedExchange for Xt {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " sign() has no API URL for this endpoint")));
         }
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), payload.as_deref().unwrap_or("null"));
-        let __ws_arg_111 = self.omit(params, self.extract_params(Value::from(path)), &[]);
-        let mut query: crate::value::Dict = self.extend_t(__ws_arg_111, &[]);
+        let __ws_arg_112 = self.omit(params, self.extract_params(Value::from(path)), &[]);
+        let mut query: crate::value::Dict = self.extend_t(__ws_arg_112, &[]);
         let urlencoded: String = self.urlencode(self.keysort(Value::from(&query), &[]), &[]);
         let mut headersValue: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1452,7 +1452,7 @@ impl crate::exchange_generated::ExchangeBase for Xt {
                 "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_trading_fee" => Value::Dict(self.parse_trading_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_trading_fee" => Value::Dict(self.parse_trading_fee(&match args.get(0) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_transaction" => Value::Dict(self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_transfer" => Value::Dict(self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "reduce_margin" => crate::types::IntoRaw::into_raw(self.reduce_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
@@ -4939,7 +4939,11 @@ impl Xt {
                 response = self.private_inverse_post_future_trade_v1_order_create(&[&__ws_arg_29]).await;
             }
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, response.as_ref(), Some(&market)).map_or(Value::Null, Value::Dict);
+        let __ws_arg_30 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&response]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_30).as_ref(), Some(&market)).map_or(Value::Null, Value::Dict);
 
     Value::Null
 }
@@ -5012,39 +5016,39 @@ impl Xt {
         if (trigger == Some(true)) {
             let paramsOmitted3: crate::value::Dict = self.omit_t(&paramsSubType, &["trigger", "stop"], &[]);
             if (subType.as_deref() == Some("inverse")) {
-                let __ws_arg_30 = self.extend(&request, &[&paramsOmitted3]);
-                response = self.private_inverse_get_future_trade_v1_entrust_plan_detail(&[&__ws_arg_30]).await;
-            }  else {
                 let __ws_arg_31 = self.extend(&request, &[&paramsOmitted3]);
-                response = self.private_linear_get_future_trade_v1_entrust_plan_detail(&[&__ws_arg_31]).await;
+                response = self.private_inverse_get_future_trade_v1_entrust_plan_detail(&[&__ws_arg_31]).await;
+            }  else {
+                let __ws_arg_32 = self.extend(&request, &[&paramsOmitted3]);
+                response = self.private_linear_get_future_trade_v1_entrust_plan_detail(&[&__ws_arg_32]).await;
             }
         }  else if stopLossTakeProfit {
             let paramsOmitted2: crate::value::Dict = self.omit_t(&paramsSubType, Value::Str("stopLossTakeProfit".into()), &[]);
             if (subType.as_deref() == Some("inverse")) {
-                let __ws_arg_32 = self.extend(&request, &[&paramsOmitted2]);
-                response = self.private_inverse_get_future_trade_v1_entrust_profit_detail(&[&__ws_arg_32]).await;
-            }  else {
                 let __ws_arg_33 = self.extend(&request, &[&paramsOmitted2]);
-                response = self.private_linear_get_future_trade_v1_entrust_profit_detail(&[&__ws_arg_33]).await;
+                response = self.private_inverse_get_future_trade_v1_entrust_profit_detail(&[&__ws_arg_33]).await;
+            }  else {
+                let __ws_arg_34 = self.extend(&request, &[&paramsOmitted2]);
+                response = self.private_linear_get_future_trade_v1_entrust_profit_detail(&[&__ws_arg_34]).await;
             }
         }  else if trailing {
             let paramsOmitted: crate::value::Dict = self.omit_t(&paramsSubType, Value::Str("trailing".into()), &[]);
             if (subType.as_deref() == Some("inverse")) {
-                let __ws_arg_34 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_inverse_get_future_trade_v1_entrust_track_detail(&[&__ws_arg_34]).await;
-            }  else {
                 let __ws_arg_35 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_linear_get_future_trade_v1_entrust_track_detail(&[&__ws_arg_35]).await;
+                response = self.private_inverse_get_future_trade_v1_entrust_track_detail(&[&__ws_arg_35]).await;
+            }  else {
+                let __ws_arg_36 = self.extend(&request, &[&paramsOmitted]);
+                response = self.private_linear_get_future_trade_v1_entrust_track_detail(&[&__ws_arg_36]).await;
             }
         }  else if (subType.as_deref() == Some("inverse")) {
-            let __ws_arg_36 = self.extend(&request, &[&paramsSubType]);
-            response = self.private_inverse_get_future_trade_v1_order_detail(&[&__ws_arg_36]).await;
-        }  else if (subType.as_deref() == Some("linear")) || (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future")) {
             let __ws_arg_37 = self.extend(&request, &[&paramsSubType]);
-            response = self.private_linear_get_future_trade_v1_order_detail(&[&__ws_arg_37]).await;
+            response = self.private_inverse_get_future_trade_v1_order_detail(&[&__ws_arg_37]).await;
+        }  else if (subType.as_deref() == Some("linear")) || (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future")) {
+            let __ws_arg_38 = self.extend(&request, &[&paramsSubType]);
+            response = self.private_linear_get_future_trade_v1_order_detail(&[&__ws_arg_38]).await;
         }  else {
-            let __ws_arg_38 = self.extend(Value::Map(request), &[&paramsSubType]);
-            response = self.private_spot_get_order_order_id(&[&__ws_arg_38]).await;
+            let __ws_arg_39 = self.extend(Value::Map(request), &[&paramsSubType]);
+            response = self.private_spot_get_order_order_id(&[&__ws_arg_39]).await;
         }
         //
         // spot
@@ -5234,27 +5238,27 @@ impl Xt {
         if (trigger == Some(true)) {
             let paramsOmitted2: crate::value::Dict = self.omit_t(&paramsSubType, &["trigger", "stop"], &[]);
             if (subType.as_deref() == Some("inverse")) {
-                let __ws_arg_39 = self.extend(&request, &[&paramsOmitted2]);
-                response = self.private_inverse_get_future_trade_v1_entrust_plan_list_history(&[&__ws_arg_39]).await;
-            }  else {
                 let __ws_arg_40 = self.extend(&request, &[&paramsOmitted2]);
-                response = self.private_linear_get_future_trade_v1_entrust_plan_list_history(&[&__ws_arg_40]).await;
+                response = self.private_inverse_get_future_trade_v1_entrust_plan_list_history(&[&__ws_arg_40]).await;
+            }  else {
+                let __ws_arg_41 = self.extend(&request, &[&paramsOmitted2]);
+                response = self.private_linear_get_future_trade_v1_entrust_plan_list_history(&[&__ws_arg_41]).await;
             }
         }  else if trailing {
             let paramsOmitted: crate::value::Dict = self.omit_t(&paramsSubType, Value::Str("trailing".into()), &[]);
             if (subType.as_deref() == Some("inverse")) {
-                let __ws_arg_41 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_inverse_get_future_trade_v1_entrust_track_list_history(&[&__ws_arg_41]).await;
-            }  else {
                 let __ws_arg_42 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_linear_get_future_trade_v1_entrust_track_list_history(&[&__ws_arg_42]).await;
+                response = self.private_inverse_get_future_trade_v1_entrust_track_list_history(&[&__ws_arg_42]).await;
+            }  else {
+                let __ws_arg_43 = self.extend(&request, &[&paramsOmitted]);
+                response = self.private_linear_get_future_trade_v1_entrust_track_list_history(&[&__ws_arg_43]).await;
             }
         }  else if (subType.as_deref() == Some("inverse")) {
-            let __ws_arg_43 = self.extend(&request, &[&paramsSubType]);
-            response = self.private_inverse_get_future_trade_v1_order_list_history(&[&__ws_arg_43]).await;
-        }  else if (subType.as_deref() == Some("linear")) || (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future")) {
             let __ws_arg_44 = self.extend(&request, &[&paramsSubType]);
-            response = self.private_linear_get_future_trade_v1_order_list_history(&[&__ws_arg_44]).await;
+            response = self.private_inverse_get_future_trade_v1_order_list_history(&[&__ws_arg_44]).await;
+        }  else if (subType.as_deref() == Some("linear")) || (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future")) {
+            let __ws_arg_45 = self.extend(&request, &[&paramsSubType]);
+            response = self.private_linear_get_future_trade_v1_order_list_history(&[&__ws_arg_45]).await;
         }  else {
             let marginModeparamsMarginModeVariable = self.handle_margin_mode_and_params(Value::Str("fetchOrders".into()), &[&Value::from(&paramsSubType)]);
             let marginMode: Option<String> = marginModeparamsMarginModeVariable.0.as_str().map(str::to_owned);
@@ -5264,8 +5268,8 @@ impl Xt {
                 marginOrSpotRequest = "LEVER".to_string();
             }
             request.insert("bizType".into(), Value::from(marginOrSpotRequest));
-            let __ws_arg_45 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-            response = self.private_spot_get_history_order(&[&__ws_arg_45]).await;
+            let __ws_arg_46 = self.extend(Value::Map(request), &[&paramsMarginMode]);
+            response = self.private_spot_get_history_order(&[&__ws_arg_46]).await;
         }
         //
         //  spot and margin
@@ -5458,47 +5462,47 @@ impl Xt {
         if (trigger == Some(true)) {
             let paramsOmitted3: crate::value::Dict = self.omit_t(&paramsSubType, &["stop", "trigger"], &[]);
             if (subType.as_deref() == Some("inverse")) {
-                let __ws_arg_46 = self.extend(&request, &[&paramsOmitted3]);
-                response = self.private_inverse_get_future_trade_v1_entrust_plan_list(&[&__ws_arg_46]).await;
-            }  else {
                 let __ws_arg_47 = self.extend(&request, &[&paramsOmitted3]);
-                response = self.private_linear_get_future_trade_v1_entrust_plan_list(&[&__ws_arg_47]).await;
+                response = self.private_inverse_get_future_trade_v1_entrust_plan_list(&[&__ws_arg_47]).await;
+            }  else {
+                let __ws_arg_48 = self.extend(&request, &[&paramsOmitted3]);
+                response = self.private_linear_get_future_trade_v1_entrust_plan_list(&[&__ws_arg_48]).await;
             }
         }  else if stopLossTakeProfit {
             let paramsOmitted2: crate::value::Dict = self.omit_t(&paramsSubType, Value::Str("stopLossTakeProfit".into()), &[]);
             if (subType.as_deref() == Some("inverse")) {
-                let __ws_arg_48 = self.extend(&request, &[&paramsOmitted2]);
-                response = self.private_inverse_get_future_trade_v1_entrust_profit_list(&[&__ws_arg_48]).await;
-            }  else {
                 let __ws_arg_49 = self.extend(&request, &[&paramsOmitted2]);
-                response = self.private_linear_get_future_trade_v1_entrust_profit_list(&[&__ws_arg_49]).await;
+                response = self.private_inverse_get_future_trade_v1_entrust_profit_list(&[&__ws_arg_49]).await;
+            }  else {
+                let __ws_arg_50 = self.extend(&request, &[&paramsOmitted2]);
+                response = self.private_linear_get_future_trade_v1_entrust_profit_list(&[&__ws_arg_50]).await;
             }
         }  else if trailing {
             let paramsOmitted: crate::value::Dict = self.omit_t(&paramsSubType, Value::Str("trailing".into()), &[]);
             if (status == "open") {
                 if (subType.as_deref() == Some("inverse")) {
-                    let __ws_arg_50 = self.extend(&request, &[&paramsOmitted]);
-                    response = self.private_inverse_get_future_trade_v1_entrust_track_list(&[&__ws_arg_50]).await;
-                }  else {
                     let __ws_arg_51 = self.extend(&request, &[&paramsOmitted]);
-                    response = self.private_linear_get_future_trade_v1_entrust_track_list(&[&__ws_arg_51]).await;
+                    response = self.private_inverse_get_future_trade_v1_entrust_track_list(&[&__ws_arg_51]).await;
+                }  else {
+                    let __ws_arg_52 = self.extend(&request, &[&paramsOmitted]);
+                    response = self.private_linear_get_future_trade_v1_entrust_track_list(&[&__ws_arg_52]).await;
                 }
             }  else {
                 if (subType.as_deref() == Some("inverse")) {
-                    let __ws_arg_52 = self.extend(&request, &[&paramsOmitted]);
-                    response = self.private_inverse_get_future_trade_v1_entrust_track_list_history(&[&__ws_arg_52]).await;
-                }  else {
                     let __ws_arg_53 = self.extend(&request, &[&paramsOmitted]);
-                    response = self.private_linear_get_future_trade_v1_entrust_track_list_history(&[&__ws_arg_53]).await;
+                    response = self.private_inverse_get_future_trade_v1_entrust_track_list_history(&[&__ws_arg_53]).await;
+                }  else {
+                    let __ws_arg_54 = self.extend(&request, &[&paramsOmitted]);
+                    response = self.private_linear_get_future_trade_v1_entrust_track_list_history(&[&__ws_arg_54]).await;
                 }
             }
         }  else if (subType.is_some()) || (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future")) {
             if (subType.as_deref() == Some("inverse")) {
-                let __ws_arg_54 = self.extend(&request, &[&paramsSubType]);
-                response = self.private_inverse_get_future_trade_v1_order_list(&[&__ws_arg_54]).await;
-            }  else {
                 let __ws_arg_55 = self.extend(&request, &[&paramsSubType]);
-                response = self.private_linear_get_future_trade_v1_order_list(&[&__ws_arg_55]).await;
+                response = self.private_inverse_get_future_trade_v1_order_list(&[&__ws_arg_55]).await;
+            }  else {
+                let __ws_arg_56 = self.extend(&request, &[&paramsSubType]);
+                response = self.private_linear_get_future_trade_v1_order_list(&[&__ws_arg_56]).await;
             }
         }  else {
             let marginModeparamsMarginModeVariable = self.handle_margin_mode_and_params(Value::Str("fetchOrdersByStatus".into()), &[&Value::from(&paramsSubType)]);
@@ -5517,11 +5521,11 @@ impl Xt {
                     request = self.omit(Value::Map(std::mem::take(&mut request)), Value::Str("size".into()), &[]).as_map().cloned().unwrap_or_default();
                     request.insert("limit".into(), Value::from(limit));
                 }
-                let __ws_arg_56 = self.extend(&request, &[&paramsMarginMode]);
-                response = self.private_spot_get_history_order(&[&__ws_arg_56]).await;
+                let __ws_arg_57 = self.extend(&request, &[&paramsMarginMode]);
+                response = self.private_spot_get_history_order(&[&__ws_arg_57]).await;
             }  else {
-                let __ws_arg_57 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-                response = self.private_spot_get_open_order(&[&__ws_arg_57]).await;
+                let __ws_arg_58 = self.extend(Value::Map(request), &[&paramsMarginMode]);
+                response = self.private_spot_get_open_order(&[&__ws_arg_58]).await;
             }
         }
         //
@@ -5887,39 +5891,39 @@ impl Xt {
         if (trigger == Some(true)) {
             let paramsOmitted3: crate::value::Dict = self.omit_t(&paramsSubType, &["trigger", "stop"], &[]);
             if (subType.as_deref() == Some("inverse")) {
-                let __ws_arg_58 = self.extend(&request, &[&paramsOmitted3]);
-                response = self.private_inverse_post_future_trade_v1_entrust_cancel_plan(&[&__ws_arg_58]).await;
-            }  else {
                 let __ws_arg_59 = self.extend(&request, &[&paramsOmitted3]);
-                response = self.private_linear_post_future_trade_v1_entrust_cancel_plan(&[&__ws_arg_59]).await;
+                response = self.private_inverse_post_future_trade_v1_entrust_cancel_plan(&[&__ws_arg_59]).await;
+            }  else {
+                let __ws_arg_60 = self.extend(&request, &[&paramsOmitted3]);
+                response = self.private_linear_post_future_trade_v1_entrust_cancel_plan(&[&__ws_arg_60]).await;
             }
         }  else if stopLossTakeProfit {
             let paramsOmitted2: crate::value::Dict = self.omit_t(&paramsSubType, Value::Str("stopLossTakeProfit".into()), &[]);
             if (subType.as_deref() == Some("inverse")) {
-                let __ws_arg_60 = self.extend(&request, &[&paramsOmitted2]);
-                response = self.private_inverse_post_future_trade_v1_entrust_cancel_profit_stop(&[&__ws_arg_60]).await;
-            }  else {
                 let __ws_arg_61 = self.extend(&request, &[&paramsOmitted2]);
-                response = self.private_linear_post_future_trade_v1_entrust_cancel_profit_stop(&[&__ws_arg_61]).await;
+                response = self.private_inverse_post_future_trade_v1_entrust_cancel_profit_stop(&[&__ws_arg_61]).await;
+            }  else {
+                let __ws_arg_62 = self.extend(&request, &[&paramsOmitted2]);
+                response = self.private_linear_post_future_trade_v1_entrust_cancel_profit_stop(&[&__ws_arg_62]).await;
             }
         }  else if trailing {
             let paramsOmitted: crate::value::Dict = self.omit_t(&paramsSubType, Value::Str("trailing".into()), &[]);
             if (subType.as_deref() == Some("inverse")) {
-                let __ws_arg_62 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_inverse_post_future_trade_v1_entrust_cancel_track(&[&__ws_arg_62]).await;
-            }  else {
                 let __ws_arg_63 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_linear_post_future_trade_v1_entrust_cancel_track(&[&__ws_arg_63]).await;
+                response = self.private_inverse_post_future_trade_v1_entrust_cancel_track(&[&__ws_arg_63]).await;
+            }  else {
+                let __ws_arg_64 = self.extend(&request, &[&paramsOmitted]);
+                response = self.private_linear_post_future_trade_v1_entrust_cancel_track(&[&__ws_arg_64]).await;
             }
         }  else if (subType.as_deref() == Some("inverse")) {
-            let __ws_arg_64 = self.extend(&request, &[&paramsSubType]);
-            response = self.private_inverse_post_future_trade_v1_order_cancel(&[&__ws_arg_64]).await;
-        }  else if (subType.as_deref() == Some("linear")) || (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future")) {
             let __ws_arg_65 = self.extend(&request, &[&paramsSubType]);
-            response = self.private_linear_post_future_trade_v1_order_cancel(&[&__ws_arg_65]).await;
+            response = self.private_inverse_post_future_trade_v1_order_cancel(&[&__ws_arg_65]).await;
+        }  else if (subType.as_deref() == Some("linear")) || (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future")) {
+            let __ws_arg_66 = self.extend(&request, &[&paramsSubType]);
+            response = self.private_linear_post_future_trade_v1_order_cancel(&[&__ws_arg_66]).await;
         }  else {
-            let __ws_arg_66 = self.extend(Value::Map(request), &[&paramsSubType]);
-            response = self.private_spot_delete_order_order_id(&[&__ws_arg_66]).await;
+            let __ws_arg_67 = self.extend(Value::Map(request), &[&paramsSubType]);
+            response = self.private_spot_delete_order_order_id(&[&__ws_arg_67]).await;
         }
         //
         // spot
@@ -6012,36 +6016,36 @@ impl Xt {
         if (trigger == Some(true)) {
             let paramsOmitted3: crate::value::Dict = self.omit_t(&paramsSubType, &["trigger", "stop"], &[]);
             if (subType.as_deref() == Some("inverse")) {
-                let __ws_arg_67 = self.extend(&request, &[&paramsOmitted3]);
-                response = self.private_inverse_post_future_trade_v1_entrust_cancel_all_plan(&[&__ws_arg_67]).await;
-            }  else {
                 let __ws_arg_68 = self.extend(&request, &[&paramsOmitted3]);
-                response = self.private_linear_post_future_trade_v1_entrust_cancel_all_plan(&[&__ws_arg_68]).await;
+                response = self.private_inverse_post_future_trade_v1_entrust_cancel_all_plan(&[&__ws_arg_68]).await;
+            }  else {
+                let __ws_arg_69 = self.extend(&request, &[&paramsOmitted3]);
+                response = self.private_linear_post_future_trade_v1_entrust_cancel_all_plan(&[&__ws_arg_69]).await;
             }
         }  else if stopLossTakeProfit {
             let paramsOmitted2: crate::value::Dict = self.omit_t(&paramsSubType, Value::Str("stopLossTakeProfit".into()), &[]);
             if (subType.as_deref() == Some("inverse")) {
-                let __ws_arg_69 = self.extend(&request, &[&paramsOmitted2]);
-                response = self.private_inverse_post_future_trade_v1_entrust_cancel_all_profit_stop(&[&__ws_arg_69]).await;
-            }  else {
                 let __ws_arg_70 = self.extend(&request, &[&paramsOmitted2]);
-                response = self.private_linear_post_future_trade_v1_entrust_cancel_all_profit_stop(&[&__ws_arg_70]).await;
+                response = self.private_inverse_post_future_trade_v1_entrust_cancel_all_profit_stop(&[&__ws_arg_70]).await;
+            }  else {
+                let __ws_arg_71 = self.extend(&request, &[&paramsOmitted2]);
+                response = self.private_linear_post_future_trade_v1_entrust_cancel_all_profit_stop(&[&__ws_arg_71]).await;
             }
         }  else if trailing {
             let paramsOmitted: crate::value::Dict = self.omit_t(&paramsSubType, Value::Str("trailing".into()), &[]);
             if (subType.as_deref() == Some("inverse")) {
-                let __ws_arg_71 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_inverse_post_future_trade_v1_entrust_cancel_all_track(&[&__ws_arg_71]).await;
-            }  else {
                 let __ws_arg_72 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_linear_post_future_trade_v1_entrust_cancel_all_track(&[&__ws_arg_72]).await;
+                response = self.private_inverse_post_future_trade_v1_entrust_cancel_all_track(&[&__ws_arg_72]).await;
+            }  else {
+                let __ws_arg_73 = self.extend(&request, &[&paramsOmitted]);
+                response = self.private_linear_post_future_trade_v1_entrust_cancel_all_track(&[&__ws_arg_73]).await;
             }
         }  else if (subType.as_deref() == Some("inverse")) {
-            let __ws_arg_73 = self.extend(&request, &[&paramsSubType]);
-            response = self.private_inverse_post_future_trade_v1_order_cancel_all(&[&__ws_arg_73]).await;
-        }  else if (subType.as_deref() == Some("linear")) || (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future")) {
             let __ws_arg_74 = self.extend(&request, &[&paramsSubType]);
-            response = self.private_linear_post_future_trade_v1_order_cancel_all(&[&__ws_arg_74]).await;
+            response = self.private_inverse_post_future_trade_v1_order_cancel_all(&[&__ws_arg_74]).await;
+        }  else if (subType.as_deref() == Some("linear")) || (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future")) {
+            let __ws_arg_75 = self.extend(&request, &[&paramsSubType]);
+            response = self.private_linear_post_future_trade_v1_order_cancel_all(&[&__ws_arg_75]).await;
         }  else {
             let marginModeparamsMarginModeVariable = self.handle_margin_mode_and_params(Value::Str("cancelAllOrders".into()), &[&Value::from(&paramsSubType)]);
             let marginMode: Option<String> = marginModeparamsMarginModeVariable.0.as_str().map(str::to_owned);
@@ -6051,8 +6055,8 @@ impl Xt {
                 marginOrSpotRequest = "LEVER".to_string();
             }
             request.insert("bizType".into(), Value::from(marginOrSpotRequest));
-            let __ws_arg_75 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-            response = self.private_spot_delete_open_order(&[&__ws_arg_75]).await;
+            let __ws_arg_76 = self.extend(Value::Map(request), &[&paramsMarginMode]);
+            response = self.private_spot_delete_open_order(&[&__ws_arg_76]).await;
         }
         return Value::from(vec![Value::Dict(self.safe_order(response, None))]);
         Value::Null
@@ -6099,8 +6103,8 @@ impl Xt {
         if (subType.is_some()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " cancelOrders() does not support swap and future orders, only spot orders are accepted")));
         }
-        let __ws_arg_76 = self.extend(Value::Map(request), &[&paramsSubType]);
-        let response: Value = self.private_spot_delete_batch_order(&[&__ws_arg_76]).await;
+        let __ws_arg_77 = self.extend(Value::Map(request), &[&paramsSubType]);
+        let response: Value = self.private_spot_delete_batch_order(&[&__ws_arg_77]).await;
         return Value::from(vec![Value::Dict(self.safe_order(response, None))]);
         Value::Null
         }).await?))
@@ -6192,11 +6196,11 @@ impl Xt {
         let subType: Option<String> = subTypeparamsSubTypeVariable.0.as_str().map(str::to_owned);
         let paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
         if (subType.as_deref() == Some("inverse")) {
-            let __ws_arg_77 = self.extend(&request, &[&paramsSubType]);
-            response = self.private_inverse_get_future_user_v1_balance_bills(&[&__ws_arg_77]).await;
+            let __ws_arg_78 = self.extend(&request, &[&paramsSubType]);
+            response = self.private_inverse_get_future_user_v1_balance_bills(&[&__ws_arg_78]).await;
         }  else if (subType.as_deref() == Some("linear")) || (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future")) {
-            let __ws_arg_78 = self.extend(Value::Map(request), &[&paramsSubType]);
-            response = self.private_linear_get_future_user_v1_balance_bills(&[&__ws_arg_78]).await;
+            let __ws_arg_79 = self.extend(Value::Map(request), &[&paramsSubType]);
+            response = self.private_linear_get_future_user_v1_balance_bills(&[&__ws_arg_79]).await;
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchLedger() does not support spot transactions, only swap and future wallet transactions are supported")));
         }
@@ -6283,8 +6287,8 @@ impl Xt {
                 m.insert("chain".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_79 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
-        let response: crate::value::Dict = self.private_spot_get_deposit_address(&[&__ws_arg_79]).await.unwrap_or_default();
+        let __ws_arg_80 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
+        let response: crate::value::Dict = self.private_spot_get_deposit_address(&[&__ws_arg_80]).await.unwrap_or_default();
         //
         //     {
         //         "rc": 0,
@@ -6342,8 +6346,8 @@ impl Xt {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit)); // default 10, max 200
         }
-        let __ws_arg_80 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_spot_get_deposit_history(&[&__ws_arg_80]).await.unwrap_or_default();
+        let __ws_arg_81 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_spot_get_deposit_history(&[&__ws_arg_81]).await.unwrap_or_default();
         //
         //     {
         //         "rc": 0,
@@ -6416,8 +6420,8 @@ impl Xt {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit)); // default 10, max 200
         }
-        let __ws_arg_81 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_spot_get_withdraw_history(&[&__ws_arg_81]).await.unwrap_or_default();
+        let __ws_arg_82 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_spot_get_withdraw_history(&[&__ws_arg_82]).await.unwrap_or_default();
         //
         //     {
         //         "rc": 0,
@@ -6500,8 +6504,8 @@ impl Xt {
         if (tagWithdrawTag.is_some()) {
             request.insert("memo".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_82 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
-        let response: crate::value::Dict = self.private_spot_post_withdraw(&[&__ws_arg_82]).await.unwrap_or_default();
+        let __ws_arg_83 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
+        let response: crate::value::Dict = self.private_spot_post_withdraw(&[&__ws_arg_83]).await.unwrap_or_default();
         //
         //     {
         //         "rc": 0,
@@ -6584,11 +6588,11 @@ impl Xt {
         let paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
         let mut response: Option<crate::value::Dict> = None;
         if (subType.as_deref() == Some("inverse")) {
-            let __ws_arg_83 = self.extend(&request, &[&paramsSubType]);
-            response = self.private_inverse_post_future_user_v1_position_adjust_leverage(&[&__ws_arg_83]).await;
+            let __ws_arg_84 = self.extend(&request, &[&paramsSubType]);
+            response = self.private_inverse_post_future_user_v1_position_adjust_leverage(&[&__ws_arg_84]).await;
         }  else {
-            let __ws_arg_84 = self.extend(Value::Map(request), &[&paramsSubType]);
-            response = self.private_linear_post_future_user_v1_position_adjust_leverage(&[&__ws_arg_84]).await;
+            let __ws_arg_85 = self.extend(Value::Map(request), &[&paramsSubType]);
+            response = self.private_linear_post_future_user_v1_position_adjust_leverage(&[&__ws_arg_85]).await;
         }
         return response.map_or(Value::Null, Value::Dict);
         Value::Null
@@ -6673,11 +6677,11 @@ impl Xt {
         let paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
         let mut response: Option<crate::value::Dict> = None;
         if (subType.as_deref() == Some("inverse")) {
-            let __ws_arg_85 = self.extend(&request, &[&paramsSubType]);
-            response = self.private_inverse_post_future_user_v1_position_margin(&[&__ws_arg_85]).await;
+            let __ws_arg_86 = self.extend(&request, &[&paramsSubType]);
+            response = self.private_inverse_post_future_user_v1_position_margin(&[&__ws_arg_86]).await;
         }  else {
-            let __ws_arg_86 = self.extend(Value::Map(request), &[&paramsSubType]);
-            response = self.private_linear_post_future_user_v1_position_margin(&[&__ws_arg_86]).await;
+            let __ws_arg_87 = self.extend(Value::Map(request), &[&paramsSubType]);
+            response = self.private_linear_post_future_user_v1_position_margin(&[&__ws_arg_87]).await;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).unwrap_or_default();
 }
@@ -6827,11 +6831,11 @@ impl Xt {
         let paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
         let mut response: Option<crate::value::Dict> = None;
         if (subType.as_deref() == Some("inverse")) {
-            let __ws_arg_87 = self.extend(&request, &[&paramsSubType]);
-            response = self.public_inverse_get_future_market_v1_public_leverage_bracket_detail(&[&__ws_arg_87]).await;
+            let __ws_arg_88 = self.extend(&request, &[&paramsSubType]);
+            response = self.public_inverse_get_future_market_v1_public_leverage_bracket_detail(&[&__ws_arg_88]).await;
         }  else {
-            let __ws_arg_88 = self.extend(Value::Map(request), &[&paramsSubType]);
-            response = self.public_linear_get_future_market_v1_public_leverage_bracket_detail(&[&__ws_arg_88]).await;
+            let __ws_arg_89 = self.extend(Value::Map(request), &[&paramsSubType]);
+            response = self.public_linear_get_future_market_v1_public_leverage_bracket_detail(&[&__ws_arg_89]).await;
         }
         //
         //     {
@@ -6918,11 +6922,11 @@ impl Xt {
         let paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
         let mut response: Option<crate::value::Dict> = None;
         if (subType.as_deref() == Some("inverse")) {
-            let __ws_arg_89 = self.extend(&request, &[&paramsSubType]);
-            response = self.public_inverse_get_future_market_v1_public_q_funding_rate_record(&[&__ws_arg_89]).await;
+            let __ws_arg_90 = self.extend(&request, &[&paramsSubType]);
+            response = self.public_inverse_get_future_market_v1_public_q_funding_rate_record(&[&__ws_arg_90]).await;
         }  else {
-            let __ws_arg_90 = self.extend(Value::Map(request), &[&paramsSubType]);
-            response = self.public_linear_get_future_market_v1_public_q_funding_rate_record(&[&__ws_arg_90]).await;
+            let __ws_arg_91 = self.extend(Value::Map(request), &[&paramsSubType]);
+            response = self.public_linear_get_future_market_v1_public_q_funding_rate_record(&[&__ws_arg_91]).await;
         }
         //
         //     {
@@ -7034,11 +7038,11 @@ impl Xt {
         let paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
         let mut response: Option<crate::value::Dict> = None;
         if (subType.as_deref() == Some("inverse")) {
-            let __ws_arg_91 = self.extend(&request, &[&paramsSubType]);
-            response = self.public_inverse_get_future_market_v1_public_q_funding_rate(&[&__ws_arg_91]).await;
+            let __ws_arg_92 = self.extend(&request, &[&paramsSubType]);
+            response = self.public_inverse_get_future_market_v1_public_q_funding_rate(&[&__ws_arg_92]).await;
         }  else {
-            let __ws_arg_92 = self.extend(Value::Map(request), &[&paramsSubType]);
-            response = self.public_linear_get_future_market_v1_public_q_funding_rate(&[&__ws_arg_92]).await;
+            let __ws_arg_93 = self.extend(Value::Map(request), &[&paramsSubType]);
+            response = self.public_linear_get_future_market_v1_public_q_funding_rate(&[&__ws_arg_93]).await;
         }
         //
         //     {
@@ -7095,11 +7099,11 @@ impl Xt {
         let paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
         let mut response: Option<crate::value::Dict> = None;
         if (subType.as_deref() == Some("inverse")) {
-            let __ws_arg_93 = self.extend(&request, &[&paramsSubType]);
-            response = self.public_inverse_get_future_market_v1_public_contract_open_interest(&[&__ws_arg_93]).await;
+            let __ws_arg_94 = self.extend(&request, &[&paramsSubType]);
+            response = self.public_inverse_get_future_market_v1_public_contract_open_interest(&[&__ws_arg_94]).await;
         }  else {
-            let __ws_arg_94 = self.extend(Value::Map(request), &[&paramsSubType]);
-            response = self.public_linear_get_future_market_v1_public_contract_open_interest(&[&__ws_arg_94]).await;
+            let __ws_arg_95 = self.extend(Value::Map(request), &[&paramsSubType]);
+            response = self.public_linear_get_future_market_v1_public_contract_open_interest(&[&__ws_arg_95]).await;
         }
         //
         //     {
@@ -7239,15 +7243,14 @@ impl Xt {
         }).await?))
     }
 
-    pub fn parse_trading_fee(&self, fee: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> crate::value::Dict {
-        let fee: Value = fee.into();
+    pub fn parse_trading_fee(&self, fee: &crate::value::Dict, market: Option<&crate::types::Market>) -> crate::value::Dict {
         let symbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), fee.clone());
+        m.insert("info".to_string(), Value::Dict(fee.clone()));
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("maker".to_string(), self.safe_number_k(&fee, "makerFee", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(fee, "takerFee", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(&fee, "takerFee", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
@@ -7303,11 +7306,11 @@ impl Xt {
         let paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
         let mut response: Option<crate::value::Dict> = None;
         if (subType.as_deref() == Some("inverse")) {
-            let __ws_arg_95 = self.extend(&request, &[&paramsSubType]);
-            response = self.private_inverse_get_future_user_v1_balance_funding_rate_list(&[&__ws_arg_95]).await;
+            let __ws_arg_96 = self.extend(&request, &[&paramsSubType]);
+            response = self.private_inverse_get_future_user_v1_balance_funding_rate_list(&[&__ws_arg_96]).await;
         }  else {
-            let __ws_arg_96 = self.extend(Value::Map(request), &[&paramsSubType]);
-            response = self.private_linear_get_future_user_v1_balance_funding_rate_list(&[&__ws_arg_96]).await;
+            let __ws_arg_97 = self.extend(Value::Map(request), &[&paramsSubType]);
+            response = self.private_linear_get_future_user_v1_balance_funding_rate_list(&[&__ws_arg_97]).await;
         }
         //
         //     {
@@ -7459,15 +7462,15 @@ impl Xt {
         let paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
         let mut promisesUnresolved: Vec<Value> = Vec::new();
         if (subType.as_deref() == Some("inverse")) {
-            let __ws_arg_97 = self.extend(&request, &[&paramsSubType]);
-            promisesUnresolved.push(self.private_inverse_get_future_user_v1_position_list(&[&__ws_arg_97]).await);
             let __ws_arg_98 = self.extend(&request, &[&paramsSubType]);
-            promisesUnresolved.push(self.private_inverse_get_future_user_v1_position_break_list(&[&__ws_arg_98]).await);
-        }  else {
+            promisesUnresolved.push(self.private_inverse_get_future_user_v1_position_list(&[&__ws_arg_98]).await);
             let __ws_arg_99 = self.extend(&request, &[&paramsSubType]);
-            promisesUnresolved.push(self.private_linear_get_future_user_v1_position_list(&[&__ws_arg_99]).await);
-            let __ws_arg_100 = self.extend(Value::Map(request), &[&paramsSubType]);
-            promisesUnresolved.push(self.private_linear_get_future_user_v1_position_break_list(&[&__ws_arg_100]).await);
+            promisesUnresolved.push(self.private_inverse_get_future_user_v1_position_break_list(&[&__ws_arg_99]).await);
+        }  else {
+            let __ws_arg_100 = self.extend(&request, &[&paramsSubType]);
+            promisesUnresolved.push(self.private_linear_get_future_user_v1_position_list(&[&__ws_arg_100]).await);
+            let __ws_arg_101 = self.extend(Value::Map(request), &[&paramsSubType]);
+            promisesUnresolved.push(self.private_linear_get_future_user_v1_position_break_list(&[&__ws_arg_101]).await);
         }
         let responsebreakResponseVariable: Vec<Value> = promise_all(&Value::from(promisesUnresolved)).await.to_vec();
         let response: Value = responsebreakResponseVariable.get(0).cloned().unwrap_or(Value::Null);
@@ -7687,11 +7690,11 @@ impl Xt {
         let paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
         let mut response: Option<crate::value::Dict> = None;
         if (subType.as_deref() == Some("inverse")) {
-            let __ws_arg_101 = self.extend(&requestUntil, &[&paramsSubType]);
-            response = self.private_inverse_get_future_trade_v1_position_list_history(&[&__ws_arg_101]).await;
+            let __ws_arg_102 = self.extend(&requestUntil, &[&paramsSubType]);
+            response = self.private_inverse_get_future_trade_v1_position_list_history(&[&__ws_arg_102]).await;
         }  else {
-            let __ws_arg_102 = self.extend(requestUntil, &[&paramsSubType]);
-            response = self.private_linear_get_future_trade_v1_position_list_history(&[&__ws_arg_102]).await;
+            let __ws_arg_103 = self.extend(requestUntil, &[&paramsSubType]);
+            response = self.private_linear_get_future_trade_v1_position_list_history(&[&__ws_arg_103]).await;
         }
         //
         //     {
@@ -7776,8 +7779,8 @@ impl Xt {
                 m.insert("to".to_string(), toAccountId.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_103 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_spot_post_balance_transfer(&[&__ws_arg_103]).await.unwrap_or_default();
+        let __ws_arg_104 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_spot_post_balance_transfer(&[&__ws_arg_104]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -7834,11 +7837,11 @@ impl Xt {
         let paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
         let mut response: Option<crate::value::Dict> = None;
         if (subType.as_deref() == Some("inverse")) {
-            let __ws_arg_104 = self.extend(&request, &[&paramsSubType]);
-            response = self.private_inverse_post_future_user_v1_position_change_type(&[&__ws_arg_104]).await;
+            let __ws_arg_105 = self.extend(&request, &[&paramsSubType]);
+            response = self.private_inverse_post_future_user_v1_position_change_type(&[&__ws_arg_105]).await;
         }  else {
-            let __ws_arg_105 = self.extend(Value::Map(request), &[&paramsSubType]);
-            response = self.private_linear_post_future_user_v1_position_change_type(&[&__ws_arg_105]).await;
+            let __ws_arg_106 = self.extend(Value::Map(request), &[&paramsSubType]);
+            response = self.private_linear_post_future_user_v1_position_change_type(&[&__ws_arg_106]).await;
         }
         return response.map_or(Value::Null, Value::Dict);
         Value::Null
@@ -7913,25 +7916,25 @@ impl Xt {
             let paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.1;
             if (subType.as_deref() == Some("inverse")) {
                 if isStopLoss || isTakeProfit {
-                    let __ws_arg_106 = self.extend(&request, &[&paramsSubType]);
-                    response = self.private_inverse_post_future_trade_v1_entrust_update_profit_stop(&[&__ws_arg_106]).await;
-                }  else {
                     let __ws_arg_107 = self.extend(&request, &[&paramsSubType]);
-                    response = self.private_inverse_post_future_trade_v1_order_update(&[&__ws_arg_107]).await;
+                    response = self.private_inverse_post_future_trade_v1_entrust_update_profit_stop(&[&__ws_arg_107]).await;
+                }  else {
+                    let __ws_arg_108 = self.extend(&request, &[&paramsSubType]);
+                    response = self.private_inverse_post_future_trade_v1_order_update(&[&__ws_arg_108]).await;
                 }
             }  else {
                 if isStopLoss || isTakeProfit {
-                    let __ws_arg_108 = self.extend(&request, &[&paramsSubType]);
-                    response = self.private_linear_post_future_trade_v1_entrust_update_profit_stop(&[&__ws_arg_108]).await;
-                }  else {
                     let __ws_arg_109 = self.extend(&request, &[&paramsSubType]);
-                    response = self.private_linear_post_future_trade_v1_order_update(&[&__ws_arg_109]).await;
+                    response = self.private_linear_post_future_trade_v1_entrust_update_profit_stop(&[&__ws_arg_109]).await;
+                }  else {
+                    let __ws_arg_110 = self.extend(&request, &[&paramsSubType]);
+                    response = self.private_linear_post_future_trade_v1_order_update(&[&__ws_arg_110]).await;
                 }
             }
         }  else {
             request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol.as_str(), amount)));
-            let __ws_arg_110 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_spot_put_order_order_id(&[&__ws_arg_110]).await;
+            let __ws_arg_111 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            response = self.private_spot_put_order_order_id(&[&__ws_arg_111]).await;
         }
         if (market).swap {
             return <Self as crate::exchange::DerivedExchange>::parse_order(self, response.as_ref(), Some(&market)).map_or(Value::Null, Value::Dict);

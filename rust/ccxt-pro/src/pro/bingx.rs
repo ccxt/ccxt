@@ -1182,7 +1182,7 @@ impl Bingx {
     m
 })])]));
         }
-        let symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+        let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         CacheShelves::ensure(&mut self.ohlcvs, &symbol);
         let timeframeParts: crate::value::List = crate::value::List::new(dataType.split("_").map(Value::from).collect());
         let rawTimeframe: Option<String> = self.safe_string_opt(&timeframeParts, Value::Int(1), &[]);
@@ -1208,8 +1208,8 @@ impl Bingx {
             stored.append(Value::Arr(parsed));
         }
         }
-        let resolveData: Value = Value::from(vec![symbol.clone(), unifiedTimeframe.clone(), Value::from(&stored)]);
-        let messageHash: Option<String> = self.get_message_hash("ohlcv", &[&symbol, &unifiedTimeframe]);
+        let resolveData: Value = Value::from(vec![Value::from(symbol.as_str()), unifiedTimeframe.clone(), Value::from(&stored)]);
+        let messageHash: Option<String> = self.get_message_hash("ohlcv", &[&Value::from(symbol), &unifiedTimeframe]);
         client.resolve(resolveData.clone(), messageHash.as_deref());
         // resolve for "all"
         if isAllEndpoint {
@@ -2161,7 +2161,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let limit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
-        let mut parsedOrder: crate::value::Dict = self.parse_order(Value::Dict(data), None);
+        let __ws_arg_6 = self.extend(Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        }), &[&data]);
+        let mut parsedOrder: crate::value::Dict = self.parse_order(__ws_arg_6, None);
         if !isSpot {
             // The envelope T is the order update time; o.T is the trade time.
             let updateTimestamp: Option<i64> = (match __pro_message.get("T") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });

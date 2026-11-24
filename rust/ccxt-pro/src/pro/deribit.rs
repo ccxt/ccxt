@@ -1268,7 +1268,7 @@ impl Deribit {
         let marketId: Option<String> = self.safe_string_opt(&parts, Value::Int(2), &[]);
         let rawTimeframe: Option<String> = self.safe_string_opt(&parts, Value::Int(3), &[]);
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
-        let symbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+        let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let wsOptions: crate::value::Dict = self.safe_dict_k_t(&self.options, "ws");
         let timeframes: crate::value::Dict = self.safe_dict_k_t(&wsOptions, "timeframes");
         let unifiedTimeframe: Option<String> = self.find_timeframe(rawTimeframe.map(Value::from).unwrap_or(Value::Null), &[Value::Dict(timeframes)]);
@@ -1283,9 +1283,9 @@ impl Deribit {
         let parsed: crate::value::List = self.parse_ws_ohlcv(Value::Dict(ohlcv), Some(&market));
         stored.append(Value::Arr(parsed));
         CacheShelves::put2(&mut self.ohlcvs, &symbol, &unifiedTimeframe, stored.clone());
-        let resolveData: Value = Value::from(vec![symbol.clone(), unifiedTimeframe.map(Value::from).unwrap_or(Value::Null), Value::from(&stored)]);
+        let resolveData: crate::value::List = std::sync::Arc::new(vec![Value::from(symbol.as_str()), unifiedTimeframe.map(Value::from).unwrap_or(Value::Null), Value::from(&stored)]);
         let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "chart.trades|", symbol).into()), "|").into()), self.safe_string(&parts, Value::Int(3), &[Value::Str("".into())]));
-        client.resolve(resolveData, messageHash.as_str());
+        client.resolve(Value::Arr(resolveData), messageHash.as_str());
 }
 
     pub fn parse_ws_ohlcv(&self, mut ohlcv: Value, market: Option<&crate::types::Market>) -> crate::value::List {

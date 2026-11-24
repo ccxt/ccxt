@@ -350,11 +350,11 @@ impl crate::exchange::DerivedExchange for Bitbank {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let apiName: Option<&str> = api.get(0).and_then(Value::as_str);
-        let __ws_arg_11 = self.omit(&params, self.extract_params(Value::from(path)), &[]);
+        let __ws_arg_13 = self.omit(&params, self.extract_params(Value::from(path)), &[]);
         let query: crate::value::Dict = self.extend_t(Value::Map({
             let m = indexmap::IndexMap::new();
             m
-        }), &[__ws_arg_11]);
+        }), &[__ws_arg_13]);
         let apiUrl: Option<String> = self.safe_string_opt(self.urls.get("api").cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " sign() has no API URL for this endpoint")));
@@ -1308,8 +1308,12 @@ impl Bitbank {
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.private_post_user_spot_order(&[&__ws_arg_4]).await.unwrap_or_default();
-        let data: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, data.as_ref(), Some(&market));
+        let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        let __ws_arg_5 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&data]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_5).as_ref(), Some(&market));
         None
         }).await?))
     }
@@ -1343,8 +1347,8 @@ impl Bitbank {
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_5 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_post_user_spot_cancel_order(&[&__ws_arg_5]).await.unwrap_or_default();
+        let __ws_arg_6 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_post_user_spot_cancel_order(&[&__ws_arg_6]).await.unwrap_or_default();
         //
         //    {
         //        "success": 1,
@@ -1403,8 +1407,8 @@ impl Bitbank {
                 m.insert("pair".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_6 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_get_user_spot_order(&[&__ws_arg_6]).await.unwrap_or_default();
+        let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_get_user_spot_order(&[&__ws_arg_7]).await.unwrap_or_default();
         //
         //    {
         //        "success": 1,
@@ -1427,8 +1431,12 @@ impl Bitbank {
         //        }
         //    }
         //
-        let data: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, data.as_ref(), Some(&market));
+        let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        let __ws_arg_8 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&data]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_8).as_ref(), Some(&market));
         None
         }).await?))
     }
@@ -1469,8 +1477,8 @@ impl Bitbank {
         if (since.is_some()) {
             request.insert("since".into(), Value::from(self.parse_to_int((match ((Value::from(since)).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }
-        let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_get_user_spot_active_orders(&[&__ws_arg_7]).await.unwrap_or_default();
+        let __ws_arg_9 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_get_user_spot_active_orders(&[&__ws_arg_9]).await.unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let orders: crate::value::List = self.safe_list_k_t(&data, "orders");
         return Value::Arr(self.parse_orders(&orders, Some(&market), &[&Value::from(since), &Value::from(limit)]));
@@ -1517,8 +1525,8 @@ impl Bitbank {
         if (since.is_some()) {
             request.insert("since".into(), Value::from(self.parse_to_int((match ((Value::from(since)).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }
-        let __ws_arg_8 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_get_user_spot_trade_history(&[&__ws_arg_8]).await.unwrap_or_default();
+        let __ws_arg_10 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_get_user_spot_trade_history(&[&__ws_arg_10]).await.unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let trades: crate::value::List = self.safe_list_k_t(&data, "trades");
         return Value::Arr(self.parse_trades(&trades, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
@@ -1552,8 +1560,8 @@ impl Bitbank {
                 m.insert("asset".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
             m
         });
-        let __ws_arg_9 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_get_user_withdrawal_account(&[&__ws_arg_9]).await.unwrap_or_default();
+        let __ws_arg_11 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_get_user_withdrawal_account(&[&__ws_arg_11]).await.unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         // Not sure about this if there could be more than one account...
         let accounts: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "accounts"));
@@ -1614,8 +1622,8 @@ impl Bitbank {
                 m.insert("amount".to_string(), Value::from(amount));
             m
         });
-        let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
-        let response: crate::value::Dict = self.private_post_user_request_withdrawal(&[&__ws_arg_10]).await.unwrap_or_default();
+        let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
+        let response: crate::value::Dict = self.private_post_user_request_withdrawal(&[&__ws_arg_12]).await.unwrap_or_default();
         //
         //     {
         //         "success": 1,

@@ -1133,8 +1133,8 @@ impl Bitget {
     }
 
     /// Auto-generated wrapper for the `privateSpotPostV2SpotTradeCancelOrder` implicit endpoint.
-    pub async fn private_spot_post_v2_spot_trade_cancel_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_spot_post_v2_spot_trade_cancel_order".into()), optional_args).await
+    pub async fn private_spot_post_v2_spot_trade_cancel_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_spot_post_v2_spot_trade_cancel_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateSpotPostV2SpotTradeBatchOrders` implicit endpoint.
@@ -1163,8 +1163,8 @@ impl Bitget {
     }
 
     /// Auto-generated wrapper for the `privateSpotPostV2SpotTradeCancelPlanOrder` implicit endpoint.
-    pub async fn private_spot_post_v2_spot_trade_cancel_plan_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_spot_post_v2_spot_trade_cancel_plan_order".into()), optional_args).await
+    pub async fn private_spot_post_v2_spot_trade_cancel_plan_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_spot_post_v2_spot_trade_cancel_plan_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateSpotPostV2SpotTradeCancelReplaceOrder` implicit endpoint.
@@ -1763,8 +1763,8 @@ impl Bitget {
     }
 
     /// Auto-generated wrapper for the `privateMixPostV2MixOrderCancelOrder` implicit endpoint.
-    pub async fn private_mix_post_v2_mix_order_cancel_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_mix_post_v2_mix_order_cancel_order".into()), optional_args).await
+    pub async fn private_mix_post_v2_mix_order_cancel_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_mix_post_v2_mix_order_cancel_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateMixPostV2MixOrderBatchCancelOrders` implicit endpoint.
@@ -1808,8 +1808,8 @@ impl Bitget {
     }
 
     /// Auto-generated wrapper for the `privateMixPostV2MixOrderCancelPlanOrder` implicit endpoint.
-    pub async fn private_mix_post_v2_mix_order_cancel_plan_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_mix_post_v2_mix_order_cancel_plan_order".into()), optional_args).await
+    pub async fn private_mix_post_v2_mix_order_cancel_plan_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_mix_post_v2_mix_order_cancel_plan_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateUserGetUserV1FeeQuery` implicit endpoint.
@@ -2533,8 +2533,8 @@ impl Bitget {
     }
 
     /// Auto-generated wrapper for the `privateMarginPostV2MarginCrossedCancelOrder` implicit endpoint.
-    pub async fn private_margin_post_v2_margin_crossed_cancel_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_margin_post_v2_margin_crossed_cancel_order".into()), optional_args).await
+    pub async fn private_margin_post_v2_margin_crossed_cancel_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_margin_post_v2_margin_crossed_cancel_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateMarginPostV2MarginCrossedBatchCancelOrder` implicit endpoint.
@@ -2573,8 +2573,8 @@ impl Bitget {
     }
 
     /// Auto-generated wrapper for the `privateMarginPostV2MarginIsolatedCancelOrder` implicit endpoint.
-    pub async fn private_margin_post_v2_margin_isolated_cancel_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_margin_post_v2_margin_isolated_cancel_order".into()), optional_args).await
+    pub async fn private_margin_post_v2_margin_isolated_cancel_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_margin_post_v2_margin_isolated_cancel_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateMarginPostV2MarginIsolatedBatchCancelOrder` implicit endpoint.
@@ -3818,13 +3818,13 @@ impl Bitget {
     }
 
     /// Auto-generated wrapper for the `privateUtaPostV3TradeCancelOrder` implicit endpoint.
-    pub async fn private_uta_post_v3_trade_cancel_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_uta_post_v3_trade_cancel_order".into()), optional_args).await
+    pub async fn private_uta_post_v3_trade_cancel_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_uta_post_v3_trade_cancel_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateUtaPostV3TradeCancelStrategyOrder` implicit endpoint.
-    pub async fn private_uta_post_v3_trade_cancel_strategy_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_uta_post_v3_trade_cancel_strategy_order".into()), optional_args).await
+    pub async fn private_uta_post_v3_trade_cancel_strategy_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_uta_post_v3_trade_cancel_strategy_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateUtaPostV3TradePlaceBatch` implicit endpoint.
@@ -3928,8 +3928,8 @@ impl Bitget {
     }
 
     /// Auto-generated wrapper for the `privateUtaPostV3TradeCancelRealityOrder` implicit endpoint.
-    pub async fn private_uta_post_v3_trade_cancel_reality_order(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_uta_post_v3_trade_cancel_reality_order".into()), optional_args).await
+    pub async fn private_uta_post_v3_trade_cancel_reality_order(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_uta_post_v3_trade_cancel_reality_order", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateUtaPostV3TradeGridValidate` implicit endpoint.

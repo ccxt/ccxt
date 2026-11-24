@@ -1809,7 +1809,11 @@ impl Lighter {
             m
         });
         let rawMessage: Value = self.watch(url.as_deref(), &messageHash[..], Value::Map(message), &messageHash[..], Value::Map(subscription)).await;
-        return Value::Dict(self.parse_order(self.deep_extend(rawMessage, &[order]), Some(&market)));
+        let __ws_arg_19 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[self.deep_extend(rawMessage, &[order])]);
+        return Value::Dict(self.parse_order(__ws_arg_19, Some(&market)));
         Value::Null
         }).await?))
     }
@@ -1863,11 +1867,11 @@ impl Lighter {
             m
         });
         let rawMessage: Value = self.watch(url.as_deref(), &messageHash[..], Value::Map(message), &messageHash[..], Value::Map(subscription)).await;
-        let __ws_arg_19 = self.extend(Value::Map({
+        let __ws_arg_20 = self.extend(Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }), &[rawMessage]);
-        return Value::Dict(self.parse_order(__ws_arg_19, Some(&market)));
+        return Value::Dict(self.parse_order(__ws_arg_20, Some(&market)));
         Value::Null
         }).await?))
     }

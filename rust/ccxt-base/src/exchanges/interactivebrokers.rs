@@ -949,7 +949,7 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
                 "fetch_portfolio_accounts" => self.fetch_portfolio_accounts(&args[..]).await,
                 "fetch_positions" => crate::types::IntoRaw::into_raw(self.fetch_positions(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_positions_for_symbol" => crate::types::IntoRaw::into_raw(self.fetch_positions_for_symbol(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_sec_with_details" => self.fetch_sec_with_details(args.get(0).cloned().unwrap_or(crate::Value::Null)).await,
+                "fetch_sec_with_details" => crate::Value::Arr(self.fetch_sec_with_details(args.get(0).cloned().unwrap_or(crate::Value::Null)).await),
                 "fetch_service_accounts" => self.fetch_service_accounts(&args[..]).await,
                 "fetch_status" => crate::types::IntoRaw::into_raw(self.fetch_status(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_stock_markets" => self.fetch_stock_markets(&args[..]).await,
@@ -3211,13 +3211,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub async fn fetch_sec_with_details(&mut self, plainEntries: impl Into<crate::Value>) -> Value {
+    pub async fn fetch_sec_with_details(&mut self, plainEntries: impl Into<crate::Value>) -> crate::value::List {
         let plainEntries: Value = plainEntries.into();
         let detailIds: Vec<Value> = Value::Array(plainEntries.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut entries: Vec<Value> = Vec::new();
         let numDetails: i64 = detailIds.len() as i64;
         if (numDetails == 0) {
-            return Value::from(entries);
+            return std::sync::Arc::new(entries);
         }
         let chunkSize: i64 = 330; // above this number, response becomes unreliable
         let mut promises: Vec<Value> = Vec::new();
@@ -3263,9 +3263,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
         }
         }
-        return Value::from(entries);
-
-    Value::Null
+        return std::sync::Arc::new(entries);
 }
 
     pub async fn fetch_forex_markets(&mut self, optional_args: &[Value]) -> Value {
@@ -3318,8 +3316,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
         }
         }
-        let detailMarkets: Value = self.fetch_sec_with_details(Value::Map(entries)).await;
-        return Value::Arr(self.parse_markets(detailMarkets));
+        let detailMarkets: crate::value::List = self.fetch_sec_with_details(Value::Map(entries)).await;
+        return Value::Arr(self.parse_markets(&detailMarkets));
 
     Value::Null
 }
@@ -3381,8 +3379,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
         }
         }
-        let detailMarkets: Value = self.fetch_sec_with_details(Value::Map(entries)).await;
-        return Value::Arr(self.parse_markets(detailMarkets));
+        let detailMarkets: crate::value::List = self.fetch_sec_with_details(Value::Map(entries)).await;
+        return Value::Arr(self.parse_markets(&detailMarkets));
 
     Value::Null
 }
@@ -3534,7 +3532,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
         }
         }
-        let details: Vec<Value> = self.fetch_sec_with_details(Value::Map(entries)).await.as_array().cloned().unwrap_or_default();
+        let details: crate::value::List = self.fetch_sec_with_details(Value::Map(entries)).await;
         // generic tickers (e.g. SOL, XRP, ADA, XLM) are queried by bare symbol, so trsrv/futures can return
         // unrelated contracts listed on other venues (e.g. EUREX), only the crypto futures venues are kept
         let allowedVenues: crate::value::List = std::sync::Arc::new(vec![Value::Str("CME".into()), Value::Str("CFE".into()), Value::Str("COINDERIV".into())]);
@@ -3543,10 +3541,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_21: bool = true;
             while { if !__for_first_21 { i += 1; } __for_first_21 = false; i < (details.len() as i64) } {
-            let detail: crate::value::Dict = details.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let venue: Option<String> = self.safe_string_k_opt(&detail, "listingExchange", &[]);
+            let venue: Option<String> = self.safe_string_k_opt(crate::value::KeyRead::read(&&details, &Value::Int(i)), "listingExchange", &[]);
             if self.in_array(&venue, &allowedVenues) {
-                detailMarkets.push(Value::Dict(detail));
+                detailMarkets.push(self.safe_dict(&details, Value::Int(i), &[]));
             }
         }
         }
@@ -3623,7 +3620,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
         }
         }
-        let detailMarkets: Vec<Value> = self.fetch_sec_with_details(Value::Map(entries)).await.as_array().cloned().unwrap_or_default();
+        let detailMarkets: Value = Value::Arr(self.fetch_sec_with_details(Value::Map(entries)).await);
         // keep the order of options.fetchMarkets.cfdExchanges, the first exchange wins the plain symbol on collisions
         let mut result: Vec<Value> = Vec::new();
         let detailMarketsLength: i64 = detailMarkets.len() as i64;
@@ -3636,10 +3633,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                                 let mut j: i64 = 0;
                 let mut __for_first_26: bool = true;
                 while { if !__for_first_26 { j += 1; } __for_first_26 = false; j < detailMarketsLength } {
-                let detail: crate::value::Dict = detailMarkets.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
-                let listingExchange: String = self.safe_string_k(&detail, "listingExchange", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                let listingExchange: String = self.safe_string_k(detailMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null), "listingExchange", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 if (listingExchange == cfdExchange) {
-                    result.push(Value::Dict(detail));
+                    result.push(self.safe_dict(&detailMarkets, Value::Int(j), &[]));
                 }
             }
             }
@@ -3752,8 +3748,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
         }
         }
-        let detailMarkets: Value = self.fetch_sec_with_details(Value::Map(entries)).await;
-        let markets: Vec<Value> = self.parse_markets(detailMarkets).to_vec();
+        let detailMarkets: crate::value::List = self.fetch_sec_with_details(Value::Map(entries)).await;
+        let markets: Vec<Value> = self.parse_markets(&detailMarkets).to_vec();
         // bonds sharing the issuer, coupon and maturity (e.g. a bill and a strip) are told apart by the conid, e.g. US-T-270215-265342934.SMART/USD
         let mut seen: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
@@ -3831,8 +3827,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
         }
         }
-        let markets: Value = self.fetch_sec_with_details(Value::Map(entries)).await;
-        return Value::Arr(self.parse_markets(markets));
+        let markets: crate::value::List = self.fetch_sec_with_details(Value::Map(entries)).await;
+        return Value::Arr(self.parse_markets(&markets));
 
     Value::Null
 }
@@ -4819,7 +4815,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[&query]);
         let response: crate::value::Dict = self.webapi_delete_v1_api_iserver_account_account_id_order_order_id(&[&__ws_arg_13]).await.unwrap_or_default();
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&response), market.as_ref());
+        let __ws_arg_14 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&response]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_14).as_ref(), market.as_ref());
         None
         }).await?))
     }
@@ -4858,8 +4858,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         });
         let mut response: Option<crate::value::Dict> = None;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            let __ws_arg_14 = self.extend(Value::Map(request), &[&params]);
-            response = self.webapi_get_v1_api_iserver_account_order_status_order_id(&[&__ws_arg_14]).await;
+            let __ws_arg_15 = self.extend(Value::Map(request), &[&params]);
+            response = self.webapi_get_v1_api_iserver_account_order_status_order_id(&[&__ws_arg_15]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             if ex.names("InvalidProxySettings") {
@@ -4880,7 +4880,11 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
         if (response.is_none()) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id, " fetchOrder() returned empty response")));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, response.as_ref(), market.as_ref());
+        let __ws_arg_16 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&response]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_16).as_ref(), market.as_ref());
         None
         }).await?))
     }
@@ -5248,8 +5252,8 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
                 m.insert("days".to_string(), Value::from(days));
             m
         });
-        let __ws_arg_15 = self.extend(Value::Map(request), &[&query]);
-        let response: crate::value::List = self.webapi_get_v1_api_iserver_account_trades(&[&__ws_arg_15]).await.unwrap_or_default();
+        let __ws_arg_17 = self.extend(Value::Map(request), &[&query]);
+        let response: crate::value::List = self.webapi_get_v1_api_iserver_account_trades(&[&__ws_arg_17]).await.unwrap_or_default();
         return Value::Arr(self.parse_trades(&response, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
@@ -5295,8 +5299,8 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
                 m.insert("days".to_string(), Value::from(days));
             m
         });
-        let __ws_arg_16 = self.extend(Value::Map(request), &[&query]);
-        let response: crate::value::Dict = self.webapi_post_v1_api_pa_transactions(&[&__ws_arg_16]).await.unwrap_or_default();
+        let __ws_arg_18 = self.extend(Value::Map(request), &[&query]);
+        let response: crate::value::Dict = self.webapi_post_v1_api_pa_transactions(&[&__ws_arg_18]).await.unwrap_or_default();
         //
         //     {
         //         "rc": 0,
@@ -5406,8 +5410,8 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
                 m.insert("accountId".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_17 = self.extend(Value::Map(request), &[&query]);
-        let response: crate::value::List = self.webapi_get_v1_api_portfolio2_account_id_positions(&[&__ws_arg_17]).await.unwrap_or_default();
+        let __ws_arg_19 = self.extend(Value::Map(request), &[&query]);
+        let response: crate::value::List = self.webapi_get_v1_api_portfolio2_account_id_positions(&[&__ws_arg_19]).await.unwrap_or_default();
         return Value::Arr(self.parse_positions(&response, &[symbols]));
         Value::Null
         }).await?))
@@ -5445,8 +5449,8 @@ if let Err(_try_err) = _try_result { let ex: crate::error::CaughtError = crate::
                 m.insert("conid".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_18 = self.extend(Value::Map(request), &[&query]);
-        let mut response: Option<crate::value::List> = self.webapi_get_v1_api_portfolio_account_id_position_conid(&[&__ws_arg_18]).await;
+        let __ws_arg_20 = self.extend(Value::Map(request), &[&query]);
+        let mut response: Option<crate::value::List> = self.webapi_get_v1_api_portfolio_account_id_position_conid(&[&__ws_arg_20]).await;
         //
         //     [
         //         {

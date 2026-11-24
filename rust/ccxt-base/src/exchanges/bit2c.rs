@@ -451,7 +451,7 @@ impl crate::exchange_generated::ExchangeBase for Bit2c {
                 "fetch_trading_fees" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees(args.get(0).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
-                "is_fiat" => self.is_fiat(args.get(0).and_then(crate::Value::as_text).as_deref()),
+                "is_fiat" => crate::Value::from(self.is_fiat(args.get(0).and_then(crate::Value::as_text).as_deref())),
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_deposit_address" => Value::Dict(self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1478,10 +1478,8 @@ impl Bit2c {
 }
 
 
-    pub fn is_fiat(&self, code: Option<&str>) -> Value {
-        return Value::Bool(code == Some("NIS"));
-
-    Value::Null
+    pub fn is_fiat(&self, code: Option<&str>) -> bool {
+        return code.map(str::to_owned).as_deref() == Some("NIS");
 }
 
 /*
@@ -1505,7 +1503,7 @@ impl Bit2c {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code.as_str());
-        if self.is_fiat(code.as_str()).as_bool() == Some(true) {
+        if self.is_fiat(code.as_str()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchDepositAddress() does not support fiat currencies")));
         }
         let request: indexmap::IndexMap<String, Value> = ({

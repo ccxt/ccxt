@@ -66,7 +66,7 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
                 "ibkr_cancel_history" => self.ibkr_cancel_history(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
                 "ibkr_connect" => self.ibkr_connect().await,
                 "ibkr_keep_alive_session" => self.ibkr_keep_alive_session(args.get(0).cloned().unwrap_or(crate::Value::Null)).await,
-                "ibkr_market_data_request" => self.ibkr_market_data_request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "ibkr_market_data_request" => { let __t = self.ibkr_market_data_request(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "ibkr_subscribe" => self.ibkr_subscribe(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
                 "ibkr_un_watch_market_data" => self.ibkr_un_watch_market_data(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
                 "ibkr_unsubscribe" => self.ibkr_unsubscribe(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]).await,
@@ -113,7 +113,7 @@ impl Interactivebrokers {
             "ibkr_cancel_history" => crate::exchange_stubs::enqueue_spawn("ibkr_cancel_history", args.iter().copied().cloned().collect::<Vec<_>>()),
             "ibkr_connect" => crate::exchange_stubs::enqueue_spawn("ibkr_connect", args.iter().copied().cloned().collect::<Vec<_>>()),
             "ibkr_keep_alive_session" => crate::exchange_stubs::enqueue_spawn("ibkr_keep_alive_session", args.iter().copied().cloned().collect::<Vec<_>>()),
-            "ibkr_market_data_request" => { self.ibkr_market_data_request(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); },
+            "ibkr_market_data_request" => { { let __t = self.ibkr_market_data_request(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>()); Value::from(vec![__t.0, Value::Dict(__t.1)]) }; },
             "ibkr_subscribe" => crate::exchange_stubs::enqueue_spawn("ibkr_subscribe", args.iter().copied().cloned().collect::<Vec<_>>()),
             "ibkr_un_watch_market_data" => crate::exchange_stubs::enqueue_spawn("ibkr_un_watch_market_data", args.iter().copied().cloned().collect::<Vec<_>>()),
             "ibkr_unsubscribe" => crate::exchange_stubs::enqueue_spawn("ibkr_unsubscribe", args.iter().copied().cloned().collect::<Vec<_>>()),
@@ -531,7 +531,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {string[]} [params.fields] the market data fields to stream
  * @returns {Array} the raw message and the params without fields
  */
-    pub fn ibkr_market_data_request(&self, mut marketId: Value, optional_args: &[Value]) -> Value {
+    pub fn ibkr_market_data_request(&self, mut marketId: Value, optional_args: &[Value]) -> (Value, crate::value::Dict) {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -539,15 +539,17 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let options: crate::value::Dict = self.safe_dict_k_t(&self.options, "watchTickers");
         let defaultFields: crate::value::List = self.safe_list_k_t(&options, "fields");
         let fields: Value = self.safe_list_k(&params, "fields", &[Value::Arr(defaultFields)]);
-        let query: Value = self.omit(params, Value::Str("fields".into()), &[]);
+        let __ws_arg_0 = self.omit(params, Value::Str("fields".into()), &[]);
+        let query: crate::value::Dict = self.extend_t(Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        }), &[__ws_arg_0]);
         let request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "smd+", marketId).into()), "+").into()), json_stringify(&Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("fields".to_string(), fields);
     m
 })));
-        return Value::from(vec![Value::from(request), query]);
-
-    Value::Null
+        return (Value::from(request), query);
 }
 
 /*
@@ -658,15 +660,15 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (marketSymbols.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((marketSymbols.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let requestqueryVariable: Vec<Value> = self.ibkr_market_data_request(Value::from((market).id.as_deref()), &[params.clone()]).as_array().cloned().unwrap_or_default();
-            let request: Option<String> = requestqueryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-            let query: Value = requestqueryVariable.get(1).cloned().unwrap_or(Value::Null);
+            let requestqueryVariable = self.ibkr_market_data_request(Value::from((market).id.as_deref().unwrap_or("")), &[params.clone()]);
+            let request: Option<String> = requestqueryVariable.0.as_str().map(str::to_owned);
+            let query: crate::value::Dict = requestqueryVariable.1;
             let subscription: crate::value::Dict = self.extend_t(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("conid".to_string(), Value::from((market).id.as_deref()));
                     m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
                 m
-            }), &[query]);
+            }), &[&query]);
             self.ibkr_subscribe(&client.as_value(), (messageHashes.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default(), request.map(Value::from).unwrap_or(Value::Null), &[Value::Dict(subscription)]).await;
         }
         }
@@ -858,7 +860,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let params: crate::value::Dict = get_arg_dict(optional_args, 3);
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let unifiedSymbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
+        let unifiedSymbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let historyMarketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let url: Option<String> = self.ibkr_connect().await.as_str().map(str::to_owned);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(&self.client(url.as_deref()));
@@ -866,13 +868,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
         let future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
         // the last price stream, it builds the current candles
-        let marketDataRequestqueryVariable: Vec<Value> = self.ibkr_market_data_request(Value::from((market).id.as_deref()), &[Value::Dict(params)]).as_array().cloned().unwrap_or_default();
-        let marketDataRequest: Option<String> = marketDataRequestqueryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let query: Value = marketDataRequestqueryVariable.get(1).cloned().unwrap_or(Value::Null);
+        let marketDataRequestqueryVariable = self.ibkr_market_data_request(Value::from((market).id.as_deref().unwrap_or("")), &[Value::Dict(params)]);
+        let marketDataRequest: Option<String> = marketDataRequestqueryVariable.0.as_str().map(str::to_owned);
+        let query: crate::value::Dict = marketDataRequestqueryVariable.1;
         self.ibkr_subscribe(&client.as_value(), messageHash.as_str(), marketDataRequest.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("conid".to_string(), Value::from((market).id.as_deref()));
-        m.insert("symbol".to_string(), unifiedSymbol.clone());
+        m.insert("symbol".to_string(), Value::from(unifiedSymbol.as_str()));
         m.insert("timeframe".to_string(), timeframe.clone());
     m
 })]).await;
@@ -902,12 +904,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m
             });
             // keysort: the dict key order is not preserved in every language (java HashMap), the raw frame must be identical
-            let __ws_arg_0 = self.keysort(self.extend(Value::Map(historyRequest), &[query]), &[]);
-            let request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "smh+", historyMarketId).into()), "+").into()), self.json(__ws_arg_0));
+            let __ws_arg_1 = self.keysort(self.extend(Value::Map(historyRequest), &[&query]), &[]);
+            let request: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "smh+", historyMarketId).into()), "+").into()), self.json(__ws_arg_1));
             self.ibkr_subscribe(&client.as_value(), historyHash.as_str(), Value::from(request), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("conid".to_string(), Value::from((market).id.as_deref()));
-        m.insert("symbol".to_string(), unifiedSymbol.clone());
+        m.insert("symbol".to_string(), Value::from(unifiedSymbol.as_str()));
         m.insert("timeframe".to_string(), timeframe);
         m.insert("duration".to_string(), Value::from(duration));
     m
@@ -916,7 +918,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut ohlcv: Value = crate::exchange_stubs::ws_await_flight(&future).await;
         let mut resultLimit: Option<i64> = limit;
         if self.newUpdates.as_bool() == Some(true) {
-            resultLimit = ohlcv.get_limit(unifiedSymbol.as_str(), limit);
+            resultLimit = ohlcv.get_limit(Some(unifiedSymbol.as_str()), limit);
         }
         return Value::Arr(self.filter_by_since_limit(ohlcv, since, resultLimit, &[Value::Int(0), Value::Bool(true)]));
         Value::Null
@@ -1596,11 +1598,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 merged = self.extend(previous, &[rawOrder]);
                 rawOrders.insert(orderId.as_deref().unwrap_or("null").to_string(), merged.clone());
             }
-            let __ws_arg_1 = self.extend(Value::Map({
+            let __ws_arg_2 = self.extend(Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
             }), &[merged]);
-            let parsed: crate::value::Dict = self.parse_order(__ws_arg_1, None);
+            let parsed: crate::value::Dict = self.parse_order(__ws_arg_2, None);
             self.orders.append(Value::from(&parsed));
             let orderSymbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             if (orderSymbol.is_some()) {
@@ -1844,8 +1846,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         m.insert("accountId".to_string(), Value::from(accountId.as_deref()));
                     m
                 });
-                let __ws_arg_2 = self.extend(query, &[Value::Map(snapshotRequest)]);
-                let snapshot: crate::types::Balances = (match self.fetch_balance(__ws_arg_2).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+                let __ws_arg_3 = self.extend(query, &[Value::Map(snapshotRequest)]);
+                let snapshot: crate::types::Balances = (match self.fetch_balance(__ws_arg_3).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 // typed copy: the statically typed ports keep this.balance as a dictionary
                 let emptyBalance: indexmap::IndexMap<String, Value> = ({
                     let m = indexmap::IndexMap::new();

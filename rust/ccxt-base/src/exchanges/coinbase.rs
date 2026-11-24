@@ -1525,7 +1525,7 @@ impl crate::exchange_generated::ExchangeBase for Coinbase {
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_portfolio_details" => Value::Arr(self.parse_portfolio_details(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_position" => Value::Dict(self.parse_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_spot_market" => self.parse_spot_market(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "parse_spot_market" => self.parse_spot_market(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
                 "parse_ticker" => Value::Dict(self.parse_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_trade" => Value::Dict(self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_transaction" => Value::Dict(self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -3385,10 +3385,7 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_spot_market(&self, mut market: Value, feeTier: impl Into<crate::Value>) -> Value {
-        let mut feeTier: Value = feeTier.into();
-        let __feeTier_empty = indexmap::IndexMap::new();
-        let feeTier = feeTier.as_map().unwrap_or(&__feeTier_empty);
+    pub fn parse_spot_market(&self, mut market: Value, feeTier: &indexmap::IndexMap<String, Value>) -> Value {
         //
         //         {
         //             "product_id": "TONE-USD",
@@ -5167,7 +5164,7 @@ if _try_result.is_err() {
             request.insert("price".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
         }
         let preview: bool = self.safe_bool2_opt(&params, Value::Str("preview".into()), Value::Str("test".into()), &[Value::Bool(false)]).unwrap_or(false);
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if preview {
             let __ws_arg_38 = self.extend(&request, &[self.omit(&params, &["preview", "test"], &[])]);
             response = self.v3_private_post_brokerage_orders_edit_preview(&[&__ws_arg_38]).await;
@@ -5175,7 +5172,11 @@ if _try_result.is_err() {
             let __ws_arg_39 = self.extend(Value::Map(request), &[params]);
             response = self.v3_private_post_brokerage_orders_edit(&[&__ws_arg_39]).await;
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(response).as_ref(), Some(&market));
+        let __ws_arg_40 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&response]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_40).as_ref(), Some(&market));
         None
         }).await?))
     }
@@ -5211,8 +5212,8 @@ if _try_result.is_err() {
                 m.insert("order_id".to_string(), id);
             m
         });
-        let __ws_arg_40 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.v3_private_get_brokerage_orders_historical_order_id(&[&__ws_arg_40]).await.unwrap_or_default();
+        let __ws_arg_41 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.v3_private_get_brokerage_orders_historical_order_id(&[&__ws_arg_41]).await.unwrap_or_default();
         //
         //     {
         //         "order": {
@@ -5315,8 +5316,8 @@ if _try_result.is_err() {
             request.insert("end_date".into(), self.iso8601(until));
         }
         let paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit_t(&paramsPaginate, &["until"], &[]) } else { paramsPaginate });
-        let __ws_arg_41 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.v3_private_get_brokerage_orders_historical_batch(&[&__ws_arg_41]).await.unwrap_or_default();
+        let __ws_arg_42 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.v3_private_get_brokerage_orders_historical_batch(&[&__ws_arg_42]).await.unwrap_or_default();
         //
         //     {
         //         "orders": [
@@ -5364,11 +5365,11 @@ if _try_result.is_err() {
         let cursor: Option<String> = self.safe_string_k_opt(&response, "cursor", &[]);
         if (ordersLength > 0) && (cursor.is_some()) && (cursor.as_deref() != Some("")) {
             let lastIndex: i64 = (ordersLength - 1);
-            let __ws_arg_42 = self.safe_dict(&orders, lastIndex, &[Value::Map({
+            let __ws_arg_43 = self.safe_dict(&orders, lastIndex, &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]);
-            { let __be_tmp = self.extend(__ws_arg_42, &[Value::Map({
+            { let __be_tmp = self.extend(__ws_arg_43, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cursor".to_string(), cursor.map(Value::from).unwrap_or(Value::Null));
     m
@@ -5409,8 +5410,8 @@ if _try_result.is_err() {
             request.insert("end_date".into(), self.iso8601(until));
         }
         let paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&params, &["until"], &[]) } else { params }).into_dict();
-        let __ws_arg_43 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.v3_private_get_brokerage_orders_historical_batch(&[&__ws_arg_43]).await.unwrap_or_default();
+        let __ws_arg_44 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.v3_private_get_brokerage_orders_historical_batch(&[&__ws_arg_44]).await.unwrap_or_default();
         //
         //     {
         //         "orders": [
@@ -5458,11 +5459,11 @@ if _try_result.is_err() {
         let cursor: Option<String> = self.safe_string_k_opt(&response, "cursor", &[]);
         if (ordersLength > 0) && (cursor.is_some()) && (cursor.as_deref() != Some("")) {
             let lastIndex: i64 = (ordersLength - 1);
-            let __ws_arg_44 = self.safe_dict(&orders, lastIndex, &[Value::Map({
+            let __ws_arg_45 = self.safe_dict(&orders, lastIndex, &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]);
-            { let __be_tmp = self.extend(__ws_arg_44, &[Value::Map({
+            { let __be_tmp = self.extend(__ws_arg_45, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cursor".to_string(), cursor.map(Value::from).unwrap_or(Value::Null));
     m
@@ -5656,11 +5657,11 @@ if _try_result.is_err() {
         let usePrivate: bool = usePrivateparamsUsePrivateVariable.0 == Some(true);
         let paramsUsePrivate: crate::value::Dict = usePrivateparamsUsePrivateVariable.1;
         if usePrivate {
-            let __ws_arg_45 = self.extend(&request, &[&paramsUsePrivate]);
-            response = self.v3_private_get_brokerage_products_product_id_candles(&[&__ws_arg_45]).await;
+            let __ws_arg_46 = self.extend(&request, &[&paramsUsePrivate]);
+            response = self.v3_private_get_brokerage_products_product_id_candles(&[&__ws_arg_46]).await;
         }  else {
-            let __ws_arg_46 = self.extend(Value::Map(request), &[&paramsUsePrivate]);
-            response = self.v3_public_get_brokerage_market_products_product_id_candles(&[&__ws_arg_46]).await;
+            let __ws_arg_47 = self.extend(Value::Map(request), &[&paramsUsePrivate]);
+            response = self.v3_public_get_brokerage_market_products_product_id_candles(&[&__ws_arg_47]).await;
         }
         //
         //     {
@@ -5737,11 +5738,11 @@ if _try_result.is_err() {
         let usePrivate: bool = usePrivateparamsUsePrivateVariable.0 == Some(true);
         let paramsUsePrivate: crate::value::Dict = usePrivateparamsUsePrivateVariable.1;
         if usePrivate {
-            let __ws_arg_47 = self.extend(&request, &[&paramsUsePrivate]);
-            response = self.v3_private_get_brokerage_products_product_id_ticker(&[&__ws_arg_47]).await;
+            let __ws_arg_48 = self.extend(&request, &[&paramsUsePrivate]);
+            response = self.v3_private_get_brokerage_products_product_id_ticker(&[&__ws_arg_48]).await;
         }  else {
-            let __ws_arg_48 = self.extend(Value::Map(request), &[&paramsUsePrivate]);
-            response = self.v3_public_get_brokerage_market_products_product_id_ticker(&[&__ws_arg_48]).await;
+            let __ws_arg_49 = self.extend(Value::Map(request), &[&paramsUsePrivate]);
+            response = self.v3_public_get_brokerage_market_products_product_id_ticker(&[&__ws_arg_49]).await;
         }
         //
         //     {
@@ -5822,8 +5823,8 @@ if _try_result.is_err() {
             request.insert("end_sequence_timestamp".into(), self.iso8601(until));
         }
         let paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit_t(&paramsPaginate, &["until"], &[]) } else { paramsPaginate });
-        let __ws_arg_49 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.v3_private_get_brokerage_orders_historical_fills(&[&__ws_arg_49]).await.unwrap_or_default();
+        let __ws_arg_50 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.v3_private_get_brokerage_orders_historical_fills(&[&__ws_arg_50]).await.unwrap_or_default();
         //
         //     {
         //         "fills": [
@@ -5852,11 +5853,11 @@ if _try_result.is_err() {
         let cursor: Option<String> = self.safe_string_k_opt(&response, "cursor", &[]);
         if (tradesLength > 0) && (cursor.is_some()) && (cursor.as_deref() != Some("")) {
             let lastIndex: i64 = (tradesLength - 1);
-            let __ws_arg_50 = self.safe_dict(&trades, lastIndex, &[Value::Map({
+            let __ws_arg_51 = self.safe_dict(&trades, lastIndex, &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]);
-            { let __be_tmp = self.extend(__ws_arg_50, &[Value::Map({
+            { let __be_tmp = self.extend(__ws_arg_51, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cursor".to_string(), cursor.map(Value::from).unwrap_or(Value::Null));
     m
@@ -5908,11 +5909,11 @@ if _try_result.is_err() {
         let usePrivate: bool = usePrivateparamsUsePrivateVariable.0 == Some(true);
         let paramsUsePrivate: crate::value::Dict = usePrivateparamsUsePrivateVariable.1;
         if usePrivate {
-            let __ws_arg_51 = self.extend(&request, &[&paramsUsePrivate]);
-            response = self.v3_private_get_brokerage_product_book(&[&__ws_arg_51]).await;
+            let __ws_arg_52 = self.extend(&request, &[&paramsUsePrivate]);
+            response = self.v3_private_get_brokerage_product_book(&[&__ws_arg_52]).await;
         }  else {
-            let __ws_arg_52 = self.extend(Value::Map(request), &[&paramsUsePrivate]);
-            response = self.v3_public_get_brokerage_market_product_book(&[&__ws_arg_52]).await;
+            let __ws_arg_53 = self.extend(Value::Map(request), &[&paramsUsePrivate]);
+            response = self.v3_public_get_brokerage_market_product_book(&[&__ws_arg_53]).await;
         }
         //
         //     {
@@ -5970,8 +5971,8 @@ if _try_result.is_err() {
         if (symbolsNormalized.is_some()) {
             request.insert("product_ids".into(), self.market_ids(symbolsNormalized.as_deref()).map_or(Value::Null, Value::Arr));
         }
-        let __ws_arg_53 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.v3_private_get_brokerage_best_bid_ask(&[&__ws_arg_53]).await.unwrap_or_default();
+        let __ws_arg_54 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.v3_private_get_brokerage_best_bid_ask(&[&__ws_arg_54]).await.unwrap_or_default();
         //
         //     {
         //         "pricebooks": [
@@ -6060,8 +6061,8 @@ if _try_result.is_err() {
         if (tagWithdrawTag.is_some()) {
             request.insert("destination_tag".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_54 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.v2_private_post_accounts_account_id_transactions(&[&__ws_arg_54]).await.unwrap_or_default();
+        let __ws_arg_55 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.v2_private_post_accounts_account_id_transactions(&[&__ws_arg_55]).await.unwrap_or_default();
         //
         //     {
         //         "data": {
@@ -6144,8 +6145,8 @@ if _try_result.is_err() {
         let requestparamsValueVariable = self.prepare_account_request_with_currency_code(self.safe_string_k(&currency, "code", &[]).as_str(), None, &[&Value::Dict(params)]).await;
         let request: crate::value::Dict = requestparamsValueVariable.0;
         let paramsValue: crate::value::Dict = requestparamsValueVariable.1;
-        let __ws_arg_55 = self.extend(request, &[&paramsValue]);
-        let response: crate::value::Dict = self.v2_private_get_accounts_account_id_addresses(&[&__ws_arg_55]).await.unwrap_or_default();
+        let __ws_arg_56 = self.extend(request, &[&paramsValue]);
+        let response: crate::value::Dict = self.v2_private_get_accounts_account_id_addresses(&[&__ws_arg_56]).await.unwrap_or_default();
         //
         //    {
         //        pagination: {
@@ -6250,8 +6251,8 @@ if _try_result.is_err() {
             }
             request.insert("account_id".into(), foundAccountId.map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_56 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.v2_private_post_accounts_account_id_deposits(&[&__ws_arg_56]).await.unwrap_or_default();
+        let __ws_arg_57 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.v2_private_post_accounts_account_id_deposits(&[&__ws_arg_57]).await.unwrap_or_default();
         //
         //     {
         //         "data": {
@@ -6336,8 +6337,8 @@ if _try_result.is_err() {
             }
             request.insert("account_id".into(), foundAccountId.map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_57 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.v2_private_get_accounts_account_id_deposits_deposit_id(&[&__ws_arg_57]).await.unwrap_or_default();
+        let __ws_arg_58 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.v2_private_get_accounts_account_id_deposits_deposit_id(&[&__ws_arg_58]).await.unwrap_or_default();
         //
         //     {
         //         "data": {
@@ -6443,8 +6444,8 @@ if _try_result.is_err() {
                 m.insert("payment_method_id".to_string(), Value::from(id));
             m
         });
-        let __ws_arg_58 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.v3_private_get_brokerage_payment_methods_payment_method_id(&[&__ws_arg_58]).await.unwrap_or_default();
+        let __ws_arg_59 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.v3_private_get_brokerage_payment_methods_payment_method_id(&[&__ws_arg_59]).await.unwrap_or_default();
         //
         //     {
         //         "payment_method": {
@@ -6479,8 +6480,8 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_15: bool = true;
             while { if !__for_first_15 { i += 1; } __for_first_15 = false; i < (ids.len() as i64) } {
-            let __ws_arg_59 = self.parse_deposit_method_id(ids.get(i as usize).cloned().unwrap_or(Value::Null));
-            let id: crate::value::Dict = self.extend_t(Value::Dict(__ws_arg_59), &[&params]);
+            let __ws_arg_60 = self.parse_deposit_method_id(ids.get(i as usize).cloned().unwrap_or(Value::Null));
+            let id: crate::value::Dict = self.extend_t(Value::Dict(__ws_arg_60), &[&params]);
             result.push(Value::Dict(id));
         }
         }
@@ -6533,8 +6534,8 @@ if _try_result.is_err() {
                 m.insert("amount".to_string(), Value::from(self.number_to_string(amount)));
             m
         });
-        let __ws_arg_60 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.v3_private_post_brokerage_convert_quote(&[&__ws_arg_60]).await.unwrap_or_default();
+        let __ws_arg_61 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.v3_private_post_brokerage_convert_quote(&[&__ws_arg_61]).await.unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "trade");
         return <Self as crate::exchange::DerivedExchange>::parse_conversion(self, &data, None, None);
         Value::Null
@@ -6573,8 +6574,8 @@ if _try_result.is_err() {
                 m.insert("to_account".to_string(), toCode);
             m
         });
-        let __ws_arg_61 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.v3_private_post_brokerage_convert_trade_trade_id(&[&__ws_arg_61]).await.unwrap_or_default();
+        let __ws_arg_62 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.v3_private_post_brokerage_convert_trade_trade_id(&[&__ws_arg_62]).await.unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "trade");
         return <Self as crate::exchange::DerivedExchange>::parse_conversion(self, &data, None, None);
         Value::Null
@@ -6619,8 +6620,8 @@ if _try_result.is_err() {
                 m.insert("to_account".to_string(), toCode.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_62 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.v3_private_get_brokerage_convert_trade_trade_id(&[&__ws_arg_62]).await.unwrap_or_default();
+        let __ws_arg_63 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.v3_private_get_brokerage_convert_trade_trade_id(&[&__ws_arg_63]).await.unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "trade");
         return <Self as crate::exchange::DerivedExchange>::parse_conversion(self, &data, None, None);
         Value::Null
@@ -6665,8 +6666,8 @@ if _try_result.is_err() {
                 m.insert("target_portfolio_uuid".to_string(), toAccount);
             m
         });
-        let __ws_arg_63 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.v3_private_post_brokerage_portfolios_move_funds(&[&__ws_arg_63]).await.unwrap_or_default();
+        let __ws_arg_64 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.v3_private_post_brokerage_portfolios_move_funds(&[&__ws_arg_64]).await.unwrap_or_default();
         //
         //     {
         //         "source_portfolio_uuid": "8bfc20d7-f7c6-4422-bf07-8243ca4169fe",
@@ -6718,8 +6719,8 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " closePosition() requires a clientOrderId parameter")));
         }
         request.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-        let __ws_arg_64 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.v3_private_post_brokerage_orders_close_position(&[&__ws_arg_64]).await.unwrap_or_default();
+        let __ws_arg_65 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.v3_private_post_brokerage_orders_close_position(&[&__ws_arg_65]).await.unwrap_or_default();
         let order: crate::value::Dict = self.safe_dict_k_t(&response, "success_response");
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&order), None).map_or(Value::Null, Value::Dict);
         Value::Null
@@ -6804,8 +6805,8 @@ if _try_result.is_err() {
                 m.insert("product_id".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_65 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.v3_private_get_brokerage_cfm_positions_product_id(&[&__ws_arg_65]).await.unwrap_or_default();
+        let __ws_arg_66 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.v3_private_get_brokerage_cfm_positions_product_id(&[&__ws_arg_66]).await.unwrap_or_default();
         let position: crate::value::Dict = self.safe_dict_k_t(&response, "position");
         return <Self as crate::exchange::DerivedExchange>::parse_position(self, Some(&position), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
@@ -6865,8 +6866,8 @@ if _try_result.is_err() {
                 m.insert("product_type".to_string(), Value::from(productType));
             m
         });
-        let __ws_arg_66 = self.extend(Value::Map(request), &[&paramsMarketType]);
-        let response: crate::value::Dict = self.call_method_t("v3_private_get_brokerage_transaction_summary", &[&__ws_arg_66]).await;
+        let __ws_arg_67 = self.extend(Value::Map(request), &[&paramsMarketType]);
+        let response: crate::value::Dict = self.call_method_t("v3_private_get_brokerage_transaction_summary", &[&__ws_arg_67]).await;
         //
         // {
         //     total_volume: '0',
@@ -6943,8 +6944,8 @@ if _try_result.is_err() {
                 m.insert("portfolio_uuid".to_string(), Value::from(portfolioUuid));
             m
         });
-        let __ws_arg_67 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.v3_private_get_brokerage_portfolios_portfolio_uuid(&[&__ws_arg_67]).await.unwrap_or_default();
+        let __ws_arg_68 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.v3_private_get_brokerage_portfolios_portfolio_uuid(&[&__ws_arg_68]).await.unwrap_or_default();
         let result: crate::value::List = self.parse_portfolio_details(&response);
         return Value::Arr(result);
 
@@ -7193,8 +7194,8 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let request: crate::value::Dict = self.prepare_account_request(None, &[&Value::from(&params)]);
-        let __ws_arg_68 = self.extend(request, &[&params]);
-        let response: crate::value::Dict = self.v2_private_get_accounts_account_id_addresses(&[&__ws_arg_68]).await.unwrap_or_default();
+        let __ws_arg_69 = self.extend(request, &[&params]);
+        let response: crate::value::Dict = self.v2_private_get_accounts_account_id_addresses(&[&__ws_arg_69]).await.unwrap_or_default();
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_deposit_addresses(&data, &[codes, Value::Bool(false), Value::Map({
     let m = indexmap::IndexMap::new();

@@ -1617,7 +1617,7 @@ impl crate::exchange_generated::ExchangeBase for Kucoin {
                 "fetch_time" => crate::types::IntoRaw::into_raw(self.fetch_time(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_trading_fee" => crate::types::IntoRaw::into_raw(self.fetch_trading_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
-                "fetch_transaction_fee" => self.fetch_transaction_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "fetch_transaction_fee" => self.fetch_transaction_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
                 "fetch_transfers" => crate::types::IntoRaw::into_raw(self.fetch_transfers(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_uta_balance" => self.fetch_uta_balance(&args[..].iter().collect::<Vec<_>>()).await,
                 "fetch_uta_markets" => self.fetch_uta_markets(&args[..]).await,
@@ -5701,7 +5701,7 @@ impl Kucoin {
  * @param {object} params extra parameters specific to the exchange API endpoint
  * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
  */
-    pub async fn fetch_transaction_fee(&mut self, mut code: Value, optional_args: &[Value]) -> Value {
+    pub async fn fetch_transaction_fee(&mut self, code: &str, optional_args: &[Value]) -> Value {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -5709,7 +5709,7 @@ impl Kucoin {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut currency: crate::types::Currency = self.currency(code.as_str());
+        let mut currency: crate::types::Currency = self.currency(Some(code));
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
@@ -5731,7 +5731,7 @@ impl Kucoin {
             let m = indexmap::IndexMap::new();
             m
         });
-        withdrawFees.insert(crate::runtime::stringify_param(&code), self.safe_number_k(&data, "withdrawMinFee", &[]));
+        withdrawFees.insert(crate::runtime::stringify_param(&Value::from(code)), self.safe_number_k(&data, "withdrawMinFee", &[]));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
@@ -7467,7 +7467,11 @@ impl Kucoin {
         //    }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&data), Some(&market)).map_or(Value::Null, Value::Dict);
+        let __ws_arg_28 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&data]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_28).as_ref(), Some(&market)).map_or(Value::Null, Value::Dict);
 
     Value::Null
 }
@@ -7642,7 +7646,11 @@ impl Kucoin {
         //    }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&data), Some(&market)).map_or(Value::Null, Value::Dict);
+        let __ws_arg_29 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&data]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_29).as_ref(), Some(&market)).map_or(Value::Null, Value::Dict);
 
     Value::Null
 }
@@ -7855,7 +7863,11 @@ impl Kucoin {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&data), Some(&market)).map_or(Value::Null, Value::Dict);
+        let __ws_arg_30 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&data]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_30).as_ref(), Some(&market)).map_or(Value::Null, Value::Dict);
 
     Value::Null
 }
@@ -8044,8 +8056,8 @@ impl Kucoin {
                 m.insert("cost".to_string(), Value::from(cost));
             m
         });
-        let __ws_arg_28 = self.extend(Value::Map(req), &[&params]);
-        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", side.as_str().unwrap_or_default(), cost, None, __ws_arg_28).await);
+        let __ws_arg_31 = self.extend(Value::Map(req), &[&params]);
+        return crate::types::IntoRaw::into_raw(self.create_order(symbol.as_str().unwrap_or_default(), "market", side.as_str().unwrap_or_default(), cost, None, __ws_arg_31).await);
         Value::Null
         }).await?))
     }
@@ -8244,14 +8256,14 @@ impl Kucoin {
         let paramsSync: crate::value::Dict = useSyncparamsSyncVariable.1;
         let mut response: Option<crate::value::Dict> = None;
         if useSync {
-            let __ws_arg_29 = self.extend(&request, &[&paramsSync]);
-            response = self.private_post_hf_orders_multi_sync(&[&__ws_arg_29]).await;
+            let __ws_arg_32 = self.extend(&request, &[&paramsSync]);
+            response = self.private_post_hf_orders_multi_sync(&[&__ws_arg_32]).await;
         }  else if (hf) {
-            let __ws_arg_30 = self.extend(&request, &[&paramsSync]);
-            response = self.private_post_hf_orders_multi(&[&__ws_arg_30]).await;
+            let __ws_arg_33 = self.extend(&request, &[&paramsSync]);
+            response = self.private_post_hf_orders_multi(&[&__ws_arg_33]).await;
         }  else {
-            let __ws_arg_31 = self.extend(Value::Map(request), &[&paramsSync]);
-            response = self.private_post_orders_multi(&[&__ws_arg_31]).await;
+            let __ws_arg_34 = self.extend(Value::Map(request), &[&paramsSync]);
+            response = self.private_post_orders_multi(&[&__ws_arg_34]).await;
         }
         //
         // {
@@ -8412,8 +8424,8 @@ impl Kucoin {
         if (price.is_some()) {
             request.insert("newPrice".into(), Value::from(self.price_to_precision(symbol.as_str(), price)));
         }
-        let __ws_arg_32 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_post_hf_orders_alter(&[&__ws_arg_32]).await.unwrap_or_default();
+        let __ws_arg_35 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_post_hf_orders_alter(&[&__ws_arg_35]).await.unwrap_or_default();
         //
         // {
         //     "code":"200000",
@@ -8423,7 +8435,11 @@ impl Kucoin {
         // }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&data), Some(&market));
+        let __ws_arg_36 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&data]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_36).as_ref(), Some(&market));
         None
         }).await?))
     }
@@ -8562,8 +8578,8 @@ impl Kucoin {
             request.insert("clientOid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             if trigger {
                 if isMarginOrder {
-                    let __ws_arg_33 = self.extend(&request, &[&paramsOmitted]);
-                    response = self.private_delete_hf_margin_stop_order_cancel_by_client_oid(&[&__ws_arg_33]).await;
+                    let __ws_arg_37 = self.extend(&request, &[&paramsOmitted]);
+                    response = self.private_delete_hf_margin_stop_order_cancel_by_client_oid(&[&__ws_arg_37]).await;
                     let mut data: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "data");
                     let orderIds: crate::value::List = self.safe_list_k_t(&data, "cancelledOrderIds");
                     let orderId: Option<String> = self.safe_string_opt(&orderIds, Value::Int(0), &[]);
@@ -8583,21 +8599,21 @@ impl Kucoin {
                     //        }
                     //    }
                     //
-                    let __ws_arg_34 = self.extend(&request, &[&paramsOmitted]);
-                    response = self.private_delete_stop_order_cancel_order_by_client_oid(&[&__ws_arg_34]).await;
+                    let __ws_arg_38 = self.extend(&request, &[&paramsOmitted]);
+                    response = self.private_delete_stop_order_cancel_order_by_client_oid(&[&__ws_arg_38]).await;
                 }
             }  else if isMarginOrder {
-                let __ws_arg_35 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_delete_hf_margin_orders_client_order_client_oid(&[&__ws_arg_35]).await;
+                let __ws_arg_39 = self.extend(&request, &[&paramsOmitted]);
+                response = self.private_delete_hf_margin_orders_client_order_client_oid(&[&__ws_arg_39]).await;
             }  else if useSync {
-                let __ws_arg_36 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_delete_hf_orders_sync_client_order_client_oid(&[&__ws_arg_36]).await;
+                let __ws_arg_40 = self.extend(&request, &[&paramsOmitted]);
+                response = self.private_delete_hf_orders_sync_client_order_client_oid(&[&__ws_arg_40]).await;
             }  else if (hf) {
-                let __ws_arg_37 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_delete_hf_orders_client_order_client_oid(&[&__ws_arg_37]).await;
+                let __ws_arg_41 = self.extend(&request, &[&paramsOmitted]);
+                response = self.private_delete_hf_orders_client_order_client_oid(&[&__ws_arg_41]).await;
             }  else {
-                let __ws_arg_38 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_delete_order_client_order_client_oid(&[&__ws_arg_38]).await;
+                let __ws_arg_42 = self.extend(&request, &[&paramsOmitted]);
+                response = self.private_delete_order_client_order_client_oid(&[&__ws_arg_42]).await;
             }
             return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(self.safe_dict_k(&response, "data", &[Value::Map({
     let m = indexmap::IndexMap::new();
@@ -8607,8 +8623,8 @@ impl Kucoin {
             request.insert("orderId".into(), id);
             if trigger {
                 if isMarginOrder {
-                    let __ws_arg_39 = self.extend(&request, &[&paramsOmitted]);
-                    response = self.private_delete_hf_margin_stop_order_cancel_by_id(&[&__ws_arg_39]).await;
+                    let __ws_arg_43 = self.extend(&request, &[&paramsOmitted]);
+                    response = self.private_delete_hf_margin_stop_order_cancel_by_id(&[&__ws_arg_43]).await;
                 }  else {
                     //
                     //    {
@@ -8616,25 +8632,25 @@ impl Kucoin {
                     //        data: { cancelledOrderIds: [ 'vs8lgpiuaco91qk8003vebu9' ] }
                     //    }
                     //
-                    let __ws_arg_40 = self.extend(&request, &[&paramsOmitted]);
-                    response = self.private_delete_stop_order_order_id(&[&__ws_arg_40]).await;
+                    let __ws_arg_44 = self.extend(&request, &[&paramsOmitted]);
+                    response = self.private_delete_stop_order_order_id(&[&__ws_arg_44]).await;
                 }
             }  else if isMarginOrder {
-                let __ws_arg_41 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_delete_hf_margin_orders_order_id(&[&__ws_arg_41]).await;
+                let __ws_arg_45 = self.extend(&request, &[&paramsOmitted]);
+                response = self.private_delete_hf_margin_orders_order_id(&[&__ws_arg_45]).await;
             }  else if useSync {
-                let __ws_arg_42 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_delete_hf_orders_sync_order_id(&[&__ws_arg_42]).await;
+                let __ws_arg_46 = self.extend(&request, &[&paramsOmitted]);
+                response = self.private_delete_hf_orders_sync_order_id(&[&__ws_arg_46]).await;
             }  else if (hf) {
-                let __ws_arg_43 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_delete_hf_orders_order_id(&[&__ws_arg_43]).await;
+                let __ws_arg_47 = self.extend(&request, &[&paramsOmitted]);
+                response = self.private_delete_hf_orders_order_id(&[&__ws_arg_47]).await;
                 return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(self.safe_dict_k(&response, "data", &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })])).as_ref(), None).map_or(Value::Null, Value::Dict);
             }  else {
-                let __ws_arg_44 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.private_delete_orders_order_id(&[&__ws_arg_44]).await;
+                let __ws_arg_48 = self.extend(Value::Map(request), &[&paramsOmitted]);
+                response = self.private_delete_orders_order_id(&[&__ws_arg_48]).await;
             }
             let mut data: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "data");
             let mut orderId: Value = self.safe_string_k(&data, "orderId", &[]);
@@ -8689,12 +8705,12 @@ impl Kucoin {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
             request.insert("clientOid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_45 = self.extend(&request, &[&paramsOmitted]);
-            response = self.futures_private_delete_orders_client_order_client_oid(&[&__ws_arg_45]).await;
+            let __ws_arg_49 = self.extend(&request, &[&paramsOmitted]);
+            response = self.futures_private_delete_orders_client_order_client_oid(&[&__ws_arg_49]).await;
         }  else {
             request.insert("orderId".into(), id);
-            let __ws_arg_46 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.futures_private_delete_orders_order_id(&[&__ws_arg_46]).await;
+            let __ws_arg_50 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            response = self.futures_private_delete_orders_order_id(&[&__ws_arg_50]).await;
         }
         return Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -8756,8 +8772,8 @@ impl Kucoin {
         let isUnified: bool = accountMode.as_deref() == Some("unified");
         let tradeType: Option<String> = self.handle_trade_type(&[&Value::Bool((market).contract), &marginMode.map(Value::from).unwrap_or(Value::Null), &Value::Bool(isUnified), &Value::from(&paramsOmitted)]);
         request.insert("tradeType".into(), tradeType.map(Value::from).unwrap_or(Value::Null));
-        let __ws_arg_47 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.uta_private_post_account_mode_order_cancel(&[&__ws_arg_47]).await.unwrap_or_default();
+        let __ws_arg_51 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.uta_private_post_account_mode_order_cancel(&[&__ws_arg_51]).await.unwrap_or_default();
         //
         //     {
         //         "code": "200000",
@@ -8770,7 +8786,11 @@ impl Kucoin {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&data), Some(&market)).map_or(Value::Null, Value::Dict);
+        let __ws_arg_52 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&data]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_52).as_ref(), Some(&market)).map_or(Value::Null, Value::Dict);
 
     Value::Null
 }
@@ -8891,26 +8911,26 @@ impl Kucoin {
         let mut response: Option<crate::value::Dict> = None;
         if trigger {
             if isMarginOrders {
-                let __ws_arg_48 = self.extend(&request, &[&query]);
-                response = self.private_delete_hf_margin_stop_order_cancel(&[&__ws_arg_48]).await;
+                let __ws_arg_53 = self.extend(&request, &[&query]);
+                response = self.private_delete_hf_margin_stop_order_cancel(&[&__ws_arg_53]).await;
             }  else {
-                let __ws_arg_49 = self.extend(&request, &[&query]);
-                response = self.private_delete_stop_order_cancel(&[&__ws_arg_49]).await;
+                let __ws_arg_54 = self.extend(&request, &[&query]);
+                response = self.private_delete_stop_order_cancel(&[&__ws_arg_54]).await;
             }
         }  else if isMarginOrders {
-            let __ws_arg_50 = self.extend(&request, &[&query]);
-            response = self.private_delete_hf_margin_orders(&[&__ws_arg_50]).await;
+            let __ws_arg_55 = self.extend(&request, &[&query]);
+            response = self.private_delete_hf_margin_orders(&[&__ws_arg_55]).await;
         }  else if (hf) {
             if (symbol == Value::Null) {
-                let __ws_arg_51 = self.extend(&request, &[&query]);
-                response = self.private_delete_hf_orders_cancel_all(&[&__ws_arg_51]).await;
+                let __ws_arg_56 = self.extend(&request, &[&query]);
+                response = self.private_delete_hf_orders_cancel_all(&[&__ws_arg_56]).await;
             }  else {
-                let __ws_arg_52 = self.extend(&request, &[&query]);
-                response = self.private_delete_hf_orders(&[&__ws_arg_52]).await;
+                let __ws_arg_57 = self.extend(&request, &[&query]);
+                response = self.private_delete_hf_orders(&[&__ws_arg_57]).await;
             }
         }  else {
-            let __ws_arg_53 = self.extend(Value::Map(request), &[&query]);
-            response = self.call_method_o("private_delete_orders", &[&__ws_arg_53]).await;
+            let __ws_arg_58 = self.extend(Value::Map(request), &[&query]);
+            response = self.call_method_o("private_delete_orders", &[&__ws_arg_58]).await;
         }
         return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -8954,11 +8974,11 @@ impl Kucoin {
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["stop", "trigger"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if (trigger != Value::Null) && (!(match &(trigger) { Value::Bool(__x) => *__x == false, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 0.0) })) {
-            let __ws_arg_54 = self.extend(&request, &[&paramsOmitted]);
-            response = self.futures_private_delete_stop_orders(&[&__ws_arg_54]).await;
+            let __ws_arg_59 = self.extend(&request, &[&paramsOmitted]);
+            response = self.futures_private_delete_stop_orders(&[&__ws_arg_59]).await;
         }  else {
-            let __ws_arg_55 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.futures_private_delete_orders(&[&__ws_arg_55]).await;
+            let __ws_arg_60 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            response = self.futures_private_delete_orders(&[&__ws_arg_60]).await;
         }
         //
         //   {
@@ -9024,8 +9044,8 @@ impl Kucoin {
                 m.insert("orderFilter".to_string(), Value::from(orderFilter));
             m
         });
-        let __ws_arg_56 = self.extend(Value::Map(request), &[&paramsTrigger]);
-        let response: crate::value::Dict = self.uta_private_post_account_mode_order_cancel_all(&[&__ws_arg_56]).await.unwrap_or_default();
+        let __ws_arg_61 = self.extend(Value::Map(request), &[&paramsTrigger]);
+        let response: crate::value::Dict = self.uta_private_post_account_mode_order_cancel_all(&[&__ws_arg_61]).await.unwrap_or_default();
         //
         //     {
         //         "code": "200000",
@@ -9189,8 +9209,8 @@ impl Kucoin {
         let mut response: Option<crate::value::Dict> = None;
         if isMarginOrder && (lowercaseStatus.as_str() == Some("active")) && (!trigger) {
             // hf margin open non-trigger orders require only symbol and tradeType params
-            let __ws_arg_57 = self.extend(&request, &[&query]);
-            response = self.private_get_hf_margin_orders_active(&[&__ws_arg_57]).await;
+            let __ws_arg_62 = self.extend(&request, &[&query]);
+            response = self.private_get_hf_margin_orders_active(&[&__ws_arg_62]).await;
         }  else {
             if !isMarginOrder {
                 request.insert("status".into(), lowercaseStatus.clone());
@@ -9210,26 +9230,26 @@ impl Kucoin {
             }
             if trigger {
                 if isMarginOrder {
-                    let __ws_arg_58 = self.extend(&request, &[&query]);
-                    response = self.private_get_hf_margin_stop_orders(&[&__ws_arg_58]).await;
+                    let __ws_arg_63 = self.extend(&request, &[&query]);
+                    response = self.private_get_hf_margin_stop_orders(&[&__ws_arg_63]).await;
                 }  else {
-                    let __ws_arg_59 = self.extend(&request, &[&query]);
-                    response = self.private_get_stop_order(&[&__ws_arg_59]).await;
+                    let __ws_arg_64 = self.extend(&request, &[&query]);
+                    response = self.private_get_stop_order(&[&__ws_arg_64]).await;
                 }
             }  else if isMarginOrder {
-                let __ws_arg_60 = self.extend(&request, &[&query]);
-                response = self.private_get_hf_margin_orders_done(&[&__ws_arg_60]).await;
+                let __ws_arg_65 = self.extend(&request, &[&query]);
+                response = self.private_get_hf_margin_orders_done(&[&__ws_arg_65]).await;
             }  else if (hf) {
                 if (lowercaseStatus.as_str() == Some("active")) {
-                    let __ws_arg_61 = self.extend(&request, &[&query]);
-                    response = self.private_get_hf_orders_active(&[&__ws_arg_61]).await;
+                    let __ws_arg_66 = self.extend(&request, &[&query]);
+                    response = self.private_get_hf_orders_active(&[&__ws_arg_66]).await;
                 }  else if (lowercaseStatus.as_str() == Some("done")) {
-                    let __ws_arg_62 = self.extend(&request, &[&query]);
-                    response = self.private_get_hf_orders_done(&[&__ws_arg_62]).await;
+                    let __ws_arg_67 = self.extend(&request, &[&query]);
+                    response = self.private_get_hf_orders_done(&[&__ws_arg_67]).await;
                 }
             }  else {
-                let __ws_arg_63 = self.extend(Value::Map(request), &[&query]);
-                response = self.call_method_o("private_get_orders", &[&__ws_arg_63]).await;
+                let __ws_arg_68 = self.extend(Value::Map(request), &[&query]);
+                response = self.call_method_o("private_get_orders", &[&__ws_arg_68]).await;
             }
         }
         let listData: Option<crate::value::List> = self.safe_list_k_o(&response, "data");
@@ -9328,11 +9348,11 @@ impl Kucoin {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (trigger == Some(true)) {
-            let __ws_arg_64 = self.extend(&request, &[&paramsOmitted]);
-            response = self.futures_private_get_stop_orders(&[&__ws_arg_64]).await;
+            let __ws_arg_69 = self.extend(&request, &[&paramsOmitted]);
+            response = self.futures_private_get_stop_orders(&[&__ws_arg_69]).await;
         }  else {
-            let __ws_arg_65 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.futures_private_get_orders(&[&__ws_arg_65]).await;
+            let __ws_arg_70 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            response = self.futures_private_get_orders(&[&__ws_arg_70]).await;
         }
         //
         //     {
@@ -9523,11 +9543,11 @@ impl Kucoin {
             //         }
             //     }
             //
-            let __ws_arg_66 = self.extend(&requestUntil, &[&paramsUntil]);
-            response = self.uta_private_get_account_mode_order_open_list(&[&__ws_arg_66]).await;
+            let __ws_arg_71 = self.extend(&requestUntil, &[&paramsUntil]);
+            response = self.uta_private_get_account_mode_order_open_list(&[&__ws_arg_71]).await;
         }  else {
-            let __ws_arg_67 = self.extend(requestUntil, &[&paramsUntil]);
-            response = self.uta_private_get_account_mode_order_history(&[&__ws_arg_67]).await;
+            let __ws_arg_72 = self.extend(requestUntil, &[&paramsUntil]);
+            response = self.uta_private_get_account_mode_order_history(&[&__ws_arg_72]).await;
         }
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let orders: crate::value::List = self.safe_list_k_t(&data, "items");
@@ -9769,24 +9789,24 @@ impl Kucoin {
             request.insert("clientOid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             if trigger {
                 if isMarginOrder {
-                    let __ws_arg_68 = self.extend(&request, &[&paramsOmitted]);
-                    response = self.private_get_hf_margin_stop_order_client_oid(&[&__ws_arg_68]).await;
+                    let __ws_arg_73 = self.extend(&request, &[&paramsOmitted]);
+                    response = self.private_get_hf_margin_stop_order_client_oid(&[&__ws_arg_73]).await;
                 }  else {
                     if (symbol.is_some()) {
                         request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
                     }
-                    let __ws_arg_69 = self.extend(&request, &[&paramsOmitted]);
-                    response = self.private_get_stop_order_query_order_by_client_oid(&[&__ws_arg_69]).await;
+                    let __ws_arg_74 = self.extend(&request, &[&paramsOmitted]);
+                    response = self.private_get_stop_order_query_order_by_client_oid(&[&__ws_arg_74]).await;
                 }
             }  else if isMarginOrder {
-                let __ws_arg_70 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_get_hf_margin_orders_client_order_client_oid(&[&__ws_arg_70]).await;
+                let __ws_arg_75 = self.extend(&request, &[&paramsOmitted]);
+                response = self.private_get_hf_margin_orders_client_order_client_oid(&[&__ws_arg_75]).await;
             }  else if (hf) {
-                let __ws_arg_71 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_get_hf_orders_client_order_client_oid(&[&__ws_arg_71]).await;
+                let __ws_arg_76 = self.extend(&request, &[&paramsOmitted]);
+                response = self.private_get_hf_orders_client_order_client_oid(&[&__ws_arg_76]).await;
             }  else {
-                let __ws_arg_72 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_get_order_client_order_client_oid(&[&__ws_arg_72]).await;
+                let __ws_arg_77 = self.extend(&request, &[&paramsOmitted]);
+                response = self.private_get_order_client_order_client_oid(&[&__ws_arg_77]).await;
             }
         }  else {
             // a special case for undefined ids
@@ -9798,21 +9818,21 @@ impl Kucoin {
             request.insert("orderId".into(), Value::from(id));
             if trigger {
                 if isMarginOrder {
-                    let __ws_arg_73 = self.extend(&request, &[&paramsOmitted]);
-                    response = self.private_get_hf_margin_stop_order_order_id(&[&__ws_arg_73]).await;
+                    let __ws_arg_78 = self.extend(&request, &[&paramsOmitted]);
+                    response = self.private_get_hf_margin_stop_order_order_id(&[&__ws_arg_78]).await;
                 }  else {
-                    let __ws_arg_74 = self.extend(&request, &[&paramsOmitted]);
-                    response = self.private_get_stop_order_order_id(&[&__ws_arg_74]).await;
+                    let __ws_arg_79 = self.extend(&request, &[&paramsOmitted]);
+                    response = self.private_get_stop_order_order_id(&[&__ws_arg_79]).await;
                 }
             }  else if isMarginOrder {
-                let __ws_arg_75 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_get_hf_margin_orders_order_id(&[&__ws_arg_75]).await;
+                let __ws_arg_80 = self.extend(&request, &[&paramsOmitted]);
+                response = self.private_get_hf_margin_orders_order_id(&[&__ws_arg_80]).await;
             }  else if (hf) {
-                let __ws_arg_76 = self.extend(&request, &[&paramsOmitted]);
-                response = self.private_get_hf_orders_order_id(&[&__ws_arg_76]).await;
+                let __ws_arg_81 = self.extend(&request, &[&paramsOmitted]);
+                response = self.private_get_hf_orders_order_id(&[&__ws_arg_81]).await;
             }  else {
-                let __ws_arg_77 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.private_get_orders_order_id(&[&__ws_arg_77]).await;
+                let __ws_arg_82 = self.extend(Value::Map(request), &[&paramsOmitted]);
+                response = self.private_get_orders_order_id(&[&__ws_arg_82]).await;
             }
         }
         let mut responseData: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "data");
@@ -9822,7 +9842,11 @@ impl Kucoin {
     m
 }));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, responseData.as_ref(), market.as_ref()).map_or(Value::Null, Value::Dict);
+        let __ws_arg_83 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&responseData]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_83).as_ref(), market.as_ref()).map_or(Value::Null, Value::Dict);
 
     Value::Null
 }
@@ -9854,15 +9878,15 @@ impl Kucoin {
         let clientOrderId: Option<String> = self.safe_string2_opt(&params, Value::Str("clientOid".into()), Value::Str("clientOrderId".into()), &[]);
         if (clientOrderId.is_some()) {
             request.insert("clientOid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-            let __ws_arg_78 = self.extend(&request, &[self.omit(&params, &["clientOid", "clientOrderId"], &[])]);
-            response = self.futures_private_get_orders_by_client_oid(&[&__ws_arg_78]).await;
+            let __ws_arg_84 = self.extend(&request, &[self.omit(&params, &["clientOid", "clientOrderId"], &[])]);
+            response = self.futures_private_get_orders_by_client_oid(&[&__ws_arg_84]).await;
         }  else {
             if (id.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchOrder() requires an order id argument or clientOrderId in params")));
             }
             request.insert("orderId".into(), Value::from(id));
-            let __ws_arg_79 = self.extend(Value::Map(request), &[params]);
-            response = self.futures_private_get_orders_order_id(&[&__ws_arg_79]).await;
+            let __ws_arg_85 = self.extend(Value::Map(request), &[params]);
+            response = self.futures_private_get_orders_order_id(&[&__ws_arg_85]).await;
         }
         //
         //     {
@@ -9909,7 +9933,11 @@ impl Kucoin {
         //
         let mut market: Option<crate::types::Market> = (if (symbol.is_some()) { Some(match self.market(symbol.unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) }) } else { None });
         let responseData: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&responseData), market.as_ref()).map_or(Value::Null, Value::Dict);
+        let __ws_arg_86 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&responseData]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_86).as_ref(), market.as_ref()).map_or(Value::Null, Value::Dict);
 
     Value::Null
 }
@@ -9962,8 +9990,8 @@ impl Kucoin {
         let isUnified: bool = accountMode.as_deref() == Some("unified");
         let tradeType: Option<String> = self.handle_trade_type(&[&Value::Bool((market).contract), &marginMode.map(Value::from).unwrap_or(Value::Null), &Value::Bool(isUnified), &paramsOmitted]);
         request.insert("tradeType".into(), tradeType.map(Value::from).unwrap_or(Value::Null));
-        let __ws_arg_80 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let response: crate::value::Dict = self.uta_private_get_account_mode_order_detail(&[&__ws_arg_80]).await.unwrap_or_default();
+        let __ws_arg_87 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let response: crate::value::Dict = self.uta_private_get_account_mode_order_detail(&[&__ws_arg_87]).await.unwrap_or_default();
         //
         //     {
         //         "code": "200000",
@@ -10006,7 +10034,11 @@ impl Kucoin {
         //     }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&data), Some(&market)).map_or(Value::Null, Value::Dict);
+        let __ws_arg_88 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&data]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_88).as_ref(), Some(&market)).map_or(Value::Null, Value::Dict);
 
     Value::Null
 }
@@ -10541,8 +10573,8 @@ impl Kucoin {
                 m.insert("orderId".to_string(), id);
             m
         });
-        let __ws_arg_81 = self.extend(Value::Map(request), &[&params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_my_trades(symbol.as_str(), since, limit, __ws_arg_81).await);
+        let __ws_arg_89 = self.extend(Value::Map(request), &[&params]);
+        return crate::types::IntoRaw::into_raw(self.fetch_my_trades(symbol.as_str(), since, limit, __ws_arg_89).await);
         Value::Null
         }).await?))
     }
@@ -10670,11 +10702,11 @@ impl Kucoin {
                 std::sync::Arc::make_mut(&mut request).insert("startAt".into(), Value::from(since));
             }
             if isMargin {
-                let __ws_arg_82 = self.extend(&request, &[&paramsRequest]);
-                response = self.private_get_hf_margin_fills(&[&__ws_arg_82]).await;
+                let __ws_arg_90 = self.extend(&request, &[&paramsRequest]);
+                response = self.private_get_hf_margin_fills(&[&__ws_arg_90]).await;
             }  else {
-                let __ws_arg_83 = self.extend(&request, &[&paramsRequest]);
-                response = self.private_get_hf_fills(&[&__ws_arg_83]).await;
+                let __ws_arg_91 = self.extend(&request, &[&paramsRequest]);
+                response = self.private_get_hf_fills(&[&__ws_arg_91]).await;
             }
         }  else if (method.as_deref() == Some("privateGetFills")) || (method.as_deref() == Some("private_get_fills")) {
             // does not return trades earlier than 2019-02-18T00:00:00Z
@@ -10682,15 +10714,15 @@ impl Kucoin {
                 // only returns trades up to one week after the since param
                 std::sync::Arc::make_mut(&mut request).insert("startAt".into(), Value::from(since));
             }
-            let __ws_arg_84 = self.extend(&request, &[&paramsRequest]);
-            response = self.call_method_o("private_get_fills", &[&__ws_arg_84]).await;
+            let __ws_arg_92 = self.extend(&request, &[&paramsRequest]);
+            response = self.call_method_o("private_get_fills", &[&__ws_arg_92]).await;
         }  else if (method.as_deref() == Some("privateGetLimitFills")) || (method.as_deref() == Some("private_get_limit_fills")) {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             // takes no params
             // only returns first 1000 trades (not only "in the last 24 hours" as stated in the docs)
             parseResponseData = true;
-            let __ws_arg_85 = self.extend(request, &[&paramsRequest]);
-            response = self.call_method_o("private_get_limit_fills", &[&__ws_arg_85]).await;
+            let __ws_arg_93 = self.extend(request, &[&paramsRequest]);
+            response = self.call_method_o("private_get_limit_fills", &[&__ws_arg_93]).await;
         }  else {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " fetchMyTradesMethod() invalid method")));
         }
@@ -10800,8 +10832,8 @@ impl Kucoin {
         let (__until0, __until1) = self.handle_until_option(Value::Str("endAt".into()), Value::Map(request), &paramsPaginate, &[]);
         let requestUntil: crate::value::Dict = __until0;
         let paramsUntil: crate::value::Dict = __until1;
-        let __ws_arg_86 = self.extend(requestUntil, &[&paramsUntil]);
-        let response: crate::value::Dict = self.futures_private_get_fills(&[&__ws_arg_86]).await.unwrap_or_default();
+        let __ws_arg_94 = self.extend(requestUntil, &[&paramsUntil]);
+        let response: crate::value::Dict = self.futures_private_get_fills(&[&__ws_arg_94]).await.unwrap_or_default();
         //
         //    {
         //        "code": "200000",
@@ -10908,8 +10940,8 @@ impl Kucoin {
             std::sync::Arc::make_mut(&mut request).insert("pageSize".into(), Value::from(limit));
         }
         { let (__until0, __until1) = self.handle_until_option(Value::Str("endAt".into()), Value::Dict(request), &paramsOmitted, &[]); request = __until0; paramsOmitted = __until1; }
-        let __ws_arg_87 = self.extend(request, &[&paramsOmitted]);
-        let response: crate::value::Dict = self.uta_private_get_account_mode_order_execution(&[&__ws_arg_87]).await.unwrap_or_default();
+        let __ws_arg_95 = self.extend(request, &[&paramsOmitted]);
+        let response: crate::value::Dict = self.uta_private_get_account_mode_order_execution(&[&__ws_arg_95]).await.unwrap_or_default();
         //
         //     {
         //         "code": "200000",
@@ -11006,8 +11038,8 @@ impl Kucoin {
             }  else {
                 request.insert("tradeType".into(), Value::Str("FUTURES".into()));
             }
-            let __ws_arg_88 = self.extend(&request, &[&paramsMarketType]);
-            response = self.uta_get_market_trade(&[&__ws_arg_88]).await;
+            let __ws_arg_96 = self.extend(&request, &[&paramsMarketType]);
+            response = self.uta_get_market_trade(&[&__ws_arg_96]).await;
             //
             //     {
             //         "code": "200000",
@@ -11029,8 +11061,8 @@ impl Kucoin {
             let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
             trades = self.safe_list_k_or_o(&data, "list", Value::from(vec![]));
         }  else if (type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin")) {
-            let __ws_arg_89 = self.extend(&request, &[&paramsMarketType]);
-            response = self.public_get_market_histories(&[&__ws_arg_89]).await;
+            let __ws_arg_97 = self.extend(&request, &[&paramsMarketType]);
+            response = self.public_get_market_histories(&[&__ws_arg_97]).await;
             //
             //     {
             //         "code": "200000",
@@ -11047,8 +11079,8 @@ impl Kucoin {
             //
             trades = self.safe_list_k_or_o(&response, "data", Value::from(vec![]));
         }  else {
-            let __ws_arg_90 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            response = self.futures_public_get_trade_history(&[&__ws_arg_90]).await;
+            let __ws_arg_98 = self.extend(Value::Map(request), &[&paramsMarketType]);
+            response = self.futures_public_get_trade_history(&[&__ws_arg_98]).await;
             //
             //      {
             //          "code": "200000",
@@ -11460,8 +11492,8 @@ impl Kucoin {
                 request.insert("tradeType".into(), Value::Str("FUTURES".into()));
             }
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
-            let __ws_arg_91 = self.extend(&request, &[&paramsUta]);
-            response = self.uta_private_get_user_fee_rate(&[&__ws_arg_91]).await;
+            let __ws_arg_99 = self.extend(&request, &[&paramsUta]);
+            response = self.uta_private_get_user_fee_rate(&[&__ws_arg_99]).await;
             //
             //     {
             //         "code": "200000",
@@ -11482,8 +11514,8 @@ impl Kucoin {
             entry = self.safe_dict_o(&dataList, Value::Int(0));
         }  else if (market).spot {
             request.insert("symbols".into(), Value::from((market).id.as_deref()));
-            let __ws_arg_92 = self.extend(&request, &[&paramsUta]);
-            response = self.private_get_trade_fees(&[&__ws_arg_92]).await;
+            let __ws_arg_100 = self.extend(&request, &[&paramsUta]);
+            response = self.private_get_trade_fees(&[&__ws_arg_100]).await;
             //
             //     {
             //         "code": "200000",
@@ -11500,8 +11532,8 @@ impl Kucoin {
             entry = self.safe_dict_o(&data, Value::Int(0));
         }  else {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
-            let __ws_arg_93 = self.extend(Value::Map(request), &[&paramsUta]);
-            response = self.futures_private_get_trade_fees(&[&__ws_arg_93]).await;
+            let __ws_arg_101 = self.extend(Value::Map(request), &[&paramsUta]);
+            response = self.futures_private_get_trade_fees(&[&__ws_arg_101]).await;
             //
             //     {
             //         "code": "200000",
@@ -11592,8 +11624,8 @@ impl Kucoin {
         if includeFee {
             request.insert("feeDeductType".into(), Value::Str("INTERNAL".into()));
         }
-        let __ws_arg_94 = self.extend(Value::Map(request), &[&paramsIncludeFee]);
-        let response: crate::value::Dict = self.private_post_withdrawals(&[&__ws_arg_94]).await.unwrap_or_default();
+        let __ws_arg_102 = self.extend(Value::Map(request), &[&paramsIncludeFee]);
+        let response: crate::value::Dict = self.private_post_withdrawals(&[&__ws_arg_102]).await.unwrap_or_default();
         //
         // the id is inside "data"
         //
@@ -11607,11 +11639,11 @@ impl Kucoin {
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let transaction: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&data), Some(&currency)).unwrap_or_default();
         // the response only has the withdrawalId
-        let __ws_arg_95 = self.parse_number(amountString.map(Value::from).unwrap_or(Value::Null), &[]);
+        let __ws_arg_103 = self.parse_number(amountString.map(Value::from).unwrap_or(Value::Null), &[]);
         let withdrawal: Value = self.extend(transaction, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("withdrawal".into()));
-                m.insert("amount".to_string(), __ws_arg_95);
+                m.insert("amount".to_string(), __ws_arg_103);
                 m.insert("address".to_string(), address.clone());
                 m.insert("addressTo".to_string(), address);
             m
@@ -11702,14 +11734,14 @@ impl Kucoin {
         if (since != Value::Null) && since.as_f64().unwrap_or(f64::NAN) < ((1550448000000i64) as f64) {
             // if since is earlier than 2019-02-18T00:00:00Z
             std::sync::Arc::make_mut(&mut request).insert("startAt".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
-            let __ws_arg_96 = self.extend(&request, &[&paramsRequest]);
-            response = self.private_get_hist_deposits(&[&__ws_arg_96]).await;
+            let __ws_arg_104 = self.extend(&request, &[&paramsRequest]);
+            response = self.private_get_hist_deposits(&[&__ws_arg_104]).await;
         }  else {
             if (since != Value::Null) {
                 std::sync::Arc::make_mut(&mut request).insert("startAt".into(), since.clone());
             }
-            let __ws_arg_97 = self.extend(request, &[&paramsRequest]);
-            response = self.call_method_o("private_get_deposits", &[&__ws_arg_97]).await;
+            let __ws_arg_105 = self.extend(request, &[&paramsRequest]);
+            response = self.call_method_o("private_get_deposits", &[&__ws_arg_105]).await;
         }
         //
         //     {
@@ -11793,8 +11825,8 @@ impl Kucoin {
         if (since.is_some()) {
             request.insert("startAt".into(), Value::from(since));
         }
-        let __ws_arg_98 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.futures_private_get_deposit_list(&[&__ws_arg_98]).await.unwrap_or_default();
+        let __ws_arg_106 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.futures_private_get_deposit_list(&[&__ws_arg_106]).await.unwrap_or_default();
         //
         //     {
         //         "code": "200000",
@@ -11899,14 +11931,14 @@ impl Kucoin {
         if (since != Value::Null) && since.as_f64().unwrap_or(f64::NAN) < ((1550448000000i64) as f64) {
             // if since is earlier than 2019-02-18T00:00:00Z
             std::sync::Arc::make_mut(&mut request).insert("startAt".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
-            let __ws_arg_99 = self.extend(&request, &[&paramsRequest]);
-            response = self.private_get_hist_withdrawals(&[&__ws_arg_99]).await;
+            let __ws_arg_107 = self.extend(&request, &[&paramsRequest]);
+            response = self.private_get_hist_withdrawals(&[&__ws_arg_107]).await;
         }  else {
             if (since != Value::Null) {
                 std::sync::Arc::make_mut(&mut request).insert("startAt".into(), since.clone());
             }
-            let __ws_arg_100 = self.extend(request, &[&paramsRequest]);
-            response = self.call_method_o("private_get_withdrawals", &[&__ws_arg_100]).await;
+            let __ws_arg_108 = self.extend(request, &[&paramsRequest]);
+            response = self.call_method_o("private_get_withdrawals", &[&__ws_arg_108]).await;
         }
         //
         //     {
@@ -11991,8 +12023,8 @@ impl Kucoin {
         if (since.is_some()) {
             request.insert("startAt".into(), Value::from(since));
         }
-        let __ws_arg_101 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.futures_private_get_withdrawal_list(&[&__ws_arg_101]).await.unwrap_or_default();
+        let __ws_arg_109 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.futures_private_get_withdrawal_list(&[&__ws_arg_109]).await.unwrap_or_default();
         //
         //     {
         //         "code": "200000",
@@ -12115,18 +12147,18 @@ impl Kucoin {
             if (currency.is_some()) {
                 request.insert("balanceCurrency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
             }
-            let __ws_arg_102 = self.extend(&request, &[&paramsMarginMode]);
-            response = self.private_get_isolated_accounts(&[&__ws_arg_102]).await;
+            let __ws_arg_110 = self.extend(&request, &[&paramsMarginMode]);
+            response = self.private_get_isolated_accounts(&[&__ws_arg_110]).await;
         }  else if cross {
-            let __ws_arg_103 = self.extend(&request, &[&paramsMarginMode]);
-            response = self.call_method_o("private_get_margin_account", &[&__ws_arg_103]).await;
+            let __ws_arg_111 = self.extend(&request, &[&paramsMarginMode]);
+            response = self.call_method_o("private_get_margin_account", &[&__ws_arg_111]).await;
         }  else {
             if (currency.is_some()) {
                 request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
             }
             request.insert("type".into(), Value::from(type_var.as_deref()));
-            let __ws_arg_104 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-            response = self.call_method_o("private_get_accounts", &[&__ws_arg_104]).await;
+            let __ws_arg_112 = self.extend(Value::Map(request), &[&paramsMarginMode]);
+            response = self.call_method_o("private_get_accounts", &[&__ws_arg_112]).await;
         }
         //
         // Spot
@@ -12305,8 +12337,8 @@ impl Kucoin {
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
             m
         });
-        let __ws_arg_105 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.futures_private_get_account_overview(&[&__ws_arg_105]).await.unwrap_or_default();
+        let __ws_arg_113 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.futures_private_get_account_overview(&[&__ws_arg_113]).await.unwrap_or_default();
         //
         //     {
         //         "code": "200000",
@@ -12413,8 +12445,8 @@ impl Kucoin {
             //         }
             //     }
             //
-            let __ws_arg_106 = self.extend(&request, &[&paramsRequest]);
-            response = self.uta_private_get_account_mode_account_balance(&[&__ws_arg_106]).await;
+            let __ws_arg_114 = self.extend(&request, &[&paramsRequest]);
+            response = self.uta_private_get_account_mode_account_balance(&[&__ws_arg_114]).await;
         }  else {
             request.insert("accountType".into(), type_var.map(Value::from).unwrap_or(Value::Null));
             //
@@ -12449,8 +12481,8 @@ impl Kucoin {
             //         }
             //     }
             //
-            let __ws_arg_107 = self.extend(Value::Map(request), &[&paramsRequest]);
-            response = self.uta_private_get_account_balance(&[&__ws_arg_107]).await;
+            let __ws_arg_115 = self.extend(Value::Map(request), &[&paramsRequest]);
+            response = self.uta_private_get_account_balance(&[&__ws_arg_115]).await;
         }
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let timestamp: Option<i64> = self.safe_integer_k(&data, "ts", &[]).as_i64();
@@ -12636,8 +12668,8 @@ impl Kucoin {
             m
         });
         request.insert("type".into(), self.safe_string(&types, &transferTypeOption, &[transferTypeOption.clone().map(Value::from).unwrap_or(Value::Null)]));
-        let __ws_arg_108 = self.extend(Value::Map(request), &[&paramsClientOid]);
-        let response: crate::value::Dict = self.uta_private_post_account_transfer(&[&__ws_arg_108]).await.unwrap_or_default();
+        let __ws_arg_116 = self.extend(Value::Map(request), &[&paramsClientOid]);
+        let response: crate::value::Dict = self.uta_private_post_account_transfer(&[&__ws_arg_116]).await.unwrap_or_default();
         //
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
@@ -12722,8 +12754,8 @@ impl Kucoin {
             // use old endpoint for hf and mining transfers
             request.insert("from".into(), Value::from(fromId.as_deref()));
             request.insert("to".into(), Value::from(toId.as_deref()));
-            let __ws_arg_109 = self.extend(&request, &[&paramsTransferType]);
-            response = self.private_post_accounts_inner_transfer(&[&__ws_arg_109]).await;
+            let __ws_arg_117 = self.extend(&request, &[&paramsTransferType]);
+            response = self.private_post_accounts_inner_transfer(&[&__ws_arg_117]).await;
         }  else {
             request.insert("type".into(), transferTypeOption.map(Value::from).unwrap_or(Value::Null));
             request.insert("fromAccountType".into(), fromId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
@@ -12736,8 +12768,8 @@ impl Kucoin {
             //         }
             //     }
             //
-            let __ws_arg_110 = self.extend(Value::Map(request), &[&paramsTransferType]);
-            response = self.private_post_accounts_universal_transfer(&[&__ws_arg_110]).await;
+            let __ws_arg_118 = self.extend(Value::Map(request), &[&paramsTransferType]);
+            response = self.private_post_accounts_universal_transfer(&[&__ws_arg_118]).await;
         }
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let mut transfer: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_transfer(self, Some(&data), Some(&currency)).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
@@ -12954,15 +12986,15 @@ impl Kucoin {
         let mut response: Option<crate::value::Dict> = None;
         if uta {
             std::sync::Arc::make_mut(&mut request).insert("accountType".into(), Value::from(type_var.as_deref()));
-            let __ws_arg_111 = self.extend(&request, &[&paramsRequest]);
-            response = self.uta_private_get_account_ledger(&[&__ws_arg_111]).await;
+            let __ws_arg_119 = self.extend(&request, &[&paramsRequest]);
+            response = self.uta_private_get_account_ledger(&[&__ws_arg_119]).await;
         }  else if (hf == Some(true)) {
             if (marginMode.is_some()) {
-                let __ws_arg_112 = self.extend(&request, &[&paramsRequest]);
-                response = self.private_get_hf_margin_account_ledgers(&[&__ws_arg_112]).await;
+                let __ws_arg_120 = self.extend(&request, &[&paramsRequest]);
+                response = self.private_get_hf_margin_account_ledgers(&[&__ws_arg_120]).await;
             }  else {
-                let __ws_arg_113 = self.extend(&request, &[&paramsRequest]);
-                response = self.private_get_hf_accounts_ledgers(&[&__ws_arg_113]).await;
+                let __ws_arg_121 = self.extend(&request, &[&paramsRequest]);
+                response = self.private_get_hf_accounts_ledgers(&[&__ws_arg_121]).await;
             }
         }  else if (type_var.as_deref() == Some("contract")) {
             //
@@ -12986,11 +13018,11 @@ impl Kucoin {
             //         }
             //     }
             //
-            let __ws_arg_114 = self.extend(&request, &[&paramsRequest]);
-            response = self.futures_private_get_transaction_history(&[&__ws_arg_114]).await;
+            let __ws_arg_122 = self.extend(&request, &[&paramsRequest]);
+            response = self.futures_private_get_transaction_history(&[&__ws_arg_122]).await;
         }  else {
-            let __ws_arg_115 = self.extend(request, &[&paramsRequest]);
-            response = self.private_get_accounts_ledgers(&[&__ws_arg_115]).await;
+            let __ws_arg_123 = self.extend(request, &[&paramsRequest]);
+            response = self.private_get_accounts_ledgers(&[&__ws_arg_123]).await;
         }
         //
         //     {
@@ -13133,11 +13165,11 @@ impl Kucoin {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (marginMode.as_deref() == Some("isolated")) {
-            let __ws_arg_116 = self.extend(&request, &[&paramsMarginMode]);
-            response = self.private_get_isolated_accounts(&[&__ws_arg_116]).await;
+            let __ws_arg_124 = self.extend(&request, &[&paramsMarginMode]);
+            response = self.private_get_isolated_accounts(&[&__ws_arg_124]).await;
         }  else {
-            let __ws_arg_117 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-            response = self.private_get_margin_accounts(&[&__ws_arg_117]).await;
+            let __ws_arg_125 = self.extend(Value::Map(request), &[&paramsMarginMode]);
+            response = self.private_get_margin_accounts(&[&__ws_arg_125]).await;
         }
         //
         // Cross
@@ -13254,8 +13286,8 @@ impl Kucoin {
         let (__until0, __until1) = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]);
         let requestUntil: crate::value::Dict = __until0;
         let paramsUntil: crate::value::Dict = __until1;
-        let __ws_arg_118 = self.extend(requestUntil, &[&paramsUntil]);
-        let response: crate::value::Dict = self.private_get_margin_interest(&[&__ws_arg_118]).await.unwrap_or_default();
+        let __ws_arg_126 = self.extend(requestUntil, &[&paramsUntil]);
+        let response: crate::value::Dict = self.private_get_margin_interest(&[&__ws_arg_126]).await.unwrap_or_default();
         //
         //     {
         //         "code": "200000",
@@ -13320,8 +13352,8 @@ impl Kucoin {
         let (__until0, __until1) = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]);
         let requestUntil: crate::value::Dict = __until0;
         let paramsUntil: crate::value::Dict = __until1;
-        let __ws_arg_119 = self.extend(requestUntil, &[&paramsUntil]);
-        let response: crate::value::Dict = self.private_get_margin_interest(&[&__ws_arg_119]).await.unwrap_or_default();
+        let __ws_arg_127 = self.extend(requestUntil, &[&paramsUntil]);
+        let response: crate::value::Dict = self.private_get_margin_interest(&[&__ws_arg_127]).await.unwrap_or_default();
         //
         //     {
         //         "code": "200000",
@@ -13424,8 +13456,8 @@ impl Kucoin {
         let mut paramsRequest: crate::value::Dict = Default::default();
         { let __destr_tmp = self.handle_option_bool_and_params(params, Value::Str("fetchCrossBorrowRate".into()), Value::Str("uta".into()), &[Value::Bool(uta)]); uta = __destr_tmp.0 == Some(true); paramsRequest = __destr_tmp.1; }
         if !uta {
-            let __ws_arg_120 = self.extend(&request, &[&paramsRequest]);
-            let responseClassic: crate::value::Dict = self.private_get_margin_borrow_rate(&[&__ws_arg_120]).await.unwrap_or_default();
+            let __ws_arg_128 = self.extend(&request, &[&paramsRequest]);
+            let responseClassic: crate::value::Dict = self.private_get_margin_borrow_rate(&[&__ws_arg_128]).await.unwrap_or_default();
             //
             //     {
             //         "code": "200000",
@@ -13440,8 +13472,8 @@ impl Kucoin {
             let item: crate::value::Dict = items.get(0).cloned().unwrap_or_default();
             return self.parse_borrow_rate(Value::Dict(item), Some(&currency));
         }
-        let __ws_arg_121 = self.extend(Value::Map(request), &[&paramsRequest]);
-        let response: crate::value::Dict = self.uta_private_get_account_interest_limits(&[&__ws_arg_121]).await.unwrap_or_default();
+        let __ws_arg_129 = self.extend(Value::Map(request), &[&paramsRequest]);
+        let response: crate::value::Dict = self.uta_private_get_account_interest_limits(&[&__ws_arg_129]).await.unwrap_or_default();
         //
         //     {
         //         "code": "200000",
@@ -13492,8 +13524,8 @@ impl Kucoin {
                 m.insert("timeInForce".to_string(), Value::Str("FOK".into()));
             m
         });
-        let __ws_arg_122 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_post_margin_borrow(&[&__ws_arg_122]).await.unwrap_or_default();
+        let __ws_arg_130 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_post_margin_borrow(&[&__ws_arg_130]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -13548,8 +13580,8 @@ impl Kucoin {
                 m.insert("isIsolated".to_string(), Value::Bool(true));
             m
         });
-        let __ws_arg_123 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_post_margin_borrow(&[&__ws_arg_123]).await.unwrap_or_default();
+        let __ws_arg_131 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_post_margin_borrow(&[&__ws_arg_131]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -13597,8 +13629,8 @@ impl Kucoin {
                 m.insert("size".to_string(), Value::from(self.currency_to_precision(code.as_str(), Value::from(amount), &[])));
             m
         });
-        let __ws_arg_124 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_post_margin_repay(&[&__ws_arg_124]).await.unwrap_or_default();
+        let __ws_arg_132 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_post_margin_repay(&[&__ws_arg_132]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -13651,8 +13683,8 @@ impl Kucoin {
                 m.insert("isIsolated".to_string(), Value::Bool(true));
             m
         });
-        let __ws_arg_125 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_post_margin_repay(&[&__ws_arg_125]).await.unwrap_or_default();
+        let __ws_arg_133 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_post_margin_repay(&[&__ws_arg_133]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -13781,8 +13813,8 @@ impl Kucoin {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_126 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-        let response: crate::value::Dict = self.futures_private_get_get_cross_user_leverage(&[&__ws_arg_126]).await.unwrap_or_default();
+        let __ws_arg_134 = self.extend(Value::Map(request), &[&paramsMarginMode]);
+        let response: crate::value::Dict = self.futures_private_get_get_cross_user_leverage(&[&__ws_arg_134]).await.unwrap_or_default();
         //
         //    {
         //        "code": "200000",
@@ -13872,8 +13904,8 @@ impl Kucoin {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " setLeverage requires a currency code in the params[\"code\"] for unified trading account")));
             }
             request.insert("currency".into(), self.currency_id(code.map(Value::from).unwrap_or(Value::Null)));
-            let __ws_arg_127 = self.extend(&request, &[&paramsRequest]);
-            response = self.uta_private_post_account_mode_account_modify_leverage_margin_cross(&[&__ws_arg_127]).await;
+            let __ws_arg_135 = self.extend(&request, &[&paramsRequest]);
+            response = self.uta_private_post_account_mode_account_modify_leverage_margin_cross(&[&__ws_arg_135]).await;
         }  else {
             if (marginMode.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " setLeverage requires a marginMode parameter")));
@@ -13885,8 +13917,8 @@ impl Kucoin {
                 request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             }
             request.insert("isIsolated".into(), (Value::Bool(marginMode.as_deref() == Some("isolated"))));
-            let __ws_arg_128 = self.extend(Value::Map(request), &[&paramsRequest]);
-            response = self.private_post_position_update_user_leverage(&[&__ws_arg_128]).await;
+            let __ws_arg_136 = self.extend(Value::Map(request), &[&paramsRequest]);
+            response = self.private_post_position_update_user_leverage(&[&__ws_arg_136]).await;
         }
         return response;
         Value::Null
@@ -13936,8 +13968,8 @@ impl Kucoin {
         let mut response: Option<crate::value::Dict> = None;
         if utaOption {
             request.insert("accountMode".into(), Value::Str("unified".into()));
-            let __ws_arg_129 = self.extend(&request, &[&paramsUta]);
-            response = self.uta_private_post_account_mode_account_modify_leverage(&[&__ws_arg_129]).await;
+            let __ws_arg_137 = self.extend(&request, &[&paramsUta]);
+            response = self.uta_private_post_account_mode_account_modify_leverage(&[&__ws_arg_137]).await;
         }  else {
             //
             //    {
@@ -13945,8 +13977,8 @@ impl Kucoin {
             //        "data": true
             //    }
             //
-            let __ws_arg_130 = self.extend(Value::Map(request), &[&paramsUta]);
-            response = self.futures_private_post_change_cross_user_leverage(&[&__ws_arg_130]).await;
+            let __ws_arg_138 = self.extend(Value::Map(request), &[&paramsUta]);
+            response = self.futures_private_post_change_cross_user_leverage(&[&__ws_arg_138]).await;
         }
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         // the classic endpoint returns data: true, fall back to the requested leverage
@@ -14042,8 +14074,8 @@ impl Kucoin {
             //         }
             //     }
             //
-            let __ws_arg_131 = self.extend(&request, &[&paramsUta]);
-            response = self.uta_get_market_funding_rate(&[&__ws_arg_131]).await;
+            let __ws_arg_139 = self.extend(&request, &[&paramsUta]);
+            response = self.uta_get_market_funding_rate(&[&__ws_arg_139]).await;
         }  else {
             //
             //     {
@@ -14061,8 +14093,8 @@ impl Kucoin {
             //         }
             //     }
             //
-            let __ws_arg_132 = self.extend(Value::Map(request), &[&paramsUta]);
-            response = self.futures_public_get_funding_rate_symbol_current(&[&__ws_arg_132]).await;
+            let __ws_arg_140 = self.extend(Value::Map(request), &[&paramsUta]);
+            response = self.futures_public_get_funding_rate_symbol_current(&[&__ws_arg_140]).await;
         }
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, Some(&data), Some(&market)).map_or(Value::Null, Value::Dict);
@@ -14220,8 +14252,8 @@ impl Kucoin {
             //         }
             //     }
             //
-            let __ws_arg_133 = self.extend(&request, &[&paramsOmitted]);
-            let utaResponse: crate::value::Dict = self.uta_get_market_funding_rate_history(&[&__ws_arg_133]).await.unwrap_or_default();
+            let __ws_arg_141 = self.extend(&request, &[&paramsOmitted]);
+            let utaResponse: crate::value::Dict = self.uta_get_market_funding_rate_history(&[&__ws_arg_141]).await.unwrap_or_default();
             response = self.safe_dict_k_or_o(&utaResponse, "data", Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -14242,8 +14274,8 @@ impl Kucoin {
             //         ]
             //     }
             //
-            let __ws_arg_134 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.futures_public_get_contract_funding_rates(&[&__ws_arg_134]).await;
+            let __ws_arg_142 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            response = self.futures_public_get_contract_funding_rates(&[&__ws_arg_142]).await;
         }
         let result: crate::value::List = self.safe_list_t(&response, Value::from(resultKey));
         return self.parse_funding_rate_histories(&result, &[(market).raw.clone(), Value::from(since), Value::from(limit)]);
@@ -14304,8 +14336,8 @@ impl Kucoin {
                 std::sync::Arc::make_mut(&mut request).insert("pageSize".into(), Value::from(limit));
             }
             { let (__until0, __until1) = self.handle_until_option(Value::Str("endAt".into()), Value::Dict(request), &paramsRequest, &[]); request = __until0; paramsRequest = __until1; }
-            let __ws_arg_135 = self.extend(&request, &[&paramsRequest]);
-            let response: crate::value::Dict = self.uta_private_get_position_funding_history(&[&__ws_arg_135]).await.unwrap_or_default();
+            let __ws_arg_143 = self.extend(&request, &[&paramsRequest]);
+            let response: crate::value::Dict = self.uta_private_get_position_funding_history(&[&__ws_arg_143]).await.unwrap_or_default();
             //
             //     {
             //         "code": "200000",
@@ -14333,8 +14365,8 @@ impl Kucoin {
                 // * Since is ignored if limit is defined
                 std::sync::Arc::make_mut(&mut request).insert("maxCount".into(), Value::from(limit));
             }
-            let __ws_arg_136 = self.extend(request, &[&paramsRequest]);
-            let response: crate::value::Dict = self.futures_private_get_funding_history(&[&__ws_arg_136]).await.unwrap_or_default();
+            let __ws_arg_144 = self.extend(request, &[&paramsRequest]);
+            let response: crate::value::Dict = self.futures_private_get_funding_history(&[&__ws_arg_144]).await.unwrap_or_default();
             //
             //    {
             //        "code": "200000",
@@ -14430,8 +14462,8 @@ impl Kucoin {
         let mut response: Option<crate::value::Dict> = None;
         if utaOption {
             request.insert("accountMode".into(), Value::Str("unified".into()));
-            let __ws_arg_137 = self.extend(&request, &[&paramsUta]);
-            response = self.uta_private_get_account_mode_position_open_list(&[&__ws_arg_137]).await;
+            let __ws_arg_145 = self.extend(&request, &[&paramsUta]);
+            response = self.uta_private_get_account_mode_position_open_list(&[&__ws_arg_145]).await;
             //
             //     {
             //         "code": "200000",
@@ -14462,8 +14494,8 @@ impl Kucoin {
     m
 })])).as_ref(), Some(&market)).map_or(Value::Null, Value::Dict);
         }  else {
-            let __ws_arg_138 = self.extend(Value::Map(request), &[&paramsUta]);
-            response = self.futures_private_get_position(&[&__ws_arg_138]).await;
+            let __ws_arg_146 = self.extend(Value::Map(request), &[&paramsUta]);
+            response = self.futures_private_get_position(&[&__ws_arg_146]).await;
             //
             //    {
             //        "code": "200000",
@@ -14548,13 +14580,13 @@ impl Kucoin {
         let paramsUta: crate::value::Dict = utaOptionparamsUtaVariable.1;
         let mut response: Option<crate::value::Dict> = None;
         if utaOption {
-            let __ws_arg_139 = self.extend(Value::Map({
+            let __ws_arg_147 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("accountMode".to_string(), Value::Str("unified".into()));
         m.insert("limit".to_string(), Value::Int(200));
     m
 }), &[&paramsUta]);
-            response = self.uta_private_get_account_mode_position_open_list(&[&__ws_arg_139]).await;
+            response = self.uta_private_get_account_mode_position_open_list(&[&__ws_arg_147]).await;
         }  else {
             response = self.futures_private_get_positions(&[&Value::Dict(paramsUta)]).await;
         }
@@ -14646,8 +14678,8 @@ impl Kucoin {
             //         }
             //     }
             //
-            let __ws_arg_140 = self.extend(&request, &[&paramsRequest]);
-            response = self.uta_private_get_position_history(&[&__ws_arg_140]).await;
+            let __ws_arg_148 = self.extend(&request, &[&paramsRequest]);
+            response = self.uta_private_get_position_history(&[&__ws_arg_148]).await;
         }  else {
             std::sync::Arc::make_mut(&mut request).insert("limit".into(), (if (limit.is_none()) { Value::Int(200) } else { Value::from(limit) }));
             if (since.is_some()) {
@@ -14696,8 +14728,8 @@ impl Kucoin {
             //     }
             // }
             //
-            let __ws_arg_141 = self.extend(request, &[&paramsRequest]);
-            response = self.futures_private_get_history_positions(&[&__ws_arg_141]).await;
+            let __ws_arg_149 = self.extend(request, &[&paramsRequest]);
+            response = self.futures_private_get_history_positions(&[&__ws_arg_149]).await;
         }
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         let items: crate::value::List = self.safe_list_k_t(&data, "items");
@@ -14806,8 +14838,8 @@ impl Kucoin {
             let tradeType: Option<String> = self.handle_trade_type(&[&Value::Bool(isContractMarket), &marginMode.map(Value::from).unwrap_or(Value::Null), &Value::Bool(isUnified), &Value::from(&paramsRequest)]);
             request.insert("tradeType".into(), tradeType.map(Value::from).unwrap_or(Value::Null));
             request.insert("cancelOrderList".into(), Value::Arr(ordersRequests));
-            let __ws_arg_142 = self.extend(&request, &[&paramsRequest]);
-            response = self.uta_private_post_account_mode_order_cancel_batch(&[&__ws_arg_142]).await;
+            let __ws_arg_150 = self.extend(&request, &[&paramsRequest]);
+            response = self.uta_private_post_account_mode_order_cancel_batch(&[&__ws_arg_150]).await;
             let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
             orders = self.safe_list_k_t(&data, "items");
         }  else {
@@ -14816,8 +14848,8 @@ impl Kucoin {
                 requestKey = "clientOidsList".to_string();
             }
             request.insert(requestKey, Value::Arr(ordersRequests));
-            let __ws_arg_143 = self.extend(Value::Map(request), &[&paramsRequest]);
-            response = self.futures_private_delete_orders_multi_cancel(&[&__ws_arg_143]).await;
+            let __ws_arg_151 = self.extend(Value::Map(request), &[&paramsRequest]);
+            response = self.futures_private_delete_orders_multi_cancel(&[&__ws_arg_151]).await;
             //
             //   {
             //       "code": "200000",
@@ -14877,8 +14909,8 @@ impl Kucoin {
                 m.insert("bizNo".to_string(), Value::from(uuid));
             m
         });
-        let __ws_arg_144 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.futures_private_post_position_margin_deposit_margin(&[&__ws_arg_144]).await.unwrap_or_default();
+        let __ws_arg_152 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.futures_private_post_position_margin_deposit_margin(&[&__ws_arg_152]).await.unwrap_or_default();
         //
         //    {
         //        "code": "200000",
@@ -14929,8 +14961,8 @@ impl Kucoin {
         //    }
         //
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let __ws_arg_145 = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
-        return self.extend(__ws_arg_145, &[Value::Map({
+        let __ws_arg_153 = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &data, Some(&market)).map_or(Value::Null, Value::Dict);
+        return self.extend(__ws_arg_153, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::from(amount));
         m.insert("direction".to_string(), Value::Str("in".into()));
@@ -14971,8 +15003,8 @@ impl Kucoin {
                 m.insert("withdrawAmount".to_string(), Value::from(amountString.as_deref()));
             m
         });
-        let __ws_arg_146 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.futures_private_post_margin_withdraw_margin(&[&__ws_arg_146]).await.unwrap_or_default();
+        let __ws_arg_154 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.futures_private_post_margin_withdraw_margin(&[&__ws_arg_154]).await.unwrap_or_default();
         //
         //     {
         //         "code": "200000",
@@ -15026,8 +15058,8 @@ impl Kucoin {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_147 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.futures_private_get_position_get_margin_mode(&[&__ws_arg_147]).await.unwrap_or_default();
+        let __ws_arg_155 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.futures_private_get_position_get_margin_mode(&[&__ws_arg_155]).await.unwrap_or_default();
         //
         //     {
         //         "code": "200000",
@@ -15080,8 +15112,8 @@ impl Kucoin {
                 m.insert("marginMode".to_string(), (if let Some(__s) = marginMode.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
             m
         });
-        let __ws_arg_148 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.futures_private_post_position_change_margin_mode(&[&__ws_arg_148]).await.unwrap_or_default();
+        let __ws_arg_156 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.futures_private_post_position_change_margin_mode(&[&__ws_arg_156]).await.unwrap_or_default();
         //
         //    {
         //        "code": "200000",
@@ -15125,8 +15157,8 @@ impl Kucoin {
                 m.insert("positionMode".to_string(), Value::from(posMode));
             m
         });
-        let __ws_arg_149 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.futures_private_post_position_switch_position_mode(&[&__ws_arg_149]).await.unwrap_or_default();
+        let __ws_arg_157 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.futures_private_post_position_switch_position_mode(&[&__ws_arg_157]).await.unwrap_or_default();
         return Value::Dict(response);
 
     Value::Null
@@ -15210,13 +15242,17 @@ impl Kucoin {
         }
         let mut response: Option<crate::value::Dict> = None;
         if testOrder {
-            let __ws_arg_150 = self.extend(&request, &[&paramsOmitted]);
-            response = self.futures_private_post_orders_test(&[&__ws_arg_150]).await;
+            let __ws_arg_158 = self.extend(&request, &[&paramsOmitted]);
+            response = self.futures_private_post_orders_test(&[&__ws_arg_158]).await;
         }  else {
-            let __ws_arg_151 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.futures_private_post_orders(&[&__ws_arg_151]).await;
+            let __ws_arg_159 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            response = self.futures_private_post_orders(&[&__ws_arg_159]).await;
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, response.as_ref(), Some(&market)).map_or(Value::Null, Value::Dict);
+        let __ws_arg_160 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&response]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_160).as_ref(), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -15263,8 +15299,8 @@ impl Kucoin {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_152 = self.extend(Value::Map(request), &[&paramsUta]);
-        let response: crate::value::Dict = self.futures_public_get_contracts_risk_limit_symbol(&[&__ws_arg_152]).await.unwrap_or_default();
+        let __ws_arg_161 = self.extend(Value::Map(request), &[&paramsUta]);
+        let response: crate::value::Dict = self.futures_public_get_contracts_risk_limit_symbol(&[&__ws_arg_161]).await.unwrap_or_default();
         //
         //    {
         //        "code": "200000",
@@ -15332,8 +15368,8 @@ impl Kucoin {
                 m.insert("symbol".to_string(), Value::Str(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
             m
         });
-        let __ws_arg_153 = self.extend(Value::Map(request), &[&paramsRequest]);
-        let response: crate::value::Dict = self.uta_get_market_position_tiers(&[&__ws_arg_153]).await.unwrap_or_default();
+        let __ws_arg_162 = self.extend(Value::Map(request), &[&paramsRequest]);
+        let response: crate::value::Dict = self.uta_get_market_position_tiers(&[&__ws_arg_162]).await.unwrap_or_default();
         //
         //     {
         //         "code": "200000",
@@ -15418,8 +15454,8 @@ impl Kucoin {
                 request.insert("symbol".into(), Value::Str(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
             }
         }
-        let __ws_arg_154 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.uta_get_market_open_interest(&[&__ws_arg_154]).await.unwrap_or_default();
+        let __ws_arg_163 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.uta_get_market_open_interest(&[&__ws_arg_163]).await.unwrap_or_default();
         //
         //     {
         //         "code": "200000",
@@ -15514,8 +15550,8 @@ impl Kucoin {
         let (__until0, __until1) = self.handle_until_option(Value::Str("endAt".into()), Value::Map(request), &paramsPaginate, &[]);
         let requestUntil: crate::value::Dict = __until0;
         let paramsUntil: crate::value::Dict = __until1;
-        let __ws_arg_155 = self.extend(requestUntil, &[&paramsUntil]);
-        let response: crate::value::Dict = self.uta_get_market_open_interest(&[&__ws_arg_155]).await.unwrap_or_default();
+        let __ws_arg_164 = self.extend(requestUntil, &[&paramsUntil]);
+        let response: crate::value::Dict = self.uta_get_market_open_interest(&[&__ws_arg_164]).await.unwrap_or_default();
         let data: crate::value::List = self.safe_list_k_t(&response, "data");
         return self.parse_open_interests_history(&data, Some(&market), &[Value::from(since), Value::from(limit)]);
         Value::Null
@@ -15659,8 +15695,8 @@ impl Kucoin {
             std::sync::Arc::make_mut(&mut request).insert("pageSize".into(), Value::Int(500));
         }
         { let (__until0, __until1) = self.handle_until_option(Value::Str("endAt".into()), Value::Dict(request), &paramsOmitted, &[]); request = __until0; paramsOmitted = __until1; }
-        let __ws_arg_156 = self.extend(request, &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_get_accounts_ledgers(&[&__ws_arg_156]).await.unwrap_or_default();
+        let __ws_arg_165 = self.extend(request, &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_get_accounts_ledgers(&[&__ws_arg_165]).await.unwrap_or_default();
         //
         // {
         //     "code": "200000",

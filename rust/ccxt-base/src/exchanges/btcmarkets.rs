@@ -533,7 +533,8 @@ impl crate::exchange_generated::ExchangeBase for Btcmarkets {
     {
         Box::pin(async move {
             match method {
-                "calculate_fee" => self.calculate_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]),
+                "calculate_fee" => self.calculate_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
+                    args.get(4).and_then(crate::Value::as_f64).unwrap_or_default(), &args[5.min(args.len())..]),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
@@ -1696,7 +1697,7 @@ impl Btcmarkets {
         }).await?))
     }
 
-    pub fn calculate_fee(&self, symbol: &str, mut type_var: Value, side: &str, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
+    pub fn calculate_fee(&self, symbol: &str, mut type_var: Value, side: &str, amount: f64, price: f64, optional_args: &[Value]) -> Value {
         let takerOrMaker = get_arg(optional_args, 0, Value::Str("taker".into()));
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
@@ -1720,10 +1721,10 @@ impl Btcmarkets {
         let mut cost: Option<String> = None;
         if (Some((market).quote.as_str()) == Some("AUD")) {
             currency = Some((market).quote.clone());
-            cost = self.cost_to_precision(Some(symbol), crate::precise::Precise::stringMul(&Value::from(self.number_to_string(&amount)), &Value::from(self.number_to_string(price))));
+            cost = self.cost_to_precision(Some(symbol), crate::precise::Precise::stringMul(&Value::from(self.number_to_string(Value::from(amount))), &Value::from(self.number_to_string(Value::from(price)))));
         }  else {
             currency = Some((market).base.clone());
-            cost = self.amount_to_precision(Some(symbol), amount);
+            cost = self.amount_to_precision(Some(symbol), Value::from(amount));
         }
         let rate: Value = self.safe_value(&market, &takerOrMaker, &[]);
         let rateCost: Option<String> = crate::precise::Precise::stringMul(&Value::from(self.number_to_string(&rate)), &cost).as_str().map(str::to_owned);

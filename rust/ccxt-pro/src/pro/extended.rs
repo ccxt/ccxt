@@ -63,7 +63,7 @@ impl crate::exchange_generated::ExchangeBase for Extended {
                 "find_subscription" => self.find_subscription(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).map_or(crate::Value::Null, crate::Value::Dict),
                 "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null))),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "parse_ws_funding_rate" => Value::Dict(self.parse_ws_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
+                "parse_ws_funding_rate" => Value::Dict(self.parse_ws_funding_rate(&match args.get(0) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..])),
                 "watch_balance" => crate::types::IntoRaw::into_raw(self.watch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "watch_funding_rate" => crate::types::IntoRaw::into_raw(self.watch_funding_rate(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "watch_mark_price" => crate::types::IntoRaw::into_raw(self.watch_mark_price(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
@@ -100,7 +100,8 @@ impl Extended {
             "handle_orders" => { self.handle_orders(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_positions" => { self.handle_positions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "parse_ws_funding_rate" => { Value::Dict(self.parse_ws_funding_rate(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>())); },
+            "parse_ws_funding_rate" => { Value::Dict(self.parse_ws_funding_rate(&match args.get(0).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref(),
+                &args[2.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>())); },
             "watch_balance" => crate::exchange_stubs::enqueue_spawn("watch_balance", args.iter().copied().cloned().collect::<Vec<_>>()),
             "watch_funding_rate" => crate::exchange_stubs::enqueue_spawn("watch_funding_rate", args.iter().copied().cloned().collect::<Vec<_>>()),
             "watch_mark_price" => crate::exchange_stubs::enqueue_spawn("watch_mark_price", args.iter().copied().cloned().collect::<Vec<_>>()),
@@ -776,7 +777,7 @@ impl Extended {
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let data: crate::value::Dict = message.key_dict("data");
-        let rawOrders: Option<crate::value::List> = self.safe_list_k_o(&data, "orders");
+        let rawOrders: crate::value::List = self.safe_list_k_t(&data, "orders");
         let mut symbols: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -788,7 +789,7 @@ impl Extended {
         {
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
-            while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (rawOrders.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (rawOrders.len() as i64) } {
             let order: crate::value::Dict = self.parse_order(self.safe_dict(&rawOrders, Value::Int(i), &[Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
@@ -885,8 +886,7 @@ impl Extended {
         client.resolve(Value::Dict(fundingRate), messageHash.as_str());
 }
 
-    pub fn parse_ws_funding_rate(&self, fundingRate: impl Into<crate::Value>, market: Option<&crate::types::Market>, optional_args: &[Value]) -> crate::value::Dict {
-        let fundingRate: Value = fundingRate.into();
+    pub fn parse_ws_funding_rate(&self, fundingRate: &crate::value::Dict, market: Option<&crate::types::Market>, optional_args: &[Value]) -> crate::value::Dict {
         let mut message = get_arg(optional_args, 0, Value::Null);
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
@@ -896,7 +896,7 @@ impl Extended {
         let fundingTimestamp: Option<i64> = self.safe_integer_k(&fundingRate, "T", &[]).as_i64();
         return std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), fundingRate.clone());
+        m.insert("info".to_string(), Value::Dict(fundingRate.clone()));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("markPrice".to_string(), Value::Null);
         m.insert("indexPrice".to_string(), Value::Null);
@@ -904,7 +904,7 @@ impl Extended {
         m.insert("estimatedSettlePrice".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("fundingRate".to_string(), self.safe_number_k(fundingRate, "f", &[]));
+        m.insert("fundingRate".to_string(), self.safe_number_k(&fundingRate, "f", &[]));
         m.insert("fundingTimestamp".to_string(), Value::from(fundingTimestamp));
         m.insert("fundingDatetime".to_string(), self.iso8601(fundingTimestamp));
         m.insert("nextFundingRate".to_string(), Value::Null);

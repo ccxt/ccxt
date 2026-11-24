@@ -3344,7 +3344,11 @@ impl Poloniex {
             let __ws_arg_14 = self.extend(requestValue, &[&paramsValue]);
             response = self.private_post_orders(&[&__ws_arg_14]).await.unwrap_or_default();
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&response), Some(&market));
+        let __ws_arg_15 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&response]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_15).as_ref(), Some(&market));
         None
         }).await?))
     }
@@ -3619,11 +3623,11 @@ impl Poloniex {
             m
         });
         if (triggerPrice.is_some()) {
-            let __ws_arg_15 = self.extend(&requestValue, &[&paramsValue]);
-            response = self.private_put_smartorders_id(&[&__ws_arg_15]).await.unwrap_or_default();
+            let __ws_arg_16 = self.extend(&requestValue, &[&paramsValue]);
+            response = self.private_put_smartorders_id(&[&__ws_arg_16]).await.unwrap_or_default();
         }  else {
-            let __ws_arg_16 = self.extend(requestValue, &[&paramsValue]);
-            response = self.private_put_orders_id(&[&__ws_arg_16]).await.unwrap_or_default();
+            let __ws_arg_17 = self.extend(requestValue, &[&paramsValue]);
+            response = self.private_put_orders_id(&[&__ws_arg_17]).await.unwrap_or_default();
         }
         //
         //     {
@@ -3637,7 +3641,11 @@ impl Poloniex {
         m.insert("type".to_string(), type_var);
     m
 })]);
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&response), Some(&market));
+        let __ws_arg_18 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&response]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_18).as_ref(), Some(&market));
         None
         }).await?))
     }
@@ -3678,8 +3686,8 @@ impl Poloniex {
         if !(market).spot {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
             request.insert("ordId".into(), id.clone());
-            let __ws_arg_17 = self.extend(&request, &[&params]);
-            let raw: crate::value::Dict = self.swap_private_delete_v3_trade_order(&[&__ws_arg_17]).await.unwrap_or_default();
+            let __ws_arg_19 = self.extend(&request, &[&params]);
+            let raw: crate::value::Dict = self.swap_private_delete_v3_trade_order(&[&__ws_arg_19]).await.unwrap_or_default();
             return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(self.safe_dict_k(&raw, "data", &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -3695,13 +3703,17 @@ impl Poloniex {
             m
         });
         if (isTrigger == Some(true)) {
-            let __ws_arg_18 = self.extend(&request, &[&paramsOmitted]);
-            response = self.private_delete_smartorders_id(&[&__ws_arg_18]).await.unwrap_or_default();
+            let __ws_arg_20 = self.extend(&request, &[&paramsOmitted]);
+            response = self.private_delete_smartorders_id(&[&__ws_arg_20]).await.unwrap_or_default();
         }  else {
-            let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.call_method_t("private_delete_orders_id", &[&__ws_arg_19]).await;
+            let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            response = self.call_method_t("private_delete_orders_id", &[&__ws_arg_21]).await;
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&response), None).map_or(Value::Null, Value::Dict);
+        let __ws_arg_22 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&response]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_22).as_ref(), None).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -3756,8 +3768,8 @@ impl Poloniex {
             }  else if (clientOrderIds != Value::Null) {
                 request.insert("clOrdIds".into(), clientOrderIds);
             }
-            let __ws_arg_20 = self.extend(&request, &[&query]);
-            let responseRaw: crate::value::Dict = self.swap_private_delete_v3_trade_batch_orders(&[&__ws_arg_20]).await.unwrap_or_default();
+            let __ws_arg_23 = self.extend(&request, &[&query]);
+            let responseRaw: crate::value::Dict = self.swap_private_delete_v3_trade_batch_orders(&[&__ws_arg_23]).await.unwrap_or_default();
             //
             //     {
             //         "code": 200,
@@ -3777,8 +3789,8 @@ impl Poloniex {
         if (clientOrderIds != Value::Null) {
             request.insert("clientOrderIds".into(), clientOrderIds);
         }
-        let __ws_arg_21 = self.extend(Value::Map(request), &[&query]);
-        let response: crate::value::List = self.private_delete_orders_cancel_by_ids(&[&__ws_arg_21]).await.unwrap_or_default();
+        let __ws_arg_24 = self.extend(Value::Map(request), &[&query]);
+        let response: crate::value::List = self.private_delete_orders_cancel_by_ids(&[&__ws_arg_24]).await.unwrap_or_default();
         return Value::Arr(self.parse_orders(&response, market.as_ref(), &[]));
         Value::Null
         }).await?))
@@ -3823,8 +3835,8 @@ impl Poloniex {
         let marketType: Option<String> = marketTypeparamsMarketTypeVariable.0.as_str().map(str::to_owned);
         let paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.1;
         if (marketType.as_deref() == Some("swap")) || (marketType.as_deref() == Some("future")) {
-            let __ws_arg_22 = self.extend(&request, &[&paramsMarketType]);
-            let raw: crate::value::Dict = self.swap_private_delete_v3_trade_all_orders(&[&__ws_arg_22]).await.unwrap_or_default();
+            let __ws_arg_25 = self.extend(&request, &[&paramsMarketType]);
+            let raw: crate::value::Dict = self.swap_private_delete_v3_trade_all_orders(&[&__ws_arg_25]).await.unwrap_or_default();
             //
             //    {
             //        "code": "200",
@@ -3845,11 +3857,11 @@ impl Poloniex {
         let isTrigger: Option<bool> = self.safe_bool2_opt(Value::from(&paramsMarketType), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsMarketType, &["trigger", "stop"], &[]);
         if (isTrigger == Some(true)) {
-            let __ws_arg_23 = self.extend(&request, &[&paramsOmitted]);
-            response = self.private_delete_smartorders(&[&__ws_arg_23]).await.unwrap_or_default();
+            let __ws_arg_26 = self.extend(&request, &[&paramsOmitted]);
+            response = self.private_delete_smartorders(&[&__ws_arg_26]).await.unwrap_or_default();
         }  else {
-            let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_delete_orders(&[&__ws_arg_24]).await.unwrap_or_default();
+            let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            response = self.private_delete_orders(&[&__ws_arg_27]).await.unwrap_or_default();
         }
         return Value::Arr(self.parse_orders(&response, market.as_ref(), &[]));
         Value::Null
@@ -3905,12 +3917,12 @@ impl Poloniex {
             m
         });
         if (isTrigger == Some(true)) {
-            let __ws_arg_25 = self.extend(&request, &[&paramsOmitted]);
-            response = self.call_method(Value::Str("private_get_smartorders_id".into()), &[&__ws_arg_25]).await;
+            let __ws_arg_28 = self.extend(&request, &[&paramsOmitted]);
+            response = self.call_method(Value::Str("private_get_smartorders_id".into()), &[&__ws_arg_28]).await;
             response = self.safe_value(&response, Value::Int(0), &[]);
         }  else {
-            let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.call_method(Value::Str("private_get_orders_id".into()), &[&__ws_arg_26]).await;
+            let __ws_arg_29 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            response = self.call_method(Value::Str("private_get_orders_id".into()), &[&__ws_arg_29]).await;
         }
         //
         //     {
@@ -3933,7 +3945,11 @@ impl Poloniex {
         //         "updateTime": 1646196019020
         //     }
         //
-        let mut order: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(response).as_ref(), None).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
+        let __ws_arg_30 = self.extend(Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        }), &[response]);
+        let mut order: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_30).as_ref(), None).map(std::sync::Arc::unwrap_or_clone).unwrap_or_default();
         order.insert("id".into(), idValue.map(Value::from).unwrap_or(Value::Null));
         return Value::Map(order);
         Value::Null
@@ -3996,8 +4012,8 @@ impl Poloniex {
                 m.insert("id".to_string(), id);
             m
         });
-        let __ws_arg_27 = self.extend(Value::Map(request), &[&params]);
-        let trades: crate::value::List = self.private_get_orders_id_trades(&[&__ws_arg_27]).await.unwrap_or_default();
+        let __ws_arg_31 = self.extend(Value::Map(request), &[&params]);
+        let trades: crate::value::List = self.private_get_orders_id_trades(&[&__ws_arg_31]).await.unwrap_or_default();
         return Value::Arr(self.parse_trades(&trades, None, &[]));
         Value::Null
         }).await?))
@@ -4133,8 +4149,8 @@ impl Poloniex {
                 m.insert("accountType".to_string(), Value::Str("SPOT".into()));
             m
         });
-        let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsMarketType]);
-        let response: crate::value::Dict = self.private_get_accounts_balances(&[&__ws_arg_28]).await.unwrap_or_default();
+        let __ws_arg_32 = self.extend(Value::Map(request), &[&paramsMarketType]);
+        let response: crate::value::Dict = self.private_get_accounts_balances(&[&__ws_arg_32]).await.unwrap_or_default();
         return Value::Dict(self.parse_balance_list(&response));
         Value::Null
         }).await?))
@@ -4227,8 +4243,8 @@ impl Poloniex {
             request.insert("limit".into(), self.find_nearest_ceiling(Value::from(vec![Value::Int(5), Value::Int(10), Value::Int(20), Value::Int(50), Value::Int(100), Value::Int(150)]), Value::from(limit)));
         }
         if (market).contract {
-            let __ws_arg_29 = self.extend(&request, &[&params]);
-            let responseRaw: crate::value::Dict = self.swap_public_get_v3_market_order_book(&[&__ws_arg_29]).await.unwrap_or_default();
+            let __ws_arg_33 = self.extend(&request, &[&params]);
+            let responseRaw: crate::value::Dict = self.swap_public_get_v3_market_order_book(&[&__ws_arg_33]).await.unwrap_or_default();
             //
             //    {
             //       "code": 200,
@@ -4245,8 +4261,8 @@ impl Poloniex {
             let ts: Option<i64> = self.safe_integer_k(&data, "ts", &[]).as_i64();
             return Value::Dict(self.parse_order_book(&data, symbol, &[Value::from(ts)]));
         }
-        let __ws_arg_30 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.public_get_markets_symbol_order_book(&[&__ws_arg_30]).await.unwrap_or_default();
+        let __ws_arg_34 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.public_get_markets_symbol_order_book(&[&__ws_arg_34]).await.unwrap_or_default();
         //
         //     {
         //         "time" : 1659695219507,
@@ -4324,8 +4340,8 @@ impl Poloniex {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_31 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.swap_public_get_v3_market_funding_rate(&[&__ws_arg_31]).await.unwrap_or_default();
+        let __ws_arg_35 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.swap_public_get_v3_market_funding_rate(&[&__ws_arg_35]).await.unwrap_or_default();
         //
         //    {
         //        "code": 200,
@@ -4383,8 +4399,8 @@ impl Poloniex {
         let paramsValue: crate::value::Dict = self.safe_dict_k_t(&prepared, "query");
         let mut currency: crate::types::Currency = self.currency(code.as_str());
         let networkEntry: crate::value::Dict = self.safe_dict_k_t(&prepared, "networkEntry");
-        let __ws_arg_32 = self.extend(request, &[&paramsValue]);
-        let response: crate::value::Dict = self.private_post_wallets_address(&[&__ws_arg_32]).await.unwrap_or_default();
+        let __ws_arg_36 = self.extend(request, &[&paramsValue]);
+        let response: crate::value::Dict = self.private_post_wallets_address(&[&__ws_arg_36]).await.unwrap_or_default();
         return self.parse_deposit_address_special(&response, crate::Value::from(Some(&currency)), &networkEntry);
         Value::Null
         }).await?))
@@ -4413,8 +4429,8 @@ impl Poloniex {
         let paramsValue: crate::value::Dict = self.safe_dict_k_t(&prepared, "query");
         let mut currency: crate::types::Currency = self.currency(code.as_str());
         let networkEntry: crate::value::Dict = self.safe_dict_k_t(&prepared, "networkEntry");
-        let __ws_arg_33 = self.extend(request, &[&paramsValue]);
-        let response: crate::value::Dict = self.private_get_wallets_addresses(&[&__ws_arg_33]).await.unwrap_or_default();
+        let __ws_arg_37 = self.extend(request, &[&paramsValue]);
+        let response: crate::value::Dict = self.private_get_wallets_addresses(&[&__ws_arg_37]).await.unwrap_or_default();
         //
         //     {
         //         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
@@ -4431,28 +4447,27 @@ impl Poloniex {
     }
 
     pub fn prepare_request_for_deposit_address(&self, code: &str, optional_args: &[&Value]) -> crate::value::Dict {
-        let mut code: Value = code.into();
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
-        if !(matches!(&code, Value::Str(__k) if self.currencies.contains_key(__k.as_ref()))) {
-            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchDepositAddress(): can not recognize ").into()), code).into()), " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })")));
+        if !(matches!(&Value::from(code), Value::Str(__k) if self.currencies.contains_key(__k.as_ref()))) {
+            panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchDepositAddress(): can not recognize ").into()), Value::from(code)).into()), " currency, you might try using unified currency-code and add provide specific \"network\" parameter, like: fetchDepositAddress(\"USDT\", { \"network\": \"TRC20\" })")));
         }
-        let mut currency: crate::types::Currency = self.currency(code.as_str());
+        let mut currency: crate::types::Currency = self.currency(Some(code));
         let mut networkCode: Option<String> = None;
         let mut query: crate::value::Dict = Default::default();
         { let __destr_tmp = self.handle_network_code_and_params(params); networkCode = __destr_tmp.0.as_str().map(str::to_owned); query = __destr_tmp.1; }
         if (networkCode.is_none()) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchDepositAddress requires a network parameter for ").into()), code).into()), ".")));
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " fetchDepositAddress requires a network parameter for ").into()), Value::from(code)).into()), ".")));
         }
         let mut exchangeNetworkId: Option<String> = None;
-        networkCode = self.network_id_to_code(networkCode.as_deref(), code.as_text().as_deref());
+        networkCode = self.network_id_to_code(networkCode.as_deref(), Some(code));
         let networkEntry: Value = (if (networkCode.is_none()) { Value::Null } else { self.safe_dict(crate::value::KeyRead::key_read(&&currency, "networks"), Value::from(networkCode.as_deref()), &[]) });
         if (networkEntry != Value::Null) {
             exchangeNetworkId = self.safe_string_k_opt(&networkEntry, "id", &[]);
         }  else {
-            exchangeNetworkId = self.network_code_to_id(networkCode.as_deref(), code.as_text().as_deref()).as_str().map(str::to_owned);
+            exchangeNetworkId = self.network_code_to_id(networkCode.as_deref(), Some(code)).as_str().map(str::to_owned);
         }
         let request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4540,13 +4555,13 @@ impl Poloniex {
                 m.insert("toAccount".to_string(), toId.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_34 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_post_accounts_transfer(&[&__ws_arg_34]).await.unwrap_or_default();
-        let __ws_arg_35 = <Self as crate::exchange::DerivedExchange>::parse_transfer(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
-        let __ws_arg_36 = self.parse_number(amountToPrecision.map(Value::from).unwrap_or(Value::Null), &[]);
-        return self.extend(__ws_arg_35, &[Value::Map({
+        let __ws_arg_38 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_post_accounts_transfer(&[&__ws_arg_38]).await.unwrap_or_default();
+        let __ws_arg_39 = <Self as crate::exchange::DerivedExchange>::parse_transfer(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
+        let __ws_arg_40 = self.parse_number(amountToPrecision.map(Value::from).unwrap_or(Value::Null), &[]);
+        return self.extend(__ws_arg_39, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), __ws_arg_36);
+        m.insert("amount".to_string(), __ws_arg_40);
         m.insert("fromAccount".to_string(), fromAccount);
         m.insert("toAccount".to_string(), toAccount);
     m
@@ -4580,8 +4595,8 @@ impl Poloniex {
                 m.insert("id".to_string(), id);
             m
         });
-        let __ws_arg_37 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_get_accounts_transfer_id(&[&__ws_arg_37]).await.unwrap_or_default();
+        let __ws_arg_41 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_get_accounts_transfer_id(&[&__ws_arg_41]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, Some(&response), None).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -4631,8 +4646,8 @@ impl Poloniex {
         let (__until0, __until1) = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), params, &[]);
         let requestUntil: crate::value::Dict = __until0;
         let paramsUntil: crate::value::Dict = __until1;
-        let __ws_arg_38 = self.extend(requestUntil, &[&paramsUntil]);
-        let response: crate::value::List = self.private_get_accounts_transfer(&[&__ws_arg_38]).await.unwrap_or_default();
+        let __ws_arg_42 = self.extend(requestUntil, &[&paramsUntil]);
+        let response: crate::value::List = self.private_get_accounts_transfer(&[&__ws_arg_42]).await.unwrap_or_default();
         return Value::Arr(self.parse_transfers(&response, currency.as_ref(), &[Value::from(since), Value::from(limit)]));
         Value::Null
         }).await?))
@@ -4698,8 +4713,8 @@ impl Poloniex {
         if (tagWithdrawTag.is_some()) {
             request.insert("paymentId".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_39 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
-        let response: crate::value::Dict = self.private_post_v2_wallets_withdraw(&[&__ws_arg_39]).await.unwrap_or_default();
+        let __ws_arg_43 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
+        let response: crate::value::Dict = self.private_post_v2_wallets_withdraw(&[&__ws_arg_43]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -4728,8 +4743,8 @@ impl Poloniex {
                 m.insert("end".to_string(), Value::from(now));
             m
         });
-        let __ws_arg_40 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.private_get_wallets_activity(&[&__ws_arg_40]).await.unwrap_or_default();
+        let __ws_arg_44 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.private_get_wallets_activity(&[&__ws_arg_44]).await.unwrap_or_default();
         return response;
 
     Default::default()
@@ -4826,12 +4841,12 @@ impl Poloniex {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let __ws_arg_41 = self.extend(params, &[Value::Map({
+        let __ws_arg_45 = self.extend(params, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("includeMultiChainCurrencies".to_string(), Value::Bool(true));
     m
 })]);
-        let response: Option<crate::value::List> = self.public_get_currencies(&[&__ws_arg_41]).await;
+        let response: Option<crate::value::List> = self.public_get_currencies(&[&__ws_arg_45]).await;
         //
         //     [
         //         {
@@ -4965,11 +4980,11 @@ impl Poloniex {
     m
 }));
                         }
-                        let __ws_arg_42 = self.safe_dict_k(&parsedFee, "networks", &[Value::Map({
+                        let __ws_arg_46 = self.safe_dict_k(&parsedFee, "networks", &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]);
-                        { let __be_tmp = self.extend(__ws_arg_42, &[Value::Map(networkObject)]); parsedFee.insert("networks".into(), __be_tmp); }
+                        { let __be_tmp = self.extend(__ws_arg_46, &[Value::Map(networkObject)]); parsedFee.insert("networks".into(), __be_tmp); }
                     }
                     }
                 }
@@ -5082,8 +5097,8 @@ impl Poloniex {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_43 = self.extend(Value::Map(request), &[&paramsHedged]);
-        let response: crate::value::Dict = self.swap_private_post_v3_position_leverage(&[&__ws_arg_43]).await.unwrap_or_default();
+        let __ws_arg_47 = self.extend(Value::Map(request), &[&paramsHedged]);
+        let response: crate::value::Dict = self.swap_private_post_v3_position_leverage(&[&__ws_arg_47]).await.unwrap_or_default();
         return Value::Dict(response);
         Value::Null
         }).await?))
@@ -5123,8 +5138,8 @@ impl Poloniex {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchLeverage() requires a marginMode parameter \"cross\" or \"isolated\"")));
         }
         request.insert("mgnMode".into(), marginMode.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
-        let __ws_arg_44 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-        let response: crate::value::Dict = self.swap_private_get_v3_position_leverages(&[&__ws_arg_44]).await.unwrap_or_default();
+        let __ws_arg_48 = self.extend(Value::Map(request), &[&paramsMarginMode]);
+        let response: crate::value::Dict = self.swap_private_get_v3_position_leverages(&[&__ws_arg_48]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_leverage(self, Some(&response), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -5199,8 +5214,8 @@ impl Poloniex {
                 m.insert("posMode".to_string(), Value::from(mode));
             m
         });
-        let __ws_arg_45 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.swap_private_post_v3_position_mode(&[&__ws_arg_45]).await.unwrap_or_default();
+        let __ws_arg_49 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.swap_private_post_v3_position_mode(&[&__ws_arg_49]).await.unwrap_or_default();
         return Value::Dict(response);
 
     Value::Null
@@ -5291,8 +5306,8 @@ impl Poloniex {
         if !(matches!(&params, Value::Dict(__d) if __d.contains_key("posMode"))) {
             request.insert("posMode".into(), Value::Str("BOTH".into()));
         }
-        let __ws_arg_46 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.swap_private_post_v3_trade_position_margin(&[&__ws_arg_46]).await.unwrap_or_default();
+        let __ws_arg_50 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.swap_private_post_v3_trade_position_margin(&[&__ws_arg_50]).await.unwrap_or_default();
         //
         // {
         //     "code": 200,

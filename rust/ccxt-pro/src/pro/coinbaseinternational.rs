@@ -3009,7 +3009,7 @@ impl Coinbaseinternational {
         }
         let mut symbolsResolved: Option<crate::value::List> = self.market_symbols(&[&Value::from(symbols)]);
         let result: Value = self.request_ws(Value::Str("private/get_positions".into()), &[&Value::Dict(paramsResolved), &Value::Bool(true)]).await;
-        let positions: crate::value::List = self.parse_positions(result, &[]);
+        let positions: crate::value::List = self.parse_positions(self.to_array(result), &[]);
         return self.filter_by_array_positions(Value::Arr(positions), Value::Str("symbol".into()), &[symbolsResolved.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))

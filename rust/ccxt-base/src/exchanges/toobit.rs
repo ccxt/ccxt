@@ -2959,7 +2959,11 @@ impl Toobit {
             let __ws_arg_12 = self.extend(request, &[&paramsRequest]);
             response = self.private_post_api_v1_futures_order(&[&__ws_arg_12]).await.unwrap_or_default();
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&response), Some(&market));
+        let __ws_arg_13 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&response]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_13).as_ref(), Some(&market));
         None
         }).await?))
     }
@@ -3181,18 +3185,22 @@ impl Toobit {
             m
         });
         if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_13 = self.extend(&request, &[&paramsMarketType]);
-            response = self.private_delete_api_v1_spot_order(&[&__ws_arg_13]).await.unwrap_or_default();
+            let __ws_arg_14 = self.extend(&request, &[&paramsMarketType]);
+            response = self.private_delete_api_v1_spot_order(&[&__ws_arg_14]).await.unwrap_or_default();
         }  else {
-            let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            response = self.private_delete_api_v1_futures_order(&[&__ws_arg_14]).await.unwrap_or_default();
+            let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsMarketType]);
+            response = self.private_delete_api_v1_futures_order(&[&__ws_arg_15]).await.unwrap_or_default();
         }
         // response same as in `createOrder`
         let status: Option<String> = self.parse_order_status(self.safe_string_k(&response, "status", &[]).as_str());
         if (status.as_deref() != Some("open")) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " order ").into()), id).into()), " can not be canceled, ").into()), json_stringify(&response))));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&response), market.as_ref());
+        let __ws_arg_16 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&response]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_16).as_ref(), market.as_ref());
         None
         }).await?))
     }
@@ -3238,11 +3246,11 @@ impl Toobit {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_15 = self.extend(&request, &[&paramsMarketType]);
-            response = self.call_method_o("private_delete_api_v1_spot_open_orders", &[&__ws_arg_15]).await;
+            let __ws_arg_17 = self.extend(&request, &[&paramsMarketType]);
+            response = self.call_method_o("private_delete_api_v1_spot_open_orders", &[&__ws_arg_17]).await;
         }  else {
-            let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            response = self.call_method_o("private_delete_api_v1_futures_batch_orders", &[&__ws_arg_16]).await;
+            let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsMarketType]);
+            response = self.call_method_o("private_delete_api_v1_futures_batch_orders", &[&__ws_arg_18]).await;
         }
         return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3296,11 +3304,11 @@ impl Toobit {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_17 = self.extend(&request, &[&paramsMarketType]);
-            response = self.call_method_o("private_delete_api_v1_spot_cancel_order_by_ids", &[&__ws_arg_17]).await;
+            let __ws_arg_19 = self.extend(&request, &[&paramsMarketType]);
+            response = self.call_method_o("private_delete_api_v1_spot_cancel_order_by_ids", &[&__ws_arg_19]).await;
         }  else {
-            let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            response = self.call_method_o("private_delete_api_v1_futures_cancel_order_by_ids", &[&__ws_arg_18]).await;
+            let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsMarketType]);
+            response = self.call_method_o("private_delete_api_v1_futures_cancel_order_by_ids", &[&__ws_arg_20]).await;
         }
         let result: crate::value::List = self.safe_list_k_t(&response, "result");
         return Value::Arr(self.parse_orders(&result, market.as_ref(), &[]));
@@ -3345,13 +3353,17 @@ impl Toobit {
             m
         });
         if (market).spot {
-            let __ws_arg_19 = self.extend(&request, &[&params]);
-            response = self.private_get_api_v1_spot_order(&[&__ws_arg_19]).await.unwrap_or_default();
+            let __ws_arg_21 = self.extend(&request, &[&params]);
+            response = self.private_get_api_v1_spot_order(&[&__ws_arg_21]).await.unwrap_or_default();
         }  else {
-            let __ws_arg_20 = self.extend(Value::Map(request), &[&params]);
-            response = self.private_get_api_v1_futures_order(&[&__ws_arg_20]).await.unwrap_or_default();
+            let __ws_arg_22 = self.extend(Value::Map(request), &[&params]);
+            response = self.private_get_api_v1_futures_order(&[&__ws_arg_22]).await.unwrap_or_default();
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&response), Some(&market));
+        let __ws_arg_23 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&response]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_23).as_ref(), Some(&market));
         None
         }).await?))
     }
@@ -3401,11 +3413,11 @@ impl Toobit {
         let paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.1;
         let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_21 = self.extend(&request, &[&paramsMarketType]);
-            response = self.private_get_api_v1_spot_open_orders(&[&__ws_arg_21]).await.unwrap_or_default();
+            let __ws_arg_24 = self.extend(&request, &[&paramsMarketType]);
+            response = self.private_get_api_v1_spot_open_orders(&[&__ws_arg_24]).await.unwrap_or_default();
         }  else {
-            let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            response = self.private_get_api_v1_futures_open_orders(&[&__ws_arg_22]).await.unwrap_or_default();
+            let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsMarketType]);
+            response = self.private_get_api_v1_futures_open_orders(&[&__ws_arg_25]).await.unwrap_or_default();
         }
         return Value::Arr(self.parse_orders(&response, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
@@ -3592,8 +3604,8 @@ impl Toobit {
         let paramsUntil: crate::value::Dict = __until1;
         let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_23 = self.extend(&requestUntil, &[&paramsUntil]);
-            response = self.private_get_api_v1_account_trades(&[&__ws_arg_23]).await.unwrap_or_default();
+            let __ws_arg_26 = self.extend(&requestUntil, &[&paramsUntil]);
+            response = self.private_get_api_v1_account_trades(&[&__ws_arg_26]).await.unwrap_or_default();
         }  else {
             response = self.private_get_api_v1_futures_user_trades(&[&Value::Dict(requestUntil)]).await.unwrap_or_default();
         }
@@ -3640,8 +3652,8 @@ impl Toobit {
                 m.insert("toAccountType".to_string(), toId.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_24 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_post_api_v1_sub_account_transfer(&[&__ws_arg_24]).await.unwrap_or_default();
+        let __ws_arg_27 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_post_api_v1_sub_account_transfer(&[&__ws_arg_27]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_transfer(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -3700,11 +3712,11 @@ impl Toobit {
         let paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.1;
         let mut response: Option<crate::value::List> = None;
         if (marketType.as_deref() == Some("spot")) {
-            let __ws_arg_25 = self.extend(&requestUntil, &[&paramsMarketType]);
-            response = self.private_get_api_v1_account_balance_flow(&[&__ws_arg_25]).await;
+            let __ws_arg_28 = self.extend(&requestUntil, &[&paramsMarketType]);
+            response = self.private_get_api_v1_account_balance_flow(&[&__ws_arg_28]).await;
         }  else {
-            let __ws_arg_26 = self.extend(requestUntil, &[&paramsMarketType]);
-            response = self.private_get_api_v1_futures_balance_flow(&[&__ws_arg_26]).await;
+            let __ws_arg_29 = self.extend(requestUntil, &[&paramsMarketType]);
+            response = self.private_get_api_v1_futures_balance_flow(&[&__ws_arg_29]).await;
         }
         return self.parse_ledger(&response, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]);
         Value::Null
@@ -3764,8 +3776,8 @@ impl Toobit {
                     m.insert("symbol".to_string(), Value::from((symbolMarket).id.as_deref()));
                 m
             });
-            let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsSymbol]);
-            response = self.private_get_api_v1_futures_commission_rate(&[&__ws_arg_27]).await;
+            let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsSymbol]);
+            response = self.private_get_api_v1_futures_commission_rate(&[&__ws_arg_30]).await;
         }
         //
         // {
@@ -3885,11 +3897,11 @@ impl Toobit {
         let paramsUntil: crate::value::Dict = __until1;
         let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (type_var == Some("deposits")) {
-            let __ws_arg_28 = self.extend(&requestUntil, &[&paramsUntil]);
-            response = self.private_get_api_v1_account_deposit_orders(&[&__ws_arg_28]).await.unwrap_or_default();
+            let __ws_arg_31 = self.extend(&requestUntil, &[&paramsUntil]);
+            response = self.private_get_api_v1_account_deposit_orders(&[&__ws_arg_31]).await.unwrap_or_default();
         }  else if (type_var == Some("withdrawals")) {
-            let __ws_arg_29 = self.extend(requestUntil, &[&paramsUntil]);
-            response = self.private_get_api_v1_account_withdraw_orders(&[&__ws_arg_29]).await.unwrap_or_default();
+            let __ws_arg_32 = self.extend(requestUntil, &[&paramsUntil]);
+            response = self.private_get_api_v1_account_withdraw_orders(&[&__ws_arg_32]).await.unwrap_or_default();
         }
         let transactType: String = (if (type_var == Some("deposits")) { "deposit".to_string() } else { "withdrawal".to_string() });
         let mut results: Vec<Value> = Vec::new();
@@ -3897,11 +3909,11 @@ impl Toobit {
                         let mut i: i64 = 0;
             let mut __for_first_7: bool = true;
             while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (response.len() as i64) } {
-            let __ws_arg_30 = self.parse_transaction_with_type(self.safe_dict(&response, Value::Int(i), &[Value::Map({
+            let __ws_arg_33 = self.parse_transaction_with_type(self.safe_dict(&response, Value::Int(i), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]), &[&crate::Value::from(currency.as_ref()), &Value::from(transactType.as_str())]);
-            results.push(self.extend(__ws_arg_30, &[&paramsUntil]));
+            results.push(self.extend(__ws_arg_33, &[&paramsUntil]));
         }
         }
         let sorted: crate::value::List = self.sort_by_t(Value::from(results), Value::Str("timestamp".into()), &[]);
@@ -3983,16 +3995,16 @@ impl Toobit {
                 m.insert("coin".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
             m
         });
-        let __ws_arg_31 = self.extend(&request, &[&params]);
-        let networkCodeparamsOmittedVariable = self.handle_network_code_and_params(__ws_arg_31);
+        let __ws_arg_34 = self.extend(&request, &[&params]);
+        let networkCodeparamsOmittedVariable = self.handle_network_code_and_params(__ws_arg_34);
         let networkCode: Option<String> = networkCodeparamsOmittedVariable.0.as_str().map(str::to_owned);
         let paramsOmitted: crate::value::Dict = networkCodeparamsOmittedVariable.1;
         if (networkCode.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " fetchDepositAddress() : param[\"network\"] is required")));
         }
         request.insert("chainType".into(), self.network_code_to_id(networkCode.as_deref(), code.as_text().as_deref()));
-        let __ws_arg_32 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_get_api_v1_account_deposit_address(&[&__ws_arg_32]).await.unwrap_or_default();
+        let __ws_arg_35 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_get_api_v1_account_deposit_address(&[&__ws_arg_35]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -4051,8 +4063,8 @@ impl Toobit {
         if (tag.is_some()) {
             request.insert("addressExt".into(), tag.map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_33 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
-        let response: crate::value::Dict = self.private_post_api_v1_account_withdraw(&[&__ws_arg_33]).await.unwrap_or_default();
+        let __ws_arg_36 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
+        let response: crate::value::Dict = self.private_post_api_v1_account_withdraw(&[&__ws_arg_36]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -4094,8 +4106,8 @@ impl Toobit {
                 m.insert("marginType".to_string(), Value::from(marginModeValue));
             m
         });
-        let __ws_arg_34 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.call_method_t("private_post_api_v1_futures_margin_type", &[&__ws_arg_34]).await;
+        let __ws_arg_37 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.call_method_t("private_post_api_v1_futures_margin_type", &[&__ws_arg_37]).await;
         return Value::Dict(response);
         Value::Null
         }).await?))
@@ -4133,8 +4145,8 @@ impl Toobit {
                 m.insert("leverage".to_string(), leverage);
             m
         });
-        let __ws_arg_35 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_post_api_v1_futures_leverage(&[&__ws_arg_35]).await.unwrap_or_default();
+        let __ws_arg_38 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_post_api_v1_futures_leverage(&[&__ws_arg_38]).await.unwrap_or_default();
         return Value::Dict(response);
         Value::Null
         }).await?))
@@ -4166,8 +4178,8 @@ impl Toobit {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_36 = self.extend(Value::Map(request), &[&params]);
-        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.private_get_api_v1_futures_account_leverage(&[&__ws_arg_36]).await.unwrap_or_default());
+        let __ws_arg_39 = self.extend(Value::Map(request), &[&params]);
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.private_get_api_v1_futures_account_leverage(&[&__ws_arg_39]).await.unwrap_or_default());
         //
         // [
         //     {
@@ -4220,8 +4232,8 @@ impl Toobit {
                 request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
             }
         }
-        let __ws_arg_37 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::List = self.private_get_api_v1_futures_positions(&[&__ws_arg_37]).await.unwrap_or_default();
+        let __ws_arg_40 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::List = self.private_get_api_v1_futures_positions(&[&__ws_arg_40]).await.unwrap_or_default();
         return Value::Arr(self.parse_positions(&response, &[symbols]));
         Value::Null
         }).await?))

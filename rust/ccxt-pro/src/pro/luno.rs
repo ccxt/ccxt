@@ -122,9 +122,10 @@ impl Luno {
         let __n = match __name.strict() { Some(s) => s, None => return };
         match __n {
             "custom_parse_bid_ask" => { Value::Arr(self.custom_parse_bid_ask(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..])); },
+            "custom_parse_order_book" => { self.custom_parse_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]); },
             "handle_book_delta" => { self.handle_book_delta(&mut <Option<crate::pro::order_book::Book>>::from(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_book" => { self.handle_order_book(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null), args.get(2).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_trades" => { self.handle_trades(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "is_order_book_delta_in_sequence" => { self.is_order_book_delta_in_sequence(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default()); },
             "parse_order_book_bids_asks" => { Value::Arr(self.parse_order_book_bids_asks(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().copied().cloned().collect::<Vec<_>>())); },
@@ -353,7 +354,7 @@ impl Luno {
         }).await?))
     }
 
-    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value, mut subscription: Value) {
+    pub fn handle_order_book(&mut self, mut client: Value, mut message: Value, subscription: &indexmap::IndexMap<String, Value>) {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         //
@@ -388,7 +389,7 @@ impl Luno {
         //         "timestamp": 1660598775360
         //     }
         //
-        let symbol: String = self.safe_string_k(subscription, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let symbol: String = self.safe_string_k(&subscription, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let messageHash: String = format!("{}{}", "orderbook:", symbol);
         let timestamp: Option<i64> = self.safe_integer_k(&message, "timestamp", &[]).as_i64();
         if !(self.orderbooks.has(&symbol)) {
@@ -655,7 +656,7 @@ impl Luno {
             return;
         }
         let subscription: crate::value::Dict = self.safe_dict_t(&subscriptions, Value::Int(0));
-        self.handle_order_book(client.as_value(), message.clone(), Value::from(&subscription));
+        self.handle_order_book(client.as_value(), message.clone(), &subscription);
         self.handle_trades(&client.as_value(), message.as_map().unwrap_or(&Default::default()), &subscription);
 }
 }

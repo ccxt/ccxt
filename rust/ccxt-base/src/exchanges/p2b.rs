@@ -412,11 +412,11 @@ impl crate::exchange::DerivedExchange for P2b {
         if (apiName.as_deref() == Some("private")) {
             // p2b rejects a repeated nonce within 10 seconds (error 1016) — a dedup window, not a server-time check, so the counter drifting ahead of the clock under bursts is harmless
             // the nonce deliberately stays on the second-resolution base nonce: the venue documents second-scale (int32-range) nonce values and millisecond nonces are unverified against the live API
-            let __ws_arg_10 = self.incrementing_nonce();
+            let __ws_arg_12 = self.incrementing_nonce();
             paramsOmitted = self.extend_t(paramsOmitted, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("request".to_string(), Value::Str(format!("{}{}", "/api/v2/", Value::from(path)).into()));
-        m.insert("nonce".to_string(), Value::Str(format!("{}", Value::Int(__ws_arg_10)).into()));
+        m.insert("nonce".to_string(), Value::Str(format!("{}", Value::Int(__ws_arg_12)).into()));
     m
 })]);
             let payload: String = self.string_to_base64(json_stringify(&paramsOmitted), &[]); // Body json encoded in base64
@@ -1411,8 +1411,12 @@ impl P2b {
         //        }
         //    }
         //
-        let result: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, result.as_ref(), Some(&market));
+        let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
+        let __ws_arg_5 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&result]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_5).as_ref(), Some(&market));
         None
         }).await?))
     }
@@ -1449,8 +1453,8 @@ impl P2b {
                 m.insert("orderId".to_string(), id);
             m
         });
-        let __ws_arg_5 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_post_order_cancel(&[&__ws_arg_5]).await.unwrap_or_default();
+        let __ws_arg_6 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_post_order_cancel(&[&__ws_arg_6]).await.unwrap_or_default();
         //
         //    {
         //        "success": true,
@@ -1473,8 +1477,12 @@ impl P2b {
         //        }
         //    }
         //
-        let result: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, result.as_ref(), None);
+        let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
+        let __ws_arg_7 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&result]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_7).as_ref(), None);
         None
         }).await?))
     }
@@ -1518,8 +1526,8 @@ impl P2b {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_6 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_post_orders(&[&__ws_arg_6]).await.unwrap_or_default();
+        let __ws_arg_8 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_post_orders(&[&__ws_arg_8]).await.unwrap_or_default();
         //
         //    {
         //        "success": true,
@@ -1589,8 +1597,8 @@ impl P2b {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_post_account_order(&[&__ws_arg_7]).await.unwrap_or_default();
+        let __ws_arg_9 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_post_account_order(&[&__ws_arg_9]).await.unwrap_or_default();
         //
         //    {
         //        "success": true,
@@ -1687,8 +1695,8 @@ impl P2b {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_post_account_market_deal_history(&[&__ws_arg_8]).await.unwrap_or_default();
+        let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_post_account_market_deal_history(&[&__ws_arg_10]).await.unwrap_or_default();
         //
         //    {
         //        "success": true,
@@ -1790,8 +1798,8 @@ impl P2b {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_post_account_order_history(&[&__ws_arg_9]).await.unwrap_or_default();
+        let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_post_account_order_history(&[&__ws_arg_11]).await.unwrap_or_default();
         //
         //    {
         //        "success": true,

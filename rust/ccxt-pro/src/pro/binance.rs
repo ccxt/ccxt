@@ -557,10 +557,10 @@ impl Binance {
         if (stream.is_none()) {
             let previousStreamIndex: i64 = self.safe_integer_k(&self.options, "streamIndex", &[Value::Int(-1)]).as_i64().unwrap_or(-1);
             let streamLimits: crate::value::Dict = self.safe_dict_k_t(&self.options, "streamLimits");
-            let streamLimit: Value = self.safe_integer(&streamLimits, Value::from(type_var), &[]);
-            let streamIndex: Value = Value::Int((previousStreamIndex + 1));
-            let normalizedIndex: Value = (match (&(streamIndex), &(streamLimit)) { (Value::Int(x), Value::Int(y)) if *y != 0 => Value::Int(x % y), (Value::Int(x), Value::Float(y)) if *y != 0.0 => Value::Float(*x as f64 % *y), (Value::Float(x), Value::Int(y)) if *y != 0 => Value::Float(*x % *y as f64), (Value::Float(x), Value::Float(y)) if *y != 0.0 => Value::Float(x % y), _ => Value::Null });
-            { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("streamIndex".into(), streamIndex); }
+            let streamLimit: i64 = self.safe_integer(&streamLimits, Value::from(type_var), &[Value::Int(50)]).as_i64().unwrap_or(50);
+            let streamIndex: i64 = (previousStreamIndex + 1);
+            let normalizedIndex: Value = Value::from((if let (Some(__l), Some(__r)) = (Some(streamIndex), Some(streamLimit)) { if __r != 0 { Some(__l % __r) } else { None } } else { None }));
+            { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("streamIndex".into(), Value::from(streamIndex)); }
             stream = self.number_to_string(normalizedIndex);
             if (subscriptionHash.is_some()) {
                 streamBySubscriptionsHash.insert(crate::runtime::stringify_param(&Value::from(subscriptionHash)), Value::from(stream.as_deref()));
@@ -5437,10 +5437,14 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         //
         let messageHash: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let result: crate::value::Dict = message.key_dict("result");
-        let mut newSpotOrder: Option<crate::value::Dict> = self.safe_dict_k_o(&result, "newOrderResponse");
+        let newSpotOrder: Option<crate::value::Dict> = self.safe_dict_k_o(&result, "newOrderResponse");
         let mut order: Option<crate::value::Dict> = None;
         if (newSpotOrder.is_some()) {
-            order = Some(self.parse_order(newSpotOrder.map_or(Value::Null, Value::Dict), None));
+            let __ws_arg_30 = self.extend(Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            }), &[&newSpotOrder]);
+            order = Some(self.parse_order(__ws_arg_30, None));
         }  else {
             order = Some(self.parse_order(Value::Dict(result), None));
         }
@@ -5521,8 +5525,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(messageHash.as_str()));
                 m.insert("method".to_string(), Value::Str("order.cancel".into()));
-                let __ws_arg_30 = self.extend(Value::Map(payload), &[&paramsOmitted]);
-                m.insert("params".to_string(), self.sign_params(&[&__ws_arg_30]));
+                let __ws_arg_31 = self.extend(Value::Map(payload), &[&paramsOmitted]);
+                m.insert("params".to_string(), self.sign_params(&[&__ws_arg_31]));
             m
         });
         if shouldUseAlgoOrder {
@@ -5591,8 +5595,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(messageHash.as_str()));
                 m.insert("method".to_string(), Value::Str("openOrders.cancelAll".into()));
-                let __ws_arg_31 = self.extend(Value::Map(payload), &[&paramsReturnRateLimits]);
-                m.insert("params".to_string(), self.sign_params(&[&__ws_arg_31]));
+                let __ws_arg_32 = self.extend(Value::Map(payload), &[&paramsReturnRateLimits]);
+                m.insert("params".to_string(), self.sign_params(&[&__ws_arg_32]));
             m
         });
         let subscription: indexmap::IndexMap<String, Value> = ({
@@ -5668,8 +5672,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(messageHash.as_str()));
                 m.insert("method".to_string(), Value::Str("order.status".into()));
-                let __ws_arg_32 = self.extend(Value::Map(payload), &[&paramsReturnRateLimits]);
-                m.insert("params".to_string(), self.sign_params(&[&__ws_arg_32]));
+                let __ws_arg_33 = self.extend(Value::Map(payload), &[&paramsReturnRateLimits]);
+                m.insert("params".to_string(), self.sign_params(&[&__ws_arg_33]));
             m
         });
         let subscription: indexmap::IndexMap<String, Value> = ({
@@ -5743,8 +5747,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(messageHash.as_str()));
                 m.insert("method".to_string(), Value::Str("allOrders".into()));
-                let __ws_arg_33 = self.extend(Value::Map(payload), &[&paramsReturnRateLimits]);
-                m.insert("params".to_string(), self.sign_params(&[&__ws_arg_33]));
+                let __ws_arg_34 = self.extend(Value::Map(payload), &[&paramsReturnRateLimits]);
+                m.insert("params".to_string(), self.sign_params(&[&__ws_arg_34]));
             m
         });
         let subscription: indexmap::IndexMap<String, Value> = ({
@@ -5855,8 +5859,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(messageHash.as_str()));
                 m.insert("method".to_string(), Value::Str("openOrders.status".into()));
-                let __ws_arg_34 = self.extend(Value::Map(payload), &[&paramsReturnRateLimits]);
-                m.insert("params".to_string(), self.sign_params(&[&__ws_arg_34]));
+                let __ws_arg_35 = self.extend(Value::Map(payload), &[&paramsReturnRateLimits]);
+                m.insert("params".to_string(), self.sign_params(&[&__ws_arg_35]));
             m
         });
         let subscription: indexmap::IndexMap<String, Value> = ({
@@ -5912,12 +5916,12 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if stock {
             // literal on top: a stray type in the caller params must not override
             // the forced stock, the removed authenticateStock ignored it entirely
-            let __ws_arg_35 = self.extend(&paramsStock, &[Value::Map({
+            let __ws_arg_36 = self.extend(&paramsStock, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::Str("stock".into()));
     m
 })]);
-            self.authenticate(&[&__ws_arg_35]).await;
+            self.authenticate(&[&__ws_arg_36]).await;
             let stockOptions: crate::value::Dict = self.safe_dict_k_t(&self.options, "stock");
             let stockListenKey: Option<String> = self.safe_string_k_opt(&stockOptions, "listenKey", &[]);
             if (stockListenKey.is_none()) {
@@ -5943,8 +5947,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                     m.insert("id".to_string(), Value::from(stockRequestId));
                 m
             });
-            let __ws_arg_36 = self.extend(Value::Map(stockRequest), &[&stockQuery]);
-            let mut stockOrders: Value = self.watch(stockUrl.as_deref(), &stockMessageHash[..], __ws_arg_36, &stockMessageHash[..], Value::Map(stockSubscribe)).await;
+            let __ws_arg_37 = self.extend(Value::Map(stockRequest), &[&stockQuery]);
+            let mut stockOrders: Value = self.watch(stockUrl.as_deref(), &stockMessageHash[..], __ws_arg_37, &stockMessageHash[..], Value::Map(stockSubscribe)).await;
             let mut stockLimit: Option<i64> = limit;
             if self.newUpdates.as_bool() == Some(true) {
                 stockLimit = stockOrders.get_limit(symbol.as_str(), limit);
@@ -6419,10 +6423,10 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let orderValue: Value = self.safe_dict_k(&message, "o", &[message.clone()]);
         let mut messageValue: Value = message.clone();
         if (e.as_deref() == Some("ORDER_TRADE_UPDATE")) || (e.as_deref() == Some("ALGO_UPDATE")) {
-            messageValue = orderValue;
-            if (e.as_deref() == Some("ALGO_UPDATE")) && (self.safe_integer_k(&messageValue, "T", &[]) == Value::Null) {
+            messageValue = orderValue.clone();
+            if (e.as_deref() == Some("ALGO_UPDATE")) && (self.safe_integer_k(&orderValue, "T", &[]) == Value::Null) {
                 // keep the outer event time, the algo payload carries no timestamps
-                messageValue = self.extend(messageValue, &[Value::Map({
+                messageValue = self.extend(orderValue, &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("T".to_string(), (match __pro_message.get("T").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n),
                             Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }));
@@ -6679,8 +6683,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         });
         marketTypeObject.insert("type".into(), Value::from(type_var.as_deref()));
         marketTypeObject.insert("subType".into(), subType.map(Value::from).unwrap_or(Value::Null));
-        let __ws_arg_37 = self.extend(Value::Map(marketTypeObject), &[&paramsAuth]);
-        self.authenticate(&[&__ws_arg_37]).await;
+        let __ws_arg_38 = self.extend(Value::Map(marketTypeObject), &[&paramsAuth]);
+        self.authenticate(&[&__ws_arg_38]).await;
         messageHash = format!("{}{}", Value::Str(format!("{}{}", type_var.as_deref().unwrap_or("null"), ":positions").into()), messageHash);
         let portfolioMarginAndParams = self.handle_option_bool_and_params2(paramsAuth, Value::Str("watchPositions".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]);
         let mut isPortfolioMargin: Option<bool> = portfolioMarginAndParams.0;
@@ -7010,8 +7014,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), Value::from(messageHash.as_str()));
                 m.insert("method".to_string(), Value::Str("myTrades".into()));
-                let __ws_arg_38 = self.extend(Value::Map(payload), &[&paramsReturnRateLimits]);
-                m.insert("params".to_string(), self.sign_params(&[&__ws_arg_38]));
+                let __ws_arg_39 = self.extend(Value::Map(payload), &[&paramsReturnRateLimits]);
+                m.insert("params".to_string(), self.sign_params(&[&__ws_arg_39]));
             m
         });
         let subscription: indexmap::IndexMap<String, Value> = ({
@@ -7201,13 +7205,13 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             });
         }
         let paramsSymbol: crate::value::Dict = self.extend_t(paramsAuth, &[Value::Map(symbolParams)]);
-        let __ws_arg_39 = self.extend(Value::Map({
+        let __ws_arg_40 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), Value::from(type_var.as_deref()));
         m.insert("subType".to_string(), subType.map(Value::from).unwrap_or(Value::Null));
     m
 }), &[&paramsSymbol]);
-        self.authenticate(&[&__ws_arg_39]).await;
+        self.authenticate(&[&__ws_arg_40]).await;
         let mut urlType: Option<String> = type_var.clone(); // we don't change type because the listening key is different
         if (type_var.as_deref() == Some("margin")) {
             urlType = Some("spot".to_string()); // spot-margin shares the same stream as regular spot
@@ -7255,14 +7259,14 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (executionType.as_deref() == Some("TRADE")) {
             let trade: Value = Value::Dict(self.parse_ws_trade(message, None));
             let orderId: Option<String> = self.safe_string_k_opt(&trade, "order", &[]);
-            let __ws_arg_40 = self.safe_dict_k(&trade, "fee", &[Value::Map({
+            let __ws_arg_41 = self.safe_dict_k(&trade, "fee", &[Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
             })]);
             let tradeFee: Value = self.extend(Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
-            }), &[__ws_arg_40]);
+            }), &[__ws_arg_41]);
             let symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
             if (orderId.is_some()) && (tradeFee != Value::Null) && (symbol.is_some()) {
                 if (self.orders.is_some()) {

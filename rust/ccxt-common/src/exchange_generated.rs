@@ -1115,7 +1115,13 @@ pub trait ExchangeBase:
  * @description enables or disables demo trading mode
  * @param {boolean} [enable] true if demo trading should be enabled, false otherwise
  */
-    fn enable_demo_trading(&mut self, mut enable: Value) {
+    fn enable_demo_trading(&mut self, enable: bool) -> crate::Result<()> {
+        let __args: Vec<Value> = vec![Value::from(enable)];
+        let mut __it = __args.into_iter();
+        let enable = __it.next().unwrap_or_default();
+        let __optional_args: Vec<Value> = __it.collect();
+        Ok(crate::types::FromRaw::from_raw(futures::FutureExt::now_or_never(crate::runtime::call_typed(async move {
+        let optional_args: &[Value] = &__optional_args;
         if self.isSandboxModeEnabled.as_bool() == Some(true) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " demo trading does not support in sandbox environment. Please check https://www.binance.com/en/support/faq/detail/9be58f73e5e14338809e3b705b9687dd to see the differences")));
         }
@@ -1127,7 +1133,9 @@ pub trait ExchangeBase:
             std::sync::Arc::make_mut(&mut self.urls).shift_remove("apiBackupDemoTrading");
         }
         { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("enableDemoTrading".into(), enable); }
-}
+        Value::Null
+        })).expect("a sync body never awaits")?))
+    }
 
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> crate::value::Dict {
         // virtual-dispatch (static: DerivedExchange::sign(self, ...))
@@ -3606,13 +3614,13 @@ pub trait ExchangeBase:
     Value::Null
 }
 
-    fn calculate_fee(&self, symbol: &str, mut type_var: Value, side: &str, mut amount: Value, mut price: Value, optional_args: &[Value]) -> Value {
+    fn calculate_fee(&self, symbol: &str, mut type_var: Value, side: &str, amount: f64, price: f64, optional_args: &[Value]) -> Value {
         let takerOrMaker = get_arg(optional_args, 0, Value::Str("taker".into()));
         let params = get_arg(optional_args, 1, Value::Map({
     let m = indexmap::IndexMap::new();
     m
 }));
-        return self.calculate_fee_with_rate(Value::from(symbol), type_var, Value::from(side), amount, price, &[takerOrMaker, Value::Null, params]);
+        return self.calculate_fee_with_rate(Value::from(symbol), type_var, Value::from(side), Value::from(amount), Value::from(price), &[takerOrMaker, Value::Null, params]);
 
     Value::Null
 }
@@ -3811,17 +3819,19 @@ pub trait ExchangeBase:
 }
 
     fn invert_flat_string_dictionary(&self, mut dict: Value) -> crate::value::Dict {
+        let __dict_empty = indexmap::IndexMap::new();
+        let dict = dict.as_map().unwrap_or(&__dict_empty);
         let mut reversed: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
         });
-        let keys: Vec<Value> = object_keys(&dict).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(dict.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_103: bool = true;
             while { if !__for_first_103 { i += 1; } __for_first_103 = false; i < (keys.len() as i64) } {
             let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
-            let value: Value = (if let (Some(__m), Some(__k)) = (dict.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let value: Value = dict.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             if matches!(&value, Value::Str(_)) {
                 reversed.insert(crate::runtime::stringify_param(&value), Value::from(key.as_deref()));
             }
@@ -4936,7 +4946,9 @@ pub trait ExchangeBase:
         if (self.has.get("fetchTradingLimits").cloned().unwrap_or(Value::Null) != Value::Null) && (self.has.get("fetchTradingLimits").cloned().unwrap_or(Value::Null).as_bool() != Some(false)) {
             if reload.as_bool() == Some(true) || !(self.options.contains_key("limitsLoaded")) {
                 let response: Value = crate::types::IntoRaw::into_raw(self.fetch_trading_limits(symbols.to_opt_str_vec(), Value::Null).await);
-                let symbolsArray: Value = self.require_value(symbols, &[Value::Str("loadTradingLimits() requires a symbols argument".into())]);
+                if (symbols == Value::Null) {
+                    panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " loadTradingLimits() requires a symbols argument")));
+                }
                 let mut markets: Value = Value::from(&self.markets);
                 if (markets == Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " markets not loaded")));
@@ -4944,8 +4956,8 @@ pub trait ExchangeBase:
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_121: bool = true;
-                    while { if !__for_first_121 { i += 1; } __for_first_121 = false; (i as f64) < get_array_length(&symbolsArray).as_f64().unwrap_or(f64::NAN) } {
-                    let symbol: Value = get_value(&symbolsArray, &Value::Int(i));
+                    while { if !__for_first_121 { i += 1; } __for_first_121 = false; i < (symbols.len() as i64) } {
+                    let symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                     { let __be_tmp = self.deep_extend(get_value(&markets, &symbol), &[get_value(&response, &symbol)]); add_element_to_object(&mut markets, &symbol, __be_tmp); }
                 }
                 }
@@ -6351,7 +6363,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }).await?))
     } }
 
-    fn fetch_transaction_fee(&mut self, mut code: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn fetch_transaction_fee(&mut self, code: &str, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -6359,7 +6371,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (self.has.get("fetchTransactionFees").cloned().unwrap_or(Value::Null) == Value::Null) || (self.has.get("fetchTransactionFees").cloned().unwrap_or(Value::Null).as_bool() == Some(false)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id, " fetchTransactionFee() is not supported yet")));
         }
-        return self.fetch_transaction_fees(&[Value::from(vec![code]), params]).await;
+        return self.fetch_transaction_fees(&[Value::from(vec![Value::from(code)]), params]).await;
 
     Value::Null
 } }
@@ -7960,7 +7972,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }).await?))
     } }
 
-    fn create_sub_account(&mut self, mut name: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn create_sub_account(&mut self, name: &str, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -8056,8 +8068,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let m = indexmap::IndexMap::new();
     m
 }));
+        let __pricesData_empty = indexmap::IndexMap::new();
+        let pricesData = pricesData.as_map().unwrap_or(&__pricesData_empty);
         let mut results: Vec<Value> = Vec::new();
-        let marketIds: Vec<Value> = object_keys(&pricesData).as_array().cloned().unwrap_or_default();
+        let marketIds: Vec<Value> = Value::Array(pricesData.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_144: bool = true;
@@ -8067,7 +8081,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             results.push(self.extend(Value::Dict(<Self as crate::exchange_generated::ExchangeBase>::parse_last_price(self, self.extend(Value::Map({
                 let m = indexmap::IndexMap::new();
                 m
-            }), &[(if let (Some(__m), Some(__k)) = (pricesData.as_map(), marketId.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })]), Some(&market))), &[&params]));
+            }), &[pricesData.get(marketId.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null)]), Some(&market))), &[&params]));
         }
         }
         return Value::Dict(self.index_by(Value::Arr(self.filter_by_array_list(Value::from(results), Value::Str("symbol".into()), self.market_symbols(&[&symbols]).map_or(Value::Null, Value::Arr))), Value::Str("symbol".into())));
@@ -9672,7 +9686,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
     fn remove_keys_from_dict(&self, mut dict: Value, mut removeKeys: Value) -> crate::value::Dict {
-        let mut keys: Vec<&str> = dict.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
+        let __dict_empty = indexmap::IndexMap::new();
+        let dict = dict.as_map().unwrap_or(&__dict_empty);
+        let mut keys: Vec<Value> = Value::Array(dict.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut newDict: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -9681,9 +9697,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_168: bool = true;
             while { if !__for_first_168 { i += 1; } __for_first_168 = false; i < (keys.len() as i64) } {
-            let key: Option<&str> = keys.get(i as usize).copied();
+            let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             if !self.in_array(Value::from(key.as_deref()), &removeKeys) {
-                newDict.insert(key.as_deref().unwrap_or("null").to_string(), (if let (Some(__m), Some(__k)) = (dict.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }));
+                newDict.insert(key.as_deref().unwrap_or("null").to_string(), dict.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null));
             }
         }
         }
@@ -13236,7 +13252,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "borrow_isolated_margin" => crate::types::IntoRaw::into_raw(self.borrow_isolated_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(3).cloned().unwrap_or_default()).await),
             "borrow_margin" => crate::types::IntoRaw::into_raw(self.borrow_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or_default()).await),
             "build_ohlcvc" => self.build_ohlcvc(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
-            "calculate_fee" => self.calculate_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]),
+            "calculate_fee" => self.calculate_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(),
+                args.get(4).and_then(crate::Value::as_f64).unwrap_or_default(), &args[5.min(args.len())..]),
             "calculate_fee_with_rate" => self.calculate_fee_with_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null), &args[5.min(args.len())..]),
             "calculate_rate_limiter_cost" => self.calculate_rate_limiter_cost(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
             "call_method" => self.call_method(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
@@ -13332,7 +13349,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
             "create_stop_order_ws" => crate::types::IntoRaw::into_raw(self.create_stop_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                 args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
-            "create_sub_account" => self.create_sub_account(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+            "create_sub_account" => self.create_sub_account(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
             "create_take_profit_order" => crate::types::IntoRaw::into_raw(self.create_take_profit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                 args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
             "create_take_profit_order_ws" => crate::types::IntoRaw::into_raw(self.create_take_profit_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
@@ -13369,6 +13386,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "edit_order_ws" => crate::types::IntoRaw::into_raw(self.edit_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                 args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
             "edit_orders" => crate::types::IntoRaw::into_raw(self.edit_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
+            "enable_demo_trading" => crate::types::IntoRaw::into_raw(self.enable_demo_trading(args.get(0).is_some_and(crate::Value::is_truthy))),
             "feature_value" => self.feature_value(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "feature_value_by_type" => self.feature_value_by_type(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "features_mapper" => self.features_mapper(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
@@ -13492,7 +13510,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "fetch_trading_fees" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees(args.get(0).cloned().unwrap_or_default()).await),
             "fetch_trading_fees_ws" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees_ws(args.get(0).cloned().unwrap_or_default()).await),
             "fetch_trading_limits" => crate::types::IntoRaw::into_raw(self.fetch_trading_limits(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
-            "fetch_transaction_fee" => self.fetch_transaction_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+            "fetch_transaction_fee" => self.fetch_transaction_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
             "fetch_transaction_fees" => self.fetch_transaction_fees(&args[..]).await,
             "fetch_transactions" => crate::types::IntoRaw::into_raw(self.fetch_transactions(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
             "fetch_transfer" => crate::types::IntoRaw::into_raw(self.fetch_transfer(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),

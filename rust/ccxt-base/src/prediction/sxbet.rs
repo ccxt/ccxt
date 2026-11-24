@@ -227,11 +227,11 @@ impl crate::exchange::DerivedExchange for Sxbet {
             baseUrl = groupUrl;
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", baseUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(Value::from(path), &params));
-        let __ws_arg_21 = self.omit(params, self.extract_params(Value::from(path)), &[]);
+        let __ws_arg_22 = self.omit(params, self.extract_params(Value::from(path)), &[]);
         let query: crate::value::Dict = self.extend_t(Value::Map({
             let m = indexmap::IndexMap::new();
             m
-        }), &[__ws_arg_21]);
+        }), &[__ws_arg_22]);
         let existingHeaders: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -3879,8 +3879,12 @@ impl Sxbet {
             let mut __for_first_41: bool = true;
             while { if !__for_first_41 { i += 1; } __for_first_41 = false; i < rowsLength } {
             let rawRow: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
-            let row: Value = self.safe_dict_k(rawRow.clone(), "order", &[rawRow]);
-            let order: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(row).as_ref(), None).unwrap_or_default();
+            let row: crate::value::Dict = self.safe_dict_k_or(&rawRow, "order", &rawRow);
+            let __ws_arg_21 = self.extend(Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            }), &[&row]);
+            let order: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_21).as_ref(), None).unwrap_or_default();
             if (self.orders.is_none()) {
                 let cacheLimit: i64 = self.safe_integer_k(&self.options, "ordersLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
                 self.orders = Some(ArrayCacheByOutcomeById::new(Value::from(cacheLimit)));

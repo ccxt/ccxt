@@ -627,7 +627,7 @@ impl crate::exchange_generated::ExchangeBase for Dydx {
                 "parse_transaction" => Value::Dict(self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_transfer" => Value::Dict(self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "pow" => crate::Value::from(self.pow(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null))),
-                "retrieve_credentials" => self.retrieve_credentials(),
+                "retrieve_credentials" => crate::Value::Dict(self.retrieve_credentials()),
                 "set_sandbox_mode" => crate::types::IntoRaw::into_raw(self.set_sandbox_mode(args.get(0).is_some_and(crate::Value::is_truthy))),
                 "sign" => Value::Dict(self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..])),
                 "sign_hash" => crate::Value::Dict(self.sign_hash(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null))),
@@ -2096,10 +2096,10 @@ impl Dydx {
         return self.encode_dydx_tx_raw(signDoc, Value::Str(format!("{}{}", signatureR, signatureS).into())).as_str().map(str::to_owned);
 }
 
-    pub fn retrieve_credentials(&mut self) -> Value {
+    pub fn retrieve_credentials(&mut self) -> crate::value::Dict {
         let mut credentials: Value = self.safe_dict_k(&self.options, "dydxCredentials", &[]);
         if (credentials != Value::Null) {
-            return credentials;
+            return self.safe_dict_k_t(&self.options, "dydxCredentials");
         }
         let privateKeyOption: Option<String> = self.safe_string_k_opt(&self.options, "privateKey", &[]);
         if (privateKeyOption.is_some()) {
@@ -2114,10 +2114,8 @@ impl Dydx {
                 m.insert("publicKey".to_string(), Value::from(self.binary_to_base16(crate::value::get_value_k(&credentials, "publicKey"), &[])));
             m
         });
-        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("dydxCredentials".into(), credentials.clone()); }
-        return credentials;
-
-    Value::Null
+        { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("dydxCredentials".into(), credentials); }
+        return self.safe_dict_k_t(&self.options, "dydxCredentials");
 }
 
     pub async fn fetch_dydx_account(&mut self) -> crate::value::Dict {
@@ -2437,7 +2435,7 @@ impl Dydx {
         if (self.markets.is_none()) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let credentials: crate::value::Dict = self.retrieve_credentials().into_dict();
+        let credentials: crate::value::Dict = self.retrieve_credentials();
         let account: crate::value::Dict = self.fetch_dydx_account().await;
         let lastBlockHeight: i64 = self.fetch_latest_block_height(&[]).await.as_i64().unwrap_or_default();
         // params['latestBlockHeight'] = lastBlockHeight;
@@ -2560,7 +2558,7 @@ impl Dydx {
                 goodTillBlock = Some((latestBlockHeight + 20));
             }
         }
-        let credentials: crate::value::Dict = self.retrieve_credentials().into_dict();
+        let credentials: crate::value::Dict = self.retrieve_credentials();
         let account: crate::value::Dict = self.fetch_dydx_account().await;
         let marketInfo: indexmap::IndexMap<String, Value> = self.safe_dict_k(&market, "info", &[Value::Map({
             let m = indexmap::IndexMap::new();
@@ -2662,7 +2660,7 @@ impl Dydx {
             let latestBlockHeight: i64 = self.fetch_latest_block_height(&[]).await.as_i64().unwrap_or_default();
             goodTillBlock = Some((latestBlockHeight + 20));
         }
-        let credentials: crate::value::Dict = self.retrieve_credentials().into_dict();
+        let credentials: crate::value::Dict = self.retrieve_credentials();
         let account: crate::value::Dict = self.fetch_dydx_account().await;
         let marketInfo: indexmap::IndexMap<String, Value> = self.safe_dict_k(&market, "info", &[Value::Map({
             let m = indexmap::IndexMap::new();
@@ -2917,7 +2915,7 @@ impl Dydx {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " transfer requires fromSubaccountId and toSubaccountId.")));
             }
         }
-        let credentials: crate::value::Dict = self.retrieve_credentials().into_dict();
+        let credentials: crate::value::Dict = self.retrieve_credentials();
         let account: crate::value::Dict = self.fetch_dydx_account().await;
         let usd: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&Value::from(self.number_to_string(amount)), &Value::Str("1000000".into())));
         let mut payload: Option<crate::value::Dict> = None;
@@ -3070,7 +3068,7 @@ impl Dydx {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id, " withdraw requires subaccountId.")));
         }
         let mut currency: crate::types::Currency = self.currency(code.as_str());
-        let credentials: crate::value::Dict = self.retrieve_credentials().into_dict();
+        let credentials: crate::value::Dict = self.retrieve_credentials();
         let account: crate::value::Dict = self.fetch_dydx_account().await;
         let usd: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&Value::from(self.number_to_string(amount)), &Value::Str("1000000".into())));
         let payload: indexmap::IndexMap<String, Value> = ({

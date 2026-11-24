@@ -814,11 +814,11 @@ impl crate::exchange::DerivedExchange for Lbank {
 }));
     m
 }));
-                    let __ws_arg_33 = self.safe_dict_k(&result, "networks", &[Value::Map({
+                    let __ws_arg_34 = self.safe_dict_k(&result, "networks", &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]);
-                    { let __be_tmp = self.extend(__ws_arg_33, &[Value::Map(networkFees)]); result.insert("networks".into(), __be_tmp); }
+                    { let __be_tmp = self.extend(__ws_arg_34, &[Value::Map(networkFees)]); result.insert("networks".into(), __be_tmp); }
                 }
             }
         }
@@ -872,14 +872,14 @@ impl crate::exchange::DerivedExchange for Lbank {
                 signatureMethod = Some("HmacSHA256".to_string());
             }
             let finalSig: Option<String> = signatureMethod.clone(); // java req
-            let __ws_arg_34 = self.keysort(self.extend(Value::Map({
+            let __ws_arg_35 = self.keysort(self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("echostr".to_string(), Value::from(echostr.as_str()));
         m.insert("signature_method".to_string(), finalSig.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp.as_str()));
     m
 }), &[&signedQuery]), &[]);
-            let auth: String = self.rawencode(__ws_arg_34, &[]);
+            let auth: String = self.rawencode(__ws_arg_35, &[]);
             let encoded: crate::value::Bytes = self.encode(Value::from(auth));
             let uppercaseHash: Value = (Value::from(self.hash(&encoded, "md5", &[]))).as_str().map(|__s| Value::Str(__s.to_uppercase().into())).unwrap_or(Value::Null);
             let mut sign: String = "".to_string();
@@ -2690,7 +2690,11 @@ impl Lbank {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (fees.len() as i64) } {
-            let fee: crate::value::Dict = self.parse_trading_fee(fees.get(i as usize).cloned().unwrap_or(Value::Null), None);
+            let __ws_arg_12 = self.extend(Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            }), &[fees.get(i as usize).cloned().unwrap_or(Value::Null)]);
+            let fee: crate::value::Dict = self.parse_trading_fee(__ws_arg_12, None);
             let symbol: Option<String> = self.safe_string_k_opt(&fee, "symbol", &[]);
             if (symbol.is_some()) {
                 result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(fee));
@@ -2831,11 +2835,11 @@ impl Lbank {
         let paramsOmitted: crate::value::Dict = self.omit_t(paramsRequest, Value::Str("method".into()), &[]);
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("spotPrivatePostCreateOrder")) {
-            let __ws_arg_12 = self.extend(&request, &[&paramsOmitted]);
-            response = self.spot_private_post_create_order(&[&__ws_arg_12]).await;
+            let __ws_arg_13 = self.extend(&request, &[&paramsOmitted]);
+            response = self.spot_private_post_create_order(&[&__ws_arg_13]).await;
         }  else {
-            let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.spot_private_post_supplement_create_order(&[&__ws_arg_13]).await;
+            let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            response = self.spot_private_post_supplement_create_order(&[&__ws_arg_14]).await;
         }
         //
         //      {
@@ -2928,8 +2932,8 @@ impl Lbank {
                 m.insert("orderId".to_string(), Value::from(id));
             m
         });
-        let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.spot_private_post_supplement_orders_info(&[&__ws_arg_14]).await.unwrap_or_default();
+        let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.spot_private_post_supplement_orders_info(&[&__ws_arg_15]).await.unwrap_or_default();
         //
         //      {
         //          "result":true,
@@ -2976,8 +2980,8 @@ impl Lbank {
                 m.insert("order_id".to_string(), Value::from(id));
             m
         });
-        let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.spot_private_post_orders_info(&[&__ws_arg_15]).await.unwrap_or_default();
+        let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.spot_private_post_orders_info(&[&__ws_arg_16]).await.unwrap_or_default();
         //
         //      {
         //          "result":true,
@@ -3054,8 +3058,8 @@ impl Lbank {
             request.insert("start_date".into(), self.ymd(Value::from(sinceValue), &[Value::Str("-".into())])); // max query 2 days ago
             request.insert("end_date".into(), self.ymd(Value::from((if let Some(__l) = sinceValue { Some(__l + 86400000) } else { None })), &[Value::Str("-".into())])); // will cover 2 days
         }
-        let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.spot_private_post_transaction_history(&[&__ws_arg_16]).await.unwrap_or_default();
+        let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.spot_private_post_transaction_history(&[&__ws_arg_17]).await.unwrap_or_default();
         //
         //      {
         //          "result":true,
@@ -3120,8 +3124,8 @@ impl Lbank {
                 m.insert("page_length".to_string(), Value::from(limitResolved));
             m
         });
-        let __ws_arg_17 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.spot_private_post_supplement_orders_info_history(&[&__ws_arg_17]).await.unwrap_or_default();
+        let __ws_arg_18 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.spot_private_post_supplement_orders_info_history(&[&__ws_arg_18]).await.unwrap_or_default();
         //
         //      {
         //          "result":true,
@@ -3192,8 +3196,8 @@ impl Lbank {
                 m.insert("page_length".to_string(), Value::from(limitResolved));
             m
         });
-        let __ws_arg_18 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.spot_private_post_supplement_orders_info_no_deal(&[&__ws_arg_18]).await.unwrap_or_default();
+        let __ws_arg_19 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.spot_private_post_supplement_orders_info_no_deal(&[&__ws_arg_19]).await.unwrap_or_default();
         //
         //      {
         //          "result":true,
@@ -3265,8 +3269,8 @@ impl Lbank {
         if (clientOrderId.is_some()) {
             request.insert("origClientOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.spot_private_post_supplement_cancel_order(&[&__ws_arg_19]).await.unwrap_or_default();
+        let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.spot_private_post_supplement_cancel_order(&[&__ws_arg_20]).await.unwrap_or_default();
         //
         //   {
         //      "result":true,
@@ -3315,8 +3319,8 @@ impl Lbank {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_20 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.spot_private_post_supplement_cancel_order_by_symbol(&[&__ws_arg_20]).await.unwrap_or_default();
+        let __ws_arg_21 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.spot_private_post_supplement_cancel_order_by_symbol(&[&__ws_arg_21]).await.unwrap_or_default();
         //
         //      {
         //          "result":"true",
@@ -3405,8 +3409,8 @@ impl Lbank {
         if (network.is_some()) {
             request.insert("netWork".into(), network.map(Value::from).unwrap_or(Value::Null)); // ... yes, really lol
         }
-        let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.spot_private_post_get_deposit_address(&[&__ws_arg_21]).await.unwrap_or_default();
+        let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.spot_private_post_get_deposit_address(&[&__ws_arg_22]).await.unwrap_or_default();
         //
         //      {
         //          "result":true,
@@ -3461,8 +3465,8 @@ impl Lbank {
         if (network.is_some()) {
             request.insert("networkName".into(), network.map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.spot_private_post_supplement_get_deposit_address(&[&__ws_arg_22]).await.unwrap_or_default();
+        let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.spot_private_post_supplement_get_deposit_address(&[&__ws_arg_23]).await.unwrap_or_default();
         //
         //      {
         //          "result":true,
@@ -3549,8 +3553,8 @@ impl Lbank {
         if (networkId.is_some()) {
             request.insert("networkName".into(), networkId.map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsOmitted2]);
-        let response: crate::value::Dict = self.spot_private_post_supplement_withdraw(&[&__ws_arg_23]).await.unwrap_or_default();
+        let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsOmitted2]);
+        let response: crate::value::Dict = self.spot_private_post_supplement_withdraw(&[&__ws_arg_24]).await.unwrap_or_default();
         //
         //      {
         //          "result":true,
@@ -3638,8 +3642,8 @@ impl Lbank {
         if (since.is_some()) {
             request.insert("startTime".into(), Value::from(since));
         }
-        let __ws_arg_24 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.spot_private_post_supplement_deposit_history(&[&__ws_arg_24]).await.unwrap_or_default();
+        let __ws_arg_25 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.spot_private_post_supplement_deposit_history(&[&__ws_arg_25]).await.unwrap_or_default();
         //
         //      {
         //          "result":true,
@@ -3706,8 +3710,8 @@ impl Lbank {
         if (since.is_some()) {
             request.insert("startTime".into(), Value::from(since));
         }
-        let __ws_arg_25 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.spot_private_post_supplement_withdraws(&[&__ws_arg_25]).await.unwrap_or_default();
+        let __ws_arg_26 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.spot_private_post_supplement_withdraws(&[&__ws_arg_26]).await.unwrap_or_default();
         //
         //      {
         //          "result":true,
@@ -3850,11 +3854,11 @@ impl Lbank {
                                 m
                             });
                             feesForCode.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::from(fee));
-                            let __ws_arg_26 = self.safe_dict(&withdrawFees, Value::from(code.as_deref()), &[Value::Map({
+                            let __ws_arg_27 = self.safe_dict(&withdrawFees, Value::from(code.as_deref()), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]);
-                            { let __be_tmp = self.extend(__ws_arg_26, &[Value::Map(feesForCode)]); withdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); }
+                            { let __be_tmp = self.extend(__ws_arg_27, &[Value::Map(feesForCode)]); withdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); }
                         }
                     }
                 }
@@ -3894,8 +3898,8 @@ impl Lbank {
             let mut currency: crate::types::Currency = self.currency(code.as_deref());
             request.insert("assetCode".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
-        let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.spot_public_get_withdraw_configs(&[&__ws_arg_27]).await.unwrap_or_default();
+        let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.spot_public_get_withdraw_configs(&[&__ws_arg_28]).await.unwrap_or_default();
         //
         //    {
         //        "result": "true",
@@ -3941,11 +3945,11 @@ impl Lbank {
                         m
                     });
                     feesForCode.insert(network.as_deref().unwrap_or("null").to_string(), self.parse_number(fee.map(Value::from).unwrap_or(Value::Null), &[]));
-                    let __ws_arg_28 = self.safe_dict(&withdrawFees, Value::from(codeInner.as_deref()), &[Value::Map({
+                    let __ws_arg_29 = self.safe_dict(&withdrawFees, Value::from(codeInner.as_deref()), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]);
-                    { let __be_tmp = self.extend(__ws_arg_28, &[Value::Map(feesForCode)]); withdrawFees.insert(codeInner.as_deref().unwrap_or("null").to_string(), __be_tmp); }
+                    { let __be_tmp = self.extend(__ws_arg_29, &[Value::Map(feesForCode)]); withdrawFees.insert(codeInner.as_deref().unwrap_or("null").to_string(), __be_tmp); }
                 }
             }
         }
@@ -4062,8 +4066,8 @@ impl Lbank {
             let m = indexmap::IndexMap::new();
             m
         });
-        let __ws_arg_29 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.spot_public_get_withdraw_configs(&[&__ws_arg_29]).await.unwrap_or_default();
+        let __ws_arg_30 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.spot_public_get_withdraw_configs(&[&__ws_arg_30]).await.unwrap_or_default();
         //
         //    {
         //        "result": "true",
@@ -4160,29 +4164,29 @@ impl Lbank {
 }));
     m
 }));
-                            let __ws_arg_30 = self.safe_dict(self.safe_dict(&result, Value::from(code.as_deref()), &[Value::Map({
+                            let __ws_arg_31 = self.safe_dict(self.safe_dict(&result, Value::from(code.as_deref()), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]), Value::Str("networks".into()), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]);
-                            let networks: crate::value::Dict = self.extend_t(__ws_arg_30, &[Value::Map(networkFees)]);
-                            let __ws_arg_31 = self.safe_dict(&result, Value::from(code.as_deref()), &[Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-})]);
-                            { let __be_tmp = self.extend(__ws_arg_31, &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("networks".to_string(), Value::Dict(networks));
-    m
-})]); result.insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); }
-                        }  else {
+                            let networks: crate::value::Dict = self.extend_t(__ws_arg_31, &[Value::Map(networkFees)]);
                             let __ws_arg_32 = self.safe_dict(&result, Value::from(code.as_deref()), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]);
                             { let __be_tmp = self.extend(__ws_arg_32, &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("networks".to_string(), Value::Dict(networks));
+    m
+})]); result.insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); }
+                        }  else {
+                            let __ws_arg_33 = self.safe_dict(&result, Value::from(code.as_deref()), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]);
+                            { let __be_tmp = self.extend(__ws_arg_33, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();

@@ -2184,10 +2184,12 @@ impl Gate {
         let mut marketType: Option<String> = marketTypemarketQueryVariable.0.as_str().map(str::to_owned);
         let marketQuery: crate::value::Dict = marketTypemarketQueryVariable.1;
         let mut query: crate::value::Dict = marketQuery;
-        let mut messageHash: String = format!("{}{}", marketType.as_deref().unwrap_or("null"), ":positions");
+        let mut messageHash: String = "swap:positions".to_string();
+        if (marketType.is_some()) && (marketType.as_deref() != Some("spot")) {
+            messageHash = format!("{}{}", marketType.as_deref().unwrap_or("null"), ":positions");
+        }
         if (marketType.as_deref() == Some("spot")) {
             marketType = Some("swap".to_string());
-            messageHash = "swap:positions".to_string();
         }
         let typeId: Option<String> = self.get_supported_mapping(Value::from(marketType.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();

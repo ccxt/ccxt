@@ -2327,12 +2327,10 @@ impl Bitrue {
         }
         }
         let promises: crate::value::List = promise_all(&Value::from(promisesRaw)).await;
-        let spotMarkets: Value = self.safe_list(self.safe_dict(&promises, Value::Int(0), &[]), Value::Str("symbols".into()), &[Value::from(vec![])]);
         let futureMarkets: crate::value::List = self.safe_list_t(&promises, Value::Int(1));
         let deliveryMarkets: crate::value::List = self.safe_list_t(&promises, Value::Int(2));
-        let mut markets: Value = spotMarkets;
-        markets = self.array_concat(markets, &futureMarkets);
-        markets = self.array_concat(markets, &deliveryMarkets);
+        let mut markets: crate::value::List = self.array_concat_t(self.safe_list(self.safe_dict(&promises, Value::Int(0), &[]), Value::Str("symbols".into()), &[Value::from(vec![])]), &futureMarkets);
+        markets = self.array_concat_t(Value::Arr(markets), &deliveryMarkets);
         //
         // spot
         //
@@ -2400,7 +2398,7 @@ impl Bitrue {
         if matches!(self.safe_bool_k(&self.options, "adjustForTimeDifference", &[Value::Bool(false)]), Value::Bool(true)) {
             self.load_time_difference(&[]).await;
         }
-        return Value::Arr(self.parse_markets(markets));
+        return Value::Arr(self.parse_markets(&markets));
         Value::Null
         }).await?))
     }

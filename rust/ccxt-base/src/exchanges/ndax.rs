@@ -3141,7 +3141,7 @@ impl Ndax {
         //    ]"
         //
         if matches!(&response, Value::Str(_)) {
-            return Value::Arr(self.parse_transactions(json_parse(&response), currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
+            return Value::Arr(self.parse_transactions(self.to_array(json_parse(&response)), currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         }
         return Value::Arr(self.parse_transactions(response, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null

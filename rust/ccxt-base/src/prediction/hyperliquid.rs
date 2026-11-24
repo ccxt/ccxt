@@ -2418,7 +2418,11 @@ impl Hyperliquid {
         let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsValue]);
         let orderStatus: crate::value::Dict = Self::info_dict(self.public_post_info(&[&__ws_arg_10]).await);
         let orderWrapper: crate::value::Dict = self.safe_dict_k_or(&orderStatus, "order", Value::from(&orderStatus));
-        let parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, Some(&orderWrapper), None).unwrap_or_default();
+        let __ws_arg_11 = self.extend(Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        }), &[&orderWrapper]);
+        let parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_11).as_ref(), None).unwrap_or_default();
         if (outcome != Value::Null) {
             self.load_outcome(outcome.as_str(), &[]).await;
             let outcomeObj: Option<crate::types::Market> = self.outcome(outcome.as_str());
@@ -2520,8 +2524,8 @@ impl Hyperliquid {
             m
         });
         // recentTrades returns the coin's most recent public trades (newest first)
-        let __ws_arg_11 = self.extend(Value::Map(request), &[&params]);
-        let response: Value = self.public_post_info(&[&__ws_arg_11]).await;
+        let __ws_arg_12 = self.extend(Value::Map(request), &[&params]);
+        let response: Value = self.public_post_info(&[&__ws_arg_12]).await;
         let trades: crate::value::List = Self::info_list(response);
         return Value::Arr(self.parse_prediction_trades(Value::Arr(trades), &[crate::Value::from(outcomeObj.as_ref()), Value::from(since), Value::from(limit)]));
         Value::Null
@@ -2582,8 +2586,8 @@ impl Hyperliquid {
         if (until.is_some()) {
             request.insert("endTime".into(), Value::from(until));
         }
-        let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: Value = self.public_post_info(&[&__ws_arg_12]).await;
+        let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: Value = self.public_post_info(&[&__ws_arg_13]).await;
         let fills: crate::value::List = Self::info_list(response);
         // parse without an outcome fallback — fills span every market the wallet traded, so a
         // requested-outcome fallback would mislabel fills whose market is no longer listed

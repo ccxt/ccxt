@@ -3639,7 +3639,11 @@ impl Deribit {
         //     }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&result), market.as_ref());
+        let __ws_arg_12 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&result]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_12).as_ref(), market.as_ref());
         None
         }).await?))
     }
@@ -3761,11 +3765,11 @@ impl Deribit {
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "reduceOnly", "trailingAmount"], &[]);
         let mut response: Option<crate::value::Dict> = None;
         if (Value::from(self.capitalize(side)).as_str() == Some("Buy")) {
-            let __ws_arg_12 = self.extend(&request, &[&paramsOmitted]);
-            response = self.private_get_buy(&[&__ws_arg_12]).await;
+            let __ws_arg_13 = self.extend(&request, &[&paramsOmitted]);
+            response = self.private_get_buy(&[&__ws_arg_13]).await;
         }  else {
-            let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_get_sell(&[&__ws_arg_13]).await;
+            let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            response = self.private_get_sell(&[&__ws_arg_14]).await;
         }
         //
         //     {
@@ -3820,11 +3824,11 @@ impl Deribit {
         //     }
         //
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        let __ws_arg_14 = self.safe_dict_k(&result, "order", &[]);
-        let __ws_arg_15 = self.safe_list_k(&result, "trades", &[Value::from(vec![])]);
-        let order: crate::value::Dict = self.extend_t(__ws_arg_14, &[Value::Map({
+        let __ws_arg_15 = self.safe_dict_k(&result, "order", &[]);
+        let __ws_arg_16 = self.safe_list_k(&result, "trades", &[Value::from(vec![])]);
+        let order: crate::value::Dict = self.extend_t(__ws_arg_15, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("trades".to_string(), __ws_arg_15);
+                m.insert("trades".to_string(), __ws_arg_16);
             m
         })]);
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&order), Some(&market));
@@ -3882,14 +3886,14 @@ impl Deribit {
         if isTrailingAmountOrder {
             request.insert("trigger_offset".into(), self.parse_to_numeric(trailingAmount.map(Value::from).unwrap_or(Value::Null)));
         }
-        let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_get_edit(&[&__ws_arg_16]).await.unwrap_or_default();
+        let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_get_edit(&[&__ws_arg_17]).await.unwrap_or_default();
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        let __ws_arg_17 = self.safe_dict_k(&result, "order", &[]);
-        let __ws_arg_18 = self.safe_list_k(&result, "trades", &[Value::from(vec![])]);
-        let order: crate::value::Dict = self.extend_t(__ws_arg_17, &[Value::Map({
+        let __ws_arg_18 = self.safe_dict_k(&result, "order", &[]);
+        let __ws_arg_19 = self.safe_list_k(&result, "trades", &[Value::from(vec![])]);
+        let order: crate::value::Dict = self.extend_t(__ws_arg_18, &[Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("trades".to_string(), __ws_arg_18);
+                m.insert("trades".to_string(), __ws_arg_19);
             m
         })]);
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&order), None);
@@ -3924,10 +3928,14 @@ impl Deribit {
                 m.insert("order_id".to_string(), id);
             m
         });
-        let __ws_arg_19 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_get_cancel(&[&__ws_arg_19]).await.unwrap_or_default();
+        let __ws_arg_20 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_get_cancel(&[&__ws_arg_20]).await.unwrap_or_default();
         let result: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&result), None);
+        let __ws_arg_21 = self.extend(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[&result]);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(__ws_arg_21).as_ref(), None);
         None
         }).await?))
     }
@@ -3959,13 +3967,13 @@ impl Deribit {
         });
         let mut response: Option<crate::value::Dict> = None;
         if (symbol == Value::Null) {
-            let __ws_arg_20 = self.extend(&request, &[&params]);
-            response = self.private_get_cancel_all(&[&__ws_arg_20]).await;
+            let __ws_arg_22 = self.extend(&request, &[&params]);
+            response = self.private_get_cancel_all(&[&__ws_arg_22]).await;
         }  else {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("instrument_name".into(), Value::from((market).id.as_deref()));
-            let __ws_arg_21 = self.extend(Value::Map(request), &[&params]);
-            response = self.private_get_cancel_all_by_instrument(&[&__ws_arg_21]).await;
+            let __ws_arg_23 = self.extend(Value::Map(request), &[&params]);
+            response = self.private_get_cancel_all_by_instrument(&[&__ws_arg_23]).await;
         }
         return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4011,13 +4019,13 @@ impl Deribit {
             let code: Option<String> = self.code_from_options(Some("fetchOpenOrders"), &[&Value::from(&params)]);
             let mut currency: crate::types::Currency = self.currency(code.as_deref());
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
-            let __ws_arg_22 = self.extend(&request, &[&params]);
-            response = self.private_get_get_open_orders_by_currency(&[&__ws_arg_22]).await;
+            let __ws_arg_24 = self.extend(&request, &[&params]);
+            response = self.private_get_get_open_orders_by_currency(&[&__ws_arg_24]).await;
         }  else {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("instrument_name".into(), crate::value::KeyRead::key_read(&&market, "id"));
-            let __ws_arg_23 = self.extend(Value::Map(request), &[&params]);
-            response = self.private_get_get_open_orders_by_instrument(&[&__ws_arg_23]).await;
+            let __ws_arg_25 = self.extend(Value::Map(request), &[&params]);
+            response = self.private_get_get_open_orders_by_instrument(&[&__ws_arg_25]).await;
         }
         let result: crate::value::List = self.safe_list_k_t(&response, "result");
         return Value::Arr(self.parse_orders(&result, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
@@ -4065,13 +4073,13 @@ impl Deribit {
             let code: Option<String> = self.code_from_options(Some("fetchClosedOrders"), &[&Value::from(&params)]);
             let mut currency: crate::types::Currency = self.currency(code.as_deref());
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
-            let __ws_arg_24 = self.extend(&request, &[&params]);
-            response = self.private_get_get_order_history_by_currency(&[&__ws_arg_24]).await;
+            let __ws_arg_26 = self.extend(&request, &[&params]);
+            response = self.private_get_get_order_history_by_currency(&[&__ws_arg_26]).await;
         }  else {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("instrument_name".into(), crate::value::KeyRead::key_read(&&market, "id"));
-            let __ws_arg_25 = self.extend(Value::Map(request), &[&params]);
-            response = self.private_get_get_order_history_by_instrument(&[&__ws_arg_25]).await;
+            let __ws_arg_27 = self.extend(Value::Map(request), &[&params]);
+            response = self.private_get_get_order_history_by_instrument(&[&__ws_arg_27]).await;
         }
         let result: crate::value::List = self.safe_list_k_t(&response, "result");
         return Value::Arr(self.parse_orders(&result, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
@@ -4110,8 +4118,8 @@ impl Deribit {
                 m.insert("order_id".to_string(), id);
             m
         });
-        let __ws_arg_26 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_get_get_user_trades_by_order(&[&__ws_arg_26]).await.unwrap_or_default();
+        let __ws_arg_28 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_get_get_user_trades_by_order(&[&__ws_arg_28]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -4193,23 +4201,23 @@ impl Deribit {
             let mut currency: crate::types::Currency = self.currency(code.as_deref());
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
             if (since.is_none()) {
-                let __ws_arg_27 = self.extend(&request, &[&params]);
-                response = self.private_get_get_user_trades_by_currency(&[&__ws_arg_27]).await;
+                let __ws_arg_29 = self.extend(&request, &[&params]);
+                response = self.private_get_get_user_trades_by_currency(&[&__ws_arg_29]).await;
             }  else {
                 request.insert("start_timestamp".into(), Value::from(since));
-                let __ws_arg_28 = self.extend(&request, &[&params]);
-                response = self.private_get_get_user_trades_by_currency_and_time(&[&__ws_arg_28]).await;
+                let __ws_arg_30 = self.extend(&request, &[&params]);
+                response = self.private_get_get_user_trades_by_currency_and_time(&[&__ws_arg_30]).await;
             }
         }  else {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("instrument_name".into(), crate::value::KeyRead::key_read(&&market, "id"));
             if (since.is_none()) {
-                let __ws_arg_29 = self.extend(&request, &[&params]);
-                response = self.private_get_get_user_trades_by_instrument(&[&__ws_arg_29]).await;
+                let __ws_arg_31 = self.extend(&request, &[&params]);
+                response = self.private_get_get_user_trades_by_instrument(&[&__ws_arg_31]).await;
             }  else {
                 request.insert("start_timestamp".into(), Value::from(since));
-                let __ws_arg_30 = self.extend(Value::Map(request), &[&params]);
-                response = self.private_get_get_user_trades_by_instrument_and_time(&[&__ws_arg_30]).await;
+                let __ws_arg_32 = self.extend(Value::Map(request), &[&params]);
+                response = self.private_get_get_user_trades_by_instrument_and_time(&[&__ws_arg_32]).await;
             }
         }
         //
@@ -4288,8 +4296,8 @@ impl Deribit {
         if (limit.is_some()) {
             request.insert("count".into(), Value::from(limit));
         }
-        let __ws_arg_31 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.call_method_t("private_get_get_deposits", &[&__ws_arg_31]).await;
+        let __ws_arg_33 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.call_method_t("private_get_get_deposits", &[&__ws_arg_33]).await;
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -4353,8 +4361,8 @@ impl Deribit {
         if (limit.is_some()) {
             request.insert("count".into(), Value::from(limit));
         }
-        let __ws_arg_32 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_get_get_withdrawals(&[&__ws_arg_32]).await.unwrap_or_default();
+        let __ws_arg_34 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_get_get_withdrawals(&[&__ws_arg_34]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -4424,8 +4432,8 @@ impl Deribit {
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_33 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_get_get_position(&[&__ws_arg_33]).await.unwrap_or_default();
+        let __ws_arg_35 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_get_get_position(&[&__ws_arg_35]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -4491,8 +4499,8 @@ impl Deribit {
             let mut currency: crate::types::Currency = self.currency(code.as_deref());
             request.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
-        let __ws_arg_34 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_get_get_positions(&[&__ws_arg_34]).await.unwrap_or_default();
+        let __ws_arg_36 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_get_get_positions(&[&__ws_arg_36]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -4551,8 +4559,8 @@ impl Deribit {
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
             m
         });
-        let __ws_arg_35 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.public_get_get_historical_volatility(&[&__ws_arg_35]).await.unwrap_or_default();
+        let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.public_get_get_historical_volatility(&[&__ws_arg_37]).await.unwrap_or_default();
         return self.parse_volatility_history(&response);
 }
 
@@ -4628,8 +4636,8 @@ impl Deribit {
         if (limit.is_some()) {
             request.insert("count".into(), Value::from(limit));
         }
-        let __ws_arg_36 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_get_get_transfers(&[&__ws_arg_36]).await.unwrap_or_default();
+        let __ws_arg_38 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_get_get_transfers(&[&__ws_arg_38]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -4713,11 +4721,11 @@ impl Deribit {
         }
         let mut response: Option<crate::value::Dict> = None;
         if (method.as_deref() == Some("privateGetSubmitTransferToUser")) {
-            let __ws_arg_37 = self.extend(&request, &[&paramsOmitted]);
-            response = self.private_get_submit_transfer_to_user(&[&__ws_arg_37]).await;
+            let __ws_arg_39 = self.extend(&request, &[&paramsOmitted]);
+            response = self.private_get_submit_transfer_to_user(&[&__ws_arg_39]).await;
         }  else {
-            let __ws_arg_38 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_get_submit_transfer_to_subaccount(&[&__ws_arg_38]).await;
+            let __ws_arg_40 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            response = self.private_get_submit_transfer_to_subaccount(&[&__ws_arg_40]).await;
         }
         //
         //     {
@@ -4798,8 +4806,8 @@ impl Deribit {
         if (self.twofa != Value::Null) {
             request.insert("tfa".into(), totp(self.twofa.clone()));
         }
-        let __ws_arg_39 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
-        let response: crate::value::Dict = self.private_get_withdraw(&[&__ws_arg_39]).await.unwrap_or_default();
+        let __ws_arg_41 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
+        let response: crate::value::Dict = self.private_get_withdraw(&[&__ws_arg_41]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -4889,8 +4897,8 @@ impl Deribit {
                 m.insert("end_timestamp".to_string(), Value::from(time));
             m
         });
-        let __ws_arg_40 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.public_get_get_funding_rate_value(&[&__ws_arg_40]).await.unwrap_or_default();
+        let __ws_arg_42 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.public_get_get_funding_rate_value(&[&__ws_arg_42]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, Some(&response), Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -4974,8 +4982,8 @@ impl Deribit {
             let maxUntil: Option<i64> = self.parse_to_int(Value::from((if let Some(__m1) = ((if let Some(__l) = limit { Some(__l * duration) } else { None })) { Some((sinceResolved + __m1)) } else { None })));
             request.insert("end_timestamp".into(), (if ((endTimestamp.is_some() && maxUntil.is_some() && endTimestamp < maxUntil)) { Value::from(endTimestamp) } else { Value::from(maxUntil) }));
         }
-        let __ws_arg_41 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.public_get_get_funding_rate_history(&[&__ws_arg_41]).await.unwrap_or_default();
+        let __ws_arg_43 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.public_get_get_funding_rate_history(&[&__ws_arg_43]).await.unwrap_or_default();
         //
         //    {
         //        "jsonrpc": "2.0",
@@ -5058,8 +5066,8 @@ impl Deribit {
         if (limit.is_some()) {
             request.insert("count".into(), Value::from(limit));
         }
-        let __ws_arg_42 = self.extend(Value::Map(request), &[&paramsPaginate]);
-        let response: crate::value::Dict = self.public_get_get_last_settlements_by_instrument(&[&__ws_arg_42]).await.unwrap_or_default();
+        let __ws_arg_44 = self.extend(Value::Map(request), &[&paramsPaginate]);
+        let response: crate::value::Dict = self.public_get_get_last_settlements_by_instrument(&[&__ws_arg_44]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -5159,8 +5167,8 @@ impl Deribit {
         if (limit.is_some()) {
             request.insert("count".into(), Value::from(limit));
         }
-        let __ws_arg_43 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.private_get_get_settlement_history_by_instrument(&[&__ws_arg_43]).await.unwrap_or_default();
+        let __ws_arg_45 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.private_get_get_settlement_history_by_instrument(&[&__ws_arg_45]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -5219,8 +5227,8 @@ impl Deribit {
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_44 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.call_method_t("public_get_ticker", &[&__ws_arg_44]).await;
+        let __ws_arg_46 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.call_method_t("public_get_ticker", &[&__ws_arg_46]).await;
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -5300,8 +5308,8 @@ impl Deribit {
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_45 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.public_get_get_book_summary_by_instrument(&[&__ws_arg_45]).await.unwrap_or_default();
+        let __ws_arg_47 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.public_get_get_book_summary_by_instrument(&[&__ws_arg_47]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -5368,8 +5376,8 @@ impl Deribit {
                 m.insert("kind".to_string(), Value::Str("option".into()));
             m
         });
-        let __ws_arg_46 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.public_get_get_book_summary_by_currency(&[&__ws_arg_46]).await.unwrap_or_default();
+        let __ws_arg_48 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.public_get_get_book_summary_by_currency(&[&__ws_arg_48]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -5493,8 +5501,8 @@ impl Deribit {
                 m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_47 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.public_get_get_book_summary_by_instrument(&[&__ws_arg_47]).await.unwrap_or_default();
+        let __ws_arg_49 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.public_get_get_book_summary_by_instrument(&[&__ws_arg_49]).await.unwrap_or_default();
         //
         //     {
         //         "jsonrpc": "2.0",

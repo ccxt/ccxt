@@ -5714,15 +5714,17 @@ impl Aster {
 
 
     pub fn encode_values_with_json(&self, values: impl Into<crate::Value>) -> Option<String> {
-        let values: Value = values.into();
+        let mut values: Value = values.into();
+        let __values_empty = indexmap::IndexMap::new();
+        let values = values.as_map().unwrap_or(&__values_empty);
         let mut encodedString: String = "".to_string();
-        let mut keys: Vec<&str> = values.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(values.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_12: bool = true;
             while { if !__for_first_12 { i += 1; } __for_first_12 = false; i < (keys.len() as i64) } {
-            let key: Option<&str> = keys.get(i as usize).copied();
-            let mut value: Value = (if let (Some(__m), Some(__k)) = (values.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
+            let mut value: Value = values.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let isObj: bool = (matches!(&value, Value::Arr(_))) || value.is_map();
             let valueJsonified: Value = (if isObj { json_stringify(&value) } else { to_string_val(&value) });
             let encoded: Option<String> = self.encode_uri_component(valueJsonified).as_str().map(str::to_owned);
@@ -5733,18 +5735,20 @@ impl Aster {
 }
 
     pub fn capitalize_keys(&self, dict: impl Into<crate::Value>) -> crate::value::Dict {
-        let dict: Value = dict.into();
+        let mut dict: Value = dict.into();
+        let __dict_empty = indexmap::IndexMap::new();
+        let dict = dict.as_map().unwrap_or(&__dict_empty);
         let mut capitalized: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
         });
-        let mut keys: Vec<&str> = dict.as_map().map(|__m| __m.keys().map(String::as_str).collect()).unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(dict.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_13: bool = true;
             while { if !__for_first_13 { i += 1; } __for_first_13 = false; i < (keys.len() as i64) } {
-            let key: Option<&str> = keys.get(i as usize).copied();
-            let value: Value = (if let (Some(__m), Some(__k)) = (dict.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
+            let value: Value = dict.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let capitalizedKey: String = self.capitalize(Value::from(key.as_deref()));
             capitalized.insert(capitalizedKey, value);
         }
