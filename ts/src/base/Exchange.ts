@@ -8198,7 +8198,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseBorrowRate() is not supported yet');
     }
 
-    parseBorrowRateHistory (response: any, code: Str, since: Int, limit: Int) {
+    parseBorrowRateHistory (response: object[], code: Str, since: Int, limit: Int) {
         const result: Dict[] = [];
         for (let i = 0; i < response.length; i++) {
             result.push (this.parseBorrowRate (this.safeDict (response, i)));
@@ -8425,7 +8425,7 @@ export class BaseExchange {
         return this.indexBy (this.filterByArray (result, 'symbol', symbols, false), 'symbol');
     }
 
-    parseOpenInterestsHistory (response: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined): OpenInterest[] {
+    parseOpenInterestsHistory (response: object[], market: Market = undefined, since: Int = undefined, limit: Int = undefined): OpenInterest[] {
         const interests: BorrowInterest[] = [];
         for (let i = 0; i < response.length; i++) {
             interests.push (this.parseOpenInterest (response[i], market));

@@ -7305,6 +7305,9 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     'parseADLRanks': { 0: '[]any' },
     // base parseLeverages (response: object[]): no override, no interface line; every caller hands a `[]any` local or ToArray
     'parseLeverages': { 0: '[]any' },
+    // base parseOpenInterestsHistory / parseBorrowRateHistory (response: object[]): no override; every caller hands a `[]any` local
+    'parseOpenInterestsHistory': { 0: '[]any' },
+    'parseBorrowRateHistory': { 0: '[]any' },
 };
 
 // the typed wrapper's slice annotation -> the hand-written converter to the core's `[]any`
