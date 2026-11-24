@@ -928,12 +928,12 @@ export default class woofipro extends woofiproRest {
             for (let i = 0; i < dataList.length; i++) {
                 const tradeId = this.omitZero (this.safeString (dataList, 'tradeId'));
                 if (tradeId !== undefined) {
-                    this.handleMyTrade (client, dataList[i]);
+                    this.handleMyTrade (client, this.safeDict (dataList, i, {}));
                 }
-                this.handleOrder (client, dataList[i], topic);
+                this.handleOrder (client, this.safeDict (dataList, i, {}), topic);
             }
         } else {
-            const data = this.safeValue (message, 'data');
+            const data = this.safeDict (message, 'data', {});
             // executionreport
             const tradeId = this.omitZero (this.safeString (data, 'tradeId'));
             if (tradeId !== undefined) {
