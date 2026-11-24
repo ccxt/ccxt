@@ -660,47 +660,10 @@ impl crate::exchange::DerivedExchange for Polymarket {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        if (response == Value::Null) {
-            return None;
-        }
-        //
-        //     {
-        //         "status": "err",
-        //         "error": "invalid query parameters: missing field `interval`",
-        //         "arts": 1788524547131,
-        //         "ts": 1788524547131,
-        //         "ref": "g-164de39df348d7"
-        //     }
-        //
-        let mut source: Value = response.clone();
-        if (matches!(&response, Value::Arr(_))) && (code >= 400) {
-            // request-level failures of the batch trade endpoints arrive
-            // wrapped into a single-element array of the same error shape
-            source = self.safe_dict(response, Value::Int(0), &[Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-})]);
-        }
-        let status: Option<String> = self.safe_string_k_opt(&source, "status", &[]);
-        let error: Option<String> = self.safe_string_k_opt(&source, "error", &[]);
-        if (status.as_deref() == Some("err")) || (error.is_some()) {
-            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(error.as_deref()), feedback.as_str());
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, feedback.as_str());
-            if (code == 400) {
-                panic!("{}", crate::exchange_errors::bad_request(feedback.clone()));
-            }
-            // an unmapped error on a 4xx or 5xx response falls through so the
-            // http status fallback can apply a retryable classification, while
-            // covering statuses the base table does not know
-            let codeAsString: String = format!("{}", code);
-            if (code < 400) || !(matches!(Some(codeAsString.as_str()), Some(__k) if self.httpExceptions.contains_key(__k))) {
-                panic!("{}", crate::exchange_errors::exchange_error(feedback));
-            }
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Polymarket.
+        Polymarket::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Polymarket {
@@ -754,7 +717,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "fetch_trading_fees" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "hash_message" => crate::Value::from(self.hash_message(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "load_proxy_credentials" => self.load_proxy_credentials(&args[..].iter().collect::<Vec<_>>()).await,
                 "modify_margin_helper" => crate::Value::Dict(self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await),
@@ -4120,4 +4083,45 @@ impl Polymarket {
 }
 
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        if (response == Value::Null) {
+            return None;
+        }
+        //
+        //     {
+        //         "status": "err",
+        //         "error": "invalid query parameters: missing field `interval`",
+        //         "arts": 1788524547131,
+        //         "ts": 1788524547131,
+        //         "ref": "g-164de39df348d7"
+        //     }
+        //
+        let mut source: Value = response.clone();
+        if (matches!(&response, Value::Arr(_))) && (code >= 400) {
+            // request-level failures of the batch trade endpoints arrive
+            // wrapped into a single-element array of the same error shape
+            source = self.safe_dict(response, Value::Int(0), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]);
+        }
+        let status: Option<String> = self.safe_string_k_opt(&source, "status", &[]);
+        let error: Option<String> = self.safe_string_k_opt(&source, "error", &[]);
+        if (status.as_deref() == Some("err")) || (error.is_some()) {
+            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(error.as_deref()), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, feedback.as_str());
+            if (code == 400) {
+                panic!("{}", crate::exchange_errors::bad_request(feedback.clone()));
+            }
+            // an unmapped error on a 4xx or 5xx response falls through so the
+            // http status fallback can apply a retryable classification, while
+            // covering statuses the base table does not know
+            let codeAsString: String = format!("{}", code);
+            if (code < 400) || !(matches!(Some(codeAsString.as_str()), Some(__k) if self.httpExceptions.contains_key(__k))) {
+                panic!("{}", crate::exchange_errors::exchange_error(feedback));
+            }
+        }
+        return None;
+}
 }

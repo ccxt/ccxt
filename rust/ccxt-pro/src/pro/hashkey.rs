@@ -626,7 +626,7 @@ impl Hashkey {
         let mut messageHash: String = "orders".to_string();
         let symbolResolved: Option<String> = (if (symbol != Value::Null) { Some(self.symbol(symbol.as_str())) } else { symbol.as_str().map(str::to_owned) });
         if (symbol != Value::Null) {
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", "orders", ":").into()), symbolResolved.as_deref().unwrap_or("null"));
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", "orders", ":").into()), Value::from(self.symbol(symbol.as_str())));
         }
         let mut orders: Option<crate::pro::cache::Cache> = self.watch_private(messageHash.as_str()).await.into();
         let mut limitResolved: Option<i64> = limit;
@@ -770,7 +770,7 @@ impl Hashkey {
         let mut messageHash: String = "myTrades".to_string();
         let symbolResolved: Option<String> = (if (symbol != Value::Null) { Some(self.symbol(symbol.as_str())) } else { symbol.as_str().map(str::to_owned) });
         if (symbol != Value::Null) {
-            messageHash = format!("{}{}", Value::Str(format!("{}{}", "myTrades", ":").into()), symbolResolved.as_deref().unwrap_or("null"));
+            messageHash = format!("{}{}", Value::Str(format!("{}{}", "myTrades", ":").into()), Value::from(self.symbol(symbol.as_str())));
         }
         let mut trades: Option<crate::pro::cache::Cache> = self.watch_private(messageHash.as_str()).await.into();
         let mut limitResolved: Option<i64> = limit;

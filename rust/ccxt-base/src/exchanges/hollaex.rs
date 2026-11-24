@@ -659,30 +659,10 @@ impl crate::exchange::DerivedExchange for Hollaex {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        // { "message": "Invalid token" }
-        if (response == Value::Null) {
-            return None;
-        }
-        let statusCode: i64 = self.parse_to_int(Value::from(code)).unwrap_or_default();
-        if (statusCode >= 400) && (statusCode <= 503) {
-            //
-            //  { "message": "Invalid token" }
-            //
-            // different errors return the same code eg
-            //
-            //  { "message":"Error 1001 - Order rejected. Order could not be submitted as this order was set to a post only order." }
-            //
-            //  { "message":"Error 1001 - POST ONLY order can not be of type market" }
-            //
-            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-            let message: Option<String> = self.safe_string_k_opt(response, "message", &[]);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
-            let status: String = format!("{}", code);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(status), Value::from(feedback));
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Hollaex.
+        Hollaex::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Hollaex {
@@ -717,7 +697,7 @@ impl crate::exchange_generated::ExchangeBase for Hollaex {
                 "fetch_withdrawal" => self.fetch_withdrawal(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_deposit_address" => Value::Dict(self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -2744,4 +2724,28 @@ impl Hollaex {
     }
 
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        // { "message": "Invalid token" }
+        if (response == Value::Null) {
+            return None;
+        }
+        let statusCode: i64 = self.parse_to_int(Value::from(code)).unwrap_or_default();
+        if (statusCode >= 400) && (statusCode <= 503) {
+            //
+            //  { "message": "Invalid token" }
+            //
+            // different errors return the same code eg
+            //
+            //  { "message":"Error 1001 - Order rejected. Order could not be submitted as this order was set to a post only order." }
+            //
+            //  { "message":"Error 1001 - POST ONLY order can not be of type market" }
+            //
+            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+            let message: Option<String> = self.safe_string_k_opt(response, "message", &[]);
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
+            let status: String = format!("{}", code);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(status), Value::from(feedback));
+        }
+        return None;
+}
 }

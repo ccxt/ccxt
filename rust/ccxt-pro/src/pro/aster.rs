@@ -116,8 +116,8 @@ impl Aster {
             "get_market_from_order" => { self.get_market_from_order(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "get_private_url" => { self.get_private_url(&args[..].iter().copied().cloned().collect::<Vec<_>>()); },
             "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_balance_and_position" => { self.handle_balance_and_position(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_bid_ask" => { self.handle_bid_ask(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_balance_and_position" => { self.handle_balance_and_position(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
+            "handle_bid_ask" => { self.handle_bid_ask(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_my_trade" => { self.handle_my_trade(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -125,7 +125,7 @@ impl Aster {
             "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_update" => { self.handle_order_update(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_positions" => { self.handle_positions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_trade" => { self.handle_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "keep_alive_listen_key" => crate::exchange_stubs::enqueue_spawn("keep_alive_listen_key", args.iter().copied().cloned().collect::<Vec<_>>()),
             "load_balance_snapshot" => crate::exchange_stubs::enqueue_spawn("load_balance_snapshot", args.iter().copied().cloned().collect::<Vec<_>>()),
@@ -721,7 +721,7 @@ impl Aster {
         }).await?))
     }
 
-    pub fn handle_ticker(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
+    pub fn handle_ticker(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
         //
         //     {
         //             "e": "24hrTicker",
@@ -755,7 +755,7 @@ impl Aster {
         //     }
         //
         let marketType: Option<String> = self.get_account_type_from_url(Value::from(client.url()));
-        let parsed: crate::value::Dict = self.parse_ws_ticker(message, marketType.map(Value::from).unwrap_or(Value::Null));
+        let parsed: crate::value::Dict = self.parse_ws_ticker(Value::from(message), marketType.map(Value::from).unwrap_or(Value::Null));
         let symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
         if (symbol.is_some()) {
             let messageHash: String = format!("{}{}", "ticker:", symbol.as_deref().unwrap_or("null"));
@@ -942,9 +942,8 @@ impl Aster {
         }).await?))
     }
 
-    pub fn handle_bid_ask(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+    pub fn handle_bid_ask(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         //
         //     {
         //             "e": "bookTicker",
@@ -961,7 +960,7 @@ impl Aster {
         let marketType: Option<String> = self.get_account_type_from_url(Value::from(client.url()));
         let marketId: Option<String> = (match __pro_message.get("s") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Null, marketType.map(Value::from).unwrap_or(Value::Null)]);
-        let ticker: crate::value::Dict = self.parse_ws_bid_ask(message, Some(&market));
+        let ticker: crate::value::Dict = self.parse_ws_bid_ask(Value::from(message), Some(&market));
         let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
         if (symbol.is_some()) {
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
@@ -2867,9 +2866,9 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         return self.safe_market(marketId.as_deref(), None, &[Value::Null, marketType.map(Value::from).unwrap_or(Value::Null)]);
 }
 
-    pub fn handle_balance_and_position(&mut self, client: &Value, message: &Value) {
-        self.handle_balance(client, message.clone());
-        self.handle_positions(client, message.as_map().unwrap_or(&Default::default()));
+    pub fn handle_balance_and_position(&mut self, client: &Value, message: &crate::value::Dict) {
+        self.handle_balance(client, Value::from(message));
+        self.handle_positions(client, message);
 }
 
     pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {

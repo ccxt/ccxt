@@ -65,7 +65,7 @@ impl crate::exchange_generated::ExchangeBase for Lighter {
                 "create_order_ws" => crate::types::IntoRaw::into_raw(self.create_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "handle_balance" => self.handle_balance(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
-                "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
+                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null))),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_my_trades" => self.handle_my_trades(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
                 "handle_order_book_message" => self.handle_order_book_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).cloned().unwrap_or(crate::Value::Null)),
@@ -2006,7 +2006,7 @@ impl Lighter {
     Value::Null
 }
 
-    pub fn handle_error_message(&mut self, client: &Value, message: &Value) -> Value {
+    pub fn handle_error_message(&mut self, client: &Value, message: &Value) -> bool {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
@@ -2036,7 +2036,7 @@ impl Lighter {
         let error: Option<crate::value::Dict> = self.safe_dict_k_o(&__pro_message, "error");
         let errorCode: Option<String> = self.safe_string_k_opt(&error, "code", &[]);
         if (errorCode.as_deref() == Some("30003")) {
-            return Value::Bool(true);
+            return true;
         }
         if (errorCode.as_deref() == Some("30002")) {
             // the requested state is already reached, so the unWatch call resolves and only
@@ -2052,7 +2052,7 @@ impl Lighter {
                     m
                 });
                 self.handle_un_subscription(client, Value::Map(unsubscribed));
-                return Value::Bool(true);
+                return true;
             }
         }
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -2091,15 +2091,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 client.reject(e, None);
             }
         }
-        return Value::Bool(true);
-
-    Value::Null
+        return true;
 }
 
     pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
-        if !(self.handle_error_message(&client.as_value(), &message).as_bool() == Some(true)) {
+        if !self.handle_error_message(&client.as_value(), &message) {
             return;
         }
         let type_var: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().map(str::to_owned);

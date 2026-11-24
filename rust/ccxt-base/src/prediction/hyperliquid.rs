@@ -61,7 +61,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
 
     None
 }
-    fn parse_prediction_trade(&self, trade: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_prediction_trade(&self, trade: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let trade: Value = trade.into();
         //
         // {
@@ -118,7 +118,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         if crossed {
             takerOrMaker = "taker".to_string();
         }
-        return self.safe_prediction_trade(Value::Map({
+        return Some(self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&trade, "tid", &[]));
         m.insert("info".to_string(), trade.clone());
@@ -137,9 +137,9 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         m.insert("cost".to_string(), Value::from(cost));
         m.insert("fee".to_string(), feeObject.map_or(Value::Null, Value::Dict));
     m
-}), &[crate::Value::from(resolvedMarket.as_ref())]);
+}), &[crate::Value::from(resolvedMarket.as_ref())]));
 
-    Value::Null
+    None
 }
     fn parse_prediction_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let order: Value = order.into();
@@ -277,6 +277,83 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
 
     None
 }
+    fn parse_prediction_ticker(&self, raw: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+        let raw: Value = raw.into();
+        //
+        //     {
+        //         "coin": "#10",
+        //         "levels": [
+        //             [ { "n": "2", "px": "0.44", "sz": "500" } ],   // bids [0]
+        //             [ { "n": "2", "px": "0.46", "sz": "400" } ]    // asks [1]
+        //         ],
+        //         "time": 1704290104840
+        //     }
+        //
+        let timestamp: Option<i64> = self.safe_integer_k(&raw, "time", &[]).as_i64();
+        // the 2nd arg carries the outcome object (callers pass the resolved outcome)
+        let mkt: Option<crate::types::Market> = self.safe_outcome(None, market);
+        let outcome: Option<String> = self.safe_string_k_opt(&mkt, "outcome", &[]);
+        let levels: crate::value::List = self.safe_list_k_t(&raw, "levels");
+        let rawBids: crate::value::List = self.safe_list_t(&levels, Value::Int(0));
+        let rawAsks: crate::value::List = self.safe_list_t(&levels, Value::Int(1));
+        let topBid: Option<crate::value::Dict> = self.safe_dict_o(&rawBids, Value::Int(0));
+        let topAsk: Option<crate::value::Dict> = self.safe_dict_o(&rawAsks, Value::Int(0));
+        let bid: Option<f64> = (if (topBid.is_some()) { self.safe_number_k(&topBid, "px", &[]).as_f64() } else { None });
+        let ask: Option<f64> = (if (topAsk.is_some()) { self.safe_number_k(&topAsk, "px", &[]).as_f64() } else { None });
+        let bidVolume: Option<f64> = (if (topBid.is_some()) { self.safe_number_k(&topBid, "sz", &[]).as_f64() } else { None });
+        let askVolume: Option<f64> = (if (topAsk.is_some()) { self.safe_number_k(&topAsk, "sz", &[]).as_f64() } else { None });
+        // Use synthetic mid if no l2Book
+        let mut mid: Option<f64> = self.safe_number_k(&raw, "mid", &[]).as_f64();
+        if (mid.is_none()) && (bid.is_some()) && (ask.is_some()) {
+            mid = (if let Some(__l) = ((if let (Some(__m0), Some(__m1)) = (bid, ask) { Some((__m0 + __m1)) } else { None })) { Some(__l / 2.0) } else { None });
+        }
+        // day volume lives on the parent market's ctx; resolve it from the outcome's parent market
+        let parentSymbol: Option<String> = self.safe_string_k_opt(&mkt, "market", &[]);
+        let mut parentMarket: Option<crate::types::Market> = None;
+        if (parentSymbol.is_some()) {
+            parentMarket = Some(self.safe_market(parentSymbol.as_deref(), None, &[]));
+        }
+        let ctx: crate::value::Dict = (if (parentMarket.is_some()) { self.safe_dict(self.safe_dict_k(&parentMarket, "info", &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), Value::Str("ctx".into()), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]) } else { Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}) }).into_dict();
+        let dayVolume: Option<f64> = self.safe_number_k(&ctx, "dayNtlVlm", &[]).as_f64();
+        return Some(self.safe_prediction_ticker(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("outcome".to_string(), outcome.map(Value::from).unwrap_or(Value::Null));
+        m.insert("outcomeId".to_string(), self.safe_string2(crate::Value::from(mkt.as_ref()), Value::Str("outcomeId".into()), Value::Str("id".into()), &[]));
+        m.insert("label".to_string(), self.safe_string_k(&mkt, "label", &[]));
+        m.insert("market".to_string(), self.safe_string_k(&mkt, "market", &[]));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("high".to_string(), Value::Null);
+        m.insert("low".to_string(), Value::Null);
+        m.insert("bid".to_string(), Value::from(bid));
+        m.insert("bidVolume".to_string(), Value::from(bidVolume));
+        m.insert("ask".to_string(), Value::from(ask));
+        m.insert("askVolume".to_string(), Value::from(askVolume));
+        m.insert("vwap".to_string(), Value::Null);
+        m.insert("open".to_string(), Value::Null);
+        m.insert("close".to_string(), Value::from(mid));
+        m.insert("last".to_string(), Value::from(mid));
+        m.insert("previousClose".to_string(), Value::Null);
+        m.insert("change".to_string(), Value::Null);
+        m.insert("percentage".to_string(), Value::Null);
+        m.insert("average".to_string(), Value::from(mid));
+        m.insert("baseVolume".to_string(), Value::Null);
+        m.insert("quoteVolume".to_string(), Value::from(dayVolume));
+        m.insert("info".to_string(), raw);
+    m
+}), &[crate::Value::from(market)]));
+
+    None
+}
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
         let method = get_arg(optional_args, 1, Value::Str("POST".into()));
@@ -318,37 +395,10 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        if (response == Value::Null) {
-            return None;
-        }
-        let status: Option<String> = self.safe_string_k_opt(&response, "status", &[&Value::Str("".into())]);
-        if (status.as_deref() == Some("err")) {
-            let message: Option<String> = self.safe_string_k_opt(&response, "response", &[&body]);
-            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback));
-        }
-        // Check for error statuses in order responses
-        let responsePayload: crate::value::Dict = self.safe_dict_k_t(response, "response");
-        let data: crate::value::Dict = self.safe_dict_k_t(&responsePayload, "data");
-        let statuses: crate::value::List = self.safe_list_k_t(&data, "statuses");
-        {
-                        let mut i: i64 = 0;
-            let mut __for_first_28: bool = true;
-            while { if !__for_first_28 { i += 1; } __for_first_28 = false; i < (statuses.len() as i64) } {
-            let message: Option<String> = self.safe_string_k_opt(statuses.get(i as usize).cloned().unwrap_or(Value::Null), "error", &[]);
-            if (message.is_some()) {
-                let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-                self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
-                self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
-                panic!("{}", crate::exchange_errors::exchange_error(feedback));
-            }
-        }
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Hyperliquid.
+        Hyperliquid::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Hyperliquid {
@@ -383,7 +433,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "find_outcome_in_market" => self.find_outcome_in_market(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), args.get(1).and_then(crate::Value::as_text).as_deref()),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "handle_public_address" => { let __t = self.handle_public_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "info_dict" => Value::Dict(Self::info_dict(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "info_list" => Value::Arr(Self::info_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
@@ -397,8 +447,8 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "parse_outcome_market" => self.parse_outcome_market(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..].iter().collect::<Vec<_>>()),
                 "parse_prediction_order" => Value::Dict(self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_prediction_position" => Value::Dict(self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_prediction_trade" => self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_prediction_ticker" => Value::Dict(self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_prediction_trade" => Value::Dict(self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "price_to_precision" => crate::Value::from(self.price_to_precision(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "resolve_outcome_input" => self.resolve_outcome_input(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "set_sandbox_mode" => crate::types::IntoRaw::into_raw(self.set_sandbox_mode(args.get(0).is_some_and(crate::Value::is_truthy))),
@@ -1274,7 +1324,7 @@ impl Hyperliquid {
         m.insert("book".to_string(), response);
     m
 }), Value::Str("book".into()));
-        return self.parse_prediction_ticker(&tickerData, outcomeObj.as_ref());
+        return <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, &tickerData, outcomeObj.as_ref()).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -1356,12 +1406,12 @@ impl Hyperliquid {
                 continue;
             }
             // Build minimal ticker from mid price
-            let ticker: crate::value::Dict = self.parse_prediction_ticker(Value::Map({
+            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("levels".to_string(), Value::from(vec![Value::from(vec![]), Value::from(vec![])]));
                     m.insert("mid".to_string(), Value::from(mid));
                 m
-            }), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref()).into_dict();
+            }), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref()).unwrap_or_default();
             tickers.insert(outcomeHandle.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
         }
         }
@@ -1379,83 +1429,6 @@ impl Hyperliquid {
  * @param {object} [market] the market the ticker belongs to
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-    pub fn parse_prediction_ticker(&self, raw: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
-        let raw: Value = raw.into();
-        //
-        //     {
-        //         "coin": "#10",
-        //         "levels": [
-        //             [ { "n": "2", "px": "0.44", "sz": "500" } ],   // bids [0]
-        //             [ { "n": "2", "px": "0.46", "sz": "400" } ]    // asks [1]
-        //         ],
-        //         "time": 1704290104840
-        //     }
-        //
-        let timestamp: Option<i64> = self.safe_integer_k(&raw, "time", &[]).as_i64();
-        // the 2nd arg carries the outcome object (callers pass the resolved outcome)
-        let mkt: Option<crate::types::Market> = self.safe_outcome(None, market);
-        let outcome: Option<String> = self.safe_string_k_opt(&mkt, "outcome", &[]);
-        let levels: crate::value::List = self.safe_list_k_t(&raw, "levels");
-        let rawBids: crate::value::List = self.safe_list_t(&levels, Value::Int(0));
-        let rawAsks: crate::value::List = self.safe_list_t(&levels, Value::Int(1));
-        let topBid: Option<crate::value::Dict> = self.safe_dict_o(&rawBids, Value::Int(0));
-        let topAsk: Option<crate::value::Dict> = self.safe_dict_o(&rawAsks, Value::Int(0));
-        let bid: Option<f64> = (if (topBid.is_some()) { self.safe_number_k(&topBid, "px", &[]).as_f64() } else { None });
-        let ask: Option<f64> = (if (topAsk.is_some()) { self.safe_number_k(&topAsk, "px", &[]).as_f64() } else { None });
-        let bidVolume: Option<f64> = (if (topBid.is_some()) { self.safe_number_k(&topBid, "sz", &[]).as_f64() } else { None });
-        let askVolume: Option<f64> = (if (topAsk.is_some()) { self.safe_number_k(&topAsk, "sz", &[]).as_f64() } else { None });
-        // Use synthetic mid if no l2Book
-        let mut mid: Option<f64> = self.safe_number_k(&raw, "mid", &[]).as_f64();
-        if (mid.is_none()) && (bid.is_some()) && (ask.is_some()) {
-            mid = (if let Some(__l) = ((if let (Some(__m0), Some(__m1)) = (bid, ask) { Some((__m0 + __m1)) } else { None })) { Some(__l / 2.0) } else { None });
-        }
-        // day volume lives on the parent market's ctx; resolve it from the outcome's parent market
-        let parentSymbol: Option<String> = self.safe_string_k_opt(&mkt, "market", &[]);
-        let mut parentMarket: Option<crate::types::Market> = None;
-        if (parentSymbol.is_some()) {
-            parentMarket = Some(self.safe_market(parentSymbol.as_deref(), None, &[]));
-        }
-        let ctx: crate::value::Dict = (if (parentMarket.is_some()) { self.safe_dict(self.safe_dict_k(&parentMarket, "info", &[Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-})]), Value::Str("ctx".into()), &[Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-})]) } else { Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}) }).into_dict();
-        let dayVolume: Option<f64> = self.safe_number_k(&ctx, "dayNtlVlm", &[]).as_f64();
-        return self.safe_prediction_ticker(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("outcome".to_string(), outcome.map(Value::from).unwrap_or(Value::Null));
-        m.insert("outcomeId".to_string(), self.safe_string2(crate::Value::from(mkt.as_ref()), Value::Str("outcomeId".into()), Value::Str("id".into()), &[]));
-        m.insert("label".to_string(), self.safe_string_k(&mkt, "label", &[]));
-        m.insert("market".to_string(), self.safe_string_k(&mkt, "market", &[]));
-        m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("high".to_string(), Value::Null);
-        m.insert("low".to_string(), Value::Null);
-        m.insert("bid".to_string(), Value::from(bid));
-        m.insert("bidVolume".to_string(), Value::from(bidVolume));
-        m.insert("ask".to_string(), Value::from(ask));
-        m.insert("askVolume".to_string(), Value::from(askVolume));
-        m.insert("vwap".to_string(), Value::Null);
-        m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), Value::from(mid));
-        m.insert("last".to_string(), Value::from(mid));
-        m.insert("previousClose".to_string(), Value::Null);
-        m.insert("change".to_string(), Value::Null);
-        m.insert("percentage".to_string(), Value::Null);
-        m.insert("average".to_string(), Value::from(mid));
-        m.insert("baseVolume".to_string(), Value::Null);
-        m.insert("quoteVolume".to_string(), Value::from(dayVolume));
-        m.insert("info".to_string(), raw);
-    m
-}), &[crate::Value::from(market)]);
-
-    Value::Null
-}
 
 /*
  * @method
@@ -3120,6 +3093,37 @@ if _try_result.is_err() {
 }
 
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        if (response == Value::Null) {
+            return None;
+        }
+        let status: Option<String> = self.safe_string_k_opt(&response, "status", &[&Value::Str("".into())]);
+        if (status.as_deref() == Some("err")) {
+            let message: Option<String> = self.safe_string_k_opt(&response, "response", &[&body]);
+            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
+        }
+        // Check for error statuses in order responses
+        let responsePayload: crate::value::Dict = self.safe_dict_k_t(response, "response");
+        let data: crate::value::Dict = self.safe_dict_k_t(&responsePayload, "data");
+        let statuses: crate::value::List = self.safe_list_k_t(&data, "statuses");
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_28: bool = true;
+            while { if !__for_first_28 { i += 1; } __for_first_28 = false; i < (statuses.len() as i64) } {
+            let message: Option<String> = self.safe_string_k_opt(statuses.get(i as usize).cloned().unwrap_or(Value::Null), "error", &[]);
+            if (message.is_some()) {
+                let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+                self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
+                self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
+                panic!("{}", crate::exchange_errors::exchange_error(feedback));
+            }
+        }
+        }
+        return None;
+}
 
     pub fn calculate_rate_limiter_cost(&self, mut api: Value, method: &str, path: &str, mut params: Value, optional_args: &[Value]) -> Value {
         let mut config = get_arg(optional_args, 0, Value::Map({

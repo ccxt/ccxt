@@ -1046,54 +1046,10 @@ impl crate::exchange::DerivedExchange for Kraken {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        if (code == 520) {
-            panic!("{}", crate::exchange_errors::exchange_not_available(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::Str(format!("{}", Value::from(code)).into())).into()), " ").into()), Value::from(reason))));
-        }
-        if (response == Value::Null) {
-            return None;
-        }
-        if (self.safe_string(Value::from(body), Value::Int(0), &[]).as_str() == Some("{")) {
-            let message: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-            let errors: Option<crate::value::List> = self.safe_list_k_o(&response, "error");
-            if (errors.is_some()) {
-                let numErrors: i64 = errors.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
-                if numErrors > 0 {
-                    {
-                                                let mut i: i64 = 0;
-                        let mut __for_first_18: bool = true;
-                        while { if !__for_first_18 { i += 1; } __for_first_18 = false; i < numErrors } {
-                        let error: Option<String> = self.safe_string_opt(&errors, Value::Int(i), &[]);
-                        self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(error.as_deref()), message.as_str());
-                        self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, message.as_str());
-                    }
-                    }
-                    panic!("{}", crate::exchange_errors::exchange_error(message.clone()));
-                }
-            }
-            // handleCreateOrdersErrors:
-            let mut result: Option<crate::value::Dict> = self.safe_dict_k_o(response, "result");
-            if (result.is_some()) {
-                if (matches!(result.as_deref(), Some(__d) if __d.contains_key("orders"))) {
-                    let orders: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&result, "orders"));
-                    {
-                                                let mut i: i64 = 0;
-                        let mut __for_first_19: bool = true;
-                        while { if !__for_first_19 { i += 1; } __for_first_19 = false; i < (orders.len() as i64) } {
-                        let order: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or_default();
-                        let error: Option<String> = self.safe_string_k_opt(&order, "error", &[]);
-                        if (error.is_some()) {
-                            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(error.as_deref()), message.as_str());
-                            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, message.as_str());
-                            panic!("{}", crate::exchange_errors::exchange_error(message.clone()));
-                        }
-                    }
-                    }
-                }
-            }
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Kraken.
+        Kraken::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Kraken {
@@ -1144,7 +1100,7 @@ impl crate::exchange_generated::ExchangeBase for Kraken {
                 "find_market_by_altname_or_id" => self.find_market_by_altname_or_id(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "get_delisted_market_by_id" => self.get_delisted_market_by_id(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "nonce" => crate::Value::from(self.nonce()),
                 "order_request" => { let __t = self.order_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref(), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).and_then(crate::Value::as_f64),
                     args.get(5).and_then(crate::Value::as_f64), &args[6.min(args.len())..].iter().collect::<Vec<_>>());
@@ -2660,7 +2616,8 @@ impl Kraken {
         let __ws_arg_3 = self.extend(Value::Map(request), &[&params]);
         let response: crate::value::Dict = self.call_method_t("public_get_ticker", &[&__ws_arg_3]).await;
         let tickerResult: crate::value::Dict = self.safe_dict_k_t(&response, "result");
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_dict(&tickerResult, Value::from((market).id.as_deref()), &[Value::Map({
+        let marketId: String = self.safe_string_k(&market, "id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_dict(&tickerResult, Value::from(marketId), &[Value::Map({
     let m = indexmap::IndexMap::new();
     m
 })]), Some(&market)).map_or(Value::Null, Value::Dict);
@@ -5027,4 +4984,52 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         return ((self.milliseconds()) - (self.safe_integer_k(&self.options, "timeDifference", &[Value::Int(0)]).as_i64().unwrap_or(0)));
 }
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        if (code == 520) {
+            panic!("{}", crate::exchange_errors::exchange_not_available(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::Str(format!("{}", Value::from(code)).into())).into()), " ").into()), Value::from(reason))));
+        }
+        if (response == Value::Null) {
+            return None;
+        }
+        if (self.safe_string(Value::from(body), Value::Int(0), &[]).as_str() == Some("{")) {
+            let message: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+            let errors: Option<crate::value::List> = self.safe_list_k_o(&response, "error");
+            if (errors.is_some()) {
+                let numErrors: i64 = errors.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
+                if numErrors > 0 {
+                    {
+                                                let mut i: i64 = 0;
+                        let mut __for_first_18: bool = true;
+                        while { if !__for_first_18 { i += 1; } __for_first_18 = false; i < numErrors } {
+                        let error: Option<String> = self.safe_string_opt(&errors, Value::Int(i), &[]);
+                        self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(error.as_deref()), message.as_str());
+                        self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, message.as_str());
+                    }
+                    }
+                    panic!("{}", crate::exchange_errors::exchange_error(message.clone()));
+                }
+            }
+            // handleCreateOrdersErrors:
+            let mut result: Option<crate::value::Dict> = self.safe_dict_k_o(response, "result");
+            if (result.is_some()) {
+                if (matches!(result.as_deref(), Some(__d) if __d.contains_key("orders"))) {
+                    let orders: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&result, "orders"));
+                    {
+                                                let mut i: i64 = 0;
+                        let mut __for_first_19: bool = true;
+                        while { if !__for_first_19 { i += 1; } __for_first_19 = false; i < (orders.len() as i64) } {
+                        let order: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or_default();
+                        let error: Option<String> = self.safe_string_k_opt(&order, "error", &[]);
+                        if (error.is_some()) {
+                            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(error.as_deref()), message.as_str());
+                            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, message.as_str());
+                            panic!("{}", crate::exchange_errors::exchange_error(message.clone()));
+                        }
+                    }
+                    }
+                }
+            }
+        }
+        return None;
+}
 }

@@ -61,7 +61,7 @@ impl crate::exchange_generated::ExchangeBase for Grvt {
         Box::pin(async move {
             match method {
                 "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
-                "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "parse_ws_my_trade" => Value::Dict(self.parse_ws_my_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_ohlcv" => Value::Arr(self.parse_ws_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -230,7 +230,7 @@ impl Grvt {
         //     prev_sequence_number: "0",
         //  }
         //
-        if (self.handle_error_message(&client.as_value(), message.clone()).as_bool() == Some(true)) {
+        if (Value::Bool(self.handle_error_message(&client.as_value(), message.clone())).as_bool() == Some(true)) {
             return;
         }
         let methods: indexmap::IndexMap<String, Value> = ({
@@ -1357,7 +1357,7 @@ impl Grvt {
     Default::default()
 }
 
-    pub fn handle_error_message(&self, client: &Value, mut response: Value) -> Value {
+    pub fn handle_error_message(&self, client: &Value, mut response: Value) -> bool {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = response.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -1382,8 +1382,6 @@ impl Grvt {
             self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, Value::from(feedback));
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body.as_deref().unwrap_or("null"))));
         }
-        return Value::Bool(false);
-
-    Value::Null
+        return false;
 }
 }

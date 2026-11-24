@@ -634,40 +634,10 @@ impl crate::exchange::DerivedExchange for Cex {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        // in some cases, like from createOrder, exchange returns nested escaped JSON string:
-        //      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"} }
-        // and because of `.parseJson` bug, we need extra fix
-        let mut responseFixed: Value = Value::Null;
-        if (response == Value::Null) {
-            if (false) {
-                panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id, " returned empty response")));
-            }  else if (Some(body).unwrap_or("").starts_with("{")) {
-                let fixed: Option<String> = self.fix_stringified_json_members(Value::from(body)).as_str().map(str::to_owned);
-                responseFixed = self.parse_json_value(fixed.map(Value::from).unwrap_or(Value::Null));
-            }  else {
-                panic!("{}", crate::exchange_errors::null_response(format!("{}{}", Value::Str(format!("{}{}", self.id, " returned unparsed response: ").into()), Value::from(body))));
-            }
-        }
-        let responseParsed: crate::value::Dict = (if (response == Value::Null) { responseFixed } else { response }).into_dict();
-        let error: Option<String> = self.safe_string_k_opt(&responseParsed, "error", &[]);
-        if (error.is_some()) {
-            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(error.as_deref()), feedback.as_str());
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, feedback.as_str());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback));
-        }
-        // check errors in order-engine (the responses are not standard, so we parse here)
-        if Some(url).unwrap_or("").contains("do_my_new_order") {
-            let data: crate::value::Dict = self.safe_dict_k_t(&responseParsed, "data");
-            let rejectReason: Option<String> = self.safe_string_k_opt(&data, "rejectReason", &[]);
-            if (rejectReason.is_some()) {
-                self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(rejectReason.as_deref()), Value::from(rejectReason.as_deref()));
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() ").into()), rejectReason.as_deref().unwrap_or("null"))));
-            }
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Cex.
+        Cex::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Cex {
@@ -700,7 +670,7 @@ impl crate::exchange_generated::ExchangeBase for Cex {
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_trading_fees" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees(args.get(0).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "parse_account" => Value::Dict(self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
@@ -2685,4 +2655,38 @@ impl Cex {
 
 
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        // in some cases, like from createOrder, exchange returns nested escaped JSON string:
+        //      {"ok":"ok","data":{"messageType":"executionReport", "orderRejectReason":"{\"code\":405}"} }
+        // and because of `.parseJson` bug, we need extra fix
+        let mut responseFixed: Value = Value::Null;
+        if (response == Value::Null) {
+            if (false) {
+                panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id, " returned empty response")));
+            }  else if (Some(body).unwrap_or("").starts_with("{")) {
+                let fixed: Option<String> = self.fix_stringified_json_members(Value::from(body)).as_str().map(str::to_owned);
+                responseFixed = self.parse_json_value(fixed.map(Value::from).unwrap_or(Value::Null));
+            }  else {
+                panic!("{}", crate::exchange_errors::null_response(format!("{}{}", Value::Str(format!("{}{}", self.id, " returned unparsed response: ").into()), Value::from(body))));
+            }
+        }
+        let responseParsed: crate::value::Dict = (if (response == Value::Null) { responseFixed } else { response }).into_dict();
+        let error: Option<String> = self.safe_string_k_opt(&responseParsed, "error", &[]);
+        if (error.is_some()) {
+            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(error.as_deref()), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &error, feedback.as_str());
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
+        }
+        // check errors in order-engine (the responses are not standard, so we parse here)
+        if Some(url).unwrap_or("").contains("do_my_new_order") {
+            let data: crate::value::Dict = self.safe_dict_k_t(&responseParsed, "data");
+            let rejectReason: Option<String> = self.safe_string_k_opt(&data, "rejectReason", &[]);
+            if (rejectReason.is_some()) {
+                self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(rejectReason.as_deref()), Value::from(rejectReason.as_deref()));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " createOrder() ").into()), rejectReason.as_deref().unwrap_or("null"))));
+            }
+        }
+        return None;
+}
 }

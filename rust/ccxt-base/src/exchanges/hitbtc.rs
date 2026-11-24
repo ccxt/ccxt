@@ -898,34 +898,10 @@ impl crate::exchange::DerivedExchange for Hitbtc {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        //
-        //     {
-        //       "error": {
-        //         "code": 20001,
-        //         "message": "Insufficient funds",
-        //         "description": "Check that the funds are sufficient, given commissions"
-        //       }
-        //     }
-        //
-        //     {
-        //       "error": {
-        //         "code": "600",
-        //         "message": "Action not allowed"
-        //       }
-        //     }
-        //
-        let error: crate::value::Dict = self.safe_dict_k_t(response, "error");
-        let errorCode: Option<String> = self.safe_string_k_opt(&error, "code", &[]);
-        if (errorCode.is_some()) {
-            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-            let message: Option<String> = self.safe_string2_opt(&error, Value::Str("message".into()), Value::Str("description".into()), &[]);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback));
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Hitbtc.
+        Hitbtc::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Hitbtc {
@@ -980,7 +956,7 @@ impl crate::exchange_generated::ExchangeBase for Hitbtc {
                 "fetch_transactions_helper" => Value::Arr(self.fetch_transactions_helper(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..]).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "handle_margin_mode_and_params" => { let __t = self.handle_margin_mode_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "modify_margin_helper" => crate::Value::Dict(self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "nonce" => crate::Value::from(self.nonce()),
@@ -5117,5 +5093,33 @@ impl Hitbtc {
         return (marginMode.map(Value::from).unwrap_or(Value::Null), paramsMarginMode);
 }
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        //
+        //     {
+        //       "error": {
+        //         "code": 20001,
+        //         "message": "Insufficient funds",
+        //         "description": "Check that the funds are sufficient, given commissions"
+        //       }
+        //     }
+        //
+        //     {
+        //       "error": {
+        //         "code": "600",
+        //         "message": "Action not allowed"
+        //       }
+        //     }
+        //
+        let error: crate::value::Dict = self.safe_dict_k_t(response, "error");
+        let errorCode: Option<String> = self.safe_string_k_opt(&error, "code", &[]);
+        if (errorCode.is_some()) {
+            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+            let message: Option<String> = self.safe_string2_opt(&error, Value::Str("message".into()), Value::Str("description".into()), &[]);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
+        }
+        return None;
+}
 
 }

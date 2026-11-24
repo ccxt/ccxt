@@ -577,28 +577,10 @@ impl crate::exchange::DerivedExchange for Bitso {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        if (response == Value::Null) {
-            return None;
-        }
-        if (self.safe_bool_k(&response, "success", &[]) != Value::Null) {
-            //
-            //     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
-            //
-            let success: bool = self.safe_bool_k_opt(&response, "success", &[Value::Bool(false)]).unwrap_or(false);
-            if !success {
-                let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&response));
-                let error: Option<crate::value::Dict> = self.safe_dict_k_o(response, "error");
-                if (error.is_none()) {
-                    panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
-                }
-                let codeError: Option<String> = self.safe_string_k_opt(&error, "code", &[]);
-                self.throw_exactly_matched_exception(&self.exceptions, &codeError, feedback.as_str());
-                panic!("{}", crate::exchange_errors::exchange_error(feedback));
-            }
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Bitso.
+        Bitso::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Bitso {
@@ -631,7 +613,7 @@ impl crate::exchange_generated::ExchangeBase for Bitso {
                 "fetch_trading_fees" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_transaction_fees" => self.fetch_transaction_fees(&args[..]).await,
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
@@ -2821,4 +2803,26 @@ impl Bitso {
 }
 
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        if (response == Value::Null) {
+            return None;
+        }
+        if (self.safe_bool_k(&response, "success", &[]) != Value::Null) {
+            //
+            //     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
+            //
+            let success: bool = self.safe_bool_k_opt(&response, "success", &[Value::Bool(false)]).unwrap_or(false);
+            if !success {
+                let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&response));
+                let error: Option<crate::value::Dict> = self.safe_dict_k_o(response, "error");
+                if (error.is_none()) {
+                    panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
+                }
+                let codeError: Option<String> = self.safe_string_k_opt(&error, "code", &[]);
+                self.throw_exactly_matched_exception(&self.exceptions, &codeError, feedback.as_str());
+                panic!("{}", crate::exchange_errors::exchange_error(feedback));
+            }
+        }
+        return None;
+}
 }

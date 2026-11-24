@@ -804,11 +804,11 @@ impl crate::exchange::DerivedExchange for Whitebit {
 
     None
 }
-    fn parse_funding_rate_history(&self, mut info: Value, market: Option<&crate::types::Market>) -> Value {
+    fn parse_funding_rate_history(&self, mut info: Value, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let marketId: Option<String> = self.safe_string_k_opt(&info, "market", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
         let timestamp: Option<i64> = self.safe_timestamp_k(&info, "fundingTime", &[]).as_i64();
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
@@ -816,9 +816,9 @@ impl crate::exchange::DerivedExchange for Whitebit {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
@@ -1080,63 +1080,10 @@ impl crate::exchange::DerivedExchange for Whitebit {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        if (code == 418) || (code == 429) {
-            panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::Str(format!("{}", Value::from(code)).into())).into()), " ").into()), Value::from(reason)).into()), " ").into()), Value::from(body))));
-        }
-        if (code == 404) {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::Str(format!("{}", Value::from(code)).into())).into()), " endpoint not found")));
-        }
-        if (response != Value::Null) {
-            // For cases where we have a meaningful status
-            // {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
-            let status: Option<String> = self.safe_string_k_opt(&response, "status", &[]);
-            let errors: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "errors");
-            // {"code":10,"message":"Unauthorized request."}
-            let message: Option<String> = self.safe_string_k_opt(&response, "message", &[]);
-            // For these cases where we have a generic code variable error key
-            // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
-            let codeNew: Option<i64> = self.safe_integer_k(&response, "code", &[]).as_i64();
-            let hasErrorStatus: bool = (status.is_some()) && (status.as_deref() != Some("200")) && (errors.is_some());
-            if hasErrorStatus || (codeNew.is_some()) {
-                let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-                let mut errorInfo: Option<String> = message;
-                if hasErrorStatus {
-                    errorInfo = status;
-                }  else {
-                    let errorObject: crate::value::Dict = self.safe_dict_k_t(&response, "errors");
-                    let errorKeys: Vec<Value> = Value::Array(errorObject.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
-                    let errorsLength: i64 = errorKeys.len() as i64;
-                    if errorsLength > 0 {
-                        let errorKey: String = self.safe_string(&errorKeys, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                        let errorMessageArray: crate::value::List = self.safe_list_t(&errorObject, Value::from(errorKey));
-                        errorInfo = self.safe_string_opt(&errorMessageArray, Value::Int(0), &[&body]);
-                    }
-                }
-                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorInfo, feedback.as_str());
-                self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(body), feedback.as_str());
-                panic!("{}", crate::exchange_errors::exchange_error(feedback));
-            }
-            // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
-            let success: bool = self.safe_bool_k_opt(&response, "success", &[Value::Bool(true)]).unwrap_or(true);
-            if !success {
-                let errMsg: crate::value::Dict = self.safe_dict_k_t(response, "message");
-                let errKeys: Vec<Value> = Value::Array(errMsg.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
-                let errKeysLength: i64 = errKeys.len() as i64;
-                let mut errorInfo: Option<String> = Some(body).map(str::to_owned);
-                if errKeysLength > 0 {
-                    let errorKey: String = self.safe_string(&errKeys, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                    let errorMessageArray: crate::value::List = self.safe_list_t(&errMsg, Value::from(errorKey));
-                    errorInfo = self.safe_string_opt(&errorMessageArray, Value::Int(0), &[&body]);
-                }
-                let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorInfo, feedback.as_str());
-                self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(body), feedback.as_str());
-                panic!("{}", crate::exchange_errors::exchange_error(feedback));
-            }
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Whitebit.
+        Whitebit::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Whitebit {
@@ -1196,7 +1143,7 @@ impl crate::exchange_generated::ExchangeBase for Whitebit {
                 "fetch_transactions" => crate::types::IntoRaw::into_raw(self.fetch_transactions(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "is_fiat" => self.is_fiat(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
@@ -1208,7 +1155,7 @@ impl crate::exchange_generated::ExchangeBase for Whitebit {
                 "parse_funding_histories" => self.parse_funding_histories(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
                 "parse_funding_history" => crate::Value::Dict(self.parse_funding_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_funding_rate_history" => self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_funding_rate_history" => Value::Dict(self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_market" => Value::Dict(self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -5990,4 +5937,61 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }
 
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        if (code == 418) || (code == 429) {
+            panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::Str(format!("{}", Value::from(code)).into())).into()), " ").into()), Value::from(reason)).into()), " ").into()), Value::from(body))));
+        }
+        if (code == 404) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::Str(format!("{}", Value::from(code)).into())).into()), " endpoint not found")));
+        }
+        if (response != Value::Null) {
+            // For cases where we have a meaningful status
+            // {"response":null,"status":422,"errors":{"orderId":["Finished order id 435453454535 not found on your account"]},"notification":null,"warning":"Finished order id 435453454535 not found on your account","_token":null}
+            let status: Option<String> = self.safe_string_k_opt(&response, "status", &[]);
+            let errors: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "errors");
+            // {"code":10,"message":"Unauthorized request."}
+            let message: Option<String> = self.safe_string_k_opt(&response, "message", &[]);
+            // For these cases where we have a generic code variable error key
+            // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
+            let codeNew: Option<i64> = self.safe_integer_k(&response, "code", &[]).as_i64();
+            let hasErrorStatus: bool = (status.is_some()) && (status.as_deref() != Some("200")) && (errors.is_some());
+            if hasErrorStatus || (codeNew.is_some()) {
+                let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+                let mut errorInfo: Option<String> = message;
+                if hasErrorStatus {
+                    errorInfo = status;
+                }  else {
+                    let errorObject: crate::value::Dict = self.safe_dict_k_t(&response, "errors");
+                    let errorKeys: Vec<Value> = Value::Array(errorObject.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
+                    let errorsLength: i64 = errorKeys.len() as i64;
+                    if errorsLength > 0 {
+                        let errorKey: String = self.safe_string(&errorKeys, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                        let errorMessageArray: crate::value::List = self.safe_list_t(&errorObject, Value::from(errorKey));
+                        errorInfo = self.safe_string_opt(&errorMessageArray, Value::Int(0), &[&body]);
+                    }
+                }
+                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorInfo, feedback.as_str());
+                self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(body), feedback.as_str());
+                panic!("{}", crate::exchange_errors::exchange_error(feedback));
+            }
+            // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
+            let success: bool = self.safe_bool_k_opt(&response, "success", &[Value::Bool(true)]).unwrap_or(true);
+            if !success {
+                let errMsg: crate::value::Dict = self.safe_dict_k_t(response, "message");
+                let errKeys: Vec<Value> = Value::Array(errMsg.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
+                let errKeysLength: i64 = errKeys.len() as i64;
+                let mut errorInfo: Option<String> = Some(body).map(str::to_owned);
+                if errKeysLength > 0 {
+                    let errorKey: String = self.safe_string(&errKeys, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                    let errorMessageArray: crate::value::List = self.safe_list_t(&errMsg, Value::from(errorKey));
+                    errorInfo = self.safe_string_opt(&errorMessageArray, Value::Int(0), &[&body]);
+                }
+                let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorInfo, feedback.as_str());
+                self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(body), feedback.as_str());
+                panic!("{}", crate::exchange_errors::exchange_error(feedback));
+            }
+        }
+        return None;
+}
 }

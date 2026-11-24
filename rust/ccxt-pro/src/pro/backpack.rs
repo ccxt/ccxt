@@ -62,7 +62,7 @@ impl crate::exchange_generated::ExchangeBase for Backpack {
             match method {
                 "get_cache_index" => self.get_cache_index(args.get(0).cloned().unwrap_or(crate::Value::Null), crate::value::dict_rows(std::sync::Arc::new(args.get(1).and_then(crate::Value::as_array).cloned().unwrap_or_default()))),
                 "handle_balance" => self.handle_balance(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
-                "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
+                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()))),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_stock_ticker" => self.handle_stock_ticker(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
                 "handle_unsubscriptions" => { self.handle_unsubscriptions(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
@@ -117,7 +117,7 @@ impl Backpack {
             "get_cache_index" => { self.get_cache_index(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), crate::value::dict_rows(std::sync::Arc::new(args.get(1).copied().and_then(crate::Value::as_array).cloned().unwrap_or_default()))); },
             "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_bid_ask" => { self.handle_bid_ask(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_bid_asks" => { self.handle_bid_asks(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_bid_asks" => { self.handle_bid_asks(crate::pro::order_book::Side::of(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()); },
             "handle_book_delta" => { self.handle_book_delta(&mut <Option<crate::pro::order_book::Book>>::from(args.get(0).copied().cloned().unwrap_or(crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_error_message" => { self.handle_error_message(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -1761,10 +1761,7 @@ impl Backpack {
         self.handle_bid_asks(storedAsks, &asks);
 }
 
-    pub fn handle_bid_asks(&self, mut bookSide: crate::pro::order_book::Side, bidAsks: impl Into<crate::Value>) {
-        let mut bidAsks: Value = bidAsks.into();
-        let __bidAsks_empty = Vec::new();
-        let bidAsks = bidAsks.as_array().unwrap_or(&__bidAsks_empty);
+    pub fn handle_bid_asks(&self, mut bookSide: crate::pro::order_book::Side, bidAsks: &[crate::Value]) {
         {
                         let mut i: i64 = 0;
             let mut __for_first_12: bool = true;
@@ -2474,7 +2471,7 @@ impl Backpack {
     pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
-        if (self.handle_error_message(&client.as_value(), message.as_map().unwrap_or(&Default::default())).as_bool() != Some(true)) {
+        if (Value::Bool(self.handle_error_message(&client.as_value(), message.as_map().unwrap_or(&Default::default()))).as_bool() != Some(true)) {
             return;
         }
         let data: crate::value::Dict = __pro_message.key_dict("data");
@@ -2502,7 +2499,7 @@ impl Backpack {
         }
 }
 
-    pub fn handle_error_message(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) -> Value {
+    pub fn handle_error_message(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) -> bool {
         //
         //     {
         //         id: null,
@@ -2514,18 +2511,16 @@ impl Backpack {
         //
         let error: crate::value::Dict = message.key_dict("error");
         let code: Option<i64> = self.safe_integer_k(&error, "code", &[]).as_i64();
-        let _try_result: Result<Value, String> = '__try: {
+        let _try_result: Result<bool, String> = ('__try: {
             if (code.is_some()) {
                 let msg: String = self.safe_string_k(&error, "message", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 break '__try Err(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), msg)).to_string());
             }
-            break '__try Ok(Value::Bool(true));
-         #[allow(unreachable_code)] { Ok(Value::Null) }};
-match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(Box::new(_try_err)); 
+            break '__try Ok(true);
+        });
+        match _try_result { Ok(__try_ret) => return __try_ret, Err(_try_err) => { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(Box::new(_try_err));
             client.reject(e, None);
-         } }
-        return Value::Bool(true);
-
-    Value::Null
+        } }
+        return true;
 }
 }

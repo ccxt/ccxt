@@ -68,12 +68,12 @@ impl crate::exchange_generated::ExchangeBase for Okx {
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "edit_order_ws" => crate::types::IntoRaw::into_raw(self.edit_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
-                "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
+                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null))),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_order_book" => self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_order_book_message" => self.handle_order_book_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(4).cloned().unwrap_or_default()).as_ref()),
-                "handle_subscription_status" => self.handle_subscription_status(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_subscription_status" => self.handle_subscription_status(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }),
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
                 "order_to_trade" => self.order_to_trade(args.get(0).and_then(crate::Value::as_map).unwrap_or(&Default::default()), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -132,8 +132,8 @@ impl Okx {
             "create_order_ws" => crate::exchange_stubs::enqueue_spawn("create_order_ws", args.iter().copied().cloned().collect::<Vec<_>>()),
             "edit_order_ws" => crate::exchange_stubs::enqueue_spawn("edit_order_ws", args.iter().copied().cloned().collect::<Vec<_>>()),
             "handle_authenticate" => { self.handle_authenticate(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_balance_and_position" => { self.handle_balance_and_position(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_balance" => { self.handle_balance(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
+            "handle_balance_and_position" => { self.handle_balance_and_position(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_bid_ask" => { self.handle_bid_ask(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_cancel_all_orders" => { self.handle_cancel_all_orders(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_cancel_orders" => { self.handle_cancel_orders(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -153,7 +153,7 @@ impl Okx {
             "handle_place_orders" => { self.handle_place_orders(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_pong" => { self.handle_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_positions" => { self.handle_positions(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_subscription_status" => { self.handle_subscription_status(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_subscription_status" => { self.handle_subscription_status(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_text_message" => { self.handle_text_message(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_text).as_deref().unwrap_or_default()); },
             "handle_ticker" => { self.handle_ticker(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_trades" => { self.handle_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -2549,13 +2549,12 @@ impl Okx {
         }).await?))
     }
 
-    pub fn handle_balance_and_position(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
-        self.handle_my_liquidation(client, message.as_map().unwrap_or(&Default::default()));
+    pub fn handle_balance_and_position(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
+        self.handle_my_liquidation(client, message);
 }
 
-    pub fn handle_balance(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
-        let __pro_message_empty = indexmap::IndexMap::new();
-        let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
+    pub fn handle_balance(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) {
+        let __pro_message: &indexmap::IndexMap<String, Value> = &message;
         //
         //     {
         //         arg: {
@@ -2654,7 +2653,7 @@ impl Okx {
         // in that window invisible to the consumer forever (same class as
         // issue #26773); the free/used/total aggregates are rebuilt from the
         // merged currencies by safeBalance
-        let mut balance: crate::value::Dict = self.parent.parse_trading_balance(message);
+        let mut balance: crate::value::Dict = self.parent.parse_trading_balance(Value::from(message));
         if (self.balance.is_empty()) {
             self.balance = std::sync::Arc::new({
                 let m = indexmap::IndexMap::new();
@@ -3367,13 +3366,7 @@ impl Okx {
         if self.is_empty(&args).as_bool() == Some(true) {
             let method: Option<String> = (match __pro_message.get("op") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
             let stringMsg: Option<String> = json_stringify(&message).as_str().map(str::to_owned);
-            self.handle_errors(1, "", (Value::from(client.url())).as_str().unwrap_or_default(), method.as_deref().unwrap_or_default(), Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}), stringMsg.as_deref().unwrap_or_default(), message, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}), None).map_or(Value::Null, Value::Bool);
+            self.handle_errors(1, "", (Value::from(client.url())).as_str().unwrap_or_default(), method.as_deref().unwrap_or_default(), &indexmap::IndexMap::new(), stringMsg.as_deref().unwrap_or_default(), message, Some(&indexmap::IndexMap::new()), None).map_or(Value::Null, Value::Bool);
         }
         let orders: crate::value::List = self.parse_orders(args, None, &[&Value::Null, &Value::Null]);
         let first: Option<crate::value::Dict> = self.safe_dict_or_o(&orders, Value::Int(0), Value::Map({
@@ -3637,13 +3630,7 @@ impl Okx {
         if self.is_empty(&args).as_bool() == Some(true) {
             let method: Option<String> = (match __pro_message.get("op") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
             let stringMsg: Option<String> = json_stringify(&message).as_str().map(str::to_owned);
-            self.handle_errors(1, "", (Value::from(client.url())).as_str().unwrap_or_default(), method.as_deref().unwrap_or_default(), Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}), stringMsg.as_deref().unwrap_or_default(), message, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}), None).map_or(Value::Null, Value::Bool);
+            self.handle_errors(1, "", (Value::from(client.url())).as_str().unwrap_or_default(), method.as_deref().unwrap_or_default(), &indexmap::IndexMap::new(), stringMsg.as_deref().unwrap_or_default(), message, Some(&indexmap::IndexMap::new()), None).map_or(Value::Null, Value::Bool);
         }
         let orders: crate::value::List = self.parse_orders(args, None, &[&Value::Null, &Value::Null]);
         client.resolve(Value::Arr(orders), messageHash.as_deref());
@@ -3668,8 +3655,8 @@ impl Okx {
         client.resolve(&data, messageHash.as_deref());
 }
 
-    pub fn handle_subscription_status(&self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) -> Value {
-        return message;
+    pub fn handle_subscription_status(&self, client: &crate::pro::ws_client::ClientHandle, message: &crate::value::Dict) -> Value {
+        return Value::from(message);
 
     Value::Null
 }
@@ -3692,7 +3679,7 @@ impl Okx {
         crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
 }
 
-    pub fn handle_error_message(&self, client: &Value, message: &Value) -> Value {
+    pub fn handle_error_message(&self, client: &Value, message: &Value) -> bool {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -3746,14 +3733,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
             if (id.is_some()) {
                 client.reject(e, id.as_deref());
-                return Value::Bool(false);
+                return false;
             }
             client.reject(e, None);
-            return Value::Bool(false);
+            return false;
         }
-        return Value::Bool(true);
-
-    Value::Null
+        return true;
 }
 
     pub fn handle_text_message(&self, mut client: Value, message: &str) {
@@ -3765,7 +3750,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
-        if (self.handle_error_message(&client.as_value(), &message).as_bool() != Some(true)) {
+        if (Value::Bool(self.handle_error_message(&client.as_value(), &message)).as_bool() != Some(true)) {
             return;
         }
         //

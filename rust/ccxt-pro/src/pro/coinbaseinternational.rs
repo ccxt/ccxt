@@ -76,7 +76,7 @@ impl crate::exchange_generated::ExchangeBase for Coinbaseinternational {
                 "fetch_positions_ws" => crate::types::IntoRaw::into_raw(self.fetch_positions_ws(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "get_cancel_on_disconnect" => self.get_cancel_on_disconnect(&args[..]).await,
                 "get_ws_url" => self.get_ws_url(&args[..]),
-                "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
+                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null))),
                 "handle_heartbeat" => self.handle_heartbeat(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())).await,
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "logout_ws" => self.logout_ws(&args[..].iter().collect::<Vec<_>>()).await,
@@ -2142,6 +2142,9 @@ impl Coinbaseinternational {
         let symbol: Option<String> = self.safe_symbol(marketId.as_deref(), None, &[]).as_str().map(str::to_owned);
         let timestamp: Option<i64> = self.safe_integer_k(&data, "timestamp", &[]).as_i64();
         let channel: Option<String> = self.safe_string_k_opt(&params, "channel", &[]);
+        if (channel.is_none()) {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " order book update has no channel")));
+        }
         let channelParts: Vec<Value> = Value::Array(if let Some(__s) = channel.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
         let channelPartsLength: i64 = channelParts.len() as i64;
         let isGrouped: bool = channelPartsLength == 5;
@@ -2246,23 +2249,23 @@ impl Coinbaseinternational {
         }
 }
 
-    pub fn handle_error_message(&self, client: &Value, message: &Value) -> Value {
+    pub fn handle_error_message(&self, client: &Value, message: &Value) -> bool {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         let error: Option<crate::value::Dict> = self.safe_dict_k_o(&__pro_message, "error");
         if (error.is_none()) {
-            return Value::Bool(false);
+            return false;
         }
         let errorCode: Option<String> = self.safe_string_k_opt(&error, "code", &[]);
         let errorMessage: Option<String> = self.safe_string_k_opt(&error, "message", &[]);
         let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(message));
-        let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> bool {
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
             self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
-         #[allow(unreachable_code)] { Value::Null }}));
-if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
+        }));
+        match _try_result { Ok(__try_ret) => return __try_ret, Err(_try_err) => { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             let requestId: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
             let authRequestId: Option<String> = self.safe_string_k_opt(&self.options, "wsAuthRequestId", &[]);
             let messageHash: Option<String> = (if (requestId == authRequestId) { Some("authenticated".to_string()) } else { requestId });
@@ -2271,10 +2274,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 __ch.remove_subscription(messageHash.as_deref());
             }
             client.reject(e, messageHash.as_deref());
-        }
-        return Value::Bool(true);
-
-    Value::Null
+        } }
+        return true;
 }
 
     pub async fn handle_heartbeat(&mut self, mut client: Value, message: &indexmap::IndexMap<String, Value>) -> Value {
@@ -2300,7 +2301,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     pub fn handle_message(&mut self, mut client: Value, mut message: Value) {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
-        if (self.handle_error_message(&client, &message).as_bool() == Some(true)) {
+        if (Value::Bool(self.handle_error_message(&client, &message)).as_bool() == Some(true)) {
             return;
         }
         let method: Option<String> = (match __pro_message.get("method").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);

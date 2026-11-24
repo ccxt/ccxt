@@ -1206,41 +1206,10 @@ impl crate::exchange::DerivedExchange for Blofin {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        if (response == Value::Null) {
-            return None;
-        }
-        //
-        // {"code":"152002","msg":"Parameter bar error."}
-        //
-        let codeError: Option<String> = self.safe_string_k_opt(&response, "code", &[]);
-        let message: Option<String> = self.safe_string_k_opt(&response, "msg", &[]);
-        let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-        if (codeError.is_some()) && (codeError.as_deref() != Some("0")) {
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, feedback.as_str());
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
-        }
-        //
-        //  {
-        //      orderId: null,
-        //      clientOrderId: '',
-        //      msg: 'Order failed. Insufficient USDT margin in account',
-        //      code: '103003'
-        //  }
-        //
-        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(response, "data"));
-        let first: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
-        let insideMsg: Option<String> = self.safe_string_k_opt(&first, "msg", &[]);
-        let insideCode: Option<String> = self.safe_string_k_opt(&first, "code", &[]);
-        if (insideCode.is_some()) && (insideCode.as_deref() != Some("0")) {
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &insideCode, feedback.as_str());
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(insideMsg.as_deref()), feedback.as_str());
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &insideMsg, Value::from(feedback));
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Blofin.
+        Blofin::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Blofin {
@@ -1290,7 +1259,7 @@ impl crate::exchange_generated::ExchangeBase for Blofin {
                 "fetch_withdrawal" => self.fetch_withdrawal(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "network_code_to_chain_id" => self.network_code_to_chain_id(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
                 "parse_adl_rank" => Value::Dict(self.parse_adl_rank(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
@@ -5101,5 +5070,40 @@ impl Blofin {
     }
 
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        if (response == Value::Null) {
+            return None;
+        }
+        //
+        // {"code":"152002","msg":"Parameter bar error."}
+        //
+        let codeError: Option<String> = self.safe_string_k_opt(&response, "code", &[]);
+        let message: Option<String> = self.safe_string_k_opt(&response, "msg", &[]);
+        let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+        if (codeError.is_some()) && (codeError.as_deref() != Some("0")) {
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
+            panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
+        }
+        //
+        //  {
+        //      orderId: null,
+        //      clientOrderId: '',
+        //      msg: 'Order failed. Insufficient USDT margin in account',
+        //      code: '103003'
+        //  }
+        //
+        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(response, "data"));
+        let first: crate::value::Dict = data.get(0).cloned().unwrap_or_default();
+        let insideMsg: Option<String> = self.safe_string_k_opt(&first, "msg", &[]);
+        let insideCode: Option<String> = self.safe_string_k_opt(&first, "code", &[]);
+        if (insideCode.is_some()) && (insideCode.as_deref() != Some("0")) {
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &insideCode, feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(insideMsg.as_deref()), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &insideMsg, Value::from(feedback));
+        }
+        return None;
+}
 
 }

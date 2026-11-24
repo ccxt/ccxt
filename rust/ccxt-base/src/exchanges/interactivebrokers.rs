@@ -723,7 +723,7 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
 
     None
 }
-    fn parse_last_price(&self, entry: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_last_price(&self, entry: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let entry: Value = entry.into();
         let marketId: Option<String> = self.safe_string_k_opt(&entry, "conid", &[]);
         let resolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
@@ -900,36 +900,10 @@ impl crate::exchange::DerivedExchange for Interactivebrokers {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        let url: Value = url.into();
-        let method: Value = method.into();
-        let body: Value = body.into();
-        if (code == 401) && matches!(self.safe_bool_k(&self.options, "useGateway", &[Value::Bool(false)]), Value::Bool(true)) {
-            // the gateway answers every request with 401 once its sso login is lost (daily reset, container restart, competing login)
-            { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("gatewayAuthenticatedTimestamp".into(), Value::Null); }
-            let gatewayUrl: Option<String> = self.safe_string_k_opt(&self.options, "gatewayUrl", &[]);
-            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " the client portal gateway is not logged in, log in again at ").into()),
-                gatewayUrl.map(Value::from).unwrap_or(Value::Null)).into()), " in a browser. Current action: ").into()), method).into()), " ").into()), url).into()), " ").into()), body)));
-        }
-        if (response == Value::Null) {
-            return None;
-        }
-        //
-        //     {
-        //         "error": "Bad Request: Conid(s) missing",
-        //         "statusCode": 400
-        //     }
-        //
-        let errorMessage: Option<String> = self.safe_string_k_opt(&response, "error", &[]);
-        if (errorMessage.is_some()) {
-            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
-            let statusCode: Option<String> = self.safe_string_k_opt(response, "statusCode", &[]);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &statusCode, feedback.as_str());
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, feedback.as_str());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback));
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Interactivebrokers.
+        Interactivebrokers::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
@@ -981,7 +955,7 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
                 "fetch_stock_markets" => self.fetch_stock_markets(&args[..]).await,
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "ibkr_balance_code" => crate::Value::from(self.ibkr_balance_code(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "ibkr_check_oauth_credentials" => self.ibkr_check_oauth_credentials(),
                 "ibkr_disambiguate_contract_symbols" => self.ibkr_disambiguate_contract_symbols(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -5799,4 +5773,34 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        let url: Value = url.into();
+        let method: Value = method.into();
+        let body: Value = body.into();
+        if (code == 401) && matches!(self.safe_bool_k(&self.options, "useGateway", &[Value::Bool(false)]), Value::Bool(true)) {
+            // the gateway answers every request with 401 once its sso login is lost (daily reset, container restart, competing login)
+            { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("gatewayAuthenticatedTimestamp".into(), Value::Null); }
+            let gatewayUrl: Option<String> = self.safe_string_k_opt(&self.options, "gatewayUrl", &[]);
+            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " the client portal gateway is not logged in, log in again at ").into()),
+                gatewayUrl.map(Value::from).unwrap_or(Value::Null)).into()), " in a browser. Current action: ").into()), method).into()), " ").into()), url).into()), " ").into()), body)));
+        }
+        if (response == Value::Null) {
+            return None;
+        }
+        //
+        //     {
+        //         "error": "Bad Request: Conid(s) missing",
+        //         "statusCode": 400
+        //     }
+        //
+        let errorMessage: Option<String> = self.safe_string_k_opt(&response, "error", &[]);
+        if (errorMessage.is_some()) {
+            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), body);
+            let statusCode: Option<String> = self.safe_string_k_opt(response, "statusCode", &[]);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &statusCode, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, feedback.as_str());
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
+        }
+        return None;
+}
 }

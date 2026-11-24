@@ -142,7 +142,11 @@ impl crate::exchange::DerivedExchange for Woofipro {
         let price: Option<String> = self.safe_string_k_opt(&trade, "executed_price", &[]);
         let amount: Option<String> = self.safe_string_k_opt(&trade, "executed_quantity", &[]);
         let order_id: Option<String> = self.safe_string_k_opt(&trade, "order_id", &[]);
-        let fee: Value = self.parse_token_and_fee_temp(trade.clone(), "fee_asset", "fee");
+        let __ws_arg_0 = self.extend(Value::Map({
+            let m = indexmap::IndexMap::new();
+            m
+        }), &[&trade]);
+        let fee: Value = self.parse_token_and_fee_temp(__ws_arg_0, "fee_asset", "fee");
         let side: Option<String> = self.safe_string_lower_k_opt(&trade, "side", &[]);
         let id: Option<String> = self.safe_string_k_opt(&trade, "id", &[]);
         let mut takerOrMaker: Option<String> = None;
@@ -952,24 +956,10 @@ impl crate::exchange::DerivedExchange for Woofipro {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        if (response == Value::Null) {
-            return None;
-        }
-        //
-        //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
-        //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
-        //
-        let success: bool = self.safe_bool_k_opt(&response, "success", &[Value::Bool(false)]).unwrap_or(false);
-        let errorCode: Option<String> = self.safe_string_k_opt(&response, "code", &[]);
-        if !success {
-            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&response));
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(body), feedback.as_str());
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback));
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Woofipro.
+        Woofipro::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Woofipro {
@@ -1024,7 +1014,7 @@ impl crate::exchange_generated::ExchangeBase for Woofipro {
                 "get_asset_history_rows" => Value::Arr(self.get_asset_history_rows(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "get_withdraw_nonce" => self.get_withdraw_nonce(&args[..].iter().collect::<Vec<_>>()).await,
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "modify_margin_helper" => crate::Value::Dict(self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
@@ -2504,8 +2494,8 @@ impl Woofipro {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_0 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.v1_public_get_public_market_trades(&[&__ws_arg_0]).await.unwrap_or_default();
+        let __ws_arg_1 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.v1_public_get_public_market_trades(&[&__ws_arg_1]).await.unwrap_or_default();
         //
         // {
         //     "success": true,
@@ -2593,8 +2583,8 @@ impl Woofipro {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_1 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.v1_public_get_public_funding_rate_symbol(&[&__ws_arg_1]).await.unwrap_or_default();
+        let __ws_arg_2 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.v1_public_get_public_funding_rate_symbol(&[&__ws_arg_2]).await.unwrap_or_default();
         //
         // {
         //     "success": true,
@@ -2692,8 +2682,8 @@ impl Woofipro {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_2 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.v1_public_get_public_futures_symbol(&[&__ws_arg_2]).await.unwrap_or_default();
+        let __ws_arg_3 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.v1_public_get_public_futures_symbol(&[&__ws_arg_3]).await.unwrap_or_default();
         //
         // {
         //     "success": true,
@@ -2828,8 +2818,8 @@ impl Woofipro {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_3 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.v1_public_get_public_futures_symbol(&[&__ws_arg_3]).await.unwrap_or_default();
+        let __ws_arg_4 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.v1_public_get_public_futures_symbol(&[&__ws_arg_4]).await.unwrap_or_default();
         //
         // {
         //     "success": true,
@@ -2972,8 +2962,8 @@ impl Woofipro {
         let (__until0, __until1) = self.handle_until_option(Value::Str("end_t".into()), Value::Map(request), &paramsPaginate, &[Value::Float(0.001)]);
         let requestUntil: crate::value::Dict = __until0;
         let paramsUntil: crate::value::Dict = __until1;
-        let __ws_arg_4 = self.extend(requestUntil, &[&paramsUntil]);
-        let response: crate::value::Dict = self.v1_public_get_public_funding_rate_history(&[&__ws_arg_4]).await.unwrap_or_default();
+        let __ws_arg_5 = self.extend(requestUntil, &[&paramsUntil]);
+        let response: crate::value::Dict = self.v1_public_get_public_funding_rate_history(&[&__ws_arg_5]).await.unwrap_or_default();
         //
         // {
         //     "success": true,
@@ -3075,8 +3065,8 @@ impl Woofipro {
         if (limit.is_some()) {
             request.insert("size".into(), crate::runtime::Math::min(&Value::from(limit), &Value::Int(500)));
         }
-        let __ws_arg_5 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.v1_private_get_funding_fee_history(&[&__ws_arg_5]).await.unwrap_or_default();
+        let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.v1_private_get_funding_fee_history(&[&__ws_arg_6]).await.unwrap_or_default();
         //
         // {
         //     "success": true,
@@ -3217,8 +3207,8 @@ impl Woofipro {
         if (limit.is_some()) {
             request.insert("max_level".into(), crate::runtime::Math::min(&Value::from(limit), &Value::Int(1000)));
         }
-        let __ws_arg_6 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.v1_private_get_orderbook_symbol(&[&__ws_arg_6]).await.unwrap_or_default();
+        let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.v1_private_get_orderbook_symbol(&[&__ws_arg_7]).await.unwrap_or_default();
         //
         // {
         //     "success": true,
@@ -3280,8 +3270,8 @@ impl Woofipro {
         if (limit.is_some()) {
             request.insert("limit".into(), crate::runtime::Math::min(&Value::from(limit), &Value::Int(1000)));
         }
-        let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.v1_private_get_kline(&[&__ws_arg_7]).await.unwrap_or_default();
+        let __ws_arg_8 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.v1_private_get_kline(&[&__ws_arg_8]).await.unwrap_or_default();
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
         //
         // {
@@ -3588,8 +3578,8 @@ impl Woofipro {
                 m.insert("orders".to_string(), Value::from(ordersRequests));
             m
         });
-        let __ws_arg_8 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.v1_private_post_batch_order(&[&__ws_arg_8]).await.unwrap_or_default();
+        let __ws_arg_9 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.v1_private_post_batch_order(&[&__ws_arg_9]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -3670,8 +3660,8 @@ impl Woofipro {
         let mut response: Option<crate::value::Dict> = None;
         self.check_required_argument(Value::Str("editOrder".into()), &side, Value::Str("side".into()), &[]);
         if isConditional {
-            let __ws_arg_9 = self.extend(&request, &[&paramsOmitted]);
-            response = self.v1_private_put_algo_order(&[&__ws_arg_9]).await;
+            let __ws_arg_10 = self.extend(&request, &[&paramsOmitted]);
+            response = self.v1_private_put_algo_order(&[&__ws_arg_10]).await;
         }  else {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
             request.insert("side".into(), (if let Some(__s) = side.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
@@ -3695,8 +3685,8 @@ impl Woofipro {
             }
             // request['side'] = side.toUpperCase ();
             // request['symbol'] = market['id'];
-            let __ws_arg_10 = self.extend(Value::Map(request), &[&paramsOmitted2]);
-            response = self.v1_private_put_order(&[&__ws_arg_10]).await;
+            let __ws_arg_11 = self.extend(Value::Map(request), &[&paramsOmitted2]);
+            response = self.v1_private_put_order(&[&__ws_arg_11]).await;
         }
         //
         // {
@@ -3769,23 +3759,23 @@ impl Woofipro {
             if isByClientOrder {
                 request.insert("client_order_id".into(), Value::from(clientOrderIdExchangeSpecific.as_deref()));
                 let paramsOmitted2: crate::value::Dict = self.omit_t(&paramsOmitted, &["clOrdID", "clientOrderId", "client_order_id"], &[]);
-                let __ws_arg_11 = self.extend(&request, &[&paramsOmitted2]);
-                response = self.v1_private_delete_algo_client_order(&[&__ws_arg_11]).await;
+                let __ws_arg_12 = self.extend(&request, &[&paramsOmitted2]);
+                response = self.v1_private_delete_algo_client_order(&[&__ws_arg_12]).await;
             }  else {
                 request.insert("order_id".into(), id.clone());
-                let __ws_arg_12 = self.extend(&request, &[&paramsOmitted]);
-                response = self.v1_private_delete_algo_order(&[&__ws_arg_12]).await;
+                let __ws_arg_13 = self.extend(&request, &[&paramsOmitted]);
+                response = self.v1_private_delete_algo_order(&[&__ws_arg_13]).await;
             }
         }  else {
             if isByClientOrder {
                 request.insert("client_order_id".into(), Value::from(clientOrderIdExchangeSpecific.as_deref()));
                 let paramsOmitted3: crate::value::Dict = self.omit_t(&paramsOmitted, &["clOrdID", "clientOrderId", "client_order_id"], &[]);
-                let __ws_arg_13 = self.extend(&request, &[&paramsOmitted3]);
-                response = self.v1_private_delete_client_order(&[&__ws_arg_13]).await;
+                let __ws_arg_14 = self.extend(&request, &[&paramsOmitted3]);
+                response = self.v1_private_delete_client_order(&[&__ws_arg_14]).await;
             }  else {
                 request.insert("order_id".into(), id.clone());
-                let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.v1_private_delete_order(&[&__ws_arg_14]).await;
+                let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
+                response = self.v1_private_delete_order(&[&__ws_arg_15]).await;
             }
         }
         //
@@ -3818,12 +3808,12 @@ impl Woofipro {
     let m = indexmap::IndexMap::new();
     m
 }) } else { response.clone().map_or(Value::Null, Value::Dict) });
-            let __ws_arg_15 = <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(parsedResponse).as_ref(), None).map_or(Value::Null, Value::Dict);
-            return self.extend(__ws_arg_15, &[Value::Map(extendParams)]);
+            let __ws_arg_16 = <Self as crate::exchange::DerivedExchange>::parse_order(self, <crate::value::Dict as crate::value::EndpointBody>::from_body(parsedResponse).as_ref(), None).map_or(Value::Null, Value::Dict);
+            return self.extend(__ws_arg_16, &[Value::Map(extendParams)]);
         }
         let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let __ws_arg_16 = <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&data), None).map_or(Value::Null, Value::Dict);
-        return self.extend(__ws_arg_16, &[Value::Map(extendParams)]);
+        let __ws_arg_17 = <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&data), None).map_or(Value::Null, Value::Dict);
+        return self.extend(__ws_arg_17, &[Value::Map(extendParams)]);
         Value::Null
         }).await?))
     }
@@ -3864,12 +3854,12 @@ impl Woofipro {
         let mut response: Option<crate::value::Dict> = None;
         if (clientOrderIds != Value::Null) {
             request.insert("client_order_ids".into(), join(&clientOrderIds, &Value::Str(",".into())));
-            let __ws_arg_17 = self.extend(&request, &[&paramsOmitted]);
-            response = self.v1_private_delete_client_batch_order(&[&__ws_arg_17]).await;
+            let __ws_arg_18 = self.extend(&request, &[&paramsOmitted]);
+            response = self.v1_private_delete_client_batch_order(&[&__ws_arg_18]).await;
         }  else {
             request.insert("order_ids".into(), Value::Str(ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
-            let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.v1_private_delete_batch_order(&[&__ws_arg_18]).await;
+            let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            response = self.v1_private_delete_batch_order(&[&__ws_arg_19]).await;
         }
         return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3917,11 +3907,11 @@ impl Woofipro {
         }
         let mut response: Value = Value::Null;
         if (trigger == Some(true)) {
-            let __ws_arg_19 = self.extend(&request, &[&paramsOmitted]);
-            response = self.v1_private_delete_algo_orders(&[&__ws_arg_19]).await;
+            let __ws_arg_20 = self.extend(&request, &[&paramsOmitted]);
+            response = self.v1_private_delete_algo_orders(&[&__ws_arg_20]).await;
         }  else {
-            let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.call_method(Value::Str("v1_private_delete_orders".into()), &[&__ws_arg_20]).await;
+            let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
+            response = self.call_method(Value::Str("v1_private_delete_orders".into()), &[&__ws_arg_21]).await;
         }
         return Value::from(vec![Value::Dict(self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3977,22 +3967,22 @@ impl Woofipro {
         if trigger {
             if (clientOrderId.is_some()) && (clientOrderId.as_deref() != Some("")) {
                 request.insert("client_order_id".into(), Value::from(clientOrderId.as_deref()));
-                let __ws_arg_21 = self.extend(&request, &[&paramsOmitted]);
-                response = self.v1_private_get_algo_client_order_client_order_id(&[&__ws_arg_21]).await;
+                let __ws_arg_22 = self.extend(&request, &[&paramsOmitted]);
+                response = self.v1_private_get_algo_client_order_client_order_id(&[&__ws_arg_22]).await;
             }  else {
                 request.insert("oid".into(), id);
-                let __ws_arg_22 = self.extend(&request, &[&paramsOmitted]);
-                response = self.v1_private_get_algo_order_oid(&[&__ws_arg_22]).await;
+                let __ws_arg_23 = self.extend(&request, &[&paramsOmitted]);
+                response = self.v1_private_get_algo_order_oid(&[&__ws_arg_23]).await;
             }
         }  else {
             if (clientOrderId.is_some()) && (clientOrderId.as_deref() != Some("")) {
                 request.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-                let __ws_arg_23 = self.extend(&request, &[&paramsOmitted]);
-                response = self.v1_private_get_client_order_client_order_id(&[&__ws_arg_23]).await;
+                let __ws_arg_24 = self.extend(&request, &[&paramsOmitted]);
+                response = self.v1_private_get_client_order_client_order_id(&[&__ws_arg_24]).await;
             }  else {
                 request.insert("oid".into(), id);
-                let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.v1_private_get_order_oid(&[&__ws_arg_24]).await;
+                let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsOmitted]);
+                response = self.v1_private_get_order_oid(&[&__ws_arg_25]).await;
             }
         }
         //
@@ -4101,11 +4091,11 @@ impl Woofipro {
         let paramsUntil: crate::value::Dict = __until1;
         let mut response: Option<crate::value::Dict> = None;
         if isTrigger {
-            let __ws_arg_25 = self.extend(&requestUntil, &[&paramsUntil]);
-            response = self.v1_private_get_algo_orders(&[&__ws_arg_25]).await;
+            let __ws_arg_26 = self.extend(&requestUntil, &[&paramsUntil]);
+            response = self.v1_private_get_algo_orders(&[&__ws_arg_26]).await;
         }  else {
-            let __ws_arg_26 = self.extend(requestUntil, &[&paramsUntil]);
-            response = self.v1_private_get_orders(&[&__ws_arg_26]).await;
+            let __ws_arg_27 = self.extend(requestUntil, &[&paramsUntil]);
+            response = self.v1_private_get_orders(&[&__ws_arg_27]).await;
         }
         //
         //     {
@@ -4272,8 +4262,8 @@ impl Woofipro {
                 m.insert("oid".to_string(), id);
             m
         });
-        let __ws_arg_27 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.v1_private_get_order_oid_trades(&[&__ws_arg_27]).await.unwrap_or_default();
+        let __ws_arg_28 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.v1_private_get_order_oid_trades(&[&__ws_arg_28]).await.unwrap_or_default();
         //
         // {
         //     "success": true,
@@ -4357,8 +4347,8 @@ impl Woofipro {
         let (__until0, __until1) = self.handle_until_option(Value::Str("end_t".into()), Value::Map(request), &paramsPaginate, &[]);
         let requestUntil: crate::value::Dict = __until0;
         let paramsUntil: crate::value::Dict = __until1;
-        let __ws_arg_28 = self.extend(requestUntil, &[&paramsUntil]);
-        let response: crate::value::Dict = self.v1_private_get_trades(&[&__ws_arg_28]).await.unwrap_or_default();
+        let __ws_arg_29 = self.extend(requestUntil, &[&paramsUntil]);
+        let response: crate::value::Dict = self.v1_private_get_trades(&[&__ws_arg_29]).await.unwrap_or_default();
         //
         // {
         //     "success": true,
@@ -4464,8 +4454,8 @@ impl Woofipro {
         if (transactionType.is_some()) {
             request.insert("type".into(), transactionType.map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_29 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.v1_private_get_asset_history(&[&__ws_arg_29]).await.unwrap_or_default();
+        let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.v1_private_get_asset_history(&[&__ws_arg_30]).await.unwrap_or_default();
         //
         // {
         //     "success": true,
@@ -4581,8 +4571,8 @@ impl Woofipro {
                 m.insert("side".to_string(), Value::Str("DEPOSIT".into()));
             m
         });
-        let __ws_arg_30 = self.extend(Value::Map(request), &[&params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_deposits_withdrawals(code.as_str(), since, limit, __ws_arg_30).await);
+        let __ws_arg_31 = self.extend(Value::Map(request), &[&params]);
+        return crate::types::IntoRaw::into_raw(self.fetch_deposits_withdrawals(code.as_str(), since, limit, __ws_arg_31).await);
         Value::Null
         }).await?))
     }
@@ -4613,8 +4603,8 @@ impl Woofipro {
                 m.insert("side".to_string(), Value::Str("WITHDRAW".into()));
             m
         });
-        let __ws_arg_31 = self.extend(Value::Map(request), &[&params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_deposits_withdrawals(code.as_str(), since, limit, __ws_arg_31).await);
+        let __ws_arg_32 = self.extend(Value::Map(request), &[&params]);
+        return crate::types::IntoRaw::into_raw(self.fetch_deposits_withdrawals(code.as_str(), since, limit, __ws_arg_32).await);
         Value::Null
         }).await?))
     }
@@ -4647,8 +4637,8 @@ impl Woofipro {
             let m = indexmap::IndexMap::new();
             m
         });
-        let __ws_arg_32 = self.extend(Value::Map(request), &[&params]);
-        let rows: crate::value::List = self.get_asset_history_rows(code.as_str(), since, limit, &[&__ws_arg_32]).await;
+        let __ws_arg_33 = self.extend(Value::Map(request), &[&params]);
+        let rows: crate::value::List = self.get_asset_history_rows(code.as_str(), since, limit, &[&__ws_arg_33]).await;
         let mut currency: Option<crate::types::Currency> = None;
         if (code != Value::Null) {
             currency = Some(self.currency(code.as_str()));
@@ -4812,8 +4802,8 @@ impl Woofipro {
             m
         });
         let paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("chainId".into()), &[]);
-        let __ws_arg_33 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.v1_private_post_withdraw_request(&[&__ws_arg_33]).await.unwrap_or_default();
+        let __ws_arg_34 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.v1_private_post_withdraw_request(&[&__ws_arg_34]).await.unwrap_or_default();
         //
         //     {
         //         "success": true,
@@ -4944,8 +4934,8 @@ impl Woofipro {
                 m.insert("default_margin_mode".to_string(), Value::from(marginModeValue.to_uppercase()));
             m
         });
-        let __ws_arg_34 = self.extend(Value::Map(request), &[&params]);
-        return self.v1_private_post_client_margin_mode(&[&__ws_arg_34]).await;
+        let __ws_arg_35 = self.extend(Value::Map(request), &[&params]);
+        return self.v1_private_post_client_margin_mode(&[&__ws_arg_35]).await;
         Value::Null
         }).await?))
     }
@@ -4979,8 +4969,8 @@ impl Woofipro {
                 m.insert("type".to_string(), Value::from(type_var));
             m
         });
-        let __ws_arg_35 = self.extend(Value::Map(request), &[params]);
-        let response: crate::value::Dict = self.v1_private_post_position_margin(&[&__ws_arg_35]).await.unwrap_or_default();
+        let __ws_arg_36 = self.extend(Value::Map(request), &[params]);
+        let response: crate::value::Dict = self.v1_private_post_position_margin(&[&__ws_arg_36]).await.unwrap_or_default();
         //
         // {
         //     "success": true,
@@ -5136,8 +5126,8 @@ impl Woofipro {
                 m.insert("leverage".to_string(), leverage);
             m
         });
-        let __ws_arg_36 = self.extend(Value::Map(request), &[&params]);
-        return self.v1_private_post_client_leverage(&[&__ws_arg_36]).await;
+        let __ws_arg_37 = self.extend(Value::Map(request), &[&params]);
+        return self.v1_private_post_client_leverage(&[&__ws_arg_37]).await;
         Value::Null
         }).await?))
     }
@@ -5169,8 +5159,8 @@ impl Woofipro {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_37 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.v1_private_get_position_symbol(&[&__ws_arg_37]).await.unwrap_or_default();
+        let __ws_arg_38 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.v1_private_get_position_symbol(&[&__ws_arg_38]).await.unwrap_or_default();
         //
         // {
         //     "success": true,
@@ -5277,4 +5267,22 @@ impl Woofipro {
 }
 
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        if (response == Value::Null) {
+            return None;
+        }
+        //
+        //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
+        //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
+        //
+        let success: bool = self.safe_bool_k_opt(&response, "success", &[Value::Bool(false)]).unwrap_or(false);
+        let errorCode: Option<String> = self.safe_string_k_opt(&response, "code", &[]);
+        if !success {
+            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&response));
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(body), feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
+        }
+        return None;
+}
 }

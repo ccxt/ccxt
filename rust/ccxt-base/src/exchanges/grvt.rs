@@ -694,7 +694,7 @@ impl crate::exchange::DerivedExchange for Grvt {
 
     None
 }
-    fn parse_funding_rate_history(&self, mut rawItem: Value, market: Option<&crate::types::Market>) -> Value {
+    fn parse_funding_rate_history(&self, mut rawItem: Value, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         //            {
         //                "instrument": "BTC_USDT_Perp",
@@ -710,7 +710,7 @@ impl crate::exchange::DerivedExchange for Grvt {
         // the api documents funding_rate in percentage points, and a unified
         // fundingRate is a fraction, with the Manual's examples reading 0.000072
         let rate: Option<String> = self.safe_string_k_opt(&rawItem, "funding_rate", &[]);
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), rawItem);
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[]));
@@ -718,9 +718,9 @@ impl crate::exchange::DerivedExchange for Grvt {
         m.insert("timestamp".to_string(), Value::from(ts));
         m.insert("datetime".to_string(), self.iso8601(ts));
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
@@ -1005,40 +1005,10 @@ impl crate::exchange::DerivedExchange for Grvt {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        if (Some(url).unwrap_or("").ends_with("auth/api_key/login")) || (Some(url).unwrap_or("").ends_with("auth/wallet/login")) {
-            let accountId: Option<String> = self.safe_string2_opt(&headers, Value::Str("X-Grvt-Account-Id".into()), Value::Str("x-grvt-account-id".into()), &[]);
-            { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("AuthAccountId".into(), accountId.map(Value::from).unwrap_or(Value::Null)); }
-            let cookie: Option<String> = self.safe_string2_opt(headers, Value::Str("Set-Cookie".into()), Value::Str("set-cookie".into()), &[]);
-            if (cookie.is_some()) {
-                { let __be_tmp = self.safe_string(Value::Array(if let Some(__s) = cookie.as_deref() { __s.split(";").map(Value::from).collect() } else { Vec::new() }), Value::Int(0), &[Value::Str("".into())]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("AuthCookieValue".into(), __be_tmp); } }
-            }
-            if (self.safe_string_k(&self.options, "AuthCookieValue", &[]) == Value::Null) || (self.safe_string_k(&self.options, "AuthAccountId", &[]) == Value::Null) {
-                panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id, " signIn() failed to receive auth-cookie or account-id")));
-            }
-        }  else {
-            let errorCode: Option<String> = self.safe_string_k_opt(&response, "code", &[]);
-            if (errorCode.is_some()) {
-                let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
-                panic!("{}", crate::exchange_errors::exchange_error(feedback));
-            }  else {
-                let message: Option<String> = self.safe_string_k_opt(&response, "message", &[]);
-                if (message.is_some()) {
-                    let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-                    self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
-                    panic!("{}", crate::exchange_errors::exchange_error(feedback));
-                }  else {
-                    let status: Option<String> = self.safe_string_k_opt(response, "status", &[]);
-                    if (status.is_some()) && (status.as_deref() != Some("success")) {
-                        let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-                        panic!("{}", crate::exchange_errors::exchange_error(feedback));
-                    }
-                }
-            }
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Grvt.
+        Grvt::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Grvt {
@@ -1081,14 +1051,14 @@ impl crate::exchange_generated::ExchangeBase for Grvt {
                 "filter_transfers_by_type" => self.filter_transfers_by_type(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()),
                 "format_signature_rs" => self.format_signature_rs(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "handle_until_option_string" => { let __t = self.handle_until_option_string(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![Value::Dict(__t.0), Value::Dict(__t.1)]) },
                 "initialize_client" => self.initialize_client(&args[..]).await,
                 "internal_fetch_transfers" => Value::Arr(self.internal_fetch_transfers(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "load_account_infos" => self.load_account_infos().await,
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
-                "parse_funding_rate_history" => self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_funding_rate_history" => Value::Dict(self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_income" => Value::Dict(self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_leverage" => Value::Dict(self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_margin_mode" => Value::Dict(self.parse_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -4763,4 +4733,38 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
 }
 
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        if (Some(url).unwrap_or("").ends_with("auth/api_key/login")) || (Some(url).unwrap_or("").ends_with("auth/wallet/login")) {
+            let accountId: Option<String> = self.safe_string2_opt(headers, Value::Str("X-Grvt-Account-Id".into()), Value::Str("x-grvt-account-id".into()), &[]);
+            { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("AuthAccountId".into(), accountId.map(Value::from).unwrap_or(Value::Null)); }
+            let cookie: Option<String> = self.safe_string2_opt(headers, Value::Str("Set-Cookie".into()), Value::Str("set-cookie".into()), &[]);
+            if (cookie.is_some()) {
+                { let __be_tmp = self.safe_string(Value::Array(if let Some(__s) = cookie.as_deref() { __s.split(";").map(Value::from).collect() } else { Vec::new() }), Value::Int(0), &[Value::Str("".into())]); { let __d = &mut self.options; std::sync::Arc::make_mut(__d).insert("AuthCookieValue".into(), __be_tmp); } }
+            }
+            if (self.safe_string_k(&self.options, "AuthCookieValue", &[]) == Value::Null) || (self.safe_string_k(&self.options, "AuthAccountId", &[]) == Value::Null) {
+                panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id, " signIn() failed to receive auth-cookie or account-id")));
+            }
+        }  else {
+            let errorCode: Option<String> = self.safe_string_k_opt(&response, "code", &[]);
+            if (errorCode.is_some()) {
+                let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
+                panic!("{}", crate::exchange_errors::exchange_error(feedback));
+            }  else {
+                let message: Option<String> = self.safe_string_k_opt(&response, "message", &[]);
+                if (message.is_some()) {
+                    let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+                    self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
+                    panic!("{}", crate::exchange_errors::exchange_error(feedback));
+                }  else {
+                    let status: Option<String> = self.safe_string_k_opt(response, "status", &[]);
+                    if (status.is_some()) && (status.as_deref() != Some("success")) {
+                        let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+                        panic!("{}", crate::exchange_errors::exchange_error(feedback));
+                    }
+                }
+            }
+        }
+        return None;
+}
 }

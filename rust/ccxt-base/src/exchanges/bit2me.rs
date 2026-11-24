@@ -577,32 +577,10 @@ impl crate::exchange::DerivedExchange for Bit2me {
 
     None
 }
-    fn handle_errors(&mut self, httpCode: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        if (response == Value::Null) {
-            return None;
-        }
-        //
-        //     {"statusCode":404,"error":"Not Found","message":"Market not found for symbol FOO/BAR","reqId":"9834b8a8-97b8-470d-ade2-3d31687c0723"}
-        //     {"code":403,"description":"invalid credentials"}
-        //     {"message":"Validation errors","errors":[{"code":"INVALID_REQUEST_PARAMETER","message":"Invalid parameter (symbol): Value is required but was not provided","in":"query","name":"symbol"}]}
-        //     {"message":["type must be one of the following values: all, fiat, crypto"],"error":"Bad Request","statusCode":400}
-        //     {"statusCode":412,"error":"Precondition Failed","message":"...","errorPayload":{"code":"ORDER_AMOUNT_LOWER_MARKET_MIN"}}
-        //
-        let errorCode: Option<String> = self.safe_string2_opt(&response, Value::Str("code".into()), Value::Str("statusCode".into()), &[]);
-        let errorsList: Option<crate::value::List> = self.safe_list_k_o(&response, "errors");
-        let errorPayload: crate::value::Dict = self.safe_dict_k_t(&response, "errorPayload");
-        let payloadCode: Option<String> = self.safe_string_k_opt(&errorPayload, "code", &[]);
-        if (errorCode.is_some()) || (errorsList.is_some()) || (payloadCode.is_some()) {
-            let message: Option<String> = self.safe_string_n_opt(response, Value::from(vec![Value::Str("message".into()), Value::Str("description".into()), Value::Str("error".into())]), &[]);
-            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &payloadCode, feedback.as_str());
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(body), feedback.as_str());
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback));
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Bit2me.
+        Bit2me::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Bit2me {
@@ -636,7 +614,7 @@ impl crate::exchange_generated::ExchangeBase for Bit2me {
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_transfers" => crate::types::IntoRaw::into_raw(self.fetch_transfers(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
@@ -2413,4 +2391,30 @@ impl Bit2me {
 }
 
 
+    pub fn handle_errors(&mut self, httpCode: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        if (response == Value::Null) {
+            return None;
+        }
+        //
+        //     {"statusCode":404,"error":"Not Found","message":"Market not found for symbol FOO/BAR","reqId":"9834b8a8-97b8-470d-ade2-3d31687c0723"}
+        //     {"code":403,"description":"invalid credentials"}
+        //     {"message":"Validation errors","errors":[{"code":"INVALID_REQUEST_PARAMETER","message":"Invalid parameter (symbol): Value is required but was not provided","in":"query","name":"symbol"}]}
+        //     {"message":["type must be one of the following values: all, fiat, crypto"],"error":"Bad Request","statusCode":400}
+        //     {"statusCode":412,"error":"Precondition Failed","message":"...","errorPayload":{"code":"ORDER_AMOUNT_LOWER_MARKET_MIN"}}
+        //
+        let errorCode: Option<String> = self.safe_string2_opt(&response, Value::Str("code".into()), Value::Str("statusCode".into()), &[]);
+        let errorsList: Option<crate::value::List> = self.safe_list_k_o(&response, "errors");
+        let errorPayload: crate::value::Dict = self.safe_dict_k_t(&response, "errorPayload");
+        let payloadCode: Option<String> = self.safe_string_k_opt(&errorPayload, "code", &[]);
+        if (errorCode.is_some()) || (errorsList.is_some()) || (payloadCode.is_some()) {
+            let message: Option<String> = self.safe_string_n_opt(response, Value::from(vec![Value::Str("message".into()), Value::Str("description".into()), Value::Str("error".into())]), &[]);
+            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &payloadCode, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(body), feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
+        }
+        return None;
+}
 }

@@ -172,7 +172,7 @@ impl Binance {
             "get_stock_unified_symbol" => { self.get_stock_unified_symbol(args.get(0).copied().and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..]); },
             "get_stock_ws_url" => { self.get_stock_ws_url(&args[..]); },
             "handle_account_status_ws" => { self.handle_account_status_ws(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_acount_update" => { self.handle_acount_update(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_acount_update" => { self.handle_acount_update(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_balance" => { self.handle_balance(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_balance_ws" => { self.handle_balance_ws(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_bids_asks" => { self.handle_bids_asks(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -181,7 +181,7 @@ impl Binance {
             "handle_edit_order_ws" => { self.handle_edit_order_ws(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_event_stream_terminated" => { self.handle_event_stream_terminated(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_fetch_ohlcv" => { self.handle_fetch_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_fetch_order_book" => { self.handle_fetch_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_fetch_order_book" => { self.handle_fetch_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_liquidation" => { self.handle_liquidation(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_mark_prices" => { self.handle_mark_prices(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -1498,9 +1498,7 @@ impl Binance {
         }).await?))
     }
 
-    pub fn handle_fetch_order_book(&self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
-        let __message_empty = indexmap::IndexMap::new();
-        let message = message.as_map().unwrap_or(&__message_empty);
+    pub fn handle_fetch_order_book(&self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //    {
         //        "id":"51e2affb-0aba-4821-ba75-f2625006eb43",
@@ -7393,9 +7391,9 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         }
 }
 
-    pub fn handle_acount_update(&mut self, client: &Value, message: &Value) {
-        self.handle_balance(client, message.clone());
-        self.handle_positions(client, message.as_map().unwrap_or(&Default::default()));
+    pub fn handle_acount_update(&mut self, client: &Value, message: &crate::value::Dict) {
+        self.handle_balance(client, Value::from(message));
+        self.handle_positions(client, message);
 }
 
     pub fn handle_options_account_update(&mut self, client: &Value, mut message: Value) {
@@ -7512,13 +7510,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let msg: Option<String> = self.safe_string_k_opt(&error, "msg", &[]);
         let codeValue: i64 = code.unwrap_or(0);
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.handle_errors(codeValue, msg.as_deref().unwrap_or_default(), (client.url()).as_str().unwrap_or_default(), "", Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}), (json_stringify(&error)).as_str().unwrap_or_default(), Value::from(&error), Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}), None).map_or(Value::Null, Value::Bool);
+            self.handle_errors(codeValue, msg.as_deref().unwrap_or_default(), (client.url()).as_str().unwrap_or_default(), "", &indexmap::IndexMap::new(), (json_stringify(&error)).as_str().unwrap_or_default(), Value::from(&error), Some(&indexmap::IndexMap::new()), None).map_or(Value::Null, Value::Bool);
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             rejected = true;

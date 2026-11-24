@@ -408,38 +408,10 @@ impl crate::exchange::DerivedExchange for Indodax {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        if (response == Value::Null) {
-            return None;
-        }
-        // { success: 0, error: "invalid order." }
-        // or
-        // [{ data, ... }, { ... }, ... ]
-        // {"success":"1","status":"approved","withdraw_currency":"strm","withdraw_address":"0x2b9A8cd5535D99b419aEfFBF1ae8D90a7eBdb24E","withdraw_amount":"2165.05767839","fee":"21.11000000","amount_after_fee":"2143.94767839","submit_time":"1730759489","withdraw_id":"strm-3423","txid":""}
-        if (matches!(&response, Value::Arr(_))) {
-            return None;
-        }
-        let error: String = self.safe_string_k(&response, "error", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let status: Option<String> = self.safe_string_k_opt(&response, "success", &[]);
-        if (status.is_none()) && (error == "") {
-            return None;
-        }
-        if (status.as_deref() == Some("approved")) {
-            return None;
-        }
-        if (self.safe_integer_k(&response, "success", &[Value::Int(0)]).as_f64() == Some(1.0)) {
-            // { success: 1, return: { orders: [] }}
-            if !(in_op(&response, &Value::Str("return".into()))) {
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, ": malformed response: ").into()), json_stringify(&response))));
-            }  else {
-                return None;
-            }
-        }
-        let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-        self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(error.as_str()), feedback.as_str());
-        self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(error), feedback.as_str());
-        panic!("{}", crate::exchange_errors::exchange_error(feedback));
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Indodax.
+        Indodax::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Indodax {
@@ -467,7 +439,7 @@ impl crate::exchange_generated::ExchangeBase for Indodax {
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_transaction_fee" => self.fetch_transaction_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -2127,4 +2099,36 @@ impl Indodax {
     }
 
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        if (response == Value::Null) {
+            return None;
+        }
+        // { success: 0, error: "invalid order." }
+        // or
+        // [{ data, ... }, { ... }, ... ]
+        // {"success":"1","status":"approved","withdraw_currency":"strm","withdraw_address":"0x2b9A8cd5535D99b419aEfFBF1ae8D90a7eBdb24E","withdraw_amount":"2165.05767839","fee":"21.11000000","amount_after_fee":"2143.94767839","submit_time":"1730759489","withdraw_id":"strm-3423","txid":""}
+        if (matches!(&response, Value::Arr(_))) {
+            return None;
+        }
+        let error: String = self.safe_string_k(&response, "error", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let status: Option<String> = self.safe_string_k_opt(&response, "success", &[]);
+        if (status.is_none()) && (error == "") {
+            return None;
+        }
+        if (status.as_deref() == Some("approved")) {
+            return None;
+        }
+        if (self.safe_integer_k(&response, "success", &[Value::Int(0)]).as_f64() == Some(1.0)) {
+            // { success: 1, return: { orders: [] }}
+            if !(in_op(&response, &Value::Str("return".into()))) {
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, ": malformed response: ").into()), json_stringify(&response))));
+            }  else {
+                return None;
+            }
+        }
+        let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+        self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(error.as_str()), feedback.as_str());
+        self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(error), feedback.as_str());
+        panic!("{}", crate::exchange_errors::exchange_error(feedback));
+}
 }

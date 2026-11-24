@@ -833,43 +833,10 @@ impl crate::exchange::DerivedExchange for Pacifica {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        if (response == Value::Null) {
-            return None;
-        }
-        //
-        //     {"success":false,"data":null,"error":"Beta access required. Signer must redeem a valid beta code.","code":403}
-        //     {"success":false,"data":null,"error":"Agent not authorized for account","code":400}
-        //     {"success":false,"data":null,"error":"Internal server error","code":500}
-        //     {"success":false,"data":null,"error":"Verification failed: signature does not match signer and canonical payload.","code":400,"error_id":"signature_verification_failed"}
-        //     {"success":false,"data":null,"error":"Order amount too low for <account>: 7.81140 < 10","code":0,"error_id":"invalid_amount"}
-        //     {"success":false,"data":null,"error":"Invalid transfer relationship: <from> -> <to>","code":33,"error_id":"unspecified"}
-        //
-        // code carries a business code on 422 responses and an echo of the http status otherwise, it is undefined or 200 when all ok
-        // the string form is required for the exceptions lookup, an integer key never matches the string-keyed map on the python, go and c# ports
-        let errorCode: Option<String> = self.safe_string_k_opt(&response, "code", &[]);
-        let errorId: Option<String> = self.safe_string_k_opt(&response, "error_id", &[]); // undocumented, present on live errors and more specific than code
-        let message: Option<String> = self.safe_string_k_opt(response, "error", &[]);
-        let mut error: Option<bool> = None;
-        if (errorCode.is_none()) || (errorCode.as_deref() == Some("200")) {
-            error = Some(false);
-        }  else {
-            error = Some(true);
-        }
-        let nonEmptyMessage: bool = (message.is_some()) && (message.as_deref() != Some(""));
-        if (error == Some(true)) || nonEmptyMessage {
-            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorId, feedback.as_str());
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str()); // documented message prefixes are more specific than the http-status echo
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
-            let statusCode: i64 = self.parse_to_int(Value::from(code)).unwrap_or_default();
-            let codeAsString: String = format!("{}", code);
-            if (statusCode < 400) || !(matches!(Some(codeAsString.as_str()), Some(__k) if self.httpExceptions.contains_key(__k))) {
-                panic!("{}", crate::exchange_errors::exchange_error(feedback));
-            }
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Pacifica.
+        Pacifica::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Pacifica {
@@ -934,7 +901,7 @@ impl crate::exchange_generated::ExchangeBase for Pacifica {
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_builder_fee_approval" => self.handle_builder_fee_approval().await,
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "handle_origin_and_single_address" => { let __t = self.handle_origin_and_single_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "initialize_client" => self.initialize_client().await,
                 "load_account_settings" => { self.load_account_settings(&args[..].iter().collect::<Vec<_>>()).await; crate::Value::Null },
@@ -5254,6 +5221,43 @@ if _try_result.is_err() {
         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(methodName)).into()), "() requires address either as \"exchange.walletAddress = ...\" or as parameter or \"address\" in params")));
 }
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        if (response == Value::Null) {
+            return None;
+        }
+        //
+        //     {"success":false,"data":null,"error":"Beta access required. Signer must redeem a valid beta code.","code":403}
+        //     {"success":false,"data":null,"error":"Agent not authorized for account","code":400}
+        //     {"success":false,"data":null,"error":"Internal server error","code":500}
+        //     {"success":false,"data":null,"error":"Verification failed: signature does not match signer and canonical payload.","code":400,"error_id":"signature_verification_failed"}
+        //     {"success":false,"data":null,"error":"Order amount too low for <account>: 7.81140 < 10","code":0,"error_id":"invalid_amount"}
+        //     {"success":false,"data":null,"error":"Invalid transfer relationship: <from> -> <to>","code":33,"error_id":"unspecified"}
+        //
+        // code carries a business code on 422 responses and an echo of the http status otherwise, it is undefined or 200 when all ok
+        // the string form is required for the exceptions lookup, an integer key never matches the string-keyed map on the python, go and c# ports
+        let errorCode: Option<String> = self.safe_string_k_opt(&response, "code", &[]);
+        let errorId: Option<String> = self.safe_string_k_opt(&response, "error_id", &[]); // undocumented, present on live errors and more specific than code
+        let message: Option<String> = self.safe_string_k_opt(response, "error", &[]);
+        let mut error: Option<bool> = None;
+        if (errorCode.is_none()) || (errorCode.as_deref() == Some("200")) {
+            error = Some(false);
+        }  else {
+            error = Some(true);
+        }
+        let nonEmptyMessage: bool = (message.is_some()) && (message.as_deref() != Some(""));
+        if (error == Some(true)) || nonEmptyMessage {
+            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorId, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str()); // documented message prefixes are more specific than the http-status echo
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
+            let statusCode: i64 = self.parse_to_int(Value::from(code)).unwrap_or_default();
+            let codeAsString: String = format!("{}", code);
+            if (statusCode < 400) || !(matches!(Some(codeAsString.as_str()), Some(__k) if self.httpExceptions.contains_key(__k))) {
+                panic!("{}", crate::exchange_errors::exchange_error(feedback));
+            }
+        }
+        return None;
+}
 
 
     pub fn calculate_rate_limiter_cost(&self, mut api: Value, method: &str, path: &str, mut params: Value, optional_args: &[Value]) -> Value {

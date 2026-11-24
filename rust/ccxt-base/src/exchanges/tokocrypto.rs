@@ -830,74 +830,10 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        if (code == 418) || (code == 429) {
-            panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::Str(format!("{}", Value::from(code)).into())).into()), " ").into()), Value::from(reason)).into()), " ").into()), Value::from(body))));
-        }
-        // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
-        // following block contains legacy checks against message patterns in "msg" property
-        // will switch "code" checks eventually, when we know all of them
-        if code >= 400 {
-            if Some(body).unwrap_or("").contains("Price * QTY is zero or less") {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id, " order cost = amount * price is zero or less ").into()), Value::from(body))));
-            }
-            if Some(body).unwrap_or("").contains("LOT_SIZE") {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id, " order amount should be evenly divisible by lot size ").into()), Value::from(body))));
-            }
-            if Some(body).unwrap_or("").contains("PRICE_FILTER") {
-                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id, " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ").into()), Value::from(body))));
-            }
-        }
-        if (response == Value::Null) {
-            return None;
-        }
-        // check success value for wapi endpoints
-        // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        let success: bool = self.safe_bool_k_opt(&response, "success", &[Value::Bool(true)]).unwrap_or(true);
-        let mut responseParsed: Value = response.clone();
-        if !success {
-            let messageInner: Option<String> = self.safe_string_k_opt(&response, "msg", &[]);
-            if (messageInner.is_some()) {
-                let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                    responseParsed = json_parse(&messageInner.map(Value::from).unwrap_or(Value::Null));
-                 #[allow(unreachable_code)] { Value::Null }}));
-if _try_result.is_err() {
-                    // do nothing
-                    responseParsed = response;
-                }
-            }
-        }
-        let message: Option<String> = self.safe_string_k_opt(&responseParsed, "msg", &[]);
-        if (message.is_some()) {
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message.as_deref().unwrap_or("null")).into()));
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(message.as_deref()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message.as_deref().unwrap_or("null")).into()));
-        }
-        // checks against error codes
-        let error: Option<String> = self.safe_string_k_opt(&responseParsed, "code", &[]);
-        if (error.is_some()) {
-            // https://github.com/ccxt/ccxt/issues/6501
-            // https://github.com/ccxt/ccxt/issues/7742
-            if (error.as_deref() == Some("200")) || crate::precise::Precise::stringEquals(&error, &Value::Str("0".into())).as_bool() == Some(true) {
-                return None;
-            }
-            // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
-            // despite that their message is very confusing, it is raised by Binance
-            // on a temporary ban, the API key is valid, but disabled for a while
-            if (error.as_deref() == Some("-2015")) && matches!((self.safe_bool_k(&self.options, "hasAlreadyAuthenticatedSuccessfully", &[Value::Bool(false)])), Value::Bool(true)) {
-                panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body))));
-            }
-            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-            if (message.as_deref() == Some("No need to change margin type.")) {
-                panic!("{}", crate::exchange_errors::margin_mode_already_set(feedback.clone()));
-            }
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &error, feedback.as_str());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback));
-        }
-        if !success {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body))));
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Tokocrypto.
+        Tokocrypto::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Tokocrypto {
@@ -928,7 +864,7 @@ impl crate::exchange_generated::ExchangeBase for Tokocrypto {
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "is_native_market" => self.is_native_market(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref()),
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_balance_custom" => Value::Dict(self.parse_balance_custom(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_text).as_deref())),
@@ -3454,6 +3390,74 @@ impl Tokocrypto {
     }
 
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        if (code == 418) || (code == 429) {
+            panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::Str(format!("{}", Value::from(code)).into())).into()), " ").into()), Value::from(reason)).into()), " ").into()), Value::from(body))));
+        }
+        // error response in a form: { "code": -1013, "msg": "Invalid quantity." }
+        // following block contains legacy checks against message patterns in "msg" property
+        // will switch "code" checks eventually, when we know all of them
+        if code >= 400 {
+            if Some(body).unwrap_or("").contains("Price * QTY is zero or less") {
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id, " order cost = amount * price is zero or less ").into()), Value::from(body))));
+            }
+            if Some(body).unwrap_or("").contains("LOT_SIZE") {
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id, " order amount should be evenly divisible by lot size ").into()), Value::from(body))));
+            }
+            if Some(body).unwrap_or("").contains("PRICE_FILTER") {
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", self.id, " order price is invalid, i.e. exceeds allowed price precision, exceeds min price or max price limits or is invalid value in general, use this.priceToPrecision (symbol, amount) ").into()), Value::from(body))));
+            }
+        }
+        if (response == Value::Null) {
+            return None;
+        }
+        // check success value for wapi endpoints
+        // response in format {'msg': 'The coin does not exist.', 'success': true/false}
+        let success: bool = self.safe_bool_k_opt(&response, "success", &[Value::Bool(true)]).unwrap_or(true);
+        let mut responseParsed: Value = response.clone();
+        if !success {
+            let messageInner: Option<String> = self.safe_string_k_opt(&response, "msg", &[]);
+            if (messageInner.is_some()) {
+                let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                    responseParsed = json_parse(&messageInner.map(Value::from).unwrap_or(Value::Null));
+                 #[allow(unreachable_code)] { Value::Null }}));
+if _try_result.is_err() {
+                    // do nothing
+                    responseParsed = response;
+                }
+            }
+        }
+        let message: Option<String> = self.safe_string_k_opt(&responseParsed, "msg", &[]);
+        if (message.is_some()) {
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message.as_deref().unwrap_or("null")).into()));
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(message.as_deref()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message.as_deref().unwrap_or("null")).into()));
+        }
+        // checks against error codes
+        let error: Option<String> = self.safe_string_k_opt(&responseParsed, "code", &[]);
+        if (error.is_some()) {
+            // https://github.com/ccxt/ccxt/issues/6501
+            // https://github.com/ccxt/ccxt/issues/7742
+            if (error.as_deref() == Some("200")) || crate::precise::Precise::stringEquals(&error, &Value::Str("0".into())).as_bool() == Some(true) {
+                return None;
+            }
+            // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
+            // despite that their message is very confusing, it is raised by Binance
+            // on a temporary ban, the API key is valid, but disabled for a while
+            if (error.as_deref() == Some("-2015")) && matches!((self.safe_bool_k(&self.options, "hasAlreadyAuthenticatedSuccessfully", &[Value::Bool(false)])), Value::Bool(true)) {
+                panic!("{}", crate::exchange_errors::d_do_s_protection(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body))));
+            }
+            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+            if (message.as_deref() == Some("No need to change margin type.")) {
+                panic!("{}", crate::exchange_errors::margin_mode_already_set(feedback.clone()));
+            }
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &error, feedback.as_str());
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
+        }
+        if !success {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body))));
+        }
+        return None;
+}
 
     pub fn calculate_rate_limiter_cost(&self, mut api: Value, method: &str, path: &str, mut params: Value, optional_args: &[Value]) -> Value {
         let mut config = get_arg(optional_args, 0, Value::Map({

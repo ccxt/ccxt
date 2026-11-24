@@ -744,7 +744,7 @@ impl crate::exchange::DerivedExchange for Paradex {
 
     None
 }
-    fn parse_liquidation(&self, mut liquidation: Value, market: Option<&crate::types::Market>) -> Value {
+    fn parse_liquidation(&self, mut liquidation: Value, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         //     {
         //         "created_at": 1697213130097,
@@ -752,7 +752,7 @@ impl crate::exchange::DerivedExchange for Paradex {
         //     }
         //
         let timestamp: Option<i64> = self.safe_integer_k(&liquidation, "created_at", &[]).as_i64();
-        return Value::Dict(self.safe_liquidation(std::sync::Arc::new({
+        return Some(self.safe_liquidation(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), liquidation);
         m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
@@ -767,7 +767,7 @@ impl crate::exchange::DerivedExchange for Paradex {
     m
 }), &[]));
 
-    Value::Null
+    None
 }
     fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
@@ -1168,70 +1168,10 @@ impl crate::exchange::DerivedExchange for Paradex {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        if (response == Value::Null) {
-            return None;
-        }
-        //
-        //     {
-        //         "data": null,
-        //         "error": "NOT_ONBOARDED",
-        //         "message": "User has never called /onboarding endpoint"
-        //     }
-        //
-        //     {
-        //         "error": "INVALID_REQUEST_PARAMETER",
-        //         "message": "market: FOO-USD-PERP does not exist.",
-        //         "data": { "market": "FOO-USD-PERP does not exist." }
-        //     }
-        //
-        //     {
-        //         "message": "missing or malformed jwt"
-        //     }
-        //
-        let mut errorCode: Option<String> = self.safe_string_k_opt(&response, "error", &[]);
-        let mut message: Option<String> = self.safe_string_k_opt(&response, "message", &[]);
-        if (errorCode.is_none()) && (code == 400) {
-            //
-            // a batch where every order was rejected, errors are index-aligned with the request
-            //
-            //     {
-            //         "errors": [ { "error": "DUPLICATED_CLIENT_ID", "message": "..." } ],
-            //         "orders": [ null ]
-            //     }
-            //
-            let batchErrors: crate::value::List = self.safe_list_k_t(response, "errors");
-            {
-                                let mut i: i64 = 0;
-                let mut __for_first_19: bool = true;
-                while { if !__for_first_19 { i += 1; } __for_first_19 = false; i < (batchErrors.len() as i64) } {
-                let batchErrorCode: Option<String> = self.safe_string_k_opt(batchErrors.get(i as usize).cloned().unwrap_or(Value::Null), "error", &[]);
-                if (batchErrorCode.is_some()) {
-                    errorCode = batchErrorCode;
-                    message = self.safe_string_k_opt(batchErrors.get(i as usize).cloned().unwrap_or(Value::Null), "message", &[]);
-                    break;
-                }
-            }
-            }
-        }
-        let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-        if (errorCode.is_none()) {
-            if (code >= 400) && (message.is_some()) {
-                self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(message.as_deref()), feedback.as_str());
-            }
-            return None;
-        }
-        // the broad patterns read the message of a validation failure only, other codes carry free text that could match them by accident
-        if (errorCode.as_deref() == Some("INVALID_REQUEST_PARAMETER")) && (message.is_some()) {
-            // an unknown market fails the validation of the market field, "market: FOO-USD-PERP does not exist."
-            if (((if let (Some(__h), Some(__n)) = (message.as_deref(), Some("market")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) && (message.as_deref().unwrap_or_default().contains("does not exist")) {
-                panic!("{}", crate::exchange_errors::bad_symbol(feedback.clone()));
-            }
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
-        }
-        self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
-        panic!("{}", crate::exchange_errors::exchange_error(feedback));
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Paradex.
+        Paradex::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Paradex {
@@ -1288,14 +1228,14 @@ impl crate::exchange_generated::ExchangeBase for Paradex {
                 "filter_transactions_by_kind" => Value::Arr(self.filter_transactions_by_kind(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "get_system_config" => crate::Value::Dict(self.get_system_config().await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "onboarding" => self.onboarding(&args[..]).await,
                 "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_greeks" => Value::Dict(self.parse_greeks(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_income" => Value::Dict(self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_leverage" => Value::Dict(self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_liquidation" => self.parse_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_liquidation" => Value::Dict(self.parse_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_margin_mode" => Value::Dict(self.parse_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_market" => Value::Dict(self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -5878,4 +5818,68 @@ impl Paradex {
     }
 
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        if (response == Value::Null) {
+            return None;
+        }
+        //
+        //     {
+        //         "data": null,
+        //         "error": "NOT_ONBOARDED",
+        //         "message": "User has never called /onboarding endpoint"
+        //     }
+        //
+        //     {
+        //         "error": "INVALID_REQUEST_PARAMETER",
+        //         "message": "market: FOO-USD-PERP does not exist.",
+        //         "data": { "market": "FOO-USD-PERP does not exist." }
+        //     }
+        //
+        //     {
+        //         "message": "missing or malformed jwt"
+        //     }
+        //
+        let mut errorCode: Option<String> = self.safe_string_k_opt(&response, "error", &[]);
+        let mut message: Option<String> = self.safe_string_k_opt(&response, "message", &[]);
+        if (errorCode.is_none()) && (code == 400) {
+            //
+            // a batch where every order was rejected, errors are index-aligned with the request
+            //
+            //     {
+            //         "errors": [ { "error": "DUPLICATED_CLIENT_ID", "message": "..." } ],
+            //         "orders": [ null ]
+            //     }
+            //
+            let batchErrors: crate::value::List = self.safe_list_k_t(response, "errors");
+            {
+                                let mut i: i64 = 0;
+                let mut __for_first_19: bool = true;
+                while { if !__for_first_19 { i += 1; } __for_first_19 = false; i < (batchErrors.len() as i64) } {
+                let batchErrorCode: Option<String> = self.safe_string_k_opt(batchErrors.get(i as usize).cloned().unwrap_or(Value::Null), "error", &[]);
+                if (batchErrorCode.is_some()) {
+                    errorCode = batchErrorCode;
+                    message = self.safe_string_k_opt(batchErrors.get(i as usize).cloned().unwrap_or(Value::Null), "message", &[]);
+                    break;
+                }
+            }
+            }
+        }
+        let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+        if (errorCode.is_none()) {
+            if (code >= 400) && (message.is_some()) {
+                self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(message.as_deref()), feedback.as_str());
+            }
+            return None;
+        }
+        // the broad patterns read the message of a validation failure only, other codes carry free text that could match them by accident
+        if (errorCode.as_deref() == Some("INVALID_REQUEST_PARAMETER")) && (message.is_some()) {
+            // an unknown market fails the validation of the market field, "market: FOO-USD-PERP does not exist."
+            if (((if let (Some(__h), Some(__n)) = (message.as_deref(), Some("market")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) == 0) && (message.as_deref().unwrap_or_default().contains("does not exist")) {
+                panic!("{}", crate::exchange_errors::bad_symbol(feedback.clone()));
+            }
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
+        }
+        self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
+        panic!("{}", crate::exchange_errors::exchange_error(feedback));
+}
 }

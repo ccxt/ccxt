@@ -712,7 +712,7 @@ impl crate::exchange::DerivedExchange for Deepcoin {
 
     None
 }
-    fn parse_funding_rate_history(&self, mut info: Value, market: Option<&crate::types::Market>) -> Value {
+    fn parse_funding_rate_history(&self, mut info: Value, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         //     {
         //         "instrumentID": "ETHUSD",
@@ -724,7 +724,7 @@ impl crate::exchange::DerivedExchange for Deepcoin {
         let timestamp: Option<i64> = self.safe_timestamp_k(&info, "CreateTime", &[]).as_i64();
         let instrumentID: Option<String> = self.safe_string2_opt(&info, Value::Str("instrumentID".into()), Value::Str("instrumentId".into()), &[]);
         let marketResolved: crate::types::Market = self.safe_market(instrumentID.as_deref(), market, &[Value::Null, Value::Str("swap".into())]);
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), info.clone());
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
@@ -732,9 +732,9 @@ impl crate::exchange::DerivedExchange for Deepcoin {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
@@ -853,47 +853,10 @@ impl crate::exchange::DerivedExchange for Deepcoin {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
-        let mut msg: Option<String> = self.safe_string_k_opt(&response, "msg", &[]);
-        let messageCode: Option<String> = self.safe_string_k_opt(response, "code", &[]);
-        let mut sCode: Option<String> = self.safe_string_k_opt(&data, "sCode", &[]);
-        let sMsg: Option<String> = self.safe_string_k_opt(&data, "sMsg", &[]);
-        let mut errorCode: Option<String> = self.safe_string_k_opt(&data, "errorCode", &[]);
-        if (msg.is_some()) && (msg.as_deref() == Some("")) && (sMsg.is_some()) {
-            msg = sMsg;
-        }
-        let errorList: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "errorList"));
-        {
-                        let mut i: i64 = 0;
-            let mut __for_first_5: bool = true;
-            while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (errorList.len() as i64) } {
-            let entry: crate::value::Dict = errorList.get(i as usize).cloned().unwrap_or_default();
-            errorCode = self.safe_string_k_opt(&entry, "errorCode", &[]);
-        }
-        }
-        let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-        if (sCode.is_none()) && (errorCode.is_some()) {
-            sCode = errorCode;
-        }
-        let retCode: Option<String> = self.safe_string_k_opt(&data, "retCode", &[]);
-        if (sCode.is_none()) && (retCode.is_some()) {
-            sCode = retCode;
-        }
-        if (code != 200) || (messageCode.as_deref() != Some("0")) || ((sCode.is_some()) && (sCode.as_deref() != Some("0"))) {
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &messageCode, feedback.as_str());
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &sCode, feedback.as_str());
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(msg.as_deref()), feedback.as_str());
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &msg, feedback.as_str());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
-        }  else {
-            let list: Value = self.safe_list_k(&data, "list", &[Value::from(vec![])]);
-            if (data.contains_key("list")) && (list == Value::Null) {
-                panic!("{}", crate::exchange_errors::null_response(feedback));
-            }
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Deepcoin.
+        Deepcoin::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Deepcoin {
@@ -945,14 +908,14 @@ impl crate::exchange_generated::ExchangeBase for Deepcoin {
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "handle_market_type_and_params" => { let __t = self.handle_market_type_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>());
                     Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "handle_type_post_only_and_time_in_force" => { let __t = self.handle_type_post_only_and_time_in_force(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null)); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_deposit_address" => Value::Dict(self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_funding_rate_history" => self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_funding_rate_history" => Value::Dict(self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ledger_entry" => Value::Dict(self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_market" => Value::Dict(self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -4432,4 +4395,45 @@ impl Deepcoin {
     }
 
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        let data: crate::value::Dict = self.safe_dict_k_t(&response, "data");
+        let mut msg: Option<String> = self.safe_string_k_opt(&response, "msg", &[]);
+        let messageCode: Option<String> = self.safe_string_k_opt(response, "code", &[]);
+        let mut sCode: Option<String> = self.safe_string_k_opt(&data, "sCode", &[]);
+        let sMsg: Option<String> = self.safe_string_k_opt(&data, "sMsg", &[]);
+        let mut errorCode: Option<String> = self.safe_string_k_opt(&data, "errorCode", &[]);
+        if (msg.is_some()) && (msg.as_deref() == Some("")) && (sMsg.is_some()) {
+            msg = sMsg;
+        }
+        let errorList: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&data, "errorList"));
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_5: bool = true;
+            while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (errorList.len() as i64) } {
+            let entry: crate::value::Dict = errorList.get(i as usize).cloned().unwrap_or_default();
+            errorCode = self.safe_string_k_opt(&entry, "errorCode", &[]);
+        }
+        }
+        let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+        if (sCode.is_none()) && (errorCode.is_some()) {
+            sCode = errorCode;
+        }
+        let retCode: Option<String> = self.safe_string_k_opt(&data, "retCode", &[]);
+        if (sCode.is_none()) && (retCode.is_some()) {
+            sCode = retCode;
+        }
+        if (code != 200) || (messageCode.as_deref() != Some("0")) || ((sCode.is_some()) && (sCode.as_deref() != Some("0"))) {
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &messageCode, feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &sCode, feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(msg.as_deref()), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &msg, feedback.as_str());
+            panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
+        }  else {
+            let list: Value = self.safe_list_k(&data, "list", &[Value::from(vec![])]);
+            if (data.contains_key("list")) && (list == Value::Null) {
+                panic!("{}", crate::exchange_errors::null_response(feedback));
+            }
+        }
+        return None;
+}
 }

@@ -60,7 +60,7 @@ impl crate::exchange_generated::ExchangeBase for Interactivebrokers {
     {
         Box::pin(async move {
             match method {
-                "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
+                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null))),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
                 "ibkr_cancel_history" => self.ibkr_cancel_history(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
@@ -1028,11 +1028,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let symbol: Option<String> = self.safe_string_k_opt(&subscription, "symbol", &[]);
         let timeframe: Option<String> = self.safe_string_k_opt(&subscription, "timeframe", &[]);
         let market: crate::types::Market = self.safe_market(Some(marketId.as_str()), None, &[]);
-        let stored: Value = self.safe_value(self.safe_dict(Value::from(&self.ohlcvs), symbol.clone(), &[Value::Map({
-            let m = indexmap::IndexMap::new();
-            m
-        })]), Value::from(timeframe.as_deref()), &[]);
-        if (stored == Value::Null) {
+        let stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf_text(&symbol).lookup(&timeframe);
+        if (stored.is_none()) {
             return;
         }
         let data: crate::value::List = message.key_list("data");
@@ -1060,8 +1057,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         {
                         let mut i: i64 = 0;
             let mut __for_first_10: bool = true;
-            while { if !__for_first_10 { i += 1; } __for_first_10 = false; (i as f64) < Value::Int(stored.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-            let candle: Value = get_value(&stored, &Value::Int(i));
+            while { if !__for_first_10 { i += 1; } __for_first_10 = false; (i as f64) < Value::Int(CacheSlot::size(&stored)).as_f64().unwrap_or(f64::NAN) } {
+            let candle: Value = get_value(&Value::from(&stored), &Value::Int(i));
             if (lastHistoryTimestamp == Value::Null) || (get_value(&candle, &Value::Int(0)).as_f64().unwrap_or(f64::NAN) > lastHistoryTimestamp.as_f64().unwrap_or(f64::NAN)) {
                 bars.push(candle.clone());
             }
@@ -2001,7 +1998,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
 }
 
-    pub fn handle_error_message(&self, client: &Value, message: &Value) -> Value {
+    pub fn handle_error_message(&self, client: &Value, message: &Value) -> bool {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -2009,19 +2006,17 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         let errorMessage: Option<String> = (match __pro_message.get("error") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (errorMessage.is_none()) {
-            return Value::Bool(false);
+            return false;
         }
         let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(message));
-        let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> bool {
             self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
-         #[allow(unreachable_code)] { Value::Null }}));
-if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
+        }));
+        match _try_result { Ok(__try_ret) => return __try_ret, Err(_try_err) => { let error: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             client.reject(error, None);
-        }
-        return Value::Bool(true);
-
-    Value::Null
+        } }
+        return true;
 }
 
     pub fn ping(&self, mut client: Value) -> Value {
@@ -2046,7 +2041,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         //     { "topic": "system", "hb": 1702334859712 }
         //
         crate::set_value(&mut client, &Value::Str("lastPong".into()), Value::Int(self.milliseconds()));
-        if self.handle_error_message(&client, &message).as_bool() == Some(true) {
+        if self.handle_error_message(&client, &message) {
             return;
         }
         let topic: String = (match __pro_message.get("topic").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();

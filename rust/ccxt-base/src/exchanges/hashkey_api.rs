@@ -143,8 +143,8 @@ impl Hashkey {
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1FuturesCommissionRate` implicit endpoint.
-    pub async fn private_get_api_v1_futures_commission_rate(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("private_get_api_v1_futures_commission_rate".into()), optional_args).await
+    pub async fn private_get_api_v1_futures_commission_rate(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("private_get_api_v1_futures_commission_rate", optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetApiV1FuturesGetBestOrder` implicit endpoint.

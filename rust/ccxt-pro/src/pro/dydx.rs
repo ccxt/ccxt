@@ -60,7 +60,7 @@ impl crate::exchange_generated::ExchangeBase for Dydx {
     {
         Box::pin(async move {
             match method {
-                "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
+                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()))),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "un_watch_ohlcv" => crate::types::IntoRaw::into_raw(self.un_watch_ohlcv(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
@@ -611,17 +611,15 @@ impl Dydx {
         client.resolve(Value::from(&stored), messageHash.as_str());
 }
 
-    pub fn handle_error_message(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) -> Value {
-        let _try_result: Result<Value, String> = '__try: {
+    pub fn handle_error_message(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) -> bool {
+        let _try_result: Result<bool, String> = ('__try: {
             let msg: String = (match message.get("message") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "".to_string() });
             break '__try Err(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), msg)).to_string());
-         #[allow(unreachable_code)] { Ok(Value::Null) }};
-if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(Box::new(_try_err));
+        });
+        match _try_result { Ok(__try_ret) => return __try_ret, Err(_try_err) => { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(Box::new(_try_err));
             client.reject(e, None);
-        }
-        return Value::Bool(true);
-
-    Value::Null
+        } }
+        return true;
 }
 
     pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
@@ -629,7 +627,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         let type_var: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("error")) {
-            self.handle_error_message(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
+            Value::Bool(self.handle_error_message(&client.as_value(), message.as_map().unwrap_or(&Default::default())));
             return;
         }
         if (type_var.is_some()) {

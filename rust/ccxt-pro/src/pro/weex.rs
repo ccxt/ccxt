@@ -61,7 +61,7 @@ impl crate::exchange_generated::ExchangeBase for Weex {
         Box::pin(async move {
             match method {
                 "get_market_from_client_and_message" => crate::types::IntoRaw::into_raw(self.get_market_from_client_and_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()))),
-                "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
+                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null))),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_subscription_status" => self.handle_subscription_status(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "load_balance_snapshot" => { self.load_balance_snapshot(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
@@ -2747,7 +2747,7 @@ impl Weex {
     Value::Null
 }
 
-    pub fn handle_error_message(&self, client: &Value, message: &Value) -> Value {
+    pub fn handle_error_message(&self, client: &Value, message: &Value) -> bool {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -2761,19 +2761,17 @@ impl Weex {
         if !result {
             let msg: String = (match __pro_message.get("msg").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
             let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(message));
-            let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> bool {
                 self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(msg.as_str()), feedback.as_str());
                 self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(msg), feedback.as_str());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
-             #[allow(unreachable_code)] { Value::Null }}));
-if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
+            }));
+            match _try_result { Ok(__try_ret) => return __try_ret, Err(_try_err) => { let error: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
                 client.reject(error, None);
-                return Value::Bool(true);
-            }
+                return true;
+            } }
         }
-        return Value::Bool(false);
-
-    Value::Null
+        return false;
 }
 
     pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
@@ -2790,7 +2788,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         //         "msg": "INVALID_ARGUMENT: invalid symbol : ASDFS_SPBL"
         //     }
         //
-        if self.handle_error_message(&client.as_value(), &message).as_bool() == Some(true) {
+        if self.handle_error_message(&client.as_value(), &message) {
             return;
         }
         let id: Option<String> = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);

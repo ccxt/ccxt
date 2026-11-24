@@ -60,6 +60,7 @@ impl crate::exchange_generated::ExchangeBase for Bullish {
     {
         Box::pin(async move {
             match method {
+                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()))),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -1130,7 +1131,7 @@ impl Bullish {
         client.resolve(Value::from(&self.positions), "positions");
 }
 
-    pub fn handle_error_message(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) {
+    pub fn handle_error_message(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) -> bool {
         //
         //     {
         //         "data": {
@@ -1144,16 +1145,17 @@ impl Bullish {
         //
         let data: crate::value::Dict = message.key_dict("data");
         let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&data));
-        let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> bool {
             let errorCode: Option<String> = self.safe_string_k_opt(&data, "errorCode", &[]);
             let errorCodeName: Option<String> = self.safe_string_k_opt(&data, "errorCodeName", &[]);
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
             self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorCodeName, feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
-         #[allow(unreachable_code)] { Value::Null }}));
-if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
+        }));
+        match _try_result { Ok(__try_ret) => return __try_ret, Err(_try_err) => { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             client.reject(e, None);
-        }
+        } }
+        return false;
 }
 
     pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
@@ -1186,7 +1188,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 self.handle_balance(&client.as_value(), message.clone());
             }
             if (dataType.as_deref() == Some("V1TAErrorResponse")) {
-                self.handle_error_message(&client.as_value(), message.as_map().unwrap_or(&Default::default()));
+                Value::Bool(self.handle_error_message(&client.as_value(), message.as_map().unwrap_or(&Default::default())));
             }
         }
 }

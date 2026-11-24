@@ -1370,73 +1370,10 @@ impl crate::exchange::DerivedExchange for Xt {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        //
-        // spot: error
-        //
-        //     {
-        //         "rc": 1,
-        //         "mc": "AUTH_103",
-        //         "ma": [],
-        //         "result": null
-        //     }
-        //
-        // spot: success
-        //
-        //     {
-        //         "returnCode": 0,
-        //         "msgInfo": "success",
-        //         "error": null,
-        //         "result": []
-        //     }
-        //
-        // swap and future: error
-        //
-        //     {
-        //         "returnCode": 1,
-        //         "msgInfo": "failure",
-        //         "error": {
-        //             "code": "403",
-        //             "msg": "invalid signature"
-        //         },
-        //         "result": null
-        //     }
-        //
-        // swap and future: success
-        //
-        //     {
-        //         "returnCode": 0,
-        //         "msgInfo": "success",
-        //         "error": null,
-        //         "result": null
-        //     }
-        //
-        // other:
-        //
-        //     {
-        //         "rc": 0,
-        //         "mc": "SUCCESS",
-        //         "ma": [],
-        //         "result": {}
-        //     }
-        //
-        // {"returnCode":1,"msgInfo":"failure","error":{"code":"insufficient_balance","msg":"insufficient balance","args":[]},"result":null}
-        //
-        //
-        let status: Option<String> = self.safe_string_upper2_opt(&response, Value::Str("msgInfo".into()), Value::Str("mc".into()), &[]);
-        if (status.is_some()) && (status.as_deref() != Some("SUCCESS")) {
-            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-            let error: crate::value::Dict = self.safe_dict_k_t(&response, "error");
-            let spotErrorCode: Option<String> = self.safe_string_k_opt(&response, "mc", &[]);
-            let errorCode: Option<String> = self.safe_string_k_opt(&error, "code", &[&spotErrorCode]);
-            let spotMessage: Option<String> = self.safe_string_k_opt(response, "msgInfo", &[]);
-            let message: Option<String> = self.safe_string_k_opt(&error, "msg", &[&spotMessage]);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback));
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Xt.
+        Xt::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Xt {
@@ -1494,10 +1431,10 @@ impl crate::exchange_generated::ExchangeBase for Xt {
                 "fetch_trading_fees" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "index_position_break_list" => crate::Value::Dict(self.index_position_break_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "merge_position_break_info" => crate::Value::Dict(self.merge_position_break_info(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()))),
-                "modify_margin_helper" => self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await,
+                "modify_margin_helper" => crate::Value::Dict(self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_deposit_address" => Value::Dict(self.parse_deposit_address(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -4272,7 +4209,7 @@ impl Xt {
         //         ]
         //     }
         //
-        let tickers: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "result"));
+        let tickers: crate::value::List = self.safe_list_k_t(&response, "result");
         let mut result: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -4281,16 +4218,18 @@ impl Xt {
                         let mut i: i64 = 0;
             let mut __for_first_5: bool = true;
             while { if !__for_first_5 { i += 1; } __for_first_5 = false; i < (tickers.len() as i64) } {
-            let rawTicker: crate::value::Dict = tickers.get(i as usize).cloned().unwrap_or_default();
             // the spot and contract payloads share the same field names, so
             // the market type cannot be inferred from the entry itself
-            let marketId: Option<String> = self.safe_string_k_opt(&rawTicker, "s", &[]);
+            let marketId: Option<String> = self.safe_string_k_opt(tickers.get(i as usize).cloned().unwrap_or(Value::Null), "s", &[]);
             let mut marketType: String = "spot".to_string();
             if isContract {
                 marketType = "contract".to_string();
             }
             let marketInner: crate::types::Market = self.safe_market(marketId.as_deref(), market.as_ref(), &[Value::Str("_".into()), Value::from(marketType)]);
-            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &rawTicker, Some(&marketInner)).unwrap_or_default();
+            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_dict(&tickers, Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), Some(&marketInner)).unwrap_or_default();
             let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
             if (symbol.is_some()) {
                 result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
@@ -6697,7 +6636,7 @@ impl Xt {
     let m = indexmap::IndexMap::new();
     m
 }));
-        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), "ADD", &[&params]).await;
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), "ADD", &[&params]).await);
         Value::Null
         }).await?))
     }
@@ -6725,12 +6664,12 @@ impl Xt {
     let m = indexmap::IndexMap::new();
     m
 }));
-        return self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), "SUB", &[&params]).await;
+        return Value::Dict(self.modify_margin_helper(symbol.as_str().unwrap_or_default(), Value::from(amount), "SUB", &[&params]).await);
         Value::Null
         }).await?))
     }
 
-    pub async fn modify_margin_helper(&mut self, symbol: &str, mut amount: Value, addOrReduce: &str, optional_args: &[&Value]) -> Value {
+    pub async fn modify_margin_helper(&mut self, symbol: &str, mut amount: Value, addOrReduce: &str, optional_args: &[&Value]) -> crate::value::Dict {
         let params = get_arg(optional_args, 0, Value::Map({
     let m = indexmap::IndexMap::new();
     m
@@ -6764,9 +6703,7 @@ impl Xt {
             let __ws_arg_86 = self.extend(Value::Map(request), &[&paramsSubType]);
             response = self.private_linear_post_future_user_v1_position_margin(&[&__ws_arg_86]).await;
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).map_or(Value::Null, Value::Dict);
-
-    Value::Null
+        return <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &response, Some(&market)).unwrap_or_default();
 }
 
 
@@ -8031,5 +7968,72 @@ impl Xt {
         }).await?))
     }
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        //
+        // spot: error
+        //
+        //     {
+        //         "rc": 1,
+        //         "mc": "AUTH_103",
+        //         "ma": [],
+        //         "result": null
+        //     }
+        //
+        // spot: success
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": []
+        //     }
+        //
+        // swap and future: error
+        //
+        //     {
+        //         "returnCode": 1,
+        //         "msgInfo": "failure",
+        //         "error": {
+        //             "code": "403",
+        //             "msg": "invalid signature"
+        //         },
+        //         "result": null
+        //     }
+        //
+        // swap and future: success
+        //
+        //     {
+        //         "returnCode": 0,
+        //         "msgInfo": "success",
+        //         "error": null,
+        //         "result": null
+        //     }
+        //
+        // other:
+        //
+        //     {
+        //         "rc": 0,
+        //         "mc": "SUCCESS",
+        //         "ma": [],
+        //         "result": {}
+        //     }
+        //
+        // {"returnCode":1,"msgInfo":"failure","error":{"code":"insufficient_balance","msg":"insufficient balance","args":[]},"result":null}
+        //
+        //
+        let status: Option<String> = self.safe_string_upper2_opt(&response, Value::Str("msgInfo".into()), Value::Str("mc".into()), &[]);
+        if (status.is_some()) && (status.as_deref() != Some("SUCCESS")) {
+            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+            let error: crate::value::Dict = self.safe_dict_k_t(&response, "error");
+            let spotErrorCode: Option<String> = self.safe_string_k_opt(&response, "mc", &[]);
+            let errorCode: Option<String> = self.safe_string_k_opt(&error, "code", &[&spotErrorCode]);
+            let spotMessage: Option<String> = self.safe_string_k_opt(response, "msgInfo", &[]);
+            let message: Option<String> = self.safe_string_k_opt(&error, "msg", &[&spotMessage]);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
+        }
+        return None;
+}
 
 }

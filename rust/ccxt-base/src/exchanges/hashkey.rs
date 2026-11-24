@@ -848,7 +848,7 @@ impl crate::exchange::DerivedExchange for Hashkey {
 
     None
 }
-    fn parse_last_price(&self, entry: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+    fn parse_last_price(&self, entry: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let entry: Value = entry.into();
         let marketId: Option<String> = self.safe_string_k_opt(&entry, "s", &[]);
         let marketResolved: crate::types::Market = self.safe_market(marketId.as_deref(), market, &[]);
@@ -1386,36 +1386,10 @@ impl crate::exchange::DerivedExchange for Hashkey {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        if (response == Value::Null) {
-            return None;
-        }
-        let mut errorInArray: bool = false;
-        let mut responseCodeString: Option<String> = self.safe_string_k_opt(&response, "code", &[]);
-        let responseCodeInteger: Option<i64> = self.safe_integer_k(&response, "code", &[]).as_i64(); // some codes in response are returned as '0000' others as 0
-        if (responseCodeInteger == Some(0)) {
-            let result: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(response, "result")); // for batch methods
-            {
-                                let mut i: i64 = 0;
-                let mut __for_first_7: bool = true;
-                while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (result.len() as i64) } {
-                let entry: crate::value::Dict = result.get(i as usize).cloned().unwrap_or_default();
-                let entryCodeInteger: Option<i64> = self.safe_integer_k(&entry, "code", &[]).as_i64();
-                if (entryCodeInteger != Some(0)) {
-                    errorInArray = true;
-                    responseCodeString = self.safe_string_k_opt(&entry, "code", &[]);
-                }
-            }
-            }
-        }
-        if (code != 200) || errorInArray {
-            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(responseCodeString.as_deref()), feedback.as_str());
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &responseCodeString, feedback.as_str());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback));
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Hashkey.
+        Hashkey::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Hashkey {
@@ -1475,7 +1449,7 @@ impl crate::exchange_generated::ExchangeBase for Hashkey {
                 "fetch_trading_fees" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "handle_trigger_option_and_params" => { let __t = self.handle_trigger_option_and_params(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![__t.0.map_or(Value::Null, Value::Bool), Value::Dict(__t.1)]) },
                 "modify_margin_helper" => crate::Value::Dict(self.modify_margin_helper(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>()).await),
                 "parse_account" => Value::Dict(self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null))),
@@ -5307,8 +5281,8 @@ impl Hashkey {
                     m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
                 m
             }), &[params]);
-            response = self.private_get_api_v1_futures_commission_rate(&[&__ws_arg_42]).await;
-            return Value::Dict(self.parse_trading_fee(response, Some(&market)));
+            let swapResponse: crate::value::Dict = self.private_get_api_v1_futures_commission_rate(&[&__ws_arg_42]).await.unwrap_or_default();
+            return Value::Dict(self.parse_trading_fee(&swapResponse, Some(&market)));
         }  else {
             let marketTypeValue: String = self.safe_string_k(&market, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), methodName).into()), "() is not supported for ").into()), marketTypeValue).into()), " type of markets")));
@@ -5431,4 +5405,34 @@ impl Hashkey {
         return result.as_str().map(str::to_owned);
 }
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        if (response == Value::Null) {
+            return None;
+        }
+        let mut errorInArray: bool = false;
+        let mut responseCodeString: Option<String> = self.safe_string_k_opt(&response, "code", &[]);
+        let responseCodeInteger: Option<i64> = self.safe_integer_k(&response, "code", &[]).as_i64(); // some codes in response are returned as '0000' others as 0
+        if (responseCodeInteger == Some(0)) {
+            let result: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(response, "result")); // for batch methods
+            {
+                                let mut i: i64 = 0;
+                let mut __for_first_7: bool = true;
+                while { if !__for_first_7 { i += 1; } __for_first_7 = false; i < (result.len() as i64) } {
+                let entry: crate::value::Dict = result.get(i as usize).cloned().unwrap_or_default();
+                let entryCodeInteger: Option<i64> = self.safe_integer_k(&entry, "code", &[]).as_i64();
+                if (entryCodeInteger != Some(0)) {
+                    errorInArray = true;
+                    responseCodeString = self.safe_string_k_opt(&entry, "code", &[]);
+                }
+            }
+            }
+        }
+        if (code != 200) || errorInArray {
+            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(responseCodeString.as_deref()), feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &responseCodeString, feedback.as_str());
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
+        }
+        return None;
+}
 }

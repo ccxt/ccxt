@@ -567,26 +567,10 @@ impl crate::exchange::DerivedExchange for Zebpay {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        if (response == Value::Null) {
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(body), Value::from(body));
-            return None;
-        }
-        //
-        // bad
-        //     { "code": "400100", "msg": "validation.createOrder.clientOidIsRequired" }
-        // good
-        //     { code: "200000", data: { ... }}
-        // {"statusDescription":"Order quantity is out of range","data":{},"statusCode":400,"customMessage":["Order quantity is out of range"]}
-        //
-        let errorCode: Option<String> = self.safe_string2_opt(&response, Value::Str("code".into()), Value::Str("statusCode".into()), &[]);
-        let message: String = self.safe_string2(response, Value::Str("msg".into()), Value::Str("statusDescription".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message);
-        self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(message.as_str()), feedback.as_str());
-        self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message), feedback.as_str());
-        self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, Value::from(feedback));
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Zebpay.
+        Zebpay::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Zebpay {
@@ -623,7 +607,7 @@ impl crate::exchange_generated::ExchangeBase for Zebpay {
                 "fetch_trading_fee" => crate::types::IntoRaw::into_raw(self.fetch_trading_fee(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trading_fees" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees(args.get(0).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_leverage" => Value::Dict(self.parse_leverage(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1477,7 +1461,7 @@ impl Zebpay {
         //     "customMessage": ["OK"]
         // }
         //
-        let fees: crate::value::List = self.safe_list_k_t(&response, "data");
+        let fees: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "data"));
         let mut result: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -1486,7 +1470,8 @@ impl Zebpay {
                         let mut i: i64 = 0;
             let mut __for_first_2: bool = true;
             while { if !__for_first_2 { i += 1; } __for_first_2 = false; i < (fees.len() as i64) } {
-            let fee: crate::value::Dict = self.parse_trading_fee(fees.get(i as usize).cloned().unwrap_or(Value::Null), None);
+            let feeRow: crate::value::Dict = fees.get(i as usize).cloned().unwrap_or_default();
+            let fee: crate::value::Dict = self.parse_trading_fee(&feeRow, None);
             let symbol: Option<String> = self.safe_string_k_opt(&fee, "symbol", &[]);
             if (symbol.is_some()) {
                 result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(fee));
@@ -2865,4 +2850,24 @@ impl Zebpay {
 
 
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        if (response == Value::Null) {
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(body), Value::from(body));
+            return None;
+        }
+        //
+        // bad
+        //     { "code": "400100", "msg": "validation.createOrder.clientOidIsRequired" }
+        // good
+        //     { code: "200000", data: { ... }}
+        // {"statusDescription":"Order quantity is out of range","data":{},"statusCode":400,"customMessage":["Order quantity is out of range"]}
+        //
+        let errorCode: Option<String> = self.safe_string2_opt(&response, Value::Str("code".into()), Value::Str("statusCode".into()), &[]);
+        let message: String = self.safe_string2(response, Value::Str("msg".into()), Value::Str("statusDescription".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), message);
+        self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(message.as_str()), feedback.as_str());
+        self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message), feedback.as_str());
+        self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, Value::from(feedback));
+        return None;
+}
 }

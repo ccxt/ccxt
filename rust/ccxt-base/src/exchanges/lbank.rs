@@ -931,124 +931,10 @@ impl crate::exchange::DerivedExchange for Lbank {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        if (response == Value::Null) {
-            panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id, " parseBalance() returned empty response")));
-        }
-        let success: Option<String> = self.safe_string_k_opt(&response, "result", &[]);
-        if (success.as_deref() == Some("false")) || (success.is_none()) {
-            let errorCode: Option<String> = self.safe_string_k_opt(&response, "error_code", &[]);
-            let message: Value = self.safe_string(Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("10000".to_string(), Value::Str("Internal error".into()));
-                    m.insert("10001".to_string(), Value::Str("The required parameters can not be empty".into()));
-                    m.insert("10002".to_string(), Value::Str("Validation failed".into()));
-                    m.insert("10003".to_string(), Value::Str("Invalid parameter".into()));
-                    m.insert("10004".to_string(), Value::Str("Request too frequent".into()));
-                    m.insert("10005".to_string(), Value::Str("Secret key does not exist".into()));
-                    m.insert("10006".to_string(), Value::Str("User does not exist".into()));
-                    m.insert("10007".to_string(), Value::Str("Invalid signature".into()));
-                    m.insert("10008".to_string(), Value::Str("Invalid Trading Pair".into()));
-                    m.insert("10009".to_string(), Value::Str("Price and/or Amount are required for limit order".into()));
-                    m.insert("10010".to_string(), Value::Str("Price and/or Amount must be less than minimum requirement".into()));
-                    m.insert("10013".to_string(), Value::Str("The amount is too small".into()));
-                    m.insert("10014".to_string(), Value::Str("Insufficient amount of money in the account".into()));
-                    m.insert("10015".to_string(), Value::Str("Invalid order type".into()));
-                    m.insert("10016".to_string(), Value::Str("Insufficient account balance".into()));
-                    m.insert("10017".to_string(), Value::Str("Server Error".into()));
-                    m.insert("10018".to_string(), Value::Str("Page size should be between 1 and 50".into()));
-                    m.insert("10019".to_string(), Value::Str("Cancel NO more than 3 orders in one request".into()));
-                    m.insert("10020".to_string(), Value::Str("Volume < 0.001".into()));
-                    m.insert("10021".to_string(), Value::Str("Price < 0.01".into()));
-                    m.insert("10022".to_string(), Value::Str("Invalid authorization".into()));
-                    m.insert("10023".to_string(), Value::Str("Market Order is not supported yet".into()));
-                    m.insert("10024".to_string(), Value::Str("User cannot trade on this pair".into()));
-                    m.insert("10025".to_string(), Value::Str("Order has been filled".into()));
-                    m.insert("10026".to_string(), Value::Str("Order has been cancelld".into()));
-                    m.insert("10027".to_string(), Value::Str("Order is cancelling".into()));
-                    m.insert("10028".to_string(), Value::Str("Wrong query time".into()));
-                    m.insert("10029".to_string(), Value::Str("from is not in the query time".into()));
-                    m.insert("10030".to_string(), Value::Str("from do not match the transaction type of inqury".into()));
-                    m.insert("10031".to_string(), Value::Str("echostr length must be valid and length must be from 30 to 40".into()));
-                    m.insert("10033".to_string(), Value::Str("Failed to create order".into()));
-                    m.insert("10036".to_string(), Value::Str("customID duplicated".into()));
-                    m.insert("10100".to_string(), Value::Str("Has no privilege to withdraw".into()));
-                    m.insert("10101".to_string(), Value::Str("Invalid fee rate to withdraw".into()));
-                    m.insert("10102".to_string(), Value::Str("Too little to withdraw".into()));
-                    m.insert("10103".to_string(), Value::Str("Exceed daily limitation of withdraw".into()));
-                    m.insert("10104".to_string(), Value::Str("Cancel was rejected".into()));
-                    m.insert("10105".to_string(), Value::Str("Request has been cancelled".into()));
-                    m.insert("10106".to_string(), Value::Str("None trade time".into()));
-                    m.insert("10107".to_string(), Value::Str("Start price exception".into()));
-                    m.insert("10108".to_string(), Value::Str("can not create order".into()));
-                    m.insert("10109".to_string(), Value::Str("wallet address is not mapping".into()));
-                    m.insert("10110".to_string(), Value::Str("transfer fee is not mapping".into()));
-                    m.insert("10111".to_string(), Value::Str("mount > 0".into()));
-                    m.insert("10112".to_string(), Value::Str("fee is too lower".into()));
-                    m.insert("10113".to_string(), Value::Str("transfer fee is 0".into()));
-                    m.insert("10600".to_string(), Value::Str("intercepted by replay attacks filter, check timestamp".into()));
-                    m.insert("10601".to_string(), Value::Str("Interface closed unavailable".into()));
-                    m.insert("10701".to_string(), Value::Str("invalid asset code".into()));
-                    m.insert("10702".to_string(), Value::Str("not allowed deposit".into()));
-                m
-            }), Value::from(errorCode.as_deref()), &[json_stringify(&response)]);
-            let ErrorClass: Value = self.safe_value(Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("10001".to_string(), Value::Str("BadRequest".into()));
-                    m.insert("10002".to_string(), Value::Str("AuthenticationError".into()));
-                    m.insert("10003".to_string(), Value::Str("BadRequest".into()));
-                    m.insert("10004".to_string(), Value::Str("RateLimitExceeded".into()));
-                    m.insert("10005".to_string(), Value::Str("AuthenticationError".into()));
-                    m.insert("10006".to_string(), Value::Str("AuthenticationError".into()));
-                    m.insert("10007".to_string(), Value::Str("AuthenticationError".into()));
-                    m.insert("10008".to_string(), Value::Str("BadSymbol".into()));
-                    m.insert("10009".to_string(), Value::Str("InvalidOrder".into()));
-                    m.insert("10010".to_string(), Value::Str("InvalidOrder".into()));
-                    m.insert("10013".to_string(), Value::Str("InvalidOrder".into()));
-                    m.insert("10014".to_string(), Value::Str("InsufficientFunds".into()));
-                    m.insert("10015".to_string(), Value::Str("InvalidOrder".into()));
-                    m.insert("10016".to_string(), Value::Str("InsufficientFunds".into()));
-                    m.insert("10017".to_string(), Value::Str("ExchangeError".into()));
-                    m.insert("10018".to_string(), Value::Str("BadRequest".into()));
-                    m.insert("10019".to_string(), Value::Str("BadRequest".into()));
-                    m.insert("10020".to_string(), Value::Str("BadRequest".into()));
-                    m.insert("10021".to_string(), Value::Str("InvalidOrder".into()));
-                    m.insert("10022".to_string(), Value::Str("PermissionDenied".into()));
-                    m.insert("10023".to_string(), Value::Str("InvalidOrder".into()));
-                    m.insert("10024".to_string(), Value::Str("PermissionDenied".into()));
-                    m.insert("10025".to_string(), Value::Str("InvalidOrder".into()));
-                    m.insert("10026".to_string(), Value::Str("InvalidOrder".into()));
-                    m.insert("10027".to_string(), Value::Str("InvalidOrder".into()));
-                    m.insert("10028".to_string(), Value::Str("BadRequest".into()));
-                    m.insert("10029".to_string(), Value::Str("BadRequest".into()));
-                    m.insert("10030".to_string(), Value::Str("BadRequest".into()));
-                    m.insert("10031".to_string(), Value::Str("InvalidNonce".into()));
-                    m.insert("10033".to_string(), Value::Str("ExchangeError".into()));
-                    m.insert("10036".to_string(), Value::Str("DuplicateOrderId".into()));
-                    m.insert("10100".to_string(), Value::Str("PermissionDenied".into()));
-                    m.insert("10101".to_string(), Value::Str("BadRequest".into()));
-                    m.insert("10102".to_string(), Value::Str("InsufficientFunds".into()));
-                    m.insert("10103".to_string(), Value::Str("ExchangeError".into()));
-                    m.insert("10104".to_string(), Value::Str("ExchangeError".into()));
-                    m.insert("10105".to_string(), Value::Str("ExchangeError".into()));
-                    m.insert("10106".to_string(), Value::Str("BadRequest".into()));
-                    m.insert("10107".to_string(), Value::Str("BadRequest".into()));
-                    m.insert("10108".to_string(), Value::Str("ExchangeError".into()));
-                    m.insert("10109".to_string(), Value::Str("InvalidAddress".into()));
-                    m.insert("10110".to_string(), Value::Str("ExchangeError".into()));
-                    m.insert("10111".to_string(), Value::Str("BadRequest".into()));
-                    m.insert("10112".to_string(), Value::Str("BadRequest".into()));
-                    m.insert("10113".to_string(), Value::Str("BadRequest".into()));
-                    m.insert("10600".to_string(), Value::Str("BadRequest".into()));
-                    m.insert("10601".to_string(), Value::Str("ExchangeError".into()));
-                    m.insert("10701".to_string(), Value::Str("BadSymbol".into()));
-                    m.insert("10702".to_string(), Value::Str("PermissionDenied".into()));
-                m
-            }), errorCode.map(Value::from).unwrap_or(Value::Null), &[Value::Str("ExchangeError".into())]);
-            panic!("{}", crate::exchange_errors::create_error(&crate::runtime::stringify_param(&(ErrorClass)), &crate::runtime::stringify_param(&(message))));
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Lbank.
+        Lbank::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Lbank {
@@ -1095,7 +981,7 @@ impl crate::exchange_generated::ExchangeBase for Lbank {
                 "fetch_transaction_fees" => self.fetch_transaction_fees(&args[..]).await,
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_deposit_withdraw_fee" => Value::Dict(self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -4346,4 +4232,122 @@ impl Lbank {
         return Some(format!("{}{}", pem, "-----END PRIVATE KEY-----"));
 }
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        if (response == Value::Null) {
+            panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id, " parseBalance() returned empty response")));
+        }
+        let success: Option<String> = self.safe_string_k_opt(&response, "result", &[]);
+        if (success.as_deref() == Some("false")) || (success.is_none()) {
+            let errorCode: Option<String> = self.safe_string_k_opt(&response, "error_code", &[]);
+            let message: Value = self.safe_string(Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("10000".to_string(), Value::Str("Internal error".into()));
+                    m.insert("10001".to_string(), Value::Str("The required parameters can not be empty".into()));
+                    m.insert("10002".to_string(), Value::Str("Validation failed".into()));
+                    m.insert("10003".to_string(), Value::Str("Invalid parameter".into()));
+                    m.insert("10004".to_string(), Value::Str("Request too frequent".into()));
+                    m.insert("10005".to_string(), Value::Str("Secret key does not exist".into()));
+                    m.insert("10006".to_string(), Value::Str("User does not exist".into()));
+                    m.insert("10007".to_string(), Value::Str("Invalid signature".into()));
+                    m.insert("10008".to_string(), Value::Str("Invalid Trading Pair".into()));
+                    m.insert("10009".to_string(), Value::Str("Price and/or Amount are required for limit order".into()));
+                    m.insert("10010".to_string(), Value::Str("Price and/or Amount must be less than minimum requirement".into()));
+                    m.insert("10013".to_string(), Value::Str("The amount is too small".into()));
+                    m.insert("10014".to_string(), Value::Str("Insufficient amount of money in the account".into()));
+                    m.insert("10015".to_string(), Value::Str("Invalid order type".into()));
+                    m.insert("10016".to_string(), Value::Str("Insufficient account balance".into()));
+                    m.insert("10017".to_string(), Value::Str("Server Error".into()));
+                    m.insert("10018".to_string(), Value::Str("Page size should be between 1 and 50".into()));
+                    m.insert("10019".to_string(), Value::Str("Cancel NO more than 3 orders in one request".into()));
+                    m.insert("10020".to_string(), Value::Str("Volume < 0.001".into()));
+                    m.insert("10021".to_string(), Value::Str("Price < 0.01".into()));
+                    m.insert("10022".to_string(), Value::Str("Invalid authorization".into()));
+                    m.insert("10023".to_string(), Value::Str("Market Order is not supported yet".into()));
+                    m.insert("10024".to_string(), Value::Str("User cannot trade on this pair".into()));
+                    m.insert("10025".to_string(), Value::Str("Order has been filled".into()));
+                    m.insert("10026".to_string(), Value::Str("Order has been cancelld".into()));
+                    m.insert("10027".to_string(), Value::Str("Order is cancelling".into()));
+                    m.insert("10028".to_string(), Value::Str("Wrong query time".into()));
+                    m.insert("10029".to_string(), Value::Str("from is not in the query time".into()));
+                    m.insert("10030".to_string(), Value::Str("from do not match the transaction type of inqury".into()));
+                    m.insert("10031".to_string(), Value::Str("echostr length must be valid and length must be from 30 to 40".into()));
+                    m.insert("10033".to_string(), Value::Str("Failed to create order".into()));
+                    m.insert("10036".to_string(), Value::Str("customID duplicated".into()));
+                    m.insert("10100".to_string(), Value::Str("Has no privilege to withdraw".into()));
+                    m.insert("10101".to_string(), Value::Str("Invalid fee rate to withdraw".into()));
+                    m.insert("10102".to_string(), Value::Str("Too little to withdraw".into()));
+                    m.insert("10103".to_string(), Value::Str("Exceed daily limitation of withdraw".into()));
+                    m.insert("10104".to_string(), Value::Str("Cancel was rejected".into()));
+                    m.insert("10105".to_string(), Value::Str("Request has been cancelled".into()));
+                    m.insert("10106".to_string(), Value::Str("None trade time".into()));
+                    m.insert("10107".to_string(), Value::Str("Start price exception".into()));
+                    m.insert("10108".to_string(), Value::Str("can not create order".into()));
+                    m.insert("10109".to_string(), Value::Str("wallet address is not mapping".into()));
+                    m.insert("10110".to_string(), Value::Str("transfer fee is not mapping".into()));
+                    m.insert("10111".to_string(), Value::Str("mount > 0".into()));
+                    m.insert("10112".to_string(), Value::Str("fee is too lower".into()));
+                    m.insert("10113".to_string(), Value::Str("transfer fee is 0".into()));
+                    m.insert("10600".to_string(), Value::Str("intercepted by replay attacks filter, check timestamp".into()));
+                    m.insert("10601".to_string(), Value::Str("Interface closed unavailable".into()));
+                    m.insert("10701".to_string(), Value::Str("invalid asset code".into()));
+                    m.insert("10702".to_string(), Value::Str("not allowed deposit".into()));
+                m
+            }), Value::from(errorCode.as_deref()), &[json_stringify(&response)]);
+            let ErrorClass: Value = self.safe_value(Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("10001".to_string(), Value::Str("BadRequest".into()));
+                    m.insert("10002".to_string(), Value::Str("AuthenticationError".into()));
+                    m.insert("10003".to_string(), Value::Str("BadRequest".into()));
+                    m.insert("10004".to_string(), Value::Str("RateLimitExceeded".into()));
+                    m.insert("10005".to_string(), Value::Str("AuthenticationError".into()));
+                    m.insert("10006".to_string(), Value::Str("AuthenticationError".into()));
+                    m.insert("10007".to_string(), Value::Str("AuthenticationError".into()));
+                    m.insert("10008".to_string(), Value::Str("BadSymbol".into()));
+                    m.insert("10009".to_string(), Value::Str("InvalidOrder".into()));
+                    m.insert("10010".to_string(), Value::Str("InvalidOrder".into()));
+                    m.insert("10013".to_string(), Value::Str("InvalidOrder".into()));
+                    m.insert("10014".to_string(), Value::Str("InsufficientFunds".into()));
+                    m.insert("10015".to_string(), Value::Str("InvalidOrder".into()));
+                    m.insert("10016".to_string(), Value::Str("InsufficientFunds".into()));
+                    m.insert("10017".to_string(), Value::Str("ExchangeError".into()));
+                    m.insert("10018".to_string(), Value::Str("BadRequest".into()));
+                    m.insert("10019".to_string(), Value::Str("BadRequest".into()));
+                    m.insert("10020".to_string(), Value::Str("BadRequest".into()));
+                    m.insert("10021".to_string(), Value::Str("InvalidOrder".into()));
+                    m.insert("10022".to_string(), Value::Str("PermissionDenied".into()));
+                    m.insert("10023".to_string(), Value::Str("InvalidOrder".into()));
+                    m.insert("10024".to_string(), Value::Str("PermissionDenied".into()));
+                    m.insert("10025".to_string(), Value::Str("InvalidOrder".into()));
+                    m.insert("10026".to_string(), Value::Str("InvalidOrder".into()));
+                    m.insert("10027".to_string(), Value::Str("InvalidOrder".into()));
+                    m.insert("10028".to_string(), Value::Str("BadRequest".into()));
+                    m.insert("10029".to_string(), Value::Str("BadRequest".into()));
+                    m.insert("10030".to_string(), Value::Str("BadRequest".into()));
+                    m.insert("10031".to_string(), Value::Str("InvalidNonce".into()));
+                    m.insert("10033".to_string(), Value::Str("ExchangeError".into()));
+                    m.insert("10036".to_string(), Value::Str("DuplicateOrderId".into()));
+                    m.insert("10100".to_string(), Value::Str("PermissionDenied".into()));
+                    m.insert("10101".to_string(), Value::Str("BadRequest".into()));
+                    m.insert("10102".to_string(), Value::Str("InsufficientFunds".into()));
+                    m.insert("10103".to_string(), Value::Str("ExchangeError".into()));
+                    m.insert("10104".to_string(), Value::Str("ExchangeError".into()));
+                    m.insert("10105".to_string(), Value::Str("ExchangeError".into()));
+                    m.insert("10106".to_string(), Value::Str("BadRequest".into()));
+                    m.insert("10107".to_string(), Value::Str("BadRequest".into()));
+                    m.insert("10108".to_string(), Value::Str("ExchangeError".into()));
+                    m.insert("10109".to_string(), Value::Str("InvalidAddress".into()));
+                    m.insert("10110".to_string(), Value::Str("ExchangeError".into()));
+                    m.insert("10111".to_string(), Value::Str("BadRequest".into()));
+                    m.insert("10112".to_string(), Value::Str("BadRequest".into()));
+                    m.insert("10113".to_string(), Value::Str("BadRequest".into()));
+                    m.insert("10600".to_string(), Value::Str("BadRequest".into()));
+                    m.insert("10601".to_string(), Value::Str("ExchangeError".into()));
+                    m.insert("10701".to_string(), Value::Str("BadSymbol".into()));
+                    m.insert("10702".to_string(), Value::Str("PermissionDenied".into()));
+                m
+            }), errorCode.map(Value::from).unwrap_or(Value::Null), &[Value::Str("ExchangeError".into())]);
+            panic!("{}", crate::exchange_errors::create_error(&crate::runtime::stringify_param(&(ErrorClass)), &crate::runtime::stringify_param(&(message))));
+        }
+        return None;
+}
 }

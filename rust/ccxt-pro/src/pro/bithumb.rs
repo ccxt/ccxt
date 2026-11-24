@@ -62,7 +62,7 @@ impl crate::exchange_generated::ExchangeBase for Bithumb {
             match method {
                 "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
                 "build_gen2_subscription_request" => self.build_gen2_subscription_request(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
+                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()))),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
                 "parse_ws_order" => Value::Dict(self.parse_ws_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -1002,7 +1002,7 @@ impl Bithumb {
     Default::default()
 }
 
-    pub fn handle_error_message(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) -> Value {
+    pub fn handle_error_message(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) -> bool {
         //
         //    {
         //        "status" : "5100",
@@ -1020,28 +1020,26 @@ impl Bithumb {
                 addedMessage = Some("".to_string());
             }
             client.reject(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " websocket error ").into()), errorName).into()), addedMessage.as_deref().unwrap_or("null"))), None);
-            return Value::Bool(false);
+            return false;
         }
         if !(message.contains_key("status")) {
-            return Value::Bool(true);
+            return true;
         }
         let errorCode: Option<String> = (match message.get("status") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        let _try_result: Result<Value, String> = '__try: {
+        let _try_result: Result<bool, String> = ('__try: {
             if (errorCode.as_deref() == Some("UP")) || (errorCode.as_deref() == Some("0000")) {
-                break '__try Ok(Value::Bool(true));
+                break '__try Ok(true);
             }
             if (errorCode.as_deref() != Some("0000")) {
                 let msg: Option<String> = (match message.get("resmsg") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
                 break '__try Err(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), msg.as_deref().unwrap_or("null"))).to_string());
             }
-            break '__try Ok(Value::Bool(true));
-         #[allow(unreachable_code)] { Ok(Value::Null) }};
-match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(Box::new(_try_err)); 
+            break '__try Ok(true);
+        });
+        match _try_result { Ok(__try_ret) => return __try_ret, Err(_try_err) => { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(Box::new(_try_err));
             client.reject(e, None);
-            return Value::Bool(false);
-         } }
-
-    Value::Null
+            return false;
+        } }
 }
 
 /*
@@ -1450,7 +1448,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             self.handle_ping(client.as_value(), message.clone());
             return;
         }
-        if (self.handle_error_message(&client.as_value(), message.as_map().unwrap_or(&Default::default())).as_bool() != Some(true)) {
+        if (Value::Bool(self.handle_error_message(&client.as_value(), message.as_map().unwrap_or(&Default::default()))).as_bool() != Some(true)) {
             return;
         }
         let topic: Option<String> = (match __pro_message.get("type") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });

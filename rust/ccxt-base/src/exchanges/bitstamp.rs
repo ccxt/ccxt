@@ -560,7 +560,7 @@ impl crate::exchange::DerivedExchange for Bitstamp {
 
     None
 }
-    fn parse_funding_rate_history(&self, mut contract: Value, market: Option<&crate::types::Market>) -> Value {
+    fn parse_funding_rate_history(&self, mut contract: Value, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         //     {
         //         "funding_rate": "0.0024",
@@ -568,7 +568,7 @@ impl crate::exchange::DerivedExchange for Bitstamp {
         //     }
         //
         let timestamp: Option<i64> = self.safe_integer_product_k(&contract, "timestamp", Value::Int(1000), &[]).as_i64();
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), self.safe_symbol(None, market, &[]));
@@ -576,9 +576,9 @@ impl crate::exchange::DerivedExchange for Bitstamp {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
@@ -842,75 +842,10 @@ impl crate::exchange::DerivedExchange for Bitstamp {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        if (response == Value::Null) {
-            return None;
-        }
-        //
-        //     {"error": "No permission found"} // fetchDepositAddress returns this on apiKeys that don't have the permission required
-        //     {"status": "error", "reason": {"__all__": ["Minimum order size is 5.0 EUR."]}}
-        //     reuse of a nonce gives: { status: 'error', reason: 'Invalid nonce', code: 'API0004' }
-        //
-        let status: Option<String> = self.safe_string_k_opt(&response, "status", &[]);
-        let error: Value = self.safe_value_k(&response, "error", &[]);
-        if (status.as_deref() == Some("error")) || (error != Value::Null) {
-            let mut errors: crate::value::List = std::sync::Arc::new(Vec::new());
-            if matches!(&error, Value::Str(_)) {
-                std::sync::Arc::make_mut(&mut errors).push(error.clone());
-            }  else if (error != Value::Null) {
-                let errorDict: crate::value::Dict = self.extend_t(Value::Map({
-                    let m = indexmap::IndexMap::new();
-                    m
-                }), &[&error]);
-                let mut keys: Vec<Value> = Value::Array(errorDict.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
-                {
-                                        let mut i: i64 = 0;
-                    let mut __for_first_9: bool = true;
-                    while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (keys.len() as i64) } {
-                    let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
-                    let value: Value = self.safe_value(&error, Value::from(key.as_deref()), &[]);
-                    if (matches!(&value, Value::Arr(_))) {
-                        errors = self.array_concat_t(Value::Arr(errors), value.clone());
-                    }  else {
-                        std::sync::Arc::make_mut(&mut errors).push(value);
-                    }
-                }
-                }
-            }
-            let reasonInner: Value = self.safe_value_k(&response, "reason", &[Value::Map({
-                let m = indexmap::IndexMap::new();
-                m
-            })]);
-            if matches!(&reasonInner, Value::Str(_)) {
-                std::sync::Arc::make_mut(&mut errors).push(reasonInner);
-            }  else {
-                let all: crate::value::List = self.safe_list_k_t(&reasonInner, "__all__");
-                {
-                                        let mut i: i64 = 0;
-                    let mut __for_first_10: bool = true;
-                    while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (all.len() as i64) } {
-                    std::sync::Arc::make_mut(&mut errors).push(all.get(i as usize).cloned().unwrap_or(Value::Null));
-                }
-                }
-            }
-            let codeError: Option<String> = self.safe_string_k_opt(response, "code", &[]);
-            if (codeError.as_deref() == Some("API0005")) {
-                panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id, " invalid signature, use the uid for the main account if you have subaccounts")));
-            }
-            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-            {
-                                let mut i: i64 = 0;
-                let mut __for_first_11: bool = true;
-                while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (errors.len() as i64) } {
-                let value: Option<String> = self.safe_string_opt(&errors, Value::Int(i), &[]);
-                self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(value.as_deref()), feedback.as_str());
-                self.throw_broadly_matched_exception(self.exceptions.at("broad"), &value, feedback.as_str());
-            }
-            }
-            panic!("{}", crate::exchange_errors::exchange_error(feedback));
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Bitstamp.
+        Bitstamp::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Bitstamp {
@@ -953,14 +888,14 @@ impl crate::exchange_generated::ExchangeBase for Bitstamp {
                 "get_currency_id_from_transaction" => crate::Value::from(self.get_currency_id_from_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "get_market_from_trade" => crate::types::IntoRaw::into_raw(self.get_market_from_trade(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "is_fiat" => self.is_fiat(args.get(0).and_then(crate::Value::as_text).as_deref()),
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currencies" => self.parse_currencies(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_deposit_withdraw_fee" => Value::Dict(self.parse_deposit_withdraw_fee(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_funding_rate_history" => self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_funding_rate_history" => Value::Dict(self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ledger_entry" => Value::Dict(self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_order" => Value::Dict(self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -4576,4 +4511,73 @@ impl Bitstamp {
 }
 
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        if (response == Value::Null) {
+            return None;
+        }
+        //
+        //     {"error": "No permission found"} // fetchDepositAddress returns this on apiKeys that don't have the permission required
+        //     {"status": "error", "reason": {"__all__": ["Minimum order size is 5.0 EUR."]}}
+        //     reuse of a nonce gives: { status: 'error', reason: 'Invalid nonce', code: 'API0004' }
+        //
+        let status: Option<String> = self.safe_string_k_opt(&response, "status", &[]);
+        let error: Value = self.safe_value_k(&response, "error", &[]);
+        if (status.as_deref() == Some("error")) || (error != Value::Null) {
+            let mut errors: crate::value::List = std::sync::Arc::new(Vec::new());
+            if matches!(&error, Value::Str(_)) {
+                std::sync::Arc::make_mut(&mut errors).push(error.clone());
+            }  else if (error != Value::Null) {
+                let errorDict: crate::value::Dict = self.extend_t(Value::Map({
+                    let m = indexmap::IndexMap::new();
+                    m
+                }), &[&error]);
+                let mut keys: Vec<Value> = Value::Array(errorDict.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
+                {
+                                        let mut i: i64 = 0;
+                    let mut __for_first_9: bool = true;
+                    while { if !__for_first_9 { i += 1; } __for_first_9 = false; i < (keys.len() as i64) } {
+                    let key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
+                    let value: Value = self.safe_value(&error, Value::from(key.as_deref()), &[]);
+                    if (matches!(&value, Value::Arr(_))) {
+                        errors = self.array_concat_t(Value::Arr(errors), value.clone());
+                    }  else {
+                        std::sync::Arc::make_mut(&mut errors).push(value);
+                    }
+                }
+                }
+            }
+            let reasonInner: Value = self.safe_value_k(&response, "reason", &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })]);
+            if matches!(&reasonInner, Value::Str(_)) {
+                std::sync::Arc::make_mut(&mut errors).push(reasonInner);
+            }  else {
+                let all: crate::value::List = self.safe_list_k_t(&reasonInner, "__all__");
+                {
+                                        let mut i: i64 = 0;
+                    let mut __for_first_10: bool = true;
+                    while { if !__for_first_10 { i += 1; } __for_first_10 = false; i < (all.len() as i64) } {
+                    std::sync::Arc::make_mut(&mut errors).push(all.get(i as usize).cloned().unwrap_or(Value::Null));
+                }
+                }
+            }
+            let codeError: Option<String> = self.safe_string_k_opt(response, "code", &[]);
+            if (codeError.as_deref() == Some("API0005")) {
+                panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id, " invalid signature, use the uid for the main account if you have subaccounts")));
+            }
+            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+            {
+                                let mut i: i64 = 0;
+                let mut __for_first_11: bool = true;
+                while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (errors.len() as i64) } {
+                let value: Option<String> = self.safe_string_opt(&errors, Value::Int(i), &[]);
+                self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(value.as_deref()), feedback.as_str());
+                self.throw_broadly_matched_exception(self.exceptions.at("broad"), &value, feedback.as_str());
+            }
+            }
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
+        }
+        return None;
+}
 }

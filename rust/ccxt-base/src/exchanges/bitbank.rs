@@ -430,84 +430,10 @@ impl crate::exchange::DerivedExchange for Bitbank {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        if (response == Value::Null) {
-            return None;
-        }
-        let success: Option<i64> = self.safe_integer_k(&response, "success", &[]).as_i64();
-        let data: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "data");
-        if ((success.is_none()) || (success == Some(0))) || (data.is_none()) {
-            let errorMessages: indexmap::IndexMap<String, Value> = ({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("10000".to_string(), Value::Str("URL does not exist".into()));
-                    m.insert("10001".to_string(), Value::Str("A system error occurred. Please contact support".into()));
-                    m.insert("10002".to_string(), Value::Str("Invalid JSON format. Please check the contents of transmission".into()));
-                    m.insert("10003".to_string(), Value::Str("A system error occurred. Please contact support".into()));
-                    m.insert("10005".to_string(), Value::Str("A timeout error occurred. Please wait for a while and try again".into()));
-                    m.insert("20001".to_string(), Value::Str("API authentication failed".into()));
-                    m.insert("20002".to_string(), Value::Str("Illegal API key".into()));
-                    m.insert("20003".to_string(), Value::Str("API key does not exist".into()));
-                    m.insert("20004".to_string(), Value::Str("API Nonce does not exist".into()));
-                    m.insert("20005".to_string(), Value::Str("API signature does not exist".into()));
-                    m.insert("20011".to_string(), Value::Str("Two-step verification failed".into()));
-                    m.insert("20014".to_string(), Value::Str("SMS authentication failed".into()));
-                    m.insert("30001".to_string(), Value::Str("Please specify the order quantity".into()));
-                    m.insert("30006".to_string(), Value::Str("Please specify the order ID".into()));
-                    m.insert("30007".to_string(), Value::Str("Please specify the order ID array".into()));
-                    m.insert("30009".to_string(), Value::Str("Please specify the stock".into()));
-                    m.insert("30012".to_string(), Value::Str("Please specify the order price".into()));
-                    m.insert("30013".to_string(), Value::Str("Trade Please specify either".into()));
-                    m.insert("30015".to_string(), Value::Str("Please specify the order type".into()));
-                    m.insert("30016".to_string(), Value::Str("Please specify asset name".into()));
-                    m.insert("30019".to_string(), Value::Str("Please specify uuid".into()));
-                    m.insert("30039".to_string(), Value::Str("Please specify the amount to be withdrawn".into()));
-                    m.insert("40001".to_string(), Value::Str("The order quantity is invalid".into()));
-                    m.insert("40006".to_string(), Value::Str("Count value is invalid".into()));
-                    m.insert("40007".to_string(), Value::Str("End time is invalid".into()));
-                    m.insert("40008".to_string(), Value::Str("end_id Value is invalid".into()));
-                    m.insert("40009".to_string(), Value::Str("The from_id value is invalid".into()));
-                    m.insert("40013".to_string(), Value::Str("The order ID is invalid".into()));
-                    m.insert("40014".to_string(), Value::Str("The order ID array is invalid".into()));
-                    m.insert("40015".to_string(), Value::Str("Too many specified orders".into()));
-                    m.insert("40017".to_string(), Value::Str("Incorrect issue name".into()));
-                    m.insert("40020".to_string(), Value::Str("The order price is invalid".into()));
-                    m.insert("40021".to_string(), Value::Str("The trading classification is invalid".into()));
-                    m.insert("40022".to_string(), Value::Str("Start date is invalid".into()));
-                    m.insert("40024".to_string(), Value::Str("The order type is invalid".into()));
-                    m.insert("40025".to_string(), Value::Str("Incorrect asset name".into()));
-                    m.insert("40028".to_string(), Value::Str("uuid is invalid".into()));
-                    m.insert("40048".to_string(), Value::Str("The amount of withdrawal is illegal".into()));
-                    m.insert("50003".to_string(), Value::Str("Currently, this account is in a state where you can not perform the operation you specified. Please contact support".into()));
-                    m.insert("50004".to_string(), Value::Str("Currently, this account is temporarily registered. Please try again after registering your account".into()));
-                    m.insert("50005".to_string(), Value::Str("Currently, this account is locked. Please contact support".into()));
-                    m.insert("50006".to_string(), Value::Str("Currently, this account is locked. Please contact support".into()));
-                    m.insert("50008".to_string(), Value::Str("User identification has not been completed".into()));
-                    m.insert("50009".to_string(), Value::Str("Your order does not exist".into()));
-                    m.insert("50010".to_string(), Value::Str("Can not cancel specified order".into()));
-                    m.insert("50011".to_string(), Value::Str("API not found".into()));
-                    m.insert("60001".to_string(), Value::Str("The number of possessions is insufficient".into()));
-                    m.insert("60002".to_string(), Value::Str("It exceeds the quantity upper limit of the tender buying order".into()));
-                    m.insert("60003".to_string(), Value::Str("The specified quantity exceeds the limit".into()));
-                    m.insert("60004".to_string(), Value::Str("The specified quantity is below the threshold".into()));
-                    m.insert("60005".to_string(), Value::Str("The specified price is above the limit".into()));
-                    m.insert("60006".to_string(), Value::Str("The specified price is below the lower limit".into()));
-                    m.insert("70001".to_string(), Value::Str("A system error occurred. Please contact support".into()));
-                    m.insert("70002".to_string(), Value::Str("A system error occurred. Please contact support".into()));
-                    m.insert("70003".to_string(), Value::Str("A system error occurred. Please contact support".into()));
-                    m.insert("70004".to_string(), Value::Str("We are unable to accept orders as the transaction is currently suspended".into()));
-                    m.insert("70005".to_string(), Value::Str("Order can not be accepted because purchase order is currently suspended".into()));
-                    m.insert("70006".to_string(), Value::Str("We can not accept orders because we are currently unsubscribed ".into()));
-                    m.insert("70009".to_string(), Value::Str("We are currently temporarily restricting orders to be carried out. Please use the limit order.".into()));
-                    m.insert("70010".to_string(), Value::Str("We are temporarily raising the minimum order quantity as the system load is now rising.".into()));
-                m
-            });
-            let codeError: Option<String> = self.safe_string_k_opt(&data, "code", &[]);
-            let message: String = self.safe_string(&errorMessages, Value::from(codeError.as_deref()), &[Value::Str("Error".into())]).as_str().unwrap_or("Error").to_string();
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, Value::from(message));
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&response))));
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Bitbank.
+        Bitbank::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Bitbank {
@@ -531,7 +457,7 @@ impl crate::exchange_generated::ExchangeBase for Bitbank {
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_trading_fees" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees(args.get(0).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_market" => Value::Dict(self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null))),
@@ -1719,4 +1645,82 @@ impl Bitbank {
 }
 
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        if (response == Value::Null) {
+            return None;
+        }
+        let success: Option<i64> = self.safe_integer_k(&response, "success", &[]).as_i64();
+        let data: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "data");
+        if ((success.is_none()) || (success == Some(0))) || (data.is_none()) {
+            let errorMessages: indexmap::IndexMap<String, Value> = ({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("10000".to_string(), Value::Str("URL does not exist".into()));
+                    m.insert("10001".to_string(), Value::Str("A system error occurred. Please contact support".into()));
+                    m.insert("10002".to_string(), Value::Str("Invalid JSON format. Please check the contents of transmission".into()));
+                    m.insert("10003".to_string(), Value::Str("A system error occurred. Please contact support".into()));
+                    m.insert("10005".to_string(), Value::Str("A timeout error occurred. Please wait for a while and try again".into()));
+                    m.insert("20001".to_string(), Value::Str("API authentication failed".into()));
+                    m.insert("20002".to_string(), Value::Str("Illegal API key".into()));
+                    m.insert("20003".to_string(), Value::Str("API key does not exist".into()));
+                    m.insert("20004".to_string(), Value::Str("API Nonce does not exist".into()));
+                    m.insert("20005".to_string(), Value::Str("API signature does not exist".into()));
+                    m.insert("20011".to_string(), Value::Str("Two-step verification failed".into()));
+                    m.insert("20014".to_string(), Value::Str("SMS authentication failed".into()));
+                    m.insert("30001".to_string(), Value::Str("Please specify the order quantity".into()));
+                    m.insert("30006".to_string(), Value::Str("Please specify the order ID".into()));
+                    m.insert("30007".to_string(), Value::Str("Please specify the order ID array".into()));
+                    m.insert("30009".to_string(), Value::Str("Please specify the stock".into()));
+                    m.insert("30012".to_string(), Value::Str("Please specify the order price".into()));
+                    m.insert("30013".to_string(), Value::Str("Trade Please specify either".into()));
+                    m.insert("30015".to_string(), Value::Str("Please specify the order type".into()));
+                    m.insert("30016".to_string(), Value::Str("Please specify asset name".into()));
+                    m.insert("30019".to_string(), Value::Str("Please specify uuid".into()));
+                    m.insert("30039".to_string(), Value::Str("Please specify the amount to be withdrawn".into()));
+                    m.insert("40001".to_string(), Value::Str("The order quantity is invalid".into()));
+                    m.insert("40006".to_string(), Value::Str("Count value is invalid".into()));
+                    m.insert("40007".to_string(), Value::Str("End time is invalid".into()));
+                    m.insert("40008".to_string(), Value::Str("end_id Value is invalid".into()));
+                    m.insert("40009".to_string(), Value::Str("The from_id value is invalid".into()));
+                    m.insert("40013".to_string(), Value::Str("The order ID is invalid".into()));
+                    m.insert("40014".to_string(), Value::Str("The order ID array is invalid".into()));
+                    m.insert("40015".to_string(), Value::Str("Too many specified orders".into()));
+                    m.insert("40017".to_string(), Value::Str("Incorrect issue name".into()));
+                    m.insert("40020".to_string(), Value::Str("The order price is invalid".into()));
+                    m.insert("40021".to_string(), Value::Str("The trading classification is invalid".into()));
+                    m.insert("40022".to_string(), Value::Str("Start date is invalid".into()));
+                    m.insert("40024".to_string(), Value::Str("The order type is invalid".into()));
+                    m.insert("40025".to_string(), Value::Str("Incorrect asset name".into()));
+                    m.insert("40028".to_string(), Value::Str("uuid is invalid".into()));
+                    m.insert("40048".to_string(), Value::Str("The amount of withdrawal is illegal".into()));
+                    m.insert("50003".to_string(), Value::Str("Currently, this account is in a state where you can not perform the operation you specified. Please contact support".into()));
+                    m.insert("50004".to_string(), Value::Str("Currently, this account is temporarily registered. Please try again after registering your account".into()));
+                    m.insert("50005".to_string(), Value::Str("Currently, this account is locked. Please contact support".into()));
+                    m.insert("50006".to_string(), Value::Str("Currently, this account is locked. Please contact support".into()));
+                    m.insert("50008".to_string(), Value::Str("User identification has not been completed".into()));
+                    m.insert("50009".to_string(), Value::Str("Your order does not exist".into()));
+                    m.insert("50010".to_string(), Value::Str("Can not cancel specified order".into()));
+                    m.insert("50011".to_string(), Value::Str("API not found".into()));
+                    m.insert("60001".to_string(), Value::Str("The number of possessions is insufficient".into()));
+                    m.insert("60002".to_string(), Value::Str("It exceeds the quantity upper limit of the tender buying order".into()));
+                    m.insert("60003".to_string(), Value::Str("The specified quantity exceeds the limit".into()));
+                    m.insert("60004".to_string(), Value::Str("The specified quantity is below the threshold".into()));
+                    m.insert("60005".to_string(), Value::Str("The specified price is above the limit".into()));
+                    m.insert("60006".to_string(), Value::Str("The specified price is below the lower limit".into()));
+                    m.insert("70001".to_string(), Value::Str("A system error occurred. Please contact support".into()));
+                    m.insert("70002".to_string(), Value::Str("A system error occurred. Please contact support".into()));
+                    m.insert("70003".to_string(), Value::Str("A system error occurred. Please contact support".into()));
+                    m.insert("70004".to_string(), Value::Str("We are unable to accept orders as the transaction is currently suspended".into()));
+                    m.insert("70005".to_string(), Value::Str("Order can not be accepted because purchase order is currently suspended".into()));
+                    m.insert("70006".to_string(), Value::Str("We can not accept orders because we are currently unsubscribed ".into()));
+                    m.insert("70009".to_string(), Value::Str("We are currently temporarily restricting orders to be carried out. Please use the limit order.".into()));
+                    m.insert("70010".to_string(), Value::Str("We are temporarily raising the minimum order quantity as the system load is now rising.".into()));
+                m
+            });
+            let codeError: Option<String> = self.safe_string_k_opt(&data, "code", &[]);
+            let message: String = self.safe_string(&errorMessages, Value::from(codeError.as_deref()), &[Value::Str("Error".into())]).as_str().unwrap_or("Error").to_string();
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &codeError, Value::from(message));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&response))));
+        }
+        return None;
+}
 }

@@ -895,30 +895,10 @@ impl crate::exchange::DerivedExchange for Bitteam {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        if (response == Value::Null) {
-            return None;
-        }
-        if (code != 200) {
-            if (code == 404) {
-                if (Some(url).unwrap_or("").contains("/ccxt/order/")) && (method == "GET") {
-                    let orderId: String = self.safe_string(Value::Array(if let Some(__s) = Some(url) { __s.split("/order/").map(Value::from).collect() } else { Vec::new() }), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                    panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " order ").into()), orderId).into()), " not found")));
-                }
-                if Some(url).unwrap_or("").contains("/cmc/orderbook/") {
-                    let symbolId: String = self.safe_string(Value::Array(if let Some(__s) = Some(url) { __s.split("/cmc/orderbook/").map(Value::from).collect() } else { Vec::new() }), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                    panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " symbolId ").into()), symbolId).into()), " not found")));
-                }
-            }
-            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-            let message: Option<String> = self.safe_string_k_opt(&response, "message", &[]);
-            let responseCode: Option<String> = self.safe_string_k_opt(response, "code", &[]);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &responseCode, feedback.as_str());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback));
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Bitteam.
+        Bitteam::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Bitteam {
@@ -947,7 +927,7 @@ impl crate::exchange_generated::ExchangeBase for Bitteam {
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_market" => Value::Dict(self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null))),
@@ -3089,4 +3069,28 @@ impl Bitteam {
 }
 
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        if (response == Value::Null) {
+            return None;
+        }
+        if (code != 200) {
+            if (code == 404) {
+                if (Some(url).unwrap_or("").contains("/ccxt/order/")) && (method == "GET") {
+                    let orderId: String = self.safe_string(Value::Array(if let Some(__s) = Some(url) { __s.split("/order/").map(Value::from).collect() } else { Vec::new() }), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                    panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " order ").into()), orderId).into()), " not found")));
+                }
+                if Some(url).unwrap_or("").contains("/cmc/orderbook/") {
+                    let symbolId: String = self.safe_string(Value::Array(if let Some(__s) = Some(url) { __s.split("/cmc/orderbook/").map(Value::from).collect() } else { Vec::new() }), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                    panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " symbolId ").into()), symbolId).into()), " not found")));
+                }
+            }
+            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+            let message: Option<String> = self.safe_string_k_opt(&response, "message", &[]);
+            let responseCode: Option<String> = self.safe_string_k_opt(response, "code", &[]);
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &responseCode, feedback.as_str());
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
+        }
+        return None;
+}
 }

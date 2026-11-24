@@ -660,7 +660,7 @@ impl crate::exchange::DerivedExchange for Bitfinex {
 
     None
 }
-    fn parse_liquidation(&self, mut liquidation: Value, market: Option<&crate::types::Market>) -> Value {
+    fn parse_liquidation(&self, mut liquidation: Value, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         //     [
         //         [
@@ -691,7 +691,7 @@ impl crate::exchange::DerivedExchange for Bitfinex {
         if (sideFlag == Some(1)) {
             side = "buy".to_string();
         }
-        return Value::Dict(self.safe_liquidation(std::sync::Arc::new({
+        return Some(self.safe_liquidation(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), entry.map_or(Value::Null, Value::Arr));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.as_deref(), market, &[Value::Null, Value::Str("contract".into())]));
@@ -706,9 +706,9 @@ impl crate::exchange::DerivedExchange for Bitfinex {
     m
 }), &[]));
 
-    Value::Null
+    None
 }
-    fn parse_funding_rate_history(&self, mut contract: Value, market: Option<&crate::types::Market>) -> Value {
+    fn parse_funding_rate_history(&self, mut contract: Value, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         // [
         //     1691165494000,
@@ -737,7 +737,7 @@ impl crate::exchange::DerivedExchange for Bitfinex {
         // ]
         //
         let timestamp: Option<i64> = self.safe_integer(&contract, Value::Int(0), &[]).as_i64();
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), self.safe_symbol(None, market, &[]));
@@ -745,9 +745,9 @@ impl crate::exchange::DerivedExchange for Bitfinex {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn parse_margin_modification(&self, data: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let data: Value = data.into();
@@ -840,35 +840,10 @@ impl crate::exchange::DerivedExchange for Bitfinex {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        // ["error", 11010, "ratelimit: error"]
-        if (response != Value::Null) {
-            if !(matches!(&response, Value::Arr(_))) {
-                let message: Option<String> = self.safe_string2_opt(&response, Value::Str("message".into()), Value::Str("error".into()), &[]);
-                let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-                self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
-                self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, Value::from(feedback));
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body))));
-            }
-        }
-        if (code == 429) {
-            panic!("{}", crate::exchange_errors::rate_limit_exceeded(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body))));
-        }
-        if (code == 500) {
-            // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
-            let errorCode: String = self.safe_string(&response, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let errorText: String = self.safe_string(&response, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), errorText);
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(errorText.as_str()), feedback.as_str());
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(errorCode.as_str()), feedback.as_str());
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(errorText.as_str()), Value::from(feedback));
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), errorText).into()), " (#").into()), errorCode).into()), ")")));
-        }
-        if (response == Value::Null) {
-            return None;
-        }
-        return Some(true);
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Bitfinex.
+        Bitfinex::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Bitfinex {
@@ -918,16 +893,16 @@ impl crate::exchange_generated::ExchangeBase for Bitfinex {
                 "fetch_trading_fees" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees(args.get(0).cloned().unwrap_or_default()).await),
                 "get_currency_name" => self.get_currency_name(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "is_fiat" => self.is_fiat(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_currencies_custom" => crate::Value::Dict(self.parse_currencies_custom(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency_custom" => self.parse_currency_custom(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_funding_rate_history" => self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_funding_rate_history" => Value::Dict(self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ledger_entry" => Value::Dict(self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ledger_entry_type" => self.parse_ledger_entry_type(args.get(0).and_then(crate::Value::as_text).as_deref()),
-                "parse_liquidation" => self.parse_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_liquidation" => Value::Dict(self.parse_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_margin_modification" => Value::Dict(self.parse_margin_modification(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_market" => Value::Dict(self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -4854,6 +4829,35 @@ impl Bitfinex {
 }
 
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        // ["error", 11010, "ratelimit: error"]
+        if (response != Value::Null) {
+            if !(matches!(&response, Value::Arr(_))) {
+                let message: Option<String> = self.safe_string2_opt(&response, Value::Str("message".into()), Value::Str("error".into()), &[]);
+                let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+                self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
+                self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, Value::from(feedback));
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body))));
+            }
+        }
+        if (code == 429) {
+            panic!("{}", crate::exchange_errors::rate_limit_exceeded(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body))));
+        }
+        if (code == 500) {
+            // See https://docs.bitfinex.com/docs/abbreviations-glossary#section-errorinfo-codes
+            let errorCode: String = self.safe_string(&response, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let errorText: String = self.safe_string(&response, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), errorText);
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(errorText.as_str()), feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(errorCode.as_str()), feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(errorText.as_str()), Value::from(feedback));
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), errorText).into()), " (#").into()), errorCode).into()), ")")));
+        }
+        if (response == Value::Null) {
+            return None;
+        }
+        return Some(true);
+}
 
     pub fn parse_ledger_entry_type(&self, type_var: Option<&str>) -> Value {
         if (type_var.is_none()) {
@@ -5094,7 +5098,7 @@ impl Bitfinex {
             let mut __for_first_22: bool = true;
             while { if !__for_first_22 { i += 1; } __for_first_22 = false; i < (rawRatesData.len() as i64) } {
             let fr: crate::value::List = rawRatesData.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
-            let rate: crate::value::Dict = self.parse_funding_rate_history(Value::Arr(fr), Some(&market)).into_dict();
+            let rate: crate::value::Dict = self.parse_funding_rate_history(Value::Arr(fr), Some(&market));
             rates.push(Value::Dict(rate));
         }
         }

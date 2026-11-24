@@ -63,7 +63,7 @@ impl crate::exchange_generated::ExchangeBase for Bitget {
                 "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
                 "get_inst_type" => { let __t = self.get_inst_type(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "handle_check_sum_error" => { self.handle_check_sum_error(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
-                "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
+                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null))),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_subscription_status" => self.handle_subscription_status(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
@@ -1948,12 +1948,12 @@ impl Bitget {
         if (uta == Some(true)) {
             instType = Some("UTA".to_string());
         }
-        messageHash = format!("{}{}", Value::Str(format!("{}{}", instType.as_deref().unwrap_or("null"), ":positions").into()), messageHash);
         let mut args: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("instType".to_string(), instType.map(Value::from).unwrap_or(Value::Null));
             m
         });
+        messageHash = format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(&args, "instType", &[Value::Str("".into())]), Value::Str(":positions".into())).into()), messageHash);
         let mut topicOrChannel: String = "channel".to_string();
         if (uta == Some(true)) {
             topicOrChannel = "topic".to_string();
@@ -3499,7 +3499,7 @@ impl Bitget {
         future.resolve(Value::Bool(true), None);
 }
 
-    pub fn handle_error_message(&self, client: &Value, message: &Value) -> Value {
+    pub fn handle_error_message(&self, client: &Value, message: &Value) -> bool {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
@@ -3507,7 +3507,7 @@ impl Bitget {
         //    { event: "error", code: 30015, msg: "Invalid sign" }
         //
         let event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> bool {
             if (event.as_deref() == Some("error")) {
                 let code: Option<String> = (match __pro_message.get("code") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
                 let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(message));
@@ -3516,9 +3516,9 @@ impl Bitget {
                 self.throw_broadly_matched_exception(self.exceptions.at("ws").at("broad"), Value::from(msg), feedback.as_str());
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
-            return Value::Bool(false);
-         #[allow(unreachable_code)] { Value::Null }}));
-match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err); 
+            return false;
+        }));
+        match _try_result { Ok(__try_ret) => return __try_ret, Err(_try_err) => { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             if e.is_instance_of("AuthenticationError") {
                 let messageHash: String = "authenticated".to_string();
                 client.reject(e, messageHash.as_str());
@@ -3529,10 +3529,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 // Note: if error happens on a subscribe event, user will have to close exchange to resubscribe. Issue #19041
                 client.reject(e, None);
             }
-            return Value::Bool(true);
-         } }
-
-    Value::Null
+            return true;
+        } }
 }
 
     pub fn handle_text_message(&self, mut client: Value, message: &str) {
@@ -3624,7 +3622,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         }
         //     }
         //
-        if (self.handle_error_message(&client.as_value(), &message).as_bool() == Some(true)) {
+        if (Value::Bool(self.handle_error_message(&client.as_value(), &message)).as_bool() == Some(true)) {
             return;
         }
         let content: Option<String> = (match __pro_message.get("message").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);

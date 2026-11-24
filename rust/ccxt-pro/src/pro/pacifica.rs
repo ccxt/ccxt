@@ -67,9 +67,9 @@ impl crate::exchange_generated::ExchangeBase for Pacifica {
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "edit_order_ws" => crate::types::IntoRaw::into_raw(self.edit_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
-                "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }),
                 "handle_ws_tickers" => self.handle_ws_tickers(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "ping" => self.ping(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -116,7 +116,7 @@ impl Pacifica {
             "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
             "handle_order_book_unsubscription" => { self.handle_order_book_unsubscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order_unsubscription" => { self.handle_order_unsubscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_pong" => { self.handle_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_pong" => { self.handle_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_subscription_response" => { self.handle_subscription_response(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_tickers_unsubscription" => { self.handle_tickers_unsubscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_trades" => { self.handle_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
@@ -1191,16 +1191,18 @@ impl Pacifica {
         // }
         //
         let mut parsedTickers: Vec<Value> = Vec::new();
-        let data: Vec<crate::value::Dict> = crate::value::dict_rows(message.key_list("data"));
+        let data: crate::value::List = message.key_list("data");
         {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (data.len() as i64) } {
-            let info: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
-            let marketId: Option<String> = self.safe_string_k_opt(&info, "symbol", &[]);
+            let marketId: Option<String> = self.safe_string_k_opt(data.get(i as usize).cloned().unwrap_or(Value::Null), "symbol", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[]);
             let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let ticker: crate::value::Dict = self.parse_ticker(Value::Dict(info), Some(&market));
+            let ticker: crate::value::Dict = self.parse_ticker(self.safe_dict(&data, Value::Int(i), &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })]), Some(&market));
             { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::from(&ticker)); }
             parsedTickers.push(Value::Dict(ticker));
         }
@@ -1880,7 +1882,7 @@ impl Pacifica {
         client.resolve(Value::from(&self.orders), messageHash.as_str());
 }
 
-    pub fn handle_error_message(&mut self, client: &Value, mut message: Value) -> Value {
+    pub fn handle_error_message(&mut self, client: &Value, mut message: Value) -> bool {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -1898,18 +1900,13 @@ impl Pacifica {
         let wsHeaders: crate::value::Dict = self.safe_dict_k_t(&wsOptions, "options");
         let wsHeadersFinal: crate::value::Dict = self.safe_dict_k_t(&wsHeaders, "headers");
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.handle_errors(0, error.as_str(), "", postType.as_str(), Value::Dict(wsHeadersFinal), (json_stringify(&data)).as_str().unwrap_or_default(), message, Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}), None).map_or(Value::Null, Value::Bool);
+            self.handle_errors(0, error.as_str(), "", postType.as_str(), &wsHeadersFinal, (json_stringify(&data)).as_str().unwrap_or_default(), message, Some(&indexmap::IndexMap::new()), None).map_or(Value::Null, Value::Bool);
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             client.reject(e, id.as_deref());
-            return Value::Bool(true);
+            return true;
         }
-        return Value::Bool(false);
-
-    Value::Null
+        return false;
 }
 
     pub fn handle_order_book_unsubscription(&mut self, client: &Value, subscription: &indexmap::IndexMap<String, Value>) {
@@ -2052,7 +2049,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     }
         // }
         //
-        if (self.handle_error_message(&client.as_value(), message.clone()).as_bool() == Some(true)) {
+        if (Value::Bool(self.handle_error_message(&client.as_value(), message.clone())).as_bool() == Some(true)) {
             return;
         }
         let postType: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
@@ -2104,7 +2101,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub fn handle_pong(&self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_pong(&self, mut client: Value, message: &crate::value::Dict) -> Value {
         //
         //   {
         //       "channel": "pong"
@@ -2112,7 +2109,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         let __ws_arg_2 = self.milliseconds();
         crate::set_value(&mut client, &Value::Str("lastPong".into()), self.safe_integer_k(&message, "pong", &[Value::Int(__ws_arg_2)]));
-        return message;
+        return Value::from(message);
 
     Value::Null
 }

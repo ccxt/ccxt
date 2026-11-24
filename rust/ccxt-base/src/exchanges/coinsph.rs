@@ -579,11 +579,11 @@ impl crate::exchange::DerivedExchange for Coinsph {
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id, " sign() has no API URL for this endpoint")));
         }
-        let __ws_arg_23 = self.omit(&params, self.extract_params(Value::from(path)), &[]);
+        let __ws_arg_24 = self.omit(&params, self.extract_params(Value::from(path)), &[]);
         let mut query: crate::value::Dict = self.extend_t(Value::Map({
             let m = indexmap::IndexMap::new();
             m
-        }), &[__ws_arg_23]);
+        }), &[__ws_arg_24]);
         let endpoint: String = self.implode_params(Value::from(path), params);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), endpoint);
         if (apiName.as_deref() == Some("private")) {
@@ -628,19 +628,10 @@ impl crate::exchange::DerivedExchange for Coinsph {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        if (response == Value::Null) {
-            return None;
-        }
-        let responseCode: Option<String> = self.safe_string_k_opt(response, "code", &[]);
-        if (responseCode.is_some()) && (responseCode.as_deref() != Some("200")) && (responseCode.as_deref() != Some("0")) {
-            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(body), feedback.as_str());
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &responseCode, feedback.as_str());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback));
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Coinsph.
+        Coinsph::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Coinsph {
@@ -675,7 +666,7 @@ impl crate::exchange_generated::ExchangeBase for Coinsph {
                 "fetch_trading_fees" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "parse_array_param" => self.parse_array_param(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_currency" => Value::Dict(self.parse_currency(args.get(0).cloned().unwrap_or(crate::Value::Null))),
@@ -2031,7 +2022,11 @@ impl Coinsph {
             let __ws_arg_5 = self.extend(Value::Map(request), &[&params]);
             ticker = self.public_get_openapi_quote_v1_ticker24hr(&[&__ws_arg_5]).await;
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, ticker, Some(&market)).map_or(Value::Null, Value::Dict);
+        let __ws_arg_6 = self.extend_t(Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+}), &[ticker]);
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, __ws_arg_6, Some(&market)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2068,8 +2063,8 @@ impl Coinsph {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_6 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::Dict = self.public_get_openapi_quote_v1_depth(&[&__ws_arg_6]).await.unwrap_or_default();
+        let __ws_arg_7 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::Dict = self.public_get_openapi_quote_v1_depth(&[&__ws_arg_7]).await.unwrap_or_default();
         //
         //     {
         //         "lastUpdateId": "1667022157000699400",
@@ -2144,8 +2139,8 @@ impl Coinsph {
         }
         request.insert("limit".into(), Value::from(limitResolved));
         let paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("until".into()), &[]);
-        let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::List = self.public_get_openapi_quote_v1_klines(&[&__ws_arg_7]).await.unwrap_or_default();
+        let __ws_arg_8 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::List = self.public_get_openapi_quote_v1_klines(&[&__ws_arg_8]).await.unwrap_or_default();
         //
         //     [
         //         [
@@ -2208,8 +2203,8 @@ impl Coinsph {
                 request.insert("limit".into(), Value::from(limit));
             }
         }
-        let __ws_arg_8 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::List = self.public_get_openapi_quote_v1_trades(&[&__ws_arg_8]).await.unwrap_or_default();
+        let __ws_arg_9 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::List = self.public_get_openapi_quote_v1_trades(&[&__ws_arg_9]).await.unwrap_or_default();
         return Value::Arr(self.parse_trades(&response, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
@@ -2255,8 +2250,8 @@ impl Coinsph {
         }  else if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_9 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::List = self.private_get_openapi_v1_my_trades(&[&__ws_arg_9]).await.unwrap_or_default();
+        let __ws_arg_10 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::List = self.private_get_openapi_v1_my_trades(&[&__ws_arg_10]).await.unwrap_or_default();
         return Value::Arr(self.parse_trades(&response, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
@@ -2293,8 +2288,8 @@ impl Coinsph {
                 m.insert("orderId".to_string(), id);
             m
         });
-        let __ws_arg_10 = self.extend(Value::Map(request), &[&params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_my_trades(symbol.as_str(), since, limit, __ws_arg_10).await);
+        let __ws_arg_11 = self.extend(Value::Map(request), &[&params]);
+        return crate::types::IntoRaw::into_raw(self.fetch_my_trades(symbol.as_str(), since, limit, __ws_arg_11).await);
         Value::Null
         }).await?))
     }
@@ -2426,11 +2421,11 @@ impl Coinsph {
         let paramsRequest: crate::value::Dict = self.omit_t(paramsQuote, Value::Str("price".into()), &[Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("quantity".into()), Value::Str("quoteOrderQty".into())]);
         let mut response: Option<crate::value::Dict> = None;
         if testOrder {
-            let __ws_arg_11 = self.extend(&request, &[&paramsRequest]);
-            response = self.private_post_openapi_v1_order_test(&[&__ws_arg_11]).await;
+            let __ws_arg_12 = self.extend(&request, &[&paramsRequest]);
+            response = self.private_post_openapi_v1_order_test(&[&__ws_arg_12]).await;
         }  else {
-            let __ws_arg_12 = self.extend(Value::Map(request), &[&paramsRequest]);
-            response = self.private_post_openapi_v1_order(&[&__ws_arg_12]).await;
+            let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsRequest]);
+            response = self.private_post_openapi_v1_order(&[&__ws_arg_13]).await;
         }
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, response.as_ref(), Some(&market));
         None
@@ -2470,8 +2465,8 @@ impl Coinsph {
             request.insert("orderId".into(), id);
         }
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["clientOrderId", "origClientOrderId"], &[]);
-        let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_get_openapi_v1_order(&[&__ws_arg_13]).await.unwrap_or_default();
+        let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_get_openapi_v1_order(&[&__ws_arg_14]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&response), None);
         None
         }).await?))
@@ -2510,8 +2505,8 @@ impl Coinsph {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
-        let __ws_arg_14 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::List = self.private_get_openapi_v1_open_orders(&[&__ws_arg_14]).await.unwrap_or_default();
+        let __ws_arg_15 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::List = self.private_get_openapi_v1_open_orders(&[&__ws_arg_15]).await.unwrap_or_default();
         return Value::Arr(self.parse_orders(&response, market.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
@@ -2557,8 +2552,8 @@ impl Coinsph {
         }  else if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_15 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::List = self.private_get_openapi_v1_history_orders(&[&__ws_arg_15]).await.unwrap_or_default();
+        let __ws_arg_16 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::List = self.private_get_openapi_v1_history_orders(&[&__ws_arg_16]).await.unwrap_or_default();
         return Value::Arr(self.parse_orders(&response, Some(&market), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
@@ -2597,8 +2592,8 @@ impl Coinsph {
             request.insert("orderId".into(), id);
         }
         let paramsOmitted: crate::value::Dict = self.omit_t(params, &["clientOrderId", "origClientOrderId"], &[]);
-        let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_delete_openapi_v1_order(&[&__ws_arg_16]).await.unwrap_or_default();
+        let __ws_arg_17 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_delete_openapi_v1_order(&[&__ws_arg_17]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, Some(&response), None);
         None
         }).await?))
@@ -2636,8 +2631,8 @@ impl Coinsph {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             request.insert("symbol".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
-        let __ws_arg_17 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::List = self.private_delete_openapi_v1_open_orders(&[&__ws_arg_17]).await.unwrap_or_default();
+        let __ws_arg_18 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::List = self.private_delete_openapi_v1_open_orders(&[&__ws_arg_18]).await.unwrap_or_default();
         return Value::Arr(self.parse_orders(&response, market.as_ref(), &[]));
         Value::Null
         }).await?))
@@ -2757,8 +2752,8 @@ impl Coinsph {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let __ws_arg_18 = self.extend(Value::Map(request), &[&params]);
-        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.private_get_openapi_v1_asset_trade_fee(&[&__ws_arg_18]).await.unwrap_or_default());
+        let __ws_arg_19 = self.extend(Value::Map(request), &[&params]);
+        let response: Vec<crate::value::Dict> = crate::value::dict_rows(self.private_get_openapi_v1_asset_trade_fee(&[&__ws_arg_19]).await.unwrap_or_default());
         //
         //     [
         //       {
@@ -2911,8 +2906,8 @@ impl Coinsph {
             request.insert("withdrawOrderId".into(), tag.map(Value::from).unwrap_or(Value::Null));
         }
         let paramsOmitted: crate::value::Dict = self.omit_t(&paramsWithdrawTag, Value::Str("network".into()), &[]);
-        let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_post_openapi_wallet_v1_withdraw_apply(&[&__ws_arg_19]).await.unwrap_or_default();
+        let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_post_openapi_wallet_v1_withdraw_apply(&[&__ws_arg_20]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_transaction(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -2958,8 +2953,8 @@ impl Coinsph {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_20 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::List = self.private_get_openapi_wallet_v1_deposit_history(&[&__ws_arg_20]).await.unwrap_or_default();
+        let __ws_arg_21 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::List = self.private_get_openapi_wallet_v1_deposit_history(&[&__ws_arg_21]).await.unwrap_or_default();
         return Value::Arr(self.parse_transactions(&response, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
@@ -3005,8 +3000,8 @@ impl Coinsph {
         if (limit.is_some()) {
             request.insert("limit".into(), Value::from(limit));
         }
-        let __ws_arg_21 = self.extend(Value::Map(request), &[&params]);
-        let response: crate::value::List = self.private_get_openapi_wallet_v1_withdraw_history(&[&__ws_arg_21]).await.unwrap_or_default();
+        let __ws_arg_22 = self.extend(Value::Map(request), &[&params]);
+        let response: crate::value::List = self.private_get_openapi_wallet_v1_withdraw_history(&[&__ws_arg_22]).await.unwrap_or_default();
         return Value::Arr(self.parse_transactions(&response, currency.as_ref(), &[&Value::from(since), &Value::from(limit)]));
         Value::Null
         }).await?))
@@ -3062,8 +3057,8 @@ impl Coinsph {
             m
         });
         let paramsOmitted: crate::value::Dict = self.omit_t(params, Value::Str("network".into()), &[]);
-        let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let response: crate::value::Dict = self.private_get_openapi_wallet_v1_deposit_address(&[&__ws_arg_22]).await.unwrap_or_default();
+        let __ws_arg_23 = self.extend(Value::Map(request), &[&paramsOmitted]);
+        let response: crate::value::Dict = self.private_get_openapi_wallet_v1_deposit_address(&[&__ws_arg_23]).await.unwrap_or_default();
         return <Self as crate::exchange::DerivedExchange>::parse_deposit_address(self, Some(&response), Some(&currency)).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -3115,4 +3110,17 @@ impl Coinsph {
 }
 
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        if (response == Value::Null) {
+            return None;
+        }
+        let responseCode: Option<String> = self.safe_string_k_opt(response, "code", &[]);
+        if (responseCode.is_some()) && (responseCode.as_deref() != Some("200")) && (responseCode.as_deref() != Some("0")) {
+            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(body), feedback.as_str());
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &responseCode, feedback.as_str());
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
+        }
+        return None;
+}
 }

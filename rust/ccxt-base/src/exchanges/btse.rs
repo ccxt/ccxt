@@ -717,7 +717,7 @@ impl crate::exchange::DerivedExchange for Btse {
 
     None
 }
-    fn parse_funding_rate_history(&self, mut contract: Value, market: Option<&crate::types::Market>) -> Value {
+    fn parse_funding_rate_history(&self, mut contract: Value, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         //     {
         //         "timestamp": 1786003200911,
@@ -725,7 +725,7 @@ impl crate::exchange::DerivedExchange for Btse {
         //     }
         //
         let timestamp: Option<i64> = self.safe_integer_k(&contract, "timestamp", &[]).as_i64();
-        return Value::Map({
+        return Some(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), contract.clone());
         m.insert("symbol".to_string(), self.safe_symbol(None, market, &[]));
@@ -733,9 +733,9 @@ impl crate::exchange::DerivedExchange for Btse {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
     m
-});
+}));
 
-    Value::Null
+    None
 }
     fn parse_transaction(&self, transaction: Option<&crate::value::Dict>, currency: Option<&crate::types::Currency>) -> Option<crate::value::Dict> {
         let transaction: Value = transaction.into();
@@ -896,85 +896,10 @@ impl crate::exchange::DerivedExchange for Btse {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        if (response == Value::Null) || (response == Value::Null) {
-            return None;
-        }
-        //
-        // spot
-        //
-        //     {"code":10002,"msg":"UNAUTHORIZED: Authentication Failed","time":1770477230034,"data":null,"success":false}
-        //     {"code":51523,"msg":"BADREQUEST: Insufficient wallet balance","time":1770814875493,"data":null,"success":false}
-        //
-        // futures
-        //
-        //     {"status":400,"errorCode":-2,"message":"symbol parameter is mandatory","extraData":null}
-        //     {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
-        //
-        let success: bool = self.safe_bool_k_opt(&response, "success", &[Value::Bool(true)]).unwrap_or(true);
-        if !success {
-            let spotErrorCode: Option<String> = self.safe_string_k_opt(&response, "code", &[]);
-            let spotMessage: Option<String> = self.safe_string_k_opt(&response, "msg", &[]);
-            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &spotErrorCode, feedback.as_str());
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &spotMessage, feedback.as_str());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback));
-        }
-        let errorCode: Option<String> = self.safe_string_k_opt(&response, "errorCode", &[]);
-        if (errorCode.is_some()) {
-            let message: Option<String> = self.safe_string_k_opt(&response, "message", &[]);
-            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback));
-        }
-        //
-        // futures order and leverage endpoints reply with HTTP 200 and encode failures in a numeric status field, per the API Enum section of the docs
-        //
-        //     {"symbol":"ETH-PERP","timestamp":1770892916507,"status":135,"type":93,"message":"{\"msgKey\":\"trade.error.invalid.position_id\",\"params\":[\"ETH-PERP-USDT\"] ,\"default_msg\":\"User is in ISOLATE_HEDGE in market: ETH-PERP-USDT, but positionId is empty in the request.\"}"}
-        //
-        // success statuses such as 2 ORDER_INSERTED, 4 ORDER_FULLY_TRANSACTED, 5 ORDER_PARTIALLY_TRANSACTED, 6 ORDER_CANCELLED, 9 TRIGGER_INSERTED, 10 TRIGGER_ACTIVATED and 20 SUCCESS fall through without matching
-        //
-        // the legacy error envelope documented on the error codes page carries
-        // the numeric api status enum in the code field beside the http status
-        //
-        //     {"status":400,"error":"Bad Request","code":301,"message":"Invalid order size"}
-        //
-        let legacyErrorText: Option<String> = self.safe_string_k_opt(&response, "error", &[]);
-        let legacyEnumCode: Option<String> = self.safe_string_k_opt(&response, "code", &[]);
-        if (legacyErrorText.is_some()) && (legacyEnumCode.is_some()) {
-            let legacyMessage: Option<String> = self.safe_string_k_opt(&response, "message", &[]);
-            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &legacyEnumCode, feedback.as_str());
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &legacyMessage, feedback.as_str());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback));
-        }
-        let mut rows: crate::value::List = std::sync::Arc::new(Vec::new());
-        if let Value::Arr(__a) = response {
-            rows = __a;
-        }  else {
-            rows = std::sync::Arc::new(vec![response]);
-        }
-        {
-                        let mut i: i64 = 0;
-            let mut __for_first_14: bool = true;
-            while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (rows.len() as i64) } {
-            let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
-            let status: Option<String> = self.safe_string_k_opt(&row, "status", &[]);
-            if (status.is_some()) {
-                let mut rowMessage: Option<String> = self.safe_string_k_opt(&row, "message", &[]);
-                let embedded: Value = self.parse_json_value(Value::from(rowMessage.as_deref()));
-                if (embedded != Value::Null) {
-                    rowMessage = self.safe_string_k_opt(&embedded, "default_msg", &[&rowMessage]);
-                }
-                let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &status, feedback.as_str());
-                self.throw_broadly_matched_exception(self.exceptions.at("broad"), &rowMessage, Value::from(feedback));
-            }
-        }
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Btse.
+        Btse::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Btse {
@@ -1026,11 +951,11 @@ impl crate::exchange_generated::ExchangeBase for Btse {
                 "fetch_trading_fees" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_balance_list" => Value::Dict(self.parse_balance_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_funding_rate_history" => self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_funding_rate_history" => Value::Dict(self.parse_funding_rate_history(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ledger_entry" => Value::Dict(self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_margin_mode" => Value::Dict(self.parse_margin_mode(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_market" => Value::Dict(self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null))),
@@ -5001,6 +4926,85 @@ impl Btse {
         }).await?))
     }
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        if (response == Value::Null) || (response == Value::Null) {
+            return None;
+        }
+        //
+        // spot
+        //
+        //     {"code":10002,"msg":"UNAUTHORIZED: Authentication Failed","time":1770477230034,"data":null,"success":false}
+        //     {"code":51523,"msg":"BADREQUEST: Insufficient wallet balance","time":1770814875493,"data":null,"success":false}
+        //
+        // futures
+        //
+        //     {"status":400,"errorCode":-2,"message":"symbol parameter is mandatory","extraData":null}
+        //     {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
+        //
+        let success: bool = self.safe_bool_k_opt(&response, "success", &[Value::Bool(true)]).unwrap_or(true);
+        if !success {
+            let spotErrorCode: Option<String> = self.safe_string_k_opt(&response, "code", &[]);
+            let spotMessage: Option<String> = self.safe_string_k_opt(&response, "msg", &[]);
+            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &spotErrorCode, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &spotMessage, feedback.as_str());
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
+        }
+        let errorCode: Option<String> = self.safe_string_k_opt(&response, "errorCode", &[]);
+        if (errorCode.is_some()) {
+            let message: Option<String> = self.safe_string_k_opt(&response, "message", &[]);
+            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
+        }
+        //
+        // futures order and leverage endpoints reply with HTTP 200 and encode failures in a numeric status field, per the API Enum section of the docs
+        //
+        //     {"symbol":"ETH-PERP","timestamp":1770892916507,"status":135,"type":93,"message":"{\"msgKey\":\"trade.error.invalid.position_id\",\"params\":[\"ETH-PERP-USDT\"] ,\"default_msg\":\"User is in ISOLATE_HEDGE in market: ETH-PERP-USDT, but positionId is empty in the request.\"}"}
+        //
+        // success statuses such as 2 ORDER_INSERTED, 4 ORDER_FULLY_TRANSACTED, 5 ORDER_PARTIALLY_TRANSACTED, 6 ORDER_CANCELLED, 9 TRIGGER_INSERTED, 10 TRIGGER_ACTIVATED and 20 SUCCESS fall through without matching
+        //
+        // the legacy error envelope documented on the error codes page carries
+        // the numeric api status enum in the code field beside the http status
+        //
+        //     {"status":400,"error":"Bad Request","code":301,"message":"Invalid order size"}
+        //
+        let legacyErrorText: Option<String> = self.safe_string_k_opt(&response, "error", &[]);
+        let legacyEnumCode: Option<String> = self.safe_string_k_opt(&response, "code", &[]);
+        if (legacyErrorText.is_some()) && (legacyEnumCode.is_some()) {
+            let legacyMessage: Option<String> = self.safe_string_k_opt(&response, "message", &[]);
+            let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &legacyEnumCode, feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &legacyMessage, feedback.as_str());
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
+        }
+        let mut rows: crate::value::List = std::sync::Arc::new(Vec::new());
+        if let Value::Arr(__a) = response {
+            rows = __a;
+        }  else {
+            rows = std::sync::Arc::new(vec![response]);
+        }
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_14: bool = true;
+            while { if !__for_first_14 { i += 1; } __for_first_14 = false; i < (rows.len() as i64) } {
+            let row: crate::value::Dict = self.safe_dict_t(&rows, Value::Int(i));
+            let status: Option<String> = self.safe_string_k_opt(&row, "status", &[]);
+            if (status.is_some()) {
+                let mut rowMessage: Option<String> = self.safe_string_k_opt(&row, "message", &[]);
+                let embedded: Value = self.parse_json_value(Value::from(rowMessage.as_deref()));
+                if (embedded != Value::Null) {
+                    rowMessage = self.safe_string_k_opt(&embedded, "default_msg", &[&rowMessage]);
+                }
+                let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+                self.throw_exactly_matched_exception(self.exceptions.at("exact"), &status, feedback.as_str());
+                self.throw_broadly_matched_exception(self.exceptions.at("broad"), &rowMessage, Value::from(feedback));
+            }
+        }
+        }
+        return None;
+}
 
 
     pub fn futures_request_id(&self, market: Option<&crate::types::Market>) -> Option<String> {

@@ -62,6 +62,7 @@ impl crate::exchange_generated::ExchangeBase for Deepcoin {
             match method {
                 "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
                 "create_public_request" => crate::Value::Dict(self.create_public_request(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..].iter().collect::<Vec<_>>())),
+                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null))),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
                 "order_book_suffix" => { let __t = self.order_book_suffix(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..].iter().collect::<Vec<_>>()); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
@@ -1663,7 +1664,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         let m: Option<String> = (match __pro_message.get("m").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (m.is_some()) && (m.as_deref() != Some("Success")) {
-            self.handle_error_message(&client.as_value(), &message);
+            Value::Bool(self.handle_error_message(&client.as_value(), &message));
         }
         let action: Option<String> = self.safe_string2_opt(&message, Value::Str("a".into()), Value::Str("action".into()), &[]);
         if (action.as_deref() == Some("RecvTopicAction")) {
@@ -1728,7 +1729,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         self.clean_cache(subscription);
 }
 
-    pub fn handle_error_message(&self, client: &Value, message: &Value) {
+    pub fn handle_error_message(&self, client: &Value, message: &Value) -> bool {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
@@ -1758,13 +1759,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let subscription: crate::value::Dict = self.safe_dict_t(&subscriptionsById, requestId);
         let messageHash: Option<String> = self.safe_string_k_opt(&subscription, "subHash", &[]);
         let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(message));
-        let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> bool {
             self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(messageText.as_str()), feedback.as_str());
             self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(messageText), feedback.as_str());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
-         #[allow(unreachable_code)] { Value::Null }}));
-if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
+        }));
+        match _try_result { Ok(__try_ret) => return __try_ret, Err(_try_err) => { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             client.reject(e, messageHash.as_deref());
-        }
+        } }
+        return false;
 }
 }

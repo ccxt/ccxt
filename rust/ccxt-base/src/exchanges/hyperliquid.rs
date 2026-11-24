@@ -811,7 +811,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
 
     None
 }
-    fn parse_liquidation(&self, mut liquidation: Value, market: Option<&crate::types::Market>) -> Value {
+    fn parse_liquidation(&self, mut liquidation: Value, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         //
         // see fetchMyLiquidations
         //
@@ -829,7 +829,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         }
         let amount: Option<String> = self.safe_string_k_opt(&liquidation, "sz", &[]);
         let price: Option<String> = self.safe_string_k_opt(&liquidation, "px", &[]);
-        return Value::Dict(self.safe_liquidation(std::sync::Arc::new({
+        return Some(self.safe_liquidation(std::sync::Arc::new({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), liquidation);
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -843,7 +843,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
     m
 }), &[marketResolved]));
 
-    Value::Null
+    None
 }
     fn parse_margin_modification(&self, data: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let data: Value = data.into();
@@ -1039,63 +1039,10 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        if (response == Value::Null) || (response == Value::Null) {
-            return None;
-        }
-        // {"status":"err","response":"User or API Wallet 0xb8a6f8b26223de27c31938d56e470a5b832703a5 does not exist."}
-        //
-        //     {
-        //         status: 'ok',
-        //         response: { type: 'order', data: { statuses: [ { error: 'Insufficient margin to place order. asset=4' } ] } }
-        //     }
-        // {"status":"ok","response":{"type":"order","data":{"statuses":[{"error":"Insufficient margin to place order. asset=84"}]}}}
-        //
-        // {"status":"unknownOid"}
-        //
-        let status: Option<String> = self.safe_string_k_opt(&response, "status", &[&Value::Str("".into())]);
-        let error: Option<String> = self.safe_string_k_opt(&response, "error", &[]);
-        let mut message: Option<String> = None;
-        if (status.as_deref() == Some("err")) {
-            message = self.safe_string_k_opt(&response, "response", &[]);
-        }  else if (status.as_deref() == Some("unknownOid")) {
-            panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body))));
-        }  else if (error.is_some()) {
-            message = error;
-        }  else {
-            let responsePayload: crate::value::Dict = self.safe_dict_k_t(response, "response");
-            let data: crate::value::Dict = self.safe_dict_k_t(&responsePayload, "data");
-            let statuses: crate::value::List = self.safe_list_k_t(&data, "statuses");
-            {
-                                let mut i: i64 = 0;
-                let mut __for_first_34: bool = true;
-                while { if !__for_first_34 { i += 1; } __for_first_34 = false; i < (statuses.len() as i64) } {
-                let statusError: Option<String> = self.safe_string_k_opt(statuses.get(i as usize).cloned().unwrap_or(Value::Null), "error", &[]);
-                if (statusError.is_some()) {
-                    message = statusError;
-                    break;
-                }
-            }
-            }
-            if (data.contains_key("status")) {
-                let errorStatus: crate::value::Dict = self.safe_dict_k_t(&data, "status");
-                let errorMsg: Option<String> = self.safe_string_k_opt(&errorStatus, "error", &[]);
-                if (true) {
-                    message = errorMsg;
-                }
-            }
-        }
-        let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-        let nonEmptyMessage: bool = (message.is_some()) && (message.as_deref() != Some(""));
-        if nonEmptyMessage {
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
-        }
-        if nonEmptyMessage {
-            panic!("{}", crate::exchange_errors::exchange_error(feedback));
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Hyperliquid.
+        Hyperliquid::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Hyperliquid {
@@ -1174,7 +1121,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "handle_builder_fee_approval" => self.handle_builder_fee_approval().await,
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "handle_public_address" => { let __t = self.handle_public_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)); Value::from(vec![__t.0, Value::Dict(__t.1)]) },
                 "info_list" => Value::Arr(Self::info_list(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "initialize_client" => self.initialize_client().await,
@@ -1189,7 +1136,7 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                 "parse_funding_rate" => Value::Dict(self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_income" => Value::Dict(self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ledger_entry" => Value::Dict(self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_liquidation" => self.parse_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_liquidation" => Value::Dict(self.parse_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_margin_modification" => Value::Dict(self.parse_margin_modification(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_market" => Value::Dict(self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -6840,6 +6787,63 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         return Some(format!("{}{}", self.safe_currency_code(coinId.as_deref(), None).map(Value::from).unwrap_or(Value::Null), Value::Str("/USDC:USDC".into())));
 }
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        if (response == Value::Null) || (response == Value::Null) {
+            return None;
+        }
+        // {"status":"err","response":"User or API Wallet 0xb8a6f8b26223de27c31938d56e470a5b832703a5 does not exist."}
+        //
+        //     {
+        //         status: 'ok',
+        //         response: { type: 'order', data: { statuses: [ { error: 'Insufficient margin to place order. asset=4' } ] } }
+        //     }
+        // {"status":"ok","response":{"type":"order","data":{"statuses":[{"error":"Insufficient margin to place order. asset=84"}]}}}
+        //
+        // {"status":"unknownOid"}
+        //
+        let status: Option<String> = self.safe_string_k_opt(&response, "status", &[&Value::Str("".into())]);
+        let error: Option<String> = self.safe_string_k_opt(&response, "error", &[]);
+        let mut message: Option<String> = None;
+        if (status.as_deref() == Some("err")) {
+            message = self.safe_string_k_opt(&response, "response", &[]);
+        }  else if (status.as_deref() == Some("unknownOid")) {
+            panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body))));
+        }  else if (error.is_some()) {
+            message = error;
+        }  else {
+            let responsePayload: crate::value::Dict = self.safe_dict_k_t(response, "response");
+            let data: crate::value::Dict = self.safe_dict_k_t(&responsePayload, "data");
+            let statuses: crate::value::List = self.safe_list_k_t(&data, "statuses");
+            {
+                                let mut i: i64 = 0;
+                let mut __for_first_34: bool = true;
+                while { if !__for_first_34 { i += 1; } __for_first_34 = false; i < (statuses.len() as i64) } {
+                let statusError: Option<String> = self.safe_string_k_opt(statuses.get(i as usize).cloned().unwrap_or(Value::Null), "error", &[]);
+                if (statusError.is_some()) {
+                    message = statusError;
+                    break;
+                }
+            }
+            }
+            if (data.contains_key("status")) {
+                let errorStatus: crate::value::Dict = self.safe_dict_k_t(&data, "status");
+                let errorMsg: Option<String> = self.safe_string_k_opt(&errorStatus, "error", &[]);
+                if (true) {
+                    message = errorMsg;
+                }
+            }
+        }
+        let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+        let nonEmptyMessage: bool = (message.is_some()) && (message.as_deref() != Some(""));
+        if nonEmptyMessage {
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(message.as_deref()), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &message, feedback.as_str());
+        }
+        if nonEmptyMessage {
+            panic!("{}", crate::exchange_errors::exchange_error(feedback));
+        }
+        return None;
+}
 
 
     pub fn calculate_rate_limiter_cost(&self, mut api: Value, method: &str, path: &str, mut params: Value, optional_args: &[Value]) -> Value {

@@ -90,17 +90,11 @@ if _try_result.is_err() {
     // dispatch composition: the base handleErrors stub returns undefined, so an
     // error envelope on an uncovered status passes both steps without a throw —
     // a derived handleErrors that wants to surface it must throw on its own
-    let skip: Option<bool> = exchange.handle_errors(406, "Not Acceptable", "url", "GET", Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}), "{\"success\":false}", Value::Map({
+    let skip: Option<bool> = exchange.handle_errors(406, "Not Acceptable", "url", "GET", &indexmap::IndexMap::new(), "{\"success\":false}", Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("success".to_string(), Value::Bool(false));
     m
-}), Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}), None);
+}), Some(&indexmap::IndexMap::new()), None);
     assert!(ccxt::runtime::is_true(&((skip.is_none()))));
     exchange.handle_http_status_code(Value::Int(406), Value::Str("Not Acceptable".into()), Value::Str("url".into()), Value::Str("GET".into()), Value::Str("{\"success\":false}".into()));
 }

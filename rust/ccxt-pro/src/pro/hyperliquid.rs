@@ -69,9 +69,9 @@ impl crate::exchange_generated::ExchangeBase for Hyperliquid {
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "expire_pending_unsubscribe" => { self.expire_pending_unsubscribe(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "handle_active_asset_ctx" => self.handle_active_asset_ctx(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
-                "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
+                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()))),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_pong" => self.handle_pong(args.get(0).cloned().unwrap_or(crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }),
                 "handle_ws_tickers" => self.handle_ws_tickers(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
                 "parse_ws_ticker" => Value::Dict(self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_ws_trade" => Value::Dict(self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -131,7 +131,7 @@ impl Hyperliquid {
             "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().unwrap_or(&crate::Value::Null)); },
             "handle_order_book_unsubscription" => { self.handle_order_book_unsubscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_order_unsubscription" => { self.handle_order_unsubscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_pong" => { self.handle_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_pong" => { self.handle_pong(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_positions" => { self.handle_positions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_positions_unsubscription" => { self.handle_positions_unsubscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_spot_balance_unsubscription" => { self.handle_spot_balance_unsubscription(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
@@ -1263,7 +1263,7 @@ impl Hyperliquid {
             let liquidation: crate::value::Dict = self.safe_dict_k_t(&fill, "liquidation");
             // liquidator fills carry the liquidated counterparty here
             if ((user.as_deref() == self.safe_string_lower_k(&liquidation, "liquidatedUser", &[]).as_str())) {
-                std::sync::Arc::make_mut(&mut newLiquidations).push(self.parse_liquidation(Value::Dict(fill), None));
+                std::sync::Arc::make_mut(&mut newLiquidations).push(Value::Dict(self.parse_liquidation(Value::Dict(fill), None)));
             }
         }
         }
@@ -2324,7 +2324,7 @@ impl Hyperliquid {
         client.resolve(Value::from(&self.orders), messageHash.as_str());
 }
 
-    pub fn handle_error_message(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) -> Value {
+    pub fn handle_error_message(&mut self, client: &Value, message: &indexmap::IndexMap<String, Value>) -> bool {
         //
         //    {
         //      "channel": "post",
@@ -2358,7 +2358,7 @@ impl Hyperliquid {
         if (channel.as_deref() == Some("error")) {
             let mut ret_msg: String = (match message.get("data") { Some(Value::Str(__s)) if !__s.is_empty() => __s.to_string(), Some(Value::Int(__n)) => __n.to_string(), Some(Value::Float(__f)) => __f.to_string(), _ => "".to_string() });
             if ret_msg.contains("Already subscribed") {
-                return Value::Bool(true);
+                return true;
             }
             if ret_msg.contains("Already unsubscribed") {
                 // the requested state is already reached, so the unWatch call resolves through the
@@ -2367,12 +2367,12 @@ impl Hyperliquid {
                 let subscription: Value = self.parse_json_value(Value::from(({ let (__l, __b) = (ret_msg.chars().count() as i64, subscriptionStart); ret_msg.chars().skip((if __b < 0 { __l + __b } else { __b }).clamp(0, __l) as usize).collect::<String>() })));
                 if (subscription != Value::Null) {
                     self.handle_unsubscription(client, subscription);
-                    return Value::Bool(true);
+                    return true;
                 }
             }
             let error: crate::ExchangeError = crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), ret_msg));
             client.reject(error, None);
-            return Value::Bool(true);
+            return true;
         }
         let data: crate::value::Dict = message.key_dict("data");
         let mut id: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
@@ -2385,30 +2385,22 @@ impl Hyperliquid {
         if (status.is_some()) && (status.as_deref() != Some("ok")) {
             let error: crate::ExchangeError = crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&payload)));
             client.reject(error, id.as_deref());
-            return Value::Bool(true);
+            return true;
         }
         let type_var: Option<String> = self.safe_string_k_opt(&payload, "type", &[]);
         if (type_var.as_deref() == Some("error")) {
             let error: crate::ExchangeError = crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(&payload)));
             client.reject(error, id.as_deref());
-            return Value::Bool(true);
+            return true;
         }
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.handle_errors(0, "", "", "", Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}), (json_stringify(&payload)).as_str().unwrap_or_default(), Value::from(&payload), Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}), None).map_or(Value::Null, Value::Bool);
+            self.handle_errors(0, "", "", "", &indexmap::IndexMap::new(), (json_stringify(&payload)).as_str().unwrap_or_default(), Value::from(&payload), Some(&indexmap::IndexMap::new()), None).map_or(Value::Null, Value::Bool);
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             client.reject(e, id.as_deref());
-            return Value::Bool(true);
+            return true;
         }
-        return Value::Bool(false);
-
-    Value::Null
+        return false;
 }
 
 /*
@@ -2686,7 +2678,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     }
         // }
         //
-        if (self.handle_error_message(&client.as_value(), message.as_map().unwrap_or(&Default::default())).as_bool() == Some(true)) {
+        if (Value::Bool(self.handle_error_message(&client.as_value(), message.as_map().unwrap_or(&Default::default()))).as_bool() == Some(true)) {
             return;
         }
         let topic: String = (match __pro_message.get("channel").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
@@ -2737,7 +2729,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub fn handle_pong(&self, mut client: Value, mut message: Value) -> Value {
+    pub fn handle_pong(&self, mut client: Value, message: &crate::value::Dict) -> Value {
         //
         //   {
         //       "channel": "pong"
@@ -2745,7 +2737,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         let __ws_arg_4 = self.milliseconds();
         crate::set_value(&mut client, &Value::Str("lastPong".into()), self.safe_integer_k(&message, "pong", &[Value::Int(__ws_arg_4)]));
-        return message;
+        return Value::from(message);
 
     Value::Null
 }

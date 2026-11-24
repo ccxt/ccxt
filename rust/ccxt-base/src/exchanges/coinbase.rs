@@ -1437,77 +1437,10 @@ impl crate::exchange::DerivedExchange for Coinbase {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        if (response == Value::Null) {
-            return None;
-        }
-        let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-        //
-        //    {"error": "invalid_request", "error_description": "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed."}
-        //
-        // or
-        //
-        //    {
-        //      "errors": [
-        //        {
-        //          "id": "not_found",
-        //          "message": "Not found"
-        //        }
-        //      ]
-        //    }
-        // or
-        // {
-        //     "success": false,
-        //     "error_response": {
-        //       "error": "UNKNOWN_FAILURE_REASON",
-        //       "message": "",
-        //       "error_details": "",
-        //       "preview_failure_reason": "PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE"
-        //     },
-        //     "order_configuration": {
-        //       "stop_limit_stop_limit_gtc": {
-        //         "base_size": "0.0001",
-        //         "limit_price": "2000",
-        //         "stop_price": "2005",
-        //         "stop_direction": "STOP_DIRECTION_STOP_DOWN",
-        //         "reduce_only": false
-        //       }
-        //     }
-        // }
-        //
-        let mut errorCode: Option<String> = self.safe_string_k_opt(&response, "error", &[]);
-        if (errorCode.is_some()) {
-            let errorMessage: Option<String> = self.safe_string2_opt(&response, Value::Str("error_description".into()), Value::Str("error".into()), &[]);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(errorCode.as_deref()), feedback.as_str());
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, feedback.as_str());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
-        }
-        let errorResponse: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "error_response");
-        if (errorResponse.is_some()) {
-            let errorMessageInner: Option<String> = self.safe_string2_opt(&errorResponse, Value::Str("preview_failure_reason".into()), Value::Str("preview_failure_reason".into()), &[]);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(errorMessageInner.as_deref()), feedback.as_str());
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessageInner, feedback.as_str());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
-        }
-        let errors: crate::value::List = self.safe_list_k_t(&response, "errors");
-        if (true) {
-            let numErrors: i64 = errors.len() as i64;
-            if numErrors > 0 {
-                errorCode = self.safe_string_k_opt(crate::value::KeyRead::read(&&errors, &Value::Int(0)), "id", &[]);
-                let errorMessage: Option<String> = self.safe_string_k_opt(crate::value::KeyRead::read(&&errors, &Value::Int(0)), "message", &[]);
-                if (errorCode.is_some()) {
-                    self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
-                    self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, feedback.as_str());
-                    panic!("{}", crate::exchange_errors::exchange_error(feedback));
-                }
-            }
-        }
-        let advancedTrade: bool = self.safe_bool_k_opt(&self.options, "advanced", &[Value::Bool(false)]).unwrap_or(false);
-        if !(in_op(&response, &Value::Str("data".into()))) && !advancedTrade {
-            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " failed due to a malformed response ").into()), json_stringify(&response))));
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Coinbase.
+        Coinbase::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Coinbase {
@@ -1577,7 +1510,7 @@ impl crate::exchange_generated::ExchangeBase for Coinbase {
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "find_account_id" => self.find_account_id(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()).await,
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "is_eddsa_api_key" => self.is_eddsa_api_key(),
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_account" => Value::Dict(self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null))),
@@ -3401,7 +3334,10 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_4: bool = true;
             while { if !__for_first_4 { i += 1; } __for_first_4 = false; i < (data.len() as i64) } {
-            let spotMarket: Value = self.parse_spot_market(data.get(i as usize).cloned().unwrap_or(Value::Null), &feeTier);
+            let spotMarket: Value = self.parse_spot_market(self.safe_dict(&data, Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), &feeTier);
             if (spotMarket != Value::Null) {
                 result.push(spotMarket);
             }
@@ -4195,7 +4131,7 @@ if _try_result.is_err() {
         //         "num_products": 549
         //     }
         //
-        let data: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "products"));
+        let data: crate::value::List = self.safe_list_k_t(&response, "products");
         let mut result: indexmap::IndexMap<String, Value> = ({
             let m = indexmap::IndexMap::new();
             m
@@ -4204,11 +4140,13 @@ if _try_result.is_err() {
                         let mut i: i64 = 0;
             let mut __for_first_11: bool = true;
             while { if !__for_first_11 { i += 1; } __for_first_11 = false; i < (data.len() as i64) } {
-            let entry: crate::value::Dict = data.get(i as usize).cloned().unwrap_or_default();
-            let marketId: Option<String> = self.safe_string_k_opt(&entry, "product_id", &[]);
+            let marketId: Option<String> = self.safe_string_k_opt(data.get(i as usize).cloned().unwrap_or(Value::Null), "product_id", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("-".into())]);
             let symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            result.insert(symbol, <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &entry, Some(&market)).map_or(Value::Null, Value::Dict));
+            result.insert(symbol, <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_dict(&data, Value::Int(i), &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]), Some(&market)).map_or(Value::Null, Value::Dict));
         }
         }
         return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
@@ -7178,6 +7116,77 @@ if _try_result.is_err() {
 }
 
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        if (response == Value::Null) {
+            return None;
+        }
+        let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+        //
+        //    {"error": "invalid_request", "error_description": "The request is missing a required parameter, includes an unsupported parameter value, or is otherwise malformed."}
+        //
+        // or
+        //
+        //    {
+        //      "errors": [
+        //        {
+        //          "id": "not_found",
+        //          "message": "Not found"
+        //        }
+        //      ]
+        //    }
+        // or
+        // {
+        //     "success": false,
+        //     "error_response": {
+        //       "error": "UNKNOWN_FAILURE_REASON",
+        //       "message": "",
+        //       "error_details": "",
+        //       "preview_failure_reason": "PREVIEW_STOP_PRICE_ABOVE_LAST_TRADE_PRICE"
+        //     },
+        //     "order_configuration": {
+        //       "stop_limit_stop_limit_gtc": {
+        //         "base_size": "0.0001",
+        //         "limit_price": "2000",
+        //         "stop_price": "2005",
+        //         "stop_direction": "STOP_DIRECTION_STOP_DOWN",
+        //         "reduce_only": false
+        //       }
+        //     }
+        // }
+        //
+        let mut errorCode: Option<String> = self.safe_string_k_opt(&response, "error", &[]);
+        if (errorCode.is_some()) {
+            let errorMessage: Option<String> = self.safe_string2_opt(&response, Value::Str("error_description".into()), Value::Str("error".into()), &[]);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(errorCode.as_deref()), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, feedback.as_str());
+            panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
+        }
+        let errorResponse: Option<crate::value::Dict> = self.safe_dict_k_o(&response, "error_response");
+        if (errorResponse.is_some()) {
+            let errorMessageInner: Option<String> = self.safe_string2_opt(&errorResponse, Value::Str("preview_failure_reason".into()), Value::Str("preview_failure_reason".into()), &[]);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(errorMessageInner.as_deref()), feedback.as_str());
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessageInner, feedback.as_str());
+            panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
+        }
+        let errors: crate::value::List = self.safe_list_k_t(&response, "errors");
+        if (true) {
+            let numErrors: i64 = errors.len() as i64;
+            if numErrors > 0 {
+                errorCode = self.safe_string_k_opt(crate::value::KeyRead::read(&&errors, &Value::Int(0)), "id", &[]);
+                let errorMessage: Option<String> = self.safe_string_k_opt(crate::value::KeyRead::read(&&errors, &Value::Int(0)), "message", &[]);
+                if (errorCode.is_some()) {
+                    self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errorCode, feedback.as_str());
+                    self.throw_broadly_matched_exception(self.exceptions.at("broad"), &errorMessage, feedback.as_str());
+                    panic!("{}", crate::exchange_errors::exchange_error(feedback));
+                }
+            }
+        }
+        let advancedTrade: bool = self.safe_bool_k_opt(&self.options, "advanced", &[Value::Bool(false)]).unwrap_or(false);
+        if !(in_op(&response, &Value::Str("data".into()))) && !advancedTrade {
+            panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " failed due to a malformed response ").into()), json_stringify(&response))));
+        }
+        return None;
+}
 
 /*
  * @method

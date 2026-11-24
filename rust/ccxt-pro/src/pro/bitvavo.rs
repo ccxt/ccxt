@@ -78,12 +78,12 @@ impl crate::exchange_generated::ExchangeBase for Bitvavo {
                 "fetch_orders_ws" => crate::types::IntoRaw::into_raw(self.fetch_orders_ws(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_trading_fees_ws" => crate::types::IntoRaw::into_raw(self.fetch_trading_fees_ws(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals_ws" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals_ws(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null)),
+                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).unwrap_or(&crate::Value::Null))),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_order_book" => { self.handle_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await; crate::Value::Null },
                 "handle_order_book_message" => self.handle_order_book_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(2).cloned().unwrap_or(crate::Value::Null)),
                 "handle_subscription_status" => self.handle_subscription_status(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
-                "handle_unsubscription_status" => self.handle_unsubscription_status(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "handle_unsubscription_status" => self.handle_unsubscription_status(args.get(0).unwrap_or(&crate::Value::Null), &match args.get(1) { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }),
                 "parse_ws_bid_ask" => Value::Dict(self.parse_ws_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "request_id" => crate::Value::from(self.request_id()),
                 "un_watch_channels" => self.un_watch_channels(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..].iter().collect::<Vec<_>>()).await,
@@ -164,7 +164,7 @@ impl Bitvavo {
             "handle_ticker" => { self.handle_ticker(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
             "handle_trade" => { self.handle_trade(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_trading_fees" => { self.handle_trading_fees(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
-            "handle_unsubscription_status" => { self.handle_unsubscription_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_unsubscription_status" => { self.handle_unsubscription_status(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_withdraw" => { self.handle_withdraw(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_withdraws" => { self.handle_withdraws(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "parse_ws_bid_ask" => { Value::Dict(self.parse_ws_bid_ask(args.get(0).copied().cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).copied().cloned().unwrap_or_default()).as_ref())); },
@@ -426,21 +426,23 @@ impl Bitvavo {
         //
         self.handle_bid_ask(client, message.as_map().unwrap_or(&Default::default()));
         let event: Option<String> = (match __pro_message.get("event") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        let tickers: Vec<crate::value::Dict> = crate::value::dict_rows(__pro_message.key_list("data"));
+        let tickers: crate::value::List = __pro_message.key_list("data");
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_1: bool = true;
             while { if !__for_first_1 { i += 1; } __for_first_1 = false; i < (tickers.len() as i64) } {
-            let data: crate::value::Dict = tickers.get(i as usize).cloned().unwrap_or_default();
-            let marketId: Option<String> = self.safe_string_k_opt(&data, "market", &[]);
+            let marketId: Option<String> = self.safe_string_k_opt(tickers.get(i as usize).cloned().unwrap_or(Value::Null), "market", &[]);
             let market: crate::types::Market = self.safe_market(marketId.as_deref(), None, &[Value::Str("-".into())]);
-            let ticker: crate::value::Dict = self.parse_ticker(Value::from(&data), Some(&market));
+            let ticker: crate::value::Dict = self.parse_ticker(self.safe_dict(&tickers, Value::Int(i), &[Value::Map({
+                let m = indexmap::IndexMap::new();
+                m
+            })]), Some(&market));
             let symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
             { let __d = &mut self.tickers; std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
             std::sync::Arc::make_mut(&mut result).push(Value::from(&ticker));
             if (event.is_some()) {
-                let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.as_deref().unwrap_or("null"), "@").into()), self.safe_string_k(&data, "market", &[Value::Str("".into())]));
+                let messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event.as_deref().unwrap_or("null"), "@").into()), self.safe_string_k(tickers.get(i as usize).cloned().unwrap_or(Value::Null), "market", &[Value::Str("".into())]));
                 client.resolve(Value::Dict(ticker), messageHash.as_str());
             }
         }
@@ -1503,7 +1505,7 @@ impl Bitvavo {
     Value::Null
 }
 
-    pub fn handle_unsubscription_status(&mut self, client: &Value, mut message: Value) -> Value {
+    pub fn handle_unsubscription_status(&mut self, client: &Value, message: &crate::value::Dict) -> Value {
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client);
         //
         //     {
@@ -1538,7 +1540,7 @@ impl Bitvavo {
             }
         }
         }
-        return message;
+        return Value::from(message);
 
     Value::Null
 }
@@ -2689,7 +2691,7 @@ impl Bitvavo {
         }
 }
 
-    pub fn handle_error_message(&mut self, client: &Value, message: &Value) -> Value {
+    pub fn handle_error_message(&mut self, client: &Value, message: &Value) -> bool {
         let __pro_message_empty = indexmap::IndexMap::new();
         let __pro_message: &indexmap::IndexMap<String, Value> = message.as_map().unwrap_or(&__pro_message_empty);
         //
@@ -2709,7 +2711,7 @@ impl Bitvavo {
         //
         let error: Option<String> = (match __pro_message.get("error") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (error.is_none()) {
-            return Value::Null;
+            return false;
         }
         let code: Option<i64> = self.safe_integer(Value::from(error.as_deref()), Value::Str("errorCode".into()), &[]).as_i64();
         let action: Option<String> = (match __pro_message.get("action") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
@@ -2717,13 +2719,7 @@ impl Bitvavo {
         let messageHash: Option<String> = self.safe_string_k_opt(message, "requestId", &[&buildMessage]);
         let mut rejected: bool = false;
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.handle_errors((Value::from(code)).as_i64().unwrap_or_default(), error.as_deref().unwrap_or_default(), (client.url()).as_str().unwrap_or_default(), "", Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}), error.as_deref().unwrap_or_default(), message.clone(), Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-}), None).map_or(Value::Null, Value::Bool);
+            self.handle_errors((Value::from(code)).as_i64().unwrap_or_default(), error.as_deref().unwrap_or_default(), (client.url()).as_str().unwrap_or_default(), "", &indexmap::IndexMap::new(), error.as_deref().unwrap_or_default(), message.clone(), Some(&indexmap::IndexMap::new()), None).map_or(Value::Null, Value::Bool);
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             rejected = true;
@@ -2732,11 +2728,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if !rejected {
             let feedback: crate::ExchangeError = crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), json_stringify(message)));
             client.reject(feedback, messageHash.as_deref());
-            return Value::Bool(true);
+            return true;
         }
-        return Value::Null;
-
-    Value::Null
+        return false;
 }
 
     pub fn handle_message(&mut self, client: &crate::pro::ws_client::ClientHandle, mut message: Value) {
@@ -2787,7 +2781,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         let error: Option<String> = (match __pro_message.get("error").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (error.is_some()) {
-            self.handle_error_message(&client.as_value(), &message);
+            Value::Bool(self.handle_error_message(&client.as_value(), &message));
         }
         let methods: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

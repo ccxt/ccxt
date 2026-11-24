@@ -319,7 +319,7 @@ impl crate::exchange::DerivedExchange for Limitless {
 
     None
 }
-    fn parse_prediction_trade(&self, trade: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Value {
+    fn parse_prediction_trade(&self, trade: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let trade: Value = trade.into();
         let matchedSize: Option<String> = self.safe_string_k_opt(&trade, "matchedSize", &[]);
         if (matchedSize.is_some()) {
@@ -339,7 +339,7 @@ impl crate::exchange::DerivedExchange for Limitless {
                 costStr = crate::precise::Precise::stringMul(&priceStr, &amountStr).as_str().map(str::to_owned);
             }
             let feedOutcome: Option<String> = self.safe_outcome_symbol(Value::Null, &[crate::Value::from(market)]).as_str().map(str::to_owned);
-            return self.safe_prediction_trade(Value::Map({
+            return Some(self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&trade, "txHash", &[]));
         m.insert("info".to_string(), trade.clone());
@@ -358,7 +358,7 @@ impl crate::exchange::DerivedExchange for Limitless {
         m.insert("cost".to_string(), self.parse_number(costStr.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("fee".to_string(), Value::Null);
     m
-}), &[]);
+}), &[]));
         }
         //
         //     {
@@ -429,7 +429,7 @@ impl crate::exchange::DerivedExchange for Limitless {
         }
         let outcome: Value = self.get_outcome_by_slug_and_label(slug.as_deref(), Some(label.as_str()), market);
         let tradeOutcome: Option<String> = self.safe_string_k_opt(&outcome, "outcome", &[]);
-        return self.safe_prediction_trade(Value::Map({
+        return Some(self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("info".to_string(), trade.clone());
@@ -448,9 +448,9 @@ impl crate::exchange::DerivedExchange for Limitless {
         m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Null);
     m
-}), &[]);
+}), &[]));
 
-    Value::Null
+    None
 }
     fn parse_prediction_order(&self, order: Option<&crate::value::Dict>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
         let order: Value = order.into();
@@ -700,6 +700,177 @@ impl crate::exchange::DerivedExchange for Limitless {
 
     None
 }
+    fn parse_prediction_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+        let ticker: Value = ticker.into();
+        //
+        //     {
+        //         "id": "36814",
+        //         "automationType": "manual",
+        //         "conditionId": "0x11287d02d8067ff3d3d8bd21b212ebcfdc20b638f7f6440e4115f649e6b57015",
+        //         "negRiskRequestId": null,
+        //         "description": "<p>This market will resolve to Yes if Donald Trump resigns or is removed as President or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to No.</p><p>An announcement of Donald Trump's resignation/removal before this market's end date will immediately resolve this market to Yes, regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal (e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4 (i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinets determination of presidential inability) will qualify for a Yes resolution.</p><p>The resolution source for this market will be a consensus of credible reporting.</p>",
+        //         "collateralToken": {
+        //             "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+        //             "decimals": "6",
+        //             "symbol": "USDC"
+        //         },
+        //         "title": "Trump out as President before 2027?",
+        //         "proxyTitle": null,
+        //         "expirationDate": "Jan 1, 2027",
+        //         "expirationTimestamp": "1798779540000",
+        //         "createdAt": "2026-01-20T18:17:48.298Z",
+        //         "updatedAt": "2026-04-09T10:47:02.254Z",
+        //         "categories": [ "Politics" ],
+        //         "status": "FUNDED",
+        //         "expired": false,
+        //         "hidden": false,
+        //         "creator": {
+        //             "name": "Limitless",
+        //             "imageURI": "https://limitless.exchange/assets/images/logo.svg",
+        //             "link": "https://x.com/trylimitless"
+        //         },
+        //         "tags": [ "Limitless" ],
+        //         "volume": "1032001807",
+        //         "volumeFormatted": "1032.001807",
+        //         "tokens": {
+        //             "yes": "56154308742753982686710750162015444986563701968079760676518531584453506363044",
+        //             "no": "32572248812801208874557774576516861470423415416073401354576860825663488568217"
+        //         },
+        //         "prices": [ 0.155, 0.845 ],
+        //         "tradePrices": {
+        //             "buy": { "market": [Array], "limit": [Array] },
+        //             "sell": { "market": [Array], "limit": [Array] }
+        //         },
+        //         "isOther": false,
+        //         "isRewardable": true,
+        //         "slug": "trump-out-as-president-before-2027-1768933068297",
+        //         "tradeType": "clob",
+        //         "venue": {
+        //             "exchange": "0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
+        //             "adapter": null
+        //         },
+        //         "marketType": "single",
+        //         "priorityIndex": "0",
+        //         "winningOutcomeIndex": null,
+        //         "metadata": { "fee": true, "isBannered": false, "isPolyArbitrage": true },
+        //         "settings": {
+        //             "minSize": "100000000",
+        //             "maxSpread": "0.035",
+        //             "dailyReward": "5",
+        //             "rewardsEpoch": "0.003472222222222222",
+        //             "c": "3",
+        //             "rebateRate": "0"
+        //         },
+        //         "imageUrl": "https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png",
+        //         "logo": "https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png"
+        //     }
+        //
+        // ticker is either a plain raw market object, or a composite dict { 'market': rawMarket, 'book': rawOrderbook }
+        let mut raw: Value = ticker.clone();
+        let mut book: Option<crate::value::Dict> = None;
+        if (matches!(&ticker, Value::Dict(__d) if __d.contains_key("market"))) {
+            raw = self.safe_dict_k(&ticker, "market", &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]);
+            book = self.safe_dict_k_o(&ticker, "book");
+        }
+        let rawLabel: Option<String> = (if (market.is_some()) { self.safe_string_k_opt(&market, "label", &[&self.safe_string_k(crate::value::KeyRead::key_read(&market, "info"), "outcomeLabel", &[Value::Str("yes".into())])]) } else { Some("yes".to_string()) });
+        let isYes: bool = (rawLabel.as_deref().map(str::to_lowercase)).as_deref() != Some("no");
+        let mut bidStr: Option<String> = None;
+        let mut askStr: Option<String> = None;
+        let mut bidSizeStr: Option<String> = None;
+        let mut askSizeStr: Option<String> = None;
+        let mut lastStr: Option<String> = None;
+        let mut midStr: Option<String> = None;
+        if (book.is_some()) {
+            // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price
+            let rawBids: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&book, "bids"));
+            let rawAsks: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&book, "asks"));
+            let yesBestBid: crate::value::Dict = rawBids.get(0).cloned().unwrap_or_default();
+            let yesBestAsk: crate::value::Dict = rawAsks.get(0).cloned().unwrap_or_default();
+            let yesBidPrice: Option<String> = self.safe_string_k_opt(&yesBestBid, "price", &[]);
+            let yesBidSize: Option<String> = self.safe_string_k_opt(&yesBestBid, "size", &[]);
+            let yesAskPrice: Option<String> = self.safe_string_k_opt(&yesBestAsk, "price", &[]);
+            let yesAskSize: Option<String> = self.safe_string_k_opt(&yesBestAsk, "size", &[]);
+            let yesLast: Option<String> = self.safe_string_k_opt(&book, "lastTradePrice", &[]);
+            let yesMid: Option<String> = self.safe_string_k_opt(&book, "midpoint", &[]);
+            if isYes {
+                bidStr = yesBidPrice.clone();
+                bidSizeStr = yesBidSize.clone();
+                askStr = yesAskPrice.clone();
+                askSizeStr = yesAskSize.clone();
+                lastStr = yesLast.clone();
+                midStr = yesMid.clone();
+            }  else {
+                if (yesAskPrice.is_some()) {
+                    bidStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &yesAskPrice).as_str().map(str::to_owned);
+                }
+                bidSizeStr = yesAskSize;
+                if (yesBidPrice.is_some()) {
+                    askStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &yesBidPrice).as_str().map(str::to_owned);
+                }
+                askSizeStr = yesBidSize;
+                if (yesLast.is_some()) {
+                    lastStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &yesLast).as_str().map(str::to_owned);
+                }
+                if (yesMid.is_some()) {
+                    midStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &yesMid).as_str().map(str::to_owned);
+                }
+            }
+        }
+        let prices: crate::value::List = self.safe_list_k_t(&raw, "prices");
+        let pricesLength: i64 = prices.len() as i64;
+        if (lastStr.is_none()) && (pricesLength > 0) {
+            if isYes {
+                lastStr = self.safe_string_opt(&prices, Value::Int(0), &[]);
+            }  else {
+                lastStr = self.safe_string_opt(&prices, Value::Int(1), &[]);
+            }
+        }
+        // volume and book sizes are in USDC micro-units (6 decimals)
+        let rawVolume: Option<String> = self.safe_string_k_opt(&raw, "volume", &[]);
+        let mut volumeStr: Option<String> = None;
+        if (rawVolume.is_some()) {
+            volumeStr = crate::precise::Precise::stringDiv(&rawVolume, &Value::Str("1000000".into())).as_str().map(str::to_owned);
+        }
+        if (bidSizeStr.is_some()) {
+            bidSizeStr = crate::precise::Precise::stringDiv(&bidSizeStr, &Value::Str("1000000".into())).as_str().map(str::to_owned);
+        }
+        if (askSizeStr.is_some()) {
+            askSizeStr = crate::precise::Precise::stringDiv(&askSizeStr, &Value::Str("1000000".into())).as_str().map(str::to_owned);
+        }
+        let outcomeSymbol: Option<String> = self.safe_outcome_symbol(Value::Null, &[crate::Value::from(market)]).as_str().map(str::to_owned);
+        return Some(self.safe_prediction_ticker(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("outcome".to_string(), outcomeSymbol.map(Value::from).unwrap_or(Value::Null));
+        m.insert("outcomeId".to_string(), self.safe_string_k(&market, "outcomeId", &[]));
+        m.insert("label".to_string(), self.safe_string_k(&market, "label", &[]));
+        m.insert("market".to_string(), self.safe_string_k(&market, "market", &[]));
+        m.insert("timestamp".to_string(), Value::Null);
+        m.insert("datetime".to_string(), Value::Null);
+        m.insert("high".to_string(), Value::Null);
+        m.insert("low".to_string(), Value::Null);
+        m.insert("bid".to_string(), self.parse_number(bidStr.map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("bidVolume".to_string(), self.parse_number(bidSizeStr.map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("ask".to_string(), self.parse_number(askStr.map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("askVolume".to_string(), self.parse_number(askSizeStr.map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("vwap".to_string(), Value::Null);
+        m.insert("open".to_string(), Value::Null);
+        m.insert("close".to_string(), self.parse_number(Value::from(lastStr.as_deref()), &[]));
+        m.insert("last".to_string(), self.parse_number(lastStr.map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("previousClose".to_string(), Value::Null);
+        m.insert("change".to_string(), Value::Null);
+        m.insert("percentage".to_string(), Value::Null);
+        m.insert("average".to_string(), self.parse_number(midStr.map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("baseVolume".to_string(), Value::Null);
+        m.insert("quoteVolume".to_string(), self.parse_number(volumeStr.map(Value::from).unwrap_or(Value::Null), &[]));
+        m.insert("info".to_string(), ticker);
+    m
+}), &[]));
+
+    None
+}
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("limitless".into())]));
         let method = get_arg(optional_args, 1, Value::Str("GET".into()));
@@ -766,29 +937,10 @@ impl crate::exchange::DerivedExchange for Limitless {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        if (response == Value::Null) {
-            return None;
-        }
-        let statusCodeInt: i64 = self.parse_to_int(Value::from(code)).unwrap_or_default();
-        if (statusCodeInt >= 200) && (statusCodeInt < 300) {
-            return None;
-        }
-        let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-        // the API returns either a string message or an array of field-validation errors
-        let message: Option<String> = self.safe_string_k_opt(response, "message", &[]);
-        if (message.is_some()) {
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, feedback.as_str());
-        }
-        self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(body), feedback.as_str());
-        // a 400 is a client-side bad request (bad params, or a business rule like "market not
-        // resolved"), not a transport outage — throw BadRequest with the exchange message instead
-        // of letting the base map the bare 400 to a retryable network-unavailable error
-        if (statusCodeInt == 400) {
-            panic!("{}", crate::exchange_errors::bad_request(feedback));
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Limitless.
+        Limitless::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Limitless {
@@ -826,18 +978,18 @@ impl crate::exchange_generated::ExchangeBase for Limitless {
                 "get_outcome_by_slug_and_label" => self.get_outcome_by_slug_and_label(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(2).cloned().unwrap_or_default()).as_ref()),
                 "get_position_from_clob_entry" => self.get_position_from_clob_entry(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..].iter().collect::<Vec<_>>()),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "nonce" => crate::Value::from(self.nonce()),
                 "parse_account" => Value::Dict(self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_event" => Value::Dict(self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_market" => Value::Dict(self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_prediction_order" => Value::Dict(self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_prediction_position" => Value::Dict(self.parse_prediction_position(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_prediction_trade" => self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_prediction_ticker" => Value::Dict(self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
+                "parse_prediction_trade" => Value::Dict(self.parse_prediction_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "redeem" => self.redeem(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..]).await,
                 "sign" => Value::Dict(self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..])),
-                "sign_evm_transaction" => self.sign_evm_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "sign_evm_transaction" => self.sign_evm_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 // Prediction Core: fall through to prediction base methods (then Exchange base).
                 _ => self.call_dynamic_prediction_base(method, args).await,
             }
@@ -1993,7 +2145,7 @@ impl Limitless {
                 m.insert("book".to_string(), responses.get(1).cloned().unwrap_or(Value::Null));
             m
         });
-        return self.parse_prediction_ticker(Value::Map(tickerInput), outcomeObj.as_ref());
+        return <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, Value::Map(tickerInput), outcomeObj.as_ref()).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2007,177 +2159,6 @@ impl Limitless {
  * @param {object} [market] the outcome object the ticker belongs to
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-    pub fn parse_prediction_ticker(&self, ticker: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
-        let ticker: Value = ticker.into();
-        //
-        //     {
-        //         "id": "36814",
-        //         "automationType": "manual",
-        //         "conditionId": "0x11287d02d8067ff3d3d8bd21b212ebcfdc20b638f7f6440e4115f649e6b57015",
-        //         "negRiskRequestId": null,
-        //         "description": "<p>This market will resolve to Yes if Donald Trump resigns or is removed as President or otherwise ceases to be the President of the United States for any period of time by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to No.</p><p>An announcement of Donald Trump's resignation/removal before this market's end date will immediately resolve this market to Yes, regardless of when the announced resignation/removal goes into effect.</p><p>Only permanent removal from office will qualify. Temporary removal (e.g. temporary invocation of the 25th Amendment under Section 3 or a Section 4 invocation not sustained by both Houses of Congress) or impeachment without removal will not count.</p><p>A sustained invocation of the Twenty-Fifth Amendment, Section 4 (i.e., if both Houses of Congress, by two-thirds vote, uphold the Vice President and Cabinets determination of presidential inability) will qualify for a Yes resolution.</p><p>The resolution source for this market will be a consensus of credible reporting.</p>",
-        //         "collateralToken": {
-        //             "address": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
-        //             "decimals": "6",
-        //             "symbol": "USDC"
-        //         },
-        //         "title": "Trump out as President before 2027?",
-        //         "proxyTitle": null,
-        //         "expirationDate": "Jan 1, 2027",
-        //         "expirationTimestamp": "1798779540000",
-        //         "createdAt": "2026-01-20T18:17:48.298Z",
-        //         "updatedAt": "2026-04-09T10:47:02.254Z",
-        //         "categories": [ "Politics" ],
-        //         "status": "FUNDED",
-        //         "expired": false,
-        //         "hidden": false,
-        //         "creator": {
-        //             "name": "Limitless",
-        //             "imageURI": "https://limitless.exchange/assets/images/logo.svg",
-        //             "link": "https://x.com/trylimitless"
-        //         },
-        //         "tags": [ "Limitless" ],
-        //         "volume": "1032001807",
-        //         "volumeFormatted": "1032.001807",
-        //         "tokens": {
-        //             "yes": "56154308742753982686710750162015444986563701968079760676518531584453506363044",
-        //             "no": "32572248812801208874557774576516861470423415416073401354576860825663488568217"
-        //         },
-        //         "prices": [ 0.155, 0.845 ],
-        //         "tradePrices": {
-        //             "buy": { "market": [Array], "limit": [Array] },
-        //             "sell": { "market": [Array], "limit": [Array] }
-        //         },
-        //         "isOther": false,
-        //         "isRewardable": true,
-        //         "slug": "trump-out-as-president-before-2027-1768933068297",
-        //         "tradeType": "clob",
-        //         "venue": {
-        //             "exchange": "0x05c748E2f4DcDe0ec9Fa8DDc40DE6b867f923fa5",
-        //             "adapter": null
-        //         },
-        //         "marketType": "single",
-        //         "priorityIndex": "0",
-        //         "winningOutcomeIndex": null,
-        //         "metadata": { "fee": true, "isBannered": false, "isPolyArbitrage": true },
-        //         "settings": {
-        //             "minSize": "100000000",
-        //             "maxSpread": "0.035",
-        //             "dailyReward": "5",
-        //             "rewardsEpoch": "0.003472222222222222",
-        //             "c": "3",
-        //             "rebateRate": "0"
-        //         },
-        //         "imageUrl": "https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png",
-        //         "logo": "https://cdn.limitless.exchange/markets-logo/36814/9daba01d-6bcd-4a2c-9187-f4264b7191da.png"
-        //     }
-        //
-        // ticker is either a plain raw market object, or a composite dict { 'market': rawMarket, 'book': rawOrderbook }
-        let mut raw: Value = ticker.clone();
-        let mut book: Option<crate::value::Dict> = None;
-        if (matches!(&ticker, Value::Dict(__d) if __d.contains_key("market"))) {
-            raw = self.safe_dict_k(&ticker, "market", &[Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-})]);
-            book = self.safe_dict_k_o(&ticker, "book");
-        }
-        let rawLabel: Option<String> = (if (market.is_some()) { self.safe_string_k_opt(&market, "label", &[&self.safe_string_k(crate::value::KeyRead::key_read(&market, "info"), "outcomeLabel", &[Value::Str("yes".into())])]) } else { Some("yes".to_string()) });
-        let isYes: bool = (rawLabel.as_deref().map(str::to_lowercase)).as_deref() != Some("no");
-        let mut bidStr: Option<String> = None;
-        let mut askStr: Option<String> = None;
-        let mut bidSizeStr: Option<String> = None;
-        let mut askSizeStr: Option<String> = None;
-        let mut lastStr: Option<String> = None;
-        let mut midStr: Option<String> = None;
-        if (book.is_some()) {
-            // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price
-            let rawBids: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&book, "bids"));
-            let rawAsks: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&book, "asks"));
-            let yesBestBid: crate::value::Dict = rawBids.get(0).cloned().unwrap_or_default();
-            let yesBestAsk: crate::value::Dict = rawAsks.get(0).cloned().unwrap_or_default();
-            let yesBidPrice: Option<String> = self.safe_string_k_opt(&yesBestBid, "price", &[]);
-            let yesBidSize: Option<String> = self.safe_string_k_opt(&yesBestBid, "size", &[]);
-            let yesAskPrice: Option<String> = self.safe_string_k_opt(&yesBestAsk, "price", &[]);
-            let yesAskSize: Option<String> = self.safe_string_k_opt(&yesBestAsk, "size", &[]);
-            let yesLast: Option<String> = self.safe_string_k_opt(&book, "lastTradePrice", &[]);
-            let yesMid: Option<String> = self.safe_string_k_opt(&book, "midpoint", &[]);
-            if isYes {
-                bidStr = yesBidPrice.clone();
-                bidSizeStr = yesBidSize.clone();
-                askStr = yesAskPrice.clone();
-                askSizeStr = yesAskSize.clone();
-                lastStr = yesLast.clone();
-                midStr = yesMid.clone();
-            }  else {
-                if (yesAskPrice.is_some()) {
-                    bidStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &yesAskPrice).as_str().map(str::to_owned);
-                }
-                bidSizeStr = yesAskSize;
-                if (yesBidPrice.is_some()) {
-                    askStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &yesBidPrice).as_str().map(str::to_owned);
-                }
-                askSizeStr = yesBidSize;
-                if (yesLast.is_some()) {
-                    lastStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &yesLast).as_str().map(str::to_owned);
-                }
-                if (yesMid.is_some()) {
-                    midStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &yesMid).as_str().map(str::to_owned);
-                }
-            }
-        }
-        let prices: crate::value::List = self.safe_list_k_t(&raw, "prices");
-        let pricesLength: i64 = prices.len() as i64;
-        if (lastStr.is_none()) && (pricesLength > 0) {
-            if isYes {
-                lastStr = self.safe_string_opt(&prices, Value::Int(0), &[]);
-            }  else {
-                lastStr = self.safe_string_opt(&prices, Value::Int(1), &[]);
-            }
-        }
-        // volume and book sizes are in USDC micro-units (6 decimals)
-        let rawVolume: Option<String> = self.safe_string_k_opt(&raw, "volume", &[]);
-        let mut volumeStr: Option<String> = None;
-        if (rawVolume.is_some()) {
-            volumeStr = crate::precise::Precise::stringDiv(&rawVolume, &Value::Str("1000000".into())).as_str().map(str::to_owned);
-        }
-        if (bidSizeStr.is_some()) {
-            bidSizeStr = crate::precise::Precise::stringDiv(&bidSizeStr, &Value::Str("1000000".into())).as_str().map(str::to_owned);
-        }
-        if (askSizeStr.is_some()) {
-            askSizeStr = crate::precise::Precise::stringDiv(&askSizeStr, &Value::Str("1000000".into())).as_str().map(str::to_owned);
-        }
-        let outcomeSymbol: Option<String> = self.safe_outcome_symbol(Value::Null, &[crate::Value::from(market)]).as_str().map(str::to_owned);
-        return self.safe_prediction_ticker(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("outcome".to_string(), outcomeSymbol.map(Value::from).unwrap_or(Value::Null));
-        m.insert("outcomeId".to_string(), self.safe_string_k(&market, "outcomeId", &[]));
-        m.insert("label".to_string(), self.safe_string_k(&market, "label", &[]));
-        m.insert("market".to_string(), self.safe_string_k(&market, "market", &[]));
-        m.insert("timestamp".to_string(), Value::Null);
-        m.insert("datetime".to_string(), Value::Null);
-        m.insert("high".to_string(), Value::Null);
-        m.insert("low".to_string(), Value::Null);
-        m.insert("bid".to_string(), self.parse_number(bidStr.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("bidVolume".to_string(), self.parse_number(bidSizeStr.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("ask".to_string(), self.parse_number(askStr.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("askVolume".to_string(), self.parse_number(askSizeStr.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("vwap".to_string(), Value::Null);
-        m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), self.parse_number(Value::from(lastStr.as_deref()), &[]));
-        m.insert("last".to_string(), self.parse_number(lastStr.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("previousClose".to_string(), Value::Null);
-        m.insert("change".to_string(), Value::Null);
-        m.insert("percentage".to_string(), Value::Null);
-        m.insert("average".to_string(), self.parse_number(midStr.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("baseVolume".to_string(), Value::Null);
-        m.insert("quoteVolume".to_string(), self.parse_number(volumeStr.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("info".to_string(), ticker);
-    m
-}), &[]);
-
-    Value::Null
-}
 
 /*
  * @method
@@ -2274,7 +2255,7 @@ impl Limitless {
                                 let mut j: i64 = 0;
                 let mut __for_first_13: bool = true;
                 while { if !__for_first_13 { j += 1; } __for_first_13 = false; j < (grouped.len() as i64) } {
-                let ticker: crate::value::Dict = self.parse_prediction_ticker(Value::Map(tickerInput.clone()), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(crate::value::KeyRead::read(&&grouped, &Value::Int(j))).as_ref()).into_dict();
+                let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, Value::Map(tickerInput.clone()), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(crate::value::KeyRead::read(&&grouped, &Value::Int(j))).as_ref()).unwrap_or_default();
                 let symbolKey: Option<String> = self.safe_string_k_opt(&ticker, "outcome", &[]);
                 if (symbolKey.is_some()) {
                     result.insert(symbolKey.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
@@ -3377,7 +3358,7 @@ if _try_result.is_err() {
         return self.sign_hash(self.hash_message(message).as_deref().unwrap_or_default(), Some(privateKey).map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 64).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
 }
 
-    pub fn sign_evm_transaction(&self, mut tx: Value, mut privateKey: Value) -> Value {
+    pub fn sign_evm_transaction(&self, mut tx: Value, privateKey: &str) -> Value {
         // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex
         let accessList: Option<String> = self.rlp_encode_list(Value::from(vec![])).as_str().map(str::to_owned);
         let fields: crate::value::List = std::sync::Arc::new(vec![self.rlp_encode_bytes(self.int_to_rlp_hex(self.safe_integer_k(&tx, "chainId", &[]))), self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(&tx, "nonce", &[]))), self.rlp_encode_bytes(self.hex_to_rlp_bytes(self.safe_string_k(&tx, "maxPriorityFeePerGas", &[]))),
@@ -3385,7 +3366,7 @@ if _try_result.is_err() {
             &[Value::Str("0x0".into())]))), self.rlp_encode_bytes(self.remove0x_prefix(self.safe_string_k(tx, "data", &[Value::Str("0x".into())]))), accessList.map(Value::from).unwrap_or(Value::Null)]);
         let payload: String = format!("{}{}", Value::Str("02".into()), self.rlp_encode_list(Value::Arr(fields.clone())));
         let hashHex: Value = Value::from(self.hash(self.base16_to_binary(Value::from(payload), &[]), "keccak", &[Value::Str("hex".into())]));
-        let signature: crate::value::Dict = ecdsa(hashHex, self.remove0x_prefix(privateKey), Value::Str("secp256k1".into()), Value::Null);
+        let signature: crate::value::Dict = ecdsa(hashHex, self.remove0x_prefix(Value::from(privateKey)), Value::Str("secp256k1".into()), Value::Null);
         let rHex: Option<String> = self.pad_hex_to_even(self.safe_string_k(&signature, "r", &[])).as_str().map(str::to_owned);
         let sHex: Option<String> = self.pad_hex_to_even(self.safe_string_k(&signature, "s", &[])).as_str().map(str::to_owned);
         let yParity: Option<i64> = self.safe_integer_k(&signature, "v", &[]).as_i64();
@@ -4334,4 +4315,27 @@ if _try_result.is_err() {
  * @name limitless#handleErrors
  * @description maps limitless error responses to ccxt exceptions
  */
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        if (response == Value::Null) {
+            return None;
+        }
+        let statusCodeInt: i64 = self.parse_to_int(Value::from(code)).unwrap_or_default();
+        if (statusCodeInt >= 200) && (statusCodeInt < 300) {
+            return None;
+        }
+        let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+        // the API returns either a string message or an array of field-validation errors
+        let message: Option<String> = self.safe_string_k_opt(response, "message", &[]);
+        if (message.is_some()) {
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &message, feedback.as_str());
+        }
+        self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(body), feedback.as_str());
+        // a 400 is a client-side bad request (bad params, or a business rule like "market not
+        // resolved"), not a transport outage — throw BadRequest with the exchange message instead
+        // of letting the base map the bare 400 to a retryable network-unavailable error
+        if (statusCodeInt == 400) {
+            panic!("{}", crate::exchange_errors::bad_request(feedback));
+        }
+        return None;
+}
 }

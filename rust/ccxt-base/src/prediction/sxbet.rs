@@ -138,6 +138,75 @@ impl crate::exchange::DerivedExchange for Sxbet {
 
     None
 }
+    fn parse_prediction_ticker(&self, raw: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Option<crate::value::Dict> {
+        let raw: Value = raw.into();
+        //
+        //     {
+        //         "marketHash": "0x48ce0ef287c59fb3bb3ca6deb80de0d5791eb761ea8e16d6f03c8e93ef28d1de",
+        //         "baseToken": "0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B",
+        //         "outcomeOne": { "percentageOdds": "50250000000000000000", "updatedAt": 1785697831141 },
+        //         "outcomeTwo": { "percentageOdds": "48000000000000000000", "updatedAt": 1785699649869 }
+        //     }
+        //
+        let outcomeObj: Option<crate::types::Market> = self.safe_outcome(self.safe_string_k(&market, "outcome", &[]).as_str(), market);
+        let outcomeId: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcomeId", &[]);
+        let marketHash: Option<String> = self.safe_string_k_opt(&raw, "marketHash", &[]);
+        let isOutcomeOne: bool = outcomeId == marketHash;
+        let outcomeOneOdds: crate::value::Dict = self.safe_dict_k_t(&raw, "outcomeOne");
+        let outcomeTwoOdds: Value = self.safe_dict_k(&raw, "outcomeTwo", &[Value::Map({
+    let m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut ownOdds: crate::value::Dict = outcomeTwoOdds.clone().into_dict();
+        if isOutcomeOne {
+            ownOdds = std::sync::Arc::clone(&outcomeOneOdds);
+        }
+        let mut oppositeOdds: crate::value::Dict = outcomeOneOdds;
+        if isOutcomeOne {
+            oppositeOdds = outcomeTwoOdds.into_dict();
+        }
+        // percentageOdds is the maker's own implied probability * 1e20 (sx.bet protocol format);
+        // the opposite side's best resting maker mirrors into this outcome's ask via 1 - p
+        let oneDenom: String = "100000000000000000000".to_string();
+        let ownPercentage: Option<String> = self.safe_string_k_opt(&ownOdds, "percentageOdds", &[]);
+        let oppositePercentage: Option<String> = self.safe_string_k_opt(&oppositeOdds, "percentageOdds", &[]);
+        let bid: Option<f64> = (if (ownPercentage.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&ownPercentage, &oneDenom), &[]).as_f64() } else { None });
+        let ask: Option<f64> = (if (oppositePercentage.is_some()) { self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &crate::precise::Precise::stringDiv(&oppositePercentage, &oneDenom)), &[]).as_f64() } else { None });
+        let updatedAt: Option<i64> = self.safe_integer_k(&ownOdds, "updatedAt", &[]).as_i64();
+        let now: i64 = self.milliseconds();
+        let timestamp: i64 = updatedAt.unwrap_or(now);
+        let mut average: Option<f64> = None;
+        if (bid.is_some()) && (ask.is_some()) {
+            average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&Value::from(self.number_to_string(Value::from(bid))), &Value::from(self.number_to_string(Value::from(ask)))), &Value::Str("2".into())), &[]).as_f64();
+        }
+        return Some(self.safe_prediction_ticker(Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("outcome".to_string(), self.safe_string_k(&outcomeObj, "outcome", &[]));
+        m.insert("outcomeId".to_string(), outcomeId.map(Value::from).unwrap_or(Value::Null));
+        m.insert("label".to_string(), self.safe_string_k(&outcomeObj, "label", &[]));
+        m.insert("market".to_string(), self.safe_string_k(&outcomeObj, "market", &[]));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("high".to_string(), Value::Null);
+        m.insert("low".to_string(), Value::Null);
+        m.insert("bid".to_string(), Value::from(bid));
+        m.insert("bidVolume".to_string(), Value::Null);
+        m.insert("ask".to_string(), Value::from(ask));
+        m.insert("askVolume".to_string(), Value::Null);
+        m.insert("open".to_string(), Value::Null);
+        m.insert("close".to_string(), Value::from(bid));
+        m.insert("last".to_string(), Value::from(bid));
+        m.insert("change".to_string(), Value::Null);
+        m.insert("percentage".to_string(), Value::Null);
+        m.insert("average".to_string(), Value::from(average));
+        m.insert("baseVolume".to_string(), Value::Null);
+        m.insert("quoteVolume".to_string(), Value::Null);
+        m.insert("info".to_string(), raw);
+    m
+}), &[crate::Value::from(market)]));
+
+    None
+}
     fn sign(&mut self, path: &str, optional_args: &[Value]) -> Option<crate::value::Dict> {
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("sxbet".into())]));
         let method = get_arg(optional_args, 1, Value::Str("GET".into()));
@@ -208,35 +277,10 @@ impl crate::exchange::DerivedExchange for Sxbet {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        // sx.bet returns { "error": "Bad Request", "message": <code or [strings]>, "statusCode": 4xx }
-        // map the known codes to ccxt errors so callers can distinguish a rejected order or a
-        // validation problem from a transport outage (the base otherwise maps a bare 4xx to the
-        // exchange-not-available error). unmapped codes fall through to the base http-status handling
-        if (response == Value::Null) {
-            return None;
-        }
-        let message: Value = self.safe_value_k(response, "message", &[]);
-        if (message == Value::Null) {
-            return None;
-        }
-        // validation failures arrive in string-array form, business errors in single-code-string form
-        let mut messageString: Value = Value::Null;
-        if (matches!(&message, Value::Arr(_))) {
-            messageString = join(&message, &Value::Str(", ".into()));
-        }  else {
-            messageString = message;
-        }
-        let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
-        self.throw_exactly_matched_exception(self.exceptions.at("exact"), &messageString, feedback.as_str());
-        self.throw_broadly_matched_exception(self.exceptions.at("broad"), messageString, feedback.as_str());
-        // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
-        // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
-        if (code == 400) {
-            panic!("{}", crate::exchange_errors::bad_request(feedback));
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Sxbet.
+        Sxbet::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Sxbet {
@@ -276,7 +320,7 @@ impl crate::exchange_generated::ExchangeBase for Sxbet {
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "filter_raw_markets_by_fixture" => crate::Value::Arr(self.filter_raw_markets_by_fixture(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default()); crate::Value::Null },
                 "hex_to_int" => self.hex_to_int(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
@@ -284,7 +328,7 @@ impl crate::exchange_generated::ExchangeBase for Sxbet {
                 "matches_event_query" => self.matches_event_query(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_array).map(Vec::as_slice).unwrap_or_default()),
                 "parse_event" => Value::Dict(self.parse_event(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "parse_prediction_order" => Value::Dict(self.parse_prediction_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
-                "parse_prediction_ticker" => self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
+                "parse_prediction_ticker" => Value::Dict(self.parse_prediction_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_settlement" => Value::Dict(self.parse_settlement(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
                 "parse_sxbet_cancel_response" => Value::Arr(self.parse_sxbet_cancel_response(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_sxbet_market" => Value::Dict(self.parse_sxbet_market(args.get(0).cloned().unwrap_or(crate::Value::Null))),
@@ -2327,7 +2371,7 @@ impl Sxbet {
         if (isMaker.is_some()) {
             takerOrMaker = (if (isMaker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
         }
-        return self.safe_prediction_trade(Value::Map({
+        return Value::Dict(self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&fill, "id", &[]));
         m.insert("info".to_string(), fill.clone());
@@ -2346,7 +2390,7 @@ impl Sxbet {
         m.insert("cost".to_string(), Value::from(amount));
         m.insert("fee".to_string(), Value::Null);
     m
-}), &[crate::Value::from(market)]);
+}), &[crate::Value::from(market)]));
 
     Value::Null
 }
@@ -2739,7 +2783,7 @@ impl Sxbet {
         // route needs an apiKey, so it only pays off for the multi-market path
         let snapshot: crate::value::Dict = self.fetch_sxbet_book_snapshot(marketHash.as_deref()).await;
         let raw: crate::value::Dict = self.parse_sxbet_snapshot_best_odds(&snapshot);
-        return self.parse_prediction_ticker(&raw, outcomeObj.as_ref());
+        return <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, &raw, outcomeObj.as_ref()).map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -2931,7 +2975,7 @@ impl Sxbet {
             if (raw.is_none()) {
                 continue;
             }
-            let ticker: crate::value::Dict = self.parse_prediction_ticker(&raw, outcomeObj.as_ref()).into_dict();
+            let ticker: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, &raw, outcomeObj.as_ref()).unwrap_or_default();
             let sym: Option<String> = self.safe_string_k_opt(&ticker, "outcome", &[]);
             if (sym.is_some()) {
                 result.insert(sym.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
@@ -2952,75 +2996,6 @@ impl Sxbet {
  * @param {object} [market] the outcome object the ticker belongs to
  * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
  */
-    pub fn parse_prediction_ticker(&self, raw: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
-        let raw: Value = raw.into();
-        //
-        //     {
-        //         "marketHash": "0x48ce0ef287c59fb3bb3ca6deb80de0d5791eb761ea8e16d6f03c8e93ef28d1de",
-        //         "baseToken": "0x6629Ce1Cf35Cc1329ebB4F63202F3f197b3F050B",
-        //         "outcomeOne": { "percentageOdds": "50250000000000000000", "updatedAt": 1785697831141 },
-        //         "outcomeTwo": { "percentageOdds": "48000000000000000000", "updatedAt": 1785699649869 }
-        //     }
-        //
-        let outcomeObj: Option<crate::types::Market> = self.safe_outcome(self.safe_string_k(&market, "outcome", &[]).as_str(), market);
-        let outcomeId: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcomeId", &[]);
-        let marketHash: Option<String> = self.safe_string_k_opt(&raw, "marketHash", &[]);
-        let isOutcomeOne: bool = outcomeId == marketHash;
-        let outcomeOneOdds: crate::value::Dict = self.safe_dict_k_t(&raw, "outcomeOne");
-        let outcomeTwoOdds: Value = self.safe_dict_k(&raw, "outcomeTwo", &[Value::Map({
-    let m = indexmap::IndexMap::new();
-    m
-})]);
-        let mut ownOdds: crate::value::Dict = outcomeTwoOdds.clone().into_dict();
-        if isOutcomeOne {
-            ownOdds = std::sync::Arc::clone(&outcomeOneOdds);
-        }
-        let mut oppositeOdds: crate::value::Dict = outcomeOneOdds;
-        if isOutcomeOne {
-            oppositeOdds = outcomeTwoOdds.into_dict();
-        }
-        // percentageOdds is the maker's own implied probability * 1e20 (sx.bet protocol format);
-        // the opposite side's best resting maker mirrors into this outcome's ask via 1 - p
-        let oneDenom: String = "100000000000000000000".to_string();
-        let ownPercentage: Option<String> = self.safe_string_k_opt(&ownOdds, "percentageOdds", &[]);
-        let oppositePercentage: Option<String> = self.safe_string_k_opt(&oppositeOdds, "percentageOdds", &[]);
-        let bid: Option<f64> = (if (ownPercentage.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&ownPercentage, &oneDenom), &[]).as_f64() } else { None });
-        let ask: Option<f64> = (if (oppositePercentage.is_some()) { self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &crate::precise::Precise::stringDiv(&oppositePercentage, &oneDenom)), &[]).as_f64() } else { None });
-        let updatedAt: Option<i64> = self.safe_integer_k(&ownOdds, "updatedAt", &[]).as_i64();
-        let now: i64 = self.milliseconds();
-        let timestamp: i64 = updatedAt.unwrap_or(now);
-        let mut average: Option<f64> = None;
-        if (bid.is_some()) && (ask.is_some()) {
-            average = self.parse_number(crate::precise::Precise::stringDiv(&crate::precise::Precise::stringAdd(&Value::from(self.number_to_string(Value::from(bid))), &Value::from(self.number_to_string(Value::from(ask)))), &Value::Str("2".into())), &[]).as_f64();
-        }
-        return self.safe_prediction_ticker(Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("outcome".to_string(), self.safe_string_k(&outcomeObj, "outcome", &[]));
-        m.insert("outcomeId".to_string(), outcomeId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("label".to_string(), self.safe_string_k(&outcomeObj, "label", &[]));
-        m.insert("market".to_string(), self.safe_string_k(&outcomeObj, "market", &[]));
-        m.insert("timestamp".to_string(), Value::from(timestamp));
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("high".to_string(), Value::Null);
-        m.insert("low".to_string(), Value::Null);
-        m.insert("bid".to_string(), Value::from(bid));
-        m.insert("bidVolume".to_string(), Value::Null);
-        m.insert("ask".to_string(), Value::from(ask));
-        m.insert("askVolume".to_string(), Value::Null);
-        m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), Value::from(bid));
-        m.insert("last".to_string(), Value::from(bid));
-        m.insert("change".to_string(), Value::Null);
-        m.insert("percentage".to_string(), Value::Null);
-        m.insert("average".to_string(), Value::from(average));
-        m.insert("baseVolume".to_string(), Value::Null);
-        m.insert("quoteVolume".to_string(), Value::Null);
-        m.insert("info".to_string(), raw);
-    m
-}), &[crate::Value::from(market)]);
-
-    Value::Null
-}
 
 /*
  * @method
@@ -3577,7 +3552,7 @@ impl Sxbet {
             // for every newly watched market, not only on a fresh subscription
             let snapshot: crate::value::Dict = self.fetch_sxbet_book_snapshot(marketHash.as_deref()).await;
             let raw: crate::value::Dict = self.parse_sxbet_snapshot_best_odds(&snapshot);
-            let ticker: Value = self.parse_prediction_ticker(&raw, outcomeObj.as_ref());
+            let ticker: Value = <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, &raw, outcomeObj.as_ref()).map_or(Value::Null, Value::Dict);
             self.set_ws_option("wsTickers", sym.as_str(), ticker);
             hydrated = true;
         }
@@ -3657,7 +3632,7 @@ impl Sxbet {
                     continue;
                 }
                 let outcomeObj: Option<crate::types::Market> = self.outcome(sym.as_deref());
-                let ticker: Value = self.parse_prediction_ticker(Value::Map(raw.clone()), outcomeObj.as_ref());
+                let ticker: Value = <Self as crate::exchange::DerivedExchange>::parse_prediction_ticker(self, Value::Map(raw.clone()), outcomeObj.as_ref()).map_or(Value::Null, Value::Dict);
                 self.set_ws_option("wsTickers", sym.as_deref().unwrap_or_default(), ticker.clone());
                 client.resolve(ticker, &(Value::Str(format!("{}{}", "ticker::", sym.as_deref().unwrap_or("null")).into())));
             }
@@ -3726,7 +3701,7 @@ impl Sxbet {
         let stake: String = self.safe_string_k(&trade, "totalStake", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         let amount: Option<f64> = self.parse_number(crate::precise::Precise::stringDivPrec(&stake, &usdcDecimals, &Value::Int(6)), &[]).as_f64();
         let timestamp: Option<i64> = self.parse8601(self.safe_string_k(&trade, "betTime", &[]));
-        return self.safe_prediction_trade(Value::Map({
+        return Value::Dict(self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string_k(&trade, "tradeId", &[]));
         m.insert("info".to_string(), trade);
@@ -3745,7 +3720,7 @@ impl Sxbet {
         m.insert("cost".to_string(), Value::from(amount));
         m.insert("fee".to_string(), Value::Null);
     m
-}), &[]);
+}), &[]));
 
     Value::Null
 }
@@ -3926,6 +3901,35 @@ impl Sxbet {
         }
 }
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        // sx.bet returns { "error": "Bad Request", "message": <code or [strings]>, "statusCode": 4xx }
+        // map the known codes to ccxt errors so callers can distinguish a rejected order or a
+        // validation problem from a transport outage (the base otherwise maps a bare 4xx to the
+        // exchange-not-available error). unmapped codes fall through to the base http-status handling
+        if (response == Value::Null) {
+            return None;
+        }
+        let message: Value = self.safe_value_k(response, "message", &[]);
+        if (message == Value::Null) {
+            return None;
+        }
+        // validation failures arrive in string-array form, business errors in single-code-string form
+        let mut messageString: Value = Value::Null;
+        if (matches!(&message, Value::Arr(_))) {
+            messageString = join(&message, &Value::Str(", ".into()));
+        }  else {
+            messageString = message;
+        }
+        let feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), Value::from(body));
+        self.throw_exactly_matched_exception(self.exceptions.at("exact"), &messageString, feedback.as_str());
+        self.throw_broadly_matched_exception(self.exceptions.at("broad"), messageString, feedback.as_str());
+        // a 400 is a client-side bad request (bad params, invalid order), not a transport outage —
+        // throw BadRequest instead of letting the base map the bare 400 to a retryable network-unavailable error
+        if (code == 400) {
+            panic!("{}", crate::exchange_errors::bad_request(feedback));
+        }
+        return None;
+}
 
 /*
  * @ignore

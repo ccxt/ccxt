@@ -465,37 +465,10 @@ impl crate::exchange::DerivedExchange for Mudrex {
 
     None
 }
-    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, mut headers: Value, body: &str, mut response: Value, mut requestHeaders: Value, requestBody: Option<&str>) -> Option<bool> {
-        if (response == Value::Null) || !matches!(&response, Value::Dict(_)) {
-            return None;
-        }
-        let success: bool = self.safe_bool_k_opt(&response, "success", &[Value::Bool(true)]).unwrap_or(true);
-        if !success {
-            let errors: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "errors"));
-            let first: crate::value::Dict = errors.get(0).cloned().unwrap_or_default();
-            let text: Option<String> = self.safe_string_k_opt(&first, "text", &[&json_stringify(&response)]);
-            let errCode: Option<String> = self.safe_string_k_opt(&first, "code", &[]);
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(text.as_deref()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), text.as_deref().unwrap_or("null")).into()));
-            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errCode, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), text.as_deref().unwrap_or("null")).into()));
-            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(text.as_deref()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), text.as_deref().unwrap_or("null")).into()));
-            let msg: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), text.as_deref().unwrap_or("null"));
-            let low: Option<String> = text.as_deref().map(str::to_lowercase);
-            if (code == 401) || low.as_deref().unwrap_or_default().contains("auth") {
-                panic!("{}", crate::exchange_errors::authentication_error(msg.clone()));
-            }
-            if (code == 429) || low.as_deref().unwrap_or_default().contains("rate") {
-                panic!("{}", crate::exchange_errors::rate_limit_exceeded(msg.clone()));
-            }
-            if low.as_deref().unwrap_or_default().contains("insufficient") {
-                panic!("{}", crate::exchange_errors::insufficient_funds(msg.clone()));
-            }
-            if (code == 400) {
-                panic!("{}", crate::exchange_errors::bad_request(msg.clone()));
-            }
-            panic!("{}", crate::exchange_errors::exchange_error(msg));
-        }
-        return None;
-}
+    fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, response: crate::Value, request_headers: Option<&indexmap::IndexMap<String, Value>>, request_body: Option<&str>) -> Option<bool> {
+        // Forward to the inherent method on Mudrex.
+        Mudrex::handle_errors(self, code, reason, url, method, headers, body, response, request_headers, request_body)
+    }
 }
 
 impl crate::exchange_generated::ExchangeBase for Mudrex {
@@ -527,7 +500,7 @@ impl crate::exchange_generated::ExchangeBase for Mudrex {
                 "fetch_ticker" => crate::types::IntoRaw::into_raw(self.fetch_ticker(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_tickers" => crate::types::IntoRaw::into_raw(self.fetch_tickers(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "handle_errors" => self.handle_errors(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
-                    args.get(4).cloned().unwrap_or(crate::Value::Null), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
+                    args.get(4).and_then(crate::Value::as_map).unwrap_or(&Default::default()), args.get(5).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).and_then(crate::Value::as_map), args.get(8).and_then(crate::Value::as_text).as_deref()).map_or(crate::Value::Null, crate::Value::Bool),
                 "parse_balance" => Value::Dict(self.parse_balance(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_market" => Value::Dict(self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null))),
                 "parse_ohlcv" => Value::Arr(self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref())),
@@ -876,6 +849,37 @@ impl Mudrex {
 }
 
 
+    pub fn handle_errors(&mut self, code: i64, reason: &str, url: &str, method: &str, headers: &indexmap::IndexMap<String, Value>, body: &str, mut response: Value, requestHeaders: Option<&indexmap::IndexMap<String, Value>>, requestBody: Option<&str>) -> Option<bool> {
+        if (response == Value::Null) || !matches!(&response, Value::Dict(_)) {
+            return None;
+        }
+        let success: bool = self.safe_bool_k_opt(&response, "success", &[Value::Bool(true)]).unwrap_or(true);
+        if !success {
+            let errors: Vec<crate::value::Dict> = crate::value::dict_rows(self.safe_list_k_t(&response, "errors"));
+            let first: crate::value::Dict = errors.get(0).cloned().unwrap_or_default();
+            let text: Option<String> = self.safe_string_k_opt(&first, "text", &[&json_stringify(&response)]);
+            let errCode: Option<String> = self.safe_string_k_opt(&first, "code", &[]);
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), Value::from(text.as_deref()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), text.as_deref().unwrap_or("null")).into()));
+            self.throw_exactly_matched_exception(self.exceptions.at("exact"), &errCode, Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), text.as_deref().unwrap_or("null")).into()));
+            self.throw_broadly_matched_exception(self.exceptions.at("broad"), Value::from(text.as_deref()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), text.as_deref().unwrap_or("null")).into()));
+            let msg: String = format!("{}{}", Value::Str(format!("{}{}", self.id, " ").into()), text.as_deref().unwrap_or("null"));
+            let low: Option<String> = text.as_deref().map(str::to_lowercase);
+            if (code == 401) || low.as_deref().unwrap_or_default().contains("auth") {
+                panic!("{}", crate::exchange_errors::authentication_error(msg.clone()));
+            }
+            if (code == 429) || low.as_deref().unwrap_or_default().contains("rate") {
+                panic!("{}", crate::exchange_errors::rate_limit_exceeded(msg.clone()));
+            }
+            if low.as_deref().unwrap_or_default().contains("insufficient") {
+                panic!("{}", crate::exchange_errors::insufficient_funds(msg.clone()));
+            }
+            if (code == 400) {
+                panic!("{}", crate::exchange_errors::bad_request(msg.clone()));
+            }
+            panic!("{}", crate::exchange_errors::exchange_error(msg));
+        }
+        return None;
+}
 
 
 /*

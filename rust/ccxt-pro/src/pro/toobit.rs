@@ -90,7 +90,7 @@ impl crate::exchange_generated::ExchangeBase for Toobit {
         Box::pin(async move {
             match method {
                 "authenticate" => self.authenticate(&args[..].iter().collect::<Vec<_>>()).await,
-                "handle_error_message" => self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default())),
+                "handle_error_message" => crate::Value::from(self.handle_error_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).and_then(crate::Value::as_map).unwrap_or(&Default::default()))),
                 "handle_list_message" => { self.handle_list_message(args.get(0).unwrap_or(&crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_message" => { self.handle_message(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).unwrap_or(&crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "keep_alive_listen_key" => { self.keep_alive_listen_key(&args[..]).await; crate::Value::Null },
@@ -139,8 +139,8 @@ impl Toobit {
             "handle_ohlcv" => { self.handle_ohlcv(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_order" => { self.handle_order(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_order_book" => { self.handle_order_book(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_order_book_partial_snapshot" => { self.handle_order_book_partial_snapshot(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), &args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
-            "handle_positions" => { self.handle_positions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), args.get(1).copied().cloned().unwrap_or(crate::Value::Null)); },
+            "handle_order_book_partial_snapshot" => { self.handle_order_book_partial_snapshot(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
+            "handle_positions" => { self.handle_positions(&args.get(0).copied().cloned().unwrap_or(crate::Value::Null), &match args.get(1).copied() { Some(crate::Value::Dict(__d)) => std::sync::Arc::clone(__d), _ => Default::default() }); },
             "handle_tickers" => { self.handle_tickers(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "handle_trades" => { self.handle_trades(&crate::pro::ws_client::ClientHandle::from_value(args.get(0).copied().unwrap_or(&crate::Value::Null)), args.get(1).copied().and_then(crate::Value::as_map).unwrap_or(&Default::default())); },
             "keep_alive_listen_key" => crate::exchange_stubs::enqueue_spawn("keep_alive_listen_key", args.iter().copied().cloned().collect::<Vec<_>>()),
@@ -358,7 +358,7 @@ impl Toobit {
         //     ]
         //
         let topic: Option<String> = (match __pro_message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        if (self.handle_error_message(&client.as_value(), message.as_map().unwrap_or(&Default::default())).as_bool() == Some(true)) {
+        if (Value::Bool(self.handle_error_message(&client.as_value(), message.as_map().unwrap_or(&Default::default()))).as_bool() == Some(true)) {
             return;
         }
         //
@@ -1029,7 +1029,7 @@ impl Toobit {
         bookside.store_array(Value::Arr(bidAsk));
 }
 
-    pub fn handle_order_book_partial_snapshot(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &Value) {
+    pub fn handle_order_book_partial_snapshot(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>) {
         //
         //     {
         //         symbol: 'DOGEUSDT',
@@ -1052,7 +1052,7 @@ impl Toobit {
         //         shared: false
         //     }
         //
-        self.set_order_book_snapshot(client, message.as_map().unwrap_or(&Default::default()), Value::Str("depth".into()));
+        self.set_order_book_snapshot(client, message, Value::Str("depth".into()));
 }
 
     pub fn set_order_book_snapshot(&mut self, client: &crate::pro::ws_client::ClientHandle, message: &indexmap::IndexMap<String, Value>, mut channel: Value) {
@@ -1579,7 +1579,7 @@ impl Toobit {
         }
 }
 
-    pub fn handle_positions(&mut self, client: &Value, mut message: Value) {
+    pub fn handle_positions(&mut self, client: &Value, message: &crate::value::Dict) {
         //
         // [
         //     {
@@ -1610,7 +1610,7 @@ impl Toobit {
         }
         let mut cache: Option<crate::pro::cache::Cache> = self.positionsByType.at(&accountType);
         // handleMessage's fallback dispatches one item at a time
-        let position: crate::value::Dict = self.parse_ws_position(message, None);
+        let position: crate::value::Dict = self.parse_ws_position(Value::from(message), None);
         let newPositions: Value = Value::from(vec![Value::from(&position)]);
         cache.append(Value::Dict(position));
         // no local may be named `positions` in this method: build/transpile.ts
@@ -1786,7 +1786,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         return Some(format!("{}{}", Value::Str(format!("{}{}", wsBaseUrl, "/api/v1/ws/").into()), listenKey));
 }
 
-    pub fn handle_error_message(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) -> Value {
+    pub fn handle_error_message(&self, client: &Value, message: &indexmap::IndexMap<String, Value>) -> bool {
         //
         //    {
         //        "code": '-100010',
@@ -1799,10 +1799,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             let msg: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id, " code: ").into()), code.as_deref().unwrap_or("null")).into()), " message: ").into()), desc).into());
             let exception: crate::ExchangeError = crate::exchange_errors::exchange_error(msg); // c# fix
             client.reject(exception, None);
-            return Value::Bool(true);
+            return true;
         }
-        return Value::Bool(false);
-
-    Value::Null
+        return false;
 }
 }
