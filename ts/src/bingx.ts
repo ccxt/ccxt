@@ -976,7 +976,7 @@ export default class bingx extends Exchange {
         });
     }
 
-    async fetchSpotMarkets (params: any): Promise<Market[]> {
+    async fetchSpotMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.spotV1PublicGetCommonSymbols (params);
         //
         //    {
@@ -1010,7 +1010,7 @@ export default class bingx extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    async fetchSwapMarkets (params: any): Promise<Market[]> {
+    async fetchSwapMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.swapV2PublicGetQuoteContracts (params);
         //
         //    {
@@ -1047,7 +1047,7 @@ export default class bingx extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    async fetchInverseSwapMarkets (params: any): Promise<Market[]> {
+    async fetchInverseSwapMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.cswapV1PublicGetMarketContracts (params);
         //
         //     {

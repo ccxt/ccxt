@@ -1993,7 +1993,7 @@ export default class bybit extends Exchange {
         return result;
     }
 
-    async fetchSpotMarkets (params: any): Promise<Market[]> {
+    async fetchSpotMarkets (params: Dict = {}): Promise<Market[]> {
         const request: Dict = {
             'category': 'spot',
         };
