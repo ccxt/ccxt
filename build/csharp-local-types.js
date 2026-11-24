@@ -19020,6 +19020,7 @@ export const CSHARP_STRING_PARAMS = {
     'prediction/hyperliquid.signHash': { 0: 'string?' },
     'polymarket.signHash': { 0: 'string?' },
     'prediction/polymarket.signHash': { 0: 'string?' },
+    'signEvmTransaction': { 1: 'string?' },
 };
 
 // the table type for a parameter of a listed generated method whose checker type is string-ish
