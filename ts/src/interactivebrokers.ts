@@ -2170,7 +2170,7 @@ export default class interactivebrokers extends Exchange {
         // perp-style future (FUT): "ticker": "BIP", "assetClass": "FUT", "listingExchange": "COINDERIV", "multiplier": 0.01, "expiry": "20301220", "undConid": 805366629
         // dated future (FUT): "ticker": "MBT", "assetClass": "FUT", "listingExchange": "CME", "multiplier": 0.1, "expiry": "20261127", "expirationDate": 20261127
         // cfd (CFD): "ticker": "AAPL", "assetClass": "CFD", "listingExchange": "IBUSCFD", "multiplier": 0, "undConid": 265598, "fullName": "APPLE INC CFD"
-        // bond (BOND): 
+        // bond (BOND):
         //
         //    {
         //        "conid": 15960430,
