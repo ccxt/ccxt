@@ -17944,7 +17944,8 @@ function csharpParameterDecision (csharp, parameter, expected) {
     }
     if (csharpMethodHasModifier (owner, ts.SyntaxKind.OverrideKeyword)
         || (csharpMethodHasModifier (owner, ts.SyntaxKind.AsyncKeyword) && (alias !== 'Dict') && (mapped.literalOnly !== true)
-            && !proAsyncListParameterFeedsToArray (owner, parameter, mapped) && (mapped.type !== 'IList<object>'))
+            && !proAsyncListParameterFeedsToArray (owner, parameter, mapped) && (mapped.type !== 'IList<object>')
+            && !proAsyncStrParameter (owner, mapped))
         || csharpMethodHasModifier (owner, ts.SyntaxKind.StaticKeyword)) {
         return undefined;
     }
@@ -17997,6 +17998,11 @@ function csharpParameterDecision (csharp, parameter, expected) {
     } finally {
         csharpParameterDecisionsInProgress.delete (parameter);
     }
+}
+
+// a pro async helper's `Str` parameter takes the same call-site proof as a sync one (string? slot)
+function proAsyncStrParameter (owner, mapped) {
+    return (mapped === CSHARP_PARAMETER_ALIAS_TYPES['Str']) && owner.getSourceFile ().fileName.replace (/\\/g, '/').includes ('/ts/src/pro/');
 }
 
 // a pro async helper's list parameter that the body hands to toArray / marketSymbols (printed
