@@ -662,7 +662,7 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
         $symbol = $this->safe_string($subscription, 'symbol');
         $timeframe = $this->safe_string($subscription, 'timeframe');
         $market = $this->safe_market($marketId);
-        $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol, array()), $timeframe);
+        $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $timeframe);
         if ($stored === null) {
             return;
         }

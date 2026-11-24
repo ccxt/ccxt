@@ -1511,10 +1511,10 @@ class bitget extends \ccxt\async\bitget {
         if ($uta) {
             $instType = 'UTA';
         }
-        $messageHash = $instType . ':positions' . $messageHash;
         $args = array(
             'instType' => $instType,
         );
+        $messageHash = $this->safe_string($args, 'instType', '') . ':positions' . $messageHash;
         $topicOrChannel = 'channel';
         if ($uta) {
             $topicOrChannel = 'topic';
@@ -2898,7 +2898,7 @@ class bitget extends \ccxt\async\bitget {
         $future->resolve(true);
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //    { event: "error", code: 30015, msg: "Invalid sign" }
         //

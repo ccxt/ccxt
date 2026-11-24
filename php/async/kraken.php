@@ -1209,7 +1209,8 @@ class kraken extends Exchange {
         );
         $response = Async\await($this->publicGetTicker($this->extend($request, $params)));
         $tickerResult = $this->safe_dict($response, 'result', array());
-        return $this->parse_ticker($this->safe_dict($tickerResult, $market['id'], array()), $market);
+        $marketId = $this->safe_string($market, 'id', '');
+        return $this->parse_ticker($this->safe_dict($tickerResult, $marketId, array()), $market);
     }
 
     public function parse_ohlcv(mixed $ohlcv, ?array $market = null): array {

@@ -908,7 +908,7 @@ class extended extends \ccxt\async\extended {
         return null;
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
         //

@@ -2710,7 +2710,7 @@ class paradex extends \ccxt\async\paradex {
         return $account;
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //     {
         //         "jsonrpc": "2.0",

@@ -1732,7 +1732,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //    {
         //      "channel": "post",

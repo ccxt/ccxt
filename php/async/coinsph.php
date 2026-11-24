@@ -987,7 +987,7 @@ class coinsph extends Exchange {
         } else {
             $ticker = Async\await($this->publicGetOpenapiQuoteV1Ticker24hr($this->extend($request, $params)));
         }
-        return $this->parse_ticker($ticker, $market);
+        return $this->parse_ticker($this->extend(array(), $ticker), $market);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {

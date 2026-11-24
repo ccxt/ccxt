@@ -3695,7 +3695,7 @@ class kucoin extends \ccxt\async\kucoin {
         // https://docs.kucoin.com/#ping
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //    {
         //        "id": "1",

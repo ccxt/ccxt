@@ -436,7 +436,7 @@ class hashkey extends \ccxt\async\hashkey {
         $messageHash = 'orders';
         $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
         if ($symbol !== null) {
-            $messageHash = 'orders' . ':' . $symbolResolved;
+            $messageHash = 'orders' . ':' . $this->symbol($symbol);
         }
         $orders = Async\await($this->watch_private($messageHash));
         $limitResolved = $limit;
@@ -564,7 +564,7 @@ class hashkey extends \ccxt\async\hashkey {
         $messageHash = 'myTrades';
         $symbolResolved = ($symbol !== null) ? $this->symbol($symbol) : $symbol;
         if ($symbol !== null) {
-            $messageHash = 'myTrades' . ':' . $symbolResolved;
+            $messageHash = 'myTrades' . ':' . $this->symbol($symbol);
         }
         $trades = Async\await($this->watch_private($messageHash));
         $limitResolved = $limit;

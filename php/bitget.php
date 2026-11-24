@@ -4677,7 +4677,7 @@ class bitget extends Exchange {
             $rows = $this->safe_list($utaResponse, 'data', array());
             $utaResult = array();
             for ($i = 0; $i < count($rows); $i++) {
-                $entry = $rows[$i];
+                $entry = $this->safe_dict($rows, $i, array());
                 $entryMarketId = $this->safe_string($entry, 'symbol');
                 if (($entryMarketId === null) || ($this->markets_by_id === null) || !(is_array($this->markets_by_id) && array_key_exists($entryMarketId ?? '', $this->markets_by_id))) {
                     continue; // skip ids missing from the loaded market map, a raw id must not become a unified symbol key
@@ -4781,7 +4781,7 @@ class bitget extends Exchange {
         $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
+            $entry = $this->safe_dict($data, $i, array());
             $marketId = $this->safe_string($entry, 'symbol');
             $symbol = $this->safe_symbol($marketId, null, null, $marketType);
             $market = $this->market($symbol);

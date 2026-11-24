@@ -377,7 +377,7 @@ class polymarket extends Exchange {
             for ($mi = 0; $mi < count($ccxtMarkets); $mi++) {
                 $flatMarkets[] = $ccxtMarkets[$mi];
             }
-            $parsedEvent = $this->parse_event($rawEvent);
+            $parsedEvent = $this->parse_event($this->extend(array(), $rawEvent));
             $eventSlug = $this->safe_string($rawEvent, 'slug');
             if (($eventSlug !== null) && ($eventSlug !== '')) {
                 $eventKey = $this->shorten_slug($eventSlug);
@@ -2626,7 +2626,7 @@ class polymarket extends Exchange {
                 }
                 $this->markets[$m['market']] = $m;
             }
-            $parsedEvent = $this->parse_event($eventForParsing);
+            $parsedEvent = $this->parse_event($this->extend(array(), $eventForParsing));
             $result[] = $parsedEvent;
         }
         // populateOutcomes rebuilds the outcome cache from the markets registered above; the
@@ -2673,7 +2673,7 @@ class polymarket extends Exchange {
         if ($eventForParsing === null) {
             $eventForParsing = array();
         }
-        $event = $this->parse_event($eventForParsing);
+        $event = $this->parse_event($this->extend(array(), $eventForParsing));
         $this->index_event_outcomes($event);
         return $event;
     }
@@ -2796,7 +2796,7 @@ class polymarket extends Exchange {
          */
         $result = array();
         for ($i = 0; $i < count($rawEvents); $i++) {
-            $result[] = $this->parse_event($rawEvents[$i]);
+            $result[] = $this->parse_event($this->safe_dict($rawEvents, $i, array()));
         }
         return $result;
     }

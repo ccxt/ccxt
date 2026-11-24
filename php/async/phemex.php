@@ -1145,8 +1145,7 @@ class phemex extends Exchange {
                 $baseCurrency = $this->safe_string($market, 'baseCurrency');
                 $currencyValues = $this->safe_dict($currenciesByCode, $baseCurrency, array());
                 $valueScale = $this->safe_string($currencyValues, 'valueScale', '8');
-                $market = $this->extend($market, array( 'valueScale' => $valueScale ));
-                $market = $this->parse_spot_market($market);
+                $market = $this->parse_spot_market($this->extend($market, array( 'valueScale' => $valueScale )));
             }
             if ($market !== null) {
                 $result[] = $market;

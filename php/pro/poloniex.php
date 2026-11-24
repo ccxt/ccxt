@@ -1292,10 +1292,9 @@ class poloniex extends \ccxt\async\poloniex {
         $data = $this->safe_list($message, 'data', array());
         $newTickers = array();
         for ($i = 0; $i < count($data); $i++) {
-            $item = $data[$i];
-            $marketId = $this->safe_string($item, 'symbol');
+            $marketId = $this->safe_string($data[$i], 'symbol');
             if ($marketId !== null) {
-                $ticker = $this->parse_ticker($item);
+                $ticker = $this->parse_ticker($this->safe_dict($data, $i, array()));
                 $symbol = $this->safe_string($ticker, 'symbol');
                 if ($symbol !== null) {
                     $this->tickers[$symbol] = $ticker;
@@ -1576,7 +1575,7 @@ class poloniex extends \ccxt\async\poloniex {
         }
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //    {
         //        message: 'Invalid channel value ["ordersss"]',

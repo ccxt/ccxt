@@ -363,7 +363,7 @@ class myriad extends Exchange {
          */
         if (mb_strpos($id, ':') === false) {
             $rawQuestion = Async\await($this->fetch_raw_question_by_id($id, $params));
-            $orderBookEvent = $this->parse_event($rawQuestion);
+            $orderBookEvent = $this->parse_event($this->extend(array(), $rawQuestion));
             $this->index_event_outcomes($orderBookEvent);
             return $orderBookEvent;
         }
@@ -3172,8 +3172,7 @@ class myriad extends Exchange {
         $result = array();
         $rawQuestionsLength = count($rawQuestions);
         for ($i = 0; $i < $rawQuestionsLength; $i++) {
-            $rawQuestion = $rawQuestions[$i];
-            $ev = $this->parse_event($rawQuestion);
+            $ev = $this->parse_event($this->safe_dict($rawQuestions, $i, array()));
             $evMarkets = $this->safe_list($ev, 'markets', array());
             $evMarketsLength = count($evMarkets);
             $filteredMarkets = array();

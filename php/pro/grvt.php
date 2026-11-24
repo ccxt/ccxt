@@ -1016,7 +1016,7 @@ class grvt extends \ccxt\async\grvt {
         return $this->parse_order($this->extend(array(), $order), $market);
     }
 
-    public function handle_error_message(Client $client, array $response): ?bool {
+    public function handle_error_message(Client $client, array $response): bool {
         //
         //    {
         //        "jsonrpc": "2.0",

@@ -1391,7 +1391,7 @@ class deepcoin extends \ccxt\async\deepcoin {
         $this->clean_cache($subscription);
     }
 
-    public function handle_error_message(Client $client, array $message) {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //     {
         //         "a": "RecvTopicAction",
@@ -1425,5 +1425,6 @@ class deepcoin extends \ccxt\async\deepcoin {
         } catch (Exception $e) {
             $client->reject($e, $messageHash);
         }
+        return false;
     }
 }

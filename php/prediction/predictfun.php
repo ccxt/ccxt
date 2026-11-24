@@ -574,7 +574,7 @@ class predictfun extends Exchange {
         $rawTopicsLength = count($rawTopics);
         $result = array();
         for ($i = 0; $i < $rawTopicsLength; $i++) {
-            $parsedEvent = $this->parse_event($rawTopics[$i]);
+            $parsedEvent = $this->parse_event($this->extend(array(), $rawTopics[$i]));
             $result[] = $parsedEvent;
             $parsedMarkets = $this->safe_list($parsedEvent, 'markets', array());
             $parsedMarketsLength = count($parsedMarkets);

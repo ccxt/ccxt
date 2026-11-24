@@ -1674,7 +1674,7 @@ class woo extends \ccxt\async\woo {
         $client->resolve($fundingRate, $messageHash);
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //

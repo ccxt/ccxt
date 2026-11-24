@@ -2042,7 +2042,7 @@ class nado extends \ccxt\async\nado {
         return $message;
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         $error = $this->safe_value($message, 'error');
         $status = $this->safe_string($message, 'status');
         if (($error === null) && ($status !== 'failure')) {

@@ -2004,16 +2004,15 @@ class xt extends Exchange {
         $tickers = $this->safe_list($response, 'result', array());
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
-            $rawTicker = $tickers[$i];
             // the spot and contract payloads share the same field names, so
             // the market type cannot be inferred from the entry itself
-            $marketId = $this->safe_string($rawTicker, 's');
+            $marketId = $this->safe_string($tickers[$i], 's');
             $marketType = 'spot';
             if ($isContract) {
                 $marketType = 'contract';
             }
             $marketInner = $this->safe_market($marketId, $market, '_', $marketType);
-            $ticker = $this->parse_ticker($rawTicker, $marketInner);
+            $ticker = $this->parse_ticker($this->safe_dict($tickers, $i, array()), $marketInner);
             $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
                 $result[$symbol] = $ticker;

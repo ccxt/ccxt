@@ -687,7 +687,7 @@ class alpaca extends \ccxt\async\alpaca {
         return Async\await($future);
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //    {
         //        "T": "error",

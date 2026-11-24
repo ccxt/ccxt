@@ -1000,7 +1000,7 @@ class apex extends \ccxt\async\apex {
         return Async\await($future);
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //   {
         //       "success": false,

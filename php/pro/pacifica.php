@@ -846,11 +846,10 @@ class pacifica extends \ccxt\async\pacifica {
         $parsedTickers = array();
         $data = $this->safe_list($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
-            $info = $data[$i];
-            $marketId = $this->safe_string($info, 'symbol');
+            $marketId = $this->safe_string($data[$i], 'symbol');
             $market = $this->safe_market($marketId);
             $symbol = $this->safe_string($market, 'symbol', '');
-            $ticker = $this->parse_ticker($info, $market);
+            $ticker = $this->parse_ticker($this->safe_dict($data, $i, array()), $market);
             $this->tickers[$symbol] = $ticker;
             $parsedTickers[] = $ticker;
         }
@@ -1421,7 +1420,7 @@ class pacifica extends \ccxt\async\pacifica {
         $client->resolve($stored, $messageHash);
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         // 'rl' key is present only when a rate-limited API key is used
         // {"id":"64107e37-a999-4b90-a3cf-b4322ae110d9","type":"cancel_order","code":420,"err":"Failed to cancel order","t":1769474703073,"rl":{"r":1245,"q":1250,"t":56}}

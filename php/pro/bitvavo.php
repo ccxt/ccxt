@@ -196,15 +196,14 @@ class bitvavo extends \ccxt\async\bitvavo {
         $tickers = $this->safe_list($message, 'data', array());
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
-            $data = $tickers[$i];
-            $marketId = $this->safe_string($data, 'market');
+            $marketId = $this->safe_string($tickers[$i], 'market');
             $market = $this->safe_market($marketId, null, '-');
-            $ticker = $this->parse_ticker($data, $market);
+            $ticker = $this->parse_ticker($this->safe_dict($tickers, $i, array()), $market);
             $symbol = $this->safe_string($ticker, 'symbol');
             $this->tickers[$symbol] = $ticker;
             $result[] = $ticker;
             if ($event !== null) {
-                $messageHash = $event . '@' . $this->safe_string($data, 'market', '');
+                $messageHash = $event . '@' . $this->safe_string($tickers[$i], 'market', '');
                 $client->resolve($ticker, $messageHash);
             }
         }
@@ -1976,7 +1975,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         }
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //    {
         //        action: 'privateCreateOrder',
@@ -1994,7 +1993,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         //
         $error = $this->safe_string($message, 'error');
         if ($error === null) {
-            return null;
+            return false;
         }
         $code = $this->safe_integer($error, 'errorCode');
         $action = $this->safe_string($message, 'action');
@@ -2012,7 +2011,7 @@ class bitvavo extends \ccxt\async\bitvavo {
             $client->reject($feedback, $messageHash);
             return true;
         }
-        return null;
+        return false;
     }
 
     public function handle_message(Client $client, array $message) {

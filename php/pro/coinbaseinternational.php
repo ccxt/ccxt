@@ -1423,6 +1423,9 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $symbol = $this->safe_symbol($marketId);
         $timestamp = $this->safe_integer($data, 'timestamp');
         $channel = $this->safe_string($params, 'channel');
+        if ($channel === null) {
+            throw new ExchangeError($this->id . ' order book update has no channel');
+        }
         $channelParts = explode('.', $channel);
         $channelPartsLength = count($channelParts);
         $isGrouped = $channelPartsLength === 5;

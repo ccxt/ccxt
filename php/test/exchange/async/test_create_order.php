@@ -138,7 +138,7 @@ function tco_create_fillable_order($exchange, $market, $log_prefix, $skipped_pro
             \React\Async\await(tco_try_cancel_order($exchange, $symbol, $entryorder_filled, $skipped_properties));
             $entryorder_fetched = \React\Async\await(fetch_order($exchange, $symbol, $entryorder_filled['id'], $skipped_properties));
             tco_assert_filled_order($exchange, $market, $log_prefix, $skipped_properties, $entryorder_filled, $entryorder_fetched, $entry_side, $entry_amount);
-            $amount_to_close = $exchange->parse_to_numeric($exchange->safe_string($entryorder_fetched, 'filled'));
+            $amount_to_close = $exchange->safe_number($entryorder_fetched, 'filled');
             $params = array();
             if ($is_swap_future) {
                 $params['reduceOnly'] = true;

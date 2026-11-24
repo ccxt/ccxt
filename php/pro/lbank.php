@@ -1070,7 +1070,7 @@ class lbank extends \ccxt\async\lbank {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function handle_error_message(Client $client, array $message) {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //    {
         //        SERVER: 'V2',
@@ -1082,6 +1082,7 @@ class lbank extends \ccxt\async\lbank {
         $errMsg = $this->safe_string($message, 'message', '');
         $error = new ExchangeError($this->id . ' ' . $errMsg);
         $client->reject($error);
+        return false;
     }
 
     public function handle_ping(Client $client, array $message) {

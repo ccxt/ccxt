@@ -1584,7 +1584,7 @@ class coinbase extends Exchange {
         $data = $this->safe_list($spot, 'products', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $spotMarket = $this->parse_spot_market($data[$i], $feeTier);
+            $spotMarket = $this->parse_spot_market($this->safe_dict($data, $i, array()), $feeTier);
             if ($spotMarket !== null) {
                 $result[] = $spotMarket;
             }
@@ -2218,11 +2218,10 @@ class coinbase extends Exchange {
         $data = $this->safe_list($response, 'products', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $entry = $data[$i];
-            $marketId = $this->safe_string($entry, 'product_id');
+            $marketId = $this->safe_string($data[$i], 'product_id');
             $market = $this->safe_market($marketId, null, '-');
             $symbol = $this->safe_string($market, 'symbol', '');
-            $result[$symbol] = $this->parse_ticker($entry, $market);
+            $result[$symbol] = $this->parse_ticker($this->safe_dict($data, $i, array()), $market);
         }
         return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
     }

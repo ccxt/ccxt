@@ -4445,8 +4445,8 @@ class hashkey extends Exchange {
             $fee = $this->safe_dict($response, $symbol);
             return $fee;
         } elseif ($this->safe_bool($market, 'swap', false)) {
-            $response = $this->privateGetApiV1FuturesCommissionRate($this->extend(array( 'symbol' => $market['id'] ), $params));
-            return $this->parse_trading_fee($response, $market);
+            $swapResponse = $this->privateGetApiV1FuturesCommissionRate($this->extend(array( 'symbol' => $market['id'] ), $params));
+            return $this->parse_trading_fee($swapResponse, $market);
             //
             //     {
             //         "openMakerFee": "0.00025",

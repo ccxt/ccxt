@@ -989,10 +989,9 @@ class gate extends \ccxt\async\gate {
         }
         $isTicker = ($objectName === 'ticker'); // whether ticker or bid-ask
         for ($i = 0; $i < count($results); $i++) {
-            $rawTicker = $results[$i];
-            $marketId = $this->safe_string($rawTicker, 's');
+            $marketId = $this->safe_string($results[$i], 's');
             $market = $this->safe_market($marketId, null, '_', $marketType);
-            $parsedItem = $this->parse_ticker($rawTicker, $market);
+            $parsedItem = $this->parse_ticker($this->safe_dict($results, $i, array()), $market);
             $symbol = $parsedItem['symbol'];
             if ($isTicker) {
                 if ($symbol !== null) {
@@ -1603,18 +1602,19 @@ class gate extends \ccxt\async\gate {
         if (!$this->is_empty($symbolsNormalized)) {
             $market = $this->get_market_from_symbols($symbolsNormalized);
         }
-        $type = null;
-        $query = null;
-        list($type, $query) = $this->handle_market_type_and_params('watchPositions', $market, $params);
-        if ($type === 'spot') {
+        list($marketType, $marketQuery) = $this->handle_market_type_and_params('watchPositions', $market, $params);
+        $query = $marketQuery;
+        $type = $marketType;
+        $messageHash = $marketType . ':positions';
+        if ($marketType === 'spot') {
             $type = 'swap';
+            $messageHash = 'swap:positions';
         }
         $typeId = $this->get_supported_mapping($type, array(
             'future' => 'futures',
             'swap' => 'futures',
             'option' => 'options',
         ));
-        $messageHash = $type . ':positions';
         if (!$this->is_empty($symbolsNormalized)) {
             if ($symbolsNormalized === null) {
                 throw new ArgumentsRequired($this->id . ' watchPositions() symbols is required');
@@ -2136,7 +2136,7 @@ class gate extends \ccxt\async\gate {
         ), $marketResolved);
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //    {
         //        "time": 1647274664,

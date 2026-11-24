@@ -844,7 +844,7 @@ class bit2me extends \ccxt\async\bit2me {
         return $message;
     }
 
-    public function handle_error_message(Client $client, array $message) {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //     { "event": "added-order", "symbol": "BTC/USDC", "error": { "code": "PRICE_LOWER_MARKET_MIN", "minPrice": 0.001, "message": "The price can not be lower than 0.001" } }
         //     { "event": "canceled-order", "orderId": "73352609-a885-4dc6-99c4-8a03e5df6bda", "error": { "code": "ORDER_NOT_FOUND", "message": "The order with ID 73352609-a885-4dc6-99c4-8a03e5df6bda was not found" } }
@@ -916,6 +916,7 @@ class bit2me extends \ccxt\async\bit2me {
                 }
             }
         }
+        return false;
     }
 
     public function handle_message(Client $client, array $message) {

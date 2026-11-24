@@ -1350,7 +1350,7 @@ class toobit extends \ccxt\async\toobit {
         return $wsBaseUrl . '/api/v1/ws/' . $listenKey;
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //    {
         //        "code": '-100010',

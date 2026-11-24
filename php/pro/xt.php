@@ -1758,7 +1758,7 @@ class xt extends \ccxt\async\xt {
         $this->clean_cache($subscription);
     }
 
-    public function handle_error_message(Client $client, array $message) {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //    {
         //        "id": "123",
@@ -1772,9 +1772,10 @@ class xt extends \ccxt\async\xt {
                 unset($client->subscriptions['token']);
             }
             $this->get_listen_key(true);
-            return;
+            return false;
         }
         $error = new ExchangeError($this->id . ' ' . $this->json($message));
         $client->reject($error);
+        return false;
     }
 }

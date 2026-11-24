@@ -932,7 +932,7 @@ class woo extends Exchange {
         $price = $this->safe_string_2($trade, 'executed_price', 'executedPrice');
         $amount = $this->safe_string_2($trade, 'executed_quantity', 'executedQuantity');
         $order_id = $this->safe_string_2($trade, 'order_id', 'orderId');
-        $fee = $this->parse_token_and_fee_temp($trade, array( 'fee_asset', 'feeAsset' ), array( 'fee' ));
+        $fee = $this->parse_token_and_fee_temp($this->extend(array(), $trade), array( 'fee_asset', 'feeAsset' ), array( 'fee' ));
         $cost = Precise::string_mul($price, $amount);
         $side = $this->safe_string_lower($trade, 'side');
         $id = $this->safe_string($trade, 'id');

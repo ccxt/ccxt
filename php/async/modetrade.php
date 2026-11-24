@@ -839,7 +839,7 @@ class modetrade extends Exchange {
         $price = $this->safe_string($trade, 'executed_price');
         $amount = $this->safe_string($trade, 'executed_quantity');
         $order_id = $this->safe_string($trade, 'order_id');
-        $fee = $this->parse_token_and_fee_temp($trade, 'fee_asset', 'fee');
+        $fee = $this->parse_token_and_fee_temp($this->extend(array(), $trade), 'fee_asset', 'fee');
         $cost = Precise::string_mul($price, $amount);
         $side = $this->safe_string_lower($trade, 'side');
         $takerOrMaker = null;

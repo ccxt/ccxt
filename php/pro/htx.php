@@ -2532,7 +2532,7 @@ class htx extends \ccxt\async\htx {
         $promise->resolve($message);
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //     {
         //         "action": "sub",

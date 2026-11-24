@@ -1460,13 +1460,12 @@ class delta extends Exchange {
         $tickers = $this->safe_list($response, 'result', array());
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
-            $rawTicker = $tickers[$i];
-            $contractType = $this->safe_string($rawTicker, 'contract_type');
+            $contractType = $this->safe_string($tickers[$i], 'contract_type');
             if (($contractType === 'options_combos') || ($contractType === 'binary_call_options') || ($contractType === 'binary_put_options')) {
                 // these instruments are excluded from the unified markets, see fetchMarkets
                 continue;
             }
-            $ticker = $this->parse_ticker($rawTicker);
+            $ticker = $this->parse_ticker($this->safe_dict($tickers, $i, array()));
             $symbol = $this->safe_string($ticker, 'symbol');
             if ($symbol !== null) {
                 $result[$symbol] = $ticker;

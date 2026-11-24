@@ -2431,7 +2431,8 @@ class bingx extends Exchange {
             //     ]
             // }
             //
-            return $this->parse_ticker($this->safe_dict($response['data'], 0, array()), $market);
+            $rows = $this->safe_list($response, 'data', array());
+            return $this->parse_ticker($this->safe_dict($rows, 0, array()), $market);
         } else {
             $response = Async\await($this->swapV2PublicGetQuotePremiumIndex($this->extend($request, $paramsSubType)));
             //

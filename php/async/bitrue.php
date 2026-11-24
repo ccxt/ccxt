@@ -1430,13 +1430,13 @@ class bitrue extends Exchange {
             } elseif ($this->safe_bool($market, 'inverse', false)) {
                 $response = Async\await($this->dapiV1PublicGetTicker($this->extend($request, $params)));
             }
-            $data = $response;
+            $data = $this->extend($data, $response);
         } elseif ($this->safe_bool($market, 'spot', false)) {
             $request = array(
                 'symbol' => $market['id'],
             );
             $response = Async\await($this->spotV1PublicGetTicker24hr($this->extend($request, $params)));
-            $data = $this->safe_dict($response, 0, array());
+            $data = $this->extend($data, $this->safe_dict($response, 0, array()));
         } else {
             throw new NotSupported($this->id . ' fetchTicker only support spot & swap markets');
         }

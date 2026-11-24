@@ -821,7 +821,7 @@ class bullish extends \ccxt\async\bullish {
         $client->resolve($positions, 'positions');
     }
 
-    public function handle_error_message(Client $client, array $message) {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //     {
         //         "data": {
@@ -844,6 +844,7 @@ class bullish extends \ccxt\async\bullish {
         } catch (Exception $e) {
             $client->reject($e);
         }
+        return false;
     }
 
     public function handle_message(Client $client, array $message) {

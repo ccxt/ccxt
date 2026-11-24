@@ -350,12 +350,12 @@ class onetrading extends \ccxt\async\onetrading {
         if ($this->newUpdates) {
             $limitResolved = $trades->getLimit($symbolResolved, $limit);
         }
-        $trades = $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limitResolved);
-        $numTrades = count($trades);
+        $filtered = $this->filter_by_symbol_since_limit($trades, $symbolResolved, $since, $limitResolved);
+        $numTrades = count($filtered);
         if ($numTrades === 0) {
             return Async\await($this->watch_my_trades($symbolResolved, $since, $limitResolved, $params));
         }
-        return $trades;
+        return $filtered;
     }
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array()): PromiseInterface {
@@ -528,12 +528,12 @@ class onetrading extends \ccxt\async\onetrading {
         if ($this->newUpdates) {
             $limitResolved = $orders->getLimit($symbolResolved, $limit);
         }
-        $orders = $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved);
-        $numOrders = count($orders);
+        $filtered = $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved);
+        $numOrders = count($filtered);
         if ($numOrders === 0) {
             return Async\await($this->watch_orders($symbolResolved, $since, $limitResolved, $params));
         }
-        return $orders;
+        return $filtered;
     }
 
     public function handle_trading(Client $client, array $message) {
@@ -1307,7 +1307,7 @@ class onetrading extends \ccxt\async\onetrading {
         return $message;
     }
 
-    public function handle_error_message(Client $client, array $message): ?bool {
+    public function handle_error_message(Client $client, array $message): bool {
         //
         //     {
         //         "error": "MALFORMED_JSON",

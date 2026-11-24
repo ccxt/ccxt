@@ -2315,7 +2315,7 @@ class kalshi extends Exchange {
         $rawEventsLength = count($rawEvents);
         $result = array();
         for ($di = 0; $di < $rawEventsLength; $di++) {
-            $parsedEvent = $this->parse_event($rawEvents[$di]);
+            $parsedEvent = $this->parse_event($this->extend(array(), $rawEvents[$di]));
             $result[] = $parsedEvent;
             // register the parsed markets so populateOutcomes can index their outcomes
             $parsedMarkets = $parsedEvent['markets'];
