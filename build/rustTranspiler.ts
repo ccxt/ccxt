@@ -8627,14 +8627,18 @@ function typeGateTupleTernaries(content: string): string {
         const tail = '.as_array().cloned().unwrap_or_default();';
         if (close < 0 || !out.startsWith(tail, close)) continue;
         let names = 0;
-        const expr = out.slice(open + 1, close - 1).replace(/\{ \{ let __t = ((?:self|exchange)(?:\.parent)?\.(\w+)\([\s\S]*?\));\s*Value::from\(vec!\[__t\.0, Value::Dict\(__t\.1\)\]\) \} \}/g,
-            (r, call, name) => { if (!GATE_TUPLE.test(name)) return r; names++; return `{ ${call} }`; });
-        if (names !== 2 || expr.includes('__t')) continue;
+        const slot0 = new Set<string>();
+        const expr = out.slice(open + 1, close - 1).replace(/\{ \{ let __t = ((?:self|exchange)(?:\.parent)?\.(\w+)\([\s\S]*?\));\s*Value::from\(vec!\[(__t\.0|Value::Dict\(__t\.0\)), Value::Dict\(__t\.1\)\]\) \} \}/g,
+            (r, call, name, s0) => { if (!GATE_TUPLE.test(name)) return r; names++; slot0.add(s0); return `{ ${call} }`; });
+        // both arms must agree on slot 0: a bare Value or a Dict (the `[Dict, Dict]` declaration)
+        if (names !== 2 || slot0.size !== 1 || expr.includes('__t')) continue;
+        const dict0 = slot0.has('Value::Dict(__t.0)');
         const n = m[2], from = close + tail.length;
         const rest = m[1] ? out.slice(from, out.indexOf('; }', from) + 3) : rustFnRest(out, from);
         const seen: string[] = [];
         const body = rest.replace(new RegExp(String.raw`\b${n}\.get\(([01])\)\.cloned\(\)\.unwrap_or\(Value::Null\)(\.into_dict\(\))?`, 'g'), (_r, i, d) => {
             seen.push(i);
+            if (i === '0' && dict0) return d ? `${n}.0` : `Value::Dict(${n}.0)`;
             return i === '1' ? (d ? `${n}.1` : `Value::Dict(${n}.1)`) : `${n}.0${d ?? ''}`;
         });
         const left = body.replace(new RegExp(`\\b${n}\\.[01]\\b`, 'g'), '');
