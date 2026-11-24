@@ -16,6 +16,7 @@ export const JAVA_STRING_RETURN_METHODS = new Set ([
     'amountToPrecision', 'costToPrecision', 'feeToPrecision', 'outcomeSearchQuery', 'priceToPrecision',
     'walletAddressOrUndefined',
     'createAuthToken',
+    'signEvmTransaction',
 ]);
 
 // ===== 1b. string-returning names whose retype keeps a (String) checkcast =====
@@ -9047,6 +9048,7 @@ export const JAVA_STRING_PARAM_POSITIONS = {
     'withdrawRequest': [0],
     'withdrawWs': [0],
     'handleMarginModeAndParams': [0],
+    'signEvmTransaction': [1],
 };
 
 // Fixed OrderType/OrderSide parameters of the base Exchange / PredictionExchange declarations: the
