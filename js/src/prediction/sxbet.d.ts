@@ -489,7 +489,7 @@ export default class sxbet extends Exchange {
      */
     fetchSxbetRealtimeToken(): Promise<Str>;
     connectSxbetCentrifugo(url: Str): Promise<any>;
-    pong(client: Client, message?: any): Promise<void>;
+    pong(client: Client): Promise<void>;
     subscribeSxbetChannel(messageHash: string, channel: string): Promise<any>;
     handleTextMessage(client: Client, message: string): void;
     handleMessage(client: Client, message: Dict): void;

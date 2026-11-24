@@ -2,6 +2,7 @@ import gateRest from '../gate.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, OrderType, OrderSide, Num, Market, OrderRequest, Bool, NullableDict, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
+import type { OrderBookSide } from '../base/ws/OrderBookSide.js';
 export default class gate extends gateRest {
     describe(): Dict;
     describeData(): any;
@@ -170,7 +171,7 @@ export default class gate extends gateRest {
     handleNewSpotOrderBook(client: Client, message: Dict): void;
     handleOrderBook(client: Client, message: Dict): void;
     getCacheIndex(orderBook: NullableDict, cache: any[]): number;
-    handleBidAsks(bookSide: any, bidAsks: any[]): void;
+    handleBidAsks(bookSide: OrderBookSide, bidAsks: any[]): void;
     handleBookDelta(orderbook: WsOrderBook, delta: any): void;
     /**
      * @method

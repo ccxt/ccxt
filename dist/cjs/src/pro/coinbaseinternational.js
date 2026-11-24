@@ -1939,7 +1939,6 @@ class coinbaseinternational extends coinbaseinternational$1["default"] {
             'params': paramsResolved,
         };
         await client.send(request);
-        return undefined;
     }
 }
 

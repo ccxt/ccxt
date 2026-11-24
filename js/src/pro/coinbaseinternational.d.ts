@@ -737,5 +737,5 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {bool} [params.invalidate_token] whether to invalidate session tokens, default true
      * @returns {object} the exchange response
      */
-    logoutWs(params?: Dict): Promise<undefined>;
+    logoutWs(params?: Dict): Promise<void>;
 }

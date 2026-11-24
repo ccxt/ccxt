@@ -196,7 +196,7 @@ export default class kraken extends Exchange {
     createOrders(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
     findMarketByAltnameOrId(id: any): MarketInterface;
     resolveMarketByAltnameOrId(marketId: Str, market?: Market): Market;
-    getDelistedMarketById(id: Str): any;
+    getDelistedMarketById(id: Str): Market;
     parseOrderStatus(status: Str): Str;
     parseOrderType(status: Str): Str;
     parseOrder(order: Dict, market?: Market): Order;

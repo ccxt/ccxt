@@ -1940,6 +1940,5 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             'params': paramsResolved,
         };
         await client.send(request);
-        return undefined;
     }
 }

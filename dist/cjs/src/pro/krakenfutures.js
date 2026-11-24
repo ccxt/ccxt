@@ -1468,8 +1468,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                     cashBalance[code] = newAccount;
                 }
             }
-            this.balance['cash'] = this.pruneStaleBalanceKeys(cashBalance, holdingCodes);
-            this.balance['cash'] = this.safeBalance(this.balance['cash']);
+            this.balance['cash'] = this.safeBalance(this.pruneStaleBalanceKeys(cashBalance, holdingCodes));
         }
         if (futures !== undefined) {
             const futuresKeys = Object.keys(futures); // marginAccount
@@ -1496,8 +1495,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                 }
                 marginBalance[symbol] = symbolAccounts;
             }
-            this.balance['margin'] = this.pruneStaleBalanceKeys(marginBalance, futuresSymbols);
-            this.balance['margin'] = this.safeBalance(this.balance['margin']);
+            this.balance['margin'] = this.safeBalance(this.pruneStaleBalanceKeys(marginBalance, futuresSymbols));
             client.resolve(this.balance['margin'], messageHash + ':futures');
         }
         if (flexFutures !== undefined) {
@@ -1522,8 +1520,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                     flexBalance[code] = newAccount;
                 }
             }
-            this.balance['flex'] = this.pruneStaleBalanceKeys(flexBalance, flexCodes);
-            this.balance['flex'] = this.safeBalance(this.balance['flex']);
+            this.balance['flex'] = this.safeBalance(this.pruneStaleBalanceKeys(flexBalance, flexCodes));
             client.resolve(this.balance['flex'], messageHash + ':flex_futures');
         }
         // resolve the plain hash exactly once per message, with the unified

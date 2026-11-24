@@ -319,7 +319,7 @@ export default class okx extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     cancelOrder(id: string, symbol?: Str, params?: Dict): Promise<Order>;
-    parseIds(ids: any): any;
+    parseIds(ids: any): Strings;
     /**
      * @method
      * @name okx#cancelOrders

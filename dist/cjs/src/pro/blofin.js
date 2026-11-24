@@ -569,7 +569,7 @@ class blofin extends blofin$1["default"] {
             marketBalance[key] = parsed[key];
         }
         this.balance[marketType] = marketBalance;
-        this.balance[marketType] = this.safeBalance(this.balance[marketType]);
+        this.balance[marketType] = this.safeBalance(marketBalance);
         const messageHash = marketType + ':balance';
         client.resolve(this.balance[marketType], messageHash);
     }

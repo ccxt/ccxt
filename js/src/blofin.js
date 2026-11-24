@@ -2774,7 +2774,7 @@ export default class blofin extends Exchange {
             return ids.split(',');
         }
         else {
-            return ids;
+            return this.safeStringList([ids], [0]);
         }
     }
     /**

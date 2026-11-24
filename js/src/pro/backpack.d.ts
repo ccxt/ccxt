@@ -2,6 +2,7 @@ import backpackRest from '../backpack.js';
 import type { Balances, Dict, NullableDict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
+import type { OrderBookSide } from '../base/ws/OrderBookSide.js';
 export default class backpack extends backpackRest {
     describe(): Dict;
     /**
@@ -300,7 +301,7 @@ export default class backpack extends backpackRest {
     unWatchOrderBookForSymbols(symbols: string[], params?: Dict): Promise<any>;
     handleOrderBook(client: Client, message: Dict): void;
     handleBookDelta(orderbook: WsOrderBook, delta: any): void;
-    handleBidAsks(bookSide: any, bidAsks: any[]): void;
+    handleBidAsks(bookSide: OrderBookSide, bidAsks: any[]): void;
     getCacheIndex(orderbook: NullableDict, cache: any[]): number;
     /**
      * @method

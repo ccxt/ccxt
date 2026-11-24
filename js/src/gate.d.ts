@@ -46,7 +46,7 @@ export default class gate extends Exchange {
     fetchFutureMarkets(params?: Dict): Promise<Market[]>;
     parseContractMarket(market: Dict, settleId: Str): Market;
     fetchOptionMarkets(params?: Dict): Promise<Market[]>;
-    fetchOptionUnderlyings(): Promise<Str[]>;
+    fetchOptionUnderlyings(): Promise<string[]>;
     prepareRequest(market?: Market, type?: Str, params?: Dict): [Dict, Dict];
     spotOrderPrepareRequest(market?: Market, trigger?: Bool, params?: Dict): [Dict, Dict];
     multiOrderSpotPrepareRequest(market?: Market, trigger?: Bool, params?: Dict): [Dict, Dict];

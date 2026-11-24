@@ -2173,7 +2173,7 @@ export default class sxbet extends Exchange {
         // connect is in flight, sent by a concurrent subscribe - wait on the shared reply future
         return await client.future('centrifugoConnected');
     }
-    async pong(client, message = undefined) {
+    async pong(client) {
         // Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
         await client.send('{}');
     }

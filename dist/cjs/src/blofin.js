@@ -2773,7 +2773,7 @@ class blofin extends blofin$1["default"] {
             return ids.split(',');
         }
         else {
-            return ids;
+            return this.safeStringList([ids], [0]);
         }
     }
     /**

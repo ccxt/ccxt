@@ -3811,12 +3811,14 @@ class binance extends binance$1["default"] {
         // stock keepalive fixes
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams(methodName, market, params);
         const [subType, paramsSubType] = this.handleSubTypeAndParams(methodName, market, paramsMarketType);
-        let type = marketType;
+        const linear = this.isLinear(marketType, subType);
+        const inverse = this.isInverse(marketType, subType);
+        let type = (marketType !== undefined) ? marketType : 'spot';
         if (type !== 'option' && type !== 'stock') {
-            if (this.isLinear(type, subType)) {
+            if (linear) {
                 type = 'linear';
             }
-            else if (this.isInverse(type, subType)) {
+            else if (inverse) {
                 type = 'inverse';
             }
         }
@@ -4959,16 +4961,8 @@ class binance extends binance$1["default"] {
             this.handleOrder(client, message);
             return;
         }
-        const orderValue = this.safeDict(message, 'o', message);
-        let messageValue = message;
-        if ((e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE')) {
-            messageValue = orderValue;
-            if ((e === 'ALGO_UPDATE') && (this.safeInteger(orderValue, 'T') === undefined)) {
-                // keep the outer event time, the algo payload carries no timestamps
-                messageValue = this.extend(orderValue, { 'T': this.safeInteger(message, 'T') });
-            }
-        }
-        if ((e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE')) {
+        const isOrderEvent = (e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE');
+        if (isOrderEvent) {
             const oField = this.safeList(message, 'o');
             if (oField !== undefined) {
                 // eOptions format: o is an array of orders with nested fi fills
@@ -4976,9 +4970,24 @@ class binance extends binance$1["default"] {
                 return;
             }
         }
-        this.handleMyTrade(client, messageValue);
-        this.handleOrder(client, messageValue);
-        this.handleMyLiquidation(client, messageValue);
+        if (!isOrderEvent) {
+            this.handleMyTrade(client, message);
+            this.handleOrder(client, message);
+            this.handleMyLiquidation(client, message);
+            return;
+        }
+        const orderValue = this.safeDict(message, 'o', message);
+        if ((e === 'ALGO_UPDATE') && (this.safeInteger(orderValue, 'T') === undefined)) {
+            // keep the outer event time, the algo payload carries no timestamps
+            const algoOrder = this.extend(orderValue, { 'T': this.safeInteger(message, 'T') });
+            this.handleMyTrade(client, algoOrder);
+            this.handleOrder(client, algoOrder);
+            this.handleMyLiquidation(client, algoOrder);
+            return;
+        }
+        this.handleMyTrade(client, orderValue);
+        this.handleOrder(client, orderValue);
+        this.handleMyLiquidation(client, orderValue);
     }
     handleStockPrice(client, message) {
         //

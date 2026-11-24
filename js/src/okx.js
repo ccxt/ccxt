@@ -3981,7 +3981,7 @@ export default class okx extends Exchange {
             return ids.split(',');
         }
         else {
-            return ids;
+            return this.safeStringList([ids], [0]);
         }
     }
     /**
@@ -4027,18 +4027,20 @@ export default class okx extends Exchange {
                     });
                 }
             }
-            for (let i = 0; i < orderIds.length; i++) {
-                if ((trailing) || isTrigger) {
-                    request.push({
-                        'algoId': this.safeString(orderIds, i),
-                        'instId': market['id'],
-                    });
-                }
-                else {
-                    request.push({
-                        'ordId': this.safeString(orderIds, i),
-                        'instId': market['id'],
-                    });
+            if (orderIds !== undefined) {
+                for (let i = 0; i < orderIds.length; i++) {
+                    if ((trailing) || isTrigger) {
+                        request.push({
+                            'algoId': this.safeString(orderIds, i),
+                            'instId': market['id'],
+                        });
+                    }
+                    else {
+                        request.push({
+                            'ordId': this.safeString(orderIds, i),
+                            'instId': market['id'],
+                        });
+                    }
                 }
             }
         }

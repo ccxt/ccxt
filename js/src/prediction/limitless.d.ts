@@ -156,7 +156,7 @@ export default class limitless extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    fetchOrdersByIds(ids: any, outcome?: Str, params?: Dict): Promise<PredictionOrder[]>;
+    fetchOrdersByIds(ids: string[], outcome?: Str, params?: Dict): Promise<PredictionOrder[]>;
     /**
      * @method
      * @name limitless#fetchOrder

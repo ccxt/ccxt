@@ -3980,7 +3980,7 @@ class okx extends okx$1["default"] {
             return ids.split(',');
         }
         else {
-            return ids;
+            return this.safeStringList([ids], [0]);
         }
     }
     /**
@@ -4026,18 +4026,20 @@ class okx extends okx$1["default"] {
                     });
                 }
             }
-            for (let i = 0; i < orderIds.length; i++) {
-                if ((trailing) || isTrigger) {
-                    request.push({
-                        'algoId': this.safeString(orderIds, i),
-                        'instId': market['id'],
-                    });
-                }
-                else {
-                    request.push({
-                        'ordId': this.safeString(orderIds, i),
-                        'instId': market['id'],
-                    });
+            if (orderIds !== undefined) {
+                for (let i = 0; i < orderIds.length; i++) {
+                    if ((trailing) || isTrigger) {
+                        request.push({
+                            'algoId': this.safeString(orderIds, i),
+                            'instId': market['id'],
+                        });
+                    }
+                    else {
+                        request.push({
+                            'ordId': this.safeString(orderIds, i),
+                            'instId': market['id'],
+                        });
+                    }
                 }
             }
         }
