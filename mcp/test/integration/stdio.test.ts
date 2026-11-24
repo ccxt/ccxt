@@ -1,12 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'fs';
-import os from 'os';
 import path from 'path';
 import { spawn } from 'child_process';
 import { fileURLToPath } from 'url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { tempDirectory } from '../helpers/platform.js';
 
 const here = path.dirname (fileURLToPath (import.meta.url));
 const serverEntry = path.resolve (here, '..', '..', 'js', 'server.js');
@@ -14,7 +14,7 @@ const serverEntry = path.resolve (here, '..', '..', 'js', 'server.js');
 // spawns the COMPILED server over real stdio: proves the build output starts, speaks the
 // protocol, and that nothing corrupts the stdout JSON-RPC channel end to end
 test ('compiled server initializes and lists tools over real stdio', { 'skip': !fs.existsSync (serverEntry) ? 'run npm run build first' : false }, async () => {
-    const emptyConfig = path.join (fs.mkdtempSync (path.join (os.tmpdir (), 'ccxt-mcp-stdio-')), 'config.json');
+    const emptyConfig = path.join (tempDirectory ('ccxt-mcp-stdio-'), 'config.json');
     fs.writeFileSync (emptyConfig, '{}', { 'mode': 0o600 });
     const cleanEnv: Record<string, string> = {};
     for (const [ key, value ] of Object.entries (process.env)) {
@@ -46,7 +46,7 @@ test ('compiled server initializes and lists tools over real stdio', { 'skip': !
 // what the plugin's mcp.json does for ChatGPT / Codex: the variable alone, no config file
 // setting, must reach registration in the compiled server
 test ('CCXT_MCP_TOOLS=core lists the core profile over real stdio', { 'skip': !fs.existsSync (serverEntry) ? 'run npm run build first' : false }, async () => {
-    const emptyConfig = path.join (fs.mkdtempSync (path.join (os.tmpdir (), 'ccxt-mcp-stdio-')), 'config.json');
+    const emptyConfig = path.join (tempDirectory ('ccxt-mcp-stdio-'), 'config.json');
     fs.writeFileSync (emptyConfig, '{}', { 'mode': 0o600 });
     const cleanEnv: Record<string, string> = {};
     for (const [ key, value ] of Object.entries (process.env)) {
@@ -80,7 +80,7 @@ test ('CCXT_MCP_TOOLS=core lists the core profile over real stdio', { 'skip': !f
 // app closing) takes its ends of the pipes with it, and stdin closing is the ONLY thing that
 // tells the server. Node maps the SIGKILL below to TerminateProcess there, which is that case.
 test ('the server exits when its host dies without closing the pipes', { 'skip': (!fs.existsSync (serverEntry) ? 'run npm run build first' : false) }, async () => {
-    const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'ccxt-mcp-orphan-'));
+    const dir = tempDirectory ('ccxt-mcp-orphan-');
     const config = path.join (dir, 'config.json');
     fs.writeFileSync (config, '{}', { 'mode': 0o600 });
     const host = path.join (dir, 'host.mjs');

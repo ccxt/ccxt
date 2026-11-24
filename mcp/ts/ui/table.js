@@ -79,13 +79,9 @@
         return value ? value.charAt (0).toUpperCase () + value.slice (1) : value;
     }
 
+    // the bridge's formatter: the host's locale, and never a zero with a minus sign
     function localized (value, options) {
-        var tag = app.context ().locale;
-        try {
-            return value.toLocaleString ((typeof tag === 'string' && tag) ? tag : undefined, options);
-        } catch (error) {
-            return value.toLocaleString (undefined, options);
-        }
+        return app.number (value, options);
     }
 
     // bridge.compact, bridge.price and bridge.percent stop at "T": beyond it, and below what

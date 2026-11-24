@@ -81,7 +81,7 @@ section.step > p.fineprint { margin-top: 16px; }
                 <p>It will be saved in this file, here on your computer:</p>
                 <span class="path" id="path-1"></span>
                 <ul class="ticks">
-                    <li><span class="tick" aria-hidden="true">&#10003;</span><span>Only your own user account on this computer can read that file.</span></li>
+                    <li><span class="tick" aria-hidden="true">&#10003;</span><span id="private-1">Only your own user account on this computer can read that file.</span></li>
                     <li><span class="tick" aria-hidden="true">&#10003;</span><span>The key is sent only to the exchange you choose.</span></li>
                     <li><span class="tick" aria-hidden="true">&#10003;</span><span>It is never shown to the AI assistant, and never sent to CCXT.</span></li>
                     <li><span class="tick" aria-hidden="true">&#10003;</span><span>This page runs on your computer too: its address starts with <code>127.0.0.1</code>, which means &ldquo;this computer&rdquo;.</span></li>
@@ -195,7 +195,7 @@ section.step > p.fineprint { margin-top: 16px; }
                 <div><dt>Key</dt><dd id="r-key"></dd><button type="button" class="change" data-goto="3" aria-label="Change the key">Change</button></div>
                 <div><dt>Works on</dt><dd id="r-env"></dd><button type="button" class="change" data-goto="3" aria-label="Change where the key works">Change</button></div>
                 <div><dt>The assistant may</dt><dd id="r-may"></dd><button type="button" class="change" data-goto="4" aria-label="Change what the assistant may do">Change</button></div>
-                <div><dt>Saved in</dt><dd><span id="path-5"></span><small>On this computer only. Readable only by your user account.</small></dd><span></span></div>
+                <div><dt>Saved in</dt><dd><span id="path-5"></span><small id="private-5">On this computer only. Readable only by your user account.</small></dd><span></span></div>
             </dl>
             <div class="field" id="name-row">
                 <label for="account">Name for this account</label>
@@ -742,6 +742,12 @@ section.step > p.fineprint { margin-top: 16px; }
     if (preset) { preset.checked = true; }
     $('path-1').textContent = boot.configPath;
     $('path-5').textContent = boot.configPath;
+    if (boot.configPrivate === false) {
+        // Windows, and a file outside the user's own folder: who can read it is decided by
+        // the folder it is in, so the page does not promise what it cannot know
+        $('private-1').textContent = 'This file is outside your own user folder, so who can read it depends on the permissions of the folder it is in.';
+        $('private-5').textContent = 'On this computer only. Who can read it depends on the folder it is in.';
+    }
     if (boot.replace) {
         // a new key for an account that exists: its name is settled, and so is the fact
         // that it will be saved over

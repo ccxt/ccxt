@@ -1,13 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { createServer } from '../../ts/factory.js';
 import { MARKET, fakeCcxtModule, fakePoolsDeps, makeConfig } from '../helpers/fake-ccxt.js';
 import type { ServerContext } from '../../ts/types.js';
+import { tempDirectory } from '../helpers/platform.js';
 
 async function connect (): Promise<{ client: Client, ctx: ServerContext }> {
     const { server, ctx } = createServer ({
@@ -15,7 +13,7 @@ async function connect (): Promise<{ client: Client, ctx: ServerContext }> {
         'ccxtModule': fakeCcxtModule,
         'poolsDeps': fakePoolsDeps,
         'version': 'test',
-        'journalDir': fs.mkdtempSync (path.join (os.tmpdir (), 'ccxt-mcp-search-')),
+        'journalDir': tempDirectory ('ccxt-mcp-search-'),
     });
     const [ clientTransport, serverTransport ] = InMemoryTransport.createLinkedPair ();
     const client = new Client ({ 'name': 'search-markets-test', 'version': '0.0.1' });

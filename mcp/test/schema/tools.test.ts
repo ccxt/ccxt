@@ -1,8 +1,5 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -11,6 +8,7 @@ import { createServer } from '../../ts/factory.js';
 import { SERVER_INSTRUCTIONS } from '../../ts/tools/index.js';
 import { ALWAYS_LISTED_TOOLS, CORE_TOOLS, INSTRUCTION_BULLETS, REGISTRABLE_TOOLS, ToolProfile, applyToolProfile } from '../../ts/tools/profile.js';
 import { fakeCcxtModule, fakePoolsDeps, makeConfig } from '../helpers/fake-ccxt.js';
+import { tempDirectory } from '../helpers/platform.js';
 
 const MARKET_TOOLS = [
     'list_exchanges', 'describe_exchange', 'describe_method', 'search_markets',
@@ -30,7 +28,7 @@ function makeClient (accounts: any, settings: any = {}) {
         'ccxtModule': fakeCcxtModule,
         'poolsDeps': fakePoolsDeps,
         'version': 'test',
-        'journalDir': fs.mkdtempSync (path.join (os.tmpdir (), 'ccxt-mcp-schema-')),
+        'journalDir': tempDirectory ('ccxt-mcp-schema-'),
     });
     const [ clientTransport, serverTransport ] = InMemoryTransport.createLinkedPair ();
     const client = new Client ({ 'name': 'schema-test', 'version': '0.0.1' });
@@ -170,7 +168,7 @@ async function connect (accounts: any, settings: any = {}) {
         'ccxtModule': fakeCcxtModule,
         'poolsDeps': fakePoolsDeps,
         'version': 'test',
-        'journalDir': fs.mkdtempSync (path.join (os.tmpdir (), 'ccxt-mcp-schema-')),
+        'journalDir': tempDirectory ('ccxt-mcp-schema-'),
     });
     const [ clientTransport, serverTransport ] = InMemoryTransport.createLinkedPair ();
     const client = new Client ({ 'name': 'schema-test', 'version': '0.0.1' });

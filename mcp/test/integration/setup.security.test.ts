@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'fs';
 import path from 'path';
 import { MAX_BODY_BYTES, SESSION_TTL_MS, browserCommand } from '../../ts/setup.js';
+import { configFileIsPrivate } from '../../ts/config.js';
 import { KEY, SECRET, bootOf, fileOf, harness, manage, manageFile, manageHarness, posix, post, raw, refused, saveBody, urlInLaunchFile } from '../helpers/setup-form.js';
 
 // The account pages' security properties, against the real loopback server: what a request
@@ -78,6 +79,12 @@ test ('the page: strict headers, no CORS, session data only as JSON, prefill esc
     assert.deepEqual (boot.exchanges, [ 'fakex' ]);
     assert.deepEqual (boot.prefill, { 'exchange': 'fakex', 'account': 'my-acct', 'environment': 'live' });
     assert.equal (boot.configPath, h.configFile);
+    // what the form may promise about who can read that file (false only on Windows, for a
+    // file outside the user's profile — see configFileIsPrivate)
+    assert.equal (boot.configPrivate, configFileIsPrivate (h.configFile));
+    if (process.platform !== 'win32') {
+        assert.equal (boot.configPrivate, true);
+    }
     assert.equal (boot.expiresInMs, SESSION_TTL_MS);
     // the form offers no funds / withdraw / implicit-write switch at all
     assert.ok (!/name="(funds|withdraw|implicitWrites)"|id="(funds|withdraw|implicitWrites)"/.test (page.text));

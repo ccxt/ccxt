@@ -15,7 +15,29 @@ export const windows = process.platform === 'win32';
 // 8.3 short name on GitHub's Windows runners (C:\Users\RUNNER~1\…); a child that prints its
 // working directory or its own path prints the resolved form, and the two must compare equal.
 export function scratchDirectory (prefix: string): string {
-    return fs.realpathSync.native (fs.mkdtempSync (path.join (os.tmpdir (), prefix)));
+    return fs.realpathSync.native (tempDirectory (prefix));
+}
+
+// A fresh directory under the temp directory that is removed again when the test process
+// ends. Every test file used to leave its own behind (a journal, a config file, a launch
+// file): thousands of ccxt-mcp-* directories after a day of runs. An exit handler rather
+// than an `after` hook: it also runs when a test fails or the file is cut short, and after
+// everything that still had a file open in there is gone.
+const temporaryDirectories: string[] = [];
+process.on ('exit', () => {
+    for (const directory of temporaryDirectories) {
+        try {
+            fs.rmSync (directory, { 'recursive': true, 'force': true });
+        } catch (error) {
+            // still in use (Windows): the system's own temp cleanup gets it
+        }
+    }
+});
+
+export function tempDirectory (prefix: string): string {
+    const directory = fs.mkdtempSync (path.join (os.tmpdir (), prefix));
+    temporaryDirectories.push (directory);
+    return directory;
 }
 
 // Windows refuses to delete a program for a moment after it exited (and for as long as a

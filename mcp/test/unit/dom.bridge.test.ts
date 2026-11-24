@@ -7,7 +7,6 @@ import { tickersPayload } from '../../scripts/preview-payloads.mjs';
 // bridge.js EXECUTED against a fake host: the price board is the view it runs in, because it is
 // the smallest one that both renders a result and calls a tool (Refresh).
 const ARGS = { 'exchange': 'binance', 'symbols': tickersPayload ().symbols };
-const wait = (ms: number) => new Promise ((resolve) => setTimeout (resolve, ms));
 
 test ('bridge: ui/initialize handshake — request, answer, initialized notification, host context applied', { 'skip': DOM_SKIP }, async () => {
     const host = await openView (viewHtml ('tickers'));
@@ -180,12 +179,30 @@ test ('bridge: a request the host never answers times out; the late answer is ig
     try {
         const document = host.document;
         assert.deepEqual (plain (host.window.ccxtApp.timeouts), { 'request': 60000, 'handshake': 10000 });
-        host.window.ccxtApp.timeouts.request = 20;
+        // No clock is involved: the page's own timer for the request is caught here and fired
+        // by hand. (A short real timeout raced the event loop — on Windows, whose timers are
+        // coarse, it had fired before the first assertion below.) The deadline is a value no
+        // other timer of the page uses, so only that one is caught.
+        const DEADLINE = 54321;
+        host.window.ccxtApp.timeouts.request = DEADLINE;
+        const realSetTimeout = host.window.setTimeout;
+        const deadlines: (() => void)[] = [];
+        host.window.setTimeout = (callback: () => void, delay?: number, ...rest: any[]) => {
+            if (delay === DEADLINE) {
+                deadlines.push (callback);
+                return 0;
+            }
+            return realSetTimeout.call (host.window, callback, delay, ...rest);
+        };
         document.getElementById ('refresh').click ();
         await host.settle ();
         const call = host.requests ('tools/call')[0];
+        assert.equal (deadlines.length, 1, 'the request is given a deadline');
         assert.equal (document.getElementById ('refresh').disabled, true);
-        await wait (60);
+        assert.ok (document.getElementById ('board').classList.contains ('busy'));
+        // the deadline passes without an answer
+        deadlines[0] ();
+        host.window.setTimeout = realSetTimeout;
         await host.settle ();
         assert.equal (document.getElementById ('status').textContent, 'Could not load: the host did not answer');
         assert.equal (document.getElementById ('refresh').disabled, false, 'the view is not left dimmed and disabled for good');

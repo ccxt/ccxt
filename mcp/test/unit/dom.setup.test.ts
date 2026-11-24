@@ -119,6 +119,9 @@ test ('setup page: starts on step 1 with the prefill, the config path and a coun
         assert.equal (form.heading (), 'Before you start');
         assert.equal (document.querySelector ('#progress [aria-current="step"]').textContent, '1Start');
         assert.equal (document.getElementById ('path-1').textContent, '/home/someone/.config/ccxt-mcp/config.json');
+        // the promise about who can read the file, on the first step and on the review
+        assert.equal (document.getElementById ('private-1').textContent, 'Only your own user account on this computer can read that file.');
+        assert.equal (document.getElementById ('private-5').textContent, 'On this computer only. Readable only by your user account.');
         assert.match (document.getElementById ('expiry').textContent, /^Closes in (10:00|9:5\d)$/);
         assert.equal (document.getElementById ('exchange').value, 'fakex');
         assert.equal (document.getElementById ('account').value, 'practice');
@@ -132,6 +135,31 @@ test ('setup page: starts on step 1 with the prefill, the config path and a coun
         assert.deepEqual (form.errors, []);
     } finally {
         await form.close ();
+    }
+});
+
+// Windows has no file modes; outside the user's profile the server cannot know who may read
+// the file (configPrivate: false), and the page must not claim that it does.
+test ('setup page: where the file\'s privacy cannot be known, neither step promises it', { 'skip': DOM_SKIP }, async () => {
+    for (const [ configPrivate, promised ] of [ [ false, false ], [ true, true ], [ undefined, true ] ] as [ boolean | undefined, boolean ][]) {
+        const form = await open ('setup.html', wizardBoot ({ 'configPath': 'D:\\shared\\ccxt\\config.json', configPrivate }));
+        try {
+            const document = form.document;
+            assert.equal (document.getElementById ('path-1').textContent, 'D:\\shared\\ccxt\\config.json');
+            const first = document.getElementById ('private-1').textContent;
+            const review = document.getElementById ('private-5').textContent;
+            if (promised) {
+                assert.equal (first, 'Only your own user account on this computer can read that file.');
+                assert.equal (review, 'On this computer only. Readable only by your user account.');
+            } else {
+                assert.equal (first, 'This file is outside your own user folder, so who can read it depends on the permissions of the folder it is in.');
+                assert.equal (review, 'On this computer only. Who can read it depends on the folder it is in.');
+                assert.ok (!/only your|readable only/i.test (document.body.textContent), 'no other sentence on the page makes the promise');
+            }
+            assert.deepEqual (form.errors, []);
+        } finally {
+            await form.close ();
+        }
     }
 });
 

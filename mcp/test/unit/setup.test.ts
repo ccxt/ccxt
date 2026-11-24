@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { ConfigWriteError, credentialSetupHelp, isValidAccountName, loadConfig, readConfigFileAccounts, removeAccountFromConfigFile, resolveConfigPath, updateAccountInConfigFile, validateAccount, writeAccountToConfigFile } from '../../ts/config.js';
+import { ConfigWriteError, configFileIsPrivate, credentialSetupHelp, renameIntoPlace, isValidAccountName, loadConfig, readConfigFileAccounts, removeAccountFromConfigFile, resolveConfigPath, updateAccountInConfigFile, validateAccount, writeAccountToConfigFile } from '../../ts/config.js';
 import { browserCommand, defaultLaunchRoots, launchPage } from '../../ts/setup.js';
 import { ExchangePools, UnknownAccountError } from '../../ts/pools.js';
+import { tempDirectory } from '../helpers/platform.js';
 
 // The config-file writer behind the setup form's save, and the small pure helpers around it.
 // The HTTP side (sessions, CSRF, hot-apply) is covered in test/integration/setup.*.test.ts.
@@ -15,7 +16,7 @@ const ACCOUNT = { 'exchange': 'fakex', 'apiKey': 'FAKEKEY-unit-123456', 'secret'
 const posix = process.platform !== 'win32';
 
 function tempDir (): string {
-    return fs.mkdtempSync (path.join (os.tmpdir (), 'ccxt-mcp-setup-unit-'));
+    return tempDirectory ('ccxt-mcp-setup-unit-');
 }
 
 function mode (file: string): number {
@@ -349,5 +350,76 @@ test ('loadConfig: a file account named __proto__/constructor/prototype is repor
         } else {
             process.env['CCXT_MCP_CONFIG'] = saved;
         }
+    }
+});
+
+// Windows has no file modes: what keeps the config file from other accounts there is the
+// folder it is in. The setup form only promises privacy where that can be known.
+test ('configFileIsPrivate: always on Unix (mode 0600); on Windows only inside the user\'s own profile', () => {
+    for (const platform of [ 'linux', 'darwin' ]) {
+        assert.equal (configFileIsPrivate ('/etc/ccxt/config.json', platform, '/home/someone'), true, platform);
+        assert.equal (configFileIsPrivate ('/home/someone/.config/ccxt-mcp/config.json', platform, '/home/someone'), true, platform);
+    }
+    const home = 'C:\\Users\\Some One';
+    // the default location, and any other below the profile, however it is spelled
+    for (const inside of [ 'C:\\Users\\Some One\\AppData\\Roaming\\ccxt-mcp\\config.json', 'c:\\users\\some one\\keys.json', 'C:/Users/Some One/Documents/ccxt/config.json', 'C:\\Users\\Some One\\a\\..\\b\\config.json' ]) {
+        assert.equal (configFileIsPrivate (inside, 'win32', home), true, inside);
+    }
+    // another folder, another user, another drive, a share, a look-alike and a way out
+    for (const outside of [ 'C:\\data\\config.json', 'C:\\Users\\Public\\config.json', 'C:\\Users\\Some One Else\\config.json', 'D:\\Users\\Some One\\config.json', '\\\\server\\share\\config.json', 'C:\\Users\\Some One\\..\\Other\\config.json', 'C:\\Users\\Some One' ]) {
+        assert.equal (configFileIsPrivate (outside, 'win32', home), false, outside);
+    }
+    // on the system the tests run on, a file in the home directory is private
+    assert.equal (configFileIsPrivate (path.join (os.homedir (), 'x', 'config.json')), true);
+});
+
+// Windows refuses a rename while another process has one of the two files open (a virus
+// scanner, an editor); a moment later it works. The rename and the pause are injected, so
+// nothing here depends on a clock or on Windows.
+test ('renameIntoPlace: on Windows a rename that is refused for a moment is tried again; a lasting failure is reported', () => {
+    const refusal = (code: string): Error => Object.assign (new Error (code + ': operation not permitted, rename'), { code });
+    for (const code of [ 'EPERM', 'EBUSY', 'EACCES' ]) {
+        const calls: [ string, string ][] = [];
+        const pauses: number[] = [];
+        renameIntoPlace ('from.tmp', 'config.json', {
+            'platform': 'win32',
+            'pause': (ms) => pauses.push (ms),
+            'rename': (from, to) => {
+                calls.push ([ from, to ]);
+                if (calls.length <= 3) {
+                    throw refusal (code);
+                }
+            },
+        });
+        assert.equal (calls.length, 4, code + ': three refusals, then the rename that worked');
+        assert.deepEqual (calls[3], [ 'from.tmp', 'config.json' ]);
+        assert.deepEqual (pauses, [ 50, 50, 50 ]);
+    }
+    // it gives up after about a second, with the error Windows gave
+    let attempts = 0;
+    let waited = 0;
+    assert.throws (() => renameIntoPlace ('a', 'b', { 'platform': 'win32', 'pause': (ms) => { waited += ms; }, 'rename': () => { attempts++; throw refusal ('EBUSY'); } }), { 'code': 'EBUSY' });
+    assert.equal (attempts, 21);
+    assert.equal (waited, 1000);
+    // an error waiting does not cure is reported at once
+    attempts = 0;
+    assert.throws (() => renameIntoPlace ('a', 'b', { 'platform': 'win32', 'pause': () => assert.fail ('must not wait'), 'rename': () => { attempts++; throw refusal ('ENOSPC'); } }), { 'code': 'ENOSPC' });
+    assert.equal (attempts, 1);
+    // and so is every error elsewhere: there EPERM means what it says
+    for (const platform of [ 'linux', 'darwin' ]) {
+        attempts = 0;
+        assert.throws (() => renameIntoPlace ('a', 'b', { platform, 'pause': () => assert.fail ('must not wait'), 'rename': () => { attempts++; throw refusal ('EPERM'); } }), { 'code': 'EPERM' });
+        assert.equal (attempts, 1, platform);
+    }
+    // the real thing, on the system the tests run on
+    const dir = tempDir ();
+    try {
+        fs.writeFileSync (path.join (dir, 'new'), 'new');
+        fs.writeFileSync (path.join (dir, 'old'), 'old');
+        renameIntoPlace (path.join (dir, 'new'), path.join (dir, 'old'));
+        assert.equal (fs.readFileSync (path.join (dir, 'old'), 'utf8'), 'new');
+        assert.deepEqual (fs.readdirSync (dir), [ 'old' ]);
+    } finally {
+        fs.rmSync (dir, { 'recursive': true, 'force': true });
     }
 });

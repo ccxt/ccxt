@@ -76,7 +76,7 @@ codex plugin add ccxt-mcp@ccxt
 
 The first command registers the marketplace (`.agents/plugins/marketplace.json` in the repository), the second installs the plugin (verified with Codex CLI 0.171.0; `codex mcp list` then shows the `ccxt` server). In the ChatGPT desktop app, add the marketplace the same way and install **CCXT** from the Plugins directory instead (per OpenAI's docs; untested here). OpenAI calls a plugin with a local stdio MCP server — like this one — ["desktop‑only"](https://developers.openai.com/plugins/deploy/desktop-only).
 
-**Windows.** The launcher route used by the ChatGPT desktop app and Codex (`scripts/launch.cmd` and the plugin's bootstrap) has **not been run on Windows**. Until it has, Windows users should use the `npx` route: install Node.js 18+ and add the server to the app directly as `npx -y ccxt-mcp` (the per‑app configs are below).
+**Windows.** CI runs the plugin's launcher route on Windows — `launch.cmd` started through `cmd.exe`, the bootstrap and the single-file server — and it works there. What has not been run is the ChatGPT desktop app or Codex itself on Windows: that they turn the manifest's `./scripts/launch` into `launch.cmd` follows from Codex's source code and from the layout of OpenAI's own bundled plugin, not from a test (details in the [plugin README](https://github.com/ccxt/ccxt/blob/master/mcp/plugin/README.md#windows)). If the plugin's server does not start there, use the `npx` route, which is certain to work: install Node.js 18+ and add the server to the app directly as `npx -y ccxt-mcp` (the per‑app configs are below).
 
 **xAI Grok**
 

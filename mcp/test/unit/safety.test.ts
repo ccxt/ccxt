@@ -1,15 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
 import { Safety, SafetyError, requireTier } from '../../ts/safety.js';
 import { Journal } from '../../ts/journal.js';
 import { FakeExchange, makeConfig } from '../helpers/fake-ccxt.js';
 import { confirmWrite, confirmationBinding } from '../../ts/tools/common.js';
+import { tempDirectory } from '../helpers/platform.js';
 
 function makeSafety (): Safety {
-    const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'ccxt-mcp-test-'));
+    const dir = tempDirectory ('ccxt-mcp-test-');
     return new Safety (new Journal (dir));
 }
 

@@ -3,7 +3,6 @@
 import { test, afterEach } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'fs';
-import os from 'os';
 import path from 'path';
 import { createRequire } from 'module';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
@@ -13,6 +12,7 @@ import { ccxt } from '../../ts/ccxt-loader.js';
 import { createRouter, routerUserAgent } from '../../ts/tools/route.js';
 import { FakeExchange, fakeCcxtModule, makeConfig } from '../helpers/fake-ccxt.js';
 import type { PoolsDeps } from '../../ts/pools.js';
+import { tempDirectory } from '../helpers/platform.js';
 
 const require = createRequire (import.meta.url);
 const fixture = require ('../../../ts/src/test/base/fixtures/orderRouter.json');
@@ -92,7 +92,7 @@ afterEach (() => {
 const TRADING = { 'apiKey': 'FAKEKEY123456', 'secret': 'FAKESECRET123456', 'sandbox': true, 'trading': true as const, 'maxOrderValue': 100 };
 
 async function connect (accounts: any = {}): Promise<{ client: Client, journalDir: string }> {
-    const journalDir = fs.mkdtempSync (path.join (os.tmpdir (), 'ccxt-mcp-route-'));
+    const journalDir = tempDirectory ('ccxt-mcp-route-');
     const { server } = createServer ({
         'config': makeConfig (accounts),
         'ccxtModule': fakeCcxtModule,

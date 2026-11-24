@@ -1,12 +1,12 @@
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'fs';
-import os from 'os';
 import path from 'path';
 import { spawnSync } from 'child_process';
 import { fileURLToPath } from 'url';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { tempDirectory } from '../helpers/platform.js';
 
 // The single-file bundle (scripts/build-bundle.mjs) is what the plugin runs on machines with
 // no npm, so it has to work with NOTHING beside it: no node_modules, no package.json, no ui/
@@ -47,7 +47,7 @@ before (() => {
     if (skip) {
         return;
     }
-    dir = fs.mkdtempSync (path.join (os.tmpdir (), 'ccxt-mcp-bundle-'));
+    dir = tempDirectory ('ccxt-mcp-bundle-');
     fs.writeFileSync (path.join (dir, 'config.json'), '{}', { 'mode': 0o600 });
     const alone = path.join (dir, 'alone');
     fs.mkdirSync (alone);

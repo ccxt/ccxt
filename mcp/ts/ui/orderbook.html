@@ -90,12 +90,9 @@ svg text.side { fill: var(--text-2); font-weight: 600; }
         nodes.status.className = 'status' + (isError ? ' error' : '');
     }
 
+    // the bridge's formatter: the host's locale, and never a zero with a minus sign
     function format (value, options) {
-        try {
-            return value.toLocaleString (app.context ().locale || undefined, options);
-        } catch (error) {
-            return value.toLocaleString (undefined, options);
-        }
+        return app.number (value, options);
     }
 
     // every price of one book shares a decimal count, so the ladder and the axis line up

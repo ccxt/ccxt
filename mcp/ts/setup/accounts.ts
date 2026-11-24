@@ -2,7 +2,7 @@ import { randomBytes } from 'crypto';
 import { z } from 'zod';
 import { log } from '../logging.js';
 import { redact, registerSecret, unregisterSecret } from '../redact.js';
-import { ConfigWriteError, hasOwn, isReservedAccountName, isValidAccountName, readConfigFileAccounts, registerAccountSecrets, resolveConfigPath, unescapePem, updateAccountInConfigFile, validateAccount, writeAccountToConfigFile } from '../config.js';
+import { ConfigWriteError, configFileIsPrivate, hasOwn, isReservedAccountName, isValidAccountName, readConfigFileAccounts, registerAccountSecrets, resolveConfigPath, unescapePem, updateAccountInConfigFile, validateAccount, writeAccountToConfigFile } from '../config.js';
 import type { AccountConfig, ServerContext } from '../types.js';
 import { CREDENTIAL_FIELDS, accountEnvironment } from '../types.js';
 import { FormError } from './session.js';
@@ -164,6 +164,9 @@ export class AccountActions implements SessionHandlers {
                 'environment': (prefill.sandbox === false) ? 'live' : 'sandbox',
             },
             'configPath': this.configPath (),
+            // false on Windows when the file is outside the user's profile: the form then
+            // does not promise that nobody else can read it
+            'configPrivate': configFileIsPrivate (this.configPath ()),
             'expiresInMs': view.expiresInMs,
             // 'accounts': the form was reached from the accounts page and goes back to it
             'page': view.page,

@@ -2,7 +2,6 @@ import { after } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'fs';
 import http from 'http';
-import os from 'os';
 import path from 'path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
@@ -11,6 +10,7 @@ import { clearSecrets } from '../../ts/redact.js';
 import { ccxt as realCcxt, allExchangeIds, closestMatches, exchangeClass as realExchangeClass, isKnownExchange } from '../../ts/ccxt-loader.js';
 import { FakeExchange, fakeCcxtModule, fakePoolsDeps, makeConfig } from './fake-ccxt.js';
 import type { ServerContext } from '../../ts/types.js';
+import { tempDirectory } from './platform.js';
 
 // The harness of the setup_account / manage_accounts tests (test/integration/setup.*.test.ts):
 // a server on the fake ccxt, the loopback pages it starts, and an HTTP client that can send
@@ -79,7 +79,7 @@ export function bootOf (pageText: string): any {
 
 export async function harness (options: { accounts?: any, settings?: any, exchangeClass?: any, configText?: string, opener?: (file: string) => Promise<void>, real?: boolean, problems?: string[] } = {}): Promise<Harness> {
     clearSecrets ();
-    const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'ccxt-mcp-setup-'));
+    const dir = tempDirectory ('ccxt-mcp-setup-');
     const configFile = path.join (dir, 'conf', 'config.json');
     if (options.configText !== undefined) {
         fs.mkdirSync (path.dirname (configFile), { 'recursive': true });
@@ -252,7 +252,14 @@ export function assertOnlyLastFour (haystack: string, label: string, keys: strin
         }
     }
     for (const other of others) {
-        for (const part of windows (other, 4)) {
+        // The credentials above were written so that no four of their characters occur in any
+        // word the server prints. A session token or nonce is 32 RANDOM hex characters: four
+        // of those turn up by chance in a timestamp, a port or a journal id (58 windows
+        // against every "0000" and "1700" in the text — this failed about one full run in
+        // ten, in whichever test the dice picked). Twelve in a row do not happen by chance,
+        // and any real leak of a token contains them.
+        const size = /^[0-9a-f]{24,}$/.test (other) ? 12 : 4;
+        for (const part of windows (other, size)) {
             assert.ok (!haystack.includes (part), label + ': part of a secret leaked (' + part + ')');
         }
     }

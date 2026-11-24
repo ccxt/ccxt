@@ -3,14 +3,12 @@
 // a route and never places an order.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { createServer } from '../../ts/factory.js';
 import { ccxt } from '../../ts/ccxt-loader.js';
 import { fakePoolsDeps, makeConfig } from '../helpers/fake-ccxt.js';
+import { tempDirectory } from '../helpers/platform.js';
 
 const live = process.env['CCXT_MCP_LIVE'] === '1';
 
@@ -20,7 +18,7 @@ test ('live: fetch_route USDT -> BTC for 1000 USDT returns a non-empty route', {
         'ccxtModule': ccxt,
         'poolsDeps': fakePoolsDeps,
         'version': 'live-test',
-        'journalDir': fs.mkdtempSync (path.join (os.tmpdir (), 'ccxt-mcp-live-')),
+        'journalDir': tempDirectory ('ccxt-mcp-live-'),
     });
     const [ clientTransport, serverTransport ] = InMemoryTransport.createLinkedPair ();
     const client = new Client ({ 'name': 'route-live-test', 'version': '0.0.1' });

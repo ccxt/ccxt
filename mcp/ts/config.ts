@@ -71,6 +71,21 @@ export function defaultConfigPath (): string {
     return path.join (process.env['XDG_CONFIG_HOME'] || path.join (home, '.config'), 'ccxt-mcp', 'config.json');
 }
 
+// Whether the config file at `configPath` can be said to be readable by this user only.
+// Everywhere but Windows the writer creates it with mode 0600, and that is the answer.
+// Windows has no mode bits: a new file takes the access list of its folder. Inside the user's
+// own profile (where the default location is) that list admits this user, the system and
+// administrators; anywhere else — a path the user chose with CCXT_MCP_CONFIG — it is whatever
+// that folder has, which this server cannot vouch for. The setup form words its promise
+// accordingly.
+export function configFileIsPrivate (configPath: string, platform: string = process.platform, home: string = os.homedir ()): boolean {
+    if (platform !== 'win32') {
+        return true;
+    }
+    const relative = path.win32.relative (path.win32.resolve (home), path.win32.resolve (configPath));
+    return relative !== '' && !relative.startsWith ('..') && !path.win32.isAbsolute (relative);
+}
+
 // The one place the config-file location is decided, shared by loadConfig and the setup form's
 // writer so an account saved from the form lands in the file the next start reads.
 // An unset MCPB file field can arrive as "" or an unsubstituted "${...}" template — those
@@ -567,6 +582,32 @@ function readConfigFileState (configPath: string, known: (exchangeId: string) =>
     return { target, 'exists': existing !== undefined, root, indent, shape };
 }
 
+// Puts the finished temporary file in the config file's place.
+// Windows refuses that for as long as another process has either file open — a virus scanner
+// looking at the file that was just written, an editor or a backup tool reading the config
+// file — and reports it as EPERM, EACCES or EBUSY. That passes within moments, so the rename
+// is tried again for about a second there before the save is reported as failed. Everywhere
+// else a rename either works or fails for a reason waiting does not cure.
+// `deps` exists for the tests: the rename, the platform and the pause between attempts.
+export function renameIntoPlace (from: string, to: string, deps: { rename?: (from: string, to: string) => void, platform?: string, pause?: (ms: number) => void } = {}): void {
+    const rename = deps.rename ?? fs.renameSync;
+    const platform = deps.platform ?? process.platform;
+    const pause = deps.pause ?? ((ms: number) => {
+        Atomics.wait (new Int32Array (new SharedArrayBuffer (4)), 0, 0, ms);
+    });
+    for (let attempt = 0; ; attempt++) {
+        try {
+            rename (from, to);
+            return;
+        } catch (e: any) {
+            if (platform !== 'win32' || attempt >= 20 || ![ 'EPERM', 'EACCES', 'EBUSY' ].includes (e?.code)) {
+                throw e;
+            }
+            pause (50);
+        }
+    }
+}
+
 function writeConfigFileState (state: ConfigFileState): void {
     const target = state.target;
     const directory = path.dirname (target);
@@ -584,7 +625,7 @@ function writeConfigFileState (state: ConfigFileState): void {
         } finally {
             fs.closeSync (fd);
         }
-        fs.renameSync (temp, target);
+        renameIntoPlace (temp, target);
     } catch (e: any) {
         try {
             fs.unlinkSync (temp);

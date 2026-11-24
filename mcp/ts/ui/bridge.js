@@ -334,11 +334,23 @@
         return formatters[key];
     }
 
+    // A zero is never printed with a minus sign: neither the negative zero arithmetic can
+    // leave behind ("+ 0" makes it a plain zero) nor a small negative value that the options
+    // round to zero (-0.001 with two decimals), which Intl would both write as "-0".
     function format (value, options) {
+        var number = value + 0;
         try {
-            return formatter ('NumberFormat', locale (), options).format (value);
+            var numberFormat = formatter ('NumberFormat', locale (), options);
+            var text = numberFormat.format (number);
+            if (number < 0) {
+                var zero = numberFormat.format (0);
+                if (numberFormat.format (-number) === zero) {
+                    return zero;
+                }
+            }
+            return text;
         } catch (error) {
-            return value.toLocaleString (undefined, options);
+            return number.toLocaleString (undefined, options);
         }
     }
 
@@ -481,6 +493,8 @@
         context: function () { return hostContext; },
         timeouts: timeouts,
         isNumber: isNumber,
+        // a number written for the host's locale with Intl.NumberFormat options
+        number: format,
         decimals: decimals,
         price: price,
         compact: compact,

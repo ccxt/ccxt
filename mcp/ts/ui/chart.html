@@ -820,6 +820,10 @@ svg text.tag-text { fill: var(--text); font-weight: 600; }
             return;
         }
         data = payload;
+        // every candle is read as a row of numbers ([ time, open, high, low, close, volume ]).
+        // The server only sends such rows, but a host can hand over a result it rebuilt
+        // itself: a row that is not an array is left out instead of being dereferenced.
+        data.candles = data.candles.filter (function (candle) { return Array.isArray (candle); });
         orders = overlayOrders ();
         setStatus ('');
         render ();

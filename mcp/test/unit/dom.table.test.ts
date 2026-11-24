@@ -332,15 +332,27 @@ test ('table: format helpers never print NaN, undefined or Infinity, and number 
     const host = await openView (PAGE, { 'embedded': false });
     try {
         const format = host.window.ccxtTable.format;
-        // (no -0 here: the views pass every payload number through format.number first, below)
-        const hostile = [ undefined, null, NaN, Infinity, -Infinity, '12', '', {}, [], true, 0, 1e-12, -1e-12, 1e21, -1e21, 0.1 + 0.2, 123456789.123456789, Number.MAX_VALUE, Number.MIN_VALUE ];
+        const hostile = [ undefined, null, NaN, Infinity, -Infinity, '12', '', {}, [], true, 0, -0, 1e-12, -1e-12, -0.001, 1e21, -1e21, 0.1 + 0.2, 123456789.123456789, Number.MAX_VALUE, Number.MIN_VALUE ];
         for (const name of [ 'compact', 'price', 'percent', 'quantity', 'money' ]) {
             for (const value of hostile) {
                 const text = format[name] (value);
                 assert.equal (typeof text, 'string', name + ' (' + String (value) + ')');
                 assert.doesNotMatch (text, /NaN|undefined|Infinity|null/, name + ' (' + String (value) + ') printed ' + text);
+                // a zero with a minus sign, in either spelling of the minus
+                assert.doesNotMatch (text, /^[-−]0(\.0*)?%?$/, name + ' (' + (Object.is (value, -0) ? '-0' : String (value)) + ') printed ' + text);
             }
         }
+        // the bridge's own formatters, which the chart and the order book call directly
+        const app = host.window.ccxtApp;
+        for (const value of [ -0, -0.001, -1e-12 ]) {
+            assert.equal (app.compact (-0), '0');
+            assert.doesNotMatch (app.compact (value), /^[-−]0(\.0*)?$/, 'compact (' + value + ') printed ' + app.compact (value));
+            assert.doesNotMatch (app.price (value, 2), /^[-−]0(\.0*)?$/, 'price (' + value + ', 2) printed ' + app.price (value, 2));
+        }
+        assert.equal (app.price (-0), '0');
+        assert.equal (app.price (-0.004, 2), '0.00');
+        assert.equal (app.price (-0.006, 2), '-0.01', 'a value that does not round to zero keeps its sign');
+        assert.equal (app.compact (-1234), '-1.23K');
         assert.equal (format.quantity (-0), '0');
         assert.equal (format.quantity (0.4125), '0.4125');
         assert.equal (format.quantity (1250000000), '1.25B');

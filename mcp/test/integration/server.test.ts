@@ -1,13 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'fs';
-import os from 'os';
 import path from 'path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { createServer } from '../../ts/factory.js';
 import { fakeCcxtModule, fakePoolsDeps, makeConfig } from '../helpers/fake-ccxt.js';
 import type { ServerContext } from '../../ts/types.js';
+import { tempDirectory } from '../helpers/platform.js';
 
 async function connect (accounts: any): Promise<{ client: Client, ctx: ServerContext }> {
     const { server, ctx } = createServer ({
@@ -15,7 +15,7 @@ async function connect (accounts: any): Promise<{ client: Client, ctx: ServerCon
         'ccxtModule': fakeCcxtModule,
         'poolsDeps': fakePoolsDeps,
         'version': 'test',
-        'journalDir': fs.mkdtempSync (path.join (os.tmpdir (), 'ccxt-mcp-int-')),
+        'journalDir': tempDirectory ('ccxt-mcp-int-'),
     });
     const [ clientTransport, serverTransport ] = InMemoryTransport.createLinkedPair ();
     const client = new Client ({ 'name': 'integration-test', 'version': '0.0.1' });

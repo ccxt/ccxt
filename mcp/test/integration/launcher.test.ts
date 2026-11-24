@@ -1,4 +1,4 @@
-import { test, before, after } from 'node:test';
+import { test, before, beforeEach, after } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'fs';
 import path from 'path';
@@ -120,13 +120,16 @@ function environment (extra: Record<string, string>): Record<string, string> {
         return { 'HOME': home, 'PATH': pathDir, ...extra };
     }
     // every place launch.cmd looks in comes from one of these, so nothing installed on the
-    // machine can be found; System32 is on PATH for where.exe, and holds no node.exe
+    // machine can be found; System32 is on PATH for where.exe, and holds no node.exe.
+    // ProgramW6432 is left out on purpose: when it is set, Windows itself replaces
+    // ProgramFiles with its value in every 64-bit process it starts (that is how a 32-bit
+    // program's children get the right folder), so the two cannot be told apart from inside
+    // cmd.exe — the first Windows run of this test found that out. It has a test of its own.
     return {
         ...systemEnv (),
         'USERPROFILE': home,
         'LOCALAPPDATA': path.join (home, 'AppData', 'Local'),
         'ProgramFiles': path.join (fixed, 'Program Files (x86)'),
-        'ProgramW6432': path.join (fixed, 'Program Files'),
         'PATH': pathDir + path.delimiter + system32 (),
         ...extra,
     };
@@ -192,6 +195,14 @@ before (() => {
     launcher = installPlugin (plugin);
     fs.writeFileSync (path.join (plugin, 'scripts', 'bootstrap.mjs'), stub);
     fs.writeFileSync (path.join (plugin, 'scripts', 'boot strap.mjs'), stub);
+});
+
+// a stand-in on PATH that a failed test left behind would be found by every later test, and
+// turn one failure into several
+beforeEach (() => {
+    for (const name of [ 'node', 'node.exe' ]) {
+        fs.rmSync (path.join (pathDir, name), { 'force': true, 'maxRetries': 20, 'retryDelay': 250 });
+    }
 });
 
 after (() => {
@@ -293,7 +304,6 @@ test ('every documented location is tried, in priority order', () => {
             [ 'NODE', env['NODE'], 'real' ],
             [ 'PATH', path.join (pathDir, 'node.exe'), 'real' ],
             [ 'Program Files', path.join (fixed, 'Program Files (x86)', 'nodejs', 'node.exe'), 'real' ],
-            [ 'ProgramW6432', path.join (fixed, 'Program Files', 'nodejs', 'node.exe'), 'real' ],
             [ 'NVM_SYMLINK', path.join (nvm, 'node.exe'), 'real' ],
             [ 'Volta', path.join (local, 'Volta', 'bin', 'node.exe'), 'real' ],
         ];
@@ -336,20 +346,43 @@ test ('every documented location is tried, in priority order', () => {
     }
     // exit status and arguments pass through untouched, spaces included
     const args = [ './scripts/boot strap.mjs', 'second arg' ];
-    for (const [ label, file, kind ] of chain) {
-        const result = launch (env, args);
-        if (kind === 'fake') {
-            assertFakeRan (result, label, args);
-        } else {
-            assertRealRan (result, file, args, label);
+    try {
+        for (const [ label, file, kind ] of chain) {
+            const result = launch (env, args);
+            if (kind === 'fake') {
+                assertFakeRan (result, label, args);
+            } else {
+                assertRealRan (result, file, args, label);
+            }
+            fs.rmSync (file, { 'maxRetries': 20, 'retryDelay': 250 });
         }
-        fs.rmSync (file, { 'maxRetries': 20, 'retryDelay': 250 });
+    } finally {
+        // a stand-in left behind by a failure here would be found by every later test, and
+        // turn one failure into several
+        for (const [ , file ] of chain) {
+            fs.rmSync (file, { 'force': true, 'maxRetries': 20, 'retryDelay': 250 });
+        }
     }
     const none = launch (env);
     assert.equal (none.status, 127);
     assert.equal (none.stdout, '');
     assert.equal (none.stderr.trim ().split ('\n').length, 1);
     assert.match (none.stderr, /^\[ccxt-mcp plugin\] could not start: no Node\.js runtime was found (—|-) .*install Node\.js 18 or newer from https:\/\/nodejs\.org/);
+});
+
+// A 32-bit program sees "Program Files (x86)" as ProgramFiles and the 64-bit folder, where
+// the nodejs.org installer puts Node, as ProgramW6432.
+test ('launch.cmd finds the Node.js install through ProgramW6432', { 'skip': windowsOnly ('ProgramW6432 is a Windows variable') }, (context) => {
+    const node = path.join (root, 'Program Files 64', 'nodejs', 'node.exe');
+    realNode (node);
+    // for the record, what cmd.exe itself sees when both variables are handed to it
+    const seen = spawnSync (commandInterpreter (), [ '/d', '/c', 'set Program' ], { 'env': environment ({ 'ProgramW6432': path.join (root, 'Program Files 64') }), 'encoding': 'utf8', 'windowsHide': true, 'timeout': TIMEOUT });
+    context.diagnostic ('given ProgramFiles=' + path.join (fixed, 'Program Files (x86)') + ' and ProgramW6432=' + path.join (root, 'Program Files 64') + ', cmd.exe sees: ' + unixLines (String (seen.stdout)).trim ().split ('\n').join (' | '));
+    try {
+        assertRealRan (launch ({ 'ProgramW6432': path.join (root, 'Program Files 64') }), node, [ './scripts/bootstrap.mjs' ], 'ProgramW6432');
+    } finally {
+        fs.rmSync (node, { 'force': true, 'maxRetries': 20, 'retryDelay': 250 });
+    }
 });
 
 test ('XDG_CACHE_HOME moves the app runtime location', () => {
@@ -678,6 +711,28 @@ test ('how "./scripts/launch" from mcp.json can reach launch.cmd on Windows', { 
     //    `which` crate, cmd.exe) completes it: Node refuses to start a .cmd without a shell
     //    since the fix for CVE-2024-27980; Rust's std starts it through cmd.exe
     report ('CreateProcess on scripts\\launch.cmd (no shell, as Node does it)', attempt (() => spawnSync (path.join (installed, 'scripts', 'launch.cmd'), args, { 'cwd': installed, env, 'encoding': 'utf8', 'windowsHide': true, 'timeout': TIMEOUT })));
+    // 2b. What Codex does, read from its source (openai/codex, codex-rs/rmcp-client/src/
+    //    program_resolver.rs and stdio_server_launcher.rs): on Windows it resolves the command
+    //    with the `which` crate against the server's working directory, then starts the result
+    //    with Rust's std::process::Command. For a command with a path separator `which` tries
+    //    the name as it is and then with each extension of PATHEXT appended, and takes the
+    //    first that is a file AND (when it has no extension) a Windows program. Rust's std
+    //    starts a .cmd file as `cmd.exe /e:ON /v:OFF /d /c "<quoted script> <args>"`.
+    //    Both steps are repeated here on the files as shipped. This MUST work.
+    const extensions = (env['PATHEXT'] || '.COM;.EXE;.BAT;.CMD').split (';').filter (Boolean);
+    const wanted = path.join (installed, server.command);
+    const candidates = [ wanted, ...extensions.map ((extension) => wanted + extension) ];
+    const isProgram = (file: string): boolean => fs.readFileSync (file).subarray (0, 2).toString ('latin1') === 'MZ';
+    const resolved = candidates.find ((file) => fs.existsSync (file) && fs.statSync (file).isFile () && (path.extname (file) !== '' || isProgram (file)));
+    context.diagnostic ('a PATHEXT-aware resolver (the `which` crate, as Codex uses it) turns ' + server.command + ' into ' + ((resolved === undefined) ? 'nothing' : path.relative (installed, resolved)));
+    assert.ok (resolved !== undefined && /[\\/]launch\.cmd$/i.test (resolved), 'the resolver should arrive at launch.cmd, not at ' + resolved);
+    for (const [ how, line ] of [
+        [ 'arguments unquoted', '""' + resolved + '" ' + args.join (' ') + '"' ],
+        [ 'arguments quoted', '""' + resolved + '" ' + args.map ((argument) => '"' + argument + '"').join (' ') + '"' ],
+    ]) {
+        const asRust = spawnSync (commandInterpreter (), [ '/e:ON', '/v:OFF', '/d', '/c', line ], { 'cwd': installed, env, 'encoding': 'utf8', 'windowsVerbatimArguments': true, 'windowsHide': true, 'timeout': TIMEOUT });
+        assert.equal (report ('cmd.exe /e:ON /v:OFF /d /c ' + line.split (installed).join ('<plugin>') + ' (as Rust starts a resolved .cmd, ' + how + ')', asRust), true, String (asRust.stderr));
+    }
     // 3. through cmd.exe with the .cmd named in full — what a resolver that found the
     //    extension has to end in. This one MUST work.
     const viaCmd = runBatch (path.join (installed, 'scripts', 'launch.cmd'), args, { 'cwd': installed, env });

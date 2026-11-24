@@ -1,12 +1,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'fs';
-import os from 'os';
 import path from 'path';
 import { loadConfig } from '../../ts/config.js';
+import { tempDirectory } from '../helpers/platform.js';
 
 function withConfig (config: any, env: Record<string, string | undefined>, fn: () => void): void {
-    const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'ccxt-mcp-config-'));
+    const dir = tempDirectory ('ccxt-mcp-config-');
     const file = path.join (dir, 'config.json');
     fs.writeFileSync (file, JSON.stringify (config), { 'mode': 0o600 });
     const saved: Record<string, string | undefined> = { 'CCXT_MCP_CONFIG': process.env['CCXT_MCP_CONFIG'] };

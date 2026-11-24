@@ -1,11 +1,9 @@
 import assert from 'node:assert/strict';
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { createServer } from '../../ts/factory.js';
 import { AccountExchange, FakeExchange, fakeCcxtModule, fakePoolsDeps, makeConfig } from './fake-ccxt.js';
+import { tempDirectory } from './platform.js';
 
 // The harness of the MCP Apps tests (test/integration/ui.*.test.ts for the market views,
 // ui-account.*.test.ts for the account views): a real client <-> server pair on the fake ccxt,
@@ -44,7 +42,7 @@ async function pair (options: PairOptions): Promise<Client> {
         'ccxtModule': fakeCcxtModule,
         'poolsDeps': options.poolsDeps,
         'version': 'test',
-        'journalDir': fs.mkdtempSync (path.join (os.tmpdir (), 'ccxt-mcp-' + options.name.replace (/-test$/, '') + '-')),
+        'journalDir': tempDirectory ('ccxt-mcp-' + options.name.replace (/-test$/, '') + '-'),
     });
     const [ clientTransport, serverTransport ] = InMemoryTransport.createLinkedPair ();
     const client = (options.capabilities === undefined)

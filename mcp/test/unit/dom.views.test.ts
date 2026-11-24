@@ -300,10 +300,9 @@ for (const [ view, payload ] of ALL_VIEWS) {
                 await host.close ();
             }
         }
-        // List entries that are not objects are skipped, not dereferenced. (Not the chart's
-        // candles: chart.html takes each candle to be an array — the server only ever sends
-        // cleaned ones, see "show_chart: candles are cleaned" — so that list stays empty here.)
-        const junk: Record<string, any> = { 'view': view, 'tickers': [ null, 1, 'x' ], 'balances': [ null, 1, 'x' ], 'orders': [ null, 1, 'x' ], 'positions': [ null, 1, 'x' ], 'candles': [], 'bids': [ null, 1, 'x', [] ], 'asks': [ null, 1, 'x', [] ] };
+        // List entries that are not objects (for the chart's candles and the book's levels:
+        // not arrays) are skipped, not dereferenced.
+        const junk: Record<string, any> = { 'view': view, 'tickers': [ null, 1, 'x' ], 'balances': [ null, 1, 'x' ], 'orders': [ null, 1, 'x' ], 'positions': [ null, 1, 'x' ], 'candles': [ null, 1, 'x', {} ], 'bids': [ null, 1, 'x', [] ], 'asks': [ null, 1, 'x', [] ] };
         const host = await openViewWith (view, {}, junk);
         try {
             assertClean (host, view + ' with junk entries');

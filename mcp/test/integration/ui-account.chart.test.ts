@@ -1,13 +1,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import fs from 'fs';
-import os from 'os';
-import path from 'path';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { createServer } from '../../ts/factory.js';
 import { AccountExchange, fakeCcxtModule, fakePoolsDeps, makeConfig } from '../helpers/fake-ccxt.js';
 import { callRaw, callsTo, connectAccount as connect, UI_CAPABILITIES } from '../helpers/ui-client.js';
+import { tempDirectory } from '../helpers/platform.js';
 
 // The account views, over a real client <-> server pair (see test/helpers/ui-client.ts). Same
 // contract as the market views (ui.*.test.ts): a compact envelope for the model, the dataset
@@ -66,7 +64,7 @@ test ('show_chart: an account on another exchange is BAD_REQUEST before anything
         'ccxtModule': { ...fakeCcxtModule, 'exchanges': [ 'fakex', 'otherx' ], 'otherx': Counting },
         'poolsDeps': { ...fakePoolsDeps, 'exchangeClass': () => Counting, 'isKnownExchange': (id: string) => id === 'fakex' || id === 'otherx', 'allExchangeIds': () => [ 'fakex', 'otherx' ] },
         'version': 'test',
-        'journalDir': fs.mkdtempSync (path.join (os.tmpdir (), 'ccxt-mcp-ui-account-')),
+        'journalDir': tempDirectory ('ccxt-mcp-ui-account-'),
     });
     AccountExchange.calls = [];
     const [ clientTransport, serverTransport ] = InMemoryTransport.createLinkedPair ();
@@ -255,7 +253,7 @@ test ('show_chart: an account of the other namespace (prediction vs not) is BAD_
         // an id that exists in both namespaces, like the real loader's exchangeClass
         'poolsDeps': { ...fakePoolsDeps, 'exchangeClass': (_id: string, prediction?: boolean) => (prediction ? Prediction : TwoEnvironments) },
         'version': 'test',
-        'journalDir': fs.mkdtempSync (path.join (os.tmpdir (), 'ccxt-mcp-ui-account-')),
+        'journalDir': tempDirectory ('ccxt-mcp-ui-account-'),
     });
     const [ clientTransport, serverTransport ] = InMemoryTransport.createLinkedPair ();
     const client = new Client ({ 'name': 'ui-account-test', 'version': '0.0.1' }, { 'capabilities': UI_CAPABILITIES });
