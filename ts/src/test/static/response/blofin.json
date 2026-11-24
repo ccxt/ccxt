@@ -107,6 +107,285 @@
                 ]
             }
         ],
+        "editOrder": [
+            {
+                "description": "edit price and amount",
+                "method": "editOrder",
+                "input": [
+                    "6000004088597",
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.3,
+                    24
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Order modified",
+                    "data": {
+                        "orderId": "6000004088597",
+                        "clientOrderId": "",
+                        "requestId": "",
+                        "msg": "Order modified",
+                        "code": "0",
+                        "ts": "1795184314725"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "6000004088597",
+                        "clientOrderId": "",
+                        "requestId": "",
+                        "msg": "Order modified",
+                        "code": "0",
+                        "ts": "1795184314725"
+                    },
+                    "id": "6000004088597",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "LTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": false,
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
+        ],
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "fetchMarketLeverageTiers",
+                "method": "fetchMarketLeverageTiers",
+                "input": [
+                    "CATI/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "success",
+                    "data": [
+                        {
+                            "symbol": "CATI-USDT",
+                            "marginMode": "cross",
+                            "minSize": "0",
+                            "maxSize": "8000",
+                            "maintenanceMarginRate": "0.015",
+                            "maxLeverage": "50"
+                        },
+                        {
+                            "symbol": "CATI-USDT",
+                            "marginMode": "cross",
+                            "minSize": "8001",
+                            "maxSize": "10000",
+                            "maintenanceMarginRate": "0.025",
+                            "maxLeverage": "20"
+                        },
+                        {
+                            "symbol": "CATI-USDT",
+                            "marginMode": "cross",
+                            "minSize": "10001",
+                            "maxSize": "30000",
+                            "maintenanceMarginRate": "0.05",
+                            "maxLeverage": "10"
+                        },
+                        {
+                            "symbol": "CATI-USDT",
+                            "marginMode": "cross",
+                            "minSize": "30001",
+                            "maxSize": "80000",
+                            "maintenanceMarginRate": "0.1",
+                            "maxLeverage": "5"
+                        },
+                        {
+                            "symbol": "CATI-USDT",
+                            "marginMode": "cross",
+                            "minSize": "80001",
+                            "maxSize": "400000",
+                            "maintenanceMarginRate": "0.125",
+                            "maxLeverage": "4"
+                        },
+                        {
+                            "symbol": "CATI-USDT",
+                            "marginMode": "cross",
+                            "minSize": "400001",
+                            "maxSize": "800000",
+                            "maintenanceMarginRate": "0.1667",
+                            "maxLeverage": "3"
+                        },
+                        {
+                            "symbol": "CATI-USDT",
+                            "marginMode": "cross",
+                            "minSize": "800001",
+                            "maxSize": "10000000",
+                            "maintenanceMarginRate": "0.25",
+                            "maxLeverage": "2"
+                        },
+                        {
+                            "symbol": "CATI-USDT",
+                            "marginMode": "cross",
+                            "minSize": "10000001",
+                            "maxSize": "20000000",
+                            "maintenanceMarginRate": "0.5",
+                            "maxLeverage": "1"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "tier": 1,
+                        "symbol": "CATI/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 0,
+                        "maxNotional": 8000,
+                        "maintenanceMarginRate": 0.015,
+                        "maxLeverage": 50,
+                        "info": {
+                            "symbol": "CATI-USDT",
+                            "marginMode": "cross",
+                            "minSize": "0",
+                            "maxSize": "8000",
+                            "maintenanceMarginRate": "0.015",
+                            "maxLeverage": "50"
+                        }
+                    },
+                    {
+                        "tier": 2,
+                        "symbol": "CATI/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 8001,
+                        "maxNotional": 10000,
+                        "maintenanceMarginRate": 0.025,
+                        "maxLeverage": 20,
+                        "info": {
+                            "symbol": "CATI-USDT",
+                            "marginMode": "cross",
+                            "minSize": "8001",
+                            "maxSize": "10000",
+                            "maintenanceMarginRate": "0.025",
+                            "maxLeverage": "20"
+                        }
+                    },
+                    {
+                        "tier": 3,
+                        "symbol": "CATI/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 10001,
+                        "maxNotional": 30000,
+                        "maintenanceMarginRate": 0.05,
+                        "maxLeverage": 10,
+                        "info": {
+                            "symbol": "CATI-USDT",
+                            "marginMode": "cross",
+                            "minSize": "10001",
+                            "maxSize": "30000",
+                            "maintenanceMarginRate": "0.05",
+                            "maxLeverage": "10"
+                        }
+                    },
+                    {
+                        "tier": 4,
+                        "symbol": "CATI/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 30001,
+                        "maxNotional": 80000,
+                        "maintenanceMarginRate": 0.1,
+                        "maxLeverage": 5,
+                        "info": {
+                            "symbol": "CATI-USDT",
+                            "marginMode": "cross",
+                            "minSize": "30001",
+                            "maxSize": "80000",
+                            "maintenanceMarginRate": "0.1",
+                            "maxLeverage": "5"
+                        }
+                    },
+                    {
+                        "tier": 5,
+                        "symbol": "CATI/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 80001,
+                        "maxNotional": 400000,
+                        "maintenanceMarginRate": 0.125,
+                        "maxLeverage": 4,
+                        "info": {
+                            "symbol": "CATI-USDT",
+                            "marginMode": "cross",
+                            "minSize": "80001",
+                            "maxSize": "400000",
+                            "maintenanceMarginRate": "0.125",
+                            "maxLeverage": "4"
+                        }
+                    },
+                    {
+                        "tier": 6,
+                        "symbol": "CATI/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 400001,
+                        "maxNotional": 800000,
+                        "maintenanceMarginRate": 0.1667,
+                        "maxLeverage": 3,
+                        "info": {
+                            "symbol": "CATI-USDT",
+                            "marginMode": "cross",
+                            "minSize": "400001",
+                            "maxSize": "800000",
+                            "maintenanceMarginRate": "0.1667",
+                            "maxLeverage": "3"
+                        }
+                    },
+                    {
+                        "tier": 7,
+                        "symbol": "CATI/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 800001,
+                        "maxNotional": 10000000,
+                        "maintenanceMarginRate": 0.25,
+                        "maxLeverage": 2,
+                        "info": {
+                            "symbol": "CATI-USDT",
+                            "marginMode": "cross",
+                            "minSize": "800001",
+                            "maxSize": "10000000",
+                            "maintenanceMarginRate": "0.25",
+                            "maxLeverage": "2"
+                        }
+                    },
+                    {
+                        "tier": 8,
+                        "symbol": "CATI/USDT:USDT",
+                        "currency": "USDT",
+                        "minNotional": 10000001,
+                        "maxNotional": 20000000,
+                        "maintenanceMarginRate": 0.5,
+                        "maxLeverage": 1,
+                        "info": {
+                            "symbol": "CATI-USDT",
+                            "marginMode": "cross",
+                            "minSize": "10000001",
+                            "maxSize": "20000000",
+                            "maintenanceMarginRate": "0.5",
+                            "maxLeverage": "1"
+                        }
+                    }
+                ]
+            }
+        ],
         "fetchOrder": [
             {
                 "description": "fetchOrder tpsl order",

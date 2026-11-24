@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.blofin import ImplicitAPI
 import hashlib
-from ccxt.base.types import ADL, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Leverage, Leverages, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
+from ccxt.base.types import ADL, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Leverage, Leverages, LeverageTier, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -63,7 +63,7 @@ class blofin(Exchange, ImplicitAPI):
                 'createStopOrder': False,
                 'createTakeProfitOrder': True,
                 'createTriggerOrder': True,
-                'editOrder': False,
+                'editOrder': True,
                 'fetchAccounts': False,
                 'fetchBalance': True,
                 'fetchBidsAsks': None,
@@ -100,7 +100,7 @@ class blofin(Exchange, ImplicitAPI):
                 'fetchLeverageTiers': False,
                 'fetchMarginMode': True,
                 'fetchMarginModes': False,
-                'fetchMarketLeverageTiers': False,
+                'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMySettlementHistory': False,
@@ -1725,6 +1725,55 @@ class blofin(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_orders(data)
 
+    def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
+        """
+        edit a trade order
+
+        https://docs.blofin.com/index.html#amend-order
+
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float [amount]: how much of the currency you want to trade in units of the base currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.clientOrderId]: client order id, used instead of the id argument
+        :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'instId': market['id'],
+        }
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is not None:
+            request['clientOrderId'] = clientOrderId
+        else:
+            request['orderId'] = id
+        if amount is not None:
+            request['newSize'] = self.amount_to_precision(symbol, amount)
+        if price is not None:
+            request['newPrice'] = self.price_to_precision(symbol, price)
+        response = self.privatePostTradeAmendOrder(self.extend(request, self.omit(params, 'clientOrderId')))
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "Order modified",
+        #         "data": {
+        #             "orderId": "6000004088576",
+        #             "clientOrderId": "",
+        #             "requestId": "",
+        #             "msg": "Order modified",
+        #             "code": "0",
+        #             "ts": "1795184228537"
+        #         }
+        #     }
+        #
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_order(data, market)
+
     def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
@@ -2912,6 +2961,62 @@ class blofin(Exchange, ImplicitAPI):
             'stopLossPrice': None,
             'takeProfitPrice': None,
         })
+
+    def fetch_market_leverage_tiers(self, symbol: str, params: dict = {}) -> list[LeverageTier]:
+        """
+        retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+
+        https://docs.blofin.com/index.html#get-position-tiers
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.marginMode]: 'cross' or 'isolated', default is 'cross'
+        :returns dict: a `leverage tiers structure <https://docs.ccxt.com/?id=leverage-tiers-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        marginMode, query = self.handle_margin_mode_and_params('fetchMarketLeverageTiers', params, 'cross')
+        request = {
+            'instId': market['id'],
+            'marginMode': marginMode,
+        }
+        response = self.publicGetMarketPositionTiers(self.extend(request, query))
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "success",
+        #         "data": [
+        #             {
+        #                 "symbol": "LTC-USDT",
+        #                 "marginMode": "cross",
+        #                 "minSize": "0",
+        #                 "maxSize": "500",
+        #                 "maintenanceMarginRate": "0.0065",
+        #                 "maxLeverage": "50"
+        #             }
+        #         ]
+        #     }
+        #
+        data = self.safe_list(response, 'data', [])
+        return self.parse_market_leverage_tiers(data, market)
+
+    def parse_market_leverage_tiers(self, info: object, market: Market = None) -> list[LeverageTier]:
+        tiers = []
+        for i in range(0, len(info)):
+            tier = self.safe_dict(info, i)
+            marketId = self.safe_string(tier, 'symbol')
+            tiers.append({
+                'tier': self.sum(i, 1),
+                'symbol': self.safe_symbol(marketId, market),
+                'currency': self.safe_string(market, 'quote'),
+                'minNotional': self.safe_number(tier, 'minSize'),
+                'maxNotional': self.safe_number(tier, 'maxSize'),
+                'maintenanceMarginRate': self.safe_number(tier, 'maintenanceMarginRate'),
+                'maxLeverage': self.safe_number(tier, 'maxLeverage'),
+                'info': tier,
+            })
+        return tiers
 
     def fetch_leverages(self, symbols: Strings = None, params: dict = {}) -> Leverages:
         """

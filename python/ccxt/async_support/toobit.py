@@ -496,7 +496,7 @@ class toobit(Exchange, ImplicitAPI):
                     'sandbox': False,
                     'createOrder': {
                         'marginMode': False,
-                        'triggerPrice': True,
+                        'triggerPrice': False,
                         'triggerPriceType': None,
                         'triggerDirection': False,
                         'stopLossPrice': False,
@@ -531,7 +531,7 @@ class toobit(Exchange, ImplicitAPI):
                         'marginMode': False,
                         'trigger': False,
                         'trailing': False,
-                        'symbolRequired': False,
+                        'symbolRequired': True,
                     },
                     'fetchOpenOrders': {
                         'marginMode': False,

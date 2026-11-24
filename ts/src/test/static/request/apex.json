@@ -199,6 +199,28 @@
                 ],
                 "output": null
             }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetch funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://omni.apex.exchange/api/v3/ticker?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchFundingRates": [
+            {
+                "description": "fetch funding rates for all markets",
+                "method": "fetchFundingRates",
+                "url": "https://omni.apex.exchange/api/v3/data/all-ticker-info",
+                "input": [
+                    null
+                ],
+                "output": null
+            }
         ]
     }
 }

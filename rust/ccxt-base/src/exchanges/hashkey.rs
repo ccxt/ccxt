@@ -730,8 +730,8 @@ impl crate::exchange::DerivedExchange for Hashkey {
         let mut balances: crate::value::List = self.safe_list_k(balance, "balances", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_729: bool = true;
-            while { if !__for_first_729 { i += 1; } __for_first_729 = false; i < (balances.len() as i64) } {
+            let mut __for_first_731: bool = true;
+            while { if !__for_first_731 { i += 1; } __for_first_731 = false; i < (balances.len() as i64) } {
             let mut balanceEntry: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string_k_opt(&balanceEntry, "asset", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -967,8 +967,8 @@ impl crate::exchange::DerivedExchange for Hashkey {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_728: bool = true;
-            while { if !__for_first_728 { j += 1; } __for_first_728 = false; j < (networks.len() as i64) } {
+            let mut __for_first_730: bool = true;
+            while { if !__for_first_730 { j += 1; } __for_first_730 = false; j < (networks.len() as i64) } {
             let mut network: crate::value::Dict = networks.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string_k_opt(&network, "chainType", &[]);
             let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -1288,8 +1288,8 @@ impl crate::exchange::DerivedExchange for Hashkey {
         let mut tiers: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_733: bool = true;
-            while { if !__for_first_733 { i += 1; } __for_first_733 = false; i < (riskLimits.len() as i64) } {
+            let mut __for_first_735: bool = true;
+            while { if !__for_first_735 { i += 1; } __for_first_735 = false; i < (riskLimits.len() as i64) } {
             let mut tier: crate::value::Dict = riskLimits.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut initialMarginRate: Option<String> = self.safe_string_k_opt(&tier, "initialMargin", &[]);
             tiers.push(Value::Map({
@@ -1408,8 +1408,8 @@ impl crate::exchange::DerivedExchange for Hashkey {
             let mut result: crate::value::List = self.safe_list_k(response, "result", &[Value::from(vec![])]).into_list(); // for batch methods
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_735: bool = true;
-                while { if !__for_first_735 { i += 1; } __for_first_735 = false; i < (result.len() as i64) } {
+                let mut __for_first_737: bool = true;
+                while { if !__for_first_737 { i += 1; } __for_first_737 = false; i < (result.len() as i64) } {
                 let mut entry: crate::value::Dict = self.safe_dict(&result, Value::Int(i), &[]).into_dict();
                 let mut entryCodeInteger: Option<i64> = self.safe_integer_k(&entry, "code", &[]).as_i64();
                 if (entryCodeInteger != Some(0)) {
@@ -4152,8 +4152,8 @@ impl Hashkey {
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_730: bool = true;
-            while { if !__for_first_730 { i += 1; } __for_first_730 = false; i < (orders.len() as i64) } {
+            let mut __for_first_732: bool = true;
+            while { if !__for_first_732 { i += 1; } __for_first_732 = false; i < (orders.len() as i64) } {
             let mut rawOrder: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
             let mut symbol: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
             let mut type_var: Option<String> = self.safe_string_k_opt(&rawOrder, "type", &[]);
@@ -4195,8 +4195,8 @@ impl Hashkey {
         let mut responseOrders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_731: bool = true;
-            while { if !__for_first_731 { i += 1; } __for_first_731 = false; i < (result.len() as i64) } {
+            let mut __for_first_733: bool = true;
+            while { if !__for_first_733 { i += 1; } __for_first_733 = false; i < (result.len() as i64) } {
             let mut responseEntry: crate::value::Dict = self.safe_dict(&result, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4999,8 +4999,8 @@ impl Hashkey {
         let mut rows: crate::value::List = self.to_array(&response).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_732: bool = true;
-            while { if !__for_first_732 { i += 1; } __for_first_732 = false; i < (rows.len() as i64) } {
+            let mut __for_first_734: bool = true;
+            while { if !__for_first_734 { i += 1; } __for_first_734 = false; i < (rows.len() as i64) } {
             let mut entry: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut timestamp: Option<i64> = self.safe_integer_k(&entry, "settleTime", &[]).as_i64();
             rates.push(Value::Map({
@@ -5485,8 +5485,8 @@ impl Hashkey {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_734: bool = true;
-            while { if !__for_first_734 { i += 1; } __for_first_734 = false; i < (data.len() as i64) } {
+            let mut __for_first_736: bool = true;
+            while { if !__for_first_736 { i += 1; } __for_first_736 = false; i < (data.len() as i64) } {
             let mut fee: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

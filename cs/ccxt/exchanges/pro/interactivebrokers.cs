@@ -1442,7 +1442,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
                 Dictionary<string, object> snapshotRequest = new Dictionary<string, object>() {
                     { "accountId", accountId },
                 };
-                object snapshot = ccxt.BaseExchange.FromBalances(await this.FetchBalance(this.extend(query, snapshotRequest)));
+                Dictionary<string, object> snapshot = ccxt.BaseExchange.FromBalances(await this.FetchBalance(this.extend(query, snapshotRequest)));
                 // typed copy: the statically typed ports keep this.balance as a dictionary
                 Dictionary<string, object> snapshotBalance = this.extend(new Dictionary<string, object>() {}, snapshot);
                 this.balance = snapshotBalance;

@@ -6,6 +6,17 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchFundingRate": [
+            {
+                "description": "swap funding rate",
+                "method": "fetchFundingRate",
+                "url": "https://api.poloniex.com/v3/market/fundingRate?symbol=BTC_USDT_PERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "transfer": [
             {
                 "description": "transfer with exchange-specific toAccount",

@@ -182,8 +182,8 @@ impl crate::exchange::DerivedExchange for Coinspot {
             let mut numRows: i64 = rows.len() as i64;
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_584: bool = true;
-                while { if !__for_first_584 { i += 1; } __for_first_584 = false; i < numRows } {
+                let mut __for_first_586: bool = true;
+                while { if !__for_first_586 { i += 1; } __for_first_586 = false; i < numRows } {
                 let mut currencies: crate::value::Dict = self.safe_dict(&rows, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -191,8 +191,8 @@ impl crate::exchange::DerivedExchange for Coinspot {
                 let mut currencyIdsList: Vec<Value> = Value::Array(currencies.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
                 {
                                         let mut j: i64 = 0;
-                    let mut __for_first_583: bool = true;
-                    while { if !__for_first_583 { j += 1; } __for_first_583 = false; j < (currencyIdsList.len() as i64) } {
+                    let mut __for_first_585: bool = true;
+                    while { if !__for_first_585 { j += 1; } __for_first_585 = false; j < (currencyIdsList.len() as i64) } {
                     let mut currencyId: Option<&str> = currencyIdsList.get(j as usize).and_then(Value::as_str);
                     let mut balance: crate::value::Dict = self.safe_dict(&currencies, Value::from(currencyId.as_deref()), &[]).into_dict();
                     let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
@@ -209,8 +209,8 @@ impl crate::exchange::DerivedExchange for Coinspot {
             let mut currencyIdsMap: Vec<Value> = Value::Array(balances.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_585: bool = true;
-                while { if !__for_first_585 { i += 1; } __for_first_585 = false; i < (currencyIdsMap.len() as i64) } {
+                let mut __for_first_587: bool = true;
+                while { if !__for_first_587 { i += 1; } __for_first_587 = false; i < (currencyIdsMap.len() as i64) } {
                 let mut currencyId: Option<&str> = currencyIdsMap.get(i as usize).and_then(Value::as_str);
                 let mut code: Option<String> = self.safe_currency_code(Value::from(currencyId.as_deref()), None);
                 let mut account: crate::value::Dict = self.account().into_dict();
@@ -1316,8 +1316,8 @@ impl Coinspot {
         let mut ids: Vec<Value> = Value::Array(prices.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_586: bool = true;
-            while { if !__for_first_586 { i += 1; } __for_first_586 = false; i < (ids.len() as i64) } {
+            let mut __for_first_588: bool = true;
+            while { if !__for_first_588 { i += 1; } __for_first_588 = false; i < (ids.len() as i64) } {
             let mut id: Option<&str> = ids.get(i as usize).and_then(Value::as_str);
             let mut market: crate::types::Market = self.safe_market(Value::from(id.as_deref()), None, &[]);
             if (market).spot {
@@ -1450,16 +1450,16 @@ impl Coinspot {
         let mut buyTrades: crate::value::List = self.safe_list_k(&response, "buyorders", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_587: bool = true;
-            while { if !__for_first_587 { i += 1; } __for_first_587 = false; i < (buyTrades.len() as i64) } {
+            let mut __for_first_589: bool = true;
+            while { if !__for_first_589 { i += 1; } __for_first_589 = false; i < (buyTrades.len() as i64) } {
             add_element_to_object(get_value_mut(&mut buyTrades, &Value::Int(i)), &Value::Str("side".into()), Value::Str("buy".into()));
         }
         }
         let mut sellTrades: crate::value::List = self.safe_list_k(&response, "sellorders", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_588: bool = true;
-            while { if !__for_first_588 { i += 1; } __for_first_588 = false; i < (sellTrades.len() as i64) } {
+            let mut __for_first_590: bool = true;
+            while { if !__for_first_590 { i += 1; } __for_first_590 = false; i < (sellTrades.len() as i64) } {
             add_element_to_object(get_value_mut(&mut sellTrades, &Value::Int(i)), &Value::Str("side".into()), Value::Str("sell".into()));
         }
         }

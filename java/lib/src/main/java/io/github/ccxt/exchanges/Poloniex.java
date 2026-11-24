@@ -10,6 +10,7 @@ import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.DepositAddress;
 import io.github.ccxt.types.DepositWithdrawFees;
+import io.github.ccxt.types.FundingRate;
 import io.github.ccxt.types.Leverage;
 import io.github.ccxt.types.MarginModification;
 import io.github.ccxt.types.MarketInterface;
@@ -87,7 +88,7 @@ public class Poloniex extends PoloniexApi
                 put( "fetchFundingHistory", false );
                 put( "fetchFundingInterval", false );
                 put( "fetchFundingIntervals", false );
-                put( "fetchFundingRate", false );
+                put( "fetchFundingRate", true );
                 put( "fetchFundingRateHistory", false );
                 put( "fetchFundingRates", null );
                 put( "fetchGreeks", false );
@@ -3437,6 +3438,100 @@ public class Poloniex extends PoloniexApi
             }};
         }).thenApply(OrderBook::new);
 
+    }
+
+    /**
+     * @method
+     * @name poloniex#fetchFundingRate
+     * @description fetch the current funding rate
+     * @see https://api-docs.poloniex.com/v3/futures/api/market/get-current-funding-rate
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            Map<String, Object> market = this.market(symbol);
+            if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
+            {
+                throw new BadSymbol((this.id + " fetchFundingRate() supports swap contracts only")) ;
+            }
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "symbol", market.get("id") );
+            }};
+            Map<String, Object> response = (this.swapPublicGetV3MarketFundingRate(this.extend(request, parameters))).join();
+            //
+            //    {
+            //        "code": 200,
+            //        "msg": "Success",
+            //        "data": {
+            //            "s": "BTC_USDT_PERP",
+            //            "fR": "0.0001",
+            //            "fT": "1795276800000",
+            //            "nFR": "0.0001",
+            //            "nFT": "1795305600000"
+            //        }
+            //    }
+            //
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            return this.parseFundingRate(data, market);
+        }).thenApply(FundingRate::new);
+
+    }
+
+    public Object parseFundingRate(Object contract, Map<String, Object> market)
+    {
+        //
+        //    {
+        //        "s": "BTC_USDT_PERP",
+        //        "fR": "0.0001",
+        //        "fT": "1795276800000",
+        //        "nFR": "0.0001",
+        //        "nFT": "1795305600000"
+        //    }
+        //
+        String marketId = this.safeString(contract, "s");
+        // fR and fT are the funding that already settled, nFR and nFT the one about to be applied
+        Long previousFundingTimestamp = this.safeInteger(contract, "fT");
+        Long fundingTimestamp = this.safeInteger(contract, "nFT");
+        String intervalMilliseconds = Precise.stringSub(this.safeString(contract, "nFT"), this.safeString(contract, "fT"));
+        return new HashMap<String, Object>() {{
+            put( "info", contract );
+            put( "symbol", Poloniex.this.safeSymbol(marketId, market, (String) null, (String) null) );
+            put( "markPrice", null );
+            put( "indexPrice", null );
+            put( "interestRate", null );
+            put( "estimatedSettlePrice", null );
+            put( "timestamp", null );
+            put( "datetime", null );
+            put( "fundingRate", Poloniex.this.safeNumber(contract, "nFR", (Object) null) );
+            put( "fundingTimestamp", fundingTimestamp );
+            put( "fundingDatetime", Poloniex.this.iso8601(fundingTimestamp) );
+            put( "nextFundingRate", null );
+            put( "nextFundingTimestamp", null );
+            put( "nextFundingDatetime", null );
+            put( "previousFundingRate", Poloniex.this.safeNumber(contract, "fR", (Object) null) );
+            put( "previousFundingTimestamp", previousFundingTimestamp );
+            put( "previousFundingDatetime", Poloniex.this.iso8601(previousFundingTimestamp) );
+            put( "interval", Poloniex.this.parseFundingInterval(intervalMilliseconds) );
+        }};
+    }
+
+    public String parseFundingInterval(String interval)
+    {
+        Map<String, Object> intervals = new HashMap<String, Object>() {{
+            put( "3600000", "1h" );
+            put( "7200000", "2h" );
+            put( "14400000", "4h" );
+            put( "28800000", "8h" );
+            put( "57600000", "16h" );
+            put( "86400000", "24h" );
+        }};
+        return this.safeString(intervals, interval, interval);
     }
 
     /**

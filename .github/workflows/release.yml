@@ -90,6 +90,19 @@ jobs:
         run: npm run force-transpileJava
       - name: Build Java
         run: npm run buildJava
+      - name: Stop Gradle daemon
+        # the daemon outlives the Java build and holds memory the Rust build needs;
+        # ccxt-base compiles as one huge crate and the hosted runner was being killed mid-build
+        run: cd java/ && ./gradlew --stop || true
+      - name: Add swap for Rust build
+        # extra headroom for the ccxt-base compile; /mnt is the runner's large temp disk
+        run: |
+          sudo fallocate -l 10G /mnt/ccxt-swapfile
+          sudo chmod 600 /mnt/ccxt-swapfile
+          sudo mkswap /mnt/ccxt-swapfile
+          sudo swapon /mnt/ccxt-swapfile
+          free -h
+          df -h /mnt
       - name: Install Rust toolchain
         run: |
           if ! command -v cargo >/dev/null 2>&1 && [ ! -x "$HOME/.cargo/bin/cargo" ]; then
