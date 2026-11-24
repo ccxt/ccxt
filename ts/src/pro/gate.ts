@@ -1513,10 +1513,12 @@ export default class gate extends gateRest {
         const [ marketType, marketQuery ] = this.handleMarketTypeAndParams ('watchPositions', market, params);
         let query: NullableDict = marketQuery;
         let type: Str = marketType;
-        let messageHash: string = marketType + ':positions';
+        let messageHash: string = 'swap:positions';
+        if ((marketType !== undefined) && (marketType !== 'spot')) {
+            messageHash = marketType + ':positions';
+        }
         if (marketType === 'spot') {
             type = 'swap';
-            messageHash = 'swap:positions';
         }
         const typeId: string = this.getSupportedMapping (type, {
             'future': 'futures',
