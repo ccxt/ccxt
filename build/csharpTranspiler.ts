@@ -1449,6 +1449,8 @@ const SYNC_TYPED_CORES: Record<string, string> = {
     'parseMarket': 'Dictionary<string, object>',
     'parseCurrency': 'Dictionary<string, object>',
     'createExpiredOptionMarket': 'Dictionary<string, object>',
+    // every declaration (base, bybit, xt) returns its own fresh symbol-keyed Dictionary local
+    'parseLeverageTiers': 'Dictionary<string, object>',
 };
 
 // Core parameters that name a DICTIONARY ROW (`parse*(object row, …)`, `object currency`), keyed by
@@ -1665,6 +1667,8 @@ const VENUE_STRING_ARGS: Record<string, Record<string, number[]>> = {
     'woofipro': { 'FetchFundingHistory': [ 0 ], 'createOrderRequest': [ 0, 1, 2 ], 'modifyMarginHelper': [ 0, 2 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderType': [ 0 ], 'parseTimeInForce': [ 0 ], 'parseTransactionStatus': [ 0 ] },
     'xt': { 'CreateContractOrder': [ 1, 2 ], 'CreateSpotOrder': [ 1, 2 ], 'FetchFundingHistory': [ 0 ], 'FetchOrdersByStatus': [ 0, 1 ], 'modifyMarginHelper': [ 0, 2 ], 'parseLedgerEntryType': [ 0 ], 'parseOrderStatus': [ 0 ], 'parseTransactionStatus': [ 0 ] },
 };
+// parseLeverageTiers marketIdKey: declared Str; every caller passes a string literal or omits it
+VENUE_STRING_ARGS['BaseExchange']['parseLeverageTiers'] = [ 2 ];
 
 // Non-core helper `object since/limit/until/amount/price` parameters narrowed to the box every caller
 // passes (exact Int64?/double?/null, no conversion), keyed by method -> position across the whole tree
