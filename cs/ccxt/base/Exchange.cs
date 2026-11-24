@@ -1375,9 +1375,17 @@ public partial class BaseExchange
     {
         var length = Convert.ToInt32(length2);
         var bytes = new byte[length];
-        var rng = new Random();
-        rng.NextBytes(bytes);
-        return Convert.ToBase64String(bytes);
+        using (var rng = System.Security.Cryptography.RandomNumberGenerator.Create())
+        {
+            rng.GetBytes(bytes);
+        }
+        // hex, same as ts/php (callers like interactivebrokers prefix it with '0x' and parse it as a number)
+        var sb = new StringBuilder(length * 2);
+        foreach (var b in bytes)
+        {
+            sb.Append(b.ToString("x2"));
+        }
+        return sb.ToString();
     }
 
     public void extendExchangeOptions(object options2)

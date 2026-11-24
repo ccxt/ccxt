@@ -1581,8 +1581,9 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         const cfeSymbols = Object.keys(cryptoCboeFutureSymbols);
         const targetSymbols = this.arraysConcat([coinbaseDerivSymbols, cmeSymbols, cfeSymbols]);
         const symbols = this.unique(targetSymbols);
+        const joined = symbols.join(','); // c# fix, todo investigate
         const request = {
-            'symbols': symbols.join(','),
+            'symbols': joined,
         };
         const response = await this.marketsEndpointCall(this.extend(request, params), 'webapiGetV1ApiTrsrvFutures', {});
         //
@@ -1755,26 +1756,257 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         }
         const contractResults = await Promise.all(contractPromises);
         //
-        //     [
-        //         {
-        //             "conid": 758087005,
-        //             "symbol": "US-T",
-        //             "secType": "BOND",
-        //             "exchange": "SMART",
-        //             "listingExchange": "SMART",
-        //             "right": "?",
-        //             "strike": 0.0,
-        //             "currency": "USD",
-        //             "cusip": "IBCID758087005",
-        //             "coupon": "4.125", // "No Coupon" for bills and strips
-        //             "desc1": "US-T",
-        //             "desc2": "GOVT Notes 4.125 Jan31'27 IBCID758087005",
-        //             "maturityDate": "20270131",
-        //             "multiplier": null,
-        //             "tradingClass": "US-T",
-        //             "validExchanges": "SMART"
-        //         }
-        //     ]
+        //  [
+        //    {
+        //        "conid": 15960430,
+        //        "symbol": "US-T",
+        //        "secType": "BOND",
+        //        "exchange": "SMART",
+        //        "listingExchange": "BONDDESKG",
+        //        "right": "?",
+        //        "strike": "0",
+        //        "currency": "USD",
+        //        "cusip": "912810EY0",
+        //        "coupon": "6.5",
+        //        "desc1": "US-T",
+        //        "desc2": "GOVT 6.5 Nov15'26 912810EY0 WR",
+        //        "maturityDate": "20261115",
+        //        "multiplier": 0,
+        //        "tradingClass": "US-T",
+        //        "validExchanges": "SMART",
+        //        "incrementRules": [
+        //            {
+        //                "lowerEdge": 0,
+        //                "increment": 0.001
+        //            }
+        //        ],
+        //        "displayRule": {
+        //            "magnification": 0,
+        //            "displayRuleStep": [
+        //                {
+        //                    "decimalDigits": 3,
+        //                    "lowerEdge": 0,
+        //                    "wholeDigits": 4
+        //                }
+        //            ]
+        //        },
+        //        "time": 11,
+        //        "chineseName": "&#x7F8E;&#x56FD;&#x4E2D;&#x957F;&#x671F;&#x56FD;&#x503A;",
+        //        "allExchanges": "BONDDESKG,VALUBONDG,CITADEL,VIRTBONDG,TRADEWEBG,TRACE,BONDSCOM,JPMCUSG",
+        //        "countryCode": "US",
+        //        "name": "US-T",
+        //        "assetClass": "BOND",
+        //        "expiry": null,
+        //        "lastTradingDay": null,
+        //        "group": null,
+        //        "putOrCall": null,
+        //        "sector": null,
+        //        "sectorGroup": null,
+        //        "ticker": "US-T",
+        //        "undConid": 0,
+        //        "type": "Govt",
+        //        "hasOptions": false,
+        //        "bondName": "US-T Govt Bond 6.5 IBCID15960430",
+        //        "fullName": "US-T Govt Bond 6.5 Nov15'26",
+        //        "bond": {
+        //            "t": "Govt",
+        //            "t2": "Bond",
+        //            "taxSt": null,
+        //            "descr": "T 6 1/2 11/15/26",
+        //            "prt": null,
+        //            "descLabel": "T 6 1/2 11/15/26",
+        //            "countryOfIssue": "US",
+        //            "principalValue": 1000,
+        //            "principalValueCurr": "USD",
+        //            "announceDate": "47121231",
+        //            "issueDate": "19961115",
+        //            "maturityDate": "20261115",
+        //            "payPrincipalOnMaturity": "T",
+        //            "notes": "TENDERS ACCEPTED: $10000MM.                                                     LISTED: NYSE/AMEX. AMT REPURCH THRU DEBT BUYBACKS:$0MM-8/21/00, $10MM-11/13/00, $30MM-1/22/01, $155MM-3/26/01, $130MM-5/21/01, $175MM-7/23/01, $103MM-10/22/01, $20MM-12/17/01, $10MM-04/29/02.",
+        //            "issueAmount": 11493000000,
+        //            "openAmount": 10860000000,
+        //            "initialPrice": 98.457001,
+        //            "bondType": "Govt",
+        //            "isPuttable": "F",
+        //            "isCallable": "N",
+        //            "bf": "F",
+        //            "isSoftCall": "F",
+        //            "couponType": "FIXED",
+        //            "adjP": null,
+        //            "redempVal": null,
+        //            "calcType": "STREET CONVENTION",
+        //            "flag144A": "N",
+        //            "discl144A": "N",
+        //            "regS": "N",
+        //            "accredInv": "N",
+        //            "secRestrict": "0",
+        //            "dtcEligible": "Y",
+        //            "dtcRegistred": "Y",
+        //            "custEligible": {
+        //                "value": "Y",
+        //                "ilr": null
+        //            },
+        //            "nc": null,
+        //            "assetBackedFootNote": "N",
+        //            "unratedFootNote": "Y",
+        //            "redemptionFootNote": "N",
+        //            "ics": null,
+        //            "xlst": "Y",
+        //            "trace": "Y",
+        //            "tflt": null,
+        //            "isCalled": "N",
+        //            "bcdt": null,
+        //            "bcpx": null,
+        //            "isDefaulted": " ",
+        //            "inds": null,
+        //            "indg": null,
+        //            "indsg": null,
+        //            "mdDs": null,
+        //            "mdON": null,
+        //            "mdBT": null,
+        //            "mdDtC": null,
+        //            "mdSC": null,
+        //            "mdSn": null,
+        //            "mdOT": null,
+        //            "mrDs": null,
+        //            "bcd": null,
+        //            "bcc": null,
+        //            "bpc": null,
+        //            "bs": "F",
+        //            "brp": 100,
+        //            "brf": null,
+        //            "bmwc": null,
+        //            "mard": null,
+        //            "marp": null,
+        //            "mdd": null,
+        //            "memd": null,
+        //            "mf": null,
+        //            "mlc": null,
+        //            "mrrd": null,
+        //            "mrrp": null,
+        //            "mr": null,
+        //            "mtc": null,
+        //            "mwi": null,
+        //            "mguar": null,
+        //            "mbab": null,
+        //            "bbMktIss": "US GOVT",
+        //            "brc": "USD",
+        //            "bscp": null,
+        //            "bsdt": null,
+        //            "bt": null,
+        //            "sink": null,
+        //            "conversionOpt": [],
+        //            "embeddedOpt": [],
+        //            "collateralType": null,
+        //            "issueRating": [
+        //                {
+        //                    "agency": "MIKUNI",
+        //                    "ratingValue": " ",
+        //                    "outlook": null,
+        //                    "ratingWatch": null
+        //                },
+        //                ...
+        //            ],
+        //            "coupon": [
+        //                {
+        //                    "df": 19961115,
+        //                    "dt": "20261115",
+        //                    "dateCalcParams": {
+        //                        "dayCountRule": "ACT/ACT",
+        //                        "frequency": 2,
+        //                        "payDateRule": "1"
+        //                    },
+        //                    "cfTable": {
+        //                        "cf": [
+        //                            {
+        //                                "cd": 20060515,
+        //                                "ip": 0,
+        //                                "pp": 0
+        //                            },
+        //                            ...,
+        //                            {
+        //                                "cd": 20261115,
+        //                                "ip": 32500,
+        //                                "pp": 1000000
+        //                            }
+        //                        ]
+        //                    },
+        //                    "floater": null,
+        //                    "rate": 6.5,
+        //                    "intAtMatMethod": null,
+        //                    "pik": "F",
+        //                    "firstDate": 19970515,
+        //                    "firstAccrDate": 19961115,
+        //                    "prevDate": null,
+        //                    "secondDate": 19971115,
+        //                    "ncpdt": 20261115,
+        //                    "cpc": "USD"
+        //                }
+        //            ],
+        //            "payInKind": [],
+        //            "si": [
+        //                {
+        //                    "is": "ISIN",
+        //                    "id": "US912810EY02"
+        //                }
+        //            ],
+        //            "bondContract": [
+        //                {
+        //                    "o": 15960430,
+        //                    "u": null,
+        //                    "p": 62614,
+        //                    "i": "US-T",
+        //                    "rr": 0,
+        //                    "ctl": null,
+        //                    "t": null,
+        //                    "d": null,
+        //                    "cb": null,
+        //                    "pset": null,
+        //                    "hb": [
+        //                        {
+        //                            "n": "TSRYS4493816",
+        //                            "c": null,
+        //                            "b": null,
+        //                            "r": null,
+        //                            "l": null,
+        //                            "mc": null,
+        //                            "mt": 1000,
+        //                            "p": null,
+        //                            "e": null,
+        //                            "mx": 1000,
+        //                            "quotingConvention": 1,
+        //                            "cleanOrDirty": "C"
+        //                        },
+        //                        {
+        //                            "n": "T 6 1/2 11/15/26",
+        //                            "c": null,
+        //                            "b": null,
+        //                            "r": null,
+        //                            "l": null,
+        //                            "mc": null,
+        //                            "mt": 1000,
+        //                            "p": null,
+        //                            "e": null,
+        //                            "mx": 1000,
+        //                            "quotingConvention": 1,
+        //                            "cleanOrDirty": "C"
+        //                        }
+        //                    ],
+        //                    "rcg": null,
+        //                    "er": null,
+        //                    "rc": null
+        //                }
+        //            ],
+        //            "c": null,
+        //            "pa": null,
+        //            "ui": null,
+        //            "guarantorId": null,
+        //            "id": "a23607448",
+        //            "is": null
+        //        },
+        //        "isEventContract": false
+        //    }
+        //  ]
         //
         for (let i = 0; i < contractResults.length; i++) {
             const contracts = this.safeList(contractResults, i, []);
@@ -1947,7 +2179,257 @@ class interactivebrokers extends interactivebrokers$1["default"] {
         // perp-style future (FUT): "ticker": "BIP", "assetClass": "FUT", "listingExchange": "COINDERIV", "multiplier": 0.01, "expiry": "20301220", "undConid": 805366629
         // dated future (FUT): "ticker": "MBT", "assetClass": "FUT", "listingExchange": "CME", "multiplier": 0.1, "expiry": "20261127", "expirationDate": 20261127
         // cfd (CFD): "ticker": "AAPL", "assetClass": "CFD", "listingExchange": "IBUSCFD", "multiplier": 0, "undConid": 265598, "fullName": "APPLE INC CFD"
-        // bond (BOND): "ticker": "US-T", "assetClass": "BOND", "exchange": "SMART", "listingExchange": "BONDDESKG", "coupon": "4.125", "maturityDate": "20270131", "type": "Govt", "fullName": "US-T Govt Notes 4.125 Jan31'27", "bond": { "t2": "Notes", "principalValue": 1000.0, "couponType": "FIXED", ... }
+        // bond (BOND):
+        //
+        //    {
+        //        "conid": 15960430,
+        //        "symbol": "US-T",
+        //        "secType": "BOND",
+        //        "exchange": "SMART",
+        //        "listingExchange": "BONDDESKG",
+        //        "right": "?",
+        //        "strike": "0",
+        //        "currency": "USD",
+        //        "cusip": "912810EY0",
+        //        "coupon": "6.5",
+        //        "desc1": "US-T",
+        //        "desc2": "GOVT 6.5 Nov15'26 912810EY0 WR",
+        //        "maturityDate": "20261115",
+        //        "multiplier": 0,
+        //        "tradingClass": "US-T",
+        //        "validExchanges": "SMART",
+        //        "incrementRules": [
+        //            {
+        //                "lowerEdge": 0,
+        //                "increment": 0.001
+        //            }
+        //        ],
+        //        "displayRule": {
+        //            "magnification": 0,
+        //            "displayRuleStep": [
+        //                {
+        //                    "decimalDigits": 3,
+        //                    "lowerEdge": 0,
+        //                    "wholeDigits": 4
+        //                }
+        //            ]
+        //        },
+        //        "time": 11,
+        //        "chineseName": "&#x7F8E;&#x56FD;&#x4E2D;&#x957F;&#x671F;&#x56FD;&#x503A;",
+        //        "allExchanges": "BONDDESKG,VALUBONDG,CITADEL,VIRTBONDG,TRADEWEBG,TRACE,BONDSCOM,JPMCUSG",
+        //        "countryCode": "US",
+        //        "name": "US-T",
+        //        "assetClass": "BOND",
+        //        "expiry": null,
+        //        "lastTradingDay": null,
+        //        "group": null,
+        //        "putOrCall": null,
+        //        "sector": null,
+        //        "sectorGroup": null,
+        //        "ticker": "US-T",
+        //        "undConid": 0,
+        //        "type": "Govt",
+        //        "hasOptions": false,
+        //        "bondName": "US-T Govt Bond 6.5 IBCID15960430",
+        //        "fullName": "US-T Govt Bond 6.5 Nov15'26",
+        //        "bond": {
+        //            "t": "Govt",
+        //            "t2": "Bond",
+        //            "taxSt": null,
+        //            "descr": "T 6 1/2 11/15/26",
+        //            "prt": null,
+        //            "descLabel": "T 6 1/2 11/15/26",
+        //            "countryOfIssue": "US",
+        //            "principalValue": 1000,
+        //            "principalValueCurr": "USD",
+        //            "announceDate": "47121231",
+        //            "issueDate": "19961115",
+        //            "maturityDate": "20261115",
+        //            "payPrincipalOnMaturity": "T",
+        //            "notes": "TENDERS ACCEPTED: $10000MM.                                                     LISTED: NYSE/AMEX. AMT REPURCH THRU DEBT BUYBACKS:$0MM-8/21/00, $10MM-11/13/00, $30MM-1/22/01, $155MM-3/26/01, $130MM-5/21/01, $175MM-7/23/01, $103MM-10/22/01, $20MM-12/17/01, $10MM-04/29/02.",
+        //            "issueAmount": 11493000000,
+        //            "openAmount": 10860000000,
+        //            "initialPrice": 98.457001,
+        //            "bondType": "Govt",
+        //            "isPuttable": "F",
+        //            "isCallable": "N",
+        //            "bf": "F",
+        //            "isSoftCall": "F",
+        //            "couponType": "FIXED",
+        //            "adjP": null,
+        //            "redempVal": null,
+        //            "calcType": "STREET CONVENTION",
+        //            "flag144A": "N",
+        //            "discl144A": "N",
+        //            "regS": "N",
+        //            "accredInv": "N",
+        //            "secRestrict": "0",
+        //            "dtcEligible": "Y",
+        //            "dtcRegistred": "Y",
+        //            "custEligible": {
+        //                "value": "Y",
+        //                "ilr": null
+        //            },
+        //            "nc": null,
+        //            "assetBackedFootNote": "N",
+        //            "unratedFootNote": "Y",
+        //            "redemptionFootNote": "N",
+        //            "ics": null,
+        //            "xlst": "Y",
+        //            "trace": "Y",
+        //            "tflt": null,
+        //            "isCalled": "N",
+        //            "bcdt": null,
+        //            "bcpx": null,
+        //            "isDefaulted": " ",
+        //            "inds": null,
+        //            "indg": null,
+        //            "indsg": null,
+        //            "mdDs": null,
+        //            "mdON": null,
+        //            "mdBT": null,
+        //            "mdDtC": null,
+        //            "mdSC": null,
+        //            "mdSn": null,
+        //            "mdOT": null,
+        //            "mrDs": null,
+        //            "bcd": null,
+        //            "bcc": null,
+        //            "bpc": null,
+        //            "bs": "F",
+        //            "brp": 100,
+        //            "brf": null,
+        //            "bmwc": null,
+        //            "mard": null,
+        //            "marp": null,
+        //            "mdd": null,
+        //            "memd": null,
+        //            "mf": null,
+        //            "mlc": null,
+        //            "mrrd": null,
+        //            "mrrp": null,
+        //            "mr": null,
+        //            "mtc": null,
+        //            "mwi": null,
+        //            "mguar": null,
+        //            "mbab": null,
+        //            "bbMktIss": "US GOVT",
+        //            "brc": "USD",
+        //            "bscp": null,
+        //            "bsdt": null,
+        //            "bt": null,
+        //            "sink": null,
+        //            "conversionOpt": [],
+        //            "embeddedOpt": [],
+        //            "collateralType": null,
+        //            "issueRating": [
+        //                {
+        //                    "agency": "MIKUNI",
+        //                    "ratingValue": " ",
+        //                    "outlook": null,
+        //                    "ratingWatch": null
+        //                },
+        //                ...
+        //            ],
+        //            "coupon": [
+        //                {
+        //                    "df": 19961115,
+        //                    "dt": "20261115",
+        //                    "dateCalcParams": {
+        //                        "dayCountRule": "ACT/ACT",
+        //                        "frequency": 2,
+        //                        "payDateRule": "1"
+        //                    },
+        //                    "cfTable": {
+        //                        "cf": [
+        //                            {
+        //                                "cd": 20060515,
+        //                                "ip": 0,
+        //                                "pp": 0
+        //                            },
+        //                            ...,
+        //                            {
+        //                                "cd": 20261115,
+        //                                "ip": 32500,
+        //                                "pp": 1000000
+        //                            }
+        //                        ]
+        //                    },
+        //                    "floater": null,
+        //                    "rate": 6.5,
+        //                    "intAtMatMethod": null,
+        //                    "pik": "F",
+        //                    "firstDate": 19970515,
+        //                    "firstAccrDate": 19961115,
+        //                    "prevDate": null,
+        //                    "secondDate": 19971115,
+        //                    "ncpdt": 20261115,
+        //                    "cpc": "USD"
+        //                }
+        //            ],
+        //            "payInKind": [],
+        //            "si": [
+        //                {
+        //                    "is": "ISIN",
+        //                    "id": "US912810EY02"
+        //                }
+        //            ],
+        //            "bondContract": [
+        //                {
+        //                    "o": 15960430,
+        //                    "u": null,
+        //                    "p": 62614,
+        //                    "i": "US-T",
+        //                    "rr": 0,
+        //                    "ctl": null,
+        //                    "t": null,
+        //                    "d": null,
+        //                    "cb": null,
+        //                    "pset": null,
+        //                    "hb": [
+        //                        {
+        //                            "n": "TSRYS4493816",
+        //                            "c": null,
+        //                            "b": null,
+        //                            "r": null,
+        //                            "l": null,
+        //                            "mc": null,
+        //                            "mt": 1000,
+        //                            "p": null,
+        //                            "e": null,
+        //                            "mx": 1000,
+        //                            "quotingConvention": 1,
+        //                            "cleanOrDirty": "C"
+        //                        },
+        //                        {
+        //                            "n": "T 6 1/2 11/15/26",
+        //                            "c": null,
+        //                            "b": null,
+        //                            "r": null,
+        //                            "l": null,
+        //                            "mc": null,
+        //                            "mt": 1000,
+        //                            "p": null,
+        //                            "e": null,
+        //                            "mx": 1000,
+        //                            "quotingConvention": 1,
+        //                            "cleanOrDirty": "C"
+        //                        }
+        //                    ],
+        //                    "rcg": null,
+        //                    "er": null,
+        //                    "rc": null
+        //                }
+        //            ],
+        //            "c": null,
+        //            "pa": null,
+        //            "ui": null,
+        //            "guarantorId": null,
+        //            "id": "a23607448",
+        //            "is": null
+        //        },
+        //        "isEventContract": false
+        //    }
         //
         const assetClass = this.safeString(market, 'assetClass');
         const isCrypto = (assetClass === 'CRYPTO');
