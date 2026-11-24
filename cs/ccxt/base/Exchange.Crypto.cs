@@ -358,6 +358,19 @@ public partial class BaseExchange
         privatekey = Convert.FromBase64String(newPk);
         // https://gist.github.com/GaiaAnn/29071961482462ff5334a121bd103166
         RSACryptoServiceProvider rsa = DecodeRSAPrivateKey(privatekey);
+        if (rsa == null)
+        {
+            // "BEGIN PRIVATE KEY" (PKCS#8, the openssl 3 default) wraps the PKCS#1 key in an OCTET STRING
+            var pkcs1 = UnwrapPkcs8RsaPrivateKey(privatekey);
+            if (pkcs1 != null)
+            {
+                rsa = DecodeRSAPrivateKey(pkcs1);
+            }
+        }
+        if (rsa == null)
+        {
+            throw new ArgumentException("rsa() could not read an RSA private key from the PEM (expected PKCS#1 \"BEGIN RSA PRIVATE KEY\" or PKCS#8 \"BEGIN PRIVATE KEY\")");
+        }
         object sh;
         var algorithm = "md5";
         if (hash != null)
