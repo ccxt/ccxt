@@ -3,6 +3,17 @@
     "skipKeys": [],
     "outputType": "both",
     "methods": {
+        "fetchMarketLeverageTiers": [
+            {
+                "description": "fetchMarketLeverageTiers",
+                "method": "fetchMarketLeverageTiers",
+                "url": "https://openapi.blofin.com/api/v1/market/position-tiers?instId=CATI-USDT&marginMode=cross",
+                "input": [
+                    "CATI/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
         "fetchMarkPrice": [
             {
                 "description": "fetch mark price",
