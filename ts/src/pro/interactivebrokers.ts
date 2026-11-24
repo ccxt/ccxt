@@ -295,12 +295,12 @@ export default class interactivebrokers extends interactivebrokersRest {
      * @param {string[]} [params.fields] the market data fields to stream
      * @returns {Array} the raw message and the params without fields
      */
-    ibkrMarketDataRequest (marketId: Str, params: Dict = {}): any[] {
+    ibkrMarketDataRequest (marketId: string, params: Dict = {}): [ string, Dict ] {
         const options = this.safeDict (this.options, 'watchTickers', {});
         const defaultFields = this.safeList (options, 'fields', []);
         const fields = this.safeList (params, 'fields', defaultFields);
-        const query = this.omit (params, 'fields');
-        const request = 'smd+' + marketId + '+' + this.json ({ 'fields': fields });
+        const query: Dict = this.extend ({}, this.omit (params, 'fields'));
+        const request: string = 'smd+' + marketId + '+' + this.json ({ 'fields': fields });
         return [ request, query ];
     }
 
@@ -372,7 +372,7 @@ export default class interactivebrokers extends interactivebrokersRest {
         }
         for (let i = 0; i < marketSymbols.length; i++) {
             const market = this.market (marketSymbols[i]);
-            const [ request, query ] = this.ibkrMarketDataRequest (this.safeString (market, 'id'), params);
+            const [ request, query ] = this.ibkrMarketDataRequest (this.safeString (market, 'id', ''), params);
             const subscription: Dict = this.extend ({ 'conid': market['id'], 'symbol': market['symbol'] }, query);
             await this.ibkrSubscribe (client, messageHashes[i], request, subscription);
         }
@@ -517,7 +517,7 @@ export default class interactivebrokers extends interactivebrokersRest {
         // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
         const future = client.reusableFuture (messageHash);
         // the last price stream, it builds the current candles
-        const [ marketDataRequest, query ] = this.ibkrMarketDataRequest (this.safeString (market, 'id'), params);
+        const [ marketDataRequest, query ] = this.ibkrMarketDataRequest (this.safeString (market, 'id', ''), params);
         await this.ibkrSubscribe (client, messageHash, marketDataRequest, { 'conid': market['id'], 'symbol': unifiedSymbol, 'timeframe': timeframe });
         // the history, it seeds the candles
         const historyHash = 'smh::' + historyMarketId + '::' + timeframe;
