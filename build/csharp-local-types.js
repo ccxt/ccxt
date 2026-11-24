@@ -5750,7 +5750,8 @@ function typedRequestIdCall (initializer) {
     if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword || callee.name?.text !== 'requestId') {
         return false;
     }
-    return sameFileCallBoxType (initializer.getSourceFile?.()) === 'Int64';
+    const box = sameFileCallBoxType (initializer.getSourceFile?.());
+    return (box === 'Int64') || (box === 'Int64?');
 }
 
 // ===== per-definition callee boxes (requestId) =====
@@ -5885,6 +5886,10 @@ function requestIdExpressionBoxType (method, expression, depth) {
             // (Exchange.String.cs) and numberToString (`string`, Exchange.Number.cs)
             if (name === 'uuid' || name === 'uuid16' || name === 'uuid22' || name === 'numberToString') {
                 return 'string';
+            }
+            // `this.parseToInt (...)` is declared `Int64?` (Exchange.BaseMethods.cs): its own box
+            if (name === 'parseToInt') {
+                return 'Int64?';
             }
             return (name === 'sum' && requestIdSumBoxesInt64 (method, expression, depth)) ? 'Int64' : undefined;
         }
@@ -16655,7 +16660,7 @@ function csharpMethodReturnType (csharp, node, own) {
         ? sameFileNumericDeclarationType (csharp, node, CSHARP_LOCAL_SAME_FILE_NUMERIC_RETURNS[name])
         : undefined;
     const mapped = (name === 'requestId')
-        ? ((sameFileCallBoxType (node.getSourceFile?.()) === 'Int64') ? 'Int64' : undefined)
+        ? ([ 'Int64', 'Int64?' ].includes (sameFileCallBoxType (node.getSourceFile?.())) ? sameFileCallBoxType (node.getSourceFile?.()) : undefined)
         : ((sameFileMapped !== undefined) ? sameFileMapped : (CSHARP_NUMERIC_RETURN_TYPES[node.name?.text] ?? declaredIntReturnType (csharp, node)));
     if (mapped === undefined) {
         return undefined;
