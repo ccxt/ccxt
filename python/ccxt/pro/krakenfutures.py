@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide
 import hashlib
-from ccxt.base.types import Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1602,7 +1602,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             messageHash += '#' + subChannelName
         return messageHash
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #    {
         #        event: 'alert',

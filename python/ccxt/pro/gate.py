@@ -851,10 +851,9 @@ class gate(ccxt.async_support.gate):
             results = [rawTicker]
         isTicker = (objectName == 'ticker')  # whether ticker or bid-ask
         for i in range(0, len(results)):
-            rawTicker = results[i]
-            marketId = self.safe_string(rawTicker, 's')
+            marketId = self.safe_string(results[i], 's')
             market = self.safe_market(marketId, None, '_', marketType)
-            parsedItem = self.parse_ticker(rawTicker, market)
+            parsedItem = self.parse_ticker(self.safe_dict(results, i, {}), market)
             symbol = parsedItem['symbol']
             if isTicker:
                 if symbol is not None:
@@ -1379,17 +1378,18 @@ class gate(ccxt.async_support.gate):
         payload = ['!' + 'all']
         if not self.is_empty(symbolsNormalized):
             market = self.get_market_from_symbols(symbolsNormalized)
-        type = None
-        query = None
-        type, query = self.handle_market_type_and_params('watchPositions', market, params)
-        if type == 'spot':
+        marketType, marketQuery = self.handle_market_type_and_params('watchPositions', market, params)
+        query = marketQuery
+        type = marketType
+        messageHash = marketType + ':positions'
+        if marketType == 'spot':
             type = 'swap'
+            messageHash = 'swap:positions'
         typeId = self.get_supported_mapping(type, {
             'future': 'futures',
             'swap': 'futures',
             'option': 'options',
         })
-        messageHash = type + ':positions'
         if not self.is_empty(symbolsNormalized):
             if symbolsNormalized is None:
                 raise ArgumentsRequired(self.id + ' watchPositions() symbols is required')
@@ -1842,7 +1842,7 @@ class gate(ccxt.async_support.gate):
             'datetime': self.iso8601(timestamp),
         }, marketResolved)
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #    {
         #        "time": 1647274664,

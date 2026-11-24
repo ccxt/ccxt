@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Bool, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -874,7 +874,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         #
         return message
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #     {
         #         "type": "error",

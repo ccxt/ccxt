@@ -7765,7 +7765,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         fees = self.safe_list(feeRates, 'list', [])
         result = {}
         for i in range(0, len(fees)):
-            fee = self.parse_trading_fee(fees[i])
+            feeRow = self.safe_dict(fees, i, {})
+            fee = self.parse_trading_fee(feeRow)
             symbol = self.safe_string(fee, 'symbol')
             if symbol is not None:
                 result[symbol] = fee

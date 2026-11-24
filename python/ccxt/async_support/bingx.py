@@ -2266,7 +2266,8 @@ class bingx(Exchange, ImplicitAPI):
             #     ]
             # }
             #
-            return self.parse_ticker(self.safe_dict(response['data'], 0, {}), market)
+            rows = self.safe_list(response, 'data', [])
+            return self.parse_ticker(self.safe_dict(rows, 0, {}), market)
         else:
             response = await self.swapV2PublicGetQuotePremiumIndex(self.extend(request, paramsSubType))
             #

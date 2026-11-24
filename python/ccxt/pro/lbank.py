@@ -955,7 +955,7 @@ class lbank(ccxt.async_support.lbank):
         messageHash = 'fetchOrderbook:' + symbol
         client.resolve(orderbook, messageHash)
 
-    def handle_error_message(self, client: Client, message: dict):
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #    {
         #        SERVER: 'V2',
@@ -967,6 +967,7 @@ class lbank(ccxt.async_support.lbank):
         errMsg = self.safe_string(message, 'message', '')
         error = ExchangeError(self.id + ' ' + errMsg)
         client.reject(error)
+        return False
 
     async def handle_ping(self, client: Client, message: dict):
         #

@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -1621,7 +1621,7 @@ class backpack(ccxt.async_support.backpack):
         elif event == 'positionAdjusted' or event == 'positionOpened' or event == 'positionClosed' or event == 'positionUpdated':
             self.handle_positions(client, message)
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #     {
         #         id: null,

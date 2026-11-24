@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
-from ccxt.base.types import Bool, Int, Market, Order, OrderBook, Str, FundingRate, Trade
+from ccxt.base.types import Int, Market, Order, OrderBook, Str, FundingRate, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -848,7 +848,7 @@ class bitstamp(ccxt.async_support.bitstamp):
                 method = methods[key]
                 method(client, message)
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         # {
         #     "event": "bts:error",
         #     "channel": '',

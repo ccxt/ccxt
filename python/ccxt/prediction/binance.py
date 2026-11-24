@@ -184,7 +184,7 @@ class binance(PredictionExchange, ImplicitAPI):
         flatMarkets = []
         rawTopicsLength = len(rawTopics)
         for i in range(0, rawTopicsLength):
-            parsedEvent = self.parse_event(rawTopics[i])
+            parsedEvent = self.parse_event(self.extend({}, rawTopics[i]))
             parsedEvents.append(parsedEvent)
             eventMarkets = self.safe_list(parsedEvent, 'markets', [])
             eventMarketsLength = len(eventMarkets)
@@ -385,7 +385,7 @@ class binance(PredictionExchange, ImplicitAPI):
         rawTopicsLength = len(rawTopics)
         result = []
         for i in range(0, rawTopicsLength):
-            parsedEvent = self.parse_event(rawTopics[i])
+            parsedEvent = self.parse_event(self.extend({}, rawTopics[i]))
             result.append(parsedEvent)
             parsedMarkets = self.safe_list(parsedEvent, 'markets', [])
             parsedMarketsLength = len(parsedMarkets)

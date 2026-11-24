@@ -713,7 +713,7 @@ class bullish(ccxt.async_support.bullish):
                 client.resolve(symbolPositions, messageHash)
         client.resolve(positions, 'positions')
 
-    def handle_error_message(self, client: Client, message: dict):
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #     {
         #         "data": {
@@ -735,6 +735,7 @@ class bullish(ccxt.async_support.bullish):
             raise ExchangeError(feedback)  # unknown message
         except Exception as e:
             client.reject(e)
+        return False
 
     def handle_message(self, client: Client, message: dict):
         dataType = self.safe_string(message, 'dataType')

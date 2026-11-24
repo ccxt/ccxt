@@ -373,7 +373,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             ccxtMarkets = self.parse_event_to_markets(rawEvent)
             for mi in range(0, len(ccxtMarkets)):
                 flatMarkets.append(ccxtMarkets[mi])
-            parsedEvent = self.parse_event(rawEvent)
+            parsedEvent = self.parse_event(self.extend({}, rawEvent))
             eventSlug = self.safe_string(rawEvent, 'slug')
             if (eventSlug is not None) and (eventSlug != ''):
                 eventKey = self.shorten_slug(eventSlug)
@@ -2324,7 +2324,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 if m is None:
                     raise ExchangeError(self.id + ' fetchEvents() missing m')
                 self.markets[m['market']] = m
-            parsedEvent = self.parse_event(eventForParsing)
+            parsedEvent = self.parse_event(self.extend({}, eventForParsing))
             result.append(parsedEvent)
         # populateOutcomes rebuilds the outcome cache from the markets registered above; the
         # shared applyEventFetchParams then caches (setEvents) and applies the unified
@@ -2362,7 +2362,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         eventForParsing = self.safe_dict(response, 'event', response)
         if eventForParsing is None:
             eventForParsing = {}
-        event = self.parse_event(eventForParsing)
+        event = self.parse_event(self.extend({}, eventForParsing))
         self.index_event_outcomes(event)
         return event
 
@@ -2480,7 +2480,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         """
         result = []
         for i in range(0, len(rawEvents)):
-            result.append(self.parse_event(rawEvents[i]))
+            result.append(self.parse_event(self.safe_dict(rawEvents, i, {})))
         return result
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:

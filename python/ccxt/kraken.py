@@ -1150,7 +1150,8 @@ class kraken(Exchange, ImplicitAPI):
         }
         response = self.publicGetTicker(self.extend(request, params))
         tickerResult = self.safe_dict(response, 'result', {})
-        return self.parse_ticker(self.safe_dict(tickerResult, market['id'], {}), market)
+        marketId = self.safe_string(market, 'id', '')
+        return self.parse_ticker(self.safe_dict(tickerResult, marketId, {}), market)
 
     def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #

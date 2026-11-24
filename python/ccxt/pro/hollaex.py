@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById
 import hashlib
-from ccxt.base.types import Balances, Bool, Int, Order, OrderBook, Str, Trade
+from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
@@ -463,7 +463,7 @@ class hollaex(ccxt.async_support.hollaex):
         message = self.extend(request, params)
         return await self.watch(signedUrl, messageHash, message, messageHash)
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #     { error: "Bearer or HMAC authentication required" }
         #     { error: "Error: wrong input" }

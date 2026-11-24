@@ -4208,8 +4208,8 @@ class hashkey(Exchange, ImplicitAPI):
             fee = self.safe_dict(response, symbol)
             return fee
         elif self.safe_bool(market, 'swap', False):
-            response = await self.privateGetApiV1FuturesCommissionRate(self.extend({'symbol': market['id']}, params))
-            return self.parse_trading_fee(response, market)
+            swapResponse = await self.privateGetApiV1FuturesCommissionRate(self.extend({'symbol': market['id']}, params))
+            return self.parse_trading_fee(swapResponse, market)
             #
             #     {
             #         "openMakerFee": "0.00025",

@@ -1224,7 +1224,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         self.clean_unsubscription(client, subHash, unsubHash)
         self.clean_cache(subscription)
 
-    def handle_error_message(self, client: Client, message: dict):
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #     {
         #         "a": "RecvTopicAction",
@@ -1257,3 +1257,4 @@ class deepcoin(ccxt.async_support.deepcoin):
             raise ExchangeError(feedback)
         except Exception as e:
             client.reject(e, messageHash)
+        return False

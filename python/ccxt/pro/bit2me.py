@@ -744,7 +744,7 @@ class bit2me(ccxt.async_support.bit2me):
         #
         return message
 
-    def handle_error_message(self, client: Client, message: dict):
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #     { "event": "added-order", "symbol": "BTC/USDC", "error": { "code": "PRICE_LOWER_MARKET_MIN", "minPrice": 0.001, "message": "The price can not be lower than 0.001" } }
         #     { "event": "canceled-order", "orderId": "73352609-a885-4dc6-99c4-8a03e5df6bda", "error": { "code": "ORDER_NOT_FOUND", "message": "The order with ID 73352609-a885-4dc6-99c4-8a03e5df6bda was not found" } }
@@ -806,6 +806,7 @@ class bit2me(ccxt.async_support.bit2me):
                     del client.subscriptions[name]
                 if messageHash in client.subscriptions:
                     del client.subscriptions[messageHash]
+        return False
 
     def handle_message(self, client: Client, message: dict):
         event = self.safe_string(message, 'event')

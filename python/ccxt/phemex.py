@@ -1137,8 +1137,7 @@ class phemex(Exchange, ImplicitAPI):
                 baseCurrency = self.safe_string(market, 'baseCurrency')
                 currencyValues = self.safe_dict(currenciesByCode, baseCurrency, {})
                 valueScale = self.safe_string(currencyValues, 'valueScale', '8')
-                market = self.extend(market, {'valueScale': valueScale})
-                market = self.parse_spot_market(market)
+                market = self.parse_spot_market(self.extend(market, {'valueScale': valueScale}))
             if market is not None:
                 result.append(market)
         return result

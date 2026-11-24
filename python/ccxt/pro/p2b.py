@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp
-from ccxt.base.types import Bool, Int, OrderBook, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Int, OrderBook, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import BadRequest
@@ -459,7 +459,7 @@ class p2b(ccxt.async_support.p2b):
         if endpoint is not None:
             endpoint(client, message)
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         error = self.safe_string(message, 'error')
         if error is not None:
             raise ExchangeError(self.id + ' error: ' + self.json(error))

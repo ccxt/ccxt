@@ -2031,7 +2031,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         rawEventsLength = len(rawEvents)
         result = []
         for di in range(0, rawEventsLength):
-            parsedEvent = self.parse_event(rawEvents[di])
+            parsedEvent = self.parse_event(self.extend({}, rawEvents[di]))
             result.append(parsedEvent)
             # register the parsed markets so populateOutcomes can index their outcomes
             parsedMarkets = parsedEvent['markets']

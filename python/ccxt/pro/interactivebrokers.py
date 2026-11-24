@@ -553,7 +553,7 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
         symbol = self.safe_string(subscription, 'symbol')
         timeframe = self.safe_string(subscription, 'timeframe')
         market = self.safe_market(marketId)
-        stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol, {}), timeframe)
+        stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol), timeframe)
         if stored is None:
             return
         data = self.safe_list(message, 'data', [])

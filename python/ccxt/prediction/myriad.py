@@ -335,7 +335,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         """
         if id.find(':') < 0:
             rawQuestion = await self.fetch_raw_question_by_id(id, params)
-            orderBookEvent = self.parse_event(rawQuestion)
+            orderBookEvent = self.parse_event(self.extend({}, rawQuestion))
             self.index_event_outcomes(orderBookEvent)
             return orderBookEvent
         response = await self.fetch_raw_market_by_id(id, params)
@@ -2803,8 +2803,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         result = []
         rawQuestionsLength = len(rawQuestions)
         for i in range(0, rawQuestionsLength):
-            rawQuestion = rawQuestions[i]
-            ev = self.parse_event(rawQuestion)
+            ev = self.parse_event(self.safe_dict(rawQuestions, i, {}))
             evMarkets = self.safe_list(ev, 'markets', [])
             evMarketsLength = len(evMarkets)
             filteredMarkets = []

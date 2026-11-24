@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Bool, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1106,10 +1106,9 @@ class poloniex(ccxt.async_support.poloniex):
         data = self.safe_list(message, 'data', [])
         newTickers = {}
         for i in range(0, len(data)):
-            item = data[i]
-            marketId = self.safe_string(item, 'symbol')
+            marketId = self.safe_string(data[i], 'symbol')
             if marketId is not None:
-                ticker = self.parse_ticker(item)
+                ticker = self.parse_ticker(self.safe_dict(data, i, {}))
                 symbol = self.safe_string(ticker, 'symbol')
                 if symbol is not None:
                     self.tickers[symbol] = ticker
@@ -1357,7 +1356,7 @@ class poloniex(ccxt.async_support.poloniex):
                 self.clean_cache({'topic': 'ohlcv', 'symbolsAndTimeframes': [[symbol, timeframe]]})
                 self.clean_unsubscription(client, subMessageHash, 'unsubscribe:' + subMessageHash)
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #    {
         #        message: 'Invalid channel value ["ordersss"]',

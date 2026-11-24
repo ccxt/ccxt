@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Bool, Int, Market, Order, OrderBook, Str, Ticker, Trade
+from ccxt.base.types import Int, Market, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -614,7 +614,7 @@ class alpaca(ccxt.async_support.alpaca):
             self.watch(url, messageHash, request, messageHash, future)
         return await future
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #    {
         #        "T": "error",

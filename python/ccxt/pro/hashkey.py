@@ -376,7 +376,7 @@ class hashkey(ccxt.async_support.hashkey):
         messageHash = 'orders'
         symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
         if symbol is not None:
-            messageHash = 'orders' + ':' + symbolResolved
+            messageHash = 'orders' + ':' + self.symbol(symbol)
         orders = await self.watch_private(messageHash)
         limitResolved = limit
         if self.newUpdates:
@@ -492,7 +492,7 @@ class hashkey(ccxt.async_support.hashkey):
         messageHash = 'myTrades'
         symbolResolved = self.symbol(symbol) if (symbol is not None) else symbol
         if symbol is not None:
-            messageHash = 'myTrades' + ':' + symbolResolved
+            messageHash = 'myTrades' + ':' + self.symbol(symbol)
         trades = await self.watch_private(messageHash)
         limitResolved = limit
         if self.newUpdates:

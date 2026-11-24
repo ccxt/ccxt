@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Bool, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -729,11 +729,10 @@ class pacifica(ccxt.async_support.pacifica):
         parsedTickers = []
         data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
-            info = data[i]
-            marketId = self.safe_string(info, 'symbol')
+            marketId = self.safe_string(data[i], 'symbol')
             market = self.safe_market(marketId)
             symbol = self.safe_string(market, 'symbol', '')
-            ticker = self.parse_ticker(info, market)
+            ticker = self.parse_ticker(self.safe_dict(data, i, {}), market)
             self.tickers[symbol] = ticker
             parsedTickers.append(ticker)
         tickers = self.index_by(parsedTickers, 'symbol')
@@ -1226,7 +1225,7 @@ class pacifica(ccxt.async_support.pacifica):
             client.resolve(stored, innerMessageHash)
         client.resolve(stored, messageHash)
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         # 'rl' key is present only when a rate-limited API key is used
         # {"id":"64107e37-a999-4b90-a3cf-b4322ae110d9","type":"cancel_order","code":420,"err":"Failed to cancel order","t":1769474703073,"rl":{"r":1245,"q":1250,"t":56}}

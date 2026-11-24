@@ -1151,6 +1151,8 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         symbol = self.safe_symbol(marketId)
         timestamp = self.safe_integer(data, 'timestamp')
         channel = self.safe_string(params, 'channel')
+        if channel is None:
+            raise ExchangeError(self.id + ' order book update has no channel')
         channelParts = channel.split('.')
         channelPartsLength = len(channelParts)
         isGrouped = channelPartsLength == 5

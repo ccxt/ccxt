@@ -949,7 +949,7 @@ class coinsph(Exchange, ImplicitAPI):
             ticker = self.publicGetOpenapiQuoteV1TickerBookTicker(self.extend(request, params))
         else:
             ticker = self.publicGetOpenapiQuoteV1Ticker24hr(self.extend(request, params))
-        return self.parse_ticker(ticker, market)
+        return self.parse_ticker(self.extend({}, ticker), market)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #

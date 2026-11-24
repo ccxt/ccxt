@@ -1404,12 +1404,11 @@ class delta(Exchange, ImplicitAPI):
         tickers = self.safe_list(response, 'result', [])
         result = {}
         for i in range(0, len(tickers)):
-            rawTicker = tickers[i]
-            contractType = self.safe_string(rawTicker, 'contract_type')
+            contractType = self.safe_string(tickers[i], 'contract_type')
             if (contractType == 'options_combos') or (contractType == 'binary_call_options') or (contractType == 'binary_put_options'):
                 # these instruments are excluded from the unified markets, see fetchMarkets
                 continue
-            ticker = self.parse_ticker(rawTicker)
+            ticker = self.parse_ticker(self.safe_dict(tickers, i, {}))
             symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 result[symbol] = ticker

@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Balances, Bool, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -317,11 +317,11 @@ class onetrading(ccxt.async_support.onetrading):
         limitResolved = limit
         if self.newUpdates:
             limitResolved = trades.getLimit(symbolResolved, limit)
-        trades = self.filter_by_symbol_since_limit(trades, symbolResolved, since, limitResolved)
-        numTrades = len(trades)
+        filtered = self.filter_by_symbol_since_limit(trades, symbolResolved, since, limitResolved)
+        numTrades = len(filtered)
         if numTrades == 0:
             return await self.watch_my_trades(symbolResolved, since, limitResolved, params)
-        return trades
+        return filtered
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
@@ -472,11 +472,11 @@ class onetrading(ccxt.async_support.onetrading):
         limitResolved = limit
         if self.newUpdates:
             limitResolved = orders.getLimit(symbolResolved, limit)
-        orders = self.filter_by_symbol_since_limit(orders, symbolResolved, since, limitResolved)
-        numOrders = len(orders)
+        filtered = self.filter_by_symbol_since_limit(orders, symbolResolved, since, limitResolved)
+        numOrders = len(filtered)
         if numOrders == 0:
             return await self.watch_orders(symbolResolved, since, limitResolved, params)
-        return orders
+        return filtered
 
     def handle_trading(self, client: Client, message: dict):
         #
@@ -1205,7 +1205,7 @@ class onetrading(ccxt.async_support.onetrading):
         #
         return message
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #     {
         #         "error": "MALFORMED_JSON",

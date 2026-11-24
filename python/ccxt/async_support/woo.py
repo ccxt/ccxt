@@ -937,7 +937,7 @@ class woo(Exchange, ImplicitAPI):
         price = self.safe_string_2(trade, 'executed_price', 'executedPrice')
         amount = self.safe_string_2(trade, 'executed_quantity', 'executedQuantity')
         order_id = self.safe_string_2(trade, 'order_id', 'orderId')
-        fee = self.parse_token_and_fee_temp(trade, ['fee_asset', 'feeAsset'], ['fee'])
+        fee = self.parse_token_and_fee_temp(self.extend({}, trade), ['fee_asset', 'feeAsset'], ['fee'])
         cost = Precise.string_mul(price, amount)
         side = self.safe_string_lower(trade, 'side')
         id = self.safe_string(trade, 'id')

@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -890,7 +890,7 @@ class grvt(ccxt.async_support.grvt):
         # same as REST api
         return self.parse_order(self.extend({}, order), market)
 
-    def handle_error_message(self, client: Client, response: dict) -> Bool:
+    def handle_error_message(self, client: Client, response: dict) -> bool:
         #
         #    {
         #        "jsonrpc": "2.0",

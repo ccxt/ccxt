@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Bool, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Balances, Currencies, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -174,15 +174,14 @@ class bitvavo(ccxt.async_support.bitvavo):
         tickers = self.safe_list(message, 'data', [])
         result = []
         for i in range(0, len(tickers)):
-            data = tickers[i]
-            marketId = self.safe_string(data, 'market')
+            marketId = self.safe_string(tickers[i], 'market')
             market = self.safe_market(marketId, None, '-')
-            ticker = self.parse_ticker(data, market)
+            ticker = self.parse_ticker(self.safe_dict(tickers, i, {}), market)
             symbol = self.safe_string(ticker, 'symbol')
             self.tickers[symbol] = ticker
             result.append(ticker)
             if event is not None:
-                messageHash = event + '@' + self.safe_string(data, 'market', '')
+                messageHash = event + '@' + self.safe_string(tickers[i], 'market', '')
                 client.resolve(ticker, messageHash)
         client.resolve(result, event)
 
@@ -1662,7 +1661,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             if messageHash in client.subscriptions:
                 del client.subscriptions[messageHash]
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #    {
         #        action: 'privateCreateOrder',
@@ -1680,7 +1679,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #
         error = self.safe_string(message, 'error')
         if error is None:
-            return None
+            return False
         code = self.safe_integer(error, 'errorCode')
         action = self.safe_string(message, 'action')
         buildMessage = self.build_message_hash(action, message)
@@ -1695,7 +1694,7 @@ class bitvavo(ccxt.async_support.bitvavo):
             feedback = ExchangeError(self.id + ' ' + self.json(message))
             client.reject(feedback, messageHash)
             return True
-        return None
+        return False
 
     def handle_message(self, client: Client, message: dict):
         #

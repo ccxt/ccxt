@@ -6,7 +6,7 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1336,10 +1336,10 @@ class bitget(ccxt.async_support.bitget):
             instType, paramsInstType = self.get_inst_type('watchPositions', market, uta, paramsUta)
         if uta:
             instType = 'UTA'
-        messageHash = instType + ':positions' + messageHash
         args = {
             'instType': instType,
         }
+        messageHash = self.safe_string(args, 'instType', '') + ':positions' + messageHash
         topicOrChannel = 'channel'
         if uta:
             topicOrChannel = 'topic'
@@ -2573,7 +2573,7 @@ class bitget(ccxt.async_support.bitget):
         future = self.safe_value(client.futures, messageHash)
         future.resolve(True)
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #    { event: "error", code: 30015, msg: "Invalid sign" }
         #

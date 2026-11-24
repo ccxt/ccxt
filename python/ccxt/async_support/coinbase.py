@@ -1534,7 +1534,7 @@ class coinbase(Exchange, ImplicitAPI):
         data = self.safe_list(spot, 'products', [])
         result = []
         for i in range(0, len(data)):
-            spotMarket = self.parse_spot_market(data[i], feeTier)
+            spotMarket = self.parse_spot_market(self.safe_dict(data, i, {}), feeTier)
             if spotMarket is not None:
                 result.append(spotMarket)
         futureData = self.safe_list(expiringFutures, 'products', [])
@@ -2132,11 +2132,10 @@ class coinbase(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'products', [])
         result = {}
         for i in range(0, len(data)):
-            entry = data[i]
-            marketId = self.safe_string(entry, 'product_id')
+            marketId = self.safe_string(data[i], 'product_id')
             market = self.safe_market(marketId, None, '-')
             symbol = self.safe_string(market, 'symbol', '')
-            result[symbol] = self.parse_ticker(entry, market)
+            result[symbol] = self.parse_ticker(self.safe_dict(data, i, {}), market)
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
     async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:

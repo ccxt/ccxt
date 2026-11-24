@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide
-from ccxt.base.types import Balances, Bool, Int, Liquidation, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
+from ccxt.base.types import Balances, Int, Liquidation, Market, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -2304,7 +2304,7 @@ class paradex(ccxt.async_support.paradex):
             account['last_seen_notification'] = self.sbe_read_timestamp(frameHex, 121)
         return account
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #     {
         #         "jsonrpc": "2.0",

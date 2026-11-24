@@ -2341,7 +2341,7 @@ class bybit(ccxt.async_support.bybit):
             self.watch(url, messageHash, message, messageHash)
         return await future
 
-    def handle_error_message(self, client: Client, message: dict) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #   {
         #       "success": false,

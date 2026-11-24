@@ -1521,7 +1521,7 @@ class xt(ccxt.async_support.xt):
                 self.clean_unsubscription(client, subHash, unsubHash)
         self.clean_cache(subscription)
 
-    def handle_error_message(self, client: Client, message: dict):
+    def handle_error_message(self, client: Client, message: dict) -> bool:
         #
         #    {
         #        "id": "123",
@@ -1534,6 +1534,7 @@ class xt(ccxt.async_support.xt):
             if 'token' in client.subscriptions:
                 del client.subscriptions['token']
             self.get_listen_key(True)
-            return
+            return False
         error = ExchangeError(self.id + ' ' + self.json(message))
         client.reject(error)
+        return False

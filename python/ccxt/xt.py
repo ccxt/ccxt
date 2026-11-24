@@ -1912,15 +1912,14 @@ class xt(Exchange, ImplicitAPI):
         tickers = self.safe_list(response, 'result', [])
         result = {}
         for i in range(0, len(tickers)):
-            rawTicker = tickers[i]
             # the spot and contract payloads share the same field names, so
             # the market type cannot be inferred from the entry itself
-            marketId = self.safe_string(rawTicker, 's')
+            marketId = self.safe_string(tickers[i], 's')
             marketType = 'spot'
             if isContract:
                 marketType = 'contract'
             marketInner = self.safe_market(marketId, market, '_', marketType)
-            ticker = self.parse_ticker(rawTicker, marketInner)
+            ticker = self.parse_ticker(self.safe_dict(tickers, i, {}), marketInner)
             symbol = self.safe_string(ticker, 'symbol')
             if symbol is not None:
                 result[symbol] = ticker

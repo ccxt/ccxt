@@ -4545,7 +4545,7 @@ class bitget(Exchange, ImplicitAPI):
             rows = self.safe_list(utaResponse, 'data', [])
             utaResult = {}
             for i in range(0, len(rows)):
-                entry = rows[i]
+                entry = self.safe_dict(rows, i, {})
                 entryMarketId = self.safe_string(entry, 'symbol')
                 if (entryMarketId is None) or (self.markets_by_id is None) or not (entryMarketId in self.markets_by_id):
                     continue  # skip ids missing from the loaded market map, a raw id must not become a unified symbol key
@@ -4643,7 +4643,7 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         result = {}
         for i in range(0, len(data)):
-            entry = data[i]
+            entry = self.safe_dict(data, i, {})
             marketId = self.safe_string(entry, 'symbol')
             symbol = self.safe_symbol(marketId, None, None, marketType)
             market = self.market(symbol)

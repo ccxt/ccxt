@@ -1372,13 +1372,13 @@ class bitrue(Exchange, ImplicitAPI):
                 response = self.fapiV1PublicGetTicker(self.extend(request, params))
             elif self.safe_bool(market, 'inverse', False):
                 response = self.dapiV1PublicGetTicker(self.extend(request, params))
-            data = response
+            data = self.extend(data, response)
         elif self.safe_bool(market, 'spot', False):
             request = {
                 'symbol': market['id'],
             }
             response = self.spotV1PublicGetTicker24hr(self.extend(request, params))
-            data = self.safe_dict(response, 0, {})
+            data = self.extend(data, self.safe_dict(response, 0, {}))
         else:
             raise NotSupported(self.id + ' fetchTicker only support spot & swap markets')
         #
