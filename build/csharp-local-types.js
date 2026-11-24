@@ -18368,6 +18368,8 @@ export const PARAMETERS_ARG_TYPED_METHODS = [
     'WatchBidsAsks', 'WatchTickers',
     'parseAllGreeksDict', 'parseAllGreeksList', 'parseLastPricesDict', 'parseLastPricesList', 'parsePositions',
     'parseTickersDict', 'parseTickersList',
+    'getBybitType',
+    'getUrlByMarketType',
 ];
 
 // the retyped trailing `params` of an admitted method, read inside its own body and never written
@@ -20910,6 +20912,7 @@ const CSHARP_EXCHANGE_LOCAL_RETURN_TYPES = {
     'findSwapMarketByWsBaseQuote': 'IDictionary<string, object>', 'resolveMarketByAltnameOrId': 'IDictionary<string, object>',
     'findMarketByAltnameOrId': 'IDictionary<string, object>', 'getDelistedMarketById': 'IDictionary<string, object>',
     'getMarketFromTrade': 'IDictionary<string, object>',
+    'cleanParams': 'Dictionary<string, object>',
 };
 for (const [ name, type ] of Object.entries (CSHARP_EXCHANGE_LOCAL_RETURN_TYPES)) {
     if (CSHARP_METHOD_RETURN_TYPES[name] === undefined) {
