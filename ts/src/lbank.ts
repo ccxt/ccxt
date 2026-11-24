@@ -1605,7 +1605,7 @@ export default class lbank extends Exchange {
         const fees = this.safeList (response, 'data', []);
         const result: Dict = {};
         for (let i = 0; i < fees.length; i++) {
-            const fee = this.parseTradingFee (fees[i]);
+            const fee = this.parseTradingFee (this.extend ({}, fees[i]));
             const symbol = this.safeString (fee, 'symbol');
             if (symbol !== undefined) {
                 result[symbol] = fee;

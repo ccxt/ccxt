@@ -10921,7 +10921,7 @@ export default class binance extends Exchange {
         if (data === undefined) {
             throw new NullResponse (this.id + ' parseTradingFee() returned empty response');
         }
-        return this.parseTradingFee (data, market);
+        return this.parseTradingFee (this.extend ({}, data), market);
     }
 
     /**
@@ -11021,7 +11021,7 @@ export default class binance extends Exchange {
             }
             const fees = this.toArray (response);
             for (let i = 0; i < fees.length; i++) {
-                const fee = this.parseTradingFee (fees[i]);
+                const fee = this.parseTradingFee (this.extend ({}, fees[i]));
                 const symbol = this.safeString (fee, 'symbol');
                 if (symbol !== undefined) {
                     spotFees[symbol] = fee;

@@ -1077,7 +1077,7 @@ export default class paradex extends Exchange {
         const loadedFees = this.filterLoadedSummaries (fees);
         const result: Dict = {};
         for (let i = 0; i < loadedFees.length; i++) {
-            const fee = this.parseTradingFee (loadedFees[i]);
+            const fee = this.parseTradingFee (this.extend ({}, loadedFees[i]));
             const symbol = this.safeString (fee, 'symbol');
             result[(symbol as string)] = fee;
         }

@@ -7237,7 +7237,7 @@ export default class bingx extends Exchange {
                 commission = this.safeDict (data, 'commission', {}) as Dict;
             }
         }
-        return this.parseTradingFee (commission, market);
+        return this.parseTradingFee (this.extend ({}, commission), market);
     }
 
     parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
