@@ -915,7 +915,7 @@ export default class okx extends okxRest {
         //
         const rawLiquidations: Dict[] = this.safeList (message, 'data', []);
         for (let i = 0; i < rawLiquidations.length; i++) {
-            const liquidation = this.parseWsLiquidation (rawLiquidations[i]);
+            const liquidation = this.parseWsLiquidation (this.safeDict (rawLiquidations, i, {}));
             const symbol = this.safeString (liquidation, 'symbol', '');
             if (this.liquidations === undefined) {
                 const limit = this.safeInteger (this.options, 'liquidationsLimit', 1000);

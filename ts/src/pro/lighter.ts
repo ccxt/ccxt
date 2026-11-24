@@ -979,7 +979,7 @@ export default class lighter extends lighterRest {
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             const iReversed = this.parseToInt (dataLength - 1 - i);
-            const liquidation = this.parseWsLiquidation (data[iReversed], market);
+            const liquidation = this.parseWsLiquidation (this.safeDict (data, iReversed, {}), market);
             stored.append (liquidation);
         }
         const messageHash = this.getMessageHash ('liquidations', symbol);
