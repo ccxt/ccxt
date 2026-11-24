@@ -5393,12 +5393,13 @@ export class BaseExchange {
                 reducedFees = [];
             }
             const reducedLength = reducedFees.length;
+            const parsedFees: Dict[] = [];
             for (let i = 0; i < reducedLength; i++) {
-                reducedFees[i] = this.parseFeeNumeric (reducedFees[i]);
+                parsedFees.push (this.parseFeeNumeric (reducedFees[i]));
             }
-            fees = reducedFees;
+            fees = parsedFees;
             if (reducedLength === 1) {
-                fee = reducedFees[0];
+                fee = this.parseFeeNumeric (reducedFees[0]);
             } else if (reducedLength === 0) {
                 fee = undefined;
             }
