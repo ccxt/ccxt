@@ -112,6 +112,8 @@ const BASE_ASYNC_HELPERS: MethodInfo[] = [
     // Promise<Dict[]> on every declaration: bodies return filterBy*SinceLimit, sortBy or parseBorrowRateHistory rows
     ...[ 'fetchSettlementHistory', 'fetchMySettlementHistory', 'fetchBorrowRateHistory' ].map(name => ({ name, javaReturnType: 'List<Object>', isArray: false, elementType: null, requiredParams: [], optionalParams: [], isWatch: false })),    // Promise<Dictionary<Dictionary<OHLCV[]>>>: the base stub throws, every venue body returns createOHLCVObject (Map)
     { name: 'watchOHLCVForSymbols', javaReturnType: 'Map<String, Object>', isArray: false, elementType: null, requiredParams: [], optionalParams: [], isWatch: false },
+    // Promise<AllGreeks> on the base stub and every venue (parseAllGreeks index): the AllGreeks map view
+    { name: 'fetchAllGreeks', javaReturnType: 'AllGreeks', isArray: false, elementType: null, requiredParams: [], optionalParams: [], isWatch: false },
 ];
 // Promise<Market[]> / Promise<Currencies> on every tier: the raw rows setMarkets reads; TypedSurface wraps them
 const LOAD_SOURCE_CORES: Record<string, string> = { fetchMarkets: 'List<Object>', fetchCurrencies: 'Map<String, Object>' };
