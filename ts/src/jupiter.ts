@@ -1823,7 +1823,7 @@ export default class jupiter extends Exchange {
      * @param {string} toCode currency code or mint address to convert to
      * @param {float} [amount] amount of the from currency to convert
      * @param {object} [params] exchange-specific parameters
-     * @param {string} [params.taker] Solana wallet address that will sign the returned transaction
+     * @param {string} [params.taker] Solana wallet address that will sign the returned transaction; defaults to the walletAddress credential
      * @param {string} [params.inputMint] input token mint address override
      * @param {string} [params.outputMint] output token mint address override
      * @param {int} [params.fromDecimals] input token decimal places when its metadata is not cached
@@ -1858,6 +1858,10 @@ export default class jupiter extends Exchange {
         const query = this.omit (params, [ 'inputMint', 'outputMint', 'fromDecimals', 'toDecimals' ]);
         query['inputMint'] = inputMint;
         query['outputMint'] = outputMint;
+        const taker = this.safeString (query, 'taker', this.walletAddress);
+        if (taker !== undefined) {
+            query['taker'] = taker;
+        }
         query['amount'] = rawAmount;
         const response = await this.publicGetSwapV2Order (query);
         //
@@ -1942,7 +1946,8 @@ export default class jupiter extends Exchange {
      * @param {string} toCode currency code or mint address converted to
      * @param {float} [amount] amount of the from currency converted
      * @param {object} [params] exchange-specific parameters
-     * @param {string} params.signedTransaction base64-encoded transaction signed by the wallet
+     * @param {string} [params.signedTransaction] base64-encoded transaction signed by the wallet
+     * @param {string} [params.transaction] unsigned transaction from fetchConvertQuote info; signed internally when the privateKey credential is configured
      * @param {string} [params.lastValidBlockHeight] block height from the quote transaction
      * @param {int} [params.fromDecimals] input token decimal places when metadata cannot be resolved
      * @param {int} [params.toDecimals] output token decimal places when metadata cannot be resolved
@@ -1955,9 +1960,13 @@ export default class jupiter extends Exchange {
         if (id.length === 0) {
             throw new ArgumentsRequired (this.id + ' createConvertTrade() requires a request id from the quote');
         }
-        const signedTransaction = this.safeString (params, 'signedTransaction');
+        let signedTransaction = this.safeString (params, 'signedTransaction');
         if (signedTransaction === undefined) {
-            throw new ArgumentsRequired (this.id + ' createConvertTrade() requires params.signedTransaction; Jupiter does not sign transactions');
+            const unsignedTransaction = this.safeString (params, 'transaction');
+            if (unsignedTransaction === undefined || this.privateKey === undefined) {
+                throw new ArgumentsRequired (this.id + ' createConvertTrade() requires params.signedTransaction, or params.transaction from the quote with the privateKey credential; Jupiter does not sign transactions');
+            }
+            signedTransaction = this.signSolanaTransaction (unsignedTransaction as string);
         }
         const fromCurrency = await this.lookupJupiterCurrency (fromCode);
         const toCurrency = await this.lookupJupiterCurrency (toCode);

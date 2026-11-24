@@ -1,6 +1,7 @@
 // ----------------------------------------------------------------------------
 
 import { secp256k1 } from '@noble/curves/secp256k1.js';
+import { ed25519 } from '@noble/curves/ed25519.js';
 import { keccak_256 } from '@noble/hashes/sha3.js';
 import { getStarkKey, ethSigToPrivate, sign as starknetCurveSign } from '@scure/starknet';
 import { sha256 } from '@noble/hashes/sha2.js';
@@ -99,6 +100,7 @@ const {
     encode,
     urlencode,
     hmac,
+    eddsa,
     numberToString,
     roundTimeframe,
     parseTimeframe,
@@ -4124,6 +4126,79 @@ export class BaseExchange {
 
     isEmptyString (value: any): boolean {
         return !this.valueIsDefined (value) || value === '';
+    }
+
+    /**
+     * @ignore
+     * @description extracts the 32-byte ed25519 seed from the privateKey credential as a hex string, accepts a base58-encoded solana secret key of 64 or 32 bytes (the Phantom / solana-keygen export formats) or the raw JSON byte array written by solana-keygen
+     * @returns {string} hex-encoded 32-byte signing seed
+     */
+    solanaSeedHex (): string {
+        if (this.privateKey === undefined) {
+            throw new ArgumentsRequired (this.id + ' signing requires the privateKey credential, a base58-encoded solana secret key or a solana-keygen JSON byte array');
+        }
+        const privateKey = this.privateKey;
+        let secretHex = '';
+        if (privateKey.indexOf ('[') === 0) {
+            // the JSON byte array written by solana-keygen new
+            const byteValues = this.parseJson (privateKey);
+            for (let i = 0; i < byteValues.length; i++) {
+                const byteValue = this.parseToInt (byteValues[i]);
+                let hexPair = this.intToBase16 (byteValue);
+                if (hexPair.length === 1) {
+                    hexPair = '0' + hexPair;
+                }
+                secretHex = secretHex + hexPair;
+            }
+        } else {
+            secretHex = this.binaryToBase16 (this.base58ToBinary (privateKey));
+        }
+        if (secretHex.length !== 128 && secretHex.length !== 64) {
+            throw new ArgumentsRequired (this.id + ' the privateKey credential must decode to a 64-byte solana secret key or a 32-byte seed');
+        }
+        return secretHex.slice (0, 64);
+    }
+
+    /**
+     * @method
+     * @name exchange#signSolanaTransaction
+     * @description signs a base64-encoded solana transaction with the privateKey credential, filling the first (fee payer) signature slot and preserving any other slots
+     * @param {string} transaction base64-encoded unsigned solana transaction
+     * @returns {string} the base64-encoded signed transaction
+     */
+    signSolanaTransaction (transaction: string): string {
+        const seedHex = this.solanaSeedHex ();
+        const txHex = this.binaryToBase16 (this.base64ToBinary (transaction));
+        // solana wire format: [compact-u16 signature count][64-byte signature slots...][message]
+        const hexDigits = '0123456789abcdef';
+        const high = hexDigits.indexOf (txHex.slice (0, 1));
+        const low = hexDigits.indexOf (txHex.slice (1, 2));
+        const numSignatures = this.sum (high * 16, low);
+        if (high < 0 || low < 0 || high >= 8 || numSignatures < 1) {
+            // a set 0x80 continuation bit would imply a multi-byte compact-u16 count, solana transactions cannot carry that many signatures
+            throw new NotSupported (this.id + ' signSolanaTransaction() could not parse the transaction signature count');
+        }
+        const slotsHexLength = numSignatures * 128;
+        const slotsHexEnd = this.sum (2, slotsHexLength);
+        const countHex = txHex.slice (0, 2);
+        const otherSlotsHex = txHex.slice (130, slotsHexEnd);
+        const messageHex = txHex.slice (slotsHexEnd);
+        const signatureBase64 = eddsa (this.base16ToBinary (messageHex), this.base16ToBinary (seedHex), ed25519);
+        const signatureHex = this.binaryToBase16 (this.base64ToBinary (signatureBase64));
+        return this.binaryToBase64 (this.base16ToBinary (countHex + signatureHex + otherSlotsHex + messageHex));
+    }
+
+    /**
+     * @method
+     * @name exchange#signSolanaMessage
+     * @description signs a plain-text message with the privateKey credential, solana wallet-adapter style
+     * @param {string} message the message text to sign
+     * @returns {string} the base58-encoded ed25519 signature
+     */
+    signSolanaMessage (message: string): string {
+        const seedHex = this.solanaSeedHex ();
+        const signatureBase64 = eddsa (this.encode (message), this.base16ToBinary (seedHex), ed25519);
+        return this.binaryToBase58 (this.base64ToBinary (signatureBase64));
     }
 
     safeNumberOmitZero (obj: any, key: NullableIndexType, defaultValue: Num = undefined): Num {

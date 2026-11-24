@@ -1,4 +1,4 @@
-import Exchange from './abstract/raydium.js';
+﻿import Exchange from './abstract/raydium.js';
 import { ArgumentsRequired, BadRequest, BadSymbol, ExchangeError, InvalidOrder, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
@@ -1212,7 +1212,8 @@ export default class raydium extends Exchange {
         for (let i = 0; i < rows.length; i++) {
             const currency = this.parseCurrency (rows[i]);
             let code = currency['code'];
-            if (result[code] !== undefined && result[code]['id'] !== currency['id']) {
+            const existing = this.safeDict (result as Dict, code);
+            if (existing !== undefined && existing['id'] !== currency['id']) {
                 code = code + '-' + currency['id'].slice (-4);
                 currency['code'] = code;
             }
@@ -2923,20 +2924,24 @@ export default class raydium extends Exchange {
      * @param {float} [amount] amount specified for the quote
      * @param {object} [params] exchange-specific parameters
      * @param {object} params.swapResponse full raw response from fetchConvertQuote.info
-     * @param {string} params.signedTransaction base64-encoded transaction signed by the wallet
-     * @param {string} [params.wallet] wallet public key that signed the transaction
+     * @param {string} [params.signedTransaction] base64-encoded transaction signed by the wallet; built and signed internally when the privateKey credential is configured
+     * @param {string} [params.wallet] wallet public key that signed the transaction; defaults to the walletAddress credential
      * @param {string} [params.owner] alias for wallet
+     * @param {boolean} [params.wrapSol] wrap native SOL for the input when signing internally, default true
      * @returns {object} a [conversion structure](https://docs.ccxt.com/#/?id=conversion-structure) with the submitted signature
      */
     override async createConvertTrade (id: string, fromCode: string, toCode: string, amount: Num = undefined, params: Dict = {}): Promise<Conversion> {
         if (id.length === 0 || amount === undefined || amount <= 0) {
             throw new InvalidOrder (this.id + ' createConvertTrade() requires a quote id and positive amount');
         }
-        const signedTransaction = this.safeString (params, 'signedTransaction');
-        const wallet = this.safeString (params, 'wallet');
+        let signedTransaction = this.safeString (params, 'signedTransaction');
+        const wallet = this.safeString2 (params, 'wallet', 'owner', this.walletAddress);
         const swapResponse = this.safeDict (params, 'swapResponse');
-        if (signedTransaction === undefined || wallet === undefined || swapResponse === undefined) {
-            throw new ArgumentsRequired (this.id + ' createConvertTrade() requires params.signedTransaction, params.wallet, and params.swapResponse');
+        if (wallet === undefined || swapResponse === undefined) {
+            throw new ArgumentsRequired (this.id + ' createConvertTrade() requires params.swapResponse, and params.wallet or the walletAddress credential');
+        }
+        if (signedTransaction === undefined && this.privateKey === undefined) {
+            throw new ArgumentsRequired (this.id + ' createConvertTrade() requires params.signedTransaction or the privateKey credential');
         }
         if (this.safeString (swapResponse, 'id') !== id) {
             throw new BadRequest (this.id + ' createConvertTrade() quote id does not match params.swapResponse.id');
@@ -2955,6 +2960,12 @@ export default class raydium extends Exchange {
         }
         if (fromDecimals === undefined || toDecimals === undefined || inputAmount === undefined || outputAmount === undefined) {
             throw new ExchangeError (this.id + ' createConvertTrade() quote is missing token amounts or decimal metadata');
+        }
+        if (signedTransaction === undefined) {
+            const wrapSol = this.safeBool (params, 'wrapSol', true);
+            const built = await this.buildConversionTransaction ({ 'swapResponse': swapResponse, 'wallet': wallet, 'wrapSol': wrapSol });
+            const unsignedTransaction = this.safeString (built[0], 'transaction');
+            signedTransaction = this.signSolanaTransaction (unsignedTransaction as string);
         }
         const request: Dict = {
             'jsonrpc': '2.0',
@@ -3003,9 +3014,9 @@ export default class raydium extends Exchange {
      */
     async buildConversionTransaction (params: Dict = {}): Promise<Dict[]> {
         const swapResponse = this.safeDict (params, 'swapResponse');
-        const wallet = this.safeString (params, 'wallet');
+        const wallet = this.safeString (params, 'wallet', this.walletAddress);
         if (swapResponse === undefined || wallet === undefined) {
-            throw new ArgumentsRequired (this.id + ' buildConversionTransaction() requires params.swapResponse and params.wallet');
+            throw new ArgumentsRequired (this.id + ' buildConversionTransaction() requires params.swapResponse, and params.wallet or the walletAddress credential');
         }
         const quote = this.extractObject (swapResponse);
         const swapType = this.safeString (quote, 'swapType', 'BaseIn');
@@ -4320,8 +4331,9 @@ export default class raydium extends Exchange {
             }
         }
         const currencies = await this.fetchCurrencies ({ 'query': code });
-        if (currencies[code] !== undefined) {
-            return currencies[code];
+        const direct = this.safeDict (currencies as Dict, code) as CurrencyInterface;
+        if (direct !== undefined) {
+            return direct;
         }
         const codes = Object.keys (currencies);
         for (let i = 0; i < codes.length; i++) {

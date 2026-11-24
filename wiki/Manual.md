@@ -4803,6 +4803,20 @@ In order to create API keys find the API tab or button in your user settings on 
 
 **Remember to keep your apiKey and secret key safe from unauthorized use, do not send or tell it to anybody. A leak of the secret key or a breach in security can cost you a fund loss.**
 
+#### Solana Wallet Credentials
+
+Solana DEX venues (like `raydium` and `jupiter`) authenticate with a wallet keypair instead of API keys:
+
+- `walletAddress`. Your Solana wallet public key in base58.
+- `privateKey`. Your Solana secret key — either a base58-encoded string (the Phantom export format) or the raw JSON byte array written by `solana-keygen new` (paste the keypair file content as-is).
+
+When these credentials are configured, methods like `createConvertTrade` build and sign the Solana transaction internally with the built-in ed25519 signer. Two base helpers are also available directly:
+
+- `exchange.signSolanaTransaction (transaction)` — signs a base64-encoded unsigned Solana transaction, filling the first (fee payer) signature slot and preserving any other slots, and returns the signed transaction in base64. Useful for flows that return an unsigned transaction for the caller to sign (pool creation, trigger deposits, lend operations).
+- `exchange.signSolanaMessage (message)` — signs a plain-text message wallet-adapter style and returns the base58-encoded ed25519 signature. Useful for wallet-login challenges (e.g. Raydium's forum token or Jupiter's trigger authentication).
+
+Users who prefer to keep keys in an external signer (e.g. a hardware wallet) can omit `privateKey` and pass a pre-signed transaction through `params.signedTransaction` instead. Use a dedicated low-balance wallet for programmatic trading — anyone with the private key controls the funds.
+
 #### Credential Validation
 
 For checking if the user has supplied all the required credentials the `Exchange` base class has a method called `exchange.checkRequiredCredentials()` or `exchange.check_required_credentials()`. Calling that method will throw an `AuthenticationError`, if some of the credentials are missing or empty. The `Exchange` base class also has  property `exchange.requiredCredentials` that allows a user to see which credentials are required for this or that exchange, as shown below:

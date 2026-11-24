@@ -10703,6 +10703,9 @@ impl std::ops::DerefMut for ${coreName} {
             if (testName === 'tests.init') continue;
             // BaseCore exposes checkAddress only through the variadic &[Value] entry
             if (testName === 'test.checkAddress') continue;
+            // BaseCore does not yet expose the full solana signing surface used by
+            // signSolanaTransaction / solanaSeedHex; enable once those land on BaseCore
+            if (testName === 'test.signSolanaTransaction') continue;
             const tsFile = `${baseFolder}/${testName}.ts`;
             const tsContent = fs.readFileSync(tsFile).toString();
             // `test.cryptography` is marked NO_AUTO_TRANSPILE (it's

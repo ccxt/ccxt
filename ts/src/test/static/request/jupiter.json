@@ -158,7 +158,7 @@
             {
                 "description": "jupiter spot fetchConvertQuote",
                 "method": "fetchConvertQuote",
-                "url": "https://api.jup.ag/swap/v2/order?inputMint=JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN&outputMint=So11111111111111111111111111111111111111112&amount=1000000",
+                "url": "https://api.jup.ag/swap/v2/order?inputMint=JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN&outputMint=So11111111111111111111111111111111111111112&amount=1000000&taker=wallet",
                 "input": [
                     "JUP",
                     "SOL",

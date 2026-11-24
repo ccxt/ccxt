@@ -340,7 +340,16 @@ func Rsa(data2 any, privateKey2 any, algorithm2 func() string, optionalArgs ...a
 
 func Eddsa(data2 any, secret any, curve any) string {
 	// it should use ed25519 and return a base64 string
-	data := derefScalar(data2).(string)
+	var data string
+	switch v := derefScalar(data2).(type) {
+	case string:
+		data = v
+	case []uint8:
+		// binary payloads (e.g. solana transaction messages) sign their raw bytes
+		data = string(v)
+	default:
+		panic(fmt.Sprintf("Eddsa: unsupported data type %T", data2))
+	}
 	secretsBytes := []uint8{}
 	if s, ok := secret.([]uint8); ok {
 		secretsBytes = s
