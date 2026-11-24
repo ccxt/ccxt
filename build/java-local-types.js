@@ -153,6 +153,7 @@ export const JAVA_BYTES_HELPER_PLAIN = new Set ([ 'base64ToBinary', 'base58ToBin
 // so the static type change binds the same overload
 const JAVA_BYTES_CONSUMERS = new Set ([
     'hmac', 'arraySlice', 'binaryToBase58', 'binaryConcat',
+    'hash', // BaseExchange.hash (Object, Object[, Object]): Crypto.Hash hashes a byte[] input as is
 ]);
 
 function javaBytesLocalIsSafe (declaration) {
@@ -19463,7 +19464,10 @@ export function installJavaStringReturns (transpiler) {
 // Integer local takes the numeric slice's use scan (no unboxing arm, no unary, no write).
 const JAVA_BASE_BYTES_PRODUCERS = new Set ([ 'ethEncodeStructuredData', 'ethAbiEncode', 'encode' ]);
 const JAVA_BASE_INT_PRODUCERS = new Set ([ 'randNumber', 'binaryLength', 'precisionFromString' ]);
-const JAVA_BASE_BYTES_EXTRA_CONSUMERS = new Set ([ 'binaryLength' ]);
+const JAVA_BASE_BYTES_EXTRA_CONSUMERS = new Set ([
+    'binaryLength',
+    'hash',
+]);
 
 function javaBaseProducerType (printer, initializer) {
     const call = unwrapParens (initializer);
