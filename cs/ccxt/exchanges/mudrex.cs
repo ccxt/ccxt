@@ -872,7 +872,7 @@ public partial class mudrex : Exchange
             }
             Dictionary<string, object> riskResponse = await this.privatePostFuturesPositionsPositionIdRiskorder(this.extend(riskRequest, paramsOmitted));
             IDictionary<string, object> riskData = this.safeDict(riskResponse, "data", riskResponse);
-            return this.parseOrder(riskData, market);
+            return this.parseOrder(this.extend(new Dictionary<string, object>() {}, riskData), market);
         }
         Int64? lev = this.safeInteger(parameters, "leverage", 1);
         if (((type == "market")) && ((price == null)))
@@ -954,7 +954,7 @@ public partial class mudrex : Exchange
         }
         Dictionary<string, object> response = await this.privatePatchFuturesOrdersOrderId(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data", response);
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data), market);
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -1077,7 +1077,7 @@ public partial class mudrex : Exchange
         };
         Dictionary<string, object> response = await this.privateDeleteFuturesOrdersOrderId(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data", response);
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data), market);
     }
 
     /**
@@ -1107,7 +1107,7 @@ public partial class mudrex : Exchange
         };
         Dictionary<string, object> response = await this.privateGetFuturesOrdersOrderId(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data", response);
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data), market);
     }
 
     /**
@@ -1413,12 +1413,12 @@ public partial class mudrex : Exchange
             Dictionary<string, object> partialParams = this.omit(parameters, new List<object>() {"order_type", "limit_price", "amount", "position_id"});
             Dictionary<string, object> partialResponse = await this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, partialParams));
             IDictionary<string, object> partialData = this.safeDict(partialResponse, "data", partialResponse);
-            return this.parseOrder(partialData, market);
+            return this.parseOrder(this.extend(new Dictionary<string, object>() {}, partialData), market);
         }
         Dictionary<string, object> closeParams = this.omit(parameters, new List<object>() {"position_id"});
         Dictionary<string, object> response = await this.privatePostFuturesPositionsPositionIdClose(this.extend(request, closeParams));
         IDictionary<string, object> data = this.safeDict(response, "data", response);
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data), market);
     }
 
     /**

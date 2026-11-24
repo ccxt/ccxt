@@ -1013,7 +1013,7 @@ public partial class modetrade : ccxt.modetrade
         //         }
         //     }
         //
-        string? topic = this.safeString(message, "topic");
+        string? topic = this.safeString(message, "topic", "");
         object data = this.safeValue(message, "data");
         bool dataIsArray = ((data is IList<object>) || (data is not null && data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         if (dataIsArray)
@@ -1041,11 +1041,12 @@ public partial class modetrade : ccxt.modetrade
             {
                 this.handleMyTrade(client, data);
             }
-            this.handleOrder(client, data, topic);
+            IDictionary<string, object> dataDict = this.safeDict(message, "data", new Dictionary<string, object>() {});
+            this.handleOrder(client, dataDict, topic);
         }
     }
 
-    public virtual void handleOrder(WebSocketClient client, object message, string? topic)
+    public virtual void handleOrder(WebSocketClient client, IDictionary<string, object> message, string? topic)
     {
         Dictionary<string, object> parsed = ccxt.BaseExchange.FromOrder(this.parseWsOrder(message));
         string? symbol = this.safeString(parsed, "symbol");

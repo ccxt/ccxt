@@ -1709,11 +1709,14 @@ public partial class gate : ccxt.gate
         IDictionary<string, object> marketQuery = ((IDictionary<string, object>)marketTypemarketQueryVariable[1]);
         object query = marketQuery;
         string type = marketType;
-        string messageHash = (marketType + ":positions");
+        string messageHash = "swap:positions";
+        if (((marketType != null)) && (!(marketType == "spot")))
+        {
+            messageHash = (marketType + ":positions");
+        }
         if ((marketType == "spot"))
         {
             type = "swap";
-            messageHash = "swap:positions";
         }
         string typeId = this.getSupportedMapping(type, new Dictionary<string, object>() {
             { "future", "futures" },

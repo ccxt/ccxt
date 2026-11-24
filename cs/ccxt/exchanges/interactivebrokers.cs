@@ -1839,7 +1839,7 @@ public partial class interactivebrokers : Exchange
         return result;
     }
 
-    public async virtual Task<object> fetchSecWithDetails(IDictionary<string, object> plainEntries)
+    public async virtual Task<List<object>> fetchSecWithDetails(IDictionary<string, object> plainEntries)
     {
         List<object> detailIds = new List<object>(plainEntries.Keys);
         List<object> entries = new List<object>() {};
@@ -1927,7 +1927,7 @@ public partial class interactivebrokers : Exchange
                 }
             }
         }
-        List<object> detailMarkets = ((List<object>)await this.fetchSecWithDetails(entries));
+        List<object> detailMarkets = await this.fetchSecWithDetails(entries);
         return this.parseMarkets(detailMarkets);
     }
 
@@ -1970,7 +1970,7 @@ public partial class interactivebrokers : Exchange
                 }
             }
         }
-        List<object> detailMarkets = ((List<object>)await this.fetchSecWithDetails(entries));
+        List<object> detailMarkets = await this.fetchSecWithDetails(entries);
         return this.parseMarkets(detailMarkets);
     }
 
@@ -2090,18 +2090,17 @@ public partial class interactivebrokers : Exchange
                 }
             }
         }
-        List<object> details = ((List<object>)await this.fetchSecWithDetails(entries));
+        List<object> details = await this.fetchSecWithDetails(entries);
         // generic tickers (e.g. SOL, XRP, ADA, XLM) are queried by bare symbol, so trsrv/futures can return
         // unrelated contracts listed on other venues (e.g. EUREX), only the crypto futures venues are kept
         List<object> allowedVenues = new List<object>() {"CME", "CFE", "COINDERIV"};
         List<object> detailMarkets = new List<object>() {};
         for (int i = 0; i < (details?.Count ?? 0); i++)
         {
-            IDictionary<string, object> detail = ((IDictionary<string, object>)details[i]);
-            string? venue = this.safeString(detail, "listingExchange");
+            string? venue = this.safeString((details != null && i < details.Count ? details[i] : null), "listingExchange");
             if (this.inArray(venue, allowedVenues))
             {
-                detailMarkets.Add(detail);
+                detailMarkets.Add(this.safeDict(details, i));
             }
         }
         IList<object> markets = this.parseMarkets(detailMarkets);
@@ -2158,7 +2157,7 @@ public partial class interactivebrokers : Exchange
                 entries[(string)conid] = cfd;
             }
         }
-        List<object> detailMarkets = ((List<object>)await this.fetchSecWithDetails(entries));
+        List<object> detailMarkets = await this.fetchSecWithDetails(entries);
         // keep the order of options.fetchMarkets.cfdExchanges, the first exchange wins the plain symbol on collisions
         List<object> result = new List<object>() {};
         int detailMarketsLength = (detailMarkets?.Count ?? 0);
@@ -2167,11 +2166,10 @@ public partial class interactivebrokers : Exchange
             string? cfdExchange = this.safeString(cfdExchanges, i, "");
             for (int j = 0; j < detailMarketsLength; j++)
             {
-                IDictionary<string, object> detail = ((IDictionary<string, object>)(detailMarkets != null && j < detailMarkets.Count ? detailMarkets[j] : null));
-                string? listingExchange = this.safeString(detail, "listingExchange", "");
+                string? listingExchange = this.safeString((detailMarkets != null && j < detailMarkets.Count ? detailMarkets[j] : null), "listingExchange", "");
                 if ((listingExchange == cfdExchange))
                 {
-                    result.Add(detail);
+                    result.Add(this.safeDict(detailMarkets, j));
                 }
             }
         }
@@ -2273,7 +2271,7 @@ public partial class interactivebrokers : Exchange
                 }
             }
         }
-        List<object> detailMarkets = ((List<object>)await this.fetchSecWithDetails(entries));
+        List<object> detailMarkets = await this.fetchSecWithDetails(entries);
         IList<object> markets = this.parseMarkets(detailMarkets);
         // bonds sharing the issuer, coupon and maturity (e.g. a bill and a strip) are told apart by the conid, e.g. US-T-270215-265342934.SMART/USD
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
@@ -2330,7 +2328,7 @@ public partial class interactivebrokers : Exchange
                 }
             }
         }
-        List<object> markets = ((List<object>)await this.fetchSecWithDetails(entries));
+        List<object> markets = await this.fetchSecWithDetails(entries);
         return this.parseMarkets(markets);
     }
 
@@ -3732,7 +3730,7 @@ public partial class interactivebrokers : Exchange
         //
         //     { "msg": "Request was submitted", "order_id": 123456789, "conid": 265598, "account": "U1234567" }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, response), market);
     }
 
     /**
@@ -3790,7 +3788,7 @@ public partial class interactivebrokers : Exchange
         {
             throw new NullResponse ((this.id + " fetchOrder() returned empty response")) ;
         }
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, response), market);
     }
 
     /**

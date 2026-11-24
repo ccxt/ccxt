@@ -989,7 +989,7 @@ public partial class woofipro : ccxt.woofipro
         //         }
         //     }
         //
-        string? topic = this.safeString(message, "topic");
+        string? topic = this.safeString(message, "topic", "");
         List<object> dataList = this.safeList(message, "data");
         if ((dataList != null))
         {

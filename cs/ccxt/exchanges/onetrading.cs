@@ -1636,7 +1636,7 @@ public partial class onetrading : Exchange
         //
         // responds with an empty body
         //
-        return this.parseOrder(response);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, response));
     }
 
     /**

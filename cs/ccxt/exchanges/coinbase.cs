@@ -4078,7 +4078,7 @@ public partial class coinbase : Exchange
         //         }
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, response), market);
     }
 
     /**
@@ -5908,7 +5908,7 @@ public partial class coinbase : Exchange
             { "aud", new List<object>() {aud} },
             { "iss", iss },
             { "nbf", seconds },
-            { "exp", add(seconds, 120) },
+            { "exp", (seconds + 120) },
             { "sub", this.apiKey },
             { "iat", seconds },
         };

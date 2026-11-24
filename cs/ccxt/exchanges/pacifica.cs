@@ -2311,7 +2311,7 @@ public partial class pacifica : Exchange
         return this.safeOrder(new Dictionary<string, object>() {             { "id", id },             { "status", status },             { "info", response },             { "symbol", symbol },         });
     }
 
-    public virtual Dictionary<string, object> cancelOrderRequest(object id, object symbol = null, IDictionary<string, object> parameters = null)
+    public virtual Dictionary<string, object> cancelOrderRequest(object id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);

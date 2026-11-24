@@ -1440,7 +1440,7 @@ public partial class dydx : Exchange
         IDictionary<string, object> credentials = this.safeDict(this.options, "dydxCredentials");
         if ((credentials != null))
         {
-            return credentials;
+            return this.safeDict(this.options, "dydxCredentials", new Dictionary<string, object>() {});
         }
         string? privateKeyOption = this.safeString(this.options, "privateKey");
         if ((privateKeyOption != null))
@@ -1456,7 +1456,7 @@ public partial class dydx : Exchange
             { "publicKey", this.binaryToBase16((credentials != null && credentials.ContainsKey("publicKey") ? credentials["publicKey"] : null)) },
         };
         this.options["dydxCredentials"] = credentials;
-        return credentials;
+        return this.safeDict(this.options, "dydxCredentials", new Dictionary<string, object>() {});
     }
 
     public async virtual Task<IDictionary<string, object>> FetchDydxAccount()

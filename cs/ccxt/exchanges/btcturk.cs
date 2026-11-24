@@ -896,7 +896,7 @@ public partial class btcturk : Exchange
 
     public override IList<object> parseOHLCVs(object ohlcvs, IDictionary<string, object> market = null, string timeframe = null, object since = null, object limit = null, bool? tail = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         tail ??= false;
         IList<object> rows = this.toArray(ohlcvs);

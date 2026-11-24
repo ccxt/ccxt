@@ -3389,7 +3389,7 @@ public partial class xt : Exchange
         //         "result": "206410760006650176"
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, response), market);
     }
 
     /**

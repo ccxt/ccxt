@@ -2822,7 +2822,7 @@ public partial class woofipro : Exchange
         {
             parsedOrders = new Dictionary<string, object>() {};
         }
-        return this.parseOrder(parsedOrders, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, parsedOrders), market);
     }
 
     /**

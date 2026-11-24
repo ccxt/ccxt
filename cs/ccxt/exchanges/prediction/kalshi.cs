@@ -991,7 +991,7 @@ public partial class kalshi : PredictionExchange
         //         }
         //     }
         //
-        IDictionary<string, object> raw = this.safeDict(response, "market", response);
+        Dictionary<string, object> raw = this.extend(new Dictionary<string, object>() {}, this.safeDict(response, "market", response));
         return ccxt.BaseExchange.ToPredictionTicker(this.parsePredictionTicker(raw, outcomeObj));
     }
 
@@ -1272,7 +1272,7 @@ public partial class kalshi : PredictionExchange
             List<object> rawMarkets = this.safeList(response, "markets", new List<object>() {});
             for (int i = 0; i < rawMarkets.Count; i++)
             {
-                object raw = rawMarkets[i];
+                IDictionary<string, object> raw = this.safeDict(rawMarkets, i, new Dictionary<string, object>() {});
                 string? marketTicker = this.safeString(raw, "ticker");
                 if (((marketTicker == null)) || !(((marketTicker != null) && outcomesByTicker.ContainsKey(marketTicker))))
                 {
@@ -1281,7 +1281,7 @@ public partial class kalshi : PredictionExchange
                 List<object> grouped = (marketTicker != null && outcomesByTicker.ContainsKey(marketTicker) ? outcomesByTicker[marketTicker] : null);
                 for (int j = 0; j < (grouped?.Count ?? 0); j++)
                 {
-                    Dictionary<string, object> ticker = this.parsePredictionTicker(((IDictionary<string, object>)raw),((IDictionary<string, object>)grouped[j]));
+                    Dictionary<string, object> ticker = this.parsePredictionTicker(raw,((IDictionary<string, object>)grouped[j]));
                     string? symbolKey = this.safeString(ticker, "outcome");
                     if ((symbolKey != null))
                     {
@@ -2217,7 +2217,7 @@ public partial class kalshi : PredictionExchange
         Dictionary<string, object> response = await this.kalshiPrivateGetPortfolioOrdersOrderId(this.extend(new Dictionary<string, object>() {
             { "order_id", id },
         }, parameters));
-        return ccxt.BaseExchange.ToPredictionOrder(this.parsePredictionOrder(this.safeDict(response, "order", response)));
+        return ccxt.BaseExchange.ToPredictionOrder(this.parsePredictionOrder(this.extend(new Dictionary<string, object>() {}, this.safeDict(response, "order", response))));
     }
 
     /**
@@ -2505,7 +2505,7 @@ public partial class kalshi : PredictionExchange
         }, parameters));
         // the delete response is minimal (no ticker/action/id/status): pass the resolved outcome so
         // the parser can fill outcome/outcomeId/market/label, then backfill the id and canceled status
-        Dictionary<string, object> order = this.parsePredictionOrder(this.safeDict(response, "order", response), outcomeObj);
+        Dictionary<string, object> order = this.parsePredictionOrder(this.extend(new Dictionary<string, object>() {}, this.safeDict(response, "order", response)), outcomeObj);
         if ((this.safeString(order, "id") == null))
         {
             order["id"] = id;
@@ -2550,8 +2550,7 @@ public partial class kalshi : PredictionExchange
         List<object> canceledOrders = new List<object>() {};
         for (int i = 0; i < restingOrdersLength; i++)
         {
-            object restingOrder = (restingOrders != null && i < restingOrders.Count ? restingOrders[i] : null);
-            string? orderId = this.safeString(restingOrder, "order_id");
+            string? orderId = this.safeString((restingOrders != null && i < restingOrders.Count ? restingOrders[i] : null), "order_id");
             if ((orderId != null))
             {
                 await this.kalshiPrivateDeletePortfolioEventsOrdersOrderId(this.extend(new Dictionary<string, object>() {
@@ -2559,7 +2558,7 @@ public partial class kalshi : PredictionExchange
                 }, parameters));
                 // the DELETE body is minimal — parse the already-fetched resting order instead, which
                 // carries the true side/outcome/price/count, then mark it canceled
-                Dictionary<string, object> parsed = this.parsePredictionOrder(((IDictionary<string, object>)restingOrder));
+                Dictionary<string, object> parsed = this.parsePredictionOrder(this.safeDict(restingOrders, i, new Dictionary<string, object>() {}));
                 parsed["status"] = "canceled";
                 canceledOrders.Add(parsed);
             }

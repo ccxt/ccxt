@@ -981,7 +981,7 @@ public partial class binance : PredictionExchange
                 response = await this.sapiPrivateGetOrderBookLastTradePrice(this.extend(request, parameters));
                 responsesByMarketId[(string)marketId] = response;
             }
-            Dictionary<string, object> ticker = this.parsePredictionTicker(response, outcomeObj);
+            Dictionary<string, object> ticker = this.parsePredictionTicker(this.extend(new Dictionary<string, object>() {}, response), outcomeObj);
             string? symbolKey = this.safeString(ticker, "outcome", (outcomes != null && i < outcomes.Count ? outcomes[i] : null));
             result[(string)symbolKey] = ticker;
         }
@@ -1189,7 +1189,7 @@ public partial class binance : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         bool? paginate = false;
-        object paramsPaginate = new Dictionary<string, object>() {};
+        IDictionary<string, object> paramsPaginate = new Dictionary<string, object>() {};
         (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOpenOrders", "paginate", false);
         paginate = paginateparamsPaginateVariable.Item1;
         paramsPaginate = paginateparamsPaginateVariable.Item2;
@@ -1282,7 +1282,7 @@ public partial class binance : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         bool? paginate = false;
-        object paramsPaginate = new Dictionary<string, object>() {};
+        IDictionary<string, object> paramsPaginate = new Dictionary<string, object>() {};
         (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOrders", "paginate", false);
         paginate = paginateparamsPaginateVariable.Item1;
         paramsPaginate = paginateparamsPaginateVariable.Item2;
@@ -1568,7 +1568,7 @@ public partial class binance : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         bool? paginate = false;
-        object paramsPaginate = new Dictionary<string, object>() {};
+        IDictionary<string, object> paramsPaginate = new Dictionary<string, object>() {};
         (bool?, IDictionary<string, object>) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchMyTrades", "paginate", false);
         paginate = paginateparamsPaginateVariable.Item1;
         paramsPaginate = paginateparamsPaginateVariable.Item2;

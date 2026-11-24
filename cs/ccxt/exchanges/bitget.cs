@@ -7849,7 +7849,7 @@ public partial class bitget : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data), market);
     }
 
     public virtual Dictionary<string, object> createUtaOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
@@ -8827,7 +8827,7 @@ public partial class bitget : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data), market);
     }
 
     /**
@@ -9037,13 +9037,13 @@ public partial class bitget : Exchange
         {
             if (isStockOrUta && ((trigger == true)))
             {
-                order = response;
+                order = this.extend(new Dictionary<string, object>() {}, response);
             } else
             {
                 order = data;
             }
         }
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, order), market);
     }
 
     public async virtual Task<List<ccxt.Order>> CancelUtaOrders(IList<object> ids, string symbol = null, IDictionary<string, object> parameters = null)
@@ -9504,7 +9504,7 @@ public partial class bitget : Exchange
         {
             if (!((data is IList<object>) || (data is not null && data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
             {
-                return this.parseOrder(data, market);
+                return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data), market);
             }
         }
         List<object> dataList = this.safeList(response, "data", new List<object>() {});
@@ -9514,7 +9514,7 @@ public partial class bitget : Exchange
             throw new OrderNotFound (((((this.id + " fetchOrder() could not find order id ") + id) + " in ") + this.json(response))) ;
         }
         IDictionary<string, object> first = this.safeDict(dataList, 0, new Dictionary<string, object>() {});
-        return this.parseOrder(first, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, first), market);
     }
 
     /**
@@ -14107,7 +14107,7 @@ public partial class bitget : Exchange
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> order = this.safeList2(data, "successList", "list", new List<object>() {});
-        return this.parseOrder(this.safeDict(order, 0, new Dictionary<string, object>() {}), market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, this.safeDict(order, 0, new Dictionary<string, object>() {})), market);
     }
 
     /**

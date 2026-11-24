@@ -942,11 +942,9 @@ public partial class bitrue : Exchange
             }
         }
         List<object> promises = await promiseAll(promisesRaw);
-        List<object> spotMarkets = this.safeList(this.safeDict(promises, 0), "symbols", new List<object>() {});
         List<object> futureMarkets = this.safeList(promises, 1, new List<object>() {});
         List<object> deliveryMarkets = this.safeList(promises, 2, new List<object>() {});
-        List<object> markets = spotMarkets;
-        markets = this.arrayConcat(markets, futureMarkets);
+        List<object> markets = this.arrayConcat(this.safeList(this.safeDict(promises, 0), "symbols", new List<object>() {}), futureMarkets);
         markets = this.arrayConcat(markets, deliveryMarkets);
         //
         // spot

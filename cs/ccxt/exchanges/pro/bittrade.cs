@@ -566,7 +566,7 @@ public partial class bittrade : ccxt.bittrade
         }
     }
 
-    public virtual void handleOrderBookSubscription(WebSocketClient client, object message, IDictionary<string, object> subscription)
+    public virtual void handleOrderBookSubscription(WebSocketClient client, IDictionary<string, object> message, IDictionary<string, object> subscription)
     {
         string? symbol = this.safeString(subscription, "symbol");
         if ((symbol == null))

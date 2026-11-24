@@ -1786,7 +1786,7 @@ public partial class hyperliquid : PredictionExchange
         object orderStatusResponse = await this.publicPostInfo(this.extend(request, paramsValue));
         object orderStatus = this.infoDict(orderStatusResponse);
         IDictionary<string, object> orderWrapper = this.safeDict(orderStatus, "order", orderStatus);
-        Dictionary<string, object> parsed = this.parsePredictionOrder(orderWrapper, null);
+        Dictionary<string, object> parsed = this.parsePredictionOrder(this.extend(new Dictionary<string, object>() {}, orderWrapper), null);
         if ((outcome != null))
         {
             await this.loadOutcome(outcome);

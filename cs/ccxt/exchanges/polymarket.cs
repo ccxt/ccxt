@@ -2702,7 +2702,7 @@ public partial class polymarket : Exchange
         await this.loadMarkets();
         Dictionary<string, object> market = this.market(symbol);
         string? marginMode = null;
-        object paramsOmitted = parameters;
+        IDictionary<string, object> paramsOmitted = parameters;
         (string?, IDictionary<string, object>) marginModeparamsOmittedVariable = this.handleMarginModeAndParams("setLeverage", paramsOmitted, "cross");
         marginMode = marginModeparamsOmittedVariable.Item1;
         paramsOmitted = marginModeparamsOmittedVariable.Item2;

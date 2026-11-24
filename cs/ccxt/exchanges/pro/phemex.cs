@@ -1807,7 +1807,7 @@ public partial class phemex : ccxt.phemex
         }
     }
 
-    public virtual void handleAuthenticate(WebSocketClient client, object message)
+    public virtual void handleAuthenticate(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // {

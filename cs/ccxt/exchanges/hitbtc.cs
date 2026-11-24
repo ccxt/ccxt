@@ -2007,7 +2007,7 @@ public partial class hitbtc : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            Dictionary<string, object> fee = this.parseTradingFee(this.safeDict(response, i, new Dictionary<string, object>() {}));
+            Dictionary<string, object> fee = this.parseTradingFee(this.extend(new Dictionary<string, object>() {}, this.safeDict(response, i, new Dictionary<string, object>() {})));
             string? symbol = this.safeString(fee, "symbol");
             if ((symbol != null))
             {

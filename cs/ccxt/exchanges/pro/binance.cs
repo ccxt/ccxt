@@ -231,7 +231,7 @@ public partial class binance : ccxt.binance
         {
             Int64? previousStreamIndex = this.safeInteger(this.options, "streamIndex", -1);
             IDictionary<string, object> streamLimits = this.safeDict(this.options, "streamLimits");
-            Int64? streamLimit = this.safeInteger(streamLimits, type);
+            Int64? streamLimit = this.safeInteger(streamLimits, type, 50);
             Int64? streamIndex = (previousStreamIndex + 1);
             Int64? normalizedIndex = (streamIndex % streamLimit);
             this.options["streamIndex"] = streamIndex;
@@ -1355,7 +1355,7 @@ public partial class binance : ccxt.binance
         }
     }
 
-    public virtual void handleOrderBookSubscription(WebSocketClient client, object message, IDictionary<string, object> subscription)
+    public virtual void handleOrderBookSubscription(WebSocketClient client, IDictionary<string, object> message, IDictionary<string, object> subscription)
     {
         Int64? defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
         // const messageHash = this.safeString (subscription, 'messageHash');
@@ -3961,7 +3961,7 @@ public partial class binance : ccxt.binance
         //
         //
         string? messageHash = this.safeString(message, "id");
-        if (((getValue(message, "result")) is var hxArr190596 && ((hxArr190596 is IList<object>) || (hxArr190596 is not null && hxArr190596.GetType().IsGenericType && hxArr190596.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if (((getValue(message, "result")) is var hxArr190589 && ((hxArr190589 is IList<object>) || (hxArr190589 is not null && hxArr190589.GetType().IsGenericType && hxArr190589.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             // account.balance
             List<object> rawBalance = this.safeList(message, "result", new List<object>() {});
@@ -4782,7 +4782,7 @@ public partial class binance : ccxt.binance
         Dictionary<string, object> order = null;
         if ((newSpotOrder != null))
         {
-            order = ccxt.BaseExchange.FromOrder(this.parseOrder(newSpotOrder));
+            order = ccxt.BaseExchange.FromOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {}, newSpotOrder)));
         } else
         {
             order = ccxt.BaseExchange.FromOrder(this.parseOrder(result));
@@ -5681,10 +5681,10 @@ public partial class binance : ccxt.binance
         if ((e == "ORDER_TRADE_UPDATE") || (e == "ALGO_UPDATE"))
         {
             messageValue = orderValue;
-            if ((e == "ALGO_UPDATE") && ((this.safeInteger(messageValue, "T") == null)))
+            if ((e == "ALGO_UPDATE") && ((this.safeInteger(orderValue, "T") == null)))
             {
                 // keep the outer event time, the algo payload carries no timestamps
-                messageValue = this.extend(messageValue, new Dictionary<string, object>() {
+                messageValue = this.extend(orderValue, new Dictionary<string, object>() {
                     { "T", this.safeInteger(message, "T") },
                 });
             }

@@ -238,7 +238,7 @@ public partial class hollaex : ccxt.hollaex
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true));
     }
 
-    public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message, object subscription = null)
+    public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message, IDictionary<string, object>? subscription = null)
     {
         //
         // {

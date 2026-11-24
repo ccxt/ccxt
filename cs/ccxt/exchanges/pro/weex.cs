@@ -87,7 +87,7 @@ public partial class weex : ccxt.weex
         return requestId;
     }
 
-    public async virtual Task<T> subscribePublic<T>(IList<object> messageHashes, IList<object> channels, bool? isContract = null, object parameters = null, IDictionary<string, object>? subscription = null)
+    public async virtual Task<T> subscribePublic<T>(IList<object> messageHashes, IList<object> channels, bool? isContract = null, IDictionary<string, object>? parameters = null, IDictionary<string, object>? subscription = null)
     {
         isContract ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -688,7 +688,7 @@ public partial class weex : ccxt.weex
         Dictionary<string, object> firstMarket = this.market(firstSymbol);
         bool? isContract = ((bool?)(firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null));
         string? priceType = "LAST_PRICE";
-        object paramsPriceType = paramsOmitted;
+        IDictionary<string, object> paramsPriceType = paramsOmitted;
         if ((isContract == true))
         {
             (string?, IDictionary<string, object>) priceTypeparamsPriceTypeVariable = this.handleOptionStringAndParams2(paramsOmitted, callerMethodName, "price", "priceType", priceType);
@@ -773,7 +773,7 @@ public partial class weex : ccxt.weex
         Dictionary<string, object> firstMarket = this.market(firstSymbol);
         bool? isContract = ((bool?)(firstMarket != null && firstMarket.ContainsKey("contract") ? firstMarket["contract"] : null));
         string? priceType = "LAST_PRICE";
-        object paramsPriceType = paramsOmitted;
+        IDictionary<string, object> paramsPriceType = paramsOmitted;
         if ((isContract == true))
         {
             (string?, IDictionary<string, object>) priceTypeparamsPriceTypeVariable = this.handleOptionStringAndParams2(paramsOmitted, callerMethodName, "price", "priceType", priceType);

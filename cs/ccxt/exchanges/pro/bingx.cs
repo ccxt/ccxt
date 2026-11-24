@@ -372,7 +372,7 @@ public partial class bingx : ccxt.bingx
         return limit;
     }
 
-    public virtual string? getMessageHash(string unifiedChannel, string? symbol = null, object extra = null)
+    public virtual string? getMessageHash(string unifiedChannel, string? symbol = null, string? extra = null)
     {
         object hash = unifiedChannel;
         if ((symbol != null))
@@ -384,7 +384,7 @@ public partial class bingx : ccxt.bingx
         }
         if ((extra != null))
         {
-            hash = ((object)(hash == null ? null : hash + (string)(object)(("::" + (extra)))));
+            hash = ((object)(hash == null ? null : hash + (string)(object)(("::" + extra))));
         }
         return ((string?)((object)(hash)));
     }
@@ -1870,7 +1870,7 @@ public partial class bingx : ccxt.bingx
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache stored = this.orders;
-        Dictionary<string, object> parsedOrder = ccxt.BaseExchange.FromOrder(this.parseOrder(data));
+        Dictionary<string, object> parsedOrder = ccxt.BaseExchange.FromOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {}, data)));
         if (!isSpot)
         {
             // The envelope T is the order update time; o.T is the trade time.

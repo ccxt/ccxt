@@ -5015,7 +5015,7 @@ public partial class htx : Exchange
         {
             order = this.safeDict(this.safeList(response, "data", new List<object>() {}), 0, new Dictionary<string, object>() {});
         }
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, order), market);
     }
 
     public virtual Dictionary<string, object> parseMarginBalanceHelper(IDictionary<string, object> balance, string? code, IDictionary<string, object> result)
@@ -6883,7 +6883,7 @@ public partial class htx : Exchange
             {
                 throw new NullResponse ((this.id + " parseOrder() returned empty response")) ;
             }
-            return ccxt.BaseExchange.ToOrder(this.extend(ccxt.BaseExchange.FromOrder(this.parseOrder(result, market)), new Dictionary<string, object>() {                 { "type", type },                 { "side", side },                 { "price", price },                 { "amount", amount },             }));
+            return ccxt.BaseExchange.ToOrder(this.extend(ccxt.BaseExchange.FromOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {}, result), market)), new Dictionary<string, object>() {                 { "type", type },                 { "side", side },                 { "price", price },                 { "amount", amount },             }));
         } else if (isStopLossTriggerOrder)
         {
             data = this.safeDict(response, "data", new Dictionary<string, object>() {});
@@ -6900,7 +6900,7 @@ public partial class htx : Exchange
         {
             throw new NullResponse ((this.id + " parseOrder() returned empty response")) ;
         }
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, result), market);
     }
 
     /**

@@ -1457,7 +1457,7 @@ public partial class kraken : ccxt.kraken
         return ccxt.BaseExchange.ToTradeList(await this.watchPrivate("myTrades", symbol, since, limit, parameters));
     }
 
-    public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message, object subscription = null)
+    public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message, IDictionary<string, object>? subscription = null)
     {
         //
         //     {

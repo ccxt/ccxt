@@ -1354,7 +1354,7 @@ public partial class woo : ccxt.woo
         //         }
         //     }
         //
-        string? topic = this.safeString(message, "topic");
+        string? topic = this.safeString(message, "topic", "");
         List<object> dataList = this.safeList(message, "data");
         if ((dataList != null))
         {

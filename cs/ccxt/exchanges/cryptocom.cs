@@ -1664,7 +1664,7 @@ public partial class cryptocom : Exchange
         //     }
         //
         IDictionary<string, object> order = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, order), market);
     }
 
     public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double amount, double? price = null, IDictionary<string, object>? parameters = null)
@@ -1840,7 +1840,7 @@ public partial class cryptocom : Exchange
         //     }
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, result), market);
     }
 
     /**
@@ -2120,7 +2120,7 @@ public partial class cryptocom : Exchange
         Dictionary<string, object> request = this.editOrderRequest(id, symbol, amount, price, parameters);
         Dictionary<string, object> response = await this.v1PrivatePostPrivateAmendOrder(request);
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseOrder(result);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, result));
     }
 
     public virtual Dictionary<string, object> editOrderRequest(string? id, object symbol, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
@@ -2217,7 +2217,7 @@ public partial class cryptocom : Exchange
         //     }
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, result), market);
     }
 
     /**
@@ -4072,7 +4072,7 @@ public partial class cryptocom : Exchange
         //    }
         //
         IDictionary<string, object> result = this.safeDict(response, "result");
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, result), market);
     }
 
     /**

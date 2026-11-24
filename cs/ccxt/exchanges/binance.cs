@@ -13192,7 +13192,7 @@ public partial class binance : Exchange
         {
             throw new NullResponse ((this.id + " parseTradingFee() returned empty response")) ;
         }
-        return ccxt.BaseExchange.ToTradingFeeInterface(this.parseTradingFee(data, market));
+        return ccxt.BaseExchange.ToTradingFeeInterface(this.parseTradingFee(this.extend(new Dictionary<string, object>() {}, data), market));
     }
 
     /**
@@ -13305,7 +13305,7 @@ public partial class binance : Exchange
             IList<object> fees = (response == null ? null : new List<object>(response.Values));
             for (int i = 0; i < (fees?.Count ?? 0); i++)
             {
-                Dictionary<string, object> fee = this.parseTradingFee(((IDictionary<string, object>)fees[i]));
+                Dictionary<string, object> fee = this.parseTradingFee(this.extend(new Dictionary<string, object>() {}, fees[i]));
                 string? symbol = this.safeString(fee, "symbol");
                 if ((symbol != null))
                 {

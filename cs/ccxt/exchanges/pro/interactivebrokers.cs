@@ -321,13 +321,13 @@ public partial class interactivebrokers : ccxt.interactivebrokers
      * @param {string[]} [params.fields] the market data fields to stream
      * @returns {Array} the raw message and the params without fields
      */
-    public virtual List<object> ibkrMarketDataRequest(string? marketId, object parameters = null)
+    public virtual List<object> ibkrMarketDataRequest(string marketId, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IDictionary<string, object> options = this.safeDict(this.options, "watchTickers", new Dictionary<string, object>() {});
         List<object> defaultFields = this.safeList(options, "fields", new List<object>() {});
         List<object> fields = this.safeList(parameters, "fields", defaultFields);
-        IDictionary<string, object> query = ((IDictionary<string, object>)this.omit(parameters, "fields"));
+        Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {}, this.omit(parameters, "fields"));
         string request = ((("smd+" + marketId) + "+") + this.json(new Dictionary<string, object>() {
     { "fields", fields },
 }));
@@ -413,9 +413,9 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         for (int i = 0; i < (marketSymbols?.Count ?? 0); i++)
         {
             Dictionary<string, object> market = this.market(marketSymbols[i]);
-            var requestqueryVariable = this.ibkrMarketDataRequest(this.safeString(market, "id"), parameters);
+            var requestqueryVariable = this.ibkrMarketDataRequest(this.safeString(market, "id", ""), parameters);
             var request = requestqueryVariable[0];
-            var query = requestqueryVariable[1];
+            IDictionary<string, object> query = ((IDictionary<string, object>)requestqueryVariable[1]);
             Dictionary<string, object> subscription = this.extend(new Dictionary<string, object>() {
                 { "conid", (market.ContainsKey("id") ? market["id"] : null) },
                 { "symbol", (market.ContainsKey("symbol") ? market["symbol"] : null) },
@@ -579,9 +579,9 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
         var future = client.reusableFuture(messageHash);
         // the last price stream, it builds the current candles
-        var marketDataRequestqueryVariable = this.ibkrMarketDataRequest(this.safeString(market, "id"), parameters);
+        var marketDataRequestqueryVariable = this.ibkrMarketDataRequest(this.safeString(market, "id", ""), parameters);
         var marketDataRequest = marketDataRequestqueryVariable[0];
-        var query = marketDataRequestqueryVariable[1];
+        IDictionary<string, object> query = ((IDictionary<string, object>)marketDataRequestqueryVariable[1]);
         await this.ibkrSubscribe(client, messageHash, marketDataRequest, new Dictionary<string, object>() {
             { "conid", (market.ContainsKey("id") ? market["id"] : null) },
             { "symbol", unifiedSymbol },

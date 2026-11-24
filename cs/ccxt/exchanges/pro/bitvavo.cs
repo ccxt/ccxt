@@ -864,14 +864,14 @@ public partial class bitvavo : ccxt.bitvavo
         }
         if ((this.safeInteger(orderbook, "nonce") == null))
         {
-            object subscription = this.safeValue(client.subscriptions, messageHash, new Dictionary<string, object>() {});
+            IDictionary<string, object> subscription = this.safeDict(client.subscriptions, messageHash, new Dictionary<string, object>() {});
             // multi-symbol watches share one subscription object, so the
             // snapshot-in-flight flag must be tracked per market
             string flagKey = ("watchingOrderBookSnapshot@" + this.safeString(message, "market", ""));
             bool? watchingOrderBookSnapshot = this.safeBool(subscription, flagKey);
             if ((watchingOrderBookSnapshot == null))
             {
-                ((IDictionary<string,object>)subscription)[flagKey] = true;
+                subscription[(string)flagKey] = true;
                 ((IDictionary<string,object>)client.subscriptions)[messageHash] = subscription;
                 IDictionary<string, object> options = this.safeDict(this.options, "watchOrderBookSnapshot", new Dictionary<string, object>() {});
                 Int64? delay = this.safeInteger(options, "delay", this.rateLimit);
@@ -1360,7 +1360,7 @@ public partial class bitvavo : ccxt.bitvavo
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbol, since, limit));
     }
 
-    public virtual object requestId()
+    public virtual Int64? requestId()
     {
         string ts = this.milliseconds().ToString();
         int randomNumber = this.randNumber(4);
@@ -1370,7 +1370,7 @@ public partial class bitvavo : ccxt.bitvavo
 
     public async virtual Task<object> watchRequest(string? action, IDictionary<string, object> request)
     {
-        Int64? messageHash = ((Int64)this.requestId());
+        Int64? messageHash = this.requestId();
         string messageHashStr = ((object)messageHash).ToString();
         request["action"] = action;
         request["requestId"] = messageHash;
@@ -1901,7 +1901,7 @@ public partial class bitvavo : ccxt.bitvavo
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
         string? symbol = this.safeString(market, "symbol", "");
         string messageHash = ("order:" + symbol);
-        ccxt.Order order = this.parseOrder(message, market);
+        ccxt.Order order = this.parseOrder(this.extend(new Dictionary<string, object>() {}, message), market);
         if ((this.orders == null))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);

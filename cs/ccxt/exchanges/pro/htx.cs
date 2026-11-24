@@ -1812,7 +1812,7 @@ public partial class htx : ccxt.htx
         }
         string? type = null;
         string? subType = null;
-        object paramsSubType = new Dictionary<string, object>() {};
+        IDictionary<string, object> paramsSubType = new Dictionary<string, object>() {};
         if (hasMarket)
         {
             type = this.safeString(market, "type");
@@ -1834,7 +1834,7 @@ public partial class htx : ccxt.htx
             paramsSubType = subTypeparamsSubTypeVariable.Item2;
         }
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        object paramsPositions = hasMarket ? parameters : paramsSubType;
+        IDictionary<string, object> paramsPositions = hasMarket ? parameters : paramsSubType;
         (string?, IDictionary<string, object>) marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchPositions", paramsPositions, "cross");
         string marginMode = marginModeparamsMarginModeVariable.Item1;
         IDictionary<string, object> paramsMarginMode = (marginModeparamsMarginModeVariable.Item2);

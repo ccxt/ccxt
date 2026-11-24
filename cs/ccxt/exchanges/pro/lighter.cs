@@ -59,12 +59,12 @@ public partial class lighter : ccxt.lighter
         });
     }
 
-    public virtual string? getMessageHash(string unifiedChannel, object symbol = null, string? extra = null)
+    public virtual string? getMessageHash(string unifiedChannel, string? symbol = null, string? extra = null)
     {
         object hash = unifiedChannel;
         if ((symbol != null))
         {
-            hash = ((object)(hash == null ? null : hash + (string)(object)(("::" + (symbol)))));
+            hash = ((object)(hash == null ? null : hash + (string)(object)(("::" + symbol))));
         } else
         {
             hash = ((object)(hash == null ? null : hash + "s")); // tickers, orderbooks, ohlcvs ...
@@ -1383,7 +1383,7 @@ public partial class lighter : ccxt.lighter
             { "id", requestId },
         };
         object rawMessage = await this.watch(url, messageHash, message, messageHash, subscription);
-        return this.parseOrder(this.deepExtend(rawMessage, order), market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, this.deepExtend(rawMessage, order)), market);
     }
 
     /**

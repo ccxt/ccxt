@@ -1540,13 +1540,13 @@ public partial class apex : Exchange
                 string? newMarketId = this.addHyphenBeforeUsdt(marketId);
                 if (((this.markets_by_id != null)) && ((this.markets_by_id != null && newMarketId != null && this.markets_by_id.ContainsKey(newMarketId))))
                 {
-                    object markets = (this.markets_by_id != null && newMarketId != null && this.markets_by_id.ContainsKey(newMarketId) ? this.markets_by_id[newMarketId] : null);
-                    int numMarkets = getArrayLength(markets);
+                    List<object> markets = (this.markets_by_id != null && newMarketId != null && this.markets_by_id.ContainsKey(newMarketId) ? this.markets_by_id[newMarketId] : null);
+                    int numMarkets = (markets?.Count ?? 0);
                     for (int i = 0; i < numMarkets; i++)
                     {
-                        if (((i == 0)) && ((this.safeString(getValue(markets, i), "id2") == marketId)))
+                        if (((i == 0)) && ((this.safeString((markets != null && i < markets.Count ? markets[i] : null), "id2") == marketId)))
                         {
-                            marketResolved = getValue(markets, i);
+                            marketResolved = (markets != null && i < markets.Count ? markets[i] : null);
                         }
                     }
                 }

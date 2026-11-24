@@ -2011,7 +2011,7 @@ public partial class toobit : Exchange
         //         "priceType": "INPUT"                   // only in contract
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, response), market);
     }
 
     public virtual List<object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, IDictionary<string, object>? parameters = null)
@@ -2357,7 +2357,7 @@ public partial class toobit : Exchange
         {
             throw new OrderNotFound (((((this.id + " order ") + id) + " can not be canceled, ") + this.json(response))) ;
         }
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, response), market);
     }
 
     /**
@@ -2509,7 +2509,7 @@ public partial class toobit : Exchange
         //        "priceType": "INPUT"                 // only in CONTRACT
         //    }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, response), market);
     }
 
     /**

@@ -3419,7 +3419,7 @@ public partial class phemex : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data), market);
     }
 
     /**
@@ -3515,7 +3515,7 @@ public partial class phemex : Exchange
             response = await this.privatePutSpotOrders(this.extend(request, paramsOmitted3));
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data), market);
     }
 
     /**
@@ -3571,7 +3571,7 @@ public partial class phemex : Exchange
             response = await this.privateDeleteSpotOrders(this.extend(request, paramsOmitted));
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data), market);
     }
 
     /**
@@ -3667,9 +3667,9 @@ public partial class phemex : Exchange
         }
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object order = data;
-        if ((data is IList<object> hxList170971))
+        if ((data is IList<object> hxList171025))
         {
-            int numOrders = hxList170971.Count;
+            int numOrders = hxList171025.Count;
             if (numOrders < 1)
             {
                 if ((clientOrderId != null))
@@ -4413,7 +4413,7 @@ public partial class phemex : Exchange
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
         string? code = this.safeString2(parameters, "currency", "code", "USDT");
         Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"currency", "code"});
-        object paramsSettle = paramsOmitted;
+        IDictionary<string, object> paramsSettle = paramsOmitted;
         string? settle = null;
         IDictionary<string, object> market = null;
         string? firstSymbol = this.safeString(symbolsNormalized, 0);
@@ -6248,7 +6248,7 @@ public partial class phemex : Exchange
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, true, true, true);
         string? code = this.safeString2(parameters, "currency", "code", "USDT");
         Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"currency", "code"});
-        object paramsSettle = paramsOmitted;
+        IDictionary<string, object> paramsSettle = paramsOmitted;
         string? settle = null;
         IDictionary<string, object> market = null;
         string? firstSymbol = this.safeString(symbolsNormalized, 0);

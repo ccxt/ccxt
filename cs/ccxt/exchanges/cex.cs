@@ -978,7 +978,7 @@ public partial class cex : Exchange
             {
                 market = this.safeMarket(key);
             }
-            Dictionary<string, object> parsed = this.parseTradingFee(((IDictionary<string, object>)(response != null && key != null && response.ContainsKey(key) ? response[key] : null)), market);
+            Dictionary<string, object> parsed = this.parseTradingFee(this.safeDict(response, key, new Dictionary<string, object>() {}), market);
             string? parsedSymbol = this.safeString(parsed, "symbol");
             if ((parsedSymbol != null))
             {

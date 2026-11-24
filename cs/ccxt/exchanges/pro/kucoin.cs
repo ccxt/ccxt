@@ -2528,7 +2528,7 @@ public partial class kucoin : ccxt.kucoin
         //        "type": "open"
         //    }
         //
-        IDictionary<string, object> data = this.safeDict(message, "data");
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? tradeId = this.safeString(data, "tradeId");
         if ((tradeId != null))
         {

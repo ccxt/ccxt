@@ -830,7 +830,7 @@ public partial class hitbtc : ccxt.hitbtc
                 stored = new ArrayCache(tradesLimit);
                 this.trades[(string)symbol] = stored;
             }
-            IList<object> trades = this.parseWsTrades((data != null && marketId != null && data.ContainsKey(marketId) ? data[marketId] : null), market);
+            IList<object> trades = this.parseWsTrades(this.safeList(data, marketId, new List<object>() {}), market);
             for (int j = 0; j < (trades?.Count ?? 0); j++)
             {
                 stored.append(trades[j]);
@@ -841,10 +841,10 @@ public partial class hitbtc : ccxt.hitbtc
         return message;
     }
 
-    public override IList<object> parseWsTrades(object trades, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public override IList<object> parseWsTrades(IList<object> trades, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> tradesArray = this.toArray(trades);
+        IList<object> tradesArray = trades;
         List<object> result = new List<object>() {};
         for (int i = 0; i < (tradesArray?.Count ?? 0); i++)
         {
@@ -1626,7 +1626,7 @@ public partial class hitbtc : ccxt.hitbtc
             int rowsLength = rows.Count;
             for (int i = 0; i < rowsLength; i++)
             {
-                Dictionary<string, object> parsedOrder = ccxt.BaseExchange.FromOrder(this.parseWsOrder((rows != null && i < rows.Count ? rows[i] : null)));
+                Dictionary<string, object> parsedOrder = ccxt.BaseExchange.FromOrder(this.parseWsOrder(this.safeDict(rows, i, new Dictionary<string, object>() {})));
                 parsedOrders.Add(parsedOrder);
             }
             client.resolve(parsedOrders, messageHash);
@@ -1691,7 +1691,7 @@ public partial class hitbtc : ccxt.hitbtc
             {
                 this.handleAuthenticate(client, message);
             }
-            if ((result is IList<object> hxList72254))
+            if ((result is IList<object> hxList72294))
             {
                 // to do improve this, not very reliable right now
                 IDictionary<string, object> first = this.safeDict(result, 0, new Dictionary<string, object>() {});

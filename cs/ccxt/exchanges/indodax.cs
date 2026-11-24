@@ -1197,7 +1197,7 @@ public partial class indodax : Exchange
         //    }
         //
         IDictionary<string, object> data = this.safeDict(response, "return");
-        return this.parseOrder(data);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data));
     }
 
     /**

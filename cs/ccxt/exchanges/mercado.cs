@@ -749,7 +749,7 @@ public partial class mercado : Exchange
         //
         IDictionary<string, object> responseData = this.safeDict(response, "response_data", new Dictionary<string, object>() {});
         IDictionary<string, object> order = this.safeDict(responseData, "order", new Dictionary<string, object>() {});
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, order), market);
     }
 
     public virtual string? parseOrderStatus(string? status)
@@ -865,7 +865,7 @@ public partial class mercado : Exchange
         Dictionary<string, object> response = await this.privatePostGetOrder(this.extend(request, parameters));
         IDictionary<string, object> responseData = this.safeDict(response, "response_data", new Dictionary<string, object>() {});
         IDictionary<string, object> order = this.safeDict(responseData, "order");
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, order), market);
     }
 
     /**

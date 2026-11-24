@@ -3183,7 +3183,7 @@ public partial class hashkey : Exchange
         {
             throw new NotSupported ((((((this.id + " ") + methodName) + "() is not supported for ") + marketType) + " type of markets")) ;
         }
-        return this.parseOrder(response);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, response));
     }
 
     /**
@@ -3346,7 +3346,7 @@ public partial class hashkey : Exchange
         {
             throw new NotSupported ((((((this.id + " ") + methodName) + "() is not supported for ") + marketType) + " type of markets")) ;
         }
-        return this.parseOrder(response);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, response));
     }
 
     /**

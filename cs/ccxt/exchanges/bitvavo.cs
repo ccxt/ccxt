@@ -1907,7 +1907,7 @@ public partial class bitvavo : Exchange
         return this.parseOrder(response, market);
     }
 
-    public virtual Dictionary<string, object> cancelOrderRequest(string? id, object symbol = null, IDictionary<string, object> parameters = null)
+    public virtual Dictionary<string, object> cancelOrderRequest(string? id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))

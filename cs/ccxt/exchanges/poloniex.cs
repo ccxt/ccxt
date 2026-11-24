@@ -2403,7 +2403,7 @@ public partial class poloniex : Exchange
         //         "clientOrderId" : ""
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, response), market);
     }
 
     /**
@@ -2692,7 +2692,7 @@ public partial class poloniex : Exchange
             { "side", side },
             { "type", type },
         });
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, response), market);
     }
 
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, IDictionary<string, object> parameters = null)
@@ -2756,7 +2756,7 @@ public partial class poloniex : Exchange
         //       "message":""
         //   }
         //
-        return this.parseOrder(response);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, response));
     }
 
     /**
@@ -2976,7 +2976,7 @@ public partial class poloniex : Exchange
         //         "updateTime": 1646196019020
         //     }
         //
-        ccxt.Order order = this.parseOrder(((IDictionary<string, object>)response));
+        ccxt.Order order = this.parseOrder(this.extend(new Dictionary<string, object>() {}, response));
         order.id = ccxt.BaseExchange.StructString(idValue);
         return order;
     }

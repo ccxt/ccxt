@@ -1503,7 +1503,7 @@ public partial class BaseExchange
 
     public async virtual Task<List<ccxt.OpenInterest>> FetchOpenInterestHistory(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1h";
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " fetchOpenInterestHistory() is not supported yet")) ;
@@ -3320,7 +3320,7 @@ public partial class BaseExchange
 
     public async virtual Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         string message = "";
@@ -3333,7 +3333,7 @@ public partial class BaseExchange
 
     public async virtual Task<List<ccxt.OHLCV>> FetchSpotOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " fetchSpotOHLCV() is not supported yet")) ;
@@ -3341,7 +3341,7 @@ public partial class BaseExchange
 
     public async virtual Task<List<ccxt.OHLCV>> FetchContractOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " fetchContractOHLCV() is not supported yet")) ;
@@ -3349,7 +3349,7 @@ public partial class BaseExchange
 
     public async virtual Task<List<ccxt.OHLCV>> FetchOHLCVWs(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         string message = "";
@@ -3362,7 +3362,7 @@ public partial class BaseExchange
 
     public async virtual Task<List<ccxt.OHLCV>> WatchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " watchOHLCV() is not supported yet")) ;
@@ -3903,7 +3903,7 @@ public partial class BaseExchange
 
     public virtual IList<object> parseOHLCVs(object ohlcvs, IDictionary<string, object> market = null, string timeframe = null, object since = null, object limit = null, bool? tail = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         tail ??= false;
         if ((ohlcvs == null))
@@ -3972,15 +3972,18 @@ public partial class BaseExchange
             if (reload == true || !(this.options.ContainsKey("limitsLoaded")))
             {
                 Dictionary<string, object> response = await this.FetchTradingLimits(symbols);
-                IList<object> symbolsArray = ((IList<object>)this.requireValue(symbols, "loadTradingLimits() requires a symbols argument"));
+                if ((symbols == null))
+                {
+                    throw new ArgumentsRequired ((this.id + " loadTradingLimits() requires a symbols argument")) ;
+                }
                 IDictionary<string, object> markets = this.markets;
                 if ((markets == null))
                 {
                     throw new ExchangeError ((this.id + " markets not loaded")) ;
                 }
-                for (int i = 0; i < (symbolsArray?.Count ?? 0); i++)
+                for (int i = 0; i < (symbols?.Count ?? 0); i++)
                 {
-                    string? symbol = ((string)symbolsArray[i]);
+                    string? symbol = ((string)(symbols != null && i < symbols.Count ? symbols[i] : null));
                     markets[(string)symbol] = this.deepExtend((markets != null && symbol != null && markets.ContainsKey(symbol) ? markets[symbol] : null), (response != null && symbol != null && response.ContainsKey(symbol) ? response[symbol] : null));
                 }
                 this.options["limitsLoaded"] = this.milliseconds();
@@ -4400,11 +4403,11 @@ public partial class BaseExchange
         return ((Dictionary<string, object>)((object)(position)));
     }
 
-    public virtual IList<object> parsePositions(object positions, IList<object> symbols = null, IDictionary<string, object> parameters = null)
+    public virtual IList<object> parsePositions(IList<object> positions, IList<object> symbols = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
-        IList<object> positionsArray = this.toArray(positions);
+        IList<object> positionsArray = positions;
         List<object> result = new List<object>() {};
         for (int i = 0; i < (positionsArray?.Count ?? 0); i++)
         {
@@ -4479,16 +4482,16 @@ public partial class BaseExchange
         return ccxt.BaseExchange.ToTradeList(this.parseTradesHelper(false, trades, market, since, limit, parameters));
     }
 
-    public virtual IList<object> parseWsTrades(object trades, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public virtual IList<object> parseWsTrades(IList<object> trades, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         return this.parseTradesHelper(true, trades, market, since, limit, parameters);
     }
 
-    public virtual IList<object> parseTransactions(object transactions, IDictionary<string, object> currency = null, object since = null, object limit = null, object parameters = null)
+    public virtual IList<object> parseTransactions(IList<object> transactions, IDictionary<string, object> currency = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        IList<object> transactionsArray = this.toArray(transactions);
+        IList<object> transactionsArray = transactions;
         List<object> result = new List<object>() {};
         for (int i = 0; i < (transactionsArray?.Count ?? 0); i++)
         {
@@ -4895,14 +4898,15 @@ public partial class BaseExchange
         return this.accounts;
     }
 
-    public virtual List<object> buildOHLCVC(IList<object> trades, string timeframe = null, object since = null, object limit = null)
+    public virtual List<object> buildOHLCVC(IList<object> trades, string timeframe = null, object since = null, Int64? limit = null)
     {
         string timeframeVar = timeframe;
+        Int64? limitVar = limit;
         // given a sorted arrays of trades (recent last) and a timeframe builds an array of OHLCV candles
         // note, default limit value (2147483647) is max int32 value
         timeframeVar ??= "1m";
         since ??= 0;
-        limit ??= 2147483647;
+        limitVar ??= ((Int64?)2147483647);
         Int64 ms = (this.parseTimeframe(timeframeVar) * 1000L);
         List<object> ohlcvs = new List<object>() {};
         int i_timestamp = 0;
@@ -4913,7 +4917,7 @@ public partial class BaseExchange
         int i_volume = 5;
         int i_count = 6;
         int tradesLength = (trades?.Count ?? 0);
-        object oldest = mathMin(tradesLength, limit);
+        object oldest = mathMin(tradesLength, limitVar);
         IDictionary<string, object> options = this.safeDict(this.options, "buildOHLCVC", new Dictionary<string, object>() {});
         bool? skipZeroPrices = this.safeBool(options, "skipZeroPrices", true);
         for (int i = 0; isLessThan(i, oldest); i++)
@@ -4951,7 +4955,7 @@ public partial class BaseExchange
             bool isNewCandle = (candle == -1);
             if (!isNewCandle)
             {
-                object candleTimestamp = (ohlcvs != null && candle < ohlcvs.Count && ohlcvs[candle] is IList<object> ohlcvsSlot327808 && i_timestamp < ohlcvsSlot327808.Count ? ohlcvsSlot327808[i_timestamp] : null);
+                object candleTimestamp = (ohlcvs != null && candle < ohlcvs.Count && ohlcvs[candle] is IList<object> ohlcvsSlot327856 && i_timestamp < ohlcvsSlot327856.Count ? ohlcvsSlot327856[i_timestamp] : null);
                 if ((candleTimestamp == null))
                 {
                     throw new ExchangeError ((this.id + " buildOHLCVC() missing candle timestamp")) ;
@@ -5461,7 +5465,7 @@ public partial class BaseExchange
         return this.safeValue(res, 0);
     }
 
-    public virtual List<object> handleMarketTypeAndParams(object methodName, IDictionary<string, object> market = null, object parameters = null, string? defaultValue = null)
+    public virtual List<object> handleMarketTypeAndParams(string? methodName, IDictionary<string, object> market = null, object parameters = null, string? defaultValue = null)
     {
         /**
         * @ignore
@@ -6044,17 +6048,17 @@ public partial class BaseExchange
             return ccxt.BaseExchange.ToDict((markets != null && symbol != null && markets.ContainsKey((string)symbol) ? markets[(string)symbol] : null));
         } else if (((marketsById != null)) && ((marketsById != null && symbol is string inOpKey7 && marketsById.ContainsKey(inOpKey7))))
         {
-            object marketsList = (marketsById != null && symbol != null && marketsById.ContainsKey((string)symbol) ? marketsById[(string)symbol] : null);
+            List<object> marketsList = (marketsById != null && symbol != null && marketsById.ContainsKey((string)symbol) ? marketsById[(string)symbol] : null);
             string? defaultType = this.safeString2(this.options, "defaultType", "defaultSubType", "spot");
-            for (int i = 0; i < getArrayLength(marketsList); i++)
+            for (int i = 0; i < (marketsList?.Count ?? 0); i++)
             {
-                object market = getValue(marketsList, i);
+                object market = marketsList[i];
                 if ((this.safeBool(market, defaultType, false) == true))
                 {
                     return ccxt.BaseExchange.ToDict(market);
                 }
             }
-            return ccxt.BaseExchange.ToDict(getValue(marketsList, 0));
+            return ccxt.BaseExchange.ToDict((marketsList != null && 0 < marketsList.Count ? marketsList[0] : null));
         } else if ((((string)symbol).EndsWith("-C")) || (((string)symbol).EndsWith("-P")) || (((string)symbol).StartsWith("C-")) || (((string)symbol).StartsWith("P-")))
         {
             return this.createExpiredOptionMarket(symbol);
@@ -7191,7 +7195,7 @@ public partial class BaseExchange
 
     public virtual List<object> parseWsOHLCVs(IList<object> ohlcvs, IDictionary<string, object> market = null, string timeframe = null, Int64? since = null, Int64? limit = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         List<object> results = new List<object>() {};
         for (int i = 0; i < (ohlcvs?.Count ?? 0); i++)
@@ -8163,7 +8167,7 @@ public partial class BaseExchange
 
     public async virtual Task<object> unWatchOHLCV(string? symbol, string timeframe = null, IDictionary<string, object> parameters = null)
     {
-        object timeframeVar = timeframe;
+        string timeframeVar = timeframe;
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " unWatchOHLCV () is not supported yet")) ;

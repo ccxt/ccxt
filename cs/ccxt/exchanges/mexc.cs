@@ -3102,7 +3102,7 @@ public partial class mexc : Exchange
         }
         List<object> ordersRequests = new List<object>() {};
         string? symbol = null;
-        object paramsLoop = parameters;
+        IDictionary<string, object> paramsLoop = parameters;
         for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             IDictionary<string, object> rawOrder = this.safeDict(orders, i);
@@ -3252,7 +3252,7 @@ public partial class mexc : Exchange
             //
             data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         }
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data), market);
     }
 
     /**
@@ -3855,7 +3855,7 @@ public partial class mexc : Exchange
                 throw new InvalidOrder (((((this.id + " cancelOrder() the order with id ") + id) + " cannot be cancelled: ") + errorMsg)) ;
             }
         }
-        return this.parseOrder(((IDictionary<string, object>)data), market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data), market);
     }
 
     /**

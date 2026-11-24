@@ -1303,7 +1303,7 @@ public partial class lighter : Exchange
         //     "predicted_execution_time_ms": 1766088500120
         // }
         //
-        return this.parseOrder(this.deepExtend(response, order), market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, this.deepExtend(response, order)), market);
     }
 
     /**

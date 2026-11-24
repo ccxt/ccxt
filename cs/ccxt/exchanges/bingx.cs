@@ -4918,7 +4918,7 @@ public partial class bingx : Exchange
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> order = this.safeDict(data, "order", data);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, order), market);
     }
 
     /**
@@ -5186,7 +5186,7 @@ public partial class bingx : Exchange
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> order = this.safeDict(data, "order", data);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, order), market);
     }
 
     /**
@@ -7315,7 +7315,7 @@ public partial class bingx : Exchange
                 commission = this.safeDict(data, "commission", new Dictionary<string, object>() {});
             }
         }
-        return ccxt.BaseExchange.ToTradingFeeInterface(this.parseTradingFee(commission, market));
+        return ccxt.BaseExchange.ToTradingFeeInterface(this.parseTradingFee(this.extend(new Dictionary<string, object>() {}, commission), market));
     }
 
     public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object>? market = null)

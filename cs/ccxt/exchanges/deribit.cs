@@ -2467,7 +2467,7 @@ public partial class deribit : Exchange
         //     }
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, result), market);
     }
 
     /**
@@ -2732,7 +2732,7 @@ public partial class deribit : Exchange
         };
         Dictionary<string, object> response = await this.privateGetCancel(this.extend(request, parameters));
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseOrder(result);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, result));
     }
 
     /**

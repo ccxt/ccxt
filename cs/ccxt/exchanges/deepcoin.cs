@@ -510,7 +510,7 @@ public partial class deepcoin : Exchange
         });
     }
 
-    public override List<object> handleMarketTypeAndParams(object methodName, IDictionary<string, object> market = null, object parameters = null, string? defaultValue = null)
+    public override List<object> handleMarketTypeAndParams(string? methodName, IDictionary<string, object> market = null, object parameters = null, string? defaultValue = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? instType = this.safeString(parameters, "instType");
@@ -1818,7 +1818,7 @@ public partial class deepcoin : Exchange
             response = await this.privatePostDeepcoinTradeOrder(request);
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data), market);
     }
 
     public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, IDictionary<string, object>? parameters = null)
@@ -2237,7 +2237,7 @@ public partial class deepcoin : Exchange
         //
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IDictionary<string, object> entry = this.safeDict(data, 0, new Dictionary<string, object>() {});
-        return this.parseOrder(entry, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, entry), market);
     }
 
     /**
@@ -2274,7 +2274,7 @@ public partial class deepcoin : Exchange
             throw new OrderNotFound (((this.id + " fetchOpenOrder() could not find order id ") + id)) ;
         }
         IDictionary<string, object> entry = this.safeDict(data, 0, new Dictionary<string, object>() {});
-        return this.parseOrder(entry, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, entry), market);
     }
 
     /**
@@ -2637,7 +2637,7 @@ public partial class deepcoin : Exchange
             response = await this.privatePostDeepcoinTradeCancelOrder(this.extend(request, parameters));
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data), market);
     }
 
     /**
@@ -2769,7 +2769,7 @@ public partial class deepcoin : Exchange
             response = await this.privatePostDeepcoinTradeReplaceOrder(this.extend(request, parameters));
         }
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseOrder(data);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data));
     }
 
     /**

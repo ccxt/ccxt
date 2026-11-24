@@ -1745,7 +1745,7 @@ public partial class pacifica : ccxt.pacifica
         return message;
     }
 
-    public virtual object requestId()
+    public virtual Int64? requestId()
     {
         // millisecond timestamp plus 3 random digits stays a safe integer
         string ts = this.milliseconds().ToString();

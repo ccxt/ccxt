@@ -3094,7 +3094,7 @@ public partial class sxbet : PredictionExchange
         {
             object rawRow = (rows != null && i < rows.Count ? rows[i] : null);
             IDictionary<string, object> row = this.safeDict(rawRow, "order", rawRow);
-            Dictionary<string, object> order = this.parsePredictionOrder(row);
+            Dictionary<string, object> order = this.parsePredictionOrder(this.extend(new Dictionary<string, object>() {}, row));
             if ((this.orders == null))
             {
                 Int64? cacheLimit = this.safeInteger(this.options, "ordersLimit", 1000);

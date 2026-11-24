@@ -1123,7 +1123,7 @@ public partial class poloniex : ccxt.poloniex
         List<object> marketIds = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            IDictionary<string, object> order = this.safeDict(data, i);
+            IDictionary<string, object> order = this.safeDict(data, i, new Dictionary<string, object>() {});
             string? marketId = this.safeString(order, "symbol");
             string? eventType = this.safeString(order, "eventType");
             if ((marketId != null))

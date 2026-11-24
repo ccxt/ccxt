@@ -888,7 +888,7 @@ public partial class bitbank : Exchange
         }
         Dictionary<string, object> response = await this.privatePostUserSpotOrder(this.extend(request, parameters));
         IDictionary<string, object> data = this.safeDict(response, "data");
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data), market);
     }
 
     /**
@@ -987,7 +987,7 @@ public partial class bitbank : Exchange
         //    }
         //
         IDictionary<string, object> data = this.safeDict(response, "data");
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data), market);
     }
 
     /**

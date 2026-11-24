@@ -1629,7 +1629,7 @@ public partial class krakenfutures : Exchange
         IDictionary<string, object> sendStatus = this.safeDict(response, "sendStatus");
         string? status = this.safeString(sendStatus, "status");
         this.verifyOrderActionSuccess(status, "createOrder", new List<object>() {"filled"});
-        return this.parseOrder(sendStatus, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, sendStatus), market);
     }
 
     /**

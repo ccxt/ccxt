@@ -2514,7 +2514,7 @@ public partial class polymarket : PredictionExchange
             }
         } else
         {
-            result.Add(this.parsePredictionOrder(((IDictionary<string, object>)response)));
+            result.Add(this.parsePredictionOrder(this.safeDict(response, 0, new Dictionary<string, object>() {})));
         }
         return ccxt.BaseExchange.ToPredictionOrderList(result);
     }
@@ -3297,7 +3297,7 @@ public partial class polymarket : PredictionExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (rawEvents?.Count ?? 0); i++)
         {
-            result.Add(this.parseEvent(this.safeDict(rawEvents, i, new Dictionary<string, object>() {})));
+            result.Add(this.parseEvent(this.extend(new Dictionary<string, object>() {}, (rawEvents != null && i < rawEvents.Count ? rawEvents[i] : null))));
         }
         return result;
     }
@@ -3373,7 +3373,7 @@ public partial class polymarket : PredictionExchange
             List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
             for (int i = 0; i < queryKeys.Count; i++)
             {
-                if (((getValue(query, queryKeys[i])) is var hxArr152252 && ((hxArr152252 is IList<object>) || (hxArr152252 is not null && hxArr152252.GetType().IsGenericType && hxArr152252.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+                if (((getValue(query, queryKeys[i])) is var hxArr152273 && ((hxArr152273 is IList<object>) || (hxArr152273 is not null && hxArr152273.GetType().IsGenericType && hxArr152273.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
                 {
                     hasArrayParam = true;
                 }
@@ -4088,7 +4088,7 @@ public partial class polymarket : PredictionExchange
             this.orders = new ArrayCacheByOutcomeById(limit);
         }
         ccxt.pro.ArrayCache stored = this.orders;
-        Dictionary<string, object> parsed = this.parsePredictionOrder(((IDictionary<string, object>)eventVar));
+        Dictionary<string, object> parsed = this.parsePredictionOrder(this.extend(new Dictionary<string, object>() {}, eventVar));
         stored.append(parsed);
         client.resolve(stored, "orders");
         string? outcome = this.safeString(parsed, "outcome");

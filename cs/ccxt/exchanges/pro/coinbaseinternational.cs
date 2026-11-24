@@ -2209,7 +2209,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         }
         IList<object> symbolsResolved = this.marketSymbols(symbols);
         object result = await this.requestWs("private/get_positions", paramsResolved, true);
-        IList<object> positions = this.parsePositions(result);
+        IList<object> positions = this.parsePositions(this.toArray(result));
         return ccxt.BaseExchange.ToPositionList(this.filterByArrayPositions(positions, "symbol", symbolsResolved));
     }
 

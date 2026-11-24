@@ -840,7 +840,7 @@ public partial class myriad : PredictionExchange
         };
     }
 
-    public override string? signEvmTransaction(IDictionary<string, object> tx, object privateKey)
+    public override string? signEvmTransaction(IDictionary<string, object> tx, string? privateKey)
     {
         // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex.
         // tx fields (nonce/gas/fees/value) are hex strings; chainId is an int. Verified
@@ -3243,12 +3243,12 @@ public partial class myriad : PredictionExchange
         for (int i = 0; i < (marketKeys?.Count ?? 0); i++)
         {
             string? key = ((string)marketKeys[i]);
-            object response = (responses != null && i < responses.Count ? responses[i] : null);
+            IDictionary<string, object> response = this.safeDict(responses, i, new Dictionary<string, object>() {});
             IList<object> grouped = (IList<object>)((key != null && outcomesByMarket.ContainsKey(key) ? outcomesByMarket[key] : null));
             for (int j = 0; j < (grouped?.Count ?? 0); j++)
             {
                 object outcomeObj = grouped[j];
-                Dictionary<string, object> ticker = this.parsePredictionTicker(((IDictionary<string, object>)response),((IDictionary<string, object>)outcomeObj));
+                Dictionary<string, object> ticker = this.parsePredictionTicker(response,((IDictionary<string, object>)outcomeObj));
                 string? symbolKey = this.safeString(ticker, "outcome");
                 if ((symbolKey != null))
                 {
@@ -3406,10 +3406,10 @@ public partial class myriad : PredictionExchange
         if (queriesLength > 0)
         {
             // some markets are only discoverable through the questions search endpoint
-            var hxauTask154825_0 = this.FetchRawMarketsBySearch(queries, rest);
-            var hxauTask154825_1 = this.FetchRawQuestionsBySearch(queries, rest);
-            await Task.WhenAll(hxauTask154825_0, hxauTask154825_1);
-            List<object> responses = new List<object> { hxauTask154825_0.Result, hxauTask154825_1.Result };
+            var hxauTask154845_0 = this.FetchRawMarketsBySearch(queries, rest);
+            var hxauTask154845_1 = this.FetchRawQuestionsBySearch(queries, rest);
+            await Task.WhenAll(hxauTask154845_0, hxauTask154845_1);
+            List<object> responses = new List<object> { hxauTask154845_0.Result, hxauTask154845_1.Result };
             rawMarkets = this.safeList(responses, 0, new List<object>() {});
             rawQuestions = this.safeList(responses, 1, new List<object>() {});
         } else if ((eventId != null))
@@ -3430,10 +3430,10 @@ public partial class myriad : PredictionExchange
             if ((requestedTagsLength == 0))
             {
                 // unscoped mode: fetch bounded open lists from both sources and merge
-                var hxauTask155803_0 = this.FetchRawMarketsList(rest);
-                var hxauTask155803_1 = this.FetchRawQuestionsList(rest);
-                await Task.WhenAll(hxauTask155803_0, hxauTask155803_1);
-                List<object> listResponses = new List<object> { hxauTask155803_0.Result, hxauTask155803_1.Result };
+                var hxauTask155823_0 = this.FetchRawMarketsList(rest);
+                var hxauTask155823_1 = this.FetchRawQuestionsList(rest);
+                await Task.WhenAll(hxauTask155823_0, hxauTask155823_1);
+                List<object> listResponses = new List<object> { hxauTask155823_0.Result, hxauTask155823_1.Result };
                 rawMarkets = this.safeList(listResponses, 0, new List<object>() {});
                 rawQuestions = this.safeList(listResponses, 1, new List<object>() {});
             } else
@@ -3447,10 +3447,10 @@ public partial class myriad : PredictionExchange
                 }
                 // run both searches in parallel; some events are only discoverable from questions,
                 // while market search is still the primary source for market-level data
-                var hxauTask156616_0 = this.FetchRawMarketsBySearch(tagQueries, rest);
-                var hxauTask156616_1 = this.FetchRawQuestionsBySearch(tagQueries, rest);
-                await Task.WhenAll(hxauTask156616_0, hxauTask156616_1);
-                List<object> responses = new List<object> { hxauTask156616_0.Result, hxauTask156616_1.Result };
+                var hxauTask156636_0 = this.FetchRawMarketsBySearch(tagQueries, rest);
+                var hxauTask156636_1 = this.FetchRawQuestionsBySearch(tagQueries, rest);
+                await Task.WhenAll(hxauTask156636_0, hxauTask156636_1);
+                List<object> responses = new List<object> { hxauTask156636_0.Result, hxauTask156636_1.Result };
                 rawMarkets = this.safeList(responses, 0, new List<object>() {});
                 rawQuestions = this.safeList(responses, 1, new List<object>() {});
             }
@@ -3464,7 +3464,7 @@ public partial class myriad : PredictionExchange
         int rawQuestionsLength = (rawQuestions?.Count ?? 0);
         for (int i = 0; i < rawQuestionsLength; i++)
         {
-            Dictionary<string, object> ev = this.parseEvent(this.safeDict(rawQuestions, i, new Dictionary<string, object>() {}));
+            Dictionary<string, object> ev = this.parseEvent(this.extend(new Dictionary<string, object>() {}, (rawQuestions != null && i < rawQuestions.Count ? rawQuestions[i] : null)));
             List<object> evMarkets = this.safeList(ev, "markets", new List<object>() {});
             int evMarketsLength = evMarkets.Count;
             List<object> filteredMarkets = new List<object>() {};
@@ -4094,7 +4094,7 @@ public partial class myriad : PredictionExchange
         timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         List<object> trades = ccxt.BaseExchange.FromTradeList(await this.WatchTrades(outcome, since, limit, parameters));
-        List<object> ohlcvc = this.buildOHLCVC(this.toArray(((object)trades)),timeframeVar, 0, 2147483647);
+        List<object> ohlcvc = this.buildOHLCVC(this.toArray(((object)trades)),timeframeVar, 0, 2147483647L);
         List<object> result = new List<object>() {};
         int ohlcvcLength = (ohlcvc?.Count ?? 0);
         for (int i = 0; i < ohlcvcLength; i++)

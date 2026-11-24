@@ -6144,7 +6144,7 @@ public partial class bybit : Exchange
         return this.parseOrders(data);
     }
 
-    public virtual Dictionary<string, object> cancelOrderRequest(string? id, object symbol = null, IDictionary<string, object> parameters = null)
+    public virtual Dictionary<string, object> cancelOrderRequest(string? id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);
@@ -6379,7 +6379,7 @@ public partial class bybit : Exchange
         List<object> ordersRequests = new List<object>() {};
         string? category = null;
         // getBybitType consumes its options from the params threaded through every order
-        object query = parameters;
+        IDictionary<string, object> query = parameters;
         for (int i = 0; i < (orders?.Count ?? 0); i++)
         {
             IDictionary<string, object> order = this.safeDict(orders, i);

@@ -859,7 +859,7 @@ public partial class gemini : ccxt.gemini
         ccxt.pro.ArrayCache orders = this.orders;
         for (int i = 0; i < (message?.Count ?? 0); i++)
         {
-            ccxt.Order order = this.parseWsOrder(this.safeValue(message, i));
+            ccxt.Order order = this.parseWsOrder(this.safeDict(message, i, new Dictionary<string, object>() {}));
             orders.append(ccxt.BaseExchange.FromOrder(order));
         }
         client.resolve(this.orders, messageHash);

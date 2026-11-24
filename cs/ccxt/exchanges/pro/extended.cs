@@ -553,14 +553,14 @@ public partial class extended : ccxt.extended
         }
         ccxt.pro.ArrayCache orders = this.orders;
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        List<object> rawOrders = this.safeList(data, "orders");
+        List<object> rawOrders = this.safeList(data, "orders", new List<object>() {});
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
         IDictionary<string, object> first = this.safeDict(rawOrders, 0);
         if ((first == null))
         {
             return;
         }
-        for (int i = 0; i < (((IList<object>)(rawOrders))?.Count ?? 0); i++)
+        for (int i = 0; i < rawOrders.Count; i++)
         {
             ccxt.Order order = this.parseOrder(this.safeDict(rawOrders, i, new Dictionary<string, object>() {}));
             string? symbol = order.symbol;

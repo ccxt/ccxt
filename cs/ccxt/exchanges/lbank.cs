@@ -1780,7 +1780,7 @@ public partial class lbank : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < fees.Count; i++)
         {
-            Dictionary<string, object> fee = this.parseTradingFee(((IDictionary<string, object>)fees[i]));
+            Dictionary<string, object> fee = this.parseTradingFee(this.extend(new Dictionary<string, object>() {}, fees[i]));
             string? symbol = this.safeString(fee, "symbol");
             if ((symbol != null))
             {

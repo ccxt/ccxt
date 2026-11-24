@@ -1619,7 +1619,7 @@ public partial class bitget : ccxt.bitget
         {
             market = this.getMarketFromSymbols(symbolsNormalized);
         }
-        object paramsInstType = paramsUta;
+        IDictionary<string, object> paramsInstType = paramsUta;
         if (hasSymbols)
         {
             (string?, IDictionary<string, object>) instTypeparamsInstTypeVariable = this.getInstType("watchPositions", market, uta, paramsUta);
@@ -1645,7 +1645,7 @@ public partial class bitget : ccxt.bitget
             channel = "position";
         }
         args[(string)topicOrChannel] = channel;
-        object paramsRequest = paramsInstType;
+        IDictionary<string, object> paramsRequest = paramsInstType;
         if ((uta == true))
         {
             paramsRequest = this.extend(paramsInstType, new Dictionary<string, object>() {
@@ -1961,7 +1961,7 @@ public partial class bitget : ccxt.bitget
         }
         bool useSpotInstType = ((symbol == null) && (type == "spot"));
         string? instType = "SPOT";
-        object paramsInstType = paramsSubType;
+        IDictionary<string, object> paramsInstType = paramsSubType;
         if (!useSpotInstType)
         {
             (string?, IDictionary<string, object>) instTypeparamsInstTypeVariable = this.getInstType("watchOrders", market, uta, paramsSubType);
@@ -2545,7 +2545,7 @@ public partial class bitget : ccxt.bitget
         IDictionary<string, object> paramsUta = (utaparamsUtaVariable.Item2);
         bool useSpotInstType = ((symbol == null) && (type == "spot"));
         string? instType = "SPOT";
-        object paramsInstType = paramsUta;
+        IDictionary<string, object> paramsInstType = paramsUta;
         if (!useSpotInstType)
         {
             (string?, IDictionary<string, object>) instTypeparamsInstTypeVariable = this.getInstType("watchMyTrades", market, uta, paramsUta);
@@ -2566,7 +2566,7 @@ public partial class bitget : ccxt.bitget
             topicOrChannel = "topic";
         }
         args[(string)topicOrChannel] = "fill";
-        object paramsRequest = paramsInstType;
+        IDictionary<string, object> paramsRequest = paramsInstType;
         if ((uta == true))
         {
             paramsRequest = this.extend(paramsInstType, new Dictionary<string, object>() {
@@ -3120,7 +3120,7 @@ public partial class bitget : ccxt.bitget
         return await (future as Exchange.Future);
     }
 
-    public async virtual Task<T> watchPrivate<T>(object uta, string messageHash, string subscriptionHash, IDictionary<string, object> args, object parameters = null)
+    public async virtual Task<T> watchPrivate<T>(object uta, string messageHash, string subscriptionHash, IDictionary<string, object> args, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object url = ((uta is true)) ? (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("utaPrivate") ? this.urlsApiSections["ws"]["utaPrivate"] : null) : (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("private") ? this.urlsApiSections["ws"]["private"] : null);

@@ -4747,7 +4747,7 @@ public partial class kucoin : Exchange
         //    }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data), market);
     }
 
     public virtual Dictionary<string, object> createSpotOrderRequest(object symbol, string? type, string? side, object amount, object price = null, IDictionary<string, object> parameters = null)
@@ -4933,7 +4933,7 @@ public partial class kucoin : Exchange
         //    }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data), market);
     }
 
     public virtual Dictionary<string, object> createContractOrderRequest(string? symbol, string? type, string? side, object amount, double? price = null, IDictionary<string, object>? parameters = null)
@@ -5169,7 +5169,7 @@ public partial class kucoin : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data), market);
     }
 
     public virtual Dictionary<string, object> createUtaOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, IDictionary<string, object>? parameters = null)
@@ -5706,7 +5706,7 @@ public partial class kucoin : Exchange
         // }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data), market);
     }
 
     /**
@@ -5989,7 +5989,7 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         string? clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
-        object paramsOmitted = ((clientOrderId != null)) ? this.omit(parameters, new List<object>() {"clientOid", "clientOrderId"}) : parameters;
+        IDictionary<string, object> paramsOmitted = ((clientOrderId != null)) ? this.omit(parameters, new List<object>() {"clientOid", "clientOrderId"}) : parameters;
         if ((clientOrderId != null))
         {
             request["clientOid"] = clientOrderId;
@@ -6032,7 +6032,7 @@ public partial class kucoin : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data), market);
     }
 
     /**
@@ -7040,7 +7040,7 @@ public partial class kucoin : Exchange
         {
             responseData = this.safeDict(this.safeList(response, "data", new List<object>() {}), 0, new Dictionary<string, object>() {});
         }
-        return this.parseOrder(responseData, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, responseData), market);
     }
 
     /**
@@ -7122,7 +7122,7 @@ public partial class kucoin : Exchange
         //
         Dictionary<string, object> market = ((symbol != null)) ? this.market(symbol) : null;
         IDictionary<string, object> responseData = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseOrder(responseData, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, responseData), market);
     }
 
     /**
@@ -7220,7 +7220,7 @@ public partial class kucoin : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, data), market);
     }
 
     public virtual string? handleTradeType(object isContractMarket = null, string? marginMode = null, bool? isUnified = null, object parameters = null)
@@ -13011,7 +13011,7 @@ public partial class kucoin : Exchange
         {
             response = await this.futuresPrivatePostOrders(this.extend(request, paramsOmitted));
         }
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, response), market);
     }
 
     /**

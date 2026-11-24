@@ -1944,11 +1944,11 @@ public partial class blofin : Exchange
         if (isCombinedSlTp || isSlOrTp || isTriggerOrder)
         {
             IDictionary<string, object> dataDict = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            return this.parseOrder(dataDict, market);
+            return this.parseOrder(this.extend(new Dictionary<string, object>() {}, dataDict), market);
         }
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IDictionary<string, object> first = this.safeDict(data, 0);
-        ccxt.Order order = this.parseOrder(first, market);
+        ccxt.Order order = this.parseOrder(this.extend(new Dictionary<string, object>() {}, first), market);
         order.type = ccxt.BaseExchange.StructString(type);
         order.side = ccxt.BaseExchange.StructString(side);
         return order;
@@ -2085,12 +2085,12 @@ public partial class blofin : Exchange
         {
             Dictionary<string, object> triggerResponse = await this.privatePostTradeCancelAlgo(this.extend(request, query));
             IDictionary<string, object> triggerData = this.safeDict(triggerResponse, "data");
-            return this.parseOrder(triggerData, market);
+            return this.parseOrder(this.extend(new Dictionary<string, object>() {}, triggerData), market);
         }
         Dictionary<string, object> response = await this.privatePostTradeCancelOrder(this.extend(request, query));
         List<object> data = this.safeList(response, "data", new List<object>() {});
         IDictionary<string, object> order = this.safeDict(data, 0);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, order), market);
     }
 
     /**

@@ -1346,7 +1346,7 @@ public partial class paradex : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < (loadedFees?.Count ?? 0); i++)
         {
-            Dictionary<string, object> fee = this.parseTradingFee(((IDictionary<string, object>)loadedFees[i]));
+            Dictionary<string, object> fee = this.parseTradingFee(this.extend(new Dictionary<string, object>() {}, loadedFees[i]));
             string? symbol = this.safeString(fee, "symbol");
             result[(string)symbol] = fee;
         }
@@ -2801,7 +2801,7 @@ public partial class paradex : Exchange
             IDictionary<string, object> responseOrder = this.safeDict(responseOrders, i);
             if ((responseOrder != null))
             {
-                result.Add(ccxt.BaseExchange.FromOrder(this.parseOrder(responseOrder)));
+                result.Add(ccxt.BaseExchange.FromOrder(this.parseOrder(this.extend(new Dictionary<string, object>() {}, responseOrder))));
             } else
             {
                 IDictionary<string, object> error = this.safeDict(errors, i);

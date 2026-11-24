@@ -178,12 +178,12 @@ public partial class bybit : ccxt.bybit
         return requestId;
     }
 
-    public async virtual Task<string?> getUrlByMarketType(object symbol = null, bool? isPrivate = null, object method = null, object parameters = null)
+    public async virtual Task<string?> getUrlByMarketType(object symbol = null, bool? isPrivate = null, string? method = null, object parameters = null)
     {
         isPrivate ??= false;
         parameters ??= new Dictionary<string, object>();
         string accessibility = isPrivate == true ? "private" : "public";
-        object methodValue = ((method == null)) ? "" : method;
+        string methodValue = ((method == null)) ? "" : method;
         bool? isUsdcSettled = null;
         bool? isSpot = null;
         string? type = null;

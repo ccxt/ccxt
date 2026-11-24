@@ -988,7 +988,7 @@ public partial class p2b : Exchange
         //    }
         //
         IDictionary<string, object> result = this.safeDict(response, "result");
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, result), market);
     }
 
     /**
@@ -1041,7 +1041,7 @@ public partial class p2b : Exchange
         //    }
         //
         IDictionary<string, object> result = this.safeDict(response, "result");
-        return this.parseOrder(result);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, result));
     }
 
     /**

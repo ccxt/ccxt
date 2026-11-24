@@ -488,7 +488,7 @@ public partial class whitebit : ccxt.whitebit
         return ccxt.BaseExchange.ToTradeList(this.filterBySymbolSinceLimit(trades, symbolValue, since, limitResolved, true));
     }
 
-    public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message, object subscription = null)
+    public virtual void handleMyTrades(WebSocketClient client, Dictionary<string, object> message, IDictionary<string, object>? subscription = null)
     {
         //
         //   {
@@ -1175,7 +1175,7 @@ public partial class whitebit : ccxt.whitebit
         return authorized;
     }
 
-    public virtual object handleAuthenticate(WebSocketClient client, object message)
+    public virtual IDictionary<string, object> handleAuthenticate(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     { error: null, result: { status: "success" }, id: 1656084550 }

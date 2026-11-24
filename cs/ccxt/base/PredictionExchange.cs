@@ -1872,7 +1872,7 @@ public partial class PredictionExchange : BaseExchange
         List<object> results = new List<object>() {};
         for (int i = 0; i < (rows?.Count ?? 0); i++)
         {
-            Dictionary<string, object> parsed = this.parsePredictionOrder(((IDictionary<string, object>)rows[i]), outcomeObj);
+            Dictionary<string, object> parsed = this.parsePredictionOrder(this.safeDict(rows, i, new Dictionary<string, object>() {}), outcomeObj);
             Dictionary<string, object> order = this.extend(parsed, parameters);
             results.Add(order);
         }
@@ -2077,7 +2077,7 @@ public partial class PredictionExchange : BaseExchange
     }
 
     // eslint-disable-next-line no-unused-vars
-    public virtual string? signEvmTransaction(IDictionary<string, object> tx, object privateKey)
+    public virtual string? signEvmTransaction(IDictionary<string, object> tx, string? privateKey)
     {
         throw new NotSupported ((this.id + " signEvmTransaction() must be overridden by the exchange")) ;
     }

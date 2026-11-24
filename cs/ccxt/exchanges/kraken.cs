@@ -1950,7 +1950,7 @@ public partial class kraken : Exchange
         // it's impossible to know if the order was created using cost or base currency
         // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
         // this usingCost flag is used to help the parsing but omitted from the order
-        return this.parseOrder(result);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, result));
     }
 
     /**
@@ -2697,7 +2697,7 @@ public partial class kraken : Exchange
         //     }
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend(new Dictionary<string, object>() {}, result), market);
     }
 
     /**

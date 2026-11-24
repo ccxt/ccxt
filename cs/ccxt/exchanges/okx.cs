@@ -2388,7 +2388,7 @@ public partial class okx : Exchange
         });
     }
 
-    public override List<object> handleMarketTypeAndParams(object methodName, IDictionary<string, object> market = null, object parameters = null, string? defaultValue = null)
+    public override List<object> handleMarketTypeAndParams(string? methodName, IDictionary<string, object> market = null, object parameters = null, string? defaultValue = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? instType = this.safeString(parameters, "instType");
