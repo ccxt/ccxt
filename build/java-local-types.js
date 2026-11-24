@@ -27601,6 +27601,27 @@ function javaDeclaredListCallIndex () {
     return javaDeclaredListCalls;
 }
 
+// an unwritten `X[]` parameter of an `override async` method: the unified request slot prints it List<?>
+function javaForwardedUnifiedListParameter (method, parameter, name) {
+    const annotation = parameter.type;
+    if (!ts.isIdentifier (parameter.name) || parameter.name.text !== name || annotation === undefined || !ts.isArrayTypeNode (annotation)
+        || !ts.isTypeReferenceNode (annotation.elementType) || parameter.initializer !== undefined || parameter.questionToken !== undefined
+        || !(method.modifiers ?? []).some ((m) => m.kind === ts.SyntaxKind.AsyncKeyword)
+        || !(method.modifiers ?? []).some ((m) => m.kind === ts.SyntaxKind.OverrideKeyword)) {
+        return false;
+    }
+    let written = false;
+    const visit = (n) => {
+        if (ts.isBinaryExpression (n) && n.operatorToken.kind >= ts.SyntaxKind.FirstAssignment && n.operatorToken.kind <= ts.SyntaxKind.LastAssignment
+            && ts.isIdentifier (unwrapParens (n.left)) && unwrapParens (n.left).text === name) {
+            written = true;
+        }
+        n.forEachChild (visit);
+    };
+    method.body.forEachChild (visit);
+    return !written;
+}
+
 function javaDeclaredListArgIsList (arg) {
     arg = unwrapParens (arg);
     if (arg !== undefined && ts.isArrayLiteralExpression (arg)) {
@@ -27609,6 +27630,10 @@ function javaDeclaredListArgIsList (arg) {
     let method = arg?.parent;
     while (method !== undefined && !ts.isMethodDeclaration (method)) {
         method = method.parent;
+    }
+    if (arg !== undefined && ts.isIdentifier (arg) && method?.body !== undefined
+        && method.parameters.some ((p) => javaForwardedUnifiedListParameter (method, p, arg.text))) {
+        return true;
     }
     if (arg === undefined || !ts.isIdentifier (arg) || method?.body === undefined
         || method.parameters.some ((p) => ts.isIdentifier (p.name) && p.name.text === arg.text)) {

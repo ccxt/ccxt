@@ -8658,6 +8658,10 @@ function javaR84j1StringElementLocalsSelfTest (): string[] {
         "    url92 (client: Client) { const url = client.url; if (url.indexOf ('v2') >= 0) { return 1; } return 0; }",
         "    zzFlags92 (bits: number, zzNames92: string[]) { const out = []; for (let i = 0; i < zzNames92.length; i++) { out.push (zzNames92[i]); } return out; }",
         "    zzFlagsCaller92 () { return this.zzFlags92 (1, [ 'a', 'b' ]); }",
+        "    zzReq07 (orders: OrderRequest[]) { const out = []; for (let i = 0; i < orders.length; i++) { out.push (this.safeString (orders[i], 'symbol')); } return out; }",
+        "    override async createOrders (orders: OrderRequest[], params: Dict = {}) { const r = this.zzReq07 (orders); return r; }",
+        "    zzNeg07 (rows: OrderRequest[]) { return rows.length; }",
+        "    zzNegCaller07 (rows: any) { return this.zzNeg07 (rows); }",
         "    rows92 (sts: string[][]) { const out = []; for (let i = 0; i < sts.length; i++) { const row = sts[i]; out.push (this.market (row[0])); out.push (row[1]); } return out; }",
         "    hex93 (hex: string) { const digits = '0123456789abcdef'; const lower93 = hex.toLowerCase (); const out = []; for (let i = 0; i < lower93.length; i++) { const ch93 = lower93[i]; out.push (digits.indexOf (ch93)); } return out; }",
         "    pclone93 (ps: Dict[], cache: ArrayCache) { for (let i = 0; i < ps.length; i++) { const pc93 = ps[i]; if (pc93['side'] === undefined) { pc93['side'] = 'long'; const sh93 = this.clone (pc93); cache.append (sh93); } cache.append (pc93); } }",
@@ -8680,6 +8684,8 @@ function javaR84j1StringElementLocalsSelfTest (): string[] {
         if (!/Map<String, Object> trade = \(java\.util\.Map<String, Object>\) \(trades == null/.test(out) || !/\btrade\.get\("id"\)/.test(out)) problems.push("90j1 r3: 'trade' (element of a Trade[] list, appended to a ws cache) must print Map<String, Object> with a native get");
         if (!/String sy = \(String\) \(st == null \|\| 0 >= /.test(out) || !/\bsy\.toUpperCase\(/.test(out)) problems.push("90j1 r4: 'sy' (literal-index read of a row of an unwritten `string[][]` parameter) must print String with a native toUpperCase");
         if (!/String tf = \(\(String\)/.test(out) || !/\bout\.put\(tf, /.test(out) || !/\btf\.toUpperCase\(/.test(out)) problems.push("92j1 r2: 'tf' (a const `x as string` local) must print String with a native put key and toUpperCase");
+        if (!/zzReq07\((java\.util\.)?List<\?> orders\)/.test(out)) problems.push("j07: a venue `OrderRequest[]` parameter whose caller forwards an unwritten override-async `OrderRequest[]` parameter must print List<?>");
+        if (!/zzNeg07\(Object rows\)/.test(out)) problems.push("j07: a venue `OrderRequest[]` parameter with a boxed caller must stay Object");
         if (!/zzFlags92\(Object bits, (java\.util\.)?List<Object> zzNames92\)/.test(out) || !/\bi < zzNames92\.size\(\)/.test(out)) problems.push("92j1 r1: venue-only `string[]` parameter 'zzNames92' (element / length uses, literal callers) must print List<Object> with a native size");
         if (!/String url = client\.url;/.test(out) || !/\burl\.indexOf\("v2"\)/.test(out)) problems.push("92j1 r3: 'url' (ws Client url field) must print String with a native indexOf");
         if (!/List<\?> row = \(java\.util\.List<\?>\) \(sts == null/.test(out) || !/\(row == null \|\| 0 >= row\.size\(\) \? null : row\.get\(0\)\)/.test(out)) problems.push("92j1 r4: 'row' (counter row of an unwritten `string[][]` parameter) must print List<?> with native literal reads");
