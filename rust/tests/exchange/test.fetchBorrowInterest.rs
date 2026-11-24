@@ -15,8 +15,8 @@ pub async fn testFetchBorrowInterest(mut exchange: Value, mut skippedProperties:
     crate::tests_support::shared::assert_non_emtpy_array(exchange.clone(), &[skippedProperties.clone(), method.clone(), borrowInterest.clone(), code.clone()]);
     {
                 let mut i: i64 = 0;
-        let mut __for_first_1622: bool = true;
-        while { if !__for_first_1622 { i += 1; } __for_first_1622 = false; i < (borrowInterest.len() as i64) } {
+        let mut __for_first_1623: bool = true;
+        while { if !__for_first_1623 { i += 1; } __for_first_1623 = false; i < (borrowInterest.len() as i64) } {
         testBorrowInterest(exchange.clone(), skippedProperties.clone(), method.clone(), borrowInterest.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), code.clone(), symbol.clone());
     }
     }

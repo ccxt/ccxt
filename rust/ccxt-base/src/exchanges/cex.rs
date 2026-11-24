@@ -296,8 +296,8 @@ impl crate::exchange::DerivedExchange for Cex {
         let mut keys: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_533: bool = true;
-            while { if !__for_first_533 { i += 1; } __for_first_533 = false; i < (keys.len() as i64) } {
+            let mut __for_first_534: bool = true;
+            while { if !__for_first_534 { i += 1; } __for_first_534 = false; i < (keys.len() as i64) } {
             let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut balance: crate::value::Dict = self.safe_dict(response.clone(), Value::from(key.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -438,8 +438,8 @@ impl crate::exchange::DerivedExchange for Cex {
         let mut keys: Vec<Value> = Value::Array(rawNetworks.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut j: i64 = 0;
-            let mut __for_first_530: bool = true;
-            while { if !__for_first_530 { j += 1; } __for_first_530 = false; j < (keys.len() as i64) } {
+            let mut __for_first_531: bool = true;
+            while { if !__for_first_531 { j += 1; } __for_first_531 = false; j < (keys.len() as i64) } {
             let mut networkId: Option<&str> = keys.get(j as usize).and_then(Value::as_str);
             let mut rawNetwork: Option<crate::value::Dict> = self.safe_dict(&rawNetworks, Value::from(networkId.as_deref()), &[]).into_opt_dict();
             let mut networkCode: Option<String> = self.network_id_to_code(&[Value::from(networkId.as_deref()), code.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -1744,8 +1744,8 @@ impl Cex {
         let mut keys: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_531: bool = true;
-            while { if !__for_first_531 { i += 1; } __for_first_531 = false; i < (keys.len() as i64) } {
+            let mut __for_first_532: bool = true;
+            while { if !__for_first_532 { i += 1; } __for_first_532 = false; i < (keys.len() as i64) } {
             let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
             let mut market: Option<crate::types::Market> = None;
             if useKeyAsId.as_bool() == Some(true) {
@@ -1761,8 +1761,8 @@ impl Cex {
         let mut symbols: crate::value::List = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_532: bool = true;
-            while { if !__for_first_532 { i += 1; } __for_first_532 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_533: bool = true;
+            while { if !__for_first_533 { i += 1; } __for_first_533 = false; i < (symbols.len() as i64) } {
             let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if !(matches!(symbol.as_deref(), Some(__k) if result.contains_key(__k))) {
                 let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -2389,8 +2389,8 @@ impl Cex {
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_534: bool = true;
-            while { if !__for_first_534 { i += 1; } __for_first_534 = false; i < (ids.len() as i64) } {
+            let mut __for_first_535: bool = true;
+            while { if !__for_first_535 { i += 1; } __for_first_535 = false; i < (ids.len() as i64) } {
             let mut id: Value = ids.get(i as usize).cloned().unwrap_or(Value::Null);
             orders.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();

@@ -104,14 +104,14 @@ dependencies = [
 
 [[package]]
 name = "ccxt"
-version = "4.5.93"
+version = "4.5.94"
 dependencies = [
  "ccxt-base",
 ]
 
 [[package]]
 name = "ccxt-base"
-version = "4.5.93"
+version = "4.5.94"
 dependencies = [
  "ccxt-common",
  "futures",
@@ -122,7 +122,7 @@ dependencies = [
 
 [[package]]
 name = "ccxt-common"
-version = "4.5.93"
+version = "4.5.94"
 dependencies = [
  "base64",
  "chrono",
@@ -149,14 +149,14 @@ dependencies = [
 
 [[package]]
 name = "ccxt-prediction"
-version = "4.5.93"
+version = "4.5.94"
 dependencies = [
  "ccxt-base",
 ]
 
 [[package]]
 name = "ccxt-pro"
-version = "4.5.93"
+version = "4.5.94"
 dependencies = [
  "ccxt-base",
  "futures",
