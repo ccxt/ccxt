@@ -3623,6 +3623,10 @@ class NewTranspiler {
                 if (kind === 'read') {
                     reads += 1;
                 }
+                // `alias ??= <typed>` also reads the slot, so a default-only copy is not write-only
+                if (kind === 'write' && /^\s*\?\?=/.test (line.slice (at + alias.length))) {
+                    reads += 1;
+                }
             }
         }
         return reads > 0;
