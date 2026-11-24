@@ -5769,6 +5769,11 @@ class NewTranspiler {
                     return a.length === 2 && a[0] === 'client' && /^[A-Za-z_]\w*$/.test (a[1]) && dictTyped (text, a[1]);
                 });
             };
+            // a method group stored in a subscription is inert when every delegate invoke of the file passes a dict
+            const invokes = [ ...content.matchAll (/DynamicInvoker\.InvokeMethod\(/g) ];
+            const inertStore = (at: number) => !/DynamicInvoker\.InvokeMethod\(|this\.spawn\(|return methods\b/.test (body (at)) && invokes.every ((inv) => dispatchOk (body (inv.index)))
+                && [ ...content.matchAll (/this\.spawn\(([^,()]*)/g) ].every ((sp) => /^this\.\w+$/.test (sp[1].trim ()));
+            const storeLine = /^\s*(?:\{ "[^"]*", this\.\w+ \},?|\(\(IDictionary<string,object>\)client\.subscriptions\)\[\w+\] = this\.\w+;)\s*$/;
             const edits: { start: number, end: number }[] = [];
             for (const decl of content.matchAll (declRe)) {
                 const name = decl[1];
@@ -5780,6 +5785,9 @@ class NewTranspiler {
                     const lineStart = content.lastIndexOf ('\n', ref.index) + 1;
                     const line = content.substring (lineStart, content.indexOf ('\n', ref.index));
                     if (lineStart === decl.index || /^\s*(\/\/|\*)/.test (line)) {
+                        continue;
+                    }
+                    if (storeLine.test (line) && inertStore (ref.index)) {
                         continue;
                     }
                     if (!/^\s*\{ "[^"]*", this\.\w+ \},?\s*$/.test (line) || !dispatchOk (body (ref.index))) {
