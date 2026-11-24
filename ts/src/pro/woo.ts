@@ -1223,7 +1223,7 @@ export default class woo extends wooRest {
         //         }
         //     }
         //
-        const topic = this.safeString (message, 'topic');
+        const topic: string = this.safeString (message, 'topic', '');
         const dataList = this.safeList (message, 'data');
         if (dataList !== undefined) {
             // algoexecutionreportv2
@@ -1245,7 +1245,7 @@ export default class woo extends wooRest {
         }
     }
 
-    handleOrder (client: Client, message: Dict, topic: Str) {
+    handleOrder (client: Client, message: Dict, topic: string) {
         const parsed = this.parseWsOrder (message);
         const symbol = this.safeString (parsed, 'symbol');
         const orderId = this.safeString (parsed, 'id');

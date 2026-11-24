@@ -921,7 +921,7 @@ export default class woofipro extends woofiproRest {
         //         }
         //     }
         //
-        const topic = this.safeString (message, 'topic');
+        const topic: string = this.safeString (message, 'topic', '');
         const dataList = this.safeList (message, 'data');
         if (dataList !== undefined) {
             // algoexecutionreport
@@ -943,7 +943,7 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    handleOrder (client: Client, message: Dict, topic: Str) {
+    handleOrder (client: Client, message: Dict, topic: string) {
         const parsed = this.parseWsOrder (message);
         const symbol = this.safeString (parsed, 'symbol');
         const orderId = this.safeString (parsed, 'id');

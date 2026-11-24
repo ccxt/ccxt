@@ -941,7 +941,7 @@ export default class modetrade extends modetradeRest {
         //         }
         //     }
         //
-        const topic = this.safeString (message, 'topic');
+        const topic: string = this.safeString (message, 'topic', '');
         const data = this.safeValue (message, 'data');
         const dataIsArray = Array.isArray (data);
         if (dataIsArray) {
@@ -969,7 +969,7 @@ export default class modetrade extends modetradeRest {
         }
     }
 
-    handleOrder (client: Client, message: Dict, topic: Str) {
+    handleOrder (client: Client, message: Dict, topic: string) {
         const parsed = this.parseWsOrder (message);
         const symbol = this.safeString (parsed, 'symbol');
         const orderId = this.safeString (parsed, 'id');
