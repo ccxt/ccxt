@@ -1987,7 +1987,7 @@ export default class bybit extends Exchange {
         // return this.arrayConcat (spotMarkets, derivativeMarkets);
         return result;
     }
-    async fetchSpotMarkets(params) {
+    async fetchSpotMarkets(params = {}) {
         const request = {
             'category': 'spot',
         };
@@ -8575,7 +8575,8 @@ export default class bybit extends Exchange {
         //
         const result = [];
         for (let i = 0; i < settlements.length; i++) {
-            result.push(this.parseSettlement(this.extend({}, settlements[i]), market));
+            const settlementRow = this.extend({}, settlements[i]);
+            result.push(this.parseSettlement(settlementRow, market));
         }
         return result;
     }

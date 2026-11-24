@@ -808,7 +808,7 @@ class kraken extends kraken$1["default"] {
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false, true, false);
         const unsubMessageHashes = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
-            unsubMessageHashes.push('unsubscribe:' + this.getMessageHash('trade', undefined, symbolsNormalized[i]));
+            unsubMessageHashes.push('unsubscribe:' + this.getMessageHash('trade', undefined, this.symbol(symbolsNormalized[i])));
         }
         const request = {
             'method': 'unsubscribe',

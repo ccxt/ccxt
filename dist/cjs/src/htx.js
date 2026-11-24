@@ -9004,7 +9004,7 @@ class htx extends htx$1["default"] {
         //    }
         //
         const data = this.safeDict(response, 'data');
-        const tick = this.safeList(data, 'tick');
+        const tick = this.safeList(data, 'tick', []);
         return this.parseOpenInterestsHistory(tick, market, since, limit);
     }
     /**

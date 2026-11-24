@@ -4,7 +4,7 @@ import Client from '../base/ws/Client.js';
 export default class paradex extends paradexRest {
     describe(): Dict;
     getWsUrl(): string;
-    getOrderBookChannel(marketId: Str, deltas?: boolean): string;
+    getOrderBookChannel(marketId: string, deltas?: boolean): string;
     requestId(): int;
     /**
      * @ignore

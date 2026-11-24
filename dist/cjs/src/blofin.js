@@ -2363,6 +2363,7 @@ class blofin extends blofin$1["default"] {
             currency = this.currency(code);
             request['currency'] = currency['id'];
         }
+        const depositId = this.safeString(request, 'depositId', '');
         const response = await this.privateGetAssetDepositHistory(this.extend(request, params));
         const data = this.safeList(response, 'data', []);
         // only accept a row that matches the requested id, in case the
@@ -2370,11 +2371,11 @@ class blofin extends blofin$1["default"] {
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             const entry = this.safeDict(data, i, {});
-            if (this.safeString(entry, 'depositId') === id) {
+            if (this.safeString(entry, 'depositId') === depositId) {
                 return this.parseTransaction(entry, currency);
             }
         }
-        throw new errors.ExchangeError(this.id + ' fetchDeposit() could not find deposit ' + id);
+        throw new errors.ExchangeError(this.id + ' fetchDeposit() could not find deposit ' + depositId);
     }
     /**
      * @method
@@ -2395,15 +2396,18 @@ class blofin extends blofin$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' fetchWithdrawal() requires an id argument or a params["clientId"]');
         }
         await this.loadMarkets();
-        const request = {};
+        let request = {};
         if (hasId) {
-            request['withdrawId'] = id;
+            request = {
+                'withdrawId': id,
+            };
         }
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
             request['currency'] = currency['id'];
         }
+        const withdrawId = this.safeString(request, 'withdrawId', '');
         const response = await this.privateGetAssetWithdrawalHistory(this.extend(request, params));
         const data = this.safeList(response, 'data', []);
         // only accept a row that matches the requested id (or clientId), in
@@ -2413,7 +2417,7 @@ class blofin extends blofin$1["default"] {
             const entry = this.safeDict(data, i, {});
             let matches = false;
             if (hasId) {
-                matches = (this.safeString(entry, 'withdrawId') === id);
+                matches = (this.safeString(entry, 'withdrawId') === withdrawId);
             }
             else {
                 matches = (this.safeString(entry, 'clientId') === clientId);
@@ -2422,7 +2426,7 @@ class blofin extends blofin$1["default"] {
                 return this.parseTransaction(entry, currency);
             }
         }
-        const reference = hasId ? id : clientId;
+        const reference = hasId ? withdrawId : clientId;
         throw new errors.ExchangeError(this.id + ' fetchWithdrawal() could not find withdrawal ' + reference);
     }
     /**

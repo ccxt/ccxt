@@ -2174,7 +2174,8 @@ export default class hibachi extends Exchange {
     parseSettlements(settlements, market = undefined) {
         const result = [];
         for (let i = 0; i < settlements.length; i++) {
-            result.push(this.parseSettlement(this.extend({}, settlements[i]), market));
+            const settlementRow = this.extend({}, settlements[i]);
+            result.push(this.parseSettlement(settlementRow, market));
         }
         return result;
     }

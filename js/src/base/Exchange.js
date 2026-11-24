@@ -4774,11 +4774,12 @@ export class BaseExchange {
         return [fee, fees];
     }
     parseFeeNumeric(fee) {
-        fee['cost'] = this.safeNumber(fee, 'cost'); // ensure numeric
-        if ('rate' in fee) {
-            fee['rate'] = this.safeNumber(fee, 'rate');
+        const result = this.extend({}, fee);
+        result['cost'] = this.safeNumber(result, 'cost'); // ensure numeric
+        if ('rate' in result) {
+            result['rate'] = this.safeNumber(result, 'rate');
         }
-        return fee;
+        return result;
     }
     findNearestCeiling(arr, providedValue) {
         //  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30

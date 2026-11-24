@@ -451,7 +451,7 @@ export default class bitfinex extends Exchange {
      * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
      */
     setMargin(symbol: string, amount: number, params?: Dict): Promise<MarginModification>;
-    parseMarginModification(data: List, market?: Market): MarginModification;
+    parseMarginModificationRow(data: List, market?: Market): MarginModification;
     /**
      * @method
      * @name bitfinex#fetchOrder

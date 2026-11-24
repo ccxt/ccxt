@@ -345,7 +345,7 @@ export default class bitrue extends Exchange {
      * @returns {object} response from the exchange
      */
     setLeverage(leverage: int, symbol?: Str, params?: Dict): Promise<Dict>;
-    parseMarginModification(data: any, market?: Market): MarginModification;
+    parseMarginModification(data: Dict, market?: Market): MarginModification;
     /**
      * @method
      * @name bitrue#setMargin

@@ -2458,7 +2458,7 @@ class kalshi extends kalshi$1["default"] {
      */
     async fetchEvent(id, params = {}) {
         const fullEvent = await this.fetchRawEventByTicker(id, params);
-        const event = this.parseEvent(fullEvent);
+        const event = this.parseEvent(this.extend({}, fullEvent));
         this.indexEventOutcomes(event);
         return event;
     }

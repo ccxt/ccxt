@@ -3262,17 +3262,10 @@ export default class bitrue extends Exchange {
         if (!this.safeBool(market, 'swap', false)) {
             throw new NotSupported(this.id + ' setMargin only support swap markets');
         }
-        let response = undefined;
         const request = {
             'contractName': market['id'],
             'amount': this.parseToNumeric(amount),
         };
-        if (this.safeBool(market, 'linear', false)) {
-            response = await this.fapiV2PrivatePostPositionMargin(this.extend(request, params));
-        }
-        else if (this.safeBool(market, 'inverse', false)) {
-            response = await this.dapiV2PrivatePostPositionMargin(this.extend(request, params));
-        }
         //
         //     {
         //         "code": 0,
@@ -3280,7 +3273,15 @@ export default class bitrue extends Exchange {
         //         "data": null
         //     }
         //
-        return this.parseMarginModification(response, market);
+        if (this.safeBool(market, 'linear', false)) {
+            const response = await this.fapiV2PrivatePostPositionMargin(this.extend(request, params));
+            return this.parseMarginModification(response, market);
+        }
+        else if (this.safeBool(market, 'inverse', false)) {
+            const response = await this.dapiV2PrivatePostPositionMargin(this.extend(request, params));
+            return this.parseMarginModification(response, market);
+        }
+        throw new NotSupported(this.id + ' setMargin only support linear or inverse swap markets');
     }
     sign(path, api = ['public'], method = 'GET', params = {}) {
         let requestBody = undefined;

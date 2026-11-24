@@ -3838,9 +3838,9 @@ class bitfinex extends bitfinex$1["default"] {
         //     ]
         //
         const data = this.safeValue(response, 0);
-        return this.parseMarginModification(data, market);
+        return this.parseMarginModificationRow(data, market);
     }
-    parseMarginModification(data, market = undefined) {
+    parseMarginModificationRow(data, market = undefined) {
         //
         // setMargin
         //

@@ -553,14 +553,16 @@ class paradex extends paradex$1["default"] {
             throw new errors.ArgumentsRequired(this.id + ' watchTradesForSymbols() requires a non-empty array of symbols');
         }
         const channels = [];
+        const messageHashes = [];
         for (let i = 0; i < symbolsLength; i++) {
             const market = this.market(symbolsNormalized[i]);
             const marketId = this.safeString(market, 'id', '');
             channels.push('trades.' + marketId);
+            messageHashes.push('trades.' + marketId);
         }
         const url = this.getWsUrl();
         // handleTrade resolves the channel of each market
-        const trades = await this.subscribeChannels(url, channels, channels, params);
+        const trades = await this.subscribeChannels(url, messageHashes, channels, params);
         const first = this.safeDict(trades, 0);
         const tradeSymbol = this.safeString(first, 'symbol');
         let limitResolved = limit;
@@ -600,13 +602,15 @@ class paradex extends paradex$1["default"] {
         }
         const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
         const channels = [];
+        const subMessageHashes = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const market = this.market(symbolsNormalized[i]);
             const marketId = this.safeString(market, 'id', '');
             channels.push('trades.' + marketId);
+            subMessageHashes.push('trades.' + marketId);
         }
         // the watchers of a market wait on its channel
-        return await this.unsubscribeChannels(this.getWsUrl(), 'trades', channels, channels, symbolsNormalized, params);
+        return await this.unsubscribeChannels(this.getWsUrl(), 'trades', channels, subMessageHashes, symbolsNormalized, params);
     }
     /**
      * @method
@@ -762,8 +766,8 @@ class paradex extends paradex$1["default"] {
         const feeds = [];
         for (let i = 0; i < symbolsLength; i++) {
             const feedMarket = this.market(symbolsNormalized[i]);
-            feeds.push(this.getOrderBookChannel(this.safeString(feedMarket, 'id'), true));
-            feeds.push(this.getOrderBookChannel(this.safeString(feedMarket, 'id'), false));
+            feeds.push(this.getOrderBookChannel(this.safeString(feedMarket, 'id', ''), true));
+            feeds.push(this.getOrderBookChannel(this.safeString(feedMarket, 'id', ''), false));
         }
         await this.waitForPendingUnsubscribe(url, feeds);
         const client = this.client(url);
@@ -771,8 +775,8 @@ class paradex extends paradex$1["default"] {
         const messageHashes = [];
         for (let i = 0; i < symbolsLength; i++) {
             const market = this.market(symbolsNormalized[i]);
-            const deltasChannel = this.getOrderBookChannel(this.safeString(market, 'id'), true);
-            const snapshotChannel = this.getOrderBookChannel(this.safeString(market, 'id'), false);
+            const deltasChannel = this.getOrderBookChannel(this.safeString(market, 'id', ''), true);
+            const snapshotChannel = this.getOrderBookChannel(this.safeString(market, 'id', ''), false);
             // one feed per market on a connection: both send BookEvent frames, which do not name their channel,
             // and the 15-level snapshots would cut a full-depth book down. The deltas feed is a superset, it stays
             // the market stays on the deltas feed from the first call that asks for it, a call made while the
@@ -832,8 +836,8 @@ class paradex extends paradex$1["default"] {
         for (let i = 0; i < symbolsNormalized.length; i++) {
             const market = this.market(symbolsNormalized[i]);
             // the feed the market is on, a market is on one of them at a time
-            const deltasChannel = this.getOrderBookChannel(this.safeString(market, 'id'), true);
-            const snapshotChannel = this.getOrderBookChannel(this.safeString(market, 'id'), false);
+            const deltasChannel = this.getOrderBookChannel(this.safeString(market, 'id', ''), true);
+            const snapshotChannel = this.getOrderBookChannel(this.safeString(market, 'id', ''), false);
             let channel = (deltasOption === true) ? deltasChannel : snapshotChannel;
             // a market switching to the deltas feed is on neither feed until its snapshot unsubscribe is acknowledged
             const requestedHash = deltasChannel + ':requested';
@@ -929,7 +933,7 @@ class paradex extends paradex$1["default"] {
             }
         }
         if (this.safeString(data, 'update_type') === 'd') {
-            const deltasChannel = this.getOrderBookChannel(marketId, true);
+            const deltasChannel = this.getOrderBookChannel(this.safeString(data, 'market', ''), true);
             const stored = this.safeValue(this.orderbooks, symbol);
             // a delta applies only to the book of the deltas feed
             if ((stored === undefined) || !(deltasChannel in client.subscriptions)) {

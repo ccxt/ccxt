@@ -9005,7 +9005,7 @@ export default class htx extends Exchange {
         //    }
         //
         const data = this.safeDict(response, 'data');
-        const tick = this.safeList(data, 'tick');
+        const tick = this.safeList(data, 'tick', []);
         return this.parseOpenInterestsHistory(tick, market, since, limit);
     }
     /**

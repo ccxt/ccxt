@@ -735,7 +735,7 @@ export declare class BaseExchange {
     safeTrade(trade: Dict, market?: Market): Trade;
     createCcxtTradeId(timestamp?: Int, side?: Str, amount?: Str, price?: Str, takerOrMaker?: Str): Str;
     parsedFeeAndFees(container: any): (any[] | Dictionary<any>)[];
-    parseFeeNumeric(fee: any): any;
+    parseFeeNumeric(fee: any): Dict;
     findNearestCeiling(arr: number[], providedValue: number): number;
     addKeyInArrayItems(obj: any, keyName: any): Dict[];
     invertFlatStringDictionary(dict: Dict): Dict;
@@ -985,7 +985,7 @@ export declare class BaseExchange {
     parseDepositAddresses(addresses: List, codes?: Strings, indexed?: boolean, params?: Dict): DepositAddress[];
     parseBorrowInterests(response: List, market?: Market): BorrowInterest[];
     parseBorrowRate(info: any, currency?: Currency): Dict;
-    parseBorrowRateHistory(response: any, code: Str, since: Int, limit: Int): any[];
+    parseBorrowRateHistory(response: object[], code: Str, since: Int, limit: Int): any[];
     parseIsolatedBorrowRates(info: List): IsolatedBorrowRates;
     parseFundingRateHistories(response: Dict[], market?: Market, since?: Int, limit?: Int): FundingRateHistory[];
     safeSymbol(marketId: Str, market?: Market, delimiter?: Str, marketType?: Str): string;
@@ -1005,7 +1005,7 @@ export declare class BaseExchange {
     fetchConvertCurrencies(params?: Dict): Promise<Currencies>;
     parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     parseOpenInterests(response: List, symbols?: Strings): OpenInterests;
-    parseOpenInterestsHistory(response: any, market?: Market, since?: Int, limit?: Int): OpenInterest[];
+    parseOpenInterestsHistory(response: object[], market?: Market, since?: Int, limit?: Int): OpenInterest[];
     fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
     fetchFundingInterval(symbol: string, params?: Dict): Promise<FundingRate>;
     fetchMarkOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;

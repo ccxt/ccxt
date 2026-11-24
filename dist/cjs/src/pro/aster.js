@@ -1807,12 +1807,14 @@ class aster extends aster$1["default"] {
         const rawOrder = this.safeDict(message, 'o', message);
         const e = this.safeString(message, 'e');
         const isOrderUpdate = (e === 'ORDER_TRADE_UPDATE') || (e === 'ALGO_UPDATE');
-        let tradeMessage = message;
-        if (isOrderUpdate) {
-            tradeMessage = rawOrder;
-        }
+        const tradeOrder = this.safeDict(message, 'o');
         this.handleOrder(client, rawOrder);
-        this.handleMyTrade(client, tradeMessage);
+        if (isOrderUpdate && (tradeOrder !== undefined)) {
+            this.handleMyTrade(client, tradeOrder);
+        }
+        else {
+            this.handleMyTrade(client, message);
+        }
     }
     handleMyTrade(client, message) {
         const messageHash = 'myTrades';

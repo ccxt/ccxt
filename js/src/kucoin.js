@@ -11872,7 +11872,7 @@ export default class kucoin extends Exchange {
         }
         const [requestUntil, paramsUntil] = this.handleUntilOption('endAt', request, paramsPaginate);
         const response = await this.utaGetMarketOpenInterest(this.extend(requestUntil, paramsUntil));
-        const data = this.safeList(response, 'data');
+        const data = this.safeList(response, 'data', []);
         return this.parseOpenInterestsHistory(data, market, since, limit);
     }
     /**

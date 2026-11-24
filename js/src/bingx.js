@@ -972,7 +972,7 @@ export default class bingx extends Exchange {
             'type': 'crypto', // only cryptos now
         });
     }
-    async fetchSpotMarkets(params) {
+    async fetchSpotMarkets(params = {}) {
         const response = await this.spotV1PublicGetCommonSymbols(params);
         //
         //    {
@@ -1005,7 +1005,7 @@ export default class bingx extends Exchange {
         const markets = this.safeList(data, 'symbols', []);
         return this.parseMarkets(markets);
     }
-    async fetchSwapMarkets(params) {
+    async fetchSwapMarkets(params = {}) {
         const response = await this.swapV2PublicGetQuoteContracts(params);
         //
         //    {
@@ -1041,7 +1041,7 @@ export default class bingx extends Exchange {
         const markets = this.safeList(response, 'data', []);
         return this.parseMarkets(markets);
     }
-    async fetchInverseSwapMarkets(params) {
+    async fetchInverseSwapMarkets(params = {}) {
         const response = await this.cswapV1PublicGetMarketContracts(params);
         //
         //     {

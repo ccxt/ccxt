@@ -1986,7 +1986,7 @@ class bybit extends bybit$1["default"] {
         // return this.arrayConcat (spotMarkets, derivativeMarkets);
         return result;
     }
-    async fetchSpotMarkets(params) {
+    async fetchSpotMarkets(params = {}) {
         const request = {
             'category': 'spot',
         };
@@ -8570,7 +8570,8 @@ class bybit extends bybit$1["default"] {
         //
         const result = [];
         for (let i = 0; i < settlements.length; i++) {
-            result.push(this.parseSettlement(this.extend({}, settlements[i]), market));
+            const settlementRow = this.extend({}, settlements[i]);
+            result.push(this.parseSettlement(settlementRow, market));
         }
         return result;
     }
