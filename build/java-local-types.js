@@ -27503,13 +27503,13 @@ function javaDeclaredListCallIndex () {
                 if (!javaDeclaredListCalls.has (name)) {
                     javaDeclaredListCalls.set (name, []);
                 }
-                javaDeclaredListCalls.get (name).push (n.arguments.map (javaDeclaredListArgIsList));
+                javaDeclaredListCalls.get (name).push ({ file: path.resolve (n.getSourceFile ().fileName), self: n.expression.expression.kind === ts.SyntaxKind.ThisKeyword, args: n.arguments.map (javaDeclaredListArgIsList) });
             }
             n.forEachChild (visit);
         };
         const visitDir = (dir) => fs.readdirSync (dir, { withFileTypes: true }).forEach ((e) => (e.isDirectory ()
             ? ([ 'test', 'static_dependencies' ].includes (e.name) || visitDir (path.join (dir, e.name)))
-            : isTsIndexSource (e.name) && visit (ts.createSourceFile (e.name, readTsIndexSource (path.join (dir, e.name)) ?? '', ts.ScriptTarget.Latest, true))));
+            : isTsIndexSource (e.name) && visit (ts.createSourceFile (path.join (dir, e.name), readTsIndexSource (path.join (dir, e.name)) ?? '', ts.ScriptTarget.Latest, true))));
         visitDir (JAVA_FRESH_MAP_TS_ROOT);
     }
     return javaDeclaredListCalls;
@@ -27540,6 +27540,16 @@ function javaDeclaredListArgIsList (arg) {
         && (locals[0].parent.flags & ts.NodeFlags.Const) !== 0;
 }
 
+function javaDeclaredListFileInSubtree (file, own) {
+    const files = javaStringReturnsClassIndex ();
+    for (let f = file, depth = 0; f !== undefined && depth < 12; f = files.get (f)?.parent, depth++) {
+        if (f === own) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function javaDeclaredListSlotUncached (printer, node, method) {
     try {
         const annotation = node.type;
@@ -27558,7 +27568,10 @@ function javaDeclaredListSlotUncached (printer, node, method) {
             ok = decl !== undefined && ts.isInterfaceDeclaration (decl) && /[\\/]ts[\\/]src[\\/]base[\\/]types\.ts$/.test (decl.getSourceFile ().fileName);
         }
         const index = method.parameters.indexOf (node);
-        return ok && (javaDeclaredListCallIndex ().get (name.text) ?? []).every ((args) => args[index] === true)
+        // a `this.m (..)` call reaches this `m` only from this class, a subclass or an ancestor
+        const own = path.resolve (node.getSourceFile ().fileName);
+        const reaches = (call) => !call.self || javaDeclaredListFileInSubtree (call.file, own) || javaDeclaredListFileInSubtree (own, call.file);
+        return ok && (javaDeclaredListCallIndex ().get (name.text) ?? []).every ((call) => !reaches (call) || call.args[index] === true)
             ? JAVA_WILDCARD_LIST_PARAM_SLOT_TYPE : undefined;
     } catch (e) {
         return undefined;
