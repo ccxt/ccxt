@@ -150,6 +150,15 @@ export function environmentMeta (account: AccountConfig): Record<string, any> {
     return { 'account': account.name, 'exchange': account.exchange, 'environment': accountEnvironment (account) };
 }
 
+// What a confirmation is bound to besides the call's own arguments. The arguments carry the
+// account NAME only, and a name can be given to another record at runtime (setup form,
+// accounts page): without the exchange and the environment in the signed payload, a preview
+// shown for "main" on a sandbox could be redeemed after "main" became a live account
+// elsewhere. Built here, inside confirmWrite, so no write tool can leave it out.
+export function confirmationBinding (accounts: AccountConfig[]): { account: string, exchange: string, environment: string }[] {
+    return accounts.map ((account) => ({ 'account': account.name, 'exchange': account.exchange, 'environment': accountEnvironment (account) }));
+}
+
 // shared confirmation orchestration for every write tool:
 // - policy says no confirmation -> proceed
 // - a confirm token is supplied -> verify it matches this exact payload -> proceed
@@ -162,7 +171,9 @@ export async function confirmWrite (
     payload: Record<string, any>,
     preview: Record<string, any>,
     confirmToken: string | undefined,
-    forceUnlessNever = false
+    forceUnlessNever = false,
+    // every account the action runs on; execute_route passes one per venue
+    involved: AccountConfig[] = [ account ]
 ): Promise<Envelope | 'confirmed'> {
     const required = forceUnlessNever
         ? ((account.confirm ?? 'live') !== 'never')
@@ -170,8 +181,9 @@ export async function confirmWrite (
     if (!required) {
         return 'confirmed';
     }
+    const bound = { ...payload, 'boundTo': confirmationBinding (involved) };
     if (confirmToken !== undefined) {
-        ctx.safety.redeemConfirmToken (confirmToken, payload);
+        ctx.safety.redeemConfirmToken (confirmToken, bound);
         return 'confirmed';
     }
     if (ctx.elicitationSupported ()) {
@@ -216,7 +228,7 @@ export async function confirmWrite (
             },
         };
     }
-    const token = ctx.safety.issueConfirmToken (payload);
+    const token = ctx.safety.issueConfirmToken (bound, involved.map ((entry) => entry.name));
     return ok ({ 'preview': preview }, {
         'confirmationRequired': true,
         'confirmToken': token,

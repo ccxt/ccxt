@@ -25,8 +25,11 @@
     var embedded = window.parent !== window;
 
     function post (message) {
-        // the host's origin is unknown to a sandboxed view, and nothing sent here is secret:
-        // requests carry only public market-data arguments
+        // The host's origin is unknown to a sandboxed view, so the message cannot be addressed
+        // to it. What goes out is tool-call arguments and nothing the server holds: market
+        // arguments (exchange, symbol, timeframe) and, from the account views, the NAME the
+        // user gave an account plus filters (symbol, status) — never a key, and never a
+        // balance, order or position (those only ever arrive, in the host's answer).
         window.parent.postMessage (message, '*');
     }
 

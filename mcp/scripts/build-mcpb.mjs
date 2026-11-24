@@ -39,6 +39,9 @@ log ('copying compiled server (js/) …');
 const bundleDir = path.join (mcpRoot, 'js', 'bundle');
 fs.cpSync (path.join (mcpRoot, 'js'), path.join (serverDir, 'js'), { recursive: true, filter: (source) => source !== bundleDir });
 
+// ccxt-mcp's own licence; the dependencies bring theirs in node_modules, file by file
+fs.copyFileSync (path.join (mcpRoot, 'LICENSE'), path.join (serverDir, 'LICENSE'));
+
 // a minimal package.json so `npm install` pulls only the runtime deps into the bundle
 const serverPkg = {
     name: pkg.name,

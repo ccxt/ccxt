@@ -1092,6 +1092,9 @@ export class SetupServer {
         // account may be a different environment or even a different exchange.
         const stoppedStreams: number = this.ctx.subscriptions.stopAccount (input.name);
         this.ctx.pools.evictAuthenticated (input.name);
+        // a preview issued for the record this name stood for a moment ago confirms nothing
+        // about the new one
+        this.ctx.safety.invalidateAccountTokens (input.name);
         const hadNoFile = this.ctx.config.configPath === undefined;
         if (hadNoFile) {
             this.ctx.config.configPath = written.path;
@@ -1299,6 +1302,7 @@ export class SetupServer {
         if (previous !== undefined) {
             stoppedStreams = this.ctx.subscriptions.stopAccount (name);
             this.ctx.pools.evictAuthenticated (name);
+            this.ctx.safety.invalidateAccountTokens (name);
             delete accounts[name];
             // the server forgets the removed values (after this response is out) — except
             // one another account still uses, which must stay redactable
@@ -1406,6 +1410,9 @@ export class SetupServer {
             account.confirm = 'always';
         }
         accounts[name] = account;
+        // previews were shown under the old permissions (another cap, or trading since
+        // switched off): they have to be asked for again
+        this.ctx.safety.invalidateAccountTokens (name);
         const accountPrefix = 'account ' + JSON.stringify (name) + ':';
         this.dropProblems ((problem) => problem.startsWith (accountPrefix) && problem.includes ('"trading":'));
         let tiers: TierListing = { 'added': [], 'restartNeeded': false };

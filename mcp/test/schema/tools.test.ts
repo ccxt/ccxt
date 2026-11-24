@@ -9,7 +9,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { createServer } from '../../ts/factory.js';
 import { SERVER_INSTRUCTIONS } from '../../ts/tools/index.js';
-import { ALWAYS_LISTED_TOOLS, CORE_TOOLS, INSTRUCTION_BULLETS, ToolProfile, applyToolProfile } from '../../ts/tools/profile.js';
+import { ALWAYS_LISTED_TOOLS, CORE_TOOLS, INSTRUCTION_BULLETS, REGISTRABLE_TOOLS, ToolProfile, applyToolProfile } from '../../ts/tools/profile.js';
 import { fakeCcxtModule, fakePoolsDeps, makeConfig } from '../helpers/fake-ccxt.js';
 
 const MARKET_TOOLS = [
@@ -364,6 +364,27 @@ test ('tool profile: the server instructions never promise a hidden tool family'
     }
     assert.ok (!customText.includes ('still work through call_read_method'));
     await custom.client.close ();
+});
+
+// The instructions are fixed before any tool is registered, so the profile note is written
+// from a static list of names. A typo in CCXT_MCP_TOOLS used to be announced there as a tool
+// of the session while get_safety_status (correctly) called it unknown.
+test ('tool profile: the instructions name only real tools, and the static name list matches what is registered', async () => {
+    const everything = await connect (FULL_ACCOUNT);
+    assert.deepEqual ([ ...REGISTRABLE_TOOLS ].sort (), await everything.names (), 'REGISTRABLE_TOOLS (ts/tools/profile.ts) must list exactly the tools the server registers');
+    await everything.client.close ();
+    const session = await connect ({}, { 'tools': 'core,bogus_tool,Get_Orderbook' });
+    const text = String (session.client.getInstructions ());
+    assert.ok (!text.includes ('bogus_tool') && !text.includes ('Get_Orderbook'), 'an unknown name must not be presented as a tool of the session');
+    const named = /At most these exist in this session: ([a-z_, ]+)\./.exec (text);
+    assert.ok (named !== null, text);
+    assert.deepEqual (named[1].split (', '), await session.names (), 'the note names exactly the listed tools');
+    assert.deepEqual ((await session.safety ()).toolProfile.unknownNames, [ 'bogus_tool', 'Get_Orderbook' ]);
+    await session.client.close ();
+    // nothing but typos: the note still names the one tool that is always there
+    const lost = await connect ({}, { 'tools': 'nope' });
+    assert.match (String (lost.client.getInstructions ()), /At most these exist in this session: get_safety_status\./);
+    await lost.client.close ();
 });
 
 test ('tool profile: "params" points at describe_method only where that tool is listed', async () => {

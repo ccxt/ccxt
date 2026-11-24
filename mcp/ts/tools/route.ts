@@ -433,7 +433,7 @@ export function registerRouteExecuteTool (server: McpServer, ctx: ServerContext)
         // one confirmation for the whole route, under the strictest involved account's policy
         const needsConfirm = venues.map ((venue) => accounts[venue]).find ((account) => ctx.safety.confirmationRequired (account));
         if (needsConfirm !== undefined && !dryRun) {
-            const confirmation = await confirmWrite (ctx, needsConfirm, 'route execution (' + plan.steps.length + ' orders on ' + venues.join (', ') + ')', payload, preview, args.confirm);
+            const confirmation = await confirmWrite (ctx, needsConfirm, 'route execution (' + plan.steps.length + ' orders on ' + venues.join (', ') + ')', payload, preview, args.confirm, false, venues.map ((venue) => accounts[venue]));
             if (confirmation !== 'confirmed') {
                 return confirmation;
             }

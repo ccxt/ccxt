@@ -34,6 +34,26 @@ export const CORE_TOOLS: readonly string[] = [
     'create_order', 'cancel_order',
 ];
 
+// Every tool name a register function of this server offers, in any tier. The server
+// instructions are written before a single tool is registered (see ../factory.ts), so the
+// profile cannot ask the registrations which of the names in an explicit list are real —
+// and a typo ("core,bogus_tool") must not be announced to the model as a tool that exists.
+// test/schema/tools.test.ts fails when this list and the registered tools drift apart.
+export const REGISTRABLE_TOOLS: readonly string[] = [
+    'list_exchanges', 'describe_exchange', 'describe_method', 'search_markets',
+    'get_tickers', 'get_orderbook', 'get_ohlcv', 'get_trades', 'search_events',
+    'call_read_method', 'call_implicit_get', 'get_safety_status',
+    'show_chart', 'show_orderbook', 'show_tickers',
+    'watch_subscribe', 'watch_read', 'watch_unsubscribe', 'watch_list',
+    'fetch_route', 'execute_route',
+    'setup_account', 'manage_accounts',
+    'list_accounts', 'get_balance', 'get_orders', 'get_my_trades', 'get_positions',
+    'show_balance', 'show_orders', 'show_positions',
+    'create_order', 'edit_order', 'cancel_order', 'cancel_all_orders', 'set_leverage', 'set_margin_mode', 'call_write_method',
+    'withdraw', 'transfer', 'get_deposit_address',
+    'call_implicit_write',
+];
+
 // Never hidden: it is where the model learns which profile is active, which tools it hides
 // and how the user gets them back — hiding it would leave a filtered session unexplainable.
 export const ALWAYS_LISTED_TOOLS: readonly string[] = [ 'get_safety_status' ];
@@ -84,9 +104,11 @@ export class ToolProfile {
     }
 
     // the names this profile can list, for the server instructions (which are written before
-    // any tool is registered) — undefined when it lists everything
+    // any tool is registered) — undefined when it lists everything. Only real tool names:
+    // an unknown one in an explicit list is reported by get_safety_status (unknownNames),
+    // it is not something the session has.
     allowedNames (): string[] | undefined {
-        return (this.allowed === undefined) ? undefined : [ ...this.allowed ].sort ();
+        return (this.allowed === undefined) ? undefined : REGISTRABLE_TOOLS.filter ((name) => this.allowed!.has (name)).sort ();
     }
 
     learn (name: string): void {

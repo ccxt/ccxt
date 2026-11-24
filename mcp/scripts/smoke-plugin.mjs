@@ -188,8 +188,13 @@ if (live !== undefined) {
 }
 check (requests.length === 1, 'the registry was asked once: ' + JSON.stringify (requests));
 const cached = path.join (env.PLUGIN_DATA, 'server', pkg.version, 'ccxt-mcp.mjs');
+// the server and the licence notices of what is bundled into it; the private copy the server
+// ran from (see runnableCopy in the bootstrap) must be gone again
+const cachedNotices = path.join (path.dirname (cached), 'THIRD_PARTY_LICENSES.txt');
 const allFiles = fs.readdirSync (env.PLUGIN_DATA, { 'recursive': true }).filter ((entry) => fs.statSync (path.join (env.PLUGIN_DATA, entry)).isFile ());
-check (allFiles.length === 1 && fs.existsSync (cached), 'exactly one file was written: ' + path.relative (scratch, cached) + ' (mode ' + (fs.statSync (cached).mode & 0o777).toString (8) + ')');
+check (allFiles.length === 2 && fs.existsSync (cached) && fs.existsSync (cachedNotices), 'exactly two files were written: ' + path.relative (scratch, cached) + ' (mode ' + (fs.statSync (cached).mode & 0o777).toString (8) + ') and ' + path.basename (cachedNotices) + ' — found ' + JSON.stringify (allFiles));
+const noticesText = fs.readFileSync (cachedNotices, 'utf8');
+check (noticesText.startsWith ('THIRD-PARTY SOFTWARE NOTICES') && noticesText.includes ('protobufjs@') && (fs.statSync (cachedNotices).mode & 0o777) === 0o600, 'the third-party licence notices came with it (' + noticesText.length + ' chars, mode 600)');
 check (cold.stderr.includes (' at ' + fs.realpathSync (runtime) + '\n'), 'the launcher picked the app-runtime Node at ' + path.relative (scratch, runtime));
 
 say ('[smoke-plugin] warm start with the registry shut down');
@@ -197,6 +202,8 @@ await new Promise ((resolve) => registry.close (resolve));
 const warm = await session ([ [ 'tools/list', {} ] ]);
 check (warm.results[1]?.result?.tools?.length === toolNames.length, 'tools/list -> ' + warm.results[1]?.result?.tools?.length + ' tools from the cached server');
 check (requests.length === 1 && !warm.stderr.includes ('downloading'), 'no network was used');
+const afterWarm = fs.readdirSync (env.PLUGIN_DATA, { 'recursive': true }).filter ((entry) => fs.statSync (path.join (env.PLUGIN_DATA, entry)).isFile ());
+check (afterWarm.length === 2, 'the warm start left the cache as it was: ' + JSON.stringify (afterWarm));
 
 fs.rmSync (scratch, { 'recursive': true, 'force': true });
 say ('[smoke-plugin] passed');

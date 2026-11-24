@@ -440,6 +440,42 @@ test ('replace flow: an existing name needs an explicit replace, and the cached 
     assert.equal ((await call (h.client, 'list_accounts', {})).data.find ((entry: any) => entry.name === 'main').trading, false);
 });
 
+// The name survives a replacement, the account does not: a preview the user was shown for
+// the old record must not execute on whatever now carries its name.
+test ('a confirm token issued before an account is replaced, re-permissioned or removed cannot be redeemed after', async () => {
+    const main = { 'exchange': 'fakex', 'apiKey': 'OLDKEY-0123456789', 'secret': 'OLDSECRET-0123456789', 'sandbox': true, 'trading': true, 'confirm': 'always' };
+    const other = { 'exchange': 'fakex', 'apiKey': 'OTHERKEY-0123456789', 'secret': 'OTHERSECRET-0123456789', 'sandbox': true, 'trading': true, 'confirm': 'always' };
+    const h = await harness ({ 'configText': JSON.stringify ({ 'accounts': { main, other } }), 'accounts': { 'main': { ...main }, 'other': { ...other } } });
+    const order = (account: string) => ({ account, 'symbol': 'BTC/USDT', 'type': 'limit', 'side': 'buy', 'amount': 0.001, 'price': 10000 });
+    const preview = async (account: string): Promise<string> => {
+        const envelope = await call (h.client, 'create_order', order (account));
+        assert.equal (envelope.meta?.confirmationRequired, true, JSON.stringify (envelope));
+        return envelope.meta.confirmToken;
+    };
+    const redeem = (account: string, confirm: string) => call (h.client, 'create_order', { ...order (account), confirm });
+    // the case that matters: previewed on the practice account, then "main" becomes a LIVE
+    // account through the setup form. CONFIRM_INVALID (not CONFIRM_MISMATCH, which the
+    // payload binding alone would give — see test/unit/safety.test.ts) shows the token
+    // itself was withdrawn.
+    let token = await preview ('main');
+    const untouched = await preview ('other');
+    const session = await h.open ({});
+    assert.equal ((await post (session, 'save', saveBody ({ 'replace': true, 'environment': 'live', 'trading': true, 'maxOrderValue': 25, 'liveConfirmed': true }))).status, 200);
+    assert.equal (h.ctx.config.accounts['main'].trading, 'live');
+    assert.equal ((await redeem ('main', token)).error.code, 'CONFIRM_INVALID');
+    assert.equal ((await redeem ('other', untouched)).ok, true, 'another account\'s preview is not affected');
+    // re-permissioned on the accounts page (off and on again: the end state is the same)
+    token = await preview ('other');
+    const accountsPage = await h.open ({}, { 'tool': 'manage_accounts' });
+    assert.equal ((await post (accountsPage, 'permissions', { 'name': 'other', 'trading': false })).status, 200);
+    assert.equal ((await post (accountsPage, 'permissions', { 'name': 'other', 'trading': true })).status, 200);
+    assert.equal ((await redeem ('other', token)).error.code, 'CONFIRM_INVALID');
+    // removed: the token is gone with it (the Map entry itself, not just the account)
+    token = await preview ('other');
+    assert.equal ((await post (accountsPage, 'remove', { 'name': 'other', 'confirm': true })).status, 200);
+    assert.throws (() => h.ctx.safety.redeemConfirmToken (token, {}), (e: any) => e.code === 'CONFIRM_INVALID');
+});
+
 test ('an account that only exists in memory (env-defined) also needs replace before it is shadowed', async () => {
     const h = await harness ({ 'accounts': { 'main': { 'apiKey': 'ENVKEY-0123456789', 'secret': 'ENVSECRET-0123456789' } } });
     const session = await h.open ({});
@@ -683,6 +719,20 @@ test ('restart: true is the only way a live form is retired, and it is retired c
     assert.equal ((await post ({ ...second, 'nonce': first.nonce }, 'save', saveBody ())).status, 403);
     assert.equal ((await raw (second.url + '/credentials?exchange=fakex', { 'cookie': false, 'headers': { 'Cookie': first.cookie } })).status, 404);
     assert.equal ((await post (second, 'save', saveBody ())).status, 200);
+});
+
+// The listener exists only while one of the two tools has been called. A deployment that
+// must never open a port on the machine therefore has a switch: a tool list without them.
+test ('a tool profile without setup_account and manage_accounts can never start the listener', async () => {
+    const h = await harness ({ 'settings': { 'tools': 'get_tickers,list_accounts' } });
+    for (const name of [ 'setup_account', 'manage_accounts' ]) {
+        const result: any = await h.client.callTool ({ name, 'arguments': {} }).catch ((e: any) => ({ 'isError': true, 'content': [ { 'text': String (e?.message ?? e) } ] }));
+        assert.equal (result.isError, true, name);
+        assert.match (result.content[0].text, /not found/i, name);
+    }
+    assert.equal (h.ctx.setup.isListening (), false);
+    assert.deepEqual (h.launches, []);
+    assert.deepEqual (fs.readdirSync (h.launchRoot), []);
 });
 
 test ('setup_account is not annotated read-only: it opens a window and can discard a form', async () => {

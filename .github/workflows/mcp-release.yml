@@ -151,7 +151,13 @@ jobs:
             # ccxt-mcp@${NEW_VERSION} is already on npm (immutable) but master is still on the
             # version before it, so smart-bump.sh would recompute ${NEW_VERSION} on the next
             # dispatch and die at `npm publish` on a 403 — wedging releases until master catches up
-            echo "::error::push failed after 5 attempts — ccxt-mcp@${NEW_VERSION} is published but master is not bumped; set mcp/package.json to ${NEW_VERSION} (and run npm run sync-versions) on master before the next dispatch, or every release will conflict on ${NEW_VERSION}"
+            #
+            # The checksums scripts/lock-server.mjs wrote into plugin/server.lock.json are lost
+            # with this commit too, and sync-versions resets them to null when the version
+            # changes. Without them the plugin has nothing to verify and stays on the npx route
+            # for this release, so the recovery has to pin again — from the tarball npm serves,
+            # which is byte for byte the one that was hashed above.
+            echo "::error::push failed after 5 attempts — ccxt-mcp@${NEW_VERSION} is published but master is not bumped. Before the next dispatch (or every release will conflict on ${NEW_VERSION}), on master, in mcp/: (1) npm version ${NEW_VERSION} --no-git-tag-version (2) npm run sync-versions (3) npm pack ccxt-mcp@${NEW_VERSION} (4) node scripts/lock-server.mjs ccxt-mcp-${NEW_VERSION}.tgz (5) rm ccxt-mcp-${NEW_VERSION}.tgz, then commit the files this step lists under git add. Steps 3-4 re-pin plugin/server.lock.json to the published tarball; without them the plugin starts this version through npx only"
             exit 1
           fi
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"

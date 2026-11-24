@@ -27,13 +27,35 @@ fi
 # the user's workspace, say — would make it run whatever scripts/bootstrap.mjs an untrusted
 # repository keeps there, skipping every check the real one makes. So the working directory
 # is always the plugin root, taken from this file's own location and not from the host.
+named_without_path=
 case "$0" in
     */*) plugin_root=${0%/*}/.. ;;
-    *) plugin_root=.. ;;
+    *)
+        # No directory in $0: the launcher was started as `sh launch`. A shell looks for such
+        # a file in the working directory first and, when it is not there, some go on to
+        # search PATH — so ".." of the working directory is the plugin root only in the first
+        # case. In the second, PATH says where this file is; and when neither finds it (the
+        # script came in on stdin, say) there is no telling, so nothing is run at all.
+        named_without_path=yes
+        if [ -f "./$0" ]; then
+            plugin_root=..
+        else
+            found=$(command -v -- "$0" 2>/dev/null) || found=
+            case "$found" in
+                */*) plugin_root=${found%/*}/.. ;;
+                *) plugin_root= ;;
+            esac
+        fi
+        ;;
 esac
 # CDPATH would make cd print the directory, and stdout is the MCP channel
-if ! CDPATH= cd -- "$plugin_root" >/dev/null 2>&1; then
+if [ -z "$plugin_root" ] || ! CDPATH= cd -- "$plugin_root" >/dev/null 2>&1; then
     printf '%s\n' '[ccxt-mcp plugin] could not start: the plugin folder cannot be opened — reinstall the CCXT plugin.' >&2
+    exit 66
+fi
+# a guessed root has to look like the plugin before anything in it is run
+if [ -n "$named_without_path" ] && { [ ! -f ./scripts/launch ] || [ ! -f ./server.lock.json ]; }; then
+    printf '%s\n' '[ccxt-mcp plugin] could not start: the launcher cannot tell where the plugin is installed — start it by its full path (<plugin folder>/scripts/launch).' >&2
     exit 66
 fi
 

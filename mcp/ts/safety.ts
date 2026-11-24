@@ -90,7 +90,7 @@ export interface GuardResult {
 export class Safety {
     private journal: Journal;
     private tokenSecret = crypto.randomBytes (32);
-    private tokens = new Map<string, { digest: string, expiresAt: number }> ();
+    private tokens = new Map<string, { digest: string, expiresAt: number, accounts: string[] }> ();
     private accountLocks = new Map<string, Promise<void>> ();
 
     constructor (journal: Journal) {
@@ -374,13 +374,32 @@ export class Safety {
     // two-phase confirmation fallback for clients without elicitation: the first call
     // returns a preview + single-use token bound (HMAC) to the exact call payload,
     // the second call must repeat the identical payload with the token
-    issueConfirmToken (payload: any): string {
+    // `accounts` names every account the confirmed action would run on, so the tokens can be
+    // withdrawn when one of them changes (invalidateAccountTokens)
+    issueConfirmToken (payload: any, accounts: string[] = []): string {
         const token = crypto.randomUUID ();
         this.tokens.set (token, {
             'digest': this.digest (payload),
             'expiresAt': Date.now () + CONFIRM_TOKEN_TTL_MS,
+            'accounts': [ ...accounts ],
         });
         return token;
+    }
+
+    // An account name is not an identity: the setup and accounts pages can put another
+    // exchange, other keys or other permissions under the same name while the server runs.
+    // A preview the user saw for the old record must not be redeemable against the new one,
+    // so every outstanding token that involves the account is dropped when it is replaced,
+    // removed or re-permissioned. Returns how many were dropped.
+    invalidateAccountTokens (accountName: string): number {
+        let dropped = 0;
+        for (const [ token, entry ] of this.tokens) {
+            if (entry.accounts.includes (accountName)) {
+                this.tokens.delete (token);
+                dropped++;
+            }
+        }
+        return dropped;
     }
 
     redeemConfirmToken (token: string, payload: any): void {

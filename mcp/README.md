@@ -97,6 +97,8 @@ Add to `claude_desktop_config.json` (Settings → Developer → Edit Config):
 
 `~/.codeium/windsurf/mcp_config.json` — same `mcpServers` shape as Claude Desktop; `${env:VAR}` interpolation is supported.
 
+**Upgrading from 0.1.3?** See the [migration notes](https://docs.ccxt.com/docs/mcp#migration-notes) ([source](https://github.com/ccxt/ccxt/blob/master/wiki/MCP.md#migration-notes)): the Claude Code plugin now pins the server and sets `CCXT_MCP_CONFIG` and the `CCXT_MCP_*` account variables itself, there are eight new tools (`CCXT_MCP_TOOLS=core` on hosts that cap tool definitions), and `setup_account` / `manage_accounts` open a short-lived listener on `127.0.0.1` when called.
+
 ## Configuration
 
 With no configuration the server serves **public market data on all exchanges** — that alone is a useful install.
@@ -216,7 +218,7 @@ The MCP Apps docs list Claude (claude.ai), Claude Desktop, VS Code GitHub Copilo
 ```bash
 npm run mcp.ts          # run the server from live TypeScript sources (tsx)
 cd mcp && npm test      # unit + schema + integration tests
-cd mcp && npm run build # tsc + copy the UI views + regenerate js/data/method-docs.json
+cd mcp && npm run build # tsc + copy the UI views + regenerate js/data/method-docs.json + the single-file bundle (js/bundle/ccxt-mcp.mjs and its THIRD_PARTY_LICENSES.txt)
 cd mcp && npm run ui:preview  # write a fake-host preview page for developing the views
 cd mcp && npm run sync-plugin # copy .claude/skills/ccxt-mcp into plugin/skills (CI fails on drift; ccxt-get-started lives only in the plugin)
 ```

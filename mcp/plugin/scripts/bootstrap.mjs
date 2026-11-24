@@ -9,7 +9,8 @@
 //   1. CCXT_MCP_SERVER  absolute path of a local server entry (development / testing)
 //   2. the bundle cached for the pinned version, if it still matches the lock
 //   3. download the pinned tarball (picking up where a start that was cut short stopped),
-//      verify it against ../server.lock.json, extract the bundle
+//      verify it against ../server.lock.json, extract the bundle (and, when the release
+//      has one, the third-party licence notices that belong beside it)
 //   4. `npx -y ccxt-mcp@<version>` when the pinned release has no verified bundle, or the
 //      download is not possible (offline, proxy) — npm then does its own integrity checks
 //   5. one sentence on stderr saying what to do, and a non-zero exit
@@ -20,6 +21,8 @@
 //   - nothing that failed verification is ever executed or stored under the name the cache
 //     is read from. An unfinished download is kept beside it as a ".part" file, which is
 //     only ever hashed, never run.
+//   - what is executed is the bytes that were hashed: the server is imported from a private
+//     copy written from the verified buffer, never from a path that is read a second time.
 //   - no dependencies and no syntax newer than Node 18: there is no node_modules here.
 //   - no network when the cache is warm.
 import fs from 'node:fs';
@@ -36,6 +39,13 @@ const PACKAGE = 'ccxt-mcp';
 // where scripts/build-bundle.mjs puts the bundle, as the path reads inside an npm tarball
 const BUNDLE_ENTRY = 'package/js/bundle/ccxt-mcp.mjs';
 const CACHED_NAME = 'ccxt-mcp.mjs';
+// The licences of the third-party code inside the bundle (scripts/build-bundle.mjs writes it
+// beside the bundle). It is text that is never executed, and it is covered by the tarball
+// checksum, so it needs no hash of its own; a release without one is not an error.
+const NOTICES_ENTRY = 'package/js/bundle/THIRD_PARTY_LICENSES.txt';
+const NOTICES_NAME = 'THIRD_PARTY_LICENSES.txt';
+// the copy a start runs from (see runnableCopy): ".ccxt-mcp.run.<pid>.<random>.mjs"
+const RUN_PATTERN = /^\.ccxt-mcp\.run\.(\d+)\.[0-9a-f]+\.mjs$/;
 // the tarball is about 3 MB and the bundle about 13 MB; the caps only have to stop a
 // runaway or hostile response from filling memory before the hash check rejects it
 const MAX_TARBALL_BYTES = 64 * 1024 * 1024;
@@ -128,19 +138,20 @@ function storageDirectories (lock) {
 }
 
 // the cache is re-hashed on every start (about 30 ms): a truncated, edited or swapped file
-// is treated as absent and fetched again instead of being executed
+// is treated as absent and fetched again instead of being executed. Returns the bytes that
+// were hashed — the caller runs those, not the file (see runnableCopy) — or undefined.
 function readVerifiedCache (file, lock) {
     let contents;
     try {
         contents = fs.readFileSync (file);
     } catch (error) {
-        return false;
+        return undefined;
     }
     if (sameDigest (sha512 (contents), lock.bundleIntegrity)) {
-        return true;
+        return contents;
     }
     say ('the cached server at ' + file + ' does not match this plugin, fetching it again');
-    return false;
+    return undefined;
 }
 
 // https only, except a loopback http address (the tests' stand-in registry): the hash check
@@ -500,7 +511,7 @@ function readTarEntry (archive, wanted) {
 function writeAtomically (file, contents) {
     const directory = path.dirname (file);
     fs.mkdirSync (directory, { 'recursive': true, 'mode': 0o700 });
-    const temporary = path.join (directory, '.' + CACHED_NAME + '.' + process.pid + '.' + crypto.randomBytes (6).toString ('hex') + '.tmp');
+    const temporary = path.join (directory, '.' + path.basename (file) + '.' + process.pid + '.' + crypto.randomBytes (6).toString ('hex') + '.tmp');
     try {
         fs.writeFileSync (temporary, contents, { 'mode': 0o600, 'flag': 'wx' });
         fs.renameSync (temporary, file);
@@ -510,7 +521,8 @@ function writeAtomically (file, contents) {
     }
 }
 
-// Downloads, verifies and stores the bundle; returns the path it can be imported from.
+// Downloads, verifies and stores the bundle. Returns its bytes, the directory they were
+// cached in (undefined when nothing could be written) and why each directory refused.
 async function fetchBundle (lock, directories) {
     // names the runtime too: "which Node did the launcher pick" is the first support question
     say ('downloading the CCXT server ' + lock.version + ' (one time, about 3 MB), running on Node ' + process.versions.node + ' at ' + process.execPath);
@@ -526,9 +538,15 @@ async function fetchBundle (lock, directories) {
     }
     const tarball = await downloadVerified (lock, part);
     let bundle;
+    let notices;
     try {
         const archive = zlib.gunzipSync (tarball, { 'maxOutputLength': MAX_UNPACKED_BYTES });
         bundle = readTarEntry (archive, BUNDLE_ENTRY);
+        try {
+            notices = readTarEntry (archive, NOTICES_ENTRY);
+        } catch (error) {
+            // an archive that names the notices twice: nothing to choose between, keep none
+        }
     } catch (error) {
         throw new BootstrapError ('the downloaded server archive could not be read (' + error.message + ')', false);
     }
@@ -540,33 +558,86 @@ async function fetchBundle (lock, directories) {
         throw new BootstrapError ('the server inside the download does not match the checksum pinned in this plugin, so it was not run — reinstall the CCXT plugin', false);
     }
     for (const directory of directories) {
-        const target = path.join (directory, CACHED_NAME);
         try {
-            writeAtomically (target, bundle);
-            return target;
+            writeAtomically (path.join (directory, CACHED_NAME), bundle);
         } catch (error) {
             unusable.set (directory, error.code || error.message);
+            continue;
+        }
+        if (notices !== undefined) {
+            try {
+                // the licences travel with the copy of the code they are about
+                writeAtomically (path.join (directory, NOTICES_NAME), notices);
+            } catch (error) {
+                // the server runs without them; they are also in the npm package
+            }
+        }
+        return { 'contents': bundle, directory, unusable, 'downloaded': true };
+    }
+    return { 'contents': bundle, 'directory': undefined, unusable, 'downloaded': true };
+}
+
+// Removes the run copies earlier starts left in `directory` because they were killed before
+// their exit handler ran. One whose process is still alive belongs to a running server.
+function removeStaleRunCopies (directory) {
+    let names = [];
+    try {
+        names = fs.readdirSync (directory);
+    } catch (error) {
+        return;
+    }
+    for (const name of names) {
+        const match = RUN_PATTERN.exec (name);
+        if (match !== null && (Number (match[1]) === process.pid || !processIsAlive (Number (match[1])))) {
+            remove (path.join (directory, name));
         }
     }
-    const reasons = [ ...unusable ].map (([ directory, code ]) => directory + ': ' + code).join ('; ');
-    // Nowhere to keep it, but the verified server is in memory and the user is waiting: run
-    // it this once from a private directory (mkdtemp: created 0700, owned by this user, a name
-    // nobody could have prepared) and take that away again on the way out.
+}
+
+function removeOnExit (target, recursive) {
+    process.on ('exit', () => {
+        try {
+            fs.rmSync (target, { recursive, 'force': true });
+        } catch (error) {
+            // the next start (removeStaleRunCopies) or the operating system clears it
+        }
+    });
+}
+
+// Returns the path of a file to import that holds exactly `server.contents`.
+//
+// Verifying the cached file and then importing it by path would read it twice, and whatever
+// replaced it between the two reads would run unverified. So the bytes that were hashed are
+// written to a new file (created exclusively, 0600, under a name nobody could have prepared)
+// and THAT is imported. It lives in the 0700 cache directory and is removed on the way out.
+// With nowhere to keep the server at all it goes to a private temporary directory instead
+// (mkdtemp: created 0700, owned by this user), which is the "run it this once" case.
+function runnableCopy (server) {
+    const reasons = new Map (server.unusable);
+    if (server.directory !== undefined) {
+        removeStaleRunCopies (server.directory);
+        const target = path.join (server.directory, '.ccxt-mcp.run.' + process.pid + '.' + crypto.randomBytes (6).toString ('hex') + '.mjs');
+        try {
+            fs.writeFileSync (target, server.contents, { 'mode': 0o600, 'flag': 'wx' });
+            removeOnExit (target, false);
+            return target;
+        } catch (error) {
+            remove (target);
+            reasons.set (server.directory, error.code || error.message);
+        }
+    }
+    const listed = [ ...reasons ].map (([ directory, code ]) => directory + ': ' + code).join ('; ');
     try {
         const temporary = fs.mkdtempSync (path.join (os.tmpdir (), PACKAGE + '-'));
-        process.on ('exit', () => {
-            try {
-                fs.rmSync (temporary, { 'recursive': true, 'force': true });
-            } catch (error) {
-                // the operating system clears its temporary directory eventually
-            }
-        });
+        removeOnExit (temporary, true);
         const target = path.join (temporary, CACHED_NAME);
-        writeAtomically (target, bundle);
-        say ('the server could not be kept on disk (' + reasons + '), so it will be downloaded again at every start — free some disk space or make that folder writable');
+        fs.writeFileSync (target, server.contents, { 'mode': 0o600, 'flag': 'wx' });
+        if (server.directory === undefined) {
+            say ('the server could not be kept on disk (' + listed + '), so it will be downloaded again at every start — free some disk space or make that folder writable');
+        }
         return target;
     } catch (error) {
-        throw new BootstrapError ('the CCXT server was downloaded but could not be saved anywhere (' + reasons + '; ' + os.tmpdir () + ': ' + (error.code || error.message) + ')', true, true);
+        throw new BootstrapError ('the CCXT server ' + (server.downloaded ? 'was downloaded but ' : '') + 'could not be saved anywhere (' + listed + '; ' + os.tmpdir () + ': ' + (error.code || error.message) + ')', true, true);
     }
 }
 
@@ -683,11 +754,20 @@ async function main () {
     let reason;
     if (lockIsVerifiable (lock)) {
         const directories = storageDirectories (lock);
-        let server = directories.map ((directory) => path.join (directory, CACHED_NAME)).find ((file) => readVerifiedCache (file, lock));
+        let server;
+        let runnable;
+        for (const directory of directories) {
+            const contents = readVerifiedCache (path.join (directory, CACHED_NAME), lock);
+            if (contents !== undefined) {
+                server = { contents, directory, 'unusable': new Map (), 'downloaded': false };
+                break;
+            }
+        }
         try {
             if (server === undefined) {
                 server = await fetchBundle (lock, directories);
             }
+            runnable = runnableCopy (server);
         } catch (error) {
             if (!(error instanceof BootstrapError) || !error.fallback) {
                 throw error;
@@ -695,7 +775,7 @@ async function main () {
             reason = error;
         }
         if (reason === undefined) {
-            await importServer (server);
+            await importServer (runnable);
             return;
         }
         say (reason.message + ' — trying npx instead');

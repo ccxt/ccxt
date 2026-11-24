@@ -76,6 +76,8 @@ codex plugin add ccxt-mcp@ccxt
 
 The first command registers the marketplace (`.agents/plugins/marketplace.json` in the repository), the second installs the plugin (verified with Codex CLI 0.171.0; `codex mcp list` then shows the `ccxt` server). In the ChatGPT desktop app, add the marketplace the same way and install **CCXT** from the Plugins directory instead (per OpenAI's docs; untested here). OpenAI calls a plugin with a local stdio MCP server — like this one — ["desktop‑only"](https://developers.openai.com/plugins/deploy/desktop-only).
 
+**Windows.** The launcher route used by the ChatGPT desktop app and Codex (`scripts/launch.cmd` and the plugin's bootstrap) has **not been run on Windows**. Until it has, Windows users should use the `npx` route: install Node.js 18+ and add the server to the app directly as `npx -y ccxt-mcp` (the per‑app configs are below).
+
 **xAI Grok**
 
 Grok documents that it reads Claude Code marketplaces, plugins, skills and MCPs with zero configuration, so it uses the same marketplace and plugin as Claude Code. If the `ccxt/ccxt` marketplace is already added in Claude Code, install `ccxt-mcp` from `/plugins` → **Marketplace** tab, which Grok documents as installing plugins from configured sources (Grok's own sources come from `[[marketplace.sources]]` in `~/.grok/config.toml` and `~/.grok/plugins/known_marketplaces.json`; its docs publish no command or entry format for adding one, and this route is untested), or load the plugin directory from a checkout:
@@ -151,12 +153,13 @@ With no configuration the server serves **public market data on every exchange**
 
 Ask the assistant to **"get started"** or to "connect my exchange account". It calls the `setup_account` tool, which opens a form in your default web browser. The page is served by the MCP server itself, on your own computer (`127.0.0.1`). Its link works for the first browser that opens it — after that the form answers only that browser — and the form expires after 10 minutes or once an account is saved.
 
-The form is a short wizard, one step per screen, and it starts by showing the exact file on your computer where the key will be kept.
+The form is a short wizard of five steps, one per screen:
 
-1. Pick the exchange and create an API key there (the page lists what to enable: reading yes, trading only if you want it, **withdrawals never**).
-2. Type the key and secret (plus the passphrase or wallet fields that exchange needs), and choose where the key works: **Testnet** (the default), **Demo trading** or **Live** — only the environments the exchange has are offered.
-3. Decide whether orders may be placed. This is **off** by default. On a live account, switching it on requires a maximum order size in USD and an explicit confirmation tick, and every order on that account is then previewed before it is sent.
-4. Review and save. The review shows what will be saved and where — of the API key only its last four characters. The form checks the keys against the exchange first, writes the account to the config file below (created readable by you only) and applies it immediately — no restart. Go back to the chat and say you are done. Saving under the name of an existing account asks first, and replacing an account stops any live (WebSocket) streams that were running on its old keys.
+1. **Before you start.** The page shows the exact file on your computer where the key will be kept, and what to have ready.
+2. **Get your key.** Pick the exchange and create an API key there (the page lists what to enable: reading yes, trading only if you want it, **withdrawals never**).
+3. **Paste your key.** Type the key and secret (plus the passphrase or wallet fields that exchange needs), and choose where the key works: **Testnet** (the default), **Demo trading** or **Live** — only the environments the exchange has are offered.
+4. **What the assistant may do.** Decide whether orders may be placed. This is **off** by default. On a live account, switching it on requires a maximum order size in USD and an explicit confirmation tick, and every order on that account is then previewed before it is sent.
+5. **Review and save.** The review shows what will be saved and where — of the API key only its last four characters. The form checks the keys against the exchange first, writes the account to the config file below (created readable by you only) and applies it immediately — no restart. Go back to the chat and say you are done. Saving under the name of an existing account asks first, and replacing an account stops any live (WebSocket) streams that were running on its old keys.
 
 The model never sees the keys or the link: the tool result only says that a form was opened. Asking for the form again while one is open does not replace it — the assistant is told it is already open, and what you typed stays; a fresh form is opened only when you say the old one is lost. Never paste a key into the chat — if you do, delete that key on the exchange and create a new one. Withdrawals/transfers and raw write endpoints cannot be enabled from the form; those tiers stay config‑file‑only. If no browser can be opened from where the server runs (a headless or remote machine), the tool says so and names the config file to edit instead. With `"settings": { "hideDisabledTools": true }`, the tools of a tier the new account enables are added to the tool list when it is saved; if your app does not pick them up, restart it once.
 
@@ -316,6 +319,22 @@ The prediction‑market exchanges (Polymarket, Kalshi, Limitless, Myriad, and Hy
 - **HTTP 451 / geo‑blocks** — some exchanges block cloud/VPN/US IPs; set a proxy via account `options` if needed.
 - **Slow first call on a big exchange** — the initial `loadMarkets()` can take a few seconds; it is cached on disk for 24h afterwards.
 - Run `npx @modelcontextprotocol/inspector npx -y ccxt-mcp` to open an interactive tool console.
+
+## Migration notes
+
+What changes for an existing install when it moves past `ccxt-mcp` 0.1.3.
+
+**Claude Code plugin users**
+
+- **The server is now pinned to the plugin version.** The plugin used to run `npx -y ccxt-mcp` (whatever npm had cached); it now runs `npx -y ccxt-mcp@<plugin version>`. To update the server, update the plugin.
+- **The plugin now sets the configuration variables itself.** Its manifest passes `CCXT_MCP_CONFIG` and the account variables `CCXT_MCP_EXCHANGE`, `CCXT_MCP_APIKEY`, `CCXT_MCP_SECRET`, `CCXT_MCP_PASSWORD`, `CCXT_MCP_SANDBOX` and `CCXT_MCP_TRADING` to the server from the plugin's install options — blank when an option is blank. Values for these variables exported in your shell therefore no longer reach the server. To use a config file at a non‑default path, set the plugin's **Config file** option (`/plugin configure ccxt-mcp@ccxt`); otherwise keep the file at the [default path](#config-file), which is read as before.
+
+**All users**
+
+- **Eight new tools:** `setup_account`, `manage_accounts`, and the six views `show_chart`, `show_orderbook`, `show_tickers`, `show_balance`, `show_orders`, `show_positions`. On a host that caps the total size of tool definitions, set `CCXT_MCP_TOOLS=core` — see [Tool profile](#tool-profile).
+- **A local listener, on demand.** `setup_account` and `manage_accounts` open an HTTP listener on `127.0.0.1` (a port the system picks) when they are called, and close it again: the setup form after 10 minutes or once an account is saved, the accounts page after 10 minutes or when you press Done. Nothing listens before one of the two tools is called. To guarantee that no listener can ever be started, set `CCXT_MCP_TOOLS` (or `"settings": { "tools": … }`) to a list that names neither tool — `core` and `all` both include them. Tools that are not listed are not registered, so they cannot be called.
+- **Hints point to the form first.** Error hints for a missing account or missing credentials, and `list_accounts` when no account is configured, now tell the assistant to call `setup_account` before they mention the config file. The config file works exactly as before.
+- **Order placement can be enabled from the browser.** The setup form and the accounts page can switch `trading` on for an account — on a live account only with a per‑order USD cap and an explicit confirmation. `funds` (withdrawals, transfers) and `implicitWrites` (raw write endpoints) can still be enabled only by editing the config file.
 
 ## See also
 

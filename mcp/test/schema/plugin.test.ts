@@ -195,6 +195,10 @@ test ('the launcher scripts ship complete: sh + cmd twins, executable, no machin
     assert.ok (built, 'build-bundle.mjs no longer declares its output path');
     assert.equal (entry[1], 'package/js/' + built[1] + '/' + built[2]);
     assert.ok (fs.readFileSync (path.join (mcpRoot, 'scripts', 'lock-server.mjs'), 'utf8').includes (`const BUNDLE_ENTRY = '${entry[1]}';`));
+    // ... and on the name of the licence notices the build writes beside it
+    const notices = /const NOTICES_ENTRY = 'package\/js\/bundle\/([^']+)';/.exec (bootstrap);
+    assert.ok (notices, 'bootstrap.mjs no longer declares NOTICES_ENTRY');
+    assert.ok (builder.includes (`const NOTICES_NAME = '${notices[1]}';`) && bootstrap.includes (`const NOTICES_NAME = '${notices[1]}';`));
 });
 
 test ('server.lock.json pins the package version and its registry tarball', () => {

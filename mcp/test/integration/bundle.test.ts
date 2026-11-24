@@ -20,6 +20,8 @@ const skip = !fs.existsSync (serverEntry) ? 'run npm run build first' : false;
 
 let dir: string;
 let bundle: string;
+let notices: string;
+let metafile: string;
 
 function cleanEnv (configPath: string): Record<string, string> {
     const env: Record<string, string> = {};
@@ -50,9 +52,12 @@ before (() => {
     const alone = path.join (dir, 'alone');
     fs.mkdirSync (alone);
     bundle = path.join (alone, 'ccxt-mcp.mjs');
-    const build = spawnSync (process.execPath, [ path.join (mcpRoot, 'scripts', 'build-bundle.mjs'), '--out', bundle ], { 'encoding': 'utf8' });
+    notices = path.join (alone, 'THIRD_PARTY_LICENSES.txt');
+    metafile = path.join (dir, 'meta.json');
+    const build = spawnSync (process.execPath, [ path.join (mcpRoot, 'scripts', 'build-bundle.mjs'), '--out', bundle, '--metafile', metafile ], { 'encoding': 'utf8' });
     assert.equal (build.status, 0, 'build-bundle failed:\n' + build.stderr);
-    assert.deepEqual (fs.readdirSync (alone), [ 'ccxt-mcp.mjs' ]);
+    // the server and the licences of what is inside it: text beside it, nothing it loads
+    assert.deepEqual (fs.readdirSync (alone).sort (), [ 'THIRD_PARTY_LICENSES.txt', 'ccxt-mcp.mjs' ]);
 });
 
 after (() => {
@@ -147,4 +152,101 @@ test ('the bundle has no import or require that Node would resolve from disk', {
     assert.deepEqual (dynamic.map ((found) => found.replace (/\s+/g, '')), [ 'import(filePathToFileUrlForWindows2(wasmExecPath' ]);
     // the banner's require () answers for Node builtins only
     assert.match (text, /__ccxtMcpBuiltins/);
+});
+
+// The bundle redistributes other projects' code with their comments stripped, so their
+// licence texts must travel beside it. The list is derived here a second time, straight from
+// esbuild's metafile, and compared with what the build wrote: a package that reaches the
+// bundle without its notice fails this test (and, without a licence file, the build itself).
+test ('the third-party notices cover exactly the packages in the bundle, with their licence texts', { skip }, () => {
+    const text = fs.readFileSync (notices, 'utf8');
+    const meta = JSON.parse (fs.readFileSync (metafile, 'utf8'));
+    const outputs: any[] = Object.values (meta.outputs);
+    assert.equal (outputs.length, 1);
+    const expected = new Set<string> ();
+    let own = 0;
+    for (const [ file, input ] of Object.entries (outputs[0].inputs) as [ string, any ][]) {
+        if (input.bytesInOutput === 0) {
+            continue;
+        }
+        const parts = file.split ('node_modules/');
+        if (parts.length === 1) {
+            assert.ok (file.startsWith ('js/'), file + ' is in the bundle but is neither ccxt-mcp\'s own build nor an npm package');
+            own++;
+            continue;
+        }
+        const segments = parts[parts.length - 1].split ('/');
+        const name = segments[0].startsWith ('@') ? segments[0] + '/' + segments[1] : segments[0];
+        const manifest = JSON.parse (fs.readFileSync (path.join (mcpRoot, parts.slice (0, -1).join ('node_modules/'), 'node_modules', name, 'package.json'), 'utf8'));
+        expected.add (manifest.name + '@' + manifest.version + ' (' + manifest.license + ')');
+    }
+    assert.ok (own > 10);
+    const index = text.slice (text.indexOf ('\nPACKAGES\n'), text.indexOf ('\n====')).split ('\n').filter ((line) => /^- \S+@\S+ \(.+\)$/.test (line)).map ((line) => line.slice (2));
+    assert.deepEqual ([ ...index ].sort (), [ ...expected ].sort (), 'the notices index and the metafile disagree about what is in the bundle');
+    assert.ok (index.length >= 15);
+    const rule = '\n' + '='.repeat (80) + '\n';
+    // the part of the file about one package: its heading up to the next package's heading
+    const section = (heading: string): string => {
+        const start = text.indexOf (rule + heading + '@');
+        assert.ok (start !== -1, heading + ' has no section in the notices');
+        const body = text.indexOf (rule, start + rule.length);
+        const next = text.indexOf (rule, body + rule.length);
+        return text.slice (start, (next === -1) ? text.length : next);
+    };
+    // every indexed package has its section, and every section carries at least one licence text
+    for (const entry of index) {
+        const name = entry.slice (0, entry.lastIndexOf ('@'));
+        const body = section (name);
+        assert.ok (body.includes ('\n' + '-'.repeat (80) + '\n' + name + ' — '), name + ' has no licence text in the notices');
+        assert.match (body, /\n-{80}\n\S+ — (LICEN[SC]E|COPYING|NOTICE)/i, name);
+        assert.ok (body.length > 600, name + ': the licence text is suspiciously short');
+    }
+    // the licences that oblige a redistributor to reproduce their text — by name and by text
+    for (const name of [ 'protobufjs', '@protobufjs/aspromise', '@protobufjs/base64', '@protobufjs/eventemitter', '@protobufjs/float', '@protobufjs/pool', '@protobufjs/utf8', 'fast-uri' ]) {
+        assert.match (section (name), /License: BSD-3-Clause/, name);
+        assert.match (section (name), /Redistribution and use in source and binary forms/, name);
+        assert.match (section (name), /Redistributions in binary form must reproduce the above copyright\s+notice/, name);
+    }
+    assert.match (section ('long'), /License: Apache-2\.0/);
+    assert.match (section ('long'), /Apache License\s+Version 2\.0, January 2004/);
+    assert.match (section ('long'), /TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION/);
+    assert.match (section ('zod-to-json-schema'), /License: ISC/);
+    assert.match (section ('zod-to-json-schema'), /Permission to use, copy, modify, and\/or distribute this software/);
+    for (const name of [ '@modelcontextprotocol/sdk', 'ajv', 'ws', 'zod', 'ccxt' ]) {
+        assert.match (section (name), /License: MIT/, name);
+        assert.match (section (name), /Permission is hereby granted, free of charge/, name);
+    }
+    // ccxt-mcp's own licence opens the file, and the vendored modules without a licence
+    // file are said to be exactly that instead of being passed over
+    assert.match (text, /^THIRD-PARTY SOFTWARE NOTICES\n\nccxt-mcp \d+\.\d+\.\d+[^\n]*\n\nccxt-mcp itself is distributed under the MIT License:\n\nMIT License\n/);
+    const vendoredInBundle = new Set (Object.entries (outputs[0].inputs).filter (([ , input ]: any) => input.bytesInOutput > 0).map (([ file ]) => /\/static_dependencies\/([^/]+)\//.exec (file)?.[1]).filter ((name) => name !== undefined));
+    for (const name of vendoredInBundle) {
+        assert.match (text, new RegExp ('\\n- ' + name + ' \\(inside ccxt, \\d+ files? in the bundle\\): (NO SEPARATE LICENCE TEXT is shipped with it|licence file\\(s\\): )'), 'the vendored module ' + name + ' is not accounted for in the notices');
+    }
+    // the bundle points at the notices and names its own licence, right at the top
+    const head = fs.readFileSync (bundle, 'utf8').slice (0, 1000);
+    assert.match (head, /^(#![^\n]*\n)?\/\/ ccxt-mcp \d+\.\d+\.\d+[^\n]*MIT License, Copyright[^\n]*\n\/\/ [^\n]*third-party software[^\n]*\n\/\/ THIRD_PARTY_LICENSES\.txt/);
+});
+
+// What `npm publish` would upload. The bundle in it is useless to a redistributor — and the
+// plugin's bootstrap has nothing to cache — without the licence files next to it.
+const builtBundle = path.join (mcpRoot, 'js', 'bundle', 'ccxt-mcp.mjs');
+test ('the npm package ships its own LICENSE and the third-party notices beside the bundle', { 'skip': fs.existsSync (builtBundle) ? false : 'run npm run build first' }, () => {
+    const packed = spawnSync ('npm', [ 'pack', '--dry-run', '--json', '--ignore-scripts' ], { 'cwd': mcpRoot, 'encoding': 'utf8', 'shell': process.platform === 'win32' });
+    assert.equal (packed.status, 0, packed.stderr);
+    const files: string[] = JSON.parse (packed.stdout)[0].files.map ((file: any) => file.path);
+    for (const expected of [ 'LICENSE', 'package.json', 'js/server.js', 'js/bundle/ccxt-mcp.mjs', 'js/bundle/THIRD_PARTY_LICENSES.txt' ]) {
+        assert.ok (files.includes (expected), expected + ' is missing from the npm package');
+    }
+    assert.deepEqual (files.filter ((file) => file.startsWith ('js/bundle/')).sort (), [ 'js/bundle/THIRD_PARTY_LICENSES.txt', 'js/bundle/ccxt-mcp.mjs' ]);
+    const license = fs.readFileSync (path.join (mcpRoot, 'LICENSE'), 'utf8');
+    assert.match (license, /^MIT License\n/);
+    // inside the ccxt repository it is a copy of the one licence the project has
+    const rootLicense = path.join (mcpRoot, '..', 'LICENSE.txt');
+    if (fs.existsSync (rootLicense)) {
+        assert.equal (license, fs.readFileSync (rootLicense, 'utf8'), 'mcp/LICENSE must stay a copy of the repository\'s LICENSE.txt');
+    }
+    // the notices `npm run build` left in js/bundle are the ones of the bundle next to them
+    const shipped = fs.readFileSync (path.join (mcpRoot, 'js', 'bundle', 'THIRD_PARTY_LICENSES.txt'), 'utf8');
+    assert.equal (shipped, fs.readFileSync (notices, 'utf8'), 'js/bundle/THIRD_PARTY_LICENSES.txt is out of date — run npm run build');
 });

@@ -210,6 +210,96 @@ test ('a verified download is cached privately and run, and a warm cache needs n
     assert.equal (fs.readFileSync (made.marker, 'utf8'), 'good');
 });
 
+// The bundle redistributes third-party code, so the release puts their licences beside it
+// and the bootstrap keeps the two together. The notices file is the ONE other entry it
+// takes out of the tarball: by its exact name, covered by the tarball checksum, never run.
+test ('the third-party licence notices are cached beside the bundle; a release without them still starts', { skip }, async () => {
+    const NOTICES_ENTRY = 'package/js/bundle/THIRD_PARTY_LICENSES.txt';
+    const cachedNotices = path.join ('server', VERSION, 'THIRD_PARTY_LICENSES.txt');
+    const bundle = fakeServer ('licensed');
+    const notices = 'THIRD-PARTY SOFTWARE\n\nprotobufjs 7.0.0 (BSD-3-Clause)\n';
+    const tarball = tgz ([
+        // look-alikes that must not be taken for it, or written anywhere
+        { 'name': 'package/js/bundle/../bundle/THIRD_PARTY_LICENSES.txt', 'data': 'decoy' },
+        { 'name': '../../THIRD_PARTY_LICENSES.txt', 'data': 'decoy' },
+        { 'name': 'package/THIRD_PARTY_LICENSES.txt', 'data': 'decoy' },
+        { 'name': 'package/js/bundle/OTHER.txt', 'data': 'decoy' },
+        ...packageFiles (bundle),
+        { 'name': NOTICES_ENTRY, 'data': notices },
+    ]);
+    serve ('/licensed.tgz', tarball);
+    const made = scenario (lockFor ('/licensed.tgz', tarball, bundle));
+    requests = [];
+    const first = await run (made);
+    assert.equal (first.code, 0, first.stderr);
+    assert.equal (first.stdout, '{"server":"licensed"}\n');
+    assert.deepEqual (filesUnder (made.data), [ cachedNotices, cachedBundle ].sort (), 'the bundle, its notices and nothing else');
+    assert.equal (fs.readFileSync (path.join (made.data, cachedNotices), 'utf8'), notices);
+    assert.equal (fs.statSync (path.join (made.data, cachedNotices)).mode & 0o777, 0o600);
+    assert.deepEqual (filesUnder (path.dirname (made.data)).filter ((file) => file.endsWith ('.txt') && !file.includes (cachedNotices)), []);
+    // warm: no network, and nothing added to or taken from the cache
+    const second = await run (made);
+    assert.equal (second.code, 0, second.stderr);
+    assert.equal (second.stderr, '');
+    assert.deepEqual (requests, [ '/licensed.tgz' ]);
+    assert.deepEqual (filesUnder (made.data), [ cachedNotices, cachedBundle ].sort ());
+
+    // an archive that names the notices twice: none is kept, and the verified server runs
+    const doubled = tgz ([ ...packageFiles (bundle), { 'name': NOTICES_ENTRY, 'data': notices }, { 'name': NOTICES_ENTRY, 'data': 'another' } ]);
+    serve ('/doubled.tgz', doubled);
+    const other = scenario (lockFor ('/doubled.tgz', doubled, bundle));
+    const result = await run (other);
+    assert.equal (result.code, 0, result.stderr);
+    assert.equal (result.stdout, '{"server":"licensed"}\n');
+    assert.deepEqual (filesUnder (other.data), [ cachedBundle ]);
+});
+
+// Hashing the cached file and then importing it by path reads it twice; whatever replaced it
+// in between would run unverified. The server is therefore imported from a private copy
+// written from the very bytes that were hashed.
+test ('the server runs from a private copy of the verified bytes, which is gone when it exits', { skip }, async () => {
+    // reports where it was loaded from, and what the cache directory held at that moment
+    const bundle = [
+        'import fs from \'node:fs\';',
+        'import path from \'node:path\';',
+        'import { fileURLToPath } from \'node:url\';',
+        'const self = fileURLToPath (import.meta.url);',
+        'fs.writeFileSync (process.env.MARKER, JSON.stringify ({ \'name\': path.basename (self), \'mode\': fs.statSync (self).mode & 0o777, \'same\': fs.readFileSync (self, \'utf8\') === fs.readFileSync (path.join (path.dirname (self), \'ccxt-mcp.mjs\'), \'utf8\'), \'beside\': fs.readdirSync (path.dirname (self)).sort () }));',
+        'process.stdout.write (\'{"server":"copy"}\\n\');',
+    ].join ('\n');
+    const tarball = tgz (packageFiles (bundle));
+    serve ('/copy.tgz', tarball);
+    const made = scenario (lockFor ('/copy.tgz', tarball, bundle));
+    const directory = path.join (made.data, 'server', VERSION);
+    // what a start that was killed left behind, and the copy of a server that is still running
+    const dead = spawn (process.execPath, [ '-e', '' ], { 'stdio': 'ignore' });
+    await new Promise ((resolve) => dead.on ('close', resolve));
+    const stale = '.ccxt-mcp.run.' + dead.pid + '.0123456789ab.mjs';
+    const alive = '.ccxt-mcp.run.' + process.pid + '.0123456789ab.mjs';
+    fs.mkdirSync (directory, { 'recursive': true });
+    fs.writeFileSync (path.join (directory, stale), 'throw new Error ("stale")');
+    fs.writeFileSync (path.join (directory, alive), 'throw new Error ("not mine")');
+    for (const label of [ 'cold', 'warm' ]) {
+        const result = await run (made);
+        assert.equal (result.code, 0, label + ': ' + result.stderr);
+        assert.equal (result.stdout, '{"server":"copy"}\n');
+        const seen = JSON.parse (fs.readFileSync (made.marker, 'utf8'));
+        assert.match (seen.name, /^\.ccxt-mcp\.run\.\d+\.[0-9a-f]{12}\.mjs$/, label + ': imported from ' + seen.name);
+        assert.notEqual (seen.name, alive);
+        assert.equal (seen.mode, 0o600);
+        assert.equal (seen.same, true);
+        assert.deepEqual (seen.beside, [ alive, seen.name, 'ccxt-mcp.mjs' ].sort (), label + ': the stale copy is cleared, a live server\'s copy is left alone');
+        assert.deepEqual (fs.readdirSync (directory).sort (), [ alive, 'ccxt-mcp.mjs' ].sort (), label + ': the run copy is removed on exit');
+        fs.rmSync (made.marker);
+    }
+    // the cached file swapped for something else between two starts is never what runs
+    fs.writeFileSync (path.join (directory, 'ccxt-mcp.mjs'), fakeServer ('swapped'));
+    const result = await run (made);
+    assert.equal (result.code, 0, result.stderr);
+    assert.equal (result.stdout, '{"server":"copy"}\n');
+    assert.match (result.stderr, /does not match this plugin, fetching it again/);
+});
+
 test ('a cached bundle that no longer matches the lock is fetched again, never run', { skip }, async () => {
     const bundle = fakeServer ('fresh');
     const tarball = tgz (packageFiles (bundle));

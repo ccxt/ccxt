@@ -6,6 +6,7 @@ import path from 'path';
 import { Safety, SafetyError, requireTier } from '../../ts/safety.js';
 import { Journal } from '../../ts/journal.js';
 import { FakeExchange, makeConfig } from '../helpers/fake-ccxt.js';
+import { confirmWrite, confirmationBinding } from '../../ts/tools/common.js';
 
 function makeSafety (): Safety {
     const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'ccxt-mcp-test-'));
@@ -136,6 +137,49 @@ test ('confirm tokens: single-use, payload-bound, expiring', () => {
     // changed payload
     const token2 = safety.issueConfirmToken (payload);
     assert.throws (() => safety.redeemConfirmToken (token2, { 'a': 2 }), (e: any) => e.code === 'CONFIRM_MISMATCH');
+});
+
+// An account name can be handed to another record while the server runs (setup form,
+// accounts page). The two tests below pin the two independent reasons a preview issued
+// for the old record cannot be redeemed against the new one.
+test ('confirm tokens are withdrawn for an account that changes, and only for that one', () => {
+    const safety = makeSafety ();
+    const payload = { 'tool': 'create_order', 'account': 'main' };
+    const mine = safety.issueConfirmToken (payload, [ 'main' ]);
+    const route = safety.issueConfirmToken (payload, [ 'other', 'main' ]);
+    const others = safety.issueConfirmToken (payload, [ 'other' ]);
+    assert.equal (safety.invalidateAccountTokens ('main'), 2);
+    assert.throws (() => safety.redeemConfirmToken (mine, payload), (e: any) => e.code === 'CONFIRM_INVALID');
+    assert.throws (() => safety.redeemConfirmToken (route, payload), (e: any) => e.code === 'CONFIRM_INVALID');
+    assert.doesNotThrow (() => safety.redeemConfirmToken (others, payload));
+    assert.equal (safety.invalidateAccountTokens ('main'), 0);
+});
+
+test ('a confirmation is bound to the account\'s exchange and environment, not only to its name', async () => {
+    const safety = makeSafety ();
+    const ctx: any = { safety, 'elicitationSupported': () => false };
+    const practice = account ({ 'confirm': 'always' });
+    assert.deepEqual (confirmationBinding ([ practice ]), [ { 'account': 'acc', 'exchange': practice.exchange, 'environment': 'sandbox' } ]);
+    // what every write tool sends: the name and the arguments
+    const payload = { 'tool': 'create_order', 'account': 'acc', 'symbol': 'BTC/USDT', 'amount': 1 };
+    const preview = async (): Promise<string> => ((await confirmWrite (ctx, practice, 'order', payload, {}, undefined)) as any).meta.confirmToken;
+    // the same name now stands for a live account / an account on another exchange; the
+    // tokens are deliberately NOT invalidated here, so the payload binding alone must refuse
+    const nowLive = { ...practice, 'sandbox': false, 'trading': 'live' } as typeof practice;
+    const elsewhere = { ...practice, 'exchange': 'otherx' } as typeof practice;
+    for (const replacement of [ nowLive, elsewhere ]) {
+        const token = await preview ();
+        await assert.rejects (confirmWrite (ctx, replacement, 'order', payload, {}, token), (e: any) => e.code === 'CONFIRM_MISMATCH');
+    }
+    // a multi-account action (execute_route) is bound to every account it runs on
+    const second = { ...practice, 'name': 'second' } as typeof practice;
+    const routeToken = ((await confirmWrite (ctx, practice, 'route', payload, {}, undefined, false, [ practice, second ])) as any).meta.confirmToken;
+    await assert.rejects (confirmWrite (ctx, practice, 'route', payload, {}, routeToken, false, [ practice, { ...second, 'exchange': 'otherx' } ]), (e: any) => e.code === 'CONFIRM_MISMATCH');
+    const routeAgain = ((await confirmWrite (ctx, practice, 'route', payload, {}, undefined, false, [ practice, second ])) as any).meta.confirmToken;
+    assert.equal (safety.invalidateAccountTokens ('second'), 1);
+    await assert.rejects (confirmWrite (ctx, practice, 'route', payload, {}, routeAgain, false, [ practice, second ]), (e: any) => e.code === 'CONFIRM_INVALID');
+    // unchanged account: the token still confirms, once
+    assert.equal (await confirmWrite (ctx, practice, 'order', payload, {}, await preview ()), 'confirmed');
 });
 
 test ('confirmationRequired follows the confirm policy and environment', () => {

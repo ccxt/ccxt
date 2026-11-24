@@ -75,10 +75,11 @@ test ('the committed launcher is an executable POSIX sh script that passes a syn
     assert.ok ((fs.statSync (launcherSource).mode & 0o111) === 0o111, 'plugin/scripts/launch must be executable (chmod 755; git mode 100755)');
     const check = spawnSync ('/bin/sh', [ '-n', launcherSource ], { 'encoding': 'utf8' });
     assert.equal (check.status, 0, check.stderr);
-    // no eval and no command substitution of anything but the two fixed probes
+    // no eval and no command substitution of anything but the three fixed probes (command -v
+    // only looks a name up, it runs nothing)
     const code = fs.readFileSync (launcherSource, 'utf8').split ('\n').filter ((line) => !line.trim ().startsWith ('#')).join ('\n');
     assert.ok (!/\beval\b/.test (code));
-    assert.deepEqual (code.match (/\$\([^)]*\)/g), [ '$("$candidate" --version 2>/dev/null)', '$(command -v node 2>/dev/null)' ]);
+    assert.deepEqual (code.match (/\$\([^)]*\)/g), [ '$(command -v -- "$0" 2>/dev/null)', '$("$candidate" --version 2>/dev/null)', '$(command -v node 2>/dev/null)' ]);
 });
 
 test ('every documented location is tried, in priority order', { skip }, () => {
@@ -198,6 +199,57 @@ test ('a relative script is resolved against the plugin root, whatever directory
         assert.equal (result.stderr, '');
         // nothing but the script's own output reaches stdout (the MCP channel): no CDPATH echo
         assert.equal (result.stdout, 'the plugin\'s own bootstrap\n' + fs.realpathSync (plugin) + '\n', 'started from ' + cwd);
+    }
+    fs.rmSync (node);
+});
+
+// `sh launch` gives the script a $0 without a directory. The plugin root must then come from
+// where the file really is — never from wherever the host happens to stand.
+test ('started without a path in $0 it still finds the plugin root, or refuses to guess', { skip }, () => {
+    const plugin = path.join (root, 'plugin by name');
+    const foreign = path.join (root, 'workspace by name');
+    fs.mkdirSync (path.join (plugin, 'scripts'), { 'recursive': true });
+    fs.mkdirSync (path.join (foreign, 'scripts'), { 'recursive': true });
+    fs.copyFileSync (launcher, path.join (plugin, 'scripts', 'launch'));
+    fs.chmodSync (path.join (plugin, 'scripts', 'launch'), 0o755);
+    fs.writeFileSync (path.join (plugin, 'server.lock.json'), '{}');
+    fs.writeFileSync (path.join (plugin, 'scripts', 'bootstrap.mjs'), 'the plugin\'s own bootstrap\n');
+    // an untrusted directory one level below a planted scripts/bootstrap.mjs: what ".." of
+    // the working directory would run
+    fs.writeFileSync (path.join (foreign, 'scripts', 'bootstrap.mjs'), 'a bootstrap planted in the workspace\n');
+    const below = path.join (foreign, 'sub');
+    fs.mkdirSync (below);
+    const node = path.join (pathDir, 'node');
+    fs.writeFileSync (node, '#!/bin/sh\nif [ "$1" = "--version" ]; then echo v24.1.0; exit 0; fi\ncat "$1"\npwd -P\n', { 'mode': 0o755 });
+    const expected = 'the plugin\'s own bootstrap\n' + fs.realpathSync (plugin) + '\n';
+    const base = pathDir + ':/usr/bin:/bin';
+    // 1. the shell found "launch" in the working directory
+    let result = spawnSync ('/bin/sh', [ 'launch', './scripts/bootstrap.mjs' ], { 'cwd': path.join (plugin, 'scripts'), 'env': { 'HOME': home, 'PATH': base }, 'encoding': 'utf8' });
+    assert.equal (result.stderr, '');
+    assert.equal (result.stdout, expected);
+    // 2. a shell that goes on to PATH (bash does) found it there, from an untrusted directory
+    const bash = [ '/bin/bash', '/usr/bin/bash' ].find ((candidate) => fs.existsSync (candidate));
+    if (bash !== undefined) {
+        result = spawnSync (bash, [ 'launch', './scripts/bootstrap.mjs' ], { 'cwd': below, 'env': { 'HOME': home, 'PATH': path.join (plugin, 'scripts') + ':' + base }, 'encoding': 'utf8' });
+        assert.equal (result.stderr, '');
+        assert.equal (result.stdout, expected, 'the root is where PATH found the launcher, not ".." of the working directory');
+    }
+    // 3. no file to locate (the script arrives on stdin, $0 is the shell): nothing is run,
+    //    least of all the bootstrap one level up from the working directory
+    result = spawnSync ('/bin/sh', [ '-s', './scripts/bootstrap.mjs' ], { 'argv0': 'sh', 'cwd': below, 'env': { 'HOME': home, 'PATH': base }, 'input': fs.readFileSync (path.join (plugin, 'scripts', 'launch'), 'utf8'), 'encoding': 'utf8' });
+    assert.equal (result.status, 66);
+    assert.equal (result.stdout, '');
+    assert.match (result.stderr, /cannot tell where the plugin is installed|plugin folder cannot be opened/);
+    // 4. found on PATH, but in a directory that is not a plugin: refused as well
+    const stray = path.join (root, 'stray bin');
+    fs.mkdirSync (stray);
+    fs.copyFileSync (launcher, path.join (stray, 'launch'));
+    fs.chmodSync (path.join (stray, 'launch'), 0o755);
+    if (bash !== undefined) {
+        result = spawnSync (bash, [ 'launch', './scripts/bootstrap.mjs' ], { 'cwd': below, 'env': { 'HOME': home, 'PATH': stray + ':' + base }, 'encoding': 'utf8' });
+        assert.equal (result.status, 66);
+        assert.equal (result.stdout, '');
+        assert.match (result.stderr, /cannot tell where the plugin is installed/);
     }
     fs.rmSync (node);
 });
