@@ -9049,6 +9049,7 @@ export const JAVA_STRING_PARAM_POSITIONS = {
     'withdrawWs': [0],
     'handleMarginModeAndParams': [0],
     'signEvmTransaction': [1],
+    'createSubAccount': [0],
 };
 
 // Fixed OrderType/OrderSide parameters of the base Exchange / PredictionExchange declarations: the
