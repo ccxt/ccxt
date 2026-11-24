@@ -1877,7 +1877,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    parseWsLiquidation (liquidation: NullableDict, market: Market = undefined) {
+    parseWsLiquidation (liquidation: NullableDict, market: Market = undefined): Liquidation {
         //
         //     {
         //         "price": "0.03803",
