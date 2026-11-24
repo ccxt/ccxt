@@ -9654,6 +9654,8 @@ const JAVA_VENUE_RETURN_MAP = {
     'MarginModification': 'Map<String, Object>',
     // venue-private `Promise<Order[]>` fetchers: the wrapper maps the core's rows to typed Order views
     'Order[]': 'List<Order>',
+    // venue-private `Promise<TransferEntry>` transfers: the wrapper maps the core's dict to the TransferEntry view
+    'TransferEntry': 'TransferEntry',
 };
 let javaVenueReturnTable;
 const javaVenueListFiles = [];
