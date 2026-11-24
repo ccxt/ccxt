@@ -1567,6 +1567,7 @@ function javaRepoMethodUsesIndex (): any {
     const mentioned = new Set<string> ();
     const asyncVoid = new Map<string, boolean> ();
     const calls = new Map<string, { file: string, args: any[] }[]> ();
+    const declaredIn = new Map<string, Set<string>> ();
     const key = (file: string) => path.resolve (file).replace (/\.nooverloads\.\d+(\.ts)$/, '$1');
     const visitDir = (dir: string) => {
         if (!fs.existsSync (dir)) {
@@ -1589,6 +1590,7 @@ function javaRepoMethodUsesIndex (): any {
             const visit = (n: any) => {
                 if ((ts.isMethodDeclaration (n) || ts.isPropertyDeclaration (n) || ts.isPropertyAssignment (n)) && n.name !== undefined && ts.isIdentifier (n.name)) {
                     declared.set (n.name.text, (declared.get (n.name.text) ?? 0) + 1);
+                    declaredIn.set (n.name.text, (declaredIn.get (n.name.text) ?? new Set<string> ()).add (key (full)));
                 }
                 if (ts.isMethodDeclaration (n) && n.name !== undefined && ts.isIdentifier (n.name)) {
                     asyncVoid.set (n.name.text, (asyncVoid.get (n.name.text) ?? true) && !inBase && javaIsAsyncVoidMethod (n));
@@ -1620,7 +1622,7 @@ function javaRepoMethodUsesIndex (): any {
     } catch (e) {
         handWritten = undefined; // no Java tree to consult: the proof stays withheld
     }
-    javaRepoMethodIndex = { declared, mentioned, asyncVoid, calls, handWritten, key };
+    javaRepoMethodIndex = { declared, mentioned, asyncVoid, calls, handWritten, key, declaredIn };
     return javaRepoMethodIndex;
 }
 
@@ -1731,6 +1733,8 @@ export function installJavaRepoMethodUses (transpiler: any): void {
             handWritten: new RegExp (`\\b${name}\\s*\\(`).test (index.handWritten),
             asyncVoid: index.asyncVoid.get (name) === true,
             calls: (index.calls.get (name) ?? []).filter ((call: any) => call.file !== own).map ((call: any) => call.args),
+            // calls from files that do not declare the name themselves (a venue-private method's foreign callers)
+            foreignCalls: (index.calls.get (name) ?? []).filter ((call: any) => !(index.declaredIn.get (name)?.has (call.file))).length,
         };
     };
 }
