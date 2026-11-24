@@ -963,7 +963,7 @@ public class Mudrex extends MudrexApi
             }
             Map<String, Object> riskResponse = (this.privatePostFuturesPositionsPositionIdRiskorder(this.extend(riskRequest, paramsOmitted))).join();
             Map<String, Object> riskData = (Map<String, Object>) this.safeDict(riskResponse, "data", riskResponse);
-            return this.parseOrder(riskData, market);
+            return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, riskData), market);
         }
         Long lev = this.safeInteger(parameters, "leverage", 1);
         if ((java.util.Objects.equals(type, "market")) && (java.util.Objects.equals(price, null)))
@@ -1050,7 +1050,7 @@ public class Mudrex extends MudrexApi
         }
         Map<String, Object> response = (this.privatePatchFuturesOrdersOrderId(this.extend(request, parameters))).join();
         Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", response);
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), market);
 
     }
 
@@ -1179,7 +1179,7 @@ public class Mudrex extends MudrexApi
         }};
         Map<String, Object> response = (this.privateDeleteFuturesOrdersOrderId(this.extend(request, parameters))).join();
         Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", response);
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), market);
 
     }
 
@@ -1215,7 +1215,7 @@ public class Mudrex extends MudrexApi
         }};
         Map<String, Object> response = (this.privateGetFuturesOrdersOrderId(this.extend(request, parameters))).join();
         Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", response);
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), market);
 
     }
 
@@ -1564,12 +1564,12 @@ public class Mudrex extends MudrexApi
             Map<String, Object> partialParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("order_type", "limit_price", "amount", "position_id")));
             Map<String, Object> partialResponse = (this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, partialParams))).join();
             Map<String, Object> partialData = (Map<String, Object>) this.safeDict(partialResponse, "data", partialResponse);
-            return this.parseOrder(partialData, market);
+            return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, partialData), market);
         }
         Map<String, Object> closeParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("position_id")));
         Map<String, Object> response = (this.privatePostFuturesPositionsPositionIdClose(this.extend(request, closeParams))).join();
         Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", response);
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), market);
 
     }
 

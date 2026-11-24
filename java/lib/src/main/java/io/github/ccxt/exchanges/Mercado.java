@@ -822,7 +822,7 @@ public class Mercado extends MercadoApi
         //
         Map<String, Object> responseData = this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
         Map<String, Object> order = this.safeDict(responseData, "order", new HashMap<String, Object>() {{}});
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, order), market);
 
     }
 
@@ -944,7 +944,7 @@ public class Mercado extends MercadoApi
         Map<String, Object> response = (this.privatePostGetOrder(this.extend(request, parameters))).join();
         Map<String, Object> responseData = this.safeDict(response, "response_data", new HashMap<String, Object>() {{}});
         Map<String, Object> order = this.safeDict(responseData, "order", null);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, order), market);
 
     }
 

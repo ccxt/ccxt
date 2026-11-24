@@ -8058,7 +8058,7 @@ public class Bitget extends BitgetApi
         //     }
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), market);
 
     }
 
@@ -9050,7 +9050,7 @@ public class Bitget extends BitgetApi
         //     }
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), market);
 
     }
 
@@ -9266,13 +9266,13 @@ public class Bitget extends BitgetApi
         {
             if (Boolean.TRUE.equals(isStockOrUta) && (java.util.Objects.equals(trigger, true)))
             {
-                order = response;
+                order = this.extend(new HashMap<String, Object>() {{}}, response);
             } else
             {
                 order = data;
             }
         }
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, order), market);
 
     }
 
@@ -9757,7 +9757,7 @@ public class Bitget extends BitgetApi
         {
             if (!(data instanceof List))
             {
-                return this.parseOrder(data, market);
+                return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), market);
             }
         }
         List<Object> dataList = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
@@ -9767,7 +9767,7 @@ public class Bitget extends BitgetApi
             throw new OrderNotFound(((((this.id + " fetchOrder() could not find order id ") + id) + " in ") + this.json(response))) ;
         }
         Map<String, Object> first = this.safeDict(dataList, 0, new HashMap<String, Object>() {{}});
-        return this.parseOrder(first, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, first), market);
 
     }
 
@@ -14571,7 +14571,7 @@ public class Bitget extends BitgetApi
         }
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         List<Object> order = (List<Object>) this.safeList2(data, "successList", "list", new ArrayList<Object>(Arrays.asList()));
-        return this.parseOrder(this.safeDict(order, 0, new HashMap<String, Object>() {{}}), market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, this.safeDict(order, 0, new HashMap<String, Object>() {{}})), market);
 
     }
 

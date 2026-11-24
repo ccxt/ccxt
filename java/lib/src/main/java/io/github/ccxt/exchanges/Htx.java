@@ -5195,7 +5195,7 @@ public class Htx extends HtxApi
         {
             order = (Map<String, Object>) this.safeDict(this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())), 0, new HashMap<String, Object>() {{}});
         }
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, order), market);
 
     }
 
@@ -7161,7 +7161,7 @@ public class Htx extends HtxApi
             {
                 throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
             }
-            return this.extend(this.parseOrder(result, market), new HashMap<String, Object>() {{
+            return this.extend(this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, result), market), new HashMap<String, Object>() {{
                 put( "type", type );
                 put( "side", side );
                 put( "price", price );
@@ -7183,7 +7183,7 @@ public class Htx extends HtxApi
         {
             throw new NullResponse((this.id + " parseOrder() returned empty response")) ;
         }
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, result), market);
 
     }
 
@@ -11349,7 +11349,7 @@ public class Htx extends HtxApi
         return result;
     }
 
-    public List<Object> parseSettlements(List<Object> settlements, Object market)
+    public List<Object> parseSettlements(List<Object> settlements, Map<String, Object> market)
     {
         //
         // coin-m swap, fetchSettlementHistory
@@ -11406,7 +11406,7 @@ public class Htx extends HtxApi
             List<Object> list = this.safeList(settlement, "list", null);
             if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
             {
-                ((List<Object>)result).add(this.parseSettlement(settlement, (Map<String, Object>) (market)));
+                ((List<Object>)result).add(this.parseSettlement(settlement, market));
             } else if (!java.util.Objects.equals(list, null))
             {
                 Long timestamp = this.safeInteger(settlement, "settlement_time");
@@ -11417,12 +11417,12 @@ public class Htx extends HtxApi
                 for (var j = 0; j < list.size(); j++)
                 {
                     Map<String, Object> item = this.safeDict(list, j, null);
-                    Map<String, Object> parsedSettlement = this.parseSettlement(item, (Map<String, Object>) (market));
+                    Map<String, Object> parsedSettlement = this.parseSettlement(item, market);
                     ((List<Object>)result).add(this.extend(parsedSettlement, timestampDetails));
                 }
             } else
             {
-                ((List<Object>)result).add(this.parseSettlement(settlement, (Map<String, Object>) (market)));
+                ((List<Object>)result).add(this.parseSettlement(settlement, market));
             }
         }
         return result;

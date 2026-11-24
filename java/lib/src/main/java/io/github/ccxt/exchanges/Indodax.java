@@ -1303,7 +1303,7 @@ public class Indodax extends IndodaxApi
         //    }
         //
         Map<String, Object> data = this.safeDict(response, "return", null);
-        return this.parseOrder(data, null);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), null);
 
     }
 

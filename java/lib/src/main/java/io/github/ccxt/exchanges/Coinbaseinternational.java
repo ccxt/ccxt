@@ -2596,14 +2596,14 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
      * @param {float} amount unified order quantity
      * @returns {string} precision-formatted exchange order amount
      */
-    public String getOrderAmount(Object market, Object amount)
+    public String getOrderAmount(Map<String, Object> market, Object amount)
     {
         String exchangeAmount = this.numberToString(amount);
         if (this.isNativeDeribitCredentials() && Boolean.TRUE.equals((this.safeBool(market, "contract", false))))
         {
             exchangeAmount = Precise.stringMul(exchangeAmount, this.safeString(market, "contractSize"));
         }
-        return this.amountToPrecision(((Map<String, Object>)market).get("symbol"), exchangeAmount);
+        return this.amountToPrecision(market.get("symbol"), exchangeAmount);
     }
 
     /**

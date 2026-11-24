@@ -2851,7 +2851,7 @@ public class Ndax extends NdaxApi
         //
         if ((response instanceof String))
         {
-            return this.parseTransactions(Helpers.parseJson(response), currency, since, limit, new HashMap<String, Object>() {{}});
+            return this.parseTransactions(this.toArray(Helpers.parseJson(response)), currency, since, limit, new HashMap<String, Object>() {{}});
         }
         return this.parseTransactions(response, currency, since, limit, new HashMap<String, Object>() {{}});
 

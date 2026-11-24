@@ -2402,7 +2402,7 @@ public class Polymarket extends PolymarketApi
         Object notional = null;
         if ((!java.util.Objects.equals(size, null)) && (!java.util.Objects.equals(curPrice, null)))
         {
-            notional = Helpers.multiply(size, curPrice);
+            notional = ((size == null || curPrice == null) ? null : (((double) size) * ((double) curPrice)));
         }
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
         mapLiteral4.put("id", this.safeString(position, "id"));
@@ -2694,7 +2694,7 @@ public class Polymarket extends PolymarketApi
             }
         } else
         {
-            ((List<Object>)result).add(this.parsePredictionOrder((Map<String, Object>) (response), null));
+            ((List<Object>)result).add(this.parsePredictionOrder(this.safeDict(response, 0, new HashMap<String, Object>() {{}}), null));
         }
         return result;
 
@@ -3514,7 +3514,7 @@ public class Polymarket extends PolymarketApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rawEvents.size(); i++)
         {
-            ((List<Object>)result).add(this.parseEvent(this.safeDict(rawEvents, i, new HashMap<String, Object>() {{}})));
+            ((List<Object>)result).add(this.parseEvent(this.extend(new HashMap<String, Object>() {{}}, (rawEvents == null || i < 0 || i >= rawEvents.size() ? null : rawEvents.get(i)))));
         }
         return result;
     }
@@ -4388,7 +4388,7 @@ public class Polymarket extends PolymarketApi
             this.orders = new ArrayCache.ArrayCacheByOutcomeById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
-        Map<String, Object> parsed = this.parsePredictionOrder(eventVar, null);
+        Map<String, Object> parsed = this.parsePredictionOrder(this.extend(new HashMap<String, Object>() {{}}, eventVar), null);
         stored.append(parsed);
         client.resolve(stored, "orders");
         String outcome = this.safeString(parsed, "outcome");

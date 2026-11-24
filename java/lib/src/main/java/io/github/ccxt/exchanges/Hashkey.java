@@ -3391,7 +3391,7 @@ public class Hashkey extends HashkeyApi
         {
             throw new NotSupported((((((this.id + " ") + methodName) + "() is not supported for ") + marketType) + " type of markets")) ;
         }
-        return this.parseOrder(response, null);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, response), null);
 
     }
 
@@ -3572,7 +3572,7 @@ public class Hashkey extends HashkeyApi
         {
             throw new NotSupported((((((this.id + " ") + methodName) + "() is not supported for ") + marketType) + " type of markets")) ;
         }
-        return this.parseOrder(response, null);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, response), null);
 
     }
 

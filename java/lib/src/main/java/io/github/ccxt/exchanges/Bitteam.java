@@ -1180,7 +1180,7 @@ public class Bitteam extends BitteamApi
         //     }
         //
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, result), market);
 
     }
 
@@ -1340,7 +1340,7 @@ public class Bitteam extends BitteamApi
         //     }
         //
         Map<String, Object> order = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, order), market);
 
     }
 
@@ -1379,7 +1379,7 @@ public class Bitteam extends BitteamApi
         //     }
         //
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-        return this.parseOrder(result, null);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, result), null);
 
     }
 

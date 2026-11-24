@@ -566,7 +566,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         {
             return rawQuantity;
         }
-        return Helpers.multiply(rawQuantity, contractSize);
+        return ((rawQuantity == null || contractSize == null) ? null : (((double) rawQuantity) * ((double) contractSize)));
     }
 
     /**

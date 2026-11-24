@@ -1056,7 +1056,7 @@ public class Dydx extends DydxApi
 
     }
 
-    public Object handlePublicAddress(String methodName, Map<String, Object> parameters)
+    public Pair<String, Map<String, Object>> handlePublicAddress(String methodName, Map<String, Object> parameters)
     {
         Pair<String, Map<String, Object>> userAuxparamsUserVariable = this.handleOptionStringAndParams(parameters, methodName, "user", null);
         String userAux = userAuxparamsUserVariable.first();
@@ -1066,11 +1066,11 @@ public class Dydx extends DydxApi
         Map<String, Object> paramsAddress = userparamsAddressVariable.second();
         if ((!java.util.Objects.equals(user, null)) && (!java.util.Objects.equals(user, "")))
         {
-            return new ArrayList<Object>(Arrays.asList(user, paramsAddress));
+            return new Pair<>(user, paramsAddress);
         }
         if ((!java.util.Objects.equals(this.walletAddress, null)) && (!java.util.Objects.equals(this.walletAddress, "")))
         {
-            return new ArrayList<Object>(Arrays.asList(this.walletAddress, paramsAddress));
+            return new Pair<>(this.walletAddress, paramsAddress);
         }
         throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a user parameter inside 'params' or the walletAddress set")) ;
     }
@@ -1216,10 +1216,10 @@ public class Dydx extends DydxApi
     private Object fetchOrdersCore(String symbol, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("fetchOrders", parameters);
-        String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
-        Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
-        Pair<String, Map<String, Object>> subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPublicAddress), "fetchOrders", "subAccountNumber", "0");
+        Pair<String, Map<String, Object>> userAddressparamsPublicAddressVariable = this.handlePublicAddress("fetchOrders", parameters);
+        String userAddress = userAddressparamsPublicAddressVariable.first();
+        Map<String, Object> paramsPublicAddress = userAddressparamsPublicAddressVariable.second();
+        Pair<String, Map<String, Object>> subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams(paramsPublicAddress, "fetchOrders", "subAccountNumber", "0");
         String subAccountNumber = subAccountNumberparamsSubAccountNumberVariable.first();
         Map<String, Object> paramsSubAccountNumber = subAccountNumberparamsSubAccountNumberVariable.second();
         if (java.util.Objects.equals(this.markets, null))
@@ -1429,10 +1429,10 @@ public class Dydx extends DydxApi
     private Object fetchPositionsCore(List<String> symbols, Map<String, Object> parameters)
     {
 
-        List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("fetchPositions", parameters);
-        String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
-        Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
-        Pair<String, Map<String, Object>> subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPublicAddress), "fetchPositions", "subAccountNumber", "0");
+        Pair<String, Map<String, Object>> userAddressparamsPublicAddressVariable = this.handlePublicAddress("fetchPositions", parameters);
+        String userAddress = userAddressparamsPublicAddressVariable.first();
+        Map<String, Object> paramsPublicAddress = userAddressparamsPublicAddressVariable.second();
+        Pair<String, Map<String, Object>> subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams(paramsPublicAddress, "fetchPositions", "subAccountNumber", "0");
         String subAccountNumber = subAccountNumberparamsSubAccountNumberVariable.first();
         Map<String, Object> paramsSubAccountNumber = subAccountNumberparamsSubAccountNumberVariable.second();
         if (java.util.Objects.equals(this.markets, null))
@@ -1537,7 +1537,7 @@ public class Dydx extends DydxApi
         Object credentials = this.safeDict(this.options, "dydxCredentials", null);
         if (!java.util.Objects.equals(credentials, null))
         {
-            return credentials;
+            return this.safeDict(this.options, "dydxCredentials", new HashMap<String, Object>() {{}});
         }
         String privateKeyOption = this.safeString(this.options, "privateKey");
         if (!java.util.Objects.equals(privateKeyOption, null))
@@ -1555,7 +1555,7 @@ public class Dydx extends DydxApi
             credentials = hx4NewMap0;
         }
         this.options.put("dydxCredentials", credentials);
-        return credentials;
+        return this.safeDict(this.options, "dydxCredentials", new HashMap<String, Object>() {{}});
     }
 
     public CompletableFuture<Map<String, Object>> fetchDydxAccount()
@@ -2795,10 +2795,10 @@ public class Dydx extends DydxApi
     private List<Object> fetchTransactionsHelperCore(String methodName, String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress(methodName, parameters);
-        String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
-        Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
-        Pair<String, Map<String, Object>> subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsPublicAddress), methodName, "subAccountNumber", "0");
+        Pair<String, Map<String, Object>> userAddressparamsPublicAddressVariable = this.handlePublicAddress(methodName, parameters);
+        String userAddress = userAddressparamsPublicAddressVariable.first();
+        Map<String, Object> paramsPublicAddress = userAddressparamsPublicAddressVariable.second();
+        Pair<String, Map<String, Object>> subAccountNumberparamsSubAccountNumberVariable = this.handleOptionStringAndParams(paramsPublicAddress, methodName, "subAccountNumber", "0");
         String subAccountNumber = subAccountNumberparamsSubAccountNumberVariable.first();
         Map<String, Object> paramsSubAccountNumber = subAccountNumberparamsSubAccountNumberVariable.second();
         Map<String, Object> request = new HashMap<String, Object>() {{
@@ -2851,9 +2851,9 @@ public class Dydx extends DydxApi
     private Object fetchAccountsCore(Map<String, Object> parameters)
     {
 
-        List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("fetchAccounts", parameters);
-        String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
-        Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
+        Pair<String, Map<String, Object>> userAddressparamsPublicAddressVariable = this.handlePublicAddress("fetchAccounts", parameters);
+        String userAddress = userAddressparamsPublicAddressVariable.first();
+        Map<String, Object> paramsPublicAddress = userAddressparamsPublicAddressVariable.second();
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "address", userAddress );
         }};
@@ -2940,9 +2940,9 @@ public class Dydx extends DydxApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        List<Object> userAddressparamsPublicAddressVariable = (List<Object>) this.handlePublicAddress("fetchBalance", parameters);
-        String userAddress = (String) ((List<Object>) userAddressparamsPublicAddressVariable).get(0);
-        Map<String, Object> paramsPublicAddress = (Map<String, Object>) ((List<Object>) userAddressparamsPublicAddressVariable).get(1);
+        Pair<String, Map<String, Object>> userAddressparamsPublicAddressVariable = this.handlePublicAddress("fetchBalance", parameters);
+        String userAddress = userAddressparamsPublicAddressVariable.first();
+        Map<String, Object> paramsPublicAddress = userAddressparamsPublicAddressVariable.second();
         List<Object> subaccountNumberparamsSubaccountNumberVariable = (List<Object>) this.handleOptionIntegerAndParams(paramsPublicAddress, "fetchBalance", "subaccountNumber", 0L);
         Long subaccountNumber = (Long) ((List<Object>) subaccountNumberparamsSubaccountNumberVariable).get(0);
         Map<String, Object> paramsSubaccountNumber = (Map<String, Object>) ((List<Object>) subaccountNumberparamsSubaccountNumberVariable).get(1);

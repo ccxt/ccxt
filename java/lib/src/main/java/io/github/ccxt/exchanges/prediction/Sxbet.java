@@ -3364,7 +3364,7 @@ public class Sxbet extends SxbetApi
         {
             Object rawRow = (rows == null || i < 0 || i >= ((List<?>)rows).size() ? null : ((List<?>)rows).get(i));
             Object row = this.safeDict(rawRow, "order", rawRow);
-            Map<String, Object> order = this.parsePredictionOrder((Map<String, Object>) (row), null);
+            Map<String, Object> order = this.parsePredictionOrder(this.extend(new HashMap<String, Object>() {{}}, row), null);
             if (java.util.Objects.equals(this.orders, null))
             {
                 Long cacheLimit = this.safeInteger(this.options, "ordersLimit", 1000);

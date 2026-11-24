@@ -3026,7 +3026,7 @@ public class Myriad extends MyriadApi
                     previousClose = previousCloseValue;
                     if (!(priceValue == null ? changeValue == null : (changeValue != null && priceValue.doubleValue() == changeValue.doubleValue())))
                     {
-                        percentage = Helpers.multiply((((double) changeValue) / ((double) previousCloseValue)), 100);
+                        percentage = (((double) (((double) changeValue) / ((double) previousCloseValue))) * ((double) 100));
                     }
                 }
                 break;
@@ -3484,12 +3484,12 @@ public class Myriad extends MyriadApi
         for (var i = 0; i < marketKeys.size(); i++)
         {
             Object key = (marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i));
-            Object response = (responses == null || i < 0 || i >= responses.size() ? null : responses.get(i));
+            Map<String, Object> response = this.safeDict(responses, i, new HashMap<String, Object>() {{}});
             List<Object> grouped = (List<Object>)((outcomesByMarket == null || key == null ? null : outcomesByMarket.get(key)));
             for (var j = 0; j < grouped.size(); j++)
             {
                 Object outcomeObj = (grouped == null || j < 0 || j >= grouped.size() ? null : grouped.get(j));
-                Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (response), ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
+                Map<String, Object> ticker = this.parsePredictionTicker(response, ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
                 String symbolKey = this.safeString(ticker, "outcome");
                 if (!java.util.Objects.equals(symbolKey, null))
                 {
@@ -3711,7 +3711,7 @@ public class Myriad extends MyriadApi
         Integer rawQuestionsLength = rawQuestions.size();
         for (var i = 0; (rawQuestionsLength != null && i < rawQuestionsLength); i++)
         {
-            Map<String, Object> ev = this.parseEvent(this.safeDict(rawQuestions, i, new HashMap<String, Object>() {{}}));
+            Map<String, Object> ev = this.parseEvent(this.extend(new HashMap<String, Object>() {{}}, (rawQuestions == null || i < 0 || i >= rawQuestions.size() ? null : rawQuestions.get(i))));
             List<Object> evMarkets = this.safeList(ev, "markets", new ArrayList<Object>(Arrays.asList()));
             Integer evMarketsLength = evMarkets.size();
             List<Object> filteredMarkets = new ArrayList<Object>(Arrays.asList());

@@ -2526,7 +2526,7 @@ public class Poloniex extends PoloniexApi
         //         "clientOrderId" : ""
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, response), market);
 
     }
 
@@ -2826,7 +2826,7 @@ public class Poloniex extends PoloniexApi
             put( "side", side );
             put( "type", type );
         }});
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, response), market);
 
     }
 
@@ -2896,7 +2896,7 @@ public class Poloniex extends PoloniexApi
         //       "message":""
         //   }
         //
-        return this.parseOrder(response, null);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, response), null);
 
     }
 
@@ -3134,7 +3134,7 @@ public class Poloniex extends PoloniexApi
         //         "updateTime": 1646196019020
         //     }
         //
-        Map<String, Object> order = (Map<String, Object>) this.parseOrder((Map<String, Object>) (response), null);
+        Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, response), null);
         order.put("id", idValue);
         return order;
 

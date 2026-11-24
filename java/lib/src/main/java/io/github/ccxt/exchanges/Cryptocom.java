@@ -1759,7 +1759,7 @@ public class Cryptocom extends CryptocomApi
         //     }
         //
         Map<String, Object> order = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, order), market);
 
     }
 
@@ -1939,7 +1939,7 @@ public class Cryptocom extends CryptocomApi
         //     }
         //
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, result), market);
 
     }
 
@@ -2229,7 +2229,7 @@ public class Cryptocom extends CryptocomApi
         Map<String, Object> request = this.editOrderRequest(id, symbol, amount, price, parameters);
         Map<String, Object> response = (this.v1PrivatePostPrivateAmendOrder(request)).join();
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-        return this.parseOrder(result, null);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, result), null);
 
     }
 
@@ -2339,7 +2339,7 @@ public class Cryptocom extends CryptocomApi
         //     }
         //
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, result), market);
 
     }
 
@@ -4306,7 +4306,7 @@ public class Cryptocom extends CryptocomApi
         //    }
         //
         Map<String, Object> result = this.safeDict(response, "result", null);
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, result), market);
 
     }
 

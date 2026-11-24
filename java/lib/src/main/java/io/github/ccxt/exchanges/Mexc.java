@@ -2896,7 +2896,7 @@ public class Mexc extends MexcApi
 
     }
 
-    public Map<String, Object> createSpotOrderRequest(Object market, String type, String side, Double amount, Object price, String marginMode, Map<String, Object> parameters)
+    public Map<String, Object> createSpotOrderRequest(Map<String, Object> market, String type, String side, Double amount, Object price, String marginMode, Map<String, Object> parameters)
     {
         String symbol = this.safeString(market, "symbol", "");
         if ((java.util.Objects.equals(type, null)) || (java.util.Objects.equals(side, null)))
@@ -2905,7 +2905,7 @@ public class Mexc extends MexcApi
         }
         String orderSide = side.toUpperCase();
         Map<String, Object> request = new HashMap<String, Object>();
-        request.put("symbol", ((Map<String, Object>)market).get("id"));
+        request.put("symbol", market.get("id"));
         request.put("side", orderSide);
         request.put("type", type.toUpperCase());
         if (java.util.Objects.equals(type, "market"))
@@ -2987,12 +2987,12 @@ public class Mexc extends MexcApi
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Map<String, Object>> createSpotOrder(Object market, String type, String side, Double amount, Object price, String marginMode, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> createSpotOrder(Map<String, Object> market, String type, String side, Double amount, Object price, String marginMode, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createSpotOrderCore(market, type, side, amount, price, marginMode, parameters));
     }
 
-    private Map<String, Object> createSpotOrderCore(Object market, String type, String side, Double amount, Object price, String marginMode, Map<String, Object> parameters)
+    private Map<String, Object> createSpotOrderCore(Map<String, Object> market, String type, String side, Double amount, Object price, String marginMode, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3029,7 +3029,7 @@ public class Mexc extends MexcApi
         //         "transactTime": 1661992652132
         //     }
         //
-        Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
+        Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, market);
         order.put("side", side);
         order.put("type", type);
         if (java.util.Objects.equals(this.safeString(order, "price"), null))
@@ -3070,12 +3070,12 @@ public class Mexc extends MexcApi
      * @param {int} [params.positionMode] 1:hedge, 2:one-way, default: the user's current config
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Map<String, Object>> createSwapOrder(Object market, Object type, String side, Double amount, Object price, String marginMode, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> createSwapOrder(Map<String, Object> market, Object type, String side, Double amount, Object price, String marginMode, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createSwapOrderCore(market, type, side, amount, price, marginMode, parameters)).thenApply(res -> (Map<String, Object>) res);
     }
 
-    private Object createSwapOrderCore(Object market, Object type, String side, Double amount, Object price, String marginMode, Map<String, Object> parameters)
+    private Object createSwapOrderCore(Map<String, Object> market, Object type, String side, Double amount, Object price, String marginMode, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3124,7 +3124,7 @@ public class Mexc extends MexcApi
             volString = "0";
         }
         Map<String, Object> request = new HashMap<String, Object>();
-        request.put("symbol", ((Map<String, Object>)market).get("id"));
+        request.put("symbol", market.get("id"));
         request.put("vol", this.parseNumber(volString));
         request.put("type", orderType);
         request.put("openType", openType);
@@ -3230,7 +3230,7 @@ public class Mexc extends MexcApi
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
         mapLiteral4.put("id", id);
         mapLiteral4.put("timestamp", this.safeInteger(data, "ts"));
-        return this.safeOrder(mapLiteral4, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
+        return this.safeOrder(mapLiteral4, market);
 
     }
 
@@ -3413,7 +3413,7 @@ public class Mexc extends MexcApi
             //
             data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         }
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), market);
 
     }
 
@@ -4060,7 +4060,7 @@ public class Mexc extends MexcApi
                 throw new InvalidOrder(((((this.id + " cancelOrder() the order with id ") + id) + " cannot be cancelled: ") + errorMsg)) ;
             }
         }
-        return this.parseOrder((Map<String, Object>) (data), market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), market);
 
     }
 

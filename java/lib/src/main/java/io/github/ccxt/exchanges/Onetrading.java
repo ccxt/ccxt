@@ -1741,7 +1741,7 @@ public class Onetrading extends OnetradingApi
         //
         // responds with an empty body
         //
-        return this.parseOrder(response, null);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, response), null);
 
     }
 

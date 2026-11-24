@@ -2139,7 +2139,7 @@ public class Toobit extends ToobitApi
         //         "priceType": "INPUT"                   // only in contract
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, response), market);
 
     }
 
@@ -2488,7 +2488,7 @@ public class Toobit extends ToobitApi
         {
             throw new OrderNotFound(((((this.id + " order ") + id) + " can not be canceled, ") + this.json(response))) ;
         }
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, response), market);
 
     }
 
@@ -2660,7 +2660,7 @@ public class Toobit extends ToobitApi
         //        "priceType": "INPUT"                 // only in CONTRACT
         //    }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, response), market);
 
     }
 

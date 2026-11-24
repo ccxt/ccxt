@@ -1546,7 +1546,7 @@ public class Lighter extends io.github.ccxt.exchanges.Lighter
             put( "id", requestId );
         }};
         Object rawMessage = (this.watch(url, messageHash, message, messageHash, subscription)).join();
-        return this.parseOrder((Map<String, Object>) (this.deepExtend(rawMessage, order)), market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, this.deepExtend(rawMessage, order)), market);
 
     }
 

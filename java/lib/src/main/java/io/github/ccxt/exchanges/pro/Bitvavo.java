@@ -984,14 +984,14 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         }
         if (java.util.Objects.equals(this.safeInteger(orderbook, "nonce"), null))
         {
-            Object subscription = this.safeValue(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
+            Map<String, Object> subscription = this.safeDict(client.subscriptions, messageHash, new HashMap<String, Object>() {{}});
             // multi-symbol watches share one subscription object, so the
             // snapshot-in-flight flag must be tracked per market
             String flagKey = ("watchingOrderBookSnapshot@" + this.safeString(message, "market", ""));
             Boolean watchingOrderBookSnapshot = (Boolean) this.safeBool(subscription, flagKey, null);
             if (java.util.Objects.equals(watchingOrderBookSnapshot, null))
             {
-                ((Map<String, Object>)subscription).put(flagKey, true);
+                subscription.put(flagKey, true);
                 client.subscriptions.put(messageHash, subscription);
                 Map<String, Object> options = this.safeDict(this.options, "watchOrderBookSnapshot", new HashMap<String, Object>() {{}});
                 Long delay = this.safeInteger(options, "delay", this.rateLimit);
@@ -2143,7 +2143,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         Map<String, Object> market = this.safeMarket(marketId, null, "-", null);
         String symbol = this.safeString(market, "symbol", "");
         String messageHash = ("order:" + symbol);
-        Map<String, Object> order = (Map<String, Object>) this.parseOrder(message, market);
+        Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, message), market);
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);

@@ -1087,7 +1087,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         //         }
         //     }
         //
-        String topic = this.safeString(message, "topic");
+        String topic = this.safeString(message, "topic", "");
         List<Object> dataList = this.safeList(message, "data", null);
         if (!java.util.Objects.equals(dataList, null))
         {

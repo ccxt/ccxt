@@ -1271,7 +1271,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         List<String> marketIds = new ArrayList<String>(Arrays.asList());
         for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> order = this.safeDict(data, i, null);
+            Map<String, Object> order = this.safeDict(data, i, new HashMap<String, Object>() {{}});
             String marketId = this.safeString(order, "symbol");
             String eventType = this.safeString(order, "eventType");
             if (!java.util.Objects.equals(marketId, null))

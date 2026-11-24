@@ -1713,7 +1713,7 @@ public class Krakenfutures extends KrakenfuturesApi
         Map<String, Object> sendStatus = this.safeDict(response, "sendStatus", null);
         String status = this.safeString(sendStatus, "status");
         this.verifyOrderActionSuccess(status, "createOrder", new ArrayList<Object>(Arrays.asList("filled")));
-        return this.parseOrder(sendStatus, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, sendStatus), market);
 
     }
 

@@ -13523,7 +13523,7 @@ public class Binance extends BinanceApi
         {
             throw new NullResponse((this.id + " parseTradingFee() returned empty response")) ;
         }
-        return this.parseTradingFee(data, market);
+        return this.parseTradingFee(this.extend(new HashMap<String, Object>() {{}}, data), market);
 
     }
 
@@ -13642,7 +13642,7 @@ public class Binance extends BinanceApi
             List<Object> fees = this.toArray(response);
             for (var i = 0; i < fees.size(); i++)
             {
-                Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) ((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))), (Map<String, Object>) null);
+                Map<String, Object> fee = this.parseTradingFee(this.extend(new HashMap<String, Object>() {{}}, (fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))), (Map<String, Object>) null);
                 String symbol = this.safeString(fee, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {

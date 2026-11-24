@@ -77,16 +77,16 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         }});
     }
 
-    public CompletableFuture<Object> wathPublic(Object market, String topic, String messageHash, Map<String, Object> parameters)
+    public CompletableFuture<Object> wathPublic(Map<String, Object> market, String topic, String messageHash, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.wathPublicCore(market, topic, messageHash, parameters));
     }
 
-    private Object wathPublicCore(Object market, String topic, String messageHash, Map<String, Object> parameters)
+    private Object wathPublicCore(Map<String, Object> market, String topic, String messageHash, Map<String, Object> parameters)
     {
 
         Map<String, Object> request = new HashMap<String, Object>() {{
-            put( "symbol", ((Map<String, Object>)market).get("id") );
+            put( "symbol", market.get("id") );
             put( "topic", topic );
             put( "event", "sub" );
         }};

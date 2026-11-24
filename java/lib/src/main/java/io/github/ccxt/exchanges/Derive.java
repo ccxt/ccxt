@@ -2483,7 +2483,7 @@ public class Derive extends DeriveApi
         String nonce = this.nonceString();
         // Order signature expiry must be between 2592000 and 7776000 sec from now
         Long signatureExpiry = this.safeInteger(paramsDeriveSubaccountId, "signature_expiry_sec", (this.seconds() + 7776000L));
-        Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
+        byte[] ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
         String TRADE_MODULE_ADDRESS = "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b"; // shared across mainnet and testnet in v3
         String priceString = this.numberToString(price);
         Object maxFeeOptionAndParams = this.handleOptionAndParams(paramsDeriveSubaccountId, "createOrder", "max_fee", null);
@@ -2659,7 +2659,7 @@ public class Derive extends DeriveApi
         Boolean orderSideIsBuy = (java.util.Objects.equals(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
         String nonce = this.nonceString();
         Double signatureExpiry = this.safeNumber(paramsDeriveSubaccountId, "signature_expiry_sec", (this.seconds() + 7776000L));
-        Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
+        byte[] ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
         String TRADE_MODULE_ADDRESS = "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b"; // shared across mainnet and testnet in v3
         String priceString = this.numberToString(price);
         String maxFeeString = this.safeString(paramsDeriveSubaccountId, "max_fee", "0");
@@ -4347,7 +4347,7 @@ public class Derive extends DeriveApi
         Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("max_fee_usd", "new_subaccount_manager")));
         String nonce = this.nonceString();
         Long signatureExpiry = this.safeInteger(paramsOmitted, "signature_expiry_sec", (this.seconds() + 7776000L));
-        Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
+        byte[] ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
         String TRANSFER_MODULE_ADDRESS = "0x01259207A40925b794C8ac320456F7F6c8FE2636"; // shared across mainnet and testnet in v3
         Object transferModuleDataHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("uint", "uint", "address", "uint", "uint", "uint")), new ArrayList<Object>(Arrays.asList(toId, newSubaccountManager, assetAddress, 0, this.convertToBigInt(this.parseUnits(amountString, "1000000000000000000")), this.convertToBigInt(this.parseUnits(maxFeeUsd, "1000000000000000000"))))), keccak(), "binary");
         List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("transfer", paramsOmitted);
@@ -4724,7 +4724,7 @@ public class Derive extends DeriveApi
         String amountScaled = Precise.stringMul(amountString, scale);
         String nonce = this.nonceString();
         Long signatureExpiry = this.safeInteger(paramsOmitted, "signature_expiry_sec", (this.seconds() + 7776000L));
-        Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
+        byte[] ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
         String WITHDRAWAL_MODULE_ADDRESS = "0x9d0E8f5b25384C7310CB8C6aE32C8fbeb645d083"; // shared across mainnet and testnet in v3
         Object withdrawalModuleDataHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("address", "uint", "address", "uint", "bool")), new ArrayList<Object>(Arrays.asList(assetAddress, this.convertToBigInt(this.parseUnits(maxFeeUsd, "1000000000000000000")), address, this.convertToBigInt(amountScaled), forceBatch))), keccak(), "binary");
         List<Object> deriveWalletAddressparamsDeriveWalletAddressVariable = (List<Object>) this.handleDeriveWalletAddress("withdraw", (Map<String, Object>) (paramsOmitted));

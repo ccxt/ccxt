@@ -1936,7 +1936,7 @@ public class Deepcoin extends DeepcoinApi
             response = (this.privatePostDeepcoinTradeOrder(request)).join();
         }
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), market);
 
     }
 
@@ -2374,7 +2374,7 @@ public class Deepcoin extends DeepcoinApi
         //
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> entry = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-        return this.parseOrder(entry, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, entry), market);
 
     }
 
@@ -2417,7 +2417,7 @@ public class Deepcoin extends DeepcoinApi
             throw new OrderNotFound(((this.id + " fetchOpenOrder() could not find order id ") + id)) ;
         }
         Map<String, Object> entry = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-        return this.parseOrder(entry, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, entry), market);
 
     }
 
@@ -2812,7 +2812,7 @@ public class Deepcoin extends DeepcoinApi
             response = (this.privatePostDeepcoinTradeCancelOrder(this.extend(request, parameters))).join();
         }
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), market);
 
     }
 
@@ -2956,7 +2956,7 @@ public class Deepcoin extends DeepcoinApi
             response = (this.privatePostDeepcoinTradeReplaceOrder(this.extend(request, parameters))).join();
         }
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.parseOrder(data, null);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), null);
 
     }
 

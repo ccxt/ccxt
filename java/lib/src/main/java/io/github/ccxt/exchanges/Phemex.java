@@ -3513,7 +3513,7 @@ public class Phemex extends PhemexApi
         //     }
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), market);
 
     }
 
@@ -3615,7 +3615,7 @@ public class Phemex extends PhemexApi
             response = (this.privatePutSpotOrders(this.extend(request, paramsOmitted3))).join();
         }
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), market);
 
     }
 
@@ -3677,7 +3677,7 @@ public class Phemex extends PhemexApi
             response = (this.privateDeleteSpotOrders(this.extend(request, paramsOmitted))).join();
         }
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), market);
 
     }
 

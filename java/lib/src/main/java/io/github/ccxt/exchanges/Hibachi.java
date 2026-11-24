@@ -1338,7 +1338,7 @@ public class Hibachi extends HibachiApi
         Object bigid = this.convertToBigInt(id);
         String idbase16 = this.intToBase16(bigid);
         String idPadded = (((String)idbase16).length() >= 16 ? ((String)idbase16).substring(((String)idbase16).length() - 16) : String.format("%" + (16 - ((String)idbase16).length()) + "s", "").replace(' ', '0') + ((String)idbase16));
-        Object message = this.base16ToBinary(idPadded);
+        byte[] message = this.base16ToBinary(idPadded);
         String signature = this.signMessage(message, (String) (this.privateKey));
         return new HashMap<String, Object>() {{
             put( "orderId", id );
@@ -1451,7 +1451,7 @@ public class Hibachi extends HibachiApi
         Long nonce = this.incrementingNonce();
         String nonce16 = this.intToBase16(nonce);
         String noncePadded = (((String)nonce16).length() >= 16 ? ((String)nonce16).substring(((String)nonce16).length() - 16) : String.format("%" + (16 - ((String)nonce16).length()) + "s", "").replace(' ', '0') + ((String)nonce16));
-        Object message = this.base16ToBinary(noncePadded);
+        byte[] message = this.base16ToBinary(noncePadded);
         String signature = this.signMessage(message, (String) (this.privateKey));
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "accountId", Hibachi.this.getAccountId() );

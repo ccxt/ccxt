@@ -2053,11 +2053,11 @@ public class Blofin extends BlofinApi
         if (Boolean.TRUE.equals(isCombinedSlTp) || Boolean.TRUE.equals(isSlOrTp) || Boolean.TRUE.equals(isTriggerOrder))
         {
             Map<String, Object> dataDict = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-            return this.parseOrder(dataDict, market);
+            return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, dataDict), market);
         }
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> first = this.safeDict(data, 0, null);
-        Map<String, Object> order = (Map<String, Object>) this.parseOrder(first, market);
+        Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, first), market);
         order.put("type", type);
         order.put("side", side);
         return order;
@@ -2198,12 +2198,12 @@ public class Blofin extends BlofinApi
         {
             Map<String, Object> triggerResponse = (this.privatePostTradeCancelAlgo(this.extend(request, query))).join();
             Map<String, Object> triggerData = this.safeDict(triggerResponse, "data", null);
-            return this.parseOrder(triggerData, market);
+            return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, triggerData), market);
         }
         Map<String, Object> response = (this.privatePostTradeCancelOrder(this.extend(request, query))).join();
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> order = this.safeDict(data, 0, null);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, order), market);
 
     }
 

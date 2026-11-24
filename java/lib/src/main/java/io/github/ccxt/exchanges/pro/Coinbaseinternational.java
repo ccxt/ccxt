@@ -2545,7 +2545,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         }
         List<String> symbolsResolved = this.marketSymbols(symbols, null, true, false, false);
         Object result = (this.requestWs("private/get_positions", paramsResolved, true)).join();
-        List<Object> positions = this.parsePositions(result, null, new HashMap<String, Object>() {{}});
+        List<Object> positions = this.parsePositions(this.toArray(result), null, new HashMap<String, Object>() {{}});
         return this.filterByArrayPositions(positions, "symbol", symbolsResolved);
 
     }

@@ -2015,7 +2015,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
-        Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(data, null);
+        Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), null);
         if (!Boolean.TRUE.equals(isSpot))
         {
             // The envelope T is the order update time; o.T is the trade time.

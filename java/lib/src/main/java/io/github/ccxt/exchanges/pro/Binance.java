@@ -259,9 +259,9 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         {
             Long previousStreamIndex = this.safeInteger(this.options, "streamIndex", -1);
             Map<String, Object> streamLimits = this.safeDict(this.options, "streamLimits", null);
-            Long streamLimit = this.safeInteger(streamLimits, type);
+            Long streamLimit = this.safeInteger(streamLimits, type, 50);
             Long streamIndex = (Long) (previousStreamIndex + 1L);
-            Object normalizedIndex = (streamIndex == null || streamLimit == null ? null : ((double) streamIndex) % ((double) streamLimit));
+            Object normalizedIndex = (((double) streamIndex) % ((double) streamLimit));
             this.options.put("streamIndex", streamIndex);
             stream = this.numberToString(normalizedIndex);
             if (!java.util.Objects.equals(subscriptionHash, null))
@@ -1447,7 +1447,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
     }
 
-    public void handleOrderBookSubscription(Client client, Object message, Map<String, Object> subscription)
+    public void handleOrderBookSubscription(Client client, Map<String, Object> message, Map<String, Object> subscription)
     {
         Long defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
         // const messageHash = this.safeString (subscription, 'messageHash');
@@ -5071,7 +5071,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> order = null;
         if (!java.util.Objects.equals(newSpotOrder, null))
         {
-            order = this.parseOrder(newSpotOrder, null);
+            order = this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, newSpotOrder), null);
         } else
         {
             order = this.parseOrder(result, null);
@@ -6010,10 +6010,10 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         if ((java.util.Objects.equals(e, "ORDER_TRADE_UPDATE")) || (java.util.Objects.equals(e, "ALGO_UPDATE")))
         {
             messageValue = orderValue;
-            if ((java.util.Objects.equals(e, "ALGO_UPDATE")) && (java.util.Objects.equals(this.safeInteger(messageValue, "T"), null)))
+            if ((java.util.Objects.equals(e, "ALGO_UPDATE")) && (java.util.Objects.equals(this.safeInteger(orderValue, "T"), null)))
             {
                 // keep the outer event time, the algo payload carries no timestamps
-                messageValue = this.extend(messageValue, new HashMap<String, Object>() {{
+                messageValue = this.extend(orderValue, new HashMap<String, Object>() {{
                     put( "T", Binance.this.safeInteger(message, "T") );
                 }});
             }

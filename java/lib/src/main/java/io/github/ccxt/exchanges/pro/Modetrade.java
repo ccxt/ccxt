@@ -1111,7 +1111,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         //         }
         //     }
         //
-        String topic = this.safeString(message, "topic");
+        String topic = this.safeString(message, "topic", "");
         Object data = this.safeValue(message, "data");
         Boolean dataIsArray = (data instanceof List);
         if (Boolean.TRUE.equals(dataIsArray))
@@ -1139,7 +1139,8 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             {
                 this.handleMyTrade(client, (Map<String, Object>) (data));
             }
-            this.handleOrder(client, (Map<String, Object>) (data), (String) (topic));
+            Map<String, Object> dataDict = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
+            this.handleOrder(client, dataDict, (String) (topic));
         }
     }
 

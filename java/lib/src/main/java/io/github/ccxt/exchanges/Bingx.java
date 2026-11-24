@@ -5133,7 +5133,7 @@ public class Bingx extends BingxApi
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> order = this.safeDict(data, "order", data);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, order), market);
 
     }
 
@@ -5424,7 +5424,7 @@ public class Bingx extends BingxApi
         }
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> order = this.safeDict(data, "order", data);
-        return this.parseOrder(order, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, order), market);
 
     }
 
@@ -7742,7 +7742,7 @@ public class Bingx extends BingxApi
                 commission = this.safeDict(data, "commission", new HashMap<String, Object>() {{}});
             }
         }
-        return this.parseTradingFee(commission, market);
+        return this.parseTradingFee(this.extend(new HashMap<String, Object>() {{}}, commission), market);
 
     }
 

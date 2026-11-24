@@ -1403,7 +1403,7 @@ public class Lighter extends LighterApi
         //     "predicted_execution_time_ms": 1766088500120
         // }
         //
-        return this.parseOrder((Map<String, Object>) (this.deepExtend(response, order)), market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, this.deepExtend(response, order)), market);
 
     }
 

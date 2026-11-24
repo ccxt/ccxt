@@ -12,6 +12,7 @@ import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.Order;
 import io.github.ccxt.types.OrderBook;
+import io.github.ccxt.types.Pair;
 import io.github.ccxt.types.Ticker;
 import io.github.ccxt.types.Tickers;
 import io.github.ccxt.types.Trade;
@@ -380,16 +381,16 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
      * @param {string[]} [params.fields] the market data fields to stream
      * @returns {Array} the raw message and the params without fields
      */
-    public List<Object> ibkrMarketDataRequest(String marketId, Map<String, Object> parameters)
+    public Pair<String, Map<String, Object>> ibkrMarketDataRequest(String marketId, Map<String, Object> parameters)
     {
         Map<String, Object> options = this.safeDict(this.options, "watchTickers", new HashMap<String, Object>() {{}});
         List<Object> defaultFields = this.safeList(options, "fields", new ArrayList<Object>(Arrays.asList()));
         List<Object> fields = (List<Object>) this.safeList(parameters, "fields", defaultFields);
-        Map<String, Object> query = this.omit(parameters, "fields");
+        Map<String, Object> query = this.extend(new HashMap<String, Object>() {{}}, this.omit(parameters, "fields"));
         String request = ((("smd+" + marketId) + "+") + this.json(new HashMap<String, Object>() {{
     put( "fields", fields );
 }}));
-        return new ArrayList<Object>(Arrays.asList(request, query));
+        return new Pair<>(request, query);
     }
 
     /**
@@ -488,9 +489,9 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         for (var i = 0; i < marketSymbols.size(); i++)
         {
             Map<String, Object> market = this.market((marketSymbols == null || i < 0 || i >= marketSymbols.size() ? null : marketSymbols.get(i)));
-            var requestqueryVariable = this.ibkrMarketDataRequest(this.safeString(market, "id"), parameters);
+            Pair<String, Map<String, Object>> requestqueryVariable = this.ibkrMarketDataRequest(this.safeString(market, "id", ""), parameters);
             var request = ((List<Object>) requestqueryVariable).get(0);
-            var query = ((List<Object>) requestqueryVariable).get(1);
+            Map<String, Object> query = requestqueryVariable.second();
             Map<String, Object> subscription = this.extend(new HashMap<String, Object>() {{
                 put( "conid", market.get("id") );
                 put( "symbol", market.get("symbol") );
@@ -675,9 +676,9 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
         io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
         // the last price stream, it builds the current candles
-        var marketDataRequestqueryVariable = this.ibkrMarketDataRequest(this.safeString(market, "id"), parameters);
+        Pair<String, Map<String, Object>> marketDataRequestqueryVariable = this.ibkrMarketDataRequest(this.safeString(market, "id", ""), parameters);
         var marketDataRequest = ((List<Object>) marketDataRequestqueryVariable).get(0);
-        var query = ((List<Object>) marketDataRequestqueryVariable).get(1);
+        Map<String, Object> query = marketDataRequestqueryVariable.second();
         (this.ibkrSubscribe(client, messageHash, (String) (marketDataRequest), (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
             j39v2.put("conid", market.get("id"));
             j39v2.put("symbol", unifiedSymbol);
@@ -1073,7 +1074,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             put( "topic", "orderbook" );
             put( "symbols", new ArrayList<Object>(Arrays.asList(unifiedSymbol)) );
         }}, query);
-        return (this.ibkrUnsubscribe(client, new ArrayList<Object>(Arrays.asList(("orderbook::" + unifiedSymbol))), (String) (("ubd+" + accountId)), subscription)).join();
+        return (this.ibkrUnsubscribe(client, new ArrayList<Object>(Arrays.asList(("orderbook::" + unifiedSymbol))), ("ubd+" + accountId), subscription)).join();
 
     }
 

@@ -1429,7 +1429,7 @@ public class Paradex extends ParadexApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < loadedFees.size(); i++)
         {
-            Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) ((loadedFees == null || i < 0 || i >= loadedFees.size() ? null : loadedFees.get(i))), (Map<String, Object>) null);
+            Map<String, Object> fee = this.parseTradingFee(this.extend(new HashMap<String, Object>() {{}}, (loadedFees == null || i < 0 || i >= loadedFees.size() ? null : loadedFees.get(i))), (Map<String, Object>) null);
             String symbol = this.safeString(fee, "symbol");
             result.put((String)symbol, fee);
         }
@@ -2983,7 +2983,7 @@ public class Paradex extends ParadexApi
             Map<String, Object> responseOrder = this.safeDict(responseOrders, i, null);
             if (!java.util.Objects.equals(responseOrder, null))
             {
-                ((List<Object>)result).add(this.parseOrder(responseOrder, null));
+                ((List<Object>)result).add(this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, responseOrder), null));
             } else
             {
                 Map<String, Object> error = this.safeDict(errors, i, null);

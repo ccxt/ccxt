@@ -927,7 +927,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         for (var i = 0; i < ((List<?>)message).size(); i++)
         {
-            Map<String, Object> order = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (this.safeValue(message, i)), null);
+            Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(this.safeDict(message, i, new HashMap<String, Object>() {{}}), null);
             orders.append(order);
         }
         client.resolve(this.orders, messageHash);

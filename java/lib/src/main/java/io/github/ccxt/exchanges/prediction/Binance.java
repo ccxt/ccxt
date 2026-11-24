@@ -1068,7 +1068,7 @@ public class Binance extends BinanceApi
                 response = (this.sapiPrivateGetOrderBookLastTradePrice(this.extend(request, parameters))).join();
                 responsesByMarketId.put(marketId, response);
             }
-            Map<String, Object> ticker = this.parsePredictionTicker(response, outcomeObj);
+            Map<String, Object> ticker = this.parsePredictionTicker(this.extend(new HashMap<String, Object>() {{}}, response), outcomeObj);
             String symbolKey = this.safeString(ticker, "outcome", (outcomes == null || i < 0 || i >= outcomes.size() ? null : outcomes.get(i)));
             result.put(symbolKey, ticker);
         }

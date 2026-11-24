@@ -1879,11 +1879,14 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         Map<String, Object> marketQuery = marketTypemarketQueryVariable.second();
         Map<String, Object> query = marketQuery;
         String type = marketType;
-        String messageHash = (marketType + ":positions");
+        String messageHash = "swap:positions";
+        if ((!java.util.Objects.equals(marketType, null)) && (!java.util.Objects.equals(marketType, "spot")))
+        {
+            messageHash = (marketType + ":positions");
+        }
         if (java.util.Objects.equals(marketType, "spot"))
         {
             type = "swap";
-            messageHash = "swap:positions";
         }
         String typeId = this.getSupportedMapping(type, new HashMap<String, Object>() {{
             put( "future", "futures" );

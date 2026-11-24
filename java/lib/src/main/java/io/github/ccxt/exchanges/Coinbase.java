@@ -4312,7 +4312,7 @@ public class Coinbase extends CoinbaseApi
         //         }
         //     }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, response), market);
 
     }
 

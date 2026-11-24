@@ -3018,7 +3018,7 @@ public class Woofipro extends WoofiproApi
         {
             parsedOrders = new HashMap<String, Object>() {{}};
         }
-        return this.parseOrder(parsedOrders, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, parsedOrders), market);
 
     }
 
@@ -3414,12 +3414,12 @@ public class Woofipro extends WoofiproApi
 
     }
 
-    public CompletableFuture<Object> getAssetHistoryRows(String code, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> getAssetHistoryRows(String code, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.getAssetHistoryRowsCore(code, since, limit, parameters));
     }
 
-    private Object getAssetHistoryRowsCore(String code, Long since, Long limit, Map<String, Object> parameters)
+    private List<Object> getAssetHistoryRowsCore(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -3536,7 +3536,7 @@ public class Woofipro extends WoofiproApi
     private Object fetchLedgerCore(String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
-        Object rows = (this.getAssetHistoryRows(code, since, limit, parameters)).join();
+        List<Object> rows = (this.getAssetHistoryRows(code, since, limit, parameters)).join();
         Map<String, Object> currency = null;
         if (!java.util.Objects.equals(code, null))
         {
@@ -3669,7 +3669,7 @@ public class Woofipro extends WoofiproApi
     {
 
         Map<String, Object> request = new HashMap<String, Object>() {{}};
-        Object rows = (this.getAssetHistoryRows(code, since, limit, this.extend(request, parameters))).join();
+        List<Object> rows = (this.getAssetHistoryRows(code, since, limit, this.extend(request, parameters))).join();
         Map<String, Object> currency = null;
         if (!java.util.Objects.equals(code, null))
         {

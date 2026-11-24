@@ -172,12 +172,12 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
 
     }
 
-    public CompletableFuture<Object> unWatchPublic(Object market, String messageHash, String topicID, Map<String, Object> parameters, Map<String, Object> subscription, Object suffix)
+    public CompletableFuture<Object> unWatchPublic(Map<String, Object> market, String messageHash, String topicID, Map<String, Object> parameters, Map<String, Object> subscription, Object suffix)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchPublicCore(market, messageHash, topicID, parameters, subscription, suffix));
     }
 
-    private Object unWatchPublicCore(Object market, String messageHash, String topicID, Map<String, Object> parameters, Map<String, Object> subscription, Object suffix)
+    private Object unWatchPublicCore(Map<String, Object> market, String messageHash, String topicID, Map<String, Object> parameters, Map<String, Object> subscription, Object suffix)
     {
 
         String marketType = this.safeString(market, "type", "");
@@ -190,12 +190,12 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             throw new BadRequest(((this.id + " no subscription for ") + messageHash)) ;
         }
         Long subId = this.safeInteger(existingSubscription, "id");
-        Map<String, Object> request = this.createPublicRequest((Map<String, Object>) (market), subId, topicID, java.util.Objects.requireNonNullElse(suffix, ""), true); // unsubscribe message uses the same id as the original subscribe message
+        Map<String, Object> request = this.createPublicRequest(market, subId, topicID, java.util.Objects.requireNonNullElse(suffix, ""), true); // unsubscribe message uses the same id as the original subscribe message
         String unsubHash = ("unsubscribe::" + messageHash);
         Map<String, Object> subscriptionExtended = this.extend(subscription, new HashMap<String, Object>() {{
             put( "subHash", messageHash );
             put( "unsubHash", unsubHash );
-            put( "symbols", new ArrayList<Object>(Arrays.asList(((Map<String, Object>)market).get("symbol"))) );
+            put( "symbols", new ArrayList<Object>(Arrays.asList(market.get("symbol"))) );
             put( "id", requestId );
         }});
         return (this.watch(url, unsubHash, this.deepExtend(request, parameters), unsubHash, subscriptionExtended)).join();

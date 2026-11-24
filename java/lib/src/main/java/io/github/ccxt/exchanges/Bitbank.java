@@ -964,7 +964,7 @@ public class Bitbank extends BitbankApi
         }
         Map<String, Object> response = (this.privatePostUserSpotOrder(this.extend(request, parameters))).join();
         Map<String, Object> data = this.safeDict(response, "data", null);
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), market);
 
     }
 
@@ -1075,7 +1075,7 @@ public class Bitbank extends BitbankApi
         //    }
         //
         Map<String, Object> data = this.safeDict(response, "data", null);
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), market);
 
     }
 

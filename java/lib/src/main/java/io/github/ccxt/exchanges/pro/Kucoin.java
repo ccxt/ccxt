@@ -2718,7 +2718,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         //        "type": "open"
         //    }
         //
-        Map<String, Object> data = this.safeDict(message, "data", null);
+        Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
         String tradeId = this.safeString(data, "tradeId");
         if (!java.util.Objects.equals(tradeId, null))
         {

@@ -2222,11 +2222,10 @@ public class Interactivebrokers extends InteractivebrokersApi
         List<Object> detailMarkets = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)details).size(); i++)
         {
-            Object detail = (details == null || i < 0 || i >= ((List<?>)details).size() ? null : ((List<?>)details).get(i));
-            String venue = this.safeString(detail, "listingExchange");
+            String venue = this.safeString((details == null || i < 0 || i >= ((List<?>)details).size() ? null : ((List<?>)details).get(i)), "listingExchange");
             if (this.inArray(venue, allowedVenues))
             {
-                ((List<Object>)detailMarkets).add(detail);
+                ((List<Object>)detailMarkets).add(this.safeDict(details, i, null));
             }
         }
         List<Object> markets = this.parseMarkets(detailMarkets);
@@ -2297,11 +2296,10 @@ public class Interactivebrokers extends InteractivebrokersApi
             String cfdExchange = this.safeString(cfdExchanges, i, "");
             for (var j = 0; (detailMarketsLength != null && j < detailMarketsLength); j++)
             {
-                Object detail = (detailMarkets == null || j < 0 || j >= ((List<?>)detailMarkets).size() ? null : ((List<?>)detailMarkets).get(j));
-                String listingExchange = this.safeString(detail, "listingExchange", "");
+                String listingExchange = this.safeString((detailMarkets == null || j < 0 || j >= ((List<?>)detailMarkets).size() ? null : ((List<?>)detailMarkets).get(j)), "listingExchange", "");
                 if (java.util.Objects.equals(listingExchange, cfdExchange))
                 {
-                    ((List<Object>)result).add(detail);
+                    ((List<Object>)result).add(this.safeDict(detailMarkets, j, null));
                 }
             }
         }
@@ -3982,7 +3980,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         //
         //     { "msg": "Request was submitted", "order_id": 123456789, "conid": 265598, "account": "U1234567" }
         //
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, response), market);
 
     }
 
@@ -4046,7 +4044,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         {
             throw new NullResponse((this.id + " fetchOrder() returned empty response")) ;
         }
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, response), market);
 
     }
 

@@ -4966,7 +4966,7 @@ public class Kucoin extends KucoinApi
         //    }
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), market);
 
     }
 
@@ -5156,7 +5156,7 @@ public class Kucoin extends KucoinApi
         //    }
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), market);
 
     }
 
@@ -5396,7 +5396,7 @@ public class Kucoin extends KucoinApi
         //     }
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), market);
 
     }
 
@@ -5973,7 +5973,7 @@ public class Kucoin extends KucoinApi
         // }
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), market);
 
     }
 
@@ -6331,7 +6331,7 @@ public class Kucoin extends KucoinApi
         //     }
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), market);
 
     }
 
@@ -7415,7 +7415,7 @@ public class Kucoin extends KucoinApi
         {
             responseData = (Map<String, Object>) this.safeDict(this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())), 0, new HashMap<String, Object>() {{}});
         }
-        return this.parseOrder(responseData, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, responseData), market);
 
     }
 
@@ -7503,7 +7503,7 @@ public class Kucoin extends KucoinApi
         //
         Map<String, Object> market = (((!java.util.Objects.equals(symbol, null)))) ? this.market(symbol) : null;
         Map<String, Object> responseData = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.parseOrder(responseData, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, responseData), market);
 
     }
 
@@ -7607,7 +7607,7 @@ public class Kucoin extends KucoinApi
         //     }
         //
         Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
-        return this.parseOrder(data, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, data), market);
 
     }
 
@@ -13718,7 +13718,7 @@ public class Kucoin extends KucoinApi
         {
             response = (this.futuresPrivatePostOrders(this.extend(request, paramsOmitted))).join();
         }
-        return this.parseOrder(response, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, response), market);
 
     }
 

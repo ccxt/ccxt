@@ -617,14 +617,14 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         }
         io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
         Map<String, Object> data = this.safeDict(message, "data", new HashMap<String, Object>() {{}});
-        List<Object> rawOrders = this.safeList(data, "orders", null);
+        List<Object> rawOrders = this.safeList(data, "orders", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         Map<String, Object> first = this.safeDict(rawOrders, 0, null);
         if (java.util.Objects.equals(first, null))
         {
             return;
         }
-        for (var i = 0; i < ((List<?>)(List<Object>)(rawOrders)).size(); i++)
+        for (var i = 0; i < rawOrders.size(); i++)
         {
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(this.safeDict(rawOrders, i, new HashMap<String, Object>() {{}}), null);
             String symbol = this.safeString(order, "symbol");

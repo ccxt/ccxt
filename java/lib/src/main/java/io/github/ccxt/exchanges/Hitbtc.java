@@ -2166,7 +2166,7 @@ public class Hitbtc extends HitbtcApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Map<String, Object> fee = this.parseTradingFee(this.safeDict(response, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
+            Map<String, Object> fee = this.parseTradingFee(this.extend(new HashMap<String, Object>() {{}}, this.safeDict(response, i, new HashMap<String, Object>() {{}})), (Map<String, Object>) null);
             String symbol = this.safeString(fee, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {

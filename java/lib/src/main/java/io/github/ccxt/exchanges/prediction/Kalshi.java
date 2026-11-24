@@ -1050,7 +1050,7 @@ public class Kalshi extends KalshiApi
         //         }
         //     }
         //
-        Map<String, Object> raw = (Map<String, Object>) this.safeDict(response, "market", response);
+        Map<String, Object> raw = this.extend(new HashMap<String, Object>() {{}}, this.safeDict(response, "market", response));
         return this.parsePredictionTicker(raw, outcomeObj);
 
     }
@@ -1354,7 +1354,7 @@ public class Kalshi extends KalshiApi
             List<Object> rawMarkets = this.safeList(response, "markets", new ArrayList<Object>(Arrays.asList()));
             for (var i = 0; i < rawMarkets.size(); i++)
             {
-                Map<String, Object> raw = (Map<String, Object>) (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
+                Map<String, Object> raw = this.safeDict(rawMarkets, i, new HashMap<String, Object>() {{}});
                 String marketTicker = this.safeString(raw, "ticker");
                 if ((java.util.Objects.equals(marketTicker, null)) || !(outcomesByTicker.containsKey(marketTicker)))
                 {
@@ -1740,7 +1740,7 @@ public class Kalshi extends KalshiApi
         Object cost = null;
         if ((!java.util.Objects.equals(price, null)) && (!java.util.Objects.equals(amount, null)))
         {
-            cost = Helpers.multiply(price, amount);
+            cost = ((price == null || amount == null) ? null : (((double) price) * ((double) amount)));
         }
         HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
         mapLiteral8.put("id", id);
@@ -1874,7 +1874,7 @@ public class Kalshi extends KalshiApi
         Object cost = null;
         if ((!java.util.Objects.equals(price, null)) && (!java.util.Objects.equals(amount, null)))
         {
-            cost = Helpers.multiply(price, amount);
+            cost = ((price == null || amount == null) ? null : (((double) price) * ((double) amount)));
         }
         Boolean isTaker = (Boolean) this.safeBool(fill, "is_taker", true);
         String takerOrMaker = "maker";
@@ -2366,7 +2366,7 @@ public class Kalshi extends KalshiApi
         Map<String, Object> response = (this.kalshiPrivateGetPortfolioOrdersOrderId(this.extend(new HashMap<String, Object>() {{
             put( "order_id", id );
         }}, parameters))).join();
-        return this.parsePredictionOrder((Map<String, Object>) (this.safeDict(response, "order", response)), null);
+        return this.parsePredictionOrder(this.extend(new HashMap<String, Object>() {{}}, this.safeDict(response, "order", response)), null);
 
     }
 
@@ -2671,7 +2671,7 @@ public class Kalshi extends KalshiApi
         }}, parameters))).join();
         // the delete response is minimal (no ticker/action/id/status): pass the resolved outcome so
         // the parser can fill outcome/outcomeId/market/label, then backfill the id and canceled status
-        Map<String, Object> order = this.parsePredictionOrder((Map<String, Object>) (this.safeDict(response, "order", response)), outcomeObj);
+        Map<String, Object> order = this.parsePredictionOrder(this.extend(new HashMap<String, Object>() {{}}, this.safeDict(response, "order", response)), outcomeObj);
         if (java.util.Objects.equals(this.safeString(order, "id"), null))
         {
             order.put("id", id);
@@ -2722,8 +2722,7 @@ public class Kalshi extends KalshiApi
         List<Object> canceledOrders = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; (restingOrdersLength != null && i < restingOrdersLength); i++)
         {
-            Map<String, Object> restingOrder = (Map<String, Object>) (restingOrders == null || i < 0 || i >= restingOrders.size() ? null : restingOrders.get(i));
-            String orderId = this.safeString(restingOrder, "order_id");
+            String orderId = this.safeString((restingOrders == null || i < 0 || i >= restingOrders.size() ? null : restingOrders.get(i)), "order_id");
             if (!java.util.Objects.equals(orderId, null))
             {
                 HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
@@ -2731,7 +2730,7 @@ public class Kalshi extends KalshiApi
                 (this.kalshiPrivateDeletePortfolioEventsOrdersOrderId(this.extend(mapLiteral13, parameters))).join();
                 // the DELETE body is minimal — parse the already-fetched resting order instead, which
                 // carries the true side/outcome/price/count, then mark it canceled
-                Map<String, Object> parsed = this.parsePredictionOrder(restingOrder, null);
+                Map<String, Object> parsed = this.parsePredictionOrder(this.safeDict(restingOrders, i, new HashMap<String, Object>() {{}}), null);
                 parsed.put("status", "canceled");
                 ((List<Object>)canceledOrders).add(parsed);
             }

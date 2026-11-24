@@ -926,7 +926,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
                 stored = new ArrayCache(((Number)tradesLimit).intValue());
                 this.trades.put(symbol, stored);
             }
-            List<Object> trades = this.parseWsTrades((data == null || marketId == null ? null : data.get(marketId)), market, null, null, new HashMap<String, Object>() {{}});
+            List<Object> trades = this.parseWsTrades(this.safeList(data, marketId, new ArrayList<Object>(Arrays.asList())), market, null, null, new HashMap<String, Object>() {{}});
             for (var j = 0; j < trades.size(); j++)
             {
                 stored.append((trades == null || j < 0 || j >= trades.size() ? null : trades.get(j)));
@@ -1765,7 +1765,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
             Integer rowsLength = rows.size();
             for (var i = 0; (rowsLength != null && i < rowsLength); i++)
             {
-                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), null);
+                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), null);
                 ((List<Object>)parsedOrders).add(parsedOrder);
             }
             client.resolve(parsedOrders, messageHash);

@@ -1007,11 +1007,9 @@ public class Bitrue extends BitrueApi
             }
         }
         List<Object> promises = (CompletableFuture.allOf(promisesRaw.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promisesRaw.stream().<Object>map(CompletableFuture::join).toList()))).join();
-        List<Object> spotMarkets = this.safeList(this.safeDict(promises, 0, null), "symbols", new ArrayList<Object>(Arrays.asList()));
         List<Object> futureMarkets = this.safeList(promises, 1, new ArrayList<Object>(Arrays.asList()));
         List<Object> deliveryMarkets = this.safeList(promises, 2, new ArrayList<Object>(Arrays.asList()));
-        List<Object> markets = spotMarkets;
-        markets = this.arrayConcat(markets, futureMarkets);
+        List<Object> markets = this.arrayConcat(this.safeList(this.safeDict(promises, 0, null), "symbols", new ArrayList<Object>(Arrays.asList())), futureMarkets);
         markets = this.arrayConcat(markets, deliveryMarkets);
         //
         // spot

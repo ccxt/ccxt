@@ -1166,15 +1166,15 @@ public class Kraken extends KrakenApi
 
     }
 
-    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Object market)
+    public Map<String, Object> parseTradingFee(Map<String, Object> fee, Map<String, Object> market)
     {
         Map<String, Object> makerFees = this.safeDict(fee, "fees_maker", new HashMap<String, Object>() {{}});
         Map<String, Object> takerFees = this.safeDict(fee, "fees", new HashMap<String, Object>() {{}});
-        Map<String, Object> symbolMakerFee = this.safeDict(makerFees, ((Map<String, Object>)market).get("id"), new HashMap<String, Object>() {{}});
-        Map<String, Object> symbolTakerFee = this.safeDict(takerFees, ((Map<String, Object>)market).get("id"), new HashMap<String, Object>() {{}});
+        Map<String, Object> symbolMakerFee = this.safeDict(makerFees, market.get("id"), new HashMap<String, Object>() {{}});
+        Map<String, Object> symbolTakerFee = this.safeDict(takerFees, market.get("id"), new HashMap<String, Object>() {{}});
         return new HashMap<String, Object>() {{
             put( "info", fee );
-            put( "symbol", ((Map<String, Object>)market).get("symbol") );
+            put( "symbol", market.get("symbol") );
             put( "maker", Kraken.this.parseNumber(Precise.stringDiv(Kraken.this.safeString(symbolMakerFee, "fee"), "100")) );
             put( "taker", Kraken.this.parseNumber(Precise.stringDiv(Kraken.this.safeString(symbolTakerFee, "fee"), "100")) );
             put( "percentage", true );
@@ -2085,7 +2085,7 @@ public class Kraken extends KrakenApi
         // it's impossible to know if the order was created using cost or base currency
         // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
         // this usingCost flag is used to help the parsing but omitted from the order
-        return this.parseOrder(result, null);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, result), null);
 
     }
 
@@ -2846,7 +2846,7 @@ public class Kraken extends KrakenApi
         //     }
         //
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, result), market);
 
     }
 

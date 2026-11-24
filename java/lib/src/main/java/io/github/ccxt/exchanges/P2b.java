@@ -1060,7 +1060,7 @@ public class P2b extends P2bApi
         //    }
         //
         Map<String, Object> result = this.safeDict(response, "result", null);
-        return this.parseOrder(result, market);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, result), market);
 
     }
 
@@ -1119,7 +1119,7 @@ public class P2b extends P2bApi
         //    }
         //
         Map<String, Object> result = this.safeDict(response, "result", null);
-        return this.parseOrder(result, null);
+        return this.parseOrder(this.extend(new HashMap<String, Object>() {{}}, result), null);
 
     }
 
