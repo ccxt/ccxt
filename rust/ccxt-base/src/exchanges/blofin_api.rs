@@ -68,8 +68,8 @@ impl Blofin {
     }
 
     /// Auto-generated wrapper for the `publicGetMarketPositionTiers` implicit endpoint.
-    pub async fn public_get_market_position_tiers(&mut self, optional_args: &[&Value]) -> Value {
-        self.call_method(Value::Str("public_get_market_position_tiers".into()), optional_args).await
+    pub async fn public_get_market_position_tiers(&mut self, optional_args: &[&Value]) -> Option<crate::value::Dict> {
+        self.call_method_as("public_get_market_position_tiers", optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetSpotMarketInstruments` implicit endpoint.

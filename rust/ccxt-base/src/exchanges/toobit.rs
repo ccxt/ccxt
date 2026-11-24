@@ -1845,7 +1845,7 @@ impl Toobit {
         m.insert("createOrder".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("marginMode".to_string(), Value::Bool(false));
-        m.insert("triggerPrice".to_string(), Value::Bool(true));
+        m.insert("triggerPrice".to_string(), Value::Bool(false));
         m.insert("triggerPriceType".to_string(), Value::Null);
         m.insert("triggerDirection".to_string(), Value::Bool(false));
         m.insert("stopLossPrice".to_string(), Value::Bool(false));
@@ -1888,7 +1888,7 @@ impl Toobit {
         m.insert("marginMode".to_string(), Value::Bool(false));
         m.insert("trigger".to_string(), Value::Bool(false));
         m.insert("trailing".to_string(), Value::Bool(false));
-        m.insert("symbolRequired".to_string(), Value::Bool(false));
+        m.insert("symbolRequired".to_string(), Value::Bool(true));
     m
 }));
         m.insert("fetchOpenOrders".to_string(), Value::Map({
