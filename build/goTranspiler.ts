@@ -13693,7 +13693,9 @@ class NewTranspiler {
         // the typed wrapper keeps `[]OrderRequest` (it converts to the core's []any); only the core is retyped
         const wrapperKeepsAnnotation = ((decidedGoType === '[]any') || (decidedGoType === '[][]any') || (decidedGoType === '[]map[string]any')) && (/(?:OrderRequest|CancellationRequest|string\[\])\[\]$/.test (String (param?.type ?? ''))
             || ((String (param?.type ?? '') === 'string[]') && (GO_UNIFIED_SLICE_PARAMS[methodName ?? '']?.[0] === '[]any')));
-        if ((typeof decidedGoType === 'string') && (decidedGoType.length > 0) && !wrapperKeepsAnnotation) {
+        // a declared unified struct the core takes as its map: the wrapper keeps the struct and converts it
+        const structKeepsAnnotation = (decidedGoType === 'map[string]any') && (GO_CHAN3_STRUCT_LISTS[String (param?.type ?? '')]?.row?.endsWith ('ToMap') === true);
+        if ((typeof decidedGoType === 'string') && (decidedGoType.length > 0) && !wrapperKeepsAnnotation && !structKeepsAnnotation) {
             return `${safeName} ${decidedGoType}`;
         }
         const paramType = (param.type == undefined) ? 'any' : this.jsTypeToGo(name, param.type);
@@ -14030,6 +14032,10 @@ class NewTranspiler {
             }
             if ((sliceConversion !== undefined) && /(?:\[\]any|\[\]map\[string\]any)$/.test (String (GO_UNIFIED_SLICE_PARAMS[methodName]?.[0])) && (methodWrapper.parameters.indexOf (param) === 0)) {
                 return `${sliceConversion}(${this.safeGoName(param.name)})`;
+            }
+            const structRow = GO_CHAN3_STRUCT_LISTS[String (param.type ?? '')]?.row;
+            if ((param.goType === 'map[string]any') && (structRow?.endsWith ('ToMap') === true)) {
+                return `${structRow}(${this.safeGoName(param.name)})`;
             }
             // optional params live on the options struct: hand the field straight to the
             // core call instead of hopping through an identically-typed local
