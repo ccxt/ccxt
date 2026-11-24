@@ -64,7 +64,7 @@ public static class Program
         foreach (var fileName in fileNames)
         {
             // repo root (cwd of `npm run cli.cs`) first, then ../../ for runs from cs/cli
-            var candidatePaths = new string[] { fileName, "./../../" + fileName };
+            var candidatePaths = new string[] { fileName, "./../../../" + fileName };
             foreach (var candidatePath in candidatePaths)
             {
                 if (!File.Exists(candidatePath))
