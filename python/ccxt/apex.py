@@ -7,12 +7,13 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.apex import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, CurrencyInterface, FundingHistory, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, OpenInterest, Trade, FundingRateHistory, MarketInterface, TransferEntry
+from ccxt.base.types import Account, Balances, Bool, Currencies, Currency, CurrencyInterface, FundingHistory, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, FundingRateHistory, MarketInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import BadResponse
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -79,9 +80,9 @@ class apex(Exchange, ImplicitAPI):
                 'fetchDepositWithdrawFee': False,
                 'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': True,
-                'fetchFundingRate': False,
+                'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
-                'fetchFundingRates': False,
+                'fetchFundingRates': True,
                 'fetchGreeks': False,
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': False,
@@ -1048,6 +1049,104 @@ class apex(Exchange, ImplicitAPI):
             'info': interest,
         }, marketResolved)
 
+    def fetch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
+        """
+        fetches the current funding rate for a market
+
+        https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+
+        :param str symbol: unified symbol of the market to fetch the funding rate for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': self.safe_string(market, 'id2'),
+        }
+        response = self.publicGetV3Ticker(self.extend(request, params))
+        #
+        #     {
+        #         "data": [
+        #             {
+        #                 "symbol": "BTCUSDT",
+        #                 "oraclePrice": "97359.83490000976",
+        #                 "price": "97358.69511000479",
+        #                 "price24hPcnt": "0.025227663459253",
+        #                 "priceChange": "2386.4656100048",
+        #                 "markPrice": "97348.43100000975",
+        #                 "indexPrice": "97354.92100000469",
+        #                 "fundingRate": "0",
+        #                 "predictedFundingRate": "0",
+        #                 "nextFundingTime": "10:00:00",
+        #                 "turnover24h": "5126062036.262683868",
+        #                 "volume24h": "52429.97800000007",
+        #                 "openInterest": "44708.50649999985",
+        #                 "askPrice": "97346.8",
+        #                 "askSize": "0.05",
+        #                 "askVol": "4871.995",
+        #                 "bidPrice": "97329.9",
+        #                 "bidSize": "0.0397",
+        #                 "bidVol": "3861.227",
+        #                 "lastPrice": "97341.22950000488",
+        #                 "highPrice24h": "97492.40501000491",
+        #                 "lowPrice24h": "93419.04950000459",
+        #                 "change15m": "0.000035268322022",
+        #                 "change1h": "0.001633604768945",
+        #                 "change24h": "0.025227663459253",
+        #                 "volume5m": "163.43330000000053",
+        #                 "volume1h": "5662.860900000013"
+        #             }
+        #         ]
+        #     }
+        #
+        tickers = self.safe_list(response, 'data', [])
+        rawTicker = self.safe_dict(tickers, 0)
+        if rawTicker is None:
+            raise BadResponse(self.id + ' fetchFundingRate() returned no data for ' + symbol)
+        responseMarketId = self.safe_string(rawTicker, 'symbol', '')
+        if responseMarketId != self.safe_string(market, 'id2'):
+            raise BadResponse(self.id + ' fetchFundingRate() returned a ticker for ' + responseMarketId + ' while ' + symbol + ' was requested')
+        return self.parse_funding_rate(rawTicker, market)
+
+    def parse_funding_rate(self, contract: dict, market: Market = None) -> FundingRate:
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "oraclePrice": "97359.83490000976",
+        #         "price": "97358.69511000479",
+        #         "markPrice": "97348.43100000975",
+        #         "indexPrice": "97354.92100000469",
+        #         "fundingRate": "0",
+        #         "predictedFundingRate": "0",
+        #         "nextFundingTime": "10:00:00",
+        #         ...
+        #     }
+        #
+        marketId = self.safe_string(contract, 'symbol')
+        marketResolved = self.safe_market(marketId, market)
+        return {
+            'info': contract,
+            'symbol': self.safe_symbol(marketId, marketResolved),
+            'markPrice': self.safe_number(contract, 'markPrice'),
+            'indexPrice': self.safe_number(contract, 'indexPrice'),
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': None,
+            'datetime': None,
+            'fundingRate': self.safe_number(contract, 'fundingRate'),
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': None,  # predictedFundingRate stays in info; the docs give no next-period definition
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+            'interval': '1h',
+        }
+
     def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
@@ -1110,6 +1209,23 @@ class apex(Exchange, ImplicitAPI):
             })
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
+
+    def fetch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
+        """
+        fetches the current funding rates for multiple markets
+
+        https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+
+        :param str[] [symbols]: unified symbols of the markets to fetch the funding rates for, all markets are returned when not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a dictionary of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-structure>`, indexed by market symbol
+        """
+        if self.markets is None:
+            self.load_markets()
+        unifiedSymbols = self.market_symbols(symbols)
+        response = self.publicGetV3DataAllTickerInfo(params)
+        data = self.safe_list(response, 'data', [])
+        return self.parse_funding_rates(data, unifiedSymbols)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
         #
