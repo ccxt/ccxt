@@ -5293,6 +5293,7 @@ function rustTypedParsePositionFamilies (content: string): string {
 // venue overrides of a base `Dict` row parser with no trait slot (inherent `pub fn`, called as `self.X(`), one name per line
 const RUST_BORROWED_VENUE_ROWS: string[] = [
     'parse_option',
+    'parse_isolated_borrow_rate',
 ];
 function rustBorrowedParseRows (content: string): string {
     const optFns = [ 'parse_transaction', 'parse_order', 'parse_income', 'parse_account', 'parse_margin_mode', 'parse_ledger_entry', 'parse_position', 'parse_transfer', 'parse_deposit_address', 'parse_leverage', 'parse_borrow_interest' ];
