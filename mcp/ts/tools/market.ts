@@ -318,13 +318,13 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
 
     server.registerTool ('get_ohlcv', {
         'title': 'Get OHLCV candles',
-        'description': 'Fetch OHLCV candlesticks for a symbol and timeframe. By default, leave limit and since unset to fetch the latest 100 candles. For chart requests, use the widget as the sole presentation when available. It shows candlesticks with aligned volume bars. Rows are [timestampMs, open, high, low, close, volume]. Page back with "since"; "params.until" bounds the end.',
+        'description': 'Fetch OHLCV candlesticks for a symbol and timeframe. By default, leave limit and since unset to fetch the latest 100 candles. The chart requests at least 50 candles when available. For chart requests, use the widget as the sole presentation when available. It shows candlesticks with aligned volume bars. Rows are [timestampMs, open, high, low, close, volume]. Page back with "since"; "params.until" bounds the end.',
         'inputSchema': {
             'exchange': exchangeParam,
             'symbol': z.string ().describe ('unified symbol'),
             'timeframe': z.string ().optional ().describe ('candle interval (default "1h") — valid values come from describe_exchange .timeframes'),
             'since': sinceParam,
-            'limit': z.number ().int ().optional ().describe ('number of candles (default 100, max 500)'),
+            'limit': z.number ().int ().optional ().describe ('number of candles for the chart (minimum 50, default 100, no maximum; the exchange per-request cap still applies)'),
             'marketType': marketTypeParam,
             'prediction': predictionParam,
             'params': paramsParam,
@@ -338,7 +338,7 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
         if (timeframes !== null && timeframes !== undefined && timeframes[frame] === undefined) {
             return { 'ok': false, 'error': { 'code': 'BAD_TIMEFRAME', 'message': frame + ' is not a supported timeframe on ' + exchange.id, 'retryable': false, 'hint': 'supported: ' + Object.keys (timeframes).join (', ') } };
         }
-        const rowLimit = clampLimit (limit, 100, 500);
+        const rowLimit = Math.max (50, Math.floor (limit ?? 100));
         const rows = await exchange.fetchOHLCV (symbol, frame, parseSince (exchange, since), rowLimit, params ?? {});
         const hasMore = rows.length >= rowLimit;
         const typeNotice = marketTypeMismatchNotice (exchange, [ symbol ], marketType);
@@ -379,6 +379,36 @@ export function registerMarketTools (server: McpServer, ctx: ServerContext): voi
             'hasMore': trades.length >= tradeLimit,
             'notice': marketTypeMismatchNotice (exchange, [ symbol ], marketType),
         });
+    }));
+
+    server.registerTool ('get_funding_rates', {
+        'title': 'Get perpetual funding rates',
+        'description': 'Get the latest funding rates for one or more perpetual markets on an exchange. Rates are decimal fractions, and funding times are exchange-reported.',
+        'inputSchema': {
+            'exchange': exchangeParam,
+            'symbols': z.array (z.string ()).min (1).max (20).describe ('unified perpetual symbols, e.g. ["BTC/USDT:USDT"]'),
+            'marketType': marketTypeParam,
+            'params': paramsParam,
+        },
+        '_meta': marketWidgetMeta,
+        'annotations': { 'readOnlyHint': true, 'openWorldHint': true },
+    }, async ({ exchange: exchangeId, symbols, marketType, params }) => runMarketWidget ({ 'tool': 'get_funding_rates', 'exchange': exchangeId }, async () => {
+        const exchange = await ctx.pools.getPublic (exchangeId, marketType);
+        const markets = [ ...new Set (symbols) ];
+        const rows = [];
+        if (exchange.has['fetchFundingRate']) {
+            for (const symbol of markets) {
+                rows.push ({ ...stripInfo (await exchange.fetchFundingRate (symbol, params ?? {})), symbol });
+            }
+        } else if (exchange.has['fetchFundingRates']) {
+            const rates = await exchange.fetchFundingRates (markets, params ?? {});
+            for (const symbol of markets) {
+                if (rates[symbol] != null) rows.push ({ ...stripInfo (rates[symbol]), symbol });
+            }
+        } else {
+            return { 'ok': false, 'error': { 'code': 'NOT_SUPPORTED', 'message': exchange.id + ' does not provide funding rates', 'retryable': false } };
+        }
+        return ok (rows, { 'exchange': exchange.id, 'count': rows.length });
     }));
 
     server.registerTool ('search_events', {

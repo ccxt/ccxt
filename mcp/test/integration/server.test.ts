@@ -50,17 +50,18 @@ test ('public market tools advertise a widget and preserve the JSON envelope', a
     const { client } = await connect ({});
     t.after (() => client.close ());
     const { tools } = await client.listTools ();
-    const uri = 'ui://ccxt/market-data.html';
+    const uri = 'ui://ccxt/market-data-v3.html';
     const market = { 'exchange': 'fakex', 'symbol': 'BTC/USDT' };
     const requests = {
         'get_ohlcv': market,
         'get_trades': { ...market, 'limit': 2 },
         'get_orderbook': { ...market, 'limit': 2 },
         'get_tickers': { 'exchange': 'fakex', 'symbols': [ market.symbol ] },
+        'get_funding_rates': { 'exchange': 'fakex', 'symbols': [ market.symbol ] },
         'search_markets': { 'exchange': 'fakex', 'base': 'BTC' },
         'list_exchanges': { 'query': 'fakex' },
     };
-    const chartUri = 'ui://ccxt/candles-v2.html';
+    const chartUri = 'ui://ccxt/candles-v3.html';
     const names = tools.filter ((tool) => tool._meta?.ui?.resourceUri === uri).map ((tool) => tool.name).sort ();
     assert.deepEqual (names, Object.keys (requests).filter ((name) => name !== 'get_ohlcv').sort ());
     const ohlcv = tools.find ((tool) => tool.name === 'get_ohlcv');
@@ -93,6 +94,7 @@ test ('public market tools advertise a widget and preserve the JSON envelope', a
         assert.equal (result._meta.marketWidget, name);
         assert.equal (envelope.ok, true, name);
         assert.ok (envelope.data);
+        if (name === 'get_funding_rates') assert.equal (envelope.data[0].fundingRate, 0.0001);
         if (name === 'get_ohlcv') {
             assert.equal (envelope.data.length, 100);
             assert.equal (envelope.meta.timeframe, '1h');
@@ -153,6 +155,7 @@ test ('malformed since is rejected loudly, not silently defaulted', async () => 
     // a valid ISO string still works
     const good = await call (client, 'get_ohlcv', { 'exchange': 'fakex', 'symbol': 'BTC/USDT', 'since': '2024-01-01T00:00:00Z', 'limit': 3 });
     assert.equal (good.ok, true);
+    assert.equal (good.data.length, 50, 'chart requests fetch at least 50 candles');
     await client.close ();
 });
 

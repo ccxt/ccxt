@@ -8,8 +8,11 @@ import { ok, type Envelope } from './format.js';
 import { log } from './logging.js';
 import { requestContext, type HtmlServedRecord } from './request-context.js';
 
-const widgetUri = 'ui://ccxt/market-data.html';
-const candleUri = 'ui://ccxt/candles-v2.html';
+const widgetUri = 'ui://ccxt/market-data-v3.html';
+const previousTableUri = 'ui://ccxt/market-data-v2.html';
+const previousWidgetUri = 'ui://ccxt/market-data.html';
+const candleUri = 'ui://ccxt/candles-v3.html';
+const previousCandleUri = 'ui://ccxt/candles-v2.html';
 const widgetMimeType = 'text/html;profile=mcp-app';
 const widgetFile = new URL ('../widgets/market-data.html', import.meta.url);
 
@@ -51,7 +54,10 @@ async function readWidget (uri: string, via: 'resource' | 'tool') {
 export function registerMarketWidget (server: McpServer): void {
     for (const [name, uri, title] of [
         [ 'market-data', widgetUri, 'CCXT market data' ],
+        [ 'market-data-v2', previousTableUri, 'CCXT market data (v2 URI)' ],
+        [ 'market-data-original', previousWidgetUri, 'CCXT market data (original URI)' ],
         [ 'candles', candleUri, 'CCXT candlestick chart' ],
+        [ 'candles-v2', previousCandleUri, 'CCXT candlestick chart (v2 URI)' ],
     ]) {
         server.registerResource (name, uri, {
             title,
@@ -65,7 +71,7 @@ export function registerMarketWidget (server: McpServer): void {
         'title': 'Read CCXT widget HTML',
         'description': 'Inspect the HTML resource for a CCXT widget when your client only exposes tool calls. For market data or charts use the corresponding market-data tool.',
         'inputSchema': {
-            'uri': z.enum ([ widgetUri, candleUri ]).describe ('widget URI advertised in the market-data tool metadata'),
+            'uri': z.enum ([ widgetUri, previousTableUri, previousWidgetUri, candleUri, previousCandleUri ]).describe ('widget URI advertised in the market-data tool metadata'),
         },
         'annotations': { 'readOnlyHint': true, 'openWorldHint': false, 'idempotentHint': true },
     }, async ({ uri }) => run ({ 'tool': 'read_market_widget' }, async () => ok (await readWidget (uri, 'tool'))));

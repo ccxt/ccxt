@@ -10,7 +10,7 @@ import { fakeCcxtModule, fakePoolsDeps, makeConfig } from '../helpers/fake-ccxt.
 
 const MARKET_TOOLS = [
     'list_exchanges', 'describe_exchange', 'describe_method', 'search_markets',
-    'get_tickers', 'get_orderbook', 'get_ohlcv', 'get_trades', 'search_events', 'read_market_widget',
+    'get_tickers', 'get_orderbook', 'get_ohlcv', 'get_trades', 'get_funding_rates', 'search_events', 'read_market_widget',
     'call_read_method', 'call_implicit_get', 'get_safety_status',
     'watch_subscribe', 'watch_read', 'watch_unsubscribe', 'watch_list', 'fetch_route',
 ];
