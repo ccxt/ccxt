@@ -14824,7 +14824,7 @@ ${isBase
     /// `call_dynamic_base` default (base exchange). This replaces the old
     /// inherent `call_dynamic` + the `bind()`/pointer trampoline — dispatch is
     /// now a static trait method (review #1).
-    emitCoreDispatchImpl(coreName: string, sigs: Array<{ name: string, isAsync: boolean, paramKinds: string[] }>, parentCore: string | null, isPrediction = false, hasHandleMessage: boolean | 'client' = false, frameHandlers: string[] = []): string {
+    emitCoreDispatchImpl(coreName: string, sigs: Array<{ name: string, isAsync: boolean, paramKinds: string[] }>, parentCore: string | null, isPrediction = false, hasHandleMessage: boolean | 'client' = false, frameHandlers: string[] = [], content = ''): string {
         const arms: string[] = [];
         for (const { name, isAsync, paramKinds, isVoid, isTyped } of sigs as any[]) {
             if (['describe', 'new', 'bind', 'init', 'call_dynamic', 'call_dynamic_base', 'call_dynamic_prediction_base', 'pred', 'pred_mut'].includes(name)) continue;
@@ -14837,7 +14837,8 @@ ${isBase
         // `dispatch_to_derived("handle_message", …)`, so add a void-wrapping arm.
         if (hasHandleMessage) {
             const clientArg = hasHandleMessage === 'client' ? rustDispatch.arg('client', 0) : 'args.get(0).cloned().unwrap_or(crate::Value::Null)';
-            arms.push(`                "handle_message" => { self.handle_message(${clientArg}, args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },`);
+            const messageArg = /\bfn handle_message\([^)]*\bmessage: &crate::value::Dict\)/.test(content) ? rustDispatch.arg('dictref', 1) : 'args.get(1).cloned().unwrap_or(crate::Value::Null)';
+            arms.push(`                "handle_message" => { self.handle_message(${clientArg}, ${messageArg}); crate::Value::Null },`);
         }
         // the frame-shape handlers the base `routeMessage` splits a frame into (text, json array,
         // raw bytes) are void sync methods too, reached by name from the same drive loop
@@ -15420,7 +15421,7 @@ ${proImport}${predImport}`;
             .filter((name) => content.includes('fn ' + name + '('))
             .map((name) => (new RegExp(`fn ${name}\\([^)]*\\bmessage: &str\\)`).test(content) ? name + '*str' : name))
             .map((name) => (new RegExp(`fn ${name}\\([^)]*\\bmessage: crate::value::List\\)`).test(content) ? name + '*list' : name));
-        const coreDispatchImpl = this.emitCoreDispatchImpl(coreName, methodSigs, parentCore, isPrediction, hasHandleMessage, frameHandlers);
+        const coreDispatchImpl = this.emitCoreDispatchImpl(coreName, methodSigs, parentCore, isPrediction, hasHandleMessage, frameHandlers, content);
         // Sync WS handler dispatch (used by the rewritten `method.call(...)` in
         // handle_message). WS-only — REST/prediction have no `.call` dispatch, so
         // emitting it there would be dead code (and needless churn).
