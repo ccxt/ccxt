@@ -859,7 +859,7 @@ class cex(Exchange, ImplicitAPI):
             market = None
             if useKeyAsId:
                 market = self.safe_market(key)
-            parsed = self.parse_trading_fee(response[key], market)
+            parsed = self.parse_trading_fee(self.safe_dict(response, key, {}), market)
             parsedSymbol = self.safe_string(parsed, 'symbol')
             if parsedSymbol is not None:
                 result[parsedSymbol] = parsed

@@ -4156,7 +4156,7 @@ class bingx(Exchange, ImplicitAPI):
         #
         data = self.safe_dict(response, 'data', {})
         order = self.safe_dict(data, 'order', data)
-        return self.parse_order(order, market)
+        return self.parse_order(self.extend({}, order), market)
 
     def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -4630,7 +4630,7 @@ class bingx(Exchange, ImplicitAPI):
                     #
         data = self.safe_dict(response, 'data', {})
         order = self.safe_dict(data, 'order', data)
-        return self.parse_order(order, market)
+        return self.parse_order(self.extend({}, order), market)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -6815,7 +6815,7 @@ class bingx(Exchange, ImplicitAPI):
                 #
                 data = self.safe_dict(response, 'data', {})
                 commission = self.safe_dict(data, 'commission', {})
-        return self.parse_trading_fee(commission, market)
+        return self.parse_trading_fee(self.extend({}, commission), market)
 
     def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
         #

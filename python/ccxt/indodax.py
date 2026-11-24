@@ -1050,7 +1050,7 @@ class indodax(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_dict(response, 'return')
-        return self.parse_order(data)
+        return self.parse_order(self.extend({}, data))
 
     def fetch_transaction_fee(self, code: str, params: dict = {}):
         """

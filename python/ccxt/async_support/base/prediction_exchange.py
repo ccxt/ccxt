@@ -1316,7 +1316,7 @@ class PredictionExchange(BaseExchange):
         rows = self.to_array(orders)
         results = []
         for i in range(0, len(rows)):
-            parsed = self.parse_prediction_order(rows[i], outcomeObj)
+            parsed = self.parse_prediction_order(self.safe_dict(rows, i, {}), outcomeObj)
             order = self.extend(parsed, params)
             results.append(order)
         results = self.sort_by(results, 'timestamp')

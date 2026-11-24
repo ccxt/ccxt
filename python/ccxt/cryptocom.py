@@ -1320,7 +1320,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #     }
         #
         order = self.safe_dict(response, 'result', {})
-        return self.parse_order(order, market)
+        return self.parse_order(self.extend({}, order), market)
 
     def create_order_request(self, symbol: str, type: str, side: str, amount: float, price: Num = None, params: dict = {}) -> dict:
         market = self.market(symbol)
@@ -1438,7 +1438,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_dict(response, 'result', {})
-        return self.parse_order(result, market)
+        return self.parse_order(self.extend({}, result), market)
 
     def create_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """
@@ -1640,7 +1640,7 @@ class cryptocom(Exchange, ImplicitAPI):
         request = self.edit_order_request(id, symbol, amount, price, params)
         response = self.v1PrivatePostPrivateAmendOrder(request)
         result = self.safe_dict(response, 'result', {})
-        return self.parse_order(result)
+        return self.parse_order(self.extend({}, result))
 
     def edit_order_request(self, id: Str, symbol: str, amount: Num = None, price: Num = None, params: dict = {}) -> dict:
         request = {}
@@ -1712,7 +1712,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_dict(response, 'result', {})
-        return self.parse_order(result, market)
+        return self.parse_order(self.extend({}, result), market)
 
     def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -3277,7 +3277,7 @@ class cryptocom(Exchange, ImplicitAPI):
         #    }
         #
         result = self.safe_dict(response, 'result')
-        return self.parse_order(result, market)
+        return self.parse_order(self.extend({}, result), market)
 
     def fetch_trading_fee(self, symbol: str, params: dict = {}) -> TradingFeeInterface:
         """

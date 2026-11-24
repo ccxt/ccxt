@@ -1545,7 +1545,7 @@ class lbank(Exchange, ImplicitAPI):
         fees = self.safe_list(response, 'data', [])
         result = {}
         for i in range(0, len(fees)):
-            fee = self.parse_trading_fee(fees[i])
+            fee = self.parse_trading_fee(self.extend({}, fees[i]))
             symbol = self.safe_string(fee, 'symbol')
             if symbol is not None:
                 result[symbol] = fee

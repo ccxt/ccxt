@@ -5670,7 +5670,7 @@ class bitget(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_dict(response, 'data', {})
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     def create_uta_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
         if type is None:
@@ -6334,7 +6334,7 @@ class bitget(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_dict(response, 'data', {})
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -6493,10 +6493,10 @@ class bitget(Exchange, ImplicitAPI):
             order = self.safe_dict(orderInfo, 0, {})
         else:
             if isStockOrUta and (trigger is True):
-                order = response
+                order = self.extend({}, response)
             else:
                 order = data
-        return self.parse_order(order, market)
+        return self.parse_order(self.extend({}, order), market)
 
     def cancel_uta_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         if symbol is None:
@@ -6890,13 +6890,13 @@ class bitget(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         if (data is not None):
             if not isinstance(data, list):
-                return self.parse_order(data, market)
+                return self.parse_order(self.extend({}, data), market)
         dataList = self.safe_list(response, 'data', [])
         dataListLength = len(dataList)
         if dataListLength == 0:
             raise OrderNotFound(self.id + ' fetchOrder() could not find order id ' + id + ' in ' + self.json(response))
         first = self.safe_dict(dataList, 0, {})
-        return self.parse_order(first, market)
+        return self.parse_order(self.extend({}, first), market)
         # const first = this.safeDict (data, 0, data);
         # return this.parseOrder (first, market);
 
@@ -10981,7 +10981,7 @@ class bitget(Exchange, ImplicitAPI):
             #
         data = self.safe_dict(response, 'data', {})
         order = self.safe_list_2(data, 'successList', 'list', [])
-        return self.parse_order(self.safe_dict(order, 0, {}), market)
+        return self.parse_order(self.extend({}, self.safe_dict(order, 0, {})), market)
 
     def close_all_positions(self, params: dict = {}) -> list[Position]:
         """

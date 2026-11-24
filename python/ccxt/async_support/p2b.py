@@ -931,7 +931,7 @@ class p2b(Exchange, ImplicitAPI):
         #    }
         #
         result = self.safe_dict(response, 'result')
-        return self.parse_order(result, market)
+        return self.parse_order(self.extend({}, result), market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -977,7 +977,7 @@ class p2b(Exchange, ImplicitAPI):
         #    }
         #
         result = self.safe_dict(response, 'result')
-        return self.parse_order(result)
+        return self.parse_order(self.extend({}, result))
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """

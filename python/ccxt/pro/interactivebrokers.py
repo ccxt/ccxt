@@ -249,7 +249,7 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
         await client.send('umd+' + marketId + '+' + emptyArgs)
         return None
 
-    def ibkr_market_data_request(self, marketId: Str, params: dict = {}) -> list[object]:
+    def ibkr_market_data_request(self, marketId: str, params: dict = {}) -> list:
         """
         builds the smd subscription message of a market
  @ignore
@@ -261,7 +261,7 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
         options = self.safe_dict(self.options, 'watchTickers', {})
         defaultFields = self.safe_list(options, 'fields', [])
         fields = self.safe_list(params, 'fields', defaultFields)
-        query = self.omit(params, 'fields')
+        query = self.extend({}, self.omit(params, 'fields'))
         request = 'smd+' + marketId + '+' + self.json({'fields': fields})
         return [request, query]
 
@@ -325,7 +325,7 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
             futures.append(client.reusableFuture(messageHashes[i]))
         for i in range(0, len(marketSymbols)):
             market = self.market(marketSymbols[i])
-            request, query = self.ibkr_market_data_request(self.safe_string(market, 'id'), params)
+            request, query = self.ibkr_market_data_request(self.safe_string(market, 'id', ''), params)
             subscription = self.extend({'conid': market['id'], 'symbol': market['symbol']}, query)
             await self.ibkr_subscribe(client, messageHashes[i], request, subscription)
         ticker = await self.watch_multiple(url, messageHashes)
@@ -457,7 +457,7 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
         # reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
         future = client.reusableFuture(messageHash)
         # the last price stream, it builds the current candles
-        marketDataRequest, query = self.ibkr_market_data_request(self.safe_string(market, 'id'), params)
+        marketDataRequest, query = self.ibkr_market_data_request(self.safe_string(market, 'id', ''), params)
         await self.ibkr_subscribe(client, messageHash, marketDataRequest, {'conid': market['id'], 'symbol': unifiedSymbol, 'timeframe': timeframe})
         # the history, it seeds the candles
         historyHash = 'smh::' + historyMarketId + '::' + timeframe

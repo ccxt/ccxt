@@ -886,7 +886,7 @@ class grvt(ccxt.async_support.grvt):
         client.resolve(self.orders, 'orders')
         client.resolve(self.orders, 'order::' + self.safe_string(order, 'symbol', ''))
 
-    def parse_ws_order(self, order: object, market: Market = None) -> Order:
+    def parse_ws_order(self, order: dict, market: Market = None) -> Order:
         # same as REST api
         return self.parse_order(self.extend({}, order), market)
 

@@ -1220,7 +1220,7 @@ class dydx(Exchange, ImplicitAPI):
     def retrieve_credentials(self) -> dict:
         credentials = self.safe_dict(self.options, 'dydxCredentials')
         if credentials is not None:
-            return credentials
+            return self.safe_dict(self.options, 'dydxCredentials', {})
         privateKeyOption = self.safe_string(self.options, 'privateKey')
         if privateKeyOption is not None:
             credentials = self.retrieve_dydx_credentials(privateKeyOption)
@@ -1232,7 +1232,7 @@ class dydx(Exchange, ImplicitAPI):
             'publicKey': self.binary_to_base16(credentials['publicKey']),
         }
         self.options['dydxCredentials'] = credentials
-        return credentials
+        return self.safe_dict(self.options, 'dydxCredentials', {})
 
     def fetch_dydx_account(self) -> dict:
         # required in js

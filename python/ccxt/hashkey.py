@@ -2932,7 +2932,7 @@ class hashkey(Exchange, ImplicitAPI):
             #
         else:
             raise NotSupported(self.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets')
-        return self.parse_order(response)
+        return self.parse_order(self.extend({}, response))
 
     def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -3111,7 +3111,7 @@ class hashkey(Exchange, ImplicitAPI):
             #
         else:
             raise NotSupported(self.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets')
-        return self.parse_order(response)
+        return self.parse_order(self.extend({}, response))
 
     def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """

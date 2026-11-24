@@ -732,7 +732,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         if orderbook is None:
             return
         if self.safe_integer(orderbook, 'nonce') is None:
-            subscription = self.safe_value(client.subscriptions, messageHash, {})
+            subscription = self.safe_dict(client.subscriptions, messageHash, {})
             # multi-symbol watches share one subscription object, so the
             # snapshot-in-flight flag must be tracked per market
             flagKey = 'watchingOrderBookSnapshot@' + self.safe_string(message, 'market', '')
@@ -1562,7 +1562,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         market = self.safe_market(marketId, None, '-')
         symbol = self.safe_string(market, 'symbol', '')
         messageHash = 'order:' + symbol
-        order = self.parse_order(message, market)
+        order = self.parse_order(self.extend({}, message), market)
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)

@@ -235,7 +235,7 @@ class binance(ccxt.async_support.binance):
         if stream is None:
             previousStreamIndex = self.safe_integer(self.options, 'streamIndex', -1)
             streamLimits = self.safe_dict(self.options, 'streamLimits')
-            streamLimit = self.safe_integer(streamLimits, type)
+            streamLimit = self.safe_integer(streamLimits, type, 50)
             streamIndex = previousStreamIndex + 1
             normalizedIndex = streamIndex % streamLimit
             self.options['streamIndex'] = streamIndex
@@ -1120,7 +1120,7 @@ class binance(ccxt.async_support.binance):
                     del client.subscriptions[messageHash]
                 client.reject(e, messageHash)
 
-    def handle_order_book_subscription(self, client: Client, message: object, subscription: dict):
+    def handle_order_book_subscription(self, client: Client, message: dict, subscription: dict):
         defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
         # const messageHash = this.safeString (subscription, 'messageHash');
         symbolOfSubscription = self.safe_string(subscription, 'symbol')  # watchOrderBook
@@ -3801,7 +3801,7 @@ class binance(ccxt.async_support.binance):
         newSpotOrder = self.safe_dict(result, 'newOrderResponse')
         order: Order
         if newSpotOrder is not None:
-            order = self.parse_order(newSpotOrder)
+            order = self.parse_order(self.extend({}, newSpotOrder))
         else:
             order = self.parse_order(result)
         client.resolve(order, messageHash)
@@ -4542,9 +4542,9 @@ class binance(ccxt.async_support.binance):
         messageValue = message
         if (e == 'ORDER_TRADE_UPDATE') or (e == 'ALGO_UPDATE'):
             messageValue = orderValue
-            if (e == 'ALGO_UPDATE') and (self.safe_integer(messageValue, 'T') is None):
+            if (e == 'ALGO_UPDATE') and (self.safe_integer(orderValue, 'T') is None):
                 # keep the outer event time, the algo payload carries no timestamps
-                messageValue = self.extend(messageValue, {'T': self.safe_integer(message, 'T')})
+                messageValue = self.extend(orderValue, {'T': self.safe_integer(message, 'T')})
         if (e == 'ORDER_TRADE_UPDATE') or (e == 'ALGO_UPDATE'):
             oField = self.safe_list(message, 'o')
             if oField is not None:

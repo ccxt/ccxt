@@ -863,11 +863,9 @@ class bitrue(Exchange, ImplicitAPI):
             else:
                 raise ExchangeError(self.id + ' fetchMarkets() self.options fetchMarkets "' + marketType + '" is not a supported market type')
         promises = promisesRaw
-        spotMarkets = self.safe_list(self.safe_dict(promises, 0), 'symbols', [])
         futureMarkets = self.safe_list(promises, 1, [])
         deliveryMarkets = self.safe_list(promises, 2, [])
-        markets = spotMarkets
-        markets = self.array_concat(markets, futureMarkets)
+        markets = self.array_concat(self.safe_list(self.safe_dict(promises, 0), 'symbols', []), futureMarkets)
         markets = self.array_concat(markets, deliveryMarkets)
         #
         # spot

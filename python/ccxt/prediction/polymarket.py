@@ -1885,7 +1885,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
                 parsedItem['info'] = rawItem   # keep info the raw exchange response
                 result.append(parsedItem)
         else:
-            result.append(self.parse_prediction_order(response))
+            result.append(self.parse_prediction_order(self.safe_dict(response, 0, {})))
         return result
 
     def build_clob_order_body(self, outcome: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
@@ -2480,7 +2480,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
         """
         result = []
         for i in range(0, len(rawEvents)):
-            result.append(self.parse_event(self.safe_dict(rawEvents, i, {})))
+            result.append(self.parse_event(self.extend({}, rawEvents[i])))
         return result
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str) -> Bool:
@@ -3076,7 +3076,7 @@ class polymarket(PredictionExchange, ImplicitAPI):
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheByOutcomeById(limit)
         stored = self.orders
-        parsed = self.parse_prediction_order(event)
+        parsed = self.parse_prediction_order(self.extend({}, event))
         stored.append(parsed)
         client.resolve(stored, 'orders')
         outcome = self.safe_string(parsed, 'outcome')

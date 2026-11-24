@@ -3988,7 +3988,7 @@ class kucoin(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_dict(response, 'data', {})
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     def create_spot_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
         if type is None:
@@ -4126,7 +4126,7 @@ class kucoin(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_dict(response, 'data', {})
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     def create_contract_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
         if type is None:
@@ -4298,7 +4298,7 @@ class kucoin(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_dict(response, 'data', {})
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     def create_uta_order_request(self, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params: dict = {}) -> dict:
         if type is None:
@@ -4707,7 +4707,7 @@ class kucoin(Exchange, ImplicitAPI):
         # }
         #
         data = self.safe_dict(response, 'data', {})
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -4981,7 +4981,7 @@ class kucoin(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_dict(response, 'data', {})
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -5760,7 +5760,7 @@ class kucoin(Exchange, ImplicitAPI):
         responseData = self.safe_dict(response, 'data')
         if responseData is None:
             responseData = self.safe_dict(self.safe_list(response, 'data', []), 0, {})
-        return self.parse_order(responseData, market)
+        return self.parse_order(self.extend({}, responseData), market)
 
     def fetch_contract_order(self, id: Str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -5832,7 +5832,7 @@ class kucoin(Exchange, ImplicitAPI):
         #
         market = self.market(symbol) if (symbol is not None) else None
         responseData = self.safe_dict(response, 'data', {})
-        return self.parse_order(responseData, market)
+        return self.parse_order(self.extend({}, responseData), market)
 
     def fetch_uta_order(self, id: Str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -5914,7 +5914,7 @@ class kucoin(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_dict(response, 'data', {})
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     def handle_trade_type(self, isContractMarket: bool = False, marginMode: Str = None, isUnified: bool = False, params: dict = {}) -> Str:
         tradeType = self.safe_string(params, 'tradeType')
@@ -10788,7 +10788,7 @@ class kucoin(Exchange, ImplicitAPI):
             response = self.futuresPrivatePostOrdersTest(self.extend(request, paramsOmitted))
         else:
             response = self.futuresPrivatePostOrders(self.extend(request, paramsOmitted))
-        return self.parse_order(response, market)
+        return self.parse_order(self.extend({}, response), market)
 
     def fetch_market_leverage_tiers(self, symbol: str, params: dict = {}) -> list[LeverageTier]:
         """

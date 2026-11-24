@@ -1796,7 +1796,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         result = {}
         for i in range(0, len(response)):
-            fee = self.parse_trading_fee(self.safe_dict(response, i, {}))
+            fee = self.parse_trading_fee(self.extend({}, self.safe_dict(response, i, {})))
             symbol = self.safe_string(fee, 'symbol')
             if symbol is not None:
                 result[symbol] = fee

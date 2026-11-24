@@ -863,7 +863,7 @@ class woofipro(ccxt.async_support.woofipro):
         #         }
         #     }
         #
-        topic = self.safe_string(message, 'topic')
+        topic = self.safe_string(message, 'topic', '')
         dataList = self.safe_list(message, 'data')
         if dataList is not None:
             # algoexecutionreport
@@ -880,7 +880,7 @@ class woofipro(ccxt.async_support.woofipro):
                 self.handle_my_trade(client, data)
             self.handle_order(client, data, topic)
 
-    def handle_order(self, client: Client, message: dict, topic: Str):
+    def handle_order(self, client: Client, message: dict, topic: str):
         parsed = self.parse_ws_order(message)
         symbol = self.safe_string(parsed, 'symbol')
         orderId = self.safe_string(parsed, 'id')

@@ -457,12 +457,12 @@ class extended(ccxt.async_support.extended):
             self.orders = ArrayCacheBySymbolById(limit)
         orders = self.orders
         data = self.safe_dict(message, 'data', {})
-        rawOrders = self.safe_list(data, 'orders')
+        rawOrders = self.safe_list(data, 'orders', [])
         symbols = {}
         first = self.safe_dict(rawOrders, 0)
         if first is None:
             return
-        for i in range(0, len((rawOrders))):
+        for i in range(0, len(rawOrders)):
             order = self.parse_order(self.safe_dict(rawOrders, i, {}))
             symbol = self.safe_string(order, 'symbol')
             symbols[symbol] = True

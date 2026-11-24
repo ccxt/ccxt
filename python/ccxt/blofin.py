@@ -1597,10 +1597,10 @@ class blofin(Exchange, ImplicitAPI):
             response = self.privatePostTradeOrder(request)
         if isCombinedSlTp or isSlOrTp or isTriggerOrder:
             dataDict = self.safe_dict(response, 'data', {})
-            return self.parse_order(dataDict, market)
+            return self.parse_order(self.extend({}, dataDict), market)
         data = self.safe_list(response, 'data', [])
         first = self.safe_dict(data, 0)
-        order = self.parse_order(first, market)
+        order = self.parse_order(self.extend({}, first), market)
         order['type'] = type
         order['side'] = side
         return order
@@ -1694,11 +1694,11 @@ class blofin(Exchange, ImplicitAPI):
         elif isTrigger:
             triggerResponse = self.privatePostTradeCancelAlgo(self.extend(request, query))
             triggerData = self.safe_dict(triggerResponse, 'data')
-            return self.parse_order(triggerData, market)
+            return self.parse_order(self.extend({}, triggerData), market)
         response = self.privatePostTradeCancelOrder(self.extend(request, query))
         data = self.safe_list(response, 'data', [])
         order = self.safe_dict(data, 0)
-        return self.parse_order(order, market)
+        return self.parse_order(self.extend({}, order), market)
 
     def create_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """

@@ -1696,7 +1696,7 @@ class kraken(Exchange, ImplicitAPI):
         # it's impossible to know if the order was created using cost or base currency
         # because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
         # this usingCost flag is used to help the parsing but omitted from the order
-        return self.parse_order(result)
+        return self.parse_order(self.extend({}, result))
 
     async def create_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """
@@ -2264,7 +2264,7 @@ class kraken(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_dict(response, 'result', {})
-        return self.parse_order(result, market)
+        return self.parse_order(self.extend({}, result), market)
 
     async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """

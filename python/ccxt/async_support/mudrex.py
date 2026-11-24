@@ -676,7 +676,7 @@ class mudrex(Exchange, ImplicitAPI):
                 riskRequest['stoploss_price'] = self.price_to_precision(symbol, stopLossPrice)
             riskResponse = await self.privatePostFuturesPositionsPositionIdRiskorder(self.extend(riskRequest, paramsOmitted))
             riskData = self.safe_dict(riskResponse, 'data', riskResponse)
-            return self.parse_order(riskData, market)
+            return self.parse_order(self.extend({}, riskData), market)
         lev = self.safe_integer(params, 'leverage', 1)
         if (type == 'market') and (price is None):
             raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for market orders')
@@ -737,7 +737,7 @@ class mudrex(Exchange, ImplicitAPI):
             request['order_price'] = self.price_to_precision(symbol, price)
         response = await self.privatePatchFuturesOrdersOrderId(self.extend(request, params))
         data = self.safe_dict(response, 'data', response)
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     def parse_order_status(self, status: Str) -> Str:
         statuses = {
@@ -838,7 +838,7 @@ class mudrex(Exchange, ImplicitAPI):
         }
         response = await self.privateDeleteFuturesOrdersOrderId(self.extend(request, params))
         data = self.safe_dict(response, 'data', response)
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -861,7 +861,7 @@ class mudrex(Exchange, ImplicitAPI):
         }
         response = await self.privateGetFuturesOrdersOrderId(self.extend(request, params))
         data = self.safe_dict(response, 'data', response)
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     async def fetch_orders_by_state(self, state: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -1101,11 +1101,11 @@ class mudrex(Exchange, ImplicitAPI):
             partialParams = self.omit(params, ['order_type', 'limit_price', 'amount', 'position_id'])
             partialResponse = await self.privatePostFuturesPositionsPositionIdClosePartial(self.extend(request, partialParams))
             partialData = self.safe_dict(partialResponse, 'data', partialResponse)
-            return self.parse_order(partialData, market)
+            return self.parse_order(self.extend({}, partialData), market)
         closeParams = self.omit(params, ['position_id'])
         response = await self.privatePostFuturesPositionsPositionIdClose(self.extend(request, closeParams))
         data = self.safe_dict(response, 'data', response)
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     async def add_margin(self, symbol: str, amount: float, params: dict = {}) -> MarginModification:
         """

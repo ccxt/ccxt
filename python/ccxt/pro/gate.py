@@ -1382,10 +1382,11 @@ class gate(ccxt.async_support.gate):
         marketType, marketQuery = self.handle_market_type_and_params('watchPositions', market, params)
         query = marketQuery
         type = marketType
-        messageHash = marketType + ':positions'
+        messageHash = 'swap:positions'
+        if (marketType is not None) and (marketType != 'spot'):
+            messageHash = marketType + ':positions'
         if marketType == 'spot':
             type = 'swap'
-            messageHash = 'swap:positions'
         typeId = self.get_supported_mapping(type, {
             'future': 'futures',
             'swap': 'futures',

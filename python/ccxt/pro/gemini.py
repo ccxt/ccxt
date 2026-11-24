@@ -719,7 +719,7 @@ class gemini(ccxt.async_support.gemini):
             self.orders = ArrayCacheBySymbolById(limit)
         orders = self.orders
         for i in range(0, len(message)):
-            order = self.parse_ws_order(self.safe_value(message, i))
+            order = self.parse_ws_order(self.safe_dict(message, i, {}))
             orders.append(order)
         client.resolve(self.orders, messageHash)
 

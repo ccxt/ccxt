@@ -2706,7 +2706,7 @@ class xt(Exchange, ImplicitAPI):
         #         "result": "206410760006650176"
         #     }
         #
-        return self.parse_order(response, market)
+        return self.parse_order(self.extend({}, response), market)
 
     async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """

@@ -2063,7 +2063,7 @@ class poloniex(Exchange, ImplicitAPI):
         #         "clientOrderId" : ""
         #     }
         #
-        return self.parse_order(response, market)
+        return self.parse_order(self.extend({}, response), market)
 
     def create_orders(self, orders: list[OrderRequest], params: dict = {}):
         """
@@ -2271,7 +2271,7 @@ class poloniex(Exchange, ImplicitAPI):
             'side': side,
             'type': type,
         })
-        return self.parse_order(response, market)
+        return self.parse_order(self.extend({}, response), market)
 
     def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         #
@@ -2325,7 +2325,7 @@ class poloniex(Exchange, ImplicitAPI):
         #       "message":""
         #   }
         #
-        return self.parse_order(response)
+        return self.parse_order(self.extend({}, response))
 
     def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}):
         """
@@ -2506,7 +2506,7 @@ class poloniex(Exchange, ImplicitAPI):
         #         "updateTime": 1646196019020
         #     }
         #
-        order = self.parse_order(response)
+        order = self.parse_order(self.extend({}, response))
         order['id'] = idValue
         return order
 

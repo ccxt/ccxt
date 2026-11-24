@@ -1054,7 +1054,7 @@ class paradex(Exchange, ImplicitAPI):
         loadedFees = self.filter_loaded_summaries(fees)
         result = {}
         for i in range(0, len(loadedFees)):
-            fee = self.parse_trading_fee(loadedFees[i])
+            fee = self.parse_trading_fee(self.extend({}, loadedFees[i]))
             symbol = self.safe_string(fee, 'symbol')
             result[symbol] = fee
         return result
@@ -2238,7 +2238,7 @@ class paradex(Exchange, ImplicitAPI):
         for i in range(0, len(orders)):
             responseOrder = self.safe_dict(responseOrders, i)
             if responseOrder is not None:
-                result.append(self.parse_order(responseOrder))
+                result.append(self.parse_order(self.extend({}, responseOrder)))
             else:
                 error = self.safe_dict(errors, i)
                 result.append(self.safe_order({

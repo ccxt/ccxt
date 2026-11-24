@@ -939,7 +939,7 @@ class poloniex(ccxt.async_support.poloniex):
         orders = self.orders
         marketIds = []
         for i in range(0, len(data)):
-            order = self.safe_dict(data, i)
+            order = self.safe_dict(data, i, {})
             marketId = self.safe_string(order, 'symbol')
             eventType = self.safe_string(order, 'eventType')
             if marketId is not None:
@@ -1011,7 +1011,7 @@ class poloniex(ccxt.async_support.poloniex):
         client.resolve(orders, 'orders')
         return message
 
-    def parse_ws_order(self, order: object, market: Market = None):
+    def parse_ws_order(self, order: dict, market: Market = None):
         #
         #    {
         #        "symbol": "BTC_USDT",

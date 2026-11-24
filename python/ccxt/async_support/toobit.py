@@ -1751,7 +1751,7 @@ class toobit(Exchange, ImplicitAPI):
         #         "priceType": "INPUT"                   // only in contract
         #     }
         #
-        return self.parse_order(response, market)
+        return self.parse_order(self.extend({}, response), market)
 
     def create_order_request(self, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params: dict = {}) -> list:
         if type is None:
@@ -2006,7 +2006,7 @@ class toobit(Exchange, ImplicitAPI):
         status = self.parse_order_status(self.safe_string(response, 'status'))
         if status != 'open':
             raise OrderNotFound(self.id + ' order ' + id + ' can not be canceled, ' + self.json(response))
-        return self.parse_order(response, market)
+        return self.parse_order(self.extend({}, response), market)
 
     async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -2149,7 +2149,7 @@ class toobit(Exchange, ImplicitAPI):
         #        "priceType": "INPUT"                 // only in CONTRACT
         #    }
         #
-        return self.parse_order(response, market)
+        return self.parse_order(self.extend({}, response), market)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """

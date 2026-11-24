@@ -1418,7 +1418,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         orderStatusResponse = await self.publicPostInfo(self.extend(request, paramsValue))
         orderStatus = self.info_dict(orderStatusResponse)
         orderWrapper = self.safe_dict(orderStatus, 'order', orderStatus)
-        parsed = self.parse_prediction_order(orderWrapper, None)
+        parsed = self.parse_prediction_order(self.extend({}, orderWrapper), None)
         if outcome is not None:
             await self.load_outcome(outcome)
             outcomeObj = self.outcome(outcome)

@@ -10278,7 +10278,7 @@ class binance(Exchange, ImplicitAPI):
             data = self.safe_dict(data, 0, {})
         if data is None:
             raise NullResponse(self.id + ' parseTradingFee() returned empty response')
-        return self.parse_trading_fee(data, market)
+        return self.parse_trading_fee(self.extend({}, data), market)
 
     async def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
@@ -10374,7 +10374,7 @@ class binance(Exchange, ImplicitAPI):
                 raise NullResponse(self.id + ' method() returned empty response')
             fees = self.to_array(response)
             for i in range(0, len(fees)):
-                fee = self.parse_trading_fee(fees[i])
+                fee = self.parse_trading_fee(self.extend({}, fees[i]))
                 symbol = self.safe_string(fee, 'symbol')
                 if symbol is not None:
                     spotFees[symbol] = fee

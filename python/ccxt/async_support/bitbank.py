@@ -782,7 +782,7 @@ class bitbank(Exchange, ImplicitAPI):
             request['price'] = self.price_to_precision(symbol, price)
         response = await self.privatePostUserSpotOrder(self.extend(request, params))
         data = self.safe_dict(response, 'data')
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -871,7 +871,7 @@ class bitbank(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_dict(response, 'data')
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """

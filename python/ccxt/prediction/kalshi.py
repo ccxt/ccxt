@@ -726,7 +726,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         #         }
         #     }
         #
-        raw = self.safe_dict(response, 'market', response)
+        raw = self.extend({}, self.safe_dict(response, 'market', response))
         return self.parse_prediction_ticker(raw, outcomeObj)
 
     async def fetch_status(self, params: dict = {}) -> object:
@@ -969,7 +969,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
             response = await self.kalshiPublicGetMarkets(self.extend(request, params))
             rawMarkets = self.safe_list(response, 'markets', [])
             for i in range(0, len(rawMarkets)):
-                raw = rawMarkets[i]
+                raw = self.safe_dict(rawMarkets, i, {})
                 marketTicker = self.safe_string(raw, 'ticker')
                 if (marketTicker is None) or not (marketTicker in outcomesByTicker):
                     continue
@@ -1707,7 +1707,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         if outcome is not None:
             await self.load_outcome(outcome)
         response = await self.kalshiPrivateGetPortfolioOrdersOrderId(self.extend({'order_id': id}, params))
-        return self.parse_prediction_order(self.safe_dict(response, 'order', response))
+        return self.parse_prediction_order(self.extend({}, self.safe_dict(response, 'order', response)))
 
     def parse_prediction_order(self, order: dict, market: Market = None) -> PredictionOrder:
         """
@@ -1928,7 +1928,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         response = await self.kalshiPrivateDeletePortfolioEventsOrdersOrderId(self.extend({'order_id': id}, params))
         # the delete response is minimal (no ticker/action/id/status): pass the resolved outcome so
         # the parser can fill outcome/outcomeId/market/label, then backfill the id and canceled status
-        order = self.parse_prediction_order(self.safe_dict(response, 'order', response), outcomeObj)
+        order = self.parse_prediction_order(self.extend({}, self.safe_dict(response, 'order', response)), outcomeObj)
         if self.safe_string(order, 'id') is None:
             order['id'] = id
         if self.safe_string(order, 'status') is None:
@@ -1959,13 +1959,12 @@ class kalshi(PredictionExchange, ImplicitAPI):
         restingOrdersLength = len(restingOrders)
         canceledOrders = []
         for i in range(0, restingOrdersLength):
-            restingOrder = restingOrders[i]
-            orderId = self.safe_string(restingOrder, 'order_id')
+            orderId = self.safe_string(restingOrders[i], 'order_id')
             if orderId is not None:
                 await self.kalshiPrivateDeletePortfolioEventsOrdersOrderId(self.extend({'order_id': orderId}, params))
                 # the DELETE body is minimal — parse the already-fetched resting order instead, which
                 # carries the true side/outcome/price/count, then mark it canceled
-                parsed = self.parse_prediction_order(restingOrder)
+                parsed = self.parse_prediction_order(self.safe_dict(restingOrders, i, {}))
                 parsed['status'] = 'canceled'
                 canceledOrders.append(parsed)
         return canceledOrders

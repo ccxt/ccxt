@@ -965,7 +965,7 @@ class lighter(Exchange, ImplicitAPI):
         #     "predicted_execution_time_ms": 1766088500120
         # }
         #
-        return self.parse_order(self.deep_extend(response, order), market)
+        return self.parse_order(self.extend({}, self.deep_extend(response, order)), market)
 
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """

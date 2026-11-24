@@ -1521,7 +1521,7 @@ class bingx(ccxt.async_support.bingx):
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
         stored = self.orders
-        parsedOrder = self.parse_order(data)
+        parsedOrder = self.parse_order(self.extend({}, data))
         if not isSpot:
             # The envelope T is the order update time; o.T is the trade time.
             updateTimestamp = self.safe_integer(message, 'T')

@@ -726,7 +726,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             if stored is None:
                 stored = ArrayCache(tradesLimit)
                 self.trades[symbol] = stored
-            trades = self.parse_ws_trades(data[marketId], market)
+            trades = self.parse_ws_trades(self.safe_list(data, marketId, []), market)
             for j in range(0, len(trades)):
                 stored.append(trades[j])
             messageHash = 'trades::' + symbol
@@ -1377,7 +1377,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             parsedOrders = []
             rowsLength = len(rows)
             for i in range(0, rowsLength):
-                parsedOrder = self.parse_ws_order(rows[i])
+                parsedOrder = self.parse_ws_order(self.safe_dict(rows, i, {}))
                 parsedOrders.append(parsedOrder)
             client.resolve(parsedOrders, messageHash)
         return message

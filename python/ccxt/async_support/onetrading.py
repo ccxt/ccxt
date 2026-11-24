@@ -1489,7 +1489,7 @@ class onetrading(Exchange, ImplicitAPI):
         #
         # responds with an empty body
         #
-        return self.parse_order(response)
+        return self.parse_order(self.extend({}, response))
 
     async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """

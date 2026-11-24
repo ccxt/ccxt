@@ -2281,7 +2281,7 @@ class ndax(Exchange, ImplicitAPI):
         #    ]"
         #
         if isinstance(response, str):
-            return self.parse_transactions(json.loads(response), currency, since, limit)
+            return self.parse_transactions(self.to_array(json.loads(response)), currency, since, limit)
         return self.parse_transactions(response, currency, since, limit)
 
     def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:

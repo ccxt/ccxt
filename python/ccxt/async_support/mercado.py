@@ -629,7 +629,7 @@ class mercado(Exchange, ImplicitAPI):
         #
         responseData = self.safe_dict(response, 'response_data', {})
         order = self.safe_dict(responseData, 'order', {})
-        return self.parse_order(order, market)
+        return self.parse_order(self.extend({}, order), market)
 
     def parse_order_status(self, status: Str) -> Str:
         statuses = {
@@ -730,7 +730,7 @@ class mercado(Exchange, ImplicitAPI):
         response = await self.privatePostGetOrder(self.extend(request, params))
         responseData = self.safe_dict(response, 'response_data', {})
         order = self.safe_dict(responseData, 'order')
-        return self.parse_order(order, market)
+        return self.parse_order(self.extend({}, order), market)
 
     async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:
         """

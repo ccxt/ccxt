@@ -1684,7 +1684,7 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
             await self.load_markets()
         symbolsResolved = self.market_symbols(symbols)
         result = await self.request_ws('private/get_positions', paramsResolved, True)
-        positions = self.parse_positions(result)
+        positions = self.parse_positions(self.to_array(result))
         return self.filter_by_array_positions(positions, 'symbol', symbolsResolved)
 
     async def set_heartbeat(self, interval: Int = 30, params: dict = {}):

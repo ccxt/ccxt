@@ -5552,12 +5552,13 @@ class BaseExchange(object):
         if self.has['fetchTradingLimits'] is not None and self.has['fetchTradingLimits'] is not False:
             if reload or not ('limitsLoaded' in self.options):
                 response = self.fetch_trading_limits(symbols)
-                symbolsArray = self.require_value(symbols, 'loadTradingLimits() requires a symbols argument')
+                if symbols is None:
+                    raise ArgumentsRequired(self.id + ' loadTradingLimits() requires a symbols argument')
                 markets = self.markets
                 if markets is None:
                     raise ExchangeError(self.id + ' markets not loaded')
-                for i in range(0, len(symbolsArray)):
-                    symbol = symbolsArray[i]
+                for i in range(0, len(symbols)):
+                    symbol = symbols[i]
                     markets[symbol] = self.deep_extend(markets[symbol], response[symbol])
                 self.options['limitsLoaded'] = self.milliseconds()
         return self.markets

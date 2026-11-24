@@ -2759,7 +2759,7 @@ class mexc(Exchange, ImplicitAPI):
             #     }
             #
             data = self.safe_dict(response, 'data', {})
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -3257,7 +3257,7 @@ class mexc(Exchange, ImplicitAPI):
             errorMsg = self.safe_string(data, 'errorMsg', '')
             if errorMsg != 'success':
                 raise InvalidOrder(self.id + ' cancelOrder() the order with id ' + id + ' cannot be cancelled: ' + errorMsg)
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """

@@ -2430,7 +2430,7 @@ class sxbet(PredictionExchange, ImplicitAPI):
         for i in range(0, rowsLength):
             rawRow = rows[i]
             row = self.safe_dict(rawRow, 'order', rawRow)
-            order = self.parse_prediction_order(row)
+            order = self.parse_prediction_order(self.extend({}, row))
             if self.orders is None:
                 cacheLimit = self.safe_integer(self.options, 'ordersLimit', 1000)
                 self.orders = ArrayCacheByOutcomeById(cacheLimit)

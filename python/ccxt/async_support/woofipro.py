@@ -2274,7 +2274,7 @@ class woofipro(Exchange, ImplicitAPI):
         parsedOrders = self.safe_dict(response, 'data', response)
         if parsedOrders is None:
             parsedOrders = {}
-        return self.parse_order(parsedOrders, market)
+        return self.parse_order(self.extend({}, parsedOrders), market)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """

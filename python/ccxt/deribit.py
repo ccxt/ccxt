@@ -2001,7 +2001,7 @@ class deribit(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_dict(response, 'result', {})
-        return self.parse_order(result, market)
+        return self.parse_order(self.extend({}, result), market)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
@@ -2222,7 +2222,7 @@ class deribit(Exchange, ImplicitAPI):
         }
         response = self.privateGetCancel(self.extend(request, params))
         result = self.safe_dict(response, 'result', {})
-        return self.parse_order(result)
+        return self.parse_order(self.extend({}, result))
 
     def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """

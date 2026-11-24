@@ -2626,7 +2626,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         responses = await asyncio.gather(*promises)
         for i in range(0, len(marketKeys)):
             key = marketKeys[i]
-            response = responses[i]
+            response = self.safe_dict(responses, i, {})
             grouped = outcomesByMarket[key]
             for j in range(0, len(grouped)):
                 outcomeObj = grouped[j]
@@ -2803,7 +2803,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         result = []
         rawQuestionsLength = len(rawQuestions)
         for i in range(0, rawQuestionsLength):
-            ev = self.parse_event(self.safe_dict(rawQuestions, i, {}))
+            ev = self.parse_event(self.extend({}, rawQuestions[i]))
             evMarkets = self.safe_list(ev, 'markets', [])
             evMarketsLength = len(evMarkets)
             filteredMarkets = []

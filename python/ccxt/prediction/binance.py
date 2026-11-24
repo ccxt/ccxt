@@ -805,7 +805,7 @@ class binance(PredictionExchange, ImplicitAPI):
                 }
                 response = await self.sapiPrivateGetOrderBookLastTradePrice(self.extend(request, params))
                 responsesByMarketId[marketId] = response
-            ticker = self.parse_prediction_ticker(response, outcomeObj)
+            ticker = self.parse_prediction_ticker(self.extend({}, response), outcomeObj)
             symbolKey = self.safe_string(ticker, 'outcome', outcomes[i])
             result[symbolKey] = ticker
         return result

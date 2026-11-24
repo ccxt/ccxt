@@ -1281,7 +1281,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
             result.append(market)
         return result
 
-    def fetch_sec_with_details(self, plainEntries: dict):
+    def fetch_sec_with_details(self, plainEntries: dict) -> list:
         detailIds = list(plainEntries.keys())
         entries = []
         numDetails = len(detailIds)
@@ -1496,10 +1496,9 @@ class interactivebrokers(Exchange, ImplicitAPI):
         allowedVenues = ['CME', 'CFE', 'COINDERIV']
         detailMarkets = []
         for i in range(0, len(details)):
-            detail = details[i]
-            venue = self.safe_string(detail, 'listingExchange')
+            venue = self.safe_string(details[i], 'listingExchange')
             if self.in_array(venue, allowedVenues):
-                detailMarkets.append(detail)
+                detailMarkets.append(self.safe_dict(details, i))
         markets = self.parse_markets(detailMarkets)
         withSwaps = self.in_array('swap', types)
         withFutures = self.in_array('future', types)
@@ -1550,10 +1549,9 @@ class interactivebrokers(Exchange, ImplicitAPI):
         for i in range(0, len(cfdExchanges)):
             cfdExchange = self.safe_string(cfdExchanges, i, '')
             for j in range(0, detailMarketsLength):
-                detail = detailMarkets[j]
-                listingExchange = self.safe_string(detail, 'listingExchange', '')
+                listingExchange = self.safe_string(detailMarkets[j], 'listingExchange', '')
                 if listingExchange == cfdExchange:
-                    result.append(detail)
+                    result.append(self.safe_dict(detailMarkets, j))
         return self.parse_markets(result)
 
     def fetch_bond_markets(self, params: dict = {}) -> list[Market]:
@@ -2807,7 +2805,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
         #
         #     { "msg": "Request was submitted", "order_id": 123456789, "conid": 265598, "account": "U1234567" }
         #
-        return self.parse_order(response, market)
+        return self.parse_order(self.extend({}, response), market)
 
     def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -2862,7 +2860,7 @@ class interactivebrokers(Exchange, ImplicitAPI):
                 raise InvalidOrder(message)
         if response is None:
             raise NullResponse(self.id + ' fetchOrder() returned empty response')
-        return self.parse_order(response, market)
+        return self.parse_order(self.extend({}, response), market)
 
     def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """

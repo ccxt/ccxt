@@ -3736,7 +3736,7 @@ class htx(Exchange, ImplicitAPI):
         order = self.safe_dict(response, 'data')
         if order is None:
             order = self.safe_dict(self.safe_list(response, 'data', []), 0, {})
-        return self.parse_order(order, market)
+        return self.parse_order(self.extend({}, order), market)
 
     def parse_margin_balance_helper(self, balance: dict, code: str, result: dict) -> dict:
         account = self.account()
@@ -5281,7 +5281,7 @@ class htx(Exchange, ImplicitAPI):
                 result = self.safe_dict(response, 'data', {})
             if result is None:
                 raise NullResponse(self.id + ' parseOrder() returned empty response')
-            return self.extend(self.parse_order(result, market), {
+            return self.extend(self.parse_order(self.extend({}, result), market), {
                 'type': type,
                 'side': side,
                 'price': price,
@@ -5297,7 +5297,7 @@ class htx(Exchange, ImplicitAPI):
             result = self.safe_dict(response, 'data', {})
         if result is None:
             raise NullResponse(self.id + ' parseOrder() returned empty response')
-        return self.parse_order(result, market)
+        return self.parse_order(self.extend({}, result), market)
 
     async def create_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """

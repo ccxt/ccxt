@@ -2870,7 +2870,7 @@ class phemex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_dict(response, 'data', {})
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
@@ -2936,7 +2936,7 @@ class phemex(Exchange, ImplicitAPI):
         else:
             response = await self.privatePutSpotOrders(self.extend(request, paramsOmitted3))
         data = self.safe_dict(response, 'data', {})
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -2976,7 +2976,7 @@ class phemex(Exchange, ImplicitAPI):
         else:
             response = await self.privateDeleteSpotOrders(self.extend(request, paramsOmitted))
         data = self.safe_dict(response, 'data', {})
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """

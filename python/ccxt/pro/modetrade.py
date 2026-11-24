@@ -881,7 +881,7 @@ class modetrade(ccxt.async_support.modetrade):
         #         }
         #     }
         #
-        topic = self.safe_string(message, 'topic')
+        topic = self.safe_string(message, 'topic', '')
         data = self.safe_value(message, 'data')
         dataIsArray = isinstance(data, list)
         if dataIsArray:
@@ -901,9 +901,10 @@ class modetrade(ccxt.async_support.modetrade):
             tradeId = None if (tradeIdStr is None) else self.omit_zero(tradeIdStr)
             if tradeId is not None:
                 self.handle_my_trade(client, data)
-            self.handle_order(client, data, topic)
+            dataDict = self.safe_dict(message, 'data', {})
+            self.handle_order(client, dataDict, topic)
 
-    def handle_order(self, client: Client, message: dict, topic: Str):
+    def handle_order(self, client: Client, message: dict, topic: str):
         parsed = self.parse_ws_order(message)
         symbol = self.safe_string(parsed, 'symbol')
         orderId = self.safe_string(parsed, 'id')

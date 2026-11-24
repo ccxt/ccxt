@@ -1874,7 +1874,7 @@ class kucoin(ccxt.async_support.kucoin):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_ws_order(self, order: object, market: Market = None):
+    def parse_ws_order(self, order: dict, market: Market = None):
         #
         # /spotMarket/tradeOrders
         #
@@ -2080,7 +2080,7 @@ class kucoin(ccxt.async_support.kucoin):
         #        "type": "open"
         #    }
         #
-        data = self.safe_dict(message, 'data')
+        data = self.safe_dict(message, 'data', {})
         tradeId = self.safe_string(data, 'tradeId')
         if tradeId is not None:
             self.handle_my_trade(client, message)

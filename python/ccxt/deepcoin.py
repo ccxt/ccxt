@@ -1467,7 +1467,7 @@ class deepcoin(Exchange, ImplicitAPI):
             #
             response = self.privatePostDeepcoinTradeOrder(request)
         data = self.safe_dict(response, 'data', {})
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     def create_order_request(self, symbol: Str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params: dict = {}) -> dict:
         """
@@ -1780,7 +1780,7 @@ class deepcoin(Exchange, ImplicitAPI):
         #
         data = self.safe_list(response, 'data', [])
         entry = self.safe_dict(data, 0, {})
-        return self.parse_order(entry, market)
+        return self.parse_order(self.extend({}, entry), market)
 
     def fetch_open_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
@@ -1808,7 +1808,7 @@ class deepcoin(Exchange, ImplicitAPI):
         if length == 0:
             raise OrderNotFound(self.id + ' fetchOpenOrder() could not find order id ' + id)
         entry = self.safe_dict(data, 0, {})
-        return self.parse_order(entry, market)
+        return self.parse_order(self.extend({}, entry), market)
 
     def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
@@ -2113,7 +2113,7 @@ class deepcoin(Exchange, ImplicitAPI):
         else:
             response = self.privatePostDeepcoinTradeCancelOrder(self.extend(request, params))
         data = self.safe_dict(response, 'data', {})
-        return self.parse_order(data, market)
+        return self.parse_order(self.extend({}, data), market)
 
     def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
@@ -2206,7 +2206,7 @@ class deepcoin(Exchange, ImplicitAPI):
                     request['volume'] = self.number_to_string(amount)
             response = self.privatePostDeepcoinTradeReplaceOrder(self.extend(request, params))
         data = self.safe_dict(response, 'data', {})
-        return self.parse_order(data)
+        return self.parse_order(self.extend({}, data))
 
     def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """

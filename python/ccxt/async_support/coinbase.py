@@ -3453,7 +3453,7 @@ class coinbase(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return self.parse_order(response, market)
+        return self.parse_order(self.extend({}, response), market)
 
     async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
