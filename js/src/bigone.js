@@ -619,7 +619,7 @@ export default class bigone extends Exchange {
         const promises = [this.publicGetAssetPairs(params), this.contractPublicGetSymbols(params)];
         const promisesResult = await Promise.all(promises);
         const response = this.safeDict(promisesResult, 0);
-        const contractResponse = this.safeValue(promisesResult, 1);
+        const contractMarkets = this.safeList(promisesResult, 1, []);
         //
         //     {
         //         "code":0,
@@ -736,7 +736,6 @@ export default class bigone extends Exchange {
                 'info': market,
             }));
         }
-        const contractMarkets = this.toArray(contractResponse);
         for (let i = 0; i < contractMarkets.length; i++) {
             const market = contractMarkets[i];
             const baseId = this.safeString(market, 'baseCurrency');

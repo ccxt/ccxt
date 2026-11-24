@@ -2334,7 +2334,7 @@ class bybit extends bybit$1["default"] {
             info = this.safeList(message, 'data', []);
         }
         for (let i = 0; i < rawBalances.length; i++) {
-            this.parseWsBalance(rawBalances[i], account);
+            this.parseWsBalance(this.safeDict(rawBalances, i, {}), account);
         }
         if (account !== undefined) {
             if (this.safeDict(this.balance, account) === undefined) {

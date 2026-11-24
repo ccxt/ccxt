@@ -3399,11 +3399,8 @@ class cryptocom extends cryptocom$1["default"] {
     paramsToString(object, level) {
         const maxLevel = 3;
         const depth = this.parseToInt(level);
-        if (depth >= maxLevel) {
+        if ((depth >= maxLevel) || (typeof object === 'string')) {
             return object.toString();
-        }
-        if (typeof object === 'string') {
-            return object;
         }
         let returnString = '';
         let paramsKeys = undefined;

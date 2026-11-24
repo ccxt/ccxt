@@ -36,11 +36,7 @@ export default class whitebit extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchTransactionFees(codes?: Strings, params?: Dict): Promise<{
-        withdraw: Dict;
-        deposit: Dict;
-        info: Dict;
-    }>;
+    fetchTransactionFees(codes?: Strings, params?: Dict): Promise<Dict>;
     /**
      * @method
      * @name whitebit#fetchDepositWithdrawFees

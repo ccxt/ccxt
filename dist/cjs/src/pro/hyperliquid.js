@@ -1259,7 +1259,7 @@ class hyperliquid extends hyperliquid$1["default"] {
             this.handlePositions(client, message);
         }
         for (let i = 0; i < rawBalances.length; i++) {
-            this.parseWsBalance(rawBalances[i], account);
+            this.parseWsBalance(this.safeDict(rawBalances, i, {}), account);
         }
         if (!(account in this.balance)) {
             this.balance[account] = {};

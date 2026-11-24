@@ -897,11 +897,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    fetchTransactionFees(codes?: Strings, params?: Dict): Promise<{
-        withdraw: Dict;
-        deposit: {};
-        info: List;
-    }>;
+    fetchTransactionFees(codes?: Strings, params?: Dict): Promise<Dict>;
     /**
      * @method
      * @name binance#fetchDepositWithdrawFees

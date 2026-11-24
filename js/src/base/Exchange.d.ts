@@ -345,7 +345,7 @@ export declare class BaseExchange {
     isBinaryMessage(msg: any): boolean;
     stringToBinary(content: any): Uint8Array;
     binaryToString(binary: any): string;
-    decodeProtoMsg(data: any): any;
+    decodeProtoMsg(data: any): Dict;
     /**
      * @ignore
      * @method
@@ -467,7 +467,7 @@ export declare class BaseExchange {
      *          If the markets are being reloaded, the method waits for the reload to complete before returning the markets.
      *          If an error occurs during the loading or preparation of the markets, the promise is rejected with the error.
      */
-    loadMarkets(reload?: boolean, params?: object): Promise<Dictionary<Market>>;
+    loadMarkets(reload?: boolean, params?: Dict): Promise<Dictionary<Market>>;
     fetchCurrencies(params?: Dict): Promise<Currencies>;
     fetchCurrenciesWs(params?: Dict): Promise<Currencies>;
     fetchMarkets(params?: Dict): Promise<Market[]>;
@@ -714,7 +714,7 @@ export declare class BaseExchange {
     safeCurrencyStructure(currency: Dict): CurrencyInterface;
     safeMarketStructure(market?: NullableDict): Market;
     setMarkets(markets: any, currencies?: any): Dictionary<Market>;
-    setMarketsFromExchange(sourceExchange: any): this;
+    setMarketsFromExchange(sourceExchange: BaseExchange): this;
     getDescribeForExtendedWsExchange(currentRestInstance: any, parentRestInstance: any, wsBaseDescribe: Dictionary<any>): any;
     safeBalance(balance: Dict): Balances;
     safeOrder(order: Dict, market?: Market): Order;

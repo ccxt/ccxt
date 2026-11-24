@@ -618,7 +618,7 @@ class bigone extends bigone$1["default"] {
         const promises = [this.publicGetAssetPairs(params), this.contractPublicGetSymbols(params)];
         const promisesResult = await Promise.all(promises);
         const response = this.safeDict(promisesResult, 0);
-        const contractResponse = this.safeValue(promisesResult, 1);
+        const contractMarkets = this.safeList(promisesResult, 1, []);
         //
         //     {
         //         "code":0,
@@ -735,7 +735,6 @@ class bigone extends bigone$1["default"] {
                 'info': market,
             }));
         }
-        const contractMarkets = this.toArray(contractResponse);
         for (let i = 0; i < contractMarkets.length; i++) {
             const market = contractMarkets[i];
             const baseId = this.safeString(market, 'baseCurrency');

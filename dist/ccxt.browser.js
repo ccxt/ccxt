@@ -200102,7 +200102,7 @@ class bigone extends _abstract_bigone_js__rspack_import_0/* ["default"] */.A {
         ];
         const promisesResult = await Promise.all(promises);
         const response = this.safeDict(promisesResult, 0);
-        const contractResponse = this.safeValue(promisesResult, 1);
+        const contractMarkets = this.safeList(promisesResult, 1, []);
         //
         //     {
         //         "code":0,
@@ -200219,7 +200219,6 @@ class bigone extends _abstract_bigone_js__rspack_import_0/* ["default"] */.A {
                 'info': market
             }));
         }
-        const contractMarkets = this.toArray(contractResponse);
         for(let i = 0; i < contractMarkets.length; i++){
             const market = contractMarkets[i];
             const baseId = this.safeString(market, 'baseCurrency');
@@ -215415,16 +215414,19 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
             const position = positions[i];
             const marketId = this.safeString(position, 'symbol');
             const market = this.safeMarket(marketId, undefined, undefined, 'contract');
-            const code = this.safeBool(market, 'linear', false) ? market['quote'] : market['base'];
+            let marginCode = this.safeString(market, 'base', '');
+            if (this.safeBool(market, 'linear', false)) {
+                marginCode = this.safeString(market, 'quote', '');
+            }
             const maintenanceMargin = this.safeString(position, 'maintMargin');
             // check for maintenance margin so empty positions are not returned
             const isPositionOpen = maintenanceMargin !== '0' && maintenanceMargin !== '0.00000000';
             if (!filterClosed || isPositionOpen) {
                 // sometimes not all the codes are correctly returned...
-                if (code in balances) {
+                if (marginCode in balances) {
                     const parsed = this.parseAccountPosition(this.extend(position, {
-                        'crossMargin': this.safeString(balances[code], 'crossMargin'),
-                        'crossWalletBalance': this.safeString(balances[code], 'crossWalletBalance')
+                        'crossMargin': this.safeString(balances[marginCode], 'crossMargin'),
+                        'crossWalletBalance': this.safeString(balances[marginCode], 'crossWalletBalance')
                     }), market);
                     result.push(parsed);
                 }
@@ -216941,7 +216943,10 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const market = symbol === undefined ? undefined : this.market(symbol);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchSettlementHistory', market, params);
         if (type !== 'option') {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchSettlementHistory() supports option markets only');
@@ -216987,7 +216992,10 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const market = symbol === undefined ? undefined : this.market(symbol);
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market(symbol);
+        }
         const [type, paramsMarketType] = this.handleMarketTypeAndParams('fetchMySettlementHistory', market, params);
         if (type !== 'option') {
             throw new _base_errors_js__rspack_import_2.NotSupported(this.id + ' fetchMySettlementHistory() supports option markets only');
@@ -329591,11 +329599,8 @@ class cryptocom extends _abstract_cryptocom_js__rspack_import_0/* ["default"] */
     paramsToString(object, level) {
         const maxLevel = 3;
         const depth = this.parseToInt(level);
-        if (depth >= maxLevel) {
+        if (depth >= maxLevel || typeof object === 'string') {
             return object.toString();
-        }
-        if (typeof object === 'string') {
-            return object;
         }
         let returnString = '';
         let paramsKeys = undefined;
@@ -459781,8 +459786,7 @@ class mudrex extends _abstract_mudrex_js__rspack_import_0/* ["default"] */.A {
         } else {
             response = await this.privateGetFuturesOrders(request);
         }
-        const data = this.safeValue(response, 'data', []);
-        const rows = this.toArray(data);
+        const rows = this.safeList(response, 'data', []);
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -459847,11 +459851,7 @@ class mudrex extends _abstract_mudrex_js__rspack_import_0/* ["default"] */.A {
         }
         const q = {};
         const response = await this.privateGetFuturesPositions(this.extend(q, params));
-        const data = this.safeValue(response, 'data', []);
-        if (data === undefined) {
-            return [];
-        }
-        const rows = this.toArray(data);
+        const rows = this.safeList(response, 'data', []);
         const outPos = [];
         for(let i = 0; i < rows.length; i++){
             const symRaw = this.safeString(rows[i], 'symbol');
@@ -563032,7 +563032,7 @@ class bybit extends _bybit_js__rspack_import_0/* ["default"] */.A {
             info = this.safeList(message, 'data', []);
         }
         for(let i = 0; i < rawBalances.length; i++){
-            this.parseWsBalance(rawBalances[i], account);
+            this.parseWsBalance(this.safeDict(rawBalances, i, {}), account);
         }
         if (account !== undefined) {
             if (this.safeDict(this.balance, account) === undefined) {
@@ -588797,7 +588797,7 @@ class hyperliquid extends _hyperliquid_js__rspack_import_0/* ["default"] */.A {
             this.handlePositions(client, message);
         }
         for(let i = 0; i < rawBalances.length; i++){
-            this.parseWsBalance(rawBalances[i], account);
+            this.parseWsBalance(this.safeDict(rawBalances, i, {}), account);
         }
         if (!(account in this.balance)) {
             this.balance[account] = {};
@@ -602591,7 +602591,7 @@ class mexc extends _mexc_js__rspack_import_0/* ["default"] */.A {
             market = this.safeMarket(this.symbol(this.safeString(message, 'symbol')));
             const data = this.safeDict(message, 'publicSpotKline', {});
             const timeframeId = this.safeString(data, 'interval');
-            timeframe = this.findTimeframe(timeframeId, this.options['timeframes']);
+            timeframe = this.findTimeframe(timeframeId, this.safeDict(this.options, 'timeframes'));
             parsed = this.parseWsOHLCV(data, market);
         } else {
             const d = this.safeDict2(message, 'd', 'data', {});
