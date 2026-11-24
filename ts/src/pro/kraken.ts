@@ -813,7 +813,7 @@ export default class kraken extends krakenRest {
         const symbolsNormalized: string[] = this.marketSymbols (symbols, undefined, false, true, false);
         const unsubMessageHashes: string[] = [];
         for (let i = 0; i < symbolsNormalized.length; i++) {
-            unsubMessageHashes.push ('unsubscribe:' + this.getMessageHash ('trade', undefined, symbolsNormalized[i]));
+            unsubMessageHashes.push ('unsubscribe:' + this.getMessageHash ('trade', undefined, this.symbol (symbolsNormalized[i])));
         }
         const request: Dict = {
             'method': 'unsubscribe',
