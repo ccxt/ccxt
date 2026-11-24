@@ -17250,6 +17250,8 @@ export const SIGNATURE_ARG_TYPES = {
     'parseFundingRate': { 0: 'IDictionary<string, object>' },
     // `timeframes: NullableDict` on the base and the onetrading override; no body writes it, every caller passes a dictionary or nothing
     'findTimeframe': { 1: 'IDictionary<string, object>' },
+    // venue handleBidAsks (bookSide: OrderBookSide): every caller hands an IBids / IAsks side
+    'handleBidAsks': { 0: 'ccxt.pro.IOrderBookSide' },
 };
 
 // parse* cores whose `market: Market` parameter prints `IDictionary<string, object>` on every

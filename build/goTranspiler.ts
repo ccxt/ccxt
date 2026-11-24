@@ -7256,6 +7256,8 @@ const GO_UNIFIED_SLICE_PARAMS: { [method: string]: { [index: number]: string } }
     'handleDeltas': { 0: 'IOrderBookSide', 1: '[]any' },
     // the book side every caller hands over (`orderbook['asks']` / the forwarded side); IDerivedExchange declares it
     'handleDelta': { 0: 'IOrderBookSide' },
+    // venue handleBidAsks (bookSide: OrderBookSide): every caller hands `book['asks'|'bids']` or a local bound to one
+    'handleBidAsks': { 0: 'IOrderBookSide' },
     // row-list params every ts/src caller hands a `[]any` (literals, typed locals); the typed wrapper keeps
     // its annotated slice and converts it (Convert*ToArray), so the core never sees a [][]string / struct slice
     'cancelOrdersForSymbols': { 0: '[]map[string]any' }, 'editOrders': { 0: '[]map[string]any' },

@@ -8,6 +8,7 @@ import type { Int, Str, OrderBook, Order, Trade, Dict, NullableDict, Market, Fun
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
+import type { OrderBookSide } from '../base/ws/OrderBookSide.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -199,7 +200,7 @@ export default class bitstamp extends bitstampRest {
         this.handleBidAsks (orderbook['asks'], asks);
     }
 
-    handleBidAsks (bookSide: any, bidAsks: any[]) {
+    handleBidAsks (bookSide: OrderBookSide, bidAsks: any[]) {
         for (let i = 0; i < bidAsks.length; i++) {
             const bidAsk = this.parseOrderBookBidAsk (bidAsks[i]);
             bookSide.storeArray (bidAsk);

@@ -27570,6 +27570,7 @@ const JAVA_ORDERBOOK_PARAM_SLOT_TYPE = 'io.github.ccxt.ws.WsOrderBook';
 const JAVA_BOOKSIDE_PARAM_SLOTS = {
     'handleDelta': [ 0 ],
     'handleDeltas': [ 0 ],
+    'handleBidAsks': [ 0 ],
 };
 const JAVA_BOOKSIDE_PARAM_SLOT_TYPE = 'io.github.ccxt.ws.OrderBookSide';
 // per-file dictionary slots: the declaration overrides nothing and its only caller hands a Dict local
@@ -27822,7 +27823,9 @@ export function installJavaListParamSlots (transpiler) {
         if (slot === JAVA_BOOKSIDE_PARAM_SLOT_TYPE && slot === type) {
             const declaration = ts.isIdentifier (arg) ? printer.javaDeclarationOfIdentifier (arg) : undefined;
             const forwarded = declaration !== undefined && declaration.kind === ts.SyntaxKind.Parameter && printer.javaNativeParameterType (declaration) === slot;
-            if (!forwarded && !javaBookSideFieldRead (printer, arg)) {
+            // a local the printer already declares as the side class (`storedBids = orderbook['bids']`)
+            const declaredSide = ts.isIdentifier (arg) && String (printer.javaDeclaredTypeOf (arg) ?? '').replace (/^final\s+/, '').trim () === slot;
+            if (!forwarded && !declaredSide && !javaBookSideFieldRead (printer, arg)) {
                 throw new Error (`java param slot: argument ${arg.getText ()} is not a WsOrderBook side or a forwarded ${slot}`);
             }
             return true;

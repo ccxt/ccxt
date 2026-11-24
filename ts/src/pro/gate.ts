@@ -9,6 +9,7 @@ import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV
 import Client from '../base/ws/Client.js';
 import { Precise } from '../base/Precise.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
+import type { OrderBookSide } from '../base/ws/OrderBookSide.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -749,7 +750,7 @@ export default class gate extends gateRest {
         return cache.length;
     }
 
-    handleBidAsks (bookSide: any, bidAsks: any[]) {
+    handleBidAsks (bookSide: OrderBookSide, bidAsks: any[]) {
         for (let i = 0; i < bidAsks.length; i++) {
             const bidAsk = bidAsks[i];
             if (Array.isArray (bidAsk)) {

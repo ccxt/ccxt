@@ -8,6 +8,7 @@ import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../ba
 import Client from '../base/ws/Client.js';
 import { eddsa } from '../base/functions/crypto.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
+import type { OrderBookSide } from '../base/ws/OrderBookSide.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1207,7 +1208,7 @@ export default class backpack extends backpackRest {
         this.handleBidAsks (storedAsks, asks);
     }
 
-    handleBidAsks (bookSide: any, bidAsks: any[]) {
+    handleBidAsks (bookSide: OrderBookSide, bidAsks: any[]) {
         for (let i = 0; i < bidAsks.length; i++) {
             const bidAsk = this.parseOrderBookBidAsk (bidAsks[i]);
             bookSide.storeArray (bidAsk);

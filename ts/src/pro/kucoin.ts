@@ -8,6 +8,7 @@ import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../ba
 import type { Balances, Bool, Dict, FundingRate, Int, Market, NullableDict, FeeString, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import type { WsOrderBook } from '../base/ws/OrderBook.js';
+import type { OrderBookSide } from '../base/ws/OrderBookSide.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1856,7 +1857,7 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    handleBidAsks (bookSide: any, bidAsks: any[]) {
+    handleBidAsks (bookSide: OrderBookSide, bidAsks: any[]) {
         for (let i = 0; i < bidAsks.length; i++) {
             const bidAsk = this.parseOrderBookBidAsk (bidAsks[i]);
             bookSide.storeArray (bidAsk);
