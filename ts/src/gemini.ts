@@ -2159,12 +2159,12 @@ export default class gemini extends Exchange {
     /**
      * @method
      * @name gemini#fetchOHLCV
-     * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://docs.gemini.com/rest-api/#candles
+     * @description fetches OHLCV candles from Gemini's latest window; older windows cannot be requested or paginated
+     * @see https://developer.gemini.com/trading/rest-api/market-data/list-candles
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
-     * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {int} [since] inclusive timestamp in ms for local filtering; a date before the window does not retrieve older candles
+     * @param {int} [limit] maximum number of candles to return; the first matching candles if since is set, otherwise the most recent ones
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
