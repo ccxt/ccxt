@@ -1810,6 +1810,8 @@ const IDENTIFIER_COPY_SKIPPED_ALIASES = [ 'limitVar', 'symbolVar', 'timeframeVar
 // of the `object` overload's IList branch (null -> 0). Definitions: cs/ccxt/base/*.cs.
 const IDENTIFIER_COPY_IDENTITY_CALLEES = [ 'currency', 'networkIdToCode', 'safeCurrencyCode', 'safeOutcome', 'safeOutcomeSymbol', 'filterByValueSinceLimit', 'getArrayLength', 'resolve' ];
 // `resolve`: ws/Client.cs `resolve(object content, object messageHash2)` and ws/Future.cs `resolve(object data)`
+// ws/Exchange.WsBridge.cs `watch` / `watch<T>`: every position `object`, the only definitions in cs/**
+const IDENTIFIER_COPY_OBJECT_CALLEES = [ 'watch' ];
 
 // Box-identical widening edges a write may cross: `List<object>` implements `IList<object>`, and
 // `string?` is the same C# type as `string` (a CS86xx warning is all the annotation adds).
@@ -4191,6 +4193,11 @@ class NewTranspiler {
             if (callee !== null && IDENTIFIER_COPY_IDENTITY_CALLEES.indexOf (callee[0].split ('.').pop () as string) !== -1) {
                 return 'read';
             }
+            // `this.watch<T>(...)`: blank the type argument in place so the callee walk keeps its offsets
+            const generic = this.coreArgShadowCallee (line.replace (/<T>\(/g, '   ('), at);
+            if (generic !== null && generic[0].startsWith ('this.') && IDENTIFIER_COPY_OBJECT_CALLEES.indexOf (generic[0].slice (5)) !== -1) {
+                return 'read';
+            }
         }
         // `<other> = alias;` where `other` is a local the body declares with a type the copy's
         // own type converts to implicitly: the assignment stores the same reference / box the
@@ -4204,6 +4211,72 @@ class NewTranspiler {
             }
         }
         return '';
+    }
+
+    // A native `+` chain with a string-literal operand at its top level (or in a parenthesised
+    // operand that is itself such a chain): C# types the whole chain `string`. Any other top-level
+    // operator, or a chain with no literal, is left unproven.
+    identifierCopyStringConcatIsTyped (rhs: string): boolean {
+        let text = rhs.trim ();
+        while (text.startsWith ('(') && this.identifierCopyGroupEnd (text, 0) === text.length - 1) {
+            text = text.slice (1, -1).trim ();
+        }
+        const operands: string[] = [];
+        let depth = 0;
+        let start = 0;
+        let i = 0;
+        while (i < text.length) {
+            const ch = text[i];
+            if (ch === '"' || ch === '\'') {
+                i = this.coreArgShadowSkipLiteral (text, i);
+                continue;
+            }
+            if (ch === '(' || ch === '[' || ch === '{') {
+                depth += 1;
+            } else if (ch === ')' || ch === ']' || ch === '}') {
+                depth -= 1;
+            } else if (depth === 0) {
+                if (ch === '+') {
+                    if (text[i + 1] === '+' || text[i + 1] === '=') {
+                        return false;
+                    }
+                    operands.push (text.slice (start, i).trim ());
+                    start = i + 1;
+                } else if ('?:=<>!&|-'.indexOf (ch) !== -1) {
+                    return false;
+                }
+            }
+            i += 1;
+        }
+        operands.push (text.slice (start).trim ());
+        if (operands.length < 2 || operands.some ((operand) => operand === '')) {
+            return false;
+        }
+        return operands.some ((operand) => /^"(?:[^"\\]|\\.)*"$/.test (operand)
+            || (operand.startsWith ('(') && this.identifierCopyStringConcatIsTyped (operand)));
+    }
+
+    // index of the `)` closing the `(` at `open` (string literals skipped), or -1
+    identifierCopyGroupEnd (text: string, open: number): number {
+        let depth = 0;
+        let i = open;
+        while (i < text.length) {
+            const ch = text[i];
+            if (ch === '"' || ch === '\'') {
+                i = this.coreArgShadowSkipLiteral (text, i);
+                continue;
+            }
+            if (ch === '(') {
+                depth += 1;
+            } else if (ch === ')') {
+                depth -= 1;
+                if (depth === 0) {
+                    return i;
+                }
+            }
+            i += 1;
+        }
+        return -1;
     }
 
     // One arm of a conditional write: a string literal, or a local the method declares with the
@@ -4228,6 +4301,14 @@ class NewTranspiler {
             // `(x as String).PadLeft (...)`: string
             if (/^this\.safeOutcomeSymbol\s*\(/.test (rhs) || /^\w+\.ToString\s*\(\s*\)$/.test (rhs)
                 || /^\(\w+ as String\)\.PadLeft\s*\(/.test (rhs)) {
+                return true;
+            }
+            // a literal-led native concat is `string`; `flag ? "a" : "b"` as the conditional below
+            if (this.identifierCopyStringConcatIsTyped (rhs)) {
+                return true;
+            }
+            const flagArms = /^\w+\s*\?\s*(\S+)\s*:\s*(\S+)$/.exec (rhs);
+            if (flagArms !== null && this.identifierCopyStringArmIsTyped (flagArms[1], declared) && this.identifierCopyStringArmIsTyped (flagArms[2], declared)) {
                 return true;
             }
             // `(cond) ? "a" : "b"` / `(cond) ? strLocal : strLocal2`: the conditional's value is
