@@ -1660,6 +1660,7 @@ edit a trade order
 [bitget](/exchanges/bitget.md#editorder)
 [bitstamp](/exchanges/bitstamp.md#editorder)
 [bitvavo](/exchanges/bitvavo.md#editorder)
+[blofin](/exchanges/blofin.md#editorder)
 [btse](/exchanges/btse.md#editorder)
 [bullish](/exchanges/bullish.md#editorder)
 [bybit](/exchanges/bybit.md#editorder)

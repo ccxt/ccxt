@@ -189,6 +189,22 @@ export default class blofin extends Exchange {
     createOrders(orders: OrderRequest[], params?: Dict): Promise<Order[]>;
     /**
      * @method
+     * @name blofin#editOrder
+     * @description edit a trade order
+     * @see https://docs.blofin.com/index.html#amend-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    editOrder(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: Dict): Promise<Order>;
+    /**
+     * @method
      * @name blofin#fetchOrder
      * @description fetches information on an order made by the user
      * @see https://docs.blofin.com/index.html#get-order-detail

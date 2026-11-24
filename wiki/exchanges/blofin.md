@@ -18,6 +18,7 @@
 * [createOrder](#createorder)
 * [cancelOrder](#cancelorder)
 * [createOrders](#createorders)
+* [editOrder](#editorder)
 * [fetchOrder](#fetchorder)
 * [fetchOpenOrders](#fetchopenorders)
 * [fetchMyTrades](#fetchmytrades)
@@ -382,6 +383,33 @@ create a list of trade orders
 
 ```javascript
 blofin.createOrders (orders, params?)
+```
+
+
+<a name="editOrder" id="editorder"></a>
+
+### editOrder{docsify-ignore}
+edit a trade order
+
+**Kind**: instance method of [<code>blofin</code>](#blofin)  
+**Returns**: <code>object</code> - an [order structure](https://docs.ccxt.com/?id=order-structure)
+
+**See**: https://docs.blofin.com/index.html#amend-order  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| id | <code>string</code> | Yes | order id |
+| symbol | <code>string</code> | Yes | unified symbol of the market the order was made in |
+| type | <code>string</code> | Yes | 'market' or 'limit' |
+| side | <code>string</code> | Yes | 'buy' or 'sell' |
+| amount | <code>float</code> | No | how much of the currency you want to trade in units of the base currency |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.clientOrderId | <code>string</code> | No | client order id, used instead of the id argument |
+
+
+```javascript
+blofin.editOrder (id, symbol, type, side, amount?, price?, params?)
 ```
 
 

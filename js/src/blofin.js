@@ -52,7 +52,7 @@ export default class blofin extends Exchange {
                 'createStopOrder': false,
                 'createTakeProfitOrder': true,
                 'createTriggerOrder': true,
-                'editOrder': false,
+                'editOrder': true,
                 'fetchAccounts': false,
                 'fetchBalance': true,
                 'fetchBidsAsks': undefined,
@@ -1802,6 +1802,60 @@ export default class blofin extends Exchange {
         const response = await this.privatePostTradeBatchOrders(ordersRequests);
         const data = this.safeList(response, 'data', []);
         return this.parseOrders(data);
+    }
+    /**
+     * @method
+     * @name blofin#editOrder
+     * @description edit a trade order
+     * @see https://docs.blofin.com/index.html#amend-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    async editOrder(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const request = {
+            'instId': market['id'],
+        };
+        const clientOrderId = this.safeString(params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientOrderId'] = clientOrderId;
+        }
+        else {
+            request['orderId'] = id;
+        }
+        if (amount !== undefined) {
+            request['newSize'] = this.amountToPrecision(symbol, amount);
+        }
+        if (price !== undefined) {
+            request['newPrice'] = this.priceToPrecision(symbol, price);
+        }
+        const response = await this.privatePostTradeAmendOrder(this.extend(request, this.omit(params, 'clientOrderId')));
+        //
+        //     {
+        //         "code": "0",
+        //         "msg": "Order modified",
+        //         "data": {
+        //             "orderId": "6000004088576",
+        //             "clientOrderId": "",
+        //             "requestId": "",
+        //             "msg": "Order modified",
+        //             "code": "0",
+        //             "ts": "1795184228537"
+        //         }
+        //     }
+        //
+        const data = this.safeDict(response, 'data', {});
+        return this.parseOrder(data, market);
     }
     /**
      * @method
