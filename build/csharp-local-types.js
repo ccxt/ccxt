@@ -253,6 +253,7 @@ export const CORE_STRING_ARGS = {
     'cancelOrderWs': [ 0, 1 ],
     'cancelOrders': [ 1 ],
     'cancelOrdersWithClientOrderIds': [ 1 ],
+    'cancelOrdersRequest': [ 1 ],
     'cancelOrdersWs': [ 1 ],
     'cancelSpotOrder': [ 0, 1 ],
     'cancelTwapOrder': [ 0, 1 ],
