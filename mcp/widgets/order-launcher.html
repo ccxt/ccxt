@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CCXT Order Review</title>
+<style>
+:root{color-scheme:dark;font:14px/1.5 system-ui,sans-serif;color:#fff;background:#030e16}
+body{margin:0;padding:12px}main{border:1px solid #28313c;border-radius:8px;padding:16px;background:#09131b}
+header{display:flex;justify-content:space-between;align-items:start;gap:8px;flex-wrap:wrap}
+h1{font-size:18px;margin:0}
+#network{color:#e7bd5e;border:1px solid #594a2c;border-radius:4px;padding:2px 7px;font-size:12px}
+#network[data-network=mainnet]{color:#fb7477;background:#301b22;border-color:#80332f}
+dl{margin:0 0 12px;border:1px solid #28313c;border-radius:8px}
+dl:empty{display:none}
+dl div{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px;padding:7px 10px}
+dl div+div{border-top:1px solid #202a34}
+dt{color:#a2aab8}dd{margin:0;text-align:right;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+#slippage{color:#e7bd5e;font-size:13px}
+[hidden]{display:none!important}p{color:#a2aab8;margin:6px 0 14px}a{display:inline-block;background:#65c6cc;color:#030e16;padding:7px 12px;border-radius:4px;font-weight:650}
+</style></head><body><main>
+<header><h1 id="title">CCXT order review</h1><span id="network" hidden></span></header>
+<p id="detail" role="status">Waiting for request…</p>
+<dl id="order"></dl>
+<p id="slippage" hidden>Market orders can experience slippage. Your execution price may differ from the price at review.</p>
+<a id="review" target="_blank" rel="noopener noreferrer" hidden>Review &amp; sign</a>
+</main>
+<script>
+const send = (message) => parent.postMessage({jsonrpc:'2.0', ...message}, '*');
+const node = (id) => document.getElementById(id);
+const number = new Intl.NumberFormat(undefined, {maximumSignificantDigits: 21});
+const capitalize = (text) => text[0].toUpperCase() + text.slice(1);
+let initialized = false;
+let observer;
+window.addEventListener('message', (event) => {
+  if (event.source !== parent || event.data?.jsonrpc !== '2.0') return;
+  const message = event.data;
+  if (message.id === 1 && message.result?.protocolVersion && !initialized) {
+    initialized = true;
+    send({method:'ui/notifications/initialized'});
+    observer = new ResizeObserver(([entry]) => send({
+      method:'ui/notifications/size-changed', params:{height:Math.ceil(entry.contentRect.height)},
+    }));
+    observer.observe(document.body);
+  }
+  if (message.method === 'ui/resource-teardown') {
+    observer?.disconnect();
+    send({id:message.id,result:{}});
+    return;
+  }
+  if (message.method !== 'ui/notifications/tool-result') return;
+  const result = message.params?.structuredContent;
+  try {
+    if (!['mainnet', 'testnet'].includes(result?.network)) return;
+    const url = new URL(result.url);
+    const local = url.protocol === 'http:' && ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
+    if ((!local && url.protocol !== 'https:') || url.pathname !== '/order-signing') return;
+    const order = node('order');
+    order.replaceChildren();
+    node('title').textContent = result.title;
+    node('detail').textContent = [capitalize(result.exchange), capitalize(result.market), result.symbol].filter(Boolean).join(' · ');
+    const badge = node('network');
+    badge.dataset.network = result.network;
+    badge.textContent = result.network === 'mainnet' ? 'Mainnet · real funds'
+      : result.exchange === 'binance' && result.market === 'swap' ? 'Demo trading' : 'Testnet';
+    badge.hidden = false;
+    const [base, quote] = (result.symbol ?? '').split(':')[0].split('/');
+    for (const [key, label] of Object.entries({side:'Side',type:'Order type',amount:'Quantity',price:'Limit price',orderId:'Order ID'})) {
+      const value = result[key];
+      if (value == null) continue;
+      const row = document.createElement('div');
+      const term = document.createElement('dt');
+      const detail = document.createElement('dd');
+      term.textContent = label;
+      const unit = key === 'price' ? quote : result.market === 'spot' ? base : '';
+      detail.textContent = typeof value === 'number' ? [number.format(value), unit].filter(Boolean).join(' ')
+        : key === 'side' || key === 'type' ? capitalize(value) : value;
+      row.append(term, detail);
+      order.append(row);
+    }
+    node('slippage').hidden = result.action !== 'browser_create_order' || result.type !== 'market';
+    const link = node('review');
+    link.href = url.href;
+    link.hidden = false;
+  } catch {
+    node('network').hidden = node('review').hidden = node('slippage').hidden = true;
+    node('order').replaceChildren();
+    node('detail').textContent = 'Review link unavailable.';
+  }
+});
+send({id:1,method:'ui/initialize',params:{appInfo:{name:'CCXT Order Review',version:'1.0.0'},appCapabilities:{},protocolVersion:'2026-01-26'}});
+</script></body></html>

@@ -221,3 +221,48 @@ cd mcp && npm run build # tsc + regenerate js/data/method-docs.json
 ```
 
 See `DESIGN.md` for the architecture, the prior-art analysis this server is built on, and the decision log.
+
+
+## Browser-signed mainnet and testnet requests
+
+On loopback, the HTTP server returns by default an inline review widget for creating an order,
+canceling an order, fetching balances, and fetching swap positions. The widget opens
+the dedicated signing page. Exchange credentials are encrypted in localStorage for the
+signing origin. A browser-managed encryption key is stored in IndexedDB. The
+credential popup saves automatically when the user continues. The relay receives the signed HTTP
+request and API key identifier, and returns the exchange HTTP status and body to the
+signing page. The signing secret stays on the device.
+
+Set `CCXT_MCP_BROWSER_TRADING=false` to disable the browser tools and routes.
+
+**The relay token is not required for now.** `/relay-order` accepts any request whose
+`Origin` is the signing origin and whose target is an allowlisted exchange route; the
+server logs a warning about this at startup. The relay never holds a signing secret, so
+it cannot create requests by itself — but without a token anyone who can reach it can use
+it to forward their own signed requests to those routes. Keep it on loopback, or behind a
+reverse proxy that authenticates users. To enforce a token again, set
+`CCXT_MCP_RELAY_REQUIRE_TOKEN=true` and `CCXT_MCP_RELAY_TOKEN` to a random value of at
+least 32 characters: the page then needs the short-lived HttpOnly relay cookie, issued when
+the review link is opened directly on the server's machine or when a proxy forwards the
+token as a Bearer header on `GET /order-signing`.
+
+For an HTTPS deployment, set `CCXT_MCP_SIGNING_ORIGIN` to the external HTTPS origin, use a
+dedicated signing origin, and route `/order-signing`, `/order-signing/*`, and `/relay-order`
+to this process. Restart the server and refresh the plugin connection to discover the
+new tools. Browser credentials are separate for each exchange, network, and market type.
+
+Each browser tool requires an explicit `network` of `mainnet` or `testnet`. Browser
+CCXT builds and signs the request using the selected network. For Binance swaps,
+`testnet` selects Binance Futures Demo Trading. The relay validates the URL and
+method against its Binance and Bybit allowlist and forwards the supplied signed
+request. Both limit and market orders are supported. Spot amounts are in base currency.
+Bybit spot market buys in base currency require a Unified Trading Account. Use credentials from the matching
+exchange and network. If submission is uncertain, check the exchange before retrying.
+
+Each step of the flow writes a `signing` line to the access log, sharing its `requestId`
+with the request's `http` line: the page and its scripts being served (and whether a relay
+session was issued), and every `/relay-order` request with its outcome — `forwarded` (with
+the exchange host and path, the exchange's HTTP status, its error code and message if any,
+and the duration), `refused` (with the reason: wrong origin, missing or wrong relay token,
+route not in the allowlist, duplicate request) or `failed` (timeout or network error). These
+lines never contain header values, query strings, signatures, or request and response bodies.

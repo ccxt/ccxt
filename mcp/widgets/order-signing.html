@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CCXT · Review order</title>
+<style>
+:root {
+  color-scheme: dark;
+  --background: #030e16;
+  --surface: #09131b;
+  --hover: #202a34;
+  --line: #28313c;
+  --white: #fff;
+  --muted: #a2aab8;
+  --accent: #65c6cc;
+  --buy: #60aa6c;
+  --warn: #e7bd5e;
+  font: 14px/1.5 Inter, system-ui, sans-serif;
+  color: var(--white);
+  background: var(--background);
+}
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { width: min(100% - 32px, 560px); margin: clamp(24px, 7vh, 68px) auto; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+header, .order, .credentials, .actions, .receipt { padding: 18px clamp(16px, 5vw, 24px); }
+header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 650; letter-spacing: .04em; }
+.brand svg { width: 18px; height: 18px; color: var(--accent); }
+.network-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.network-switch { display: inline-flex; align-items: center; font-weight: 600; cursor: pointer; }
+.network-switch input { position: absolute; width: 1px; height: 1px; min-height: 0; opacity: 0; }
+.switch-track { position: relative; width: 34px; height: 20px; border: 1px solid #65727e; border-radius: 12px; background: var(--background); }
+.switch-track::before { content: ''; position: absolute; width: 12px; height: 12px; top: 3px; left: 3px; border-radius: 50%; background: var(--muted); }
+.network-switch input:checked + .switch-track { border-color: var(--accent); background: #17353b; }
+.network-switch input:checked + .switch-track::before { transform: translateX(14px); background: var(--accent); }
+.network-switch input:focus-visible + .switch-track { outline: 2px solid var(--accent); outline-offset: 3px; }
+.network-switch input:disabled + .switch-track { opacity: .55; }
+.dialog-network { margin: 0 0 12px; }
+.environment { color: var(--warn); font-size: .82rem; border: 1px solid #594a2c; background: #261f15; border-radius: 4px; padding: 2px 8px; }
+.environment[data-network="mainnet"] { color: #fb7477; border-color: #80332f; background: #301b22; }
+.order { padding-top: 24px; padding-bottom: 24px; }
+.order-details {
+  position: relative; isolation: isolate; overflow: hidden;
+  border: 1px solid var(--line); border-radius: 10px; background: #0c1821;
+}
+.order-details:has(dl:empty) { display: none; }
+.watermark {
+  position: absolute; z-index: -1; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: min(38%, 116px); height: auto; aspect-ratio: 1; color: #20303a; pointer-events: none;
+}
+.order-details dl > div { grid-template-columns: minmax(0, 1fr) minmax(0, 1.35fr); padding: 10px 14px; }
+.order-details dl > div + div { border-top: 1px solid rgb(162 170 184 / .12); }
+.order-details dd { font-weight: 600; overflow-wrap: anywhere; min-width: 0; }
+.sell { color: #fb7477; }
+#status { margin: 0; padding: 14px clamp(16px, 5vw, 24px); border-top: 1px solid var(--line); }
+#status:empty { display: none; }
+h1 { margin: 0; font-size: 1.8rem; letter-spacing: -.025em; line-height: 1.2; }
+h2 { margin: 0 0 10px; font-size: 1rem; }
+.market { margin: 5px 0 14px; color: var(--muted); }
+dl { margin: 0; }
+dl > div { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 12px; padding: 7px 0; }
+dt { color: var(--muted); }
+dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+.buy { color: var(--buy); font-weight: 650; }
+.total { margin-top: 5px; border-top: 1px solid var(--line); font-weight: 650; }
+.total dt { color: var(--white); }
+.credentials, .actions, .receipt { border-top: 1px solid var(--line); }
+.fields { display: grid; gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+label { display: grid; gap: 4px; color: var(--muted); font-size: .86rem; }
+input, button { min-height: 40px; border: 1px solid var(--line); border-radius: 4px; font: inherit; }
+input { width: 100%; padding: 7px 9px; background: #000; color: var(--white); }
+.hint { margin: 10px 0 0; color: var(--muted); font-size: .86rem; }
+.actions { display: flex; justify-content: space-between; gap: 10px; }
+button { background: var(--surface); color: var(--white); padding: 7px 13px; cursor: pointer; }
+button:hover:enabled { background: var(--hover); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+button.primary { background: var(--accent); color: var(--background); border-color: var(--accent); font-weight: 650; }
+button.primary:hover:enabled { background: #91d6da; }
+button:disabled { opacity: .55; cursor: default; }
+dialog {
+  width: min(100% - 32px, 520px); max-height: calc(100% - 32px); padding: 0;
+  border: 1px solid var(--line); border-radius: 20px; background: #111b23; color: var(--white);
+  box-shadow: 0 16px 48px rgb(0 0 0 / .32);
+}
+dialog::backdrop { background: rgb(3 14 22 / .78); }
+dialog .credentials { border-top: 0; padding-top: 24px; padding-bottom: 20px; }
+dialog h2 { display: flex; gap: 8px; align-items: baseline; margin: 0; font-size: 1.3rem; line-height: 1.25; }
+.credential-intro { margin: 8px 0 18px; color: var(--muted); }
+.credential-fields { display: grid; gap: 12px; }
+.credential-fields input { min-height: 50px; padding: 10px 14px; background: var(--background); border-radius: 12px; font-size: 1rem; }
+.credential-fields input::placeholder { color: var(--muted); }
+.credential-privacy { margin: 18px 0 0; color: var(--muted); font-size: .86rem; }
+.credential-privacy strong { color: var(--accent); }
+#credential-status:empty { display: none; }
+dialog .actions { display: grid; grid-template-columns: minmax(0, 1fr); padding-top: 0; border-top: 0; gap: 8px; }
+dialog .actions button { width: 100%; min-height: 48px; border-radius: 12px; text-align: center; font-weight: 650; }
+#dismiss { color: var(--accent); border-color: var(--accent); background: transparent; }
+#dismiss:hover:enabled { background: var(--hover); }
+.slippage-warning { margin: 0; padding: 0 clamp(16px, 5vw, 24px) 16px; color: var(--warn); }
+.receipt p { margin: 0 0 10px; }
+[hidden] { display: none !important; }
+@media (max-width: 380px) { .fields { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" aria-hidden="true" style="position:absolute">
+  <symbol id="ccxt-logo" viewBox="0 0 389 389">
+  <path d="M166.67 0H0.0102539V166.66H166.67V111.11H55.5603V55.55H166.67V0Z" fill="currentColor" />
+  <path d="M388.89 0H222.23V166.66H388.89V111.11H277.78V55.55H388.89V0Z" fill="currentColor" />
+  <path
+    d="M55.56 277.77C55.5 259.27 55.61 240.71 55.56 222.21H0V277.77C18.5 277.82 37.06 277.71 55.56 277.77C55.62 296.26 55.62 314.83 55.56 333.33C37.06 333.39 18.5 333.28 0 333.33V388.89H55.56C55.61 370.39 55.5 351.83 55.56 333.33C74.05 333.27 92.62 333.27 111.12 333.33C111.18 351.83 111.07 370.39 111.12 388.89H166.68V333.33C148.18 333.28 129.62 333.39 111.12 333.33C111.06 314.84 111.06 296.27 111.12 277.77C129.62 277.71 148.18 277.82 166.68 277.77V222.21H111.12C111.07 240.71 111.18 259.27 111.12 277.77C92.63 277.83 74.06 277.83 55.56 277.77Z"
+    fill="currentColor" />
+  <path d="M388.89 222.22H222.23V277.77H277.78V388.88H333.34V277.77H388.89V222.22Z" fill="currentColor" />
+  </symbol>
+</svg>
+<main class="panel">
+  <header>
+    <div class="brand"><svg aria-hidden="true"><use href="#ccxt-logo"></use></svg>CCXT</div>
+    <div class="network-controls">
+      <label class="network-switch"><input id="review-testnet" type="checkbox" role="switch" disabled><span class="switch-track" aria-hidden="true"></span>Testnet</label>
+      <span class="environment" id="environment"></span>
+    </div>
+  </header>
+  <section class="order" aria-labelledby="title">
+    <h1 id="title">Review order</h1>
+    <p class="market" id="market"></p>
+    <div class="order-details">
+      <svg class="watermark" aria-hidden="true"><use href="#ccxt-logo"></use></svg>
+      <dl id="intent"></dl>
+    </div>
+  </section>
+  <form id="form" hidden>
+    <section class="credentials" aria-labelledby="credentials-label">
+      <h2 id="credentials-label">Exchange credentials</h2>
+      <div id="saved" hidden>
+        <p id="saved-label"></p>
+        <button id="remove" type="button">Remove saved credentials</button>
+      </div>
+      <button id="add" type="button">Add credentials</button>
+      <p class="hint">Credentials are saved on this browser. The signing secret stays on this device.</p>
+    </section>
+    <div class="actions">
+      <button id="cancel" type="button">Cancel</button>
+      <button id="submit" class="primary" type="submit">Sign &amp; submit</button>
+    </div>
+  </form>
+  <p class="slippage-warning" id="slippage-warning" hidden>Market orders may suffer slippage. The execution price can differ from the price shown when you review the order.</p>
+  <dialog id="credentials-dialog" aria-labelledby="dialog-title" aria-describedby="credential-intro">
+    <form id="credentials-form">
+      <section class="credentials">
+        <h2 id="dialog-title"><span aria-hidden="true">🔑</span><span id="dialog-title-text">Exchange API keys needed</span></h2>
+        <p class="credential-intro" id="credential-intro"></p>
+        <div class="dialog-network"><label class="network-switch"><input id="credentials-testnet" type="checkbox" role="switch" disabled><span class="switch-track" aria-hidden="true"></span>Testnet</label></div>
+        <div class="credential-fields">
+          <input id="api-key" aria-label="API key" placeholder="API key" maxlength="1024" autocomplete="off" spellcheck="false" required autofocus>
+          <input id="secret" aria-label="API secret" placeholder="API secret" maxlength="8192" type="password" autocomplete="off" required>
+        </div>
+        <p class="credential-privacy"><span aria-hidden="true">🔒</span> <strong>Your signing secret stays on this device.</strong>
+          Credentials are saved encrypted in this browser. CCXT signs locally and sends the API key identifier and signed request to the relay.</p>
+        <p class="hint" id="credential-status" role="status"></p>
+      </section>
+      <div class="actions">
+        <button id="continue" class="primary" type="submit">Save &amp; continue</button>
+        <button id="dismiss" type="button">Cancel</button>
+      </div>
+    </form>
+  </dialog>
+  <dialog id="request-error" aria-labelledby="request-error-title" aria-describedby="request-error-detail">
+    <section class="credentials">
+      <h2 id="request-error-title">Request failed</h2>
+      <p class="credential-intro" id="request-error-code" hidden></p>
+      <p id="request-error-detail" style="overflow-wrap:anywhere"></p>
+      <p class="hint" id="request-error-next" hidden>Check the exchange for this order before submitting again.</p>
+    </section>
+    <form class="actions" method="dialog">
+      <button class="primary" autofocus>Close</button>
+    </form>
+  </dialog>
+  <section class="receipt" id="receipt" hidden aria-labelledby="result-title">
+    <h2 id="result-title" tabindex="-1">Exchange result</h2>
+    <dl id="result-rows"></dl>
+  </section>
+  <p class="hint" id="status" role="status"></p>
+</main>
+<script src="/order-signing/ccxt.js" defer></script>
+<script src="/order-signing/app.js" defer></script>
+</body>
+</html>

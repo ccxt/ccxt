@@ -5,6 +5,7 @@ import path from 'path';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import { createServer, createSharedState, type CreateServerOptions, type SharedState } from './factory.js';
 import { HOSTED_SERVER_INSTRUCTIONS } from './tools/index.js';
+import { createBrowserTradingRoute, registerBrowserTrading, type BrowserTradingOptions, type SigningLogRecord } from './browser-trading.js';
 import { log } from './logging.js';
 import type { PoolsDeps } from './pools.js';
 import type { ResolvedConfig } from './types.js';
@@ -38,6 +39,7 @@ export interface HostedOptions {
     ccxtModule: any;
     poolsDeps: PoolsDeps;
     version: string;
+    browserTrading?: BrowserTradingOptions;
     path?: string; // MCP endpoint path, default /mcp
     allowedHosts?: string[]; // when set, requests whose Host header is not listed are refused
     router?: any; // tests inject a fake router
@@ -54,7 +56,7 @@ export interface HostedOptions {
 // resources/read or the read_market_widget tool), with the file's path on disk. All three
 // are tied together by requestId. Of a call's arguments only the targeted symbol(s) are logged; results never are.
 export interface AccessLogEntry {
-    event: 'http' | 'html' | 'call';
+    event: 'http' | 'html' | 'call' | 'signing';
     requestId: string;
     ip: string | undefined;
     ms: number;
@@ -72,6 +74,7 @@ export interface AccessLogEntry {
     via?: 'resource' | 'tool';
     served?: string[]; // http: paths of the html files this request served, if any
     symbols?: string[]; // http + call: the symbol(s) the tool call targets, e.g. ["BTC/USDT"]
+    signing?: SigningLogRecord; // signing: one step of the browser signing flow (page served, relay outcome)
 }
 
 // what the access log records about a request body; filled in once the body is parsed
@@ -197,6 +200,11 @@ export function createHostedApp (options: HostedOptions): HostedApp {
         }
     };
 
+    const browserRoute = options.browserTrading && createBrowserTradingRoute (options.browserTrading, readBody, (signing) => {
+        // same requestId as the request's http line, so the two can be joined
+        const context = requestContext.getStore ();
+        emit ({ 'event': 'signing', 'requestId': context?.requestId ?? '', 'ip': context?.ip, 'ms': signing.upstreamMs ?? 0, signing });
+    });
     const handleMcp = async (req: http.IncomingMessage, res: http.ServerResponse, info: RpcInfo): Promise<void> => {
         // the body is read here (not by the transport) so the access log can name the
         // JSON-RPC method; that makes the size cap and the parse error ours to enforce
@@ -218,6 +226,7 @@ export function createHostedApp (options: HostedOptions): HostedApp {
         }
         describeRpc (body, info);
         const { server } = createServer ({ ...serverOptions, shared });
+        if (options.browserTrading) registerBrowserTrading (server, options.browserTrading);
         const transport = new StreamableHTTPServerTransport ({
             'sessionIdGenerator': undefined, // stateless
             'enableJsonResponse': true, // plain JSON replies (curl-friendly), no SSE stream
@@ -256,6 +265,10 @@ export function createHostedApp (options: HostedOptions): HostedApp {
     });
 
     const route = (req: http.IncomingMessage, res: http.ServerResponse, url: string, info: RpcInfo): void => {
+        if (browserRoute && [ '/order-signing', '/order-signing/ccxt.js', '/order-signing/app.js', '/relay-order' ].includes (url)) {
+            void browserRoute (req, res, url);
+            return;
+        }
         if (url !== endpoint) {
             rpcError (res, 404, 'not found — the MCP endpoint is ' + endpoint);
             return;

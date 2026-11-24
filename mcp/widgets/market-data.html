@@ -178,12 +178,9 @@ input::placeholder { color: var(--muted); opacity: 1; }
   pointer-events: none;
 }
 .chart-frame > .ccxt-watermark { top: 42%; left: calc((100% - 86px) / 2); }
-.trade-table-frame { position: relative; isolation: isolate; }
 .trade-table-frame > .ccxt-watermark {
   top: calc(50% + 16px);
-  width: min(46%, 176px);
   max-height: max(0px, calc(100% - 36px));
-  color: #28313c;
 }
 .chart-scroll { overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; }
 .chart-track { width: 100%; }
@@ -191,6 +188,40 @@ input::placeholder { color: var(--muted); opacity: 1; }
 .chart-track canvas { position: sticky; left: 0; }
 .chart-axis { width: 100%; border-left: 1px solid var(--grid); }
 output { display: block; min-height: 3em; margin-top: 6px; }
+.order-book-frame, .trade-table-frame {
+  position: relative;
+  isolation: isolate;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.order-book-frame > .ccxt-watermark, .trade-table-frame > .ccxt-watermark { width: clamp(6rem, 42%, 12rem); }
+.order-book-scroll { max-height: 440px; overflow: auto; overscroll-behavior: contain; }
+.order-book-scroll:focus-visible, .trade-table-frame .scroller:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+.order-book, .trade-tape { border-collapse: separate; border-spacing: 0; }
+.order-book th, .order-book td { padding: 5px 8px; text-align: right; }
+.order-book th:first-child, .order-book td:first-child { text-align: left; }
+.order-book thead th { z-index: 1; color: var(--text); background: var(--surface); }
+.order-book td { border-bottom: 0; }
+.order-book .depth-level {
+  background: linear-gradient(to right, var(--depth-fill) var(--depth), transparent var(--depth));
+}
+.order-book .asks {
+  --depth-fill: color-mix(in srgb, var(--down) 28%, transparent);
+  --level-price: var(--down-text);
+}
+.order-book .bids {
+  --depth-fill: color-mix(in srgb, var(--up) 24%, transparent);
+  --level-price: var(--up-text);
+}
+.order-book .depth-level td:first-child { color: var(--level-price); }
+.order-book .depth-level:hover td { background: color-mix(in srgb, var(--text) 6%, transparent); }
+.order-book .book-spread th, .order-book .book-spread td {
+  position: static;
+  background: var(--surface-hover);
+  color: var(--text);
+  border-block: 1px solid var(--line);
+}
 .scroller { max-height: 360px; overflow: auto; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 #result > input {
   margin-bottom: 8px;
@@ -205,13 +236,19 @@ th button { min-height: 24px; border: 0; padding: 0 2px; font-weight: 600; }
 th.numeric, td.numeric { text-align: right; }
 td.positive { color: var(--up-text); }
 td.negative { color: var(--down-text); }
-.trade-tape th, .trade-tape td { padding: 4px 8px; font-size: 12px; border-bottom: 0; }
+.trade-table-frame .scroller { max-height: 440px; border: 0; overscroll-behavior: contain; }
+.trade-tape th, .trade-tape td { padding: 5px 8px; border-bottom: 0; }
+.trade-tape tbody tr:hover { background: color-mix(in srgb, var(--text) 6%, transparent); }
+@media (max-width: 400px) {
+  .trade-tape th, .trade-tape td { padding-inline: 5px; font-size: 12px; }
+}
 .trade-tape th {
+  z-index: 1;
   background: #000;
   color: #fff;
   border-bottom: 1px solid var(--grid);
 }
-.trade-tape th button { background: transparent; font-weight: 400; }
+.trade-tape th button { background: transparent; padding-inline: 0; }
 .trade-tape th button:enabled:hover { background: var(--surface-hover); }
 .trade-tape .trade-time { color: var(--muted); }
 .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
@@ -265,7 +302,6 @@ const tableFields = (record) => Object.fromEntries(Object.entries(record).filter
 const tableColumns = {
   get_trades: [['datetime', 'Time (UTC)'], ['price', 'Price'], ['amount', 'Size'], ['cost', 'Total']],
   get_tickers: [['symbol', 'Market'], ['last', 'Last'], ['percentage', 'Change (24h)'], ['bid', 'Bid'], ['ask', 'Ask'], ['high', 'High'], ['low', 'Low'], ['quoteVolume', 'Quote volume'], ['baseVolume', 'Base volume'], ['datetime', 'Time (UTC)']],
-  get_orderbook: [['side', 'Side'], ['price', 'Price'], ['amount', 'Size']],
   get_funding_rates: [['symbol', 'Market'], ['fundingRate', 'Funding rate'], ['fundingDatetime', 'Funding time (UTC)'], ['nextFundingRate', 'Next rate'], ['nextFundingDatetime', 'Next funding (UTC)'], ['interval', 'Interval'], ['markPrice', 'Mark price'], ['indexPrice', 'Index price']],
   search_markets: [['symbol', 'Market'], ['type', 'Type'], ['active', 'Status'], ['base', 'Base'], ['quote', 'Quote'], ['settle', 'Settlement'], ['maker', 'Maker fee'], ['taker', 'Taker fee'], ['expiry', 'Expiry (UTC)'], ['strike', 'Strike'], ['optionType', 'Option type'], ['id', 'Exchange ID']],
   list_exchanges: [['id', 'Exchange ID'], ['name', 'Exchange'], ['certified', 'Certified'], ['ws', 'WebSocket'], ['prediction', 'Prediction']],
@@ -311,7 +347,8 @@ function render(result) {
   root.replaceChildren();
   const { ok, data, meta, error } = parseEnvelope(result);
   const isOhlcv = meta?.columns?.[0] === 'timestamp' && meta?.columns?.[5] === 'volume';
-  const tool = result._meta?.marketWidget ?? (isOhlcv ? 'get_ohlcv' : undefined);
+  const isOrderBook = Array.isArray(data?.bids) && Array.isArray(data?.asks);
+  const tool = result._meta?.marketWidget ?? (isOhlcv ? 'get_ohlcv' : isOrderBook ? 'get_orderbook' : undefined);
   const market = document.querySelector('#market');
   market.textContent = [meta?.exchange, meta?.symbol ?? data?.symbol, meta?.timeframe].filter(Boolean).join(' · ');
   market.hidden = !market.textContent;
@@ -330,15 +367,16 @@ function render(result) {
       .sort(([left], [right]) => left - right);
     count.textContent = number.format(candles.length) + ' candles';
     if (candles.length) drawChart(candles);
-  } else if (Array.isArray(data) || (Array.isArray(data?.bids) && Array.isArray(data?.asks))) {
-    const rows = Array.isArray(data)
-      ? data.filter((row) => row && typeof row === 'object' && !Array.isArray(row)).map((row) => tableFields({
-        ...row,
-        datetime: row.datetime ?? row.timestamp,
-        fundingDatetime: row.fundingDatetime ?? row.fundingTimestamp,
-        nextFundingDatetime: row.nextFundingDatetime ?? row.nextFundingTimestamp,
-      }))
-      : ['bids', 'asks'].flatMap((side) => data[side].map(([price, amount]) => ({ side, price, amount })));
+  } else if (isOrderBook) {
+    const levels = drawOrderBook(data);
+    count.textContent = number.format(levels) + ' levels';
+  } else if (Array.isArray(data)) {
+    const rows = data.filter((row) => row && typeof row === 'object' && !Array.isArray(row)).map((row) => tableFields({
+      ...row,
+      datetime: row.datetime ?? row.timestamp,
+      fundingDatetime: row.fundingDatetime ?? row.fundingTimestamp,
+      nextFundingDatetime: row.nextFundingDatetime ?? row.nextFundingTimestamp,
+    }));
     count.textContent = number.format(rows.length) + ' records';
     if (rows.length) drawTable(rows, tool, meta?.symbol);
   } else if (!meta?.truncated && data != null) {
@@ -350,6 +388,80 @@ function render(result) {
     notice.className = 'status';
     root.append(notice);
   }
+}
+
+function drawOrderBook(book) {
+  const depthNumber = new Intl.NumberFormat(undefined, { maximumSignificantDigits: 15 });
+  const validLevels = (levels, direction) => levels
+    .filter((level) => Array.isArray(level) && Number.isFinite(level[0]) && Number.isFinite(level[1]) && level[1] > 0)
+    .sort(([a], [b]) => direction * (a - b));
+  const asks = validLevels(book.asks, 1);
+  const bids = validLevels(book.bids, -1);
+  if (!asks.length && !bids.length) return 0;
+  const [base, quote] = (book.symbol ?? '').split(':')[0].split('/');
+  const sizeUnit = book.symbol?.includes(':') ? '' : base;
+  const column = (label, unit) => unit ? label + ' (' + unit + ')' : label;
+  const frame = element('div');
+  frame.className = 'order-book-frame';
+  const scroller = element('div');
+  scroller.className = 'order-book-scroll';
+  scroller.tabIndex = 0;
+  scroller.setAttribute('role', 'region');
+  scroller.setAttribute('aria-label', 'Order book depth');
+  const table = element('table');
+  table.className = 'order-book';
+  const caption = table.createCaption();
+  caption.className = 'visually-hidden';
+  caption.textContent = 'Order book depth. Asks above the spread, bids below.';
+  const headings = table.createTHead().insertRow();
+  for (const label of [column('Price', quote), column('Size', sizeUnit), column('Total', sizeUnit)]) {
+    const heading = element('th', label);
+    heading.scope = 'col';
+    headings.append(heading);
+  }
+  const totalSize = (levels) => levels.reduce((total, [, size]) => total + size, 0);
+  const maxDepth = Math.max(totalSize(asks), totalSize(bids));
+  function appendSide(levels, side) {
+    const body = table.createTBody();
+    body.className = side;
+    body.setAttribute('aria-label', side === 'asks' ? 'Asks' : 'Bids');
+    let total = 0;
+    const rows = levels.map(([price, size]) => {
+      total += size;
+      const row = element('tr');
+      row.className = 'depth-level';
+      row.style.setProperty('--depth', (100 * total / maxDepth) + '%');
+      row.append(...[price, size, total].map((value) => element('td', depthNumber.format(value))));
+      return row;
+    });
+    if (side === 'asks') rows.reverse();
+    body.append(...rows);
+  }
+  appendSide(asks, 'asks');
+  const spread = table.createTBody().insertRow();
+  spread.className = 'book-spread';
+  const label = element('th', 'Spread');
+  label.scope = 'row';
+  spread.append(label);
+  const bestAsk = asks[0]?.[0];
+  const bestBid = bids[0]?.[0];
+  const gap = bestAsk != null && bestBid != null ? bestAsk - bestBid : null;
+  const decimalPlaces = (value) => {
+    const [coefficient, exponent = 0] = String(value).split('e');
+    return Math.max(0, (coefficient.split('.')[1]?.length ?? 0) - Number(exponent));
+  };
+  const gapText = gap == null ? '—' : new Intl.NumberFormat(undefined, {
+    maximumFractionDigits: Math.min(20, Math.max(decimalPlaces(bestAsk), decimalPlaces(bestBid))),
+  }).format(gap);
+  const percent = gap != null && bestAsk > 0 ? rateFormat.format(gap / bestAsk).replace(/^\+/, '') : '—';
+  spread.append(element('td', gapText), element('td', percent));
+  appendSide(bids, 'bids');
+  scroller.append(table);
+  frame.append(document.querySelector('#ccxt-watermark').content.cloneNode(true), scroller);
+  root.append(frame);
+  scroller.scrollTop = spread.getBoundingClientRect().top - scroller.getBoundingClientRect().top
+    - (scroller.clientHeight - spread.offsetHeight) / 2;
+  return asks.length + bids.length;
 }
 
 function drawTable(rows, tool, symbol) {
@@ -370,7 +482,12 @@ function drawTable(rows, tool, symbol) {
   const scroller = element('div');
   scroller.className = 'scroller';
   const table = element('table');
-  if (isTradeTape) table.className = 'trade-tape';
+  if (isTradeTape) {
+    table.className = 'trade-tape';
+    scroller.tabIndex = 0;
+    scroller.setAttribute('role', 'region');
+    scroller.setAttribute('aria-label', 'Recent trades');
+  }
   const headings = table.createTHead().insertRow();
   const body = table.createTBody();
   const controls = element('div');

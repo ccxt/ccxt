@@ -1,7 +1,6 @@
 #!/usr/bin/env node
-// Hosted entry point: public market data over Streamable HTTP. No accounts, no private or
-// write tools, no WebSocket streams. This file must never import loadConfig — the config
-// is built in code (hosted.ts) so no file or env var can give this process a credential.
+// Hosted entry point for public market data and an browser-signed exchange relay.
+// This file never loads exchange credentials or account configuration.
 import { log } from './logging.js';
 import { ccxt, ccxtVersion, exchangeClass, isKnownExchange, allExchangeIds, closestMatches } from './ccxt-loader.js';
 import { createHostedApp } from './hosted.js';
@@ -35,7 +34,25 @@ async function main (): Promise<void> {
     if (allowedHosts === undefined) {
         log ('warning', 'CCXT_MCP_HTTP_ALLOWED_HOSTS is not set — Host headers are not validated; set it to the public hostname(s) of this deployment');
     }
+    let signingOrigin = process.env['CCXT_MCP_SIGNING_ORIGIN'];
+    // The relay token is NOT required for now: /relay-order accepts any request from the signing
+    // origin to an allowlisted exchange route. Set CCXT_MCP_RELAY_REQUIRE_TOKEN=true together
+    // with CCXT_MCP_RELAY_TOKEN to enforce it again.
+    const requireRelayToken = process.env['CCXT_MCP_RELAY_REQUIRE_TOKEN'] === 'true';
+    const relayToken = requireRelayToken ? process.env['CCXT_MCP_RELAY_TOKEN'] : undefined;
+    const browserTradingEnabled = process.env['CCXT_MCP_BROWSER_TRADING'] !== 'false';
+    if (browserTradingEnabled && signingOrigin === undefined && LOOPBACK.includes (host) && port !== 0) {
+        const browserHost = host === '::1' ? '[::1]' : host;
+        signingOrigin = new URL ('http://' + browserHost + ':' + port).origin;
+    }
+    if (requireRelayToken && relayToken === undefined) {
+        throw new Error ('CCXT_MCP_RELAY_REQUIRE_TOKEN=true needs CCXT_MCP_RELAY_TOKEN (at least 32 characters)');
+    }
+    if (browserTradingEnabled && signingOrigin !== undefined && !requireRelayToken) {
+        log ('warning', 'browser signing relay runs WITHOUT a relay token — anyone who can reach ' + signingOrigin + '/relay-order can forward requests to the allowlisted exchange routes');
+    }
     const app = createHostedApp ({
+        'browserTrading': browserTradingEnabled && signingOrigin !== undefined ? { 'origin': signingOrigin, 'token': relayToken } : undefined,
         'ccxtModule': ccxt,
         'poolsDeps': { exchangeClass, isKnownExchange, allExchangeIds, closestMatches },
         'version': packageJson.version,
@@ -74,7 +91,7 @@ async function main (): Promise<void> {
         void shutdown ('http server error', 1);
     });
     app.httpServer.listen (port, host, () => {
-        log ('info', 'ccxt-mcp ' + packageJson.version + ' (ccxt ' + ccxtVersion () + ') hosted public server listening on http://' + host + ':' + port + (process.env['CCXT_MCP_HTTP_PATH'] ?? '/mcp') + ' — public REST tools only, no accounts');
+        log ('info', 'ccxt-mcp ' + packageJson.version + ' (ccxt ' + ccxtVersion () + ') hosted public server listening on http://' + host + ':' + port + (process.env['CCXT_MCP_HTTP_PATH'] ?? '/mcp') + ' — no server-side exchange accounts');
     });
 }
 
