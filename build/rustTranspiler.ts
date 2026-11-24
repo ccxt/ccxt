@@ -5299,7 +5299,21 @@ const RUST_BORROWED_VENUE_ROWS: string[] = [
     'parse_option',
     'parse_isolated_borrow_rate',
     'parse_long_short_ratio',
+    'parse_ws_order_trade',
 ];
+// a venue whose own caller lends a local that is not a `Dict` (a boxed `Value` parameter) keeps the `Value` slot
+function rustBorrowedRowBoxedCaller (content: string, f: string): boolean {
+    const call = new RegExp ('(?<![\\w.:])self\\.' + f + '\\(&?(\\w+)(?:\\.clone\\(\\))?[,)]', 'g');
+    let m: RegExpExecArray | null;
+    while ((m = call.exec (content)) !== null) {
+        const fnAt = Math.max (content.lastIndexOf ('\n    fn ', m.index), content.lastIndexOf ('\n    pub ', m.index));
+        const scope = content.slice (Math.max (fnAt, 0), m.index);
+        const decl = scope.match (new RegExp ('\\blet (?:mut )?' + m[1] + ': ([^=\\n]+?) =', 'g'));
+        const ty = decl === null ? (scope.includes (m[1] + ': &crate::value::Dict') ? 'crate::value::Dict' : '') : decl[decl.length - 1];
+        if (!ty.includes ('crate::value::Dict')) return true;
+    }
+    return false;
+}
 function rustBorrowedParseRows (content: string): string {
     const optFns = [ 'parse_transaction', 'parse_order', 'parse_income', 'parse_account', 'parse_margin_mode', 'parse_ledger_entry', 'parse_position', 'parse_transfer', 'parse_deposit_address', 'parse_leverage', 'parse_borrow_interest' ];
     optFns.push ('parse_prediction_order');
@@ -5308,7 +5322,7 @@ function rustBorrowedParseRows (content: string): string {
     optFns.push ('parse_last_price');
     optFns.push ('parse_funding_rate');
     // an inherent override borrows `Option<&Dict>` too; its `self.X(` callers and dispatch arm in the same file lend
-    const venue = RUST_BORROWED_VENUE_ROWS.filter ((f) => content.includes ('\n    pub fn ' + f + '(&self, '));
+    const venue = RUST_BORROWED_VENUE_ROWS.filter ((f) => content.includes ('\n    pub fn ' + f + '(&self, ') && !rustBorrowedRowBoxedCaller (content, f));
     for (const f of venue) {
         content = content.replace (new RegExp ('(\\n    pub fn ' + f + '\\(&self, (\\w+): )impl Into<crate::Value>(,[^\\n]*\\{\\n        let (?:mut )?\\2: Value = )\\2\\.into\\(\\);', 'g'), '$1Option<&crate::value::Dict>$3$2.into();');
         optFns.push (f);
