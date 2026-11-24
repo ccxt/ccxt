@@ -4482,7 +4482,7 @@ public class BaseExchange {
         return new Pair<>(this.checkOptionBool(methodName, optionName1, option.first()), option.second());
     }
 
-    public Pair<String, java.util.Map<String, Object>> handleMarginModeAndParams(Object methodName, java.util.Map<String, Object> parameters, String defaultValue) {
+    public Pair<String, java.util.Map<String, Object>> handleMarginModeAndParams(String methodName, java.util.Map<String, Object> parameters, String defaultValue) {
         return this.handleOptionStringAndParams(parameters, methodName, "marginMode", defaultValue);
     }
 

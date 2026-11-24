@@ -9046,6 +9046,7 @@ export const JAVA_STRING_PARAM_POSITIONS = {
     'withdraw': [0, 2],
     'withdrawRequest': [0],
     'withdrawWs': [0],
+    'handleMarginModeAndParams': [0],
 };
 
 // Fixed OrderType/OrderSide parameters of the base Exchange / PredictionExchange declarations: the
