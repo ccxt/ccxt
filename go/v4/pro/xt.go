@@ -97,7 +97,8 @@ func (this *Xt) getListenKeyBody(ch chan ccxt.AsyncResult[*string], isContract b
 	if isContract {
 		tradeType = "contract"
 	}
-	var apiUrls map[string]any = this.UrlsApiSections["ws"]
+	var urlsApi map[string]any = this.UrlsApi
+	var apiUrls, _ = urlsApi["ws"].(map[string]any)
 	var url *string = this.SafeString(apiUrls, tradeType)
 	if !isContract {
 		if url != nil {
@@ -299,12 +300,12 @@ func (this *Xt) subscribeBody(ch chan ccxt.AsyncResult[any], name string, access
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams(methodName, market, params)
 	var isContract bool = (typeVar == nil || *typeVar != "spot")
 	var id string = strconv.FormatInt(this.Milliseconds(), 10) + name // call back ID
-	var ternaryStr20822 string = "subscribe"
+	var ternaryStr20922 string = "subscribe"
 	if isContract {
-		ternaryStr20822 = "SUBSCRIBE"
+		ternaryStr20922 = "SUBSCRIBE"
 	}
 	var subscribe map[string]any = map[string]any{
-		"method": ternaryStr20822,
+		"method": ternaryStr20922,
 		"id":     id,
 	}
 	if privateAccess {
@@ -348,7 +349,8 @@ func (this *Xt) subscribeBody(ch chan ccxt.AsyncResult[any], name string, access
 	var subscription map[string]any = map[string]any{
 		"id": id,
 	}
-	var apiUrls map[string]any = this.UrlsApiSections["ws"]
+	var urlsApi map[string]any = this.UrlsApi
+	var apiUrls, _ = urlsApi["ws"].(map[string]any)
 	var url string = *this.SafeString(apiUrls, tradeType, "") + "/" + tail
 
 	r2 := <-this.Watch(url, messageHash, request, messageHash, subscription)
@@ -396,12 +398,12 @@ func (this *Xt) unSubscribeBody(ch chan ccxt.AsyncResult[bool], messageHash stri
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams(methodName, market, params)
 	var isContract bool = (typeVar == nil || *typeVar != "spot")
 	var id string = strconv.FormatInt(this.Milliseconds(), 10) + name // call back ID
-	var ternaryStr26722 string = "unsubscribe"
+	var ternaryStr26922 string = "unsubscribe"
 	if isContract {
-		ternaryStr26722 = "UNSUBSCRIBE"
+		ternaryStr26922 = "UNSUBSCRIBE"
 	}
 	var unsubscribe map[string]any = map[string]any{
-		"method": ternaryStr26722,
+		"method": ternaryStr26922,
 		"id":     id,
 	}
 	if privateAccess {
@@ -439,7 +441,8 @@ func (this *Xt) unSubscribeBody(ch chan ccxt.AsyncResult[bool], messageHash stri
 			tail = "market"
 		}
 	}
-	var apiUrls map[string]any = this.UrlsApiSections["ws"]
+	var urlsApi map[string]any = this.UrlsApi
+	var apiUrls, _ = urlsApi["ws"].(map[string]any)
 	var url string = *this.SafeString(apiUrls, tradeType, "") + "/" + tail
 	var subscription map[string]any = map[string]any{
 		"unsubscribe":      true,
@@ -766,8 +769,8 @@ func (this *Xt) unWatchOHLCVBody(ch chan ccxt.AsyncResult[bool], symbol string, 
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	retRes46615 := r1.Value
-	ch <- ccxt.AsyncResult[bool]{Value: retRes46615}
+	retRes46915 := r1.Value
+	ch <- ccxt.AsyncResult[bool]{Value: retRes46915}
 	return nil
 }
 
@@ -1139,7 +1142,8 @@ func (this *Xt) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], op
 			panic(r.Err)
 		}
 	}
-	var apiUrls map[string]any = this.UrlsApiSections["ws"]
+	var urlsApi map[string]any = this.UrlsApi
+	var apiUrls, _ = urlsApi["ws"].(map[string]any)
 	var url string = *this.SafeString(apiUrls, "contract", "") + "/" + "user"
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client)

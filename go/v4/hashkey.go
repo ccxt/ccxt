@@ -2182,7 +2182,13 @@ func (this *Hashkey) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArg
 		//         }
 		//     ]
 		//
-		var balance map[string]any = this.SafeDictMap(response, 0, map[string]any{})
+		var balance map[string]any
+		if 0 < len(response) {
+			balance, _ = response[0].(map[string]any)
+		}
+		if balance == nil {
+			balance = map[string]any{}
+		}
 
 		ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseSwapBalance(balance))}
 		return nil

@@ -1306,7 +1306,7 @@ func (this *Lighter) unWatchMyTradesBody(ch chan ccxt.AsyncResult[bool], optiona
 	ch <- ccxt.AsyncResult[bool]{Value: r.Value}
 	return nil
 }
-func (this *Lighter) ParseWsLiquidation(liquidation any, optionalArgs ...any) any {
+func (this *Lighter) ParseWsLiquidation(liquidation map[string]any, optionalArgs ...any) any {
 	//
 	//     {
 	//         "trade_id": 526801155,
@@ -1416,7 +1416,14 @@ func (this *Lighter) HandleLiquidation(client ccxt.ClientInterface, message map[
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
 		var iReversed int64 = this.ParseToInt((dataLength - 1) - i)
-		var liquidation any = this.ParseWsLiquidation(ccxt.GetValue(data, iReversed), market)
+		var dataDict98157 map[string]any
+		if iReversed >= 0 && iReversed < int64(len(data)) {
+			dataDict98157, _ = data[iReversed].(map[string]any)
+		}
+		if dataDict98157 == nil {
+			dataDict98157 = map[string]any{}
+		}
+		var liquidation any = this.ParseWsLiquidation(dataDict98157, market)
 		stored.(ccxt.Appender).Append(liquidation)
 	}
 	var messageHash string = this.GetMessageHash("liquidations", symbol)

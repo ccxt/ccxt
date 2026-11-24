@@ -137,24 +137,20 @@ func (this *Luno) HandleTrades(client ccxt.ClientInterface, message map[string]a
 	}
 	var symbol string = *this.SafeString(subscription, "symbol", "")
 	var market map[string]any = this.Market(symbol)
-	var symbolValue *string = ccxt.SafeStringPtr(market["symbol"])
-	var messageHash string = "trades:" + *symbolValue
-	var stored ccxt.WsArrayCache = this.Trades[*symbolValue]
+	var symbolValue string = *this.SafeString(market, "symbol", "")
+	var messageHash string = "trades:" + symbolValue
+	var stored ccxt.WsArrayCache = this.Trades[symbolValue]
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		stored = ccxt.NewArrayCache(limit)
-		if symbolValue != nil {
-			this.Trades[*symbolValue] = stored
-		}
+		this.Trades[symbolValue] = stored
 	}
 	for i := 0; i < len(rawTrades); i++ {
 		var rawTrade, _ = rawTrades[i].(map[string]any)
 		var trade map[string]any = ccxt.TradeToMap(this.ParseTrade(rawTrade, market))
 		stored.Append(trade)
 	}
-	if symbolValue != nil {
-		this.Trades[*symbolValue] = stored
-	}
+	this.Trades[symbolValue] = stored
 	client.Resolve(stored, messageHash)
 }
 func (this *Luno) ParseTrade(trade any, optionalArgs ...any) ccxt.Trade {

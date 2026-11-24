@@ -1917,7 +1917,7 @@ func (this *Revolutx) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
  * @param {object} [market] the market the trade was executed in
  * @returns {object} a [trade structure]{@link https://docs.ccxt.com/?id=trade-structure}
  */
-func (this *Revolutx) ParseMyTrade(trade map[string]any, optionalArgs ...any) any {
+func (this *Revolutx) ParseMyTrade(trade map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var id *string = this.SafeString(trade, "tid")

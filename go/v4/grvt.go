@@ -2048,10 +2048,7 @@ func (this *Grvt) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var transfers any = nil
-		if r1.Value != nil {
-			transfers = TransferEntriesToList(r1.Value)
-		}
+		var transfers []any = TransferEntriesToList(r1.Value)
 		var transactions []any = this.GetListFromObjectValues(this.SafeList(this.FilterTransfersByType(transfers, "deposit", true), 0, []any{}), "info")
 
 		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(transactions, currency, since, limit))}
@@ -2144,10 +2141,7 @@ func (this *Grvt) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], optio
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var transfers any = nil
-		if r2.Value != nil {
-			transfers = TransferEntriesToList(r2.Value)
-		}
+		var transfers []any = TransferEntriesToList(r2.Value)
 		var transactions []any = this.GetListFromObjectValues(this.SafeList(this.FilterTransfersByType(transfers, "withdrawal", true), 0, []any{}), "info")
 
 		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.ParseTransactions(transactions, currency, since, limit))}

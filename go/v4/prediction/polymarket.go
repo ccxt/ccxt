@@ -3118,8 +3118,9 @@ func (this *Polymarket) BuildClobOrderBody(outcome *string, typeVar *string, sid
 	// 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet, default); funder/maker holds the USDC
 	var signatureType *int64 = this.SafeInteger2(params, "signatureType", "signature_type", this.SafeInteger(this.Options, "signatureType", 3))
 	// the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
-	var eoa string = this.EthChecksumAddress(ccxt.SafeStringPtr(this.EthGetAddressFromPrivateKey(this.PrivateKey)))
-	var funder string = this.EthChecksumAddress(this.SafeString2(params, "funder", "maker", this.SafeString(this.Options, "funder", this.WalletAddress)))
+	var eoa string = this.EthChecksumAddress(this.EthGetAddressFromPrivateKey(this.PrivateKey))
+	var funderAddress *string = this.SafeString2(params, "funder", "maker", this.SafeString(this.Options, "funder", this.WalletAddress))
+	var funder string = this.EthChecksumAddress(*funderAddress)
 	// the salt defaults to a strictly-increasing millisecond value and the timestamp to the current time; both can be pinned via params for idempotency
 	var defaultSalt int64 = this.IncrementingNonce() // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
 	var salt *string = this.SafeString(params, "salt", this.NumberToString(defaultSalt))
@@ -3909,7 +3910,7 @@ func (this *Polymarket) ParseEvent(rawEvent map[string]any) map[string]any {
 			parsedTags = append(parsedTags, *tagLabel)
 		}
 	}
-	var literal266628 map[string]any = map[string]any{
+	var literal266728 map[string]any = map[string]any{
 		"id":                    this.SafeString(rawEvent, "id"),
 		"slug":                  slug,
 		"title":                 this.SafeString(rawEvent, "title"),
@@ -3930,11 +3931,11 @@ func (this *Polymarket) ParseEvent(rawEvent map[string]any) map[string]any {
 		"info":                  rawEvent,
 	}
 	if (slug != nil) && (slug == nil || *slug != "") {
-		literal266628["event"] = this.ShortenSlug(slug)
+		literal266728["event"] = this.ShortenSlug(slug)
 	} else {
-		literal266628["event"] = nil
+		literal266728["event"] = nil
 	}
-	return this.Extend(literal266628)
+	return this.Extend(literal266728)
 }
 
 /**
@@ -4058,7 +4059,7 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) map[string]any {
 				panic(ccxt.ArgumentsRequired(this.Id + " " + path + " requires a privateKey"))
 			}
 			// the L1 signer/owner is the EOA behind the privateKey (walletAddress is the proxy/deposit wallet, not the signer)
-			var address any = this.EthChecksumAddress(ccxt.SafeStringPtr(this.EthGetAddressFromPrivateKey(this.PrivateKey)))
+			var address any = this.EthChecksumAddress(this.EthGetAddressFromPrivateKey(this.PrivateKey))
 			var timestamp string = strconv.FormatInt(this.Seconds(), 10)
 			var nonce *int64 = this.SafeInteger(params, "nonce", 0)
 			var l1signature string = this.SignClobAuth(address, timestamp, nonce)
@@ -4078,7 +4079,7 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) map[string]any {
 			// POLY_ADDRESS is the api-key owner = the signer EOA (derived from the privateKey when present)
 			var address any = nil
 			if this.PrivateKey != "" {
-				address = this.EthChecksumAddress(ccxt.SafeStringPtr(this.EthGetAddressFromPrivateKey(this.PrivateKey)))
+				address = this.EthChecksumAddress(this.EthGetAddressFromPrivateKey(this.PrivateKey))
 			} else {
 				address = this.WalletAddress
 			}
@@ -4109,21 +4110,21 @@ func (this *Polymarket) Sign(path string, optionalArgs ...any) map[string]any {
 			})
 		}
 	}
-	var literal285515 map[string]any = map[string]any{
+	var literal285615 map[string]any = map[string]any{
 		"url":     url,
 		"method":  method,
 		"body":    nil,
 		"headers": headersValue,
 	}
 	if bodyValue != nil {
-		literal285515["body"] = *bodyValue
+		literal285615["body"] = *bodyValue
 	}
-	return literal285515
+	return literal285615
 }
 func (this *Polymarket) HashMessage(message any) string {
 	return "0x" + this.HashString(message, ccxt.Keccak, "hex")
 }
-func (this *Polymarket) EthChecksumAddress(address *string) string {
+func (this *Polymarket) EthChecksumAddress(address string) string {
 	// EIP-55 mixed-case checksum; the CLOB compares the order signer to the api-key owner
 	// case-sensitively and stores addresses checksummed, so every address we send must be checksummed
 	var cleaned string = strings.ToLower(this.Remove0xPrefix(address))

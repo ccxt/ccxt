@@ -5701,7 +5701,7 @@ func (this *Okx) cancelOrderBody(ch chan AsyncResult[Order], id string, optional
 	ch <- AsyncResult[Order]{Value: this.ParseOrder(dataDict395532, market)}
 	return nil
 }
-func (this *Okx) ParseIds(ids any) any {
+func (this *Okx) ParseIds(ids any) []string {
 	/**
 	 * @ignore
 	 * @method
@@ -5712,7 +5712,7 @@ func (this *Okx) ParseIds(ids any) any {
 	if (!IsEqual(ids, nil)) && IsString(ids) {
 		return Split(ids, ",")
 	} else {
-		return ids
+		return this.SafeStringList([]any{ids}, []any{0})
 	}
 }
 
@@ -5756,8 +5756,8 @@ func (this *Okx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, op
 	var options, _ = this.Options["cancelOrders"].(map[string]any)
 	var defaultMethod *string = this.SafeString(options, "method", "privatePostTradeCancelBatchOrders")
 	var method *string = this.SafeString(params, "method", defaultMethod)
-	var clientOrderIds any = this.ParseIds(this.SafeValue2(params, "clOrdId", "clientOrderId"))
-	var algoIds any = this.ParseIds(this.SafeValue(params, "algoId"))
+	var clientOrderIds []string = this.ParseIds(this.SafeValue2(params, "clOrdId", "clientOrderId"))
+	var algoIds []string = this.ParseIds(this.SafeValue(params, "algoId"))
 	var trigger *bool = this.SafeBool2(params, "stop", "trigger")
 	var trailing *bool = this.SafeBool(params, "trailing", false)
 	var isTrigger bool = (trigger != nil && *trigger == true)
@@ -5765,31 +5765,33 @@ func (this *Okx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, op
 		methodStr := "privatePostTradeCancelAlgos"
 		method = &methodStr
 	}
-	if IsEqual(clientOrderIds, nil) {
-		var orderIds any = this.ParseIds(ids)
-		if !IsEqual(algoIds, nil) {
-			for i := 0; i < GetArrayLength(algoIds); i++ {
+	if clientOrderIds == nil {
+		var orderIds []string = this.ParseIds(ids)
+		if algoIds != nil {
+			for i := 0; i < len(algoIds); i++ {
 				request = append(request, map[string]any{
 					"algoId": this.SafeString(algoIds, i),
 					"instId": market["id"],
 				})
 			}
 		}
-		for i := 0; i < GetArrayLength(orderIds); i++ {
-			if (trailing != nil && *trailing) || isTrigger {
-				request = append(request, map[string]any{
-					"algoId": this.SafeString(orderIds, i),
-					"instId": market["id"],
-				})
-			} else {
-				request = append(request, map[string]any{
-					"ordId":  this.SafeString(orderIds, i),
-					"instId": market["id"],
-				})
+		if orderIds != nil {
+			for i := 0; i < len(orderIds); i++ {
+				if (trailing != nil && *trailing) || isTrigger {
+					request = append(request, map[string]any{
+						"algoId": this.SafeString(orderIds, i),
+						"instId": market["id"],
+					})
+				} else {
+					request = append(request, map[string]any{
+						"ordId":  this.SafeString(orderIds, i),
+						"instId": market["id"],
+					})
+				}
 			}
 		}
 	} else {
-		for i := 0; i < GetArrayLength(clientOrderIds); i++ {
+		for i := 0; i < len(clientOrderIds); i++ {
 			if (trailing != nil && *trailing) || isTrigger {
 				request = append(request, map[string]any{
 					"instId":      market["id"],
@@ -6332,7 +6334,7 @@ func (this *Okx) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 	if reduceOnlyRaw != nil {
 		reduceOnly = (reduceOnlyRaw != nil && *reduceOnlyRaw == "true")
 	}
-	var literal449431 map[string]any = map[string]any{
+	var literal449631 map[string]any = map[string]any{
 		"info":                order,
 		"id":                  id,
 		"clientOrderId":       clientOrderId,
@@ -6360,12 +6362,12 @@ func (this *Okx) ParseOrder(order map[string]any, optionalArgs ...any) Order {
 		"reduceOnly":          reduceOnly,
 	}
 	if cost != nil {
-		literal449431["cost"] = *cost
+		literal449631["cost"] = *cost
 	}
 	if amount != nil {
-		literal449431["amount"] = *amount
+		literal449631["amount"] = *amount
 	}
-	return this.SafeOrder(literal449431, marketResolved)
+	return this.SafeOrder(literal449631, marketResolved)
 }
 
 /**
@@ -6543,14 +6545,14 @@ func (this *Okx) fetchOrderBody(ch chan AsyncResult[Order], id string, optionalA
 	var data []any
 	data, _ = response["data"].([]any)
 
-	var dataDict467332 map[string]any
+	var dataDict467532 map[string]any
 	if len(data) > 0 {
-		dataDict467332, _ = data[0].(map[string]any)
+		dataDict467532, _ = data[0].(map[string]any)
 	}
-	if dataDict467332 == nil {
-		dataDict467332 = map[string]any{}
+	if dataDict467532 == nil {
+		dataDict467532 = map[string]any{}
 	}
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(dataDict467332, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(dataDict467532, market)}
 	return nil
 }
 
@@ -6602,11 +6604,11 @@ func (this *Okx) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes470019 []any = r1.Value
-		if retRes470019 == nil {
+		var retRes470219 []any = r1.Value
+		if retRes470219 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes470019)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes470219)}
 		}
 		return nil
 	}
@@ -7031,11 +7033,11 @@ func (this *Okx) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes505619 []any = r1.Value
-		if retRes505619 == nil {
+		var retRes505819 []any = r1.Value
+		if retRes505819 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes505619)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes505819)}
 		}
 		return nil
 	}
@@ -7257,11 +7259,11 @@ func (this *Okx) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ..
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes523619 []any = r1.Value
-		if retRes523619 == nil {
+		var retRes523819 []any = r1.Value
+		if retRes523819 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes523619)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes523819)}
 		}
 		return nil
 	}
@@ -7361,11 +7363,11 @@ func (this *Okx) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string, o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes531115 []any = TradesToList(r.Value)
-	if retRes531115 == nil {
+	var retRes531315 []any = TradesToList(r.Value)
+	if retRes531315 == nil {
 		ch <- AsyncResult[[]Trade]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes531115)}
+		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes531315)}
 	}
 	return nil
 }
@@ -7416,11 +7418,11 @@ func (this *Okx) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes533619 []any = r1.Value
-		if retRes533619 == nil {
+		var retRes533819 []any = r1.Value
+		if retRes533819 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes533619)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes533819)}
 		}
 		return nil
 	}
@@ -8009,11 +8011,11 @@ func (this *Okx) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes579719 []any = r1.Value
-		if retRes579719 == nil {
+		var retRes579919 []any = r1.Value
+		if retRes579919 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes579719)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes579919)}
 		}
 		return nil
 	}
@@ -8184,11 +8186,11 @@ func (this *Okx) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes590819 []any = r1.Value
-		if retRes590819 == nil {
+		var retRes591019 []any = r1.Value
+		if retRes591019 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes590819)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes591019)}
 		}
 		return nil
 	}
@@ -8820,11 +8822,11 @@ func (this *Okx) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalArg
 	positions, _ = response["data"].([]any)
 	var result []any = []any{}
 	for i := 0; i < len(positions); i++ {
-		positionsDict642855, _ := positions[i].(map[string]any)
-		if positionsDict642855 == nil {
-			positionsDict642855 = map[string]any{}
+		positionsDict643055, _ := positions[i].(map[string]any)
+		if positionsDict643055 == nil {
+			positionsDict643055 = map[string]any{}
 		}
-		var parsedPosition map[string]any = PositionToMap(this.ParsePosition(positionsDict642855))
+		var parsedPosition map[string]any = PositionToMap(this.ParsePosition(positionsDict643055))
 		result = append(result, parsedPosition)
 	}
 
@@ -8857,11 +8859,11 @@ func (this *Okx) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes644515 []any = PositionsToList(r.Value)
-	if retRes644515 == nil {
+	var retRes644715 []any = PositionsToList(r.Value)
+	if retRes644715 == nil {
 		ch <- AsyncResult[[]Position]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes644515)}
+		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes644715)}
 	}
 	return nil
 }
@@ -9228,7 +9230,7 @@ func (this *Okx) ParseTransfer(transfer map[string]any, optionalArgs ...any) Tra
 	if balanceChange != nil {
 		amount = this.ParseNumber(Precise.StringAbs(balanceChange))
 	}
-	var literal675915 map[string]any = map[string]any{
+	var literal676115 map[string]any = map[string]any{
 		"info":      transfer,
 		"id":        id,
 		"timestamp": timestamp,
@@ -9238,16 +9240,16 @@ func (this *Okx) ParseTransfer(transfer map[string]any, optionalArgs ...any) Tra
 		"status":    this.ParseTransferStatus(this.SafeString(transfer, "state")),
 	}
 	if fromAccountId == nil {
-		literal675915["fromAccount"] = nil
+		literal676115["fromAccount"] = nil
 	} else {
-		literal675915["fromAccount"] = this.SafeString(accountsById, fromAccountId)
+		literal676115["fromAccount"] = this.SafeString(accountsById, fromAccountId)
 	}
 	if toAccountId == nil {
-		literal675915["toAccount"] = nil
+		literal676115["toAccount"] = nil
 	} else {
-		literal675915["toAccount"] = this.SafeString(accountsById, toAccountId)
+		literal676115["toAccount"] = this.SafeString(accountsById, toAccountId)
 	}
-	return TransferEntryFromMap(literal675915)
+	return TransferEntryFromMap(literal676115)
 }
 func (this *Okx) ParseTransferStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
@@ -10567,12 +10569,12 @@ func (this *Okx) modifyMarginHelperBody(ch chan AsyncResult[MarginModification],
 		entry = map[string]any{}
 	}
 	var errorCode *string = this.SafeString(response, "code")
-	var ternaryStr776122 string = "failed"
+	var ternaryStr776322 string = "failed"
 	if errorCode != nil && *errorCode == "0" {
-		ternaryStr776122 = "ok"
+		ternaryStr776322 = "ok"
 	}
 	ch <- AsyncResult[MarginModification]{Value: MarginModificationFromMap(this.Extend(this.ParseMarginModification(entry, market), map[string]any{
-		"status": ternaryStr776122,
+		"status": ternaryStr776322,
 	}))}
 	return nil
 }
@@ -12422,14 +12424,14 @@ func (this *Okx) closePositionBody(ch chan AsyncResult[Order], symbol string, op
 	var data []any
 	data, _ = response["data"].([]any)
 
-	var dataDict912332 map[string]any
+	var dataDict912532 map[string]any
 	if len(data) > 0 {
-		dataDict912332, _ = data[0].(map[string]any)
+		dataDict912532, _ = data[0].(map[string]any)
 	}
-	if dataDict912332 == nil {
-		dataDict912332 = map[string]any{}
+	if dataDict912532 == nil {
+		dataDict912532 = map[string]any{}
 	}
-	ch <- AsyncResult[Order]{Value: this.ParseOrder(dataDict912332, market)}
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(dataDict912532, market)}
 	return nil
 }
 

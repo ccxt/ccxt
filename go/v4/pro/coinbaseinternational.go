@@ -3287,7 +3287,6 @@ func (this *Coinbaseinternational) logoutWsBody(ch chan ccxt.AsyncResult[any], o
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-
 	return nil
 }
 

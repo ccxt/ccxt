@@ -576,7 +576,10 @@ func (this *Mudrex) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opt
 	}
 	var response map[string]any = r1.Value
 	var rows []any = []any{}
-	rows = ArrayTyped(this.SafeList(response, "data", []any{}))
+	rows, _ = response["data"].([]any)
+	if rows == nil {
+		rows = []any{}
+	}
 	var rowsLength int = len(rows)
 	if rowsLength == 0 {
 		rows = ArrayTyped(this.SafeList(this.SafeDict(response, "data", map[string]any{}), "items", []any{}))

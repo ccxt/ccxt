@@ -272,10 +272,10 @@ func (this *Bitstamp) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta a
 	this.HandleBidAsks(orderbook.GetBids(), bids)
 	this.HandleBidAsks(orderbook.GetAsks(), asks)
 }
-func (this *Bitstamp) HandleBidAsks(bookSide any, bidAsks []any) {
+func (this *Bitstamp) HandleBidAsks(bookSide ccxt.IOrderBookSide, bidAsks []any) {
 	for i := 0; i < len(bidAsks); i++ {
 		var bidAsk []any = this.ParseOrderBookBidAsk(bidAsks[i])
-		bookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
+		bookSide.StoreArray(bidAsk)
 	}
 }
 func (this *Bitstamp) GetCacheIndex(orderbook map[string]any, deltas []any) int64 {
@@ -1019,7 +1019,7 @@ func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 	var timestamp *int64 = this.SafeTimestamp(order, "datetime")
 	var marketResolved map[string]any = this.SafeMarket(nil, market)
 	var symbol *string = this.SafeString(marketResolved, "symbol", "")
-	var literal75131 map[string]any = map[string]any{
+	var literal75231 map[string]any = map[string]any{
 		"info":               order,
 		"symbol":             symbol,
 		"id":                 id,
@@ -1044,9 +1044,9 @@ func (this *Bitstamp) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 		"trades":             nil,
 	}
 	if remaining != nil {
-		literal75131["remaining"] = *remaining
+		literal75231["remaining"] = *remaining
 	}
-	return ccxt.OrderToMap(this.SafeOrder(literal75131, marketResolved))
+	return ccxt.OrderToMap(this.SafeOrder(literal75231, marketResolved))
 }
 func (this *Bitstamp) HandleOrderBookSubscription(client ccxt.ClientInterface, message map[string]any) {
 	var channel *string = this.SafeString(message, "channel")

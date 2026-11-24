@@ -2728,7 +2728,7 @@ func (this *Bybit) HandleLiquidation(client ccxt.ClientInterface, message map[st
 		client.Resolve([]any{liquidation}, "liquidations::"+symbol)
 	}
 }
-func (this *Bybit) ParseWsLiquidation(liquidation map[string]any, optionalArgs ...any) any {
+func (this *Bybit) ParseWsLiquidation(liquidation map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "price": "0.03803",

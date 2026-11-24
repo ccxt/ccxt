@@ -4407,10 +4407,7 @@ func (this *Paradex) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optio
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var transactions any = nil
-		if r2.Value != nil {
-			transactions = r2.Value
-		}
+		var transactions []any = r2.Value
 		var transactionsOfKind any = this.FilterTransactionsByKind(transactions, "DEPOSIT")
 
 		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.FilterBySinceLimit(transactionsOfKind, since, limit))}
@@ -4522,10 +4519,7 @@ func (this *Paradex) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], op
 		if r2.Err != nil {
 			panic(r2.Err)
 		}
-		var transactions any = nil
-		if r2.Value != nil {
-			transactions = r2.Value
-		}
+		var transactions []any = r2.Value
 		var transactionsOfKind any = this.FilterTransactionsByKind(transactions, "WITHDRAWAL")
 
 		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.FilterBySinceLimit(transactionsOfKind, since, limit))}

@@ -1536,7 +1536,7 @@ func (this *Backpack) ParseWsTrade(trade any, optionalArgs ...any) map[string]an
 	} else {
 		orderId = this.SafeString(trade, "a")
 	}
-	var literal102931 map[string]any = map[string]any{
+	var literal103031 map[string]any = map[string]any{
 		"info":         trade,
 		"id":           id,
 		"timestamp":    timestamp,
@@ -1555,9 +1555,9 @@ func (this *Backpack) ParseWsTrade(trade any, optionalArgs ...any) map[string]an
 		},
 	}
 	if orderId != nil {
-		literal102931["order"] = *orderId
+		literal103031["order"] = *orderId
 	}
-	return ccxt.TradeToMap(this.SafeTrade(literal102931, marketResolved))
+	return ccxt.TradeToMap(this.SafeTrade(literal103031, marketResolved))
 }
 
 /**
@@ -1833,10 +1833,10 @@ func (this *Backpack) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta a
 	this.HandleBidAsks(storedBids, bids)
 	this.HandleBidAsks(storedAsks, asks)
 }
-func (this *Backpack) HandleBidAsks(bookSide any, bidAsks []any) {
+func (this *Backpack) HandleBidAsks(bookSide ccxt.IOrderBookSide, bidAsks []any) {
 	for i := 0; i < len(bidAsks); i++ {
 		var bidAsk []any = this.ParseOrderBookBidAsk(bidAsks[i])
-		bookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
+		bookSide.StoreArray(bidAsk)
 	}
 }
 func (this *Backpack) GetCacheIndex(orderbook map[string]any, cache []any) int64 {

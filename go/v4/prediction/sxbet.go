@@ -2771,7 +2771,7 @@ func (this *Sxbet) fetchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Pre
 		var rows []any = ccxt.MapSliceToList(r2.Value)
 		var rowsLength int = len(rows)
 		for j := 0; j < rowsLength; j++ {
-			var row any = ccxt.GetValue(rows, j)
+			var row any = rows[j]
 			var rowHash *string = this.SafeString(row, "marketHash")
 			if rowHash != nil {
 				rowsByHash[*rowHash] = row
@@ -3173,17 +3173,15 @@ func (this *Sxbet) connectSxbetCentrifugoBody(ch chan ccxt.AsyncResult[bool], ur
 	ch <- ccxt.AsyncResult[bool]{Value: resolved1}
 	return nil
 }
-func (this *Sxbet) PongAsync(client ccxt.ClientInterface, optionalArgs ...any) <-chan ccxt.AsyncResult[bool] {
+func (this *Sxbet) PongAsync(client ccxt.ClientInterface) <-chan ccxt.AsyncResult[bool] {
 	ch := make(chan ccxt.AsyncResult[bool], 1)
-	go this.pongBody(ch, client, optionalArgs...)
+	go this.pongBody(ch, client)
 	return ch
 }
-func (this *Sxbet) pongBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface, optionalArgs ...any) any {
+func (this *Sxbet) pongBody(ch chan ccxt.AsyncResult[bool], client ccxt.ClientInterface) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	// Centrifugo server pings are empty frames; reply with the same empty frame to keep the link alive
-	message := ccxt.GetArg(optionalArgs, 0, nil)
-	_ = message
 
 	r := <-client.SendAsync("{}")
 	if r.Err != nil {

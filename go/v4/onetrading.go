@@ -876,8 +876,16 @@ func (this *Onetrading) fetchPublicTradingFeesBody(ch chan AsyncResult[map[strin
 	if 1 < len(response) {
 		futuresFees, _ = response[1].(map[string]any)
 	}
-	var spotFeeTiers []any = this.SafeListSlice(spotFees, "fee_tiers", []any{})
-	var futuresFeeTiers []any = this.SafeListSlice(futuresFees, "fee_tiers", []any{})
+	var spotFeeTiers []any
+	spotFeeTiers, _ = spotFees["fee_tiers"].([]any)
+	if spotFeeTiers == nil {
+		spotFeeTiers = []any{}
+	}
+	var futuresFeeTiers []any
+	futuresFeeTiers, _ = futuresFees["fee_tiers"].([]any)
+	if futuresFeeTiers == nil {
+		futuresFeeTiers = []any{}
+	}
 	var spotTiers map[string]any = this.ParseFeeTiers(spotFeeTiers)
 	var futuresTiers map[string]any = this.ParseFeeTiers(futuresFeeTiers)
 	var firstSpotTier map[string]any = this.SafeDictMap(spotTiers, 0, map[string]any{})

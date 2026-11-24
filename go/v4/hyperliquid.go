@@ -897,7 +897,8 @@ func (this *Hyperliquid) fetchSwapMarketsBody(ch chan AsyncResult[[]MarketInterf
 	//
 	//
 	var meta map[string]any = SafeMapTyped(response, 0)
-	var universe []any = SafeListTyped(meta, "universe")
+	var universe []any
+	universe, _ = meta["universe"].([]any)
 	var assetCtxs []any = SafeListTyped(response, 1)
 	var result []any = []any{}
 	for i := 0; i < len(universe); i++ {
@@ -1034,8 +1035,10 @@ func (this *Hyperliquid) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterf
 	//
 	var first map[string]any = SafeMapTyped(response, 0)
 	var second []any = this.SafeListSlice(response, 1, []any{})
-	var meta []any = SafeListTyped(first, "universe")
-	var tokens []any = SafeListTyped(first, "tokens")
+	var meta []any
+	meta, _ = first["universe"].([]any)
+	var tokens []any
+	tokens, _ = first["tokens"].([]any)
 	// a pair names its tokens by their "index", which isn't their place in the list (the list has gaps)
 	var tokensByIndex map[string]any = map[string]any{}
 	for i := 0; i < len(tokens); i++ {
@@ -1740,7 +1743,8 @@ func (this *Hyperliquid) fetchFundingRatesBody(ch chan AsyncResult[map[string]Fu
 	//
 	//
 	var meta map[string]any = SafeMapTyped(response, 0)
-	var universe []any = SafeListTyped(meta, "universe")
+	var universe []any
+	universe, _ = meta["universe"].([]any)
 	var assetCtxs []any = SafeListTyped(response, 1)
 	var result []any = []any{}
 	for i := 0; i < len(universe); i++ {

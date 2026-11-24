@@ -1920,8 +1920,7 @@ func (this *Krakenfutures) HandleBalance(client ccxt.ClientInterface, message ma
 				cashBalance[*code] = newAccount
 			}
 		}
-		this.Balance["cash"] = this.PruneStaleBalanceKeys(cashBalance, holdingCodes)
-		this.Balance["cash"] = this.SafeBalance(this.Balance["cash"])
+		this.Balance["cash"] = this.SafeBalance(this.PruneStaleBalanceKeys(cashBalance, holdingCodes))
 	}
 	if futures != nil {
 		var futuresKeys []string = nil
@@ -1968,8 +1967,7 @@ func (this *Krakenfutures) HandleBalance(client ccxt.ClientInterface, message ma
 				marginBalance[*symbol] = symbolAccounts
 			}
 		}
-		this.Balance["margin"] = this.PruneStaleBalanceKeys(marginBalance, futuresSymbols)
-		this.Balance["margin"] = this.SafeBalance(this.Balance["margin"])
+		this.Balance["margin"] = this.SafeBalance(this.PruneStaleBalanceKeys(marginBalance, futuresSymbols))
 		client.Resolve(this.Balance["margin"], messageHash+":futures")
 	}
 	if flexFutures != nil {
@@ -2012,8 +2010,7 @@ func (this *Krakenfutures) HandleBalance(client ccxt.ClientInterface, message ma
 				flexBalance[*code] = newAccount
 			}
 		}
-		this.Balance["flex"] = this.PruneStaleBalanceKeys(flexBalance, flexCodes)
-		this.Balance["flex"] = this.SafeBalance(this.Balance["flex"])
+		this.Balance["flex"] = this.SafeBalance(this.PruneStaleBalanceKeys(flexBalance, flexCodes))
 		client.Resolve(this.Balance["flex"], messageHash+":flex_futures")
 	}
 	// resolve the plain hash exactly once per message, with the unified
@@ -2137,9 +2134,9 @@ func (this *Krakenfutures) ParseWsMyTrade(trade map[string]any, optionalArgs ...
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var isBuy *bool = this.SafeBool(trade, "buy", false)
 	var feeCurrencyId *string = this.SafeString(trade, "fee_currency")
-	var ternaryStr166920 string = "sell"
+	var ternaryStr166620 string = "sell"
 	if isBuy != nil && *isBuy {
-		ternaryStr166920 = "buy"
+		ternaryStr166620 = "buy"
 	}
 	return ccxt.TradeToMap(this.SafeTrade(map[string]any{
 		"info":         trade,
@@ -2149,7 +2146,7 @@ func (this *Krakenfutures) ParseWsMyTrade(trade map[string]any, optionalArgs ...
 		"symbol":       this.SafeString(marketResolved, "symbol"),
 		"order":        this.SafeString(trade, "order_id"),
 		"type":         this.SafeString(trade, "type"),
-		"side":         ternaryStr166920,
+		"side":         ternaryStr166620,
 		"takerOrMaker": this.SafeString(trade, "fill_type"),
 		"price":        this.SafeString(trade, "price"),
 		"amount":       this.SafeString(trade, "qty"),

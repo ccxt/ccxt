@@ -4648,13 +4648,13 @@ func (this *Cryptocom) ParsePosition(position map[string]any, optionalArgs ...an
 func (this *Cryptocom) Nonce() int64 {
 	return this.Milliseconds()
 }
-func (this *Cryptocom) ParamsToString(object any, level int64) any {
+func (this *Cryptocom) ParamsToString(object any, level int64) string {
 	var maxLevel int = 3
 	var depth int64 = this.ParseToInt(level)
 	if (depth >= int64(maxLevel)) || (IsString(object)) {
 		return ToString(object)
 	}
-	var returnString any = ""
+	var returnString string = ""
 	var paramsKeys any = nil
 	if IsArray(object) {
 		paramsKeys = object
@@ -4671,16 +4671,16 @@ func (this *Cryptocom) ParamsToString(object any, level int64) any {
 	}
 	for i := 0; i < GetArrayLength(paramsKeys); i++ {
 		var key string = *this.SafeString(paramsKeys, i, "")
-		returnString = Add(returnString, key)
+		returnString += key
 		var value any = GetValue(object, key)
 		if value == "undefined" {
-			returnString = Add(returnString, "null")
+			returnString += "null"
 		} else if IsArray(value) {
 			for j := 0; j < GetArrayLength(value); j++ {
-				returnString = Add(returnString, this.ParamsToString(GetValue(value, j), depth+1))
+				returnString += this.ParamsToString(GetValue(value, j), depth+1)
 			}
 		} else {
-			returnString = Add(returnString, ToString(value))
+			returnString += ToString(value)
 		}
 	}
 	return returnString
@@ -4964,8 +4964,8 @@ func (this *Cryptocom) Sign(path string, optionalArgs ...any) map[string]any {
 				paramsKeys = append(paramsKeys, objectKey)
 			}
 		}
-		var strSortKey any = this.ParamsToString(requestParams, 0)
-		var payload *string = SafeStringPtr(Add(Add(path+*nonce+this.ApiKey, strSortKey), nonce))
+		var strSortKey string = this.ParamsToString(requestParams, 0)
+		var payload string = path + *nonce + this.ApiKey + strSortKey + *nonce
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256)
 		var paramsKeysLength int = len(paramsKeys)
 		var jsonBody string = this.Json(map[string]any{

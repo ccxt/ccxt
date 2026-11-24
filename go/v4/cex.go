@@ -1321,7 +1321,10 @@ func (this *Cex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs ..
 		//            },
 		//            ...
 		//
-		accountBalance = this.SafeDictMap(response, "data", map[string]any{})
+		accountBalance, _ = response["data"].(map[string]any)
+		if accountBalance == nil {
+			accountBalance = map[string]any{}
+		}
 	}
 
 	ch <- AsyncResult[Balances]{Value: BalancesFromMap(this.ParseBalance(accountBalance))}

@@ -2373,11 +2373,11 @@ func (this *Gate) fetchSwapMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var result []any = []any{}
-	var swapSettlementCurrencies any = this.GetSettlementCurrencies("swap", "fetchMarkets")
+	var swapSettlementCurrencies []any = this.GetSettlementCurrencies("swap", "fetchMarkets")
 	if *this.SafeBool(this.Options, "sandboxMode", false) {
 		swapSettlementCurrencies = []any{"usdt"} // gate sandbox only has usdt-margined swaps
 	}
-	for c := 0; c < GetArrayLength(swapSettlementCurrencies); c++ {
+	for c := 0; c < len(swapSettlementCurrencies); c++ {
 		var settleId *string = this.SafeString(swapSettlementCurrencies, c)
 		var request map[string]any = map[string]any{
 			"settle": settleId,
@@ -2419,8 +2419,8 @@ func (this *Gate) fetchFutureMarketsBody(ch chan AsyncResult[[]MarketInterface],
 		return nil
 	}
 	var result []any = []any{}
-	var futureSettlementCurrencies any = this.GetSettlementCurrencies("future", "fetchMarkets")
-	for c := 0; c < GetArrayLength(futureSettlementCurrencies); c++ {
+	var futureSettlementCurrencies []any = this.GetSettlementCurrencies("future", "fetchMarkets")
+	for c := 0; c < len(futureSettlementCurrencies); c++ {
 		var settleId *string = this.SafeString(futureSettlementCurrencies, c)
 		var request map[string]any = map[string]any{
 			"settle": settleId,
@@ -2989,7 +2989,7 @@ func (this *Gate) GetMarginMode(trigger any, params any) (*string, map[string]an
 	}
 	return marginMode, paramsUnifiedAccount
 }
-func (this *Gate) GetSettlementCurrencies(typeVar string, method string) any {
+func (this *Gate) GetSettlementCurrencies(typeVar string, method string) []any {
 	var options, _ = this.Options[typeVar].(map[string]any) // [ 'BTC', 'USDT' ] unified codes
 	var fetchMarketsContractOptions, _ = options[method].(map[string]any)
 	var defaultSettle []any
@@ -2998,7 +2998,10 @@ func (this *Gate) GetSettlementCurrencies(typeVar string, method string) any {
 	} else {
 		defaultSettle = []any{"btc"}
 	}
-	return this.SafeList(fetchMarketsContractOptions, "settlementCurrencies", defaultSettle)
+	if list, ok := fetchMarketsContractOptions["settlementCurrencies"].([]any); ok {
+		return list
+	}
+	return defaultSettle
 }
 
 /**

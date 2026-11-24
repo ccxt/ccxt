@@ -1379,7 +1379,11 @@ func (this *Okx) HandleLiquidation(client ccxt.ClientInterface, message map[stri
 	//
 	var rawLiquidations, _ = message["data"].([]any)
 	for i := 0; i < len(rawLiquidations); i++ {
-		var liquidation any = this.ParseWsLiquidation(rawLiquidations[i])
+		rawLiquidationsDict91757, _ := rawLiquidations[i].(map[string]any)
+		if rawLiquidationsDict91757 == nil {
+			rawLiquidationsDict91757 = map[string]any{}
+		}
+		var liquidation any = this.ParseWsLiquidation(rawLiquidationsDict91757)
 		var symbol string = *this.SafeString(liquidation, "symbol", "")
 		if this.Liquidations == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
@@ -1586,7 +1590,7 @@ func (this *Okx) ParseWsMyLiquidation(liquidation any, optionalArgs ...any) map[
 		"datetime":     this.Iso8601(timestamp),
 	})
 }
-func (this *Okx) ParseWsLiquidation(liquidation any, optionalArgs ...any) map[string]any {
+func (this *Okx) ParseWsLiquidation(liquidation map[string]any, optionalArgs ...any) map[string]any {
 	//
 	// public liquidation
 	//    {

@@ -968,9 +968,13 @@ func (this *Bithumb) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 		//         }
 		//     ]
 		//
-		var result map[string]any = SafeMapTyped(response, 0)
+		var result map[string]any
+		if 0 < len(response) {
+			result, _ = response[0].(map[string]any)
+		}
 		timestamp = this.SafeInteger(result, "timestamp")
-		var orderBookUnits []any = SafeListTyped(result, "orderbook_units")
+		var orderBookUnits []any
+		orderBookUnits, _ = result["orderbook_units"].([]any)
 		var bids []any = []any{}
 		var asks []any = []any{}
 		for i := 0; i < len(orderBookUnits); i++ {
@@ -1020,7 +1024,10 @@ func (this *Bithumb) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol s
 		//         }
 		//     }
 		//
-		data = this.SafeDictMap(response, "data", map[string]any{})
+		data, _ = response["data"].(map[string]any)
+		if data == nil {
+			data = map[string]any{}
+		}
 		timestamp = this.SafeInteger(data, "timestamp")
 	}
 

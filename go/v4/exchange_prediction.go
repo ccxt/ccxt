@@ -436,10 +436,7 @@ func (this *PredictionExchange) loadEventsHelperBody(ch chan AsyncResult[map[str
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var events any = nil
-	if r.Value != nil {
-		events = PredictionEventsToList(r.Value)
-	}
+	var events []any = PredictionEventsToList(r.Value)
 
 	ch <- AsyncResult[map[string]PredictionEvent]{Value: PredictionEventMapFromMap(this.SetEvents(events))}
 	return nil

@@ -9845,7 +9845,10 @@ func (this *Kucoin) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		//         ]
 		//     }
 		//
-		trades = this.SafeListSlice(response, "data", []any{})
+		trades, _ = response["data"].([]any)
+		if trades == nil {
+			trades = []any{}
+		}
 	} else {
 
 		r3 := <-this.FuturesPublicGetTradeHistory(this.Extend(request, paramsMarketType))
@@ -9870,7 +9873,10 @@ func (this *Kucoin) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol string,
 		//          ]
 		//      }
 		//
-		trades = this.SafeListSlice(response, "data", []any{})
+		trades, _ = response["data"].([]any)
+		if trades == nil {
+			trades = []any{}
+		}
 	}
 	var tradesList []any = []any{}
 	if trades != nil {
@@ -14088,7 +14094,10 @@ func (this *Kucoin) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 			panic(r1.Err)
 		}
 		var utaResponse map[string]any = r1.Value
-		response = this.SafeDictMap(utaResponse, "data", map[string]any{})
+		response, _ = utaResponse["data"].(map[string]any)
+		if response == nil {
+			response = map[string]any{}
+		}
 		resultKey = "list"
 	} else {
 		request["from"] = start

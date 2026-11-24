@@ -2051,12 +2051,12 @@ func (this *Limitless) fetchClosedOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Pre
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Limitless) FetchOrdersByIdsAsync(ids any, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionOrder] {
+func (this *Limitless) FetchOrdersByIdsAsync(ids []string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]ccxt.PredictionOrder] {
 	ch := make(chan ccxt.AsyncResult[[]ccxt.PredictionOrder], 1)
 	go this.fetchOrdersByIdsBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Limitless) fetchOrdersByIdsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOrder], ids any, optionalArgs ...any) any {
+func (this *Limitless) fetchOrdersByIdsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionOrder], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var outcome *string = ccxt.GetArgStringPtr(optionalArgs, 0, nil)
@@ -2070,7 +2070,7 @@ func (this *Limitless) fetchOrdersByIdsBody(ch chan ccxt.AsyncResult[[]ccxt.Pred
 			panic(r.Err)
 		}
 	}
-	var length int = ccxt.GetArrayLength(ids)
+	var length int = len(ids)
 	if length > 50 {
 		panic(ccxt.BadRequest(this.Id + " fetchOrdersByIds can only fetch up to 50 orders at a time"))
 	}
@@ -2234,7 +2234,7 @@ func (this *Limitless) fetchOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOr
 		}
 	}
 
-	r1 := <-this.FetchOrdersByIdsAsync([]any{id}, outcome, params)
+	r1 := <-this.FetchOrdersByIdsAsync([]string{id}, outcome, params)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -4429,7 +4429,7 @@ func (this *Limitless) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
  */
-func (this *Limitless) FetchOrdersByIds(ids any, options ...FetchOrdersByIdsOptions) ([]ccxt.PredictionOrder, error) {
+func (this *Limitless) FetchOrdersByIds(ids []string, options ...FetchOrdersByIdsOptions) ([]ccxt.PredictionOrder, error) {
 
 	opts := FetchOrdersByIdsOptionsStruct{}
 

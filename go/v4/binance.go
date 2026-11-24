@@ -4413,7 +4413,7 @@ func (this *Binance) Market(symbol any) map[string]any {
 			}
 			// end diff
 			for i := 0; i < len(markets); i++ {
-				var market any = DerefScalar(markets[i])
+				var market any = markets[i]
 				if *this.SafeBool(market, defaultType, false) {
 					return MarketTyped(market)
 				}

@@ -3894,7 +3894,7 @@ func (this *Blofin) ParseLedgerEntry(item map[string]any, optionalArgs ...any) L
 		"fee":              nil,
 	}, currencyResolved)
 }
-func (this *Blofin) ParseIds(ids any) any {
+func (this *Blofin) ParseIds(ids any) []string {
 	/**
 	 * @ignore
 	 * @method
@@ -3905,7 +3905,7 @@ func (this *Blofin) ParseIds(ids any) any {
 	if IsString(ids) {
 		return Split(ids, ",")
 	} else {
-		return ids
+		return this.SafeStringList([]any{ids}, []any{0})
 	}
 }
 
@@ -3946,15 +3946,15 @@ func (this *Blofin) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string,
 	var market map[string]any = this.Market(symbol)
 	var request []any = []any{}
 	var method any = this.HandleOption("cancelOrders", "method", "privatePostTradeCancelBatchOrders")
-	var clientOrderIds any = this.ParseIds(this.SafeValue(params, "clientOrderId"))
-	var tpslIds any = this.ParseIds(this.SafeValue(params, "tpslId"))
+	var clientOrderIds []string = this.ParseIds(this.SafeValue(params, "clientOrderId"))
+	var tpslIds []string = this.ParseIds(this.SafeValue(params, "tpslId"))
 	var trigger *bool = this.SafeBoolN(params, []any{"stop", "trigger", "tpsl"})
 	if trigger != nil && *trigger == true {
 		method = "privatePostTradeCancelTpsl"
 	}
-	if IsEqual(clientOrderIds, nil) {
-		if !IsEqual(tpslIds, nil) {
-			for i := 0; i < GetArrayLength(tpslIds); i++ {
+	if clientOrderIds == nil {
+		if tpslIds != nil {
+			for i := 0; i < len(tpslIds); i++ {
 				request = append(request, map[string]any{
 					"tpslId": this.SafeString(tpslIds, i),
 					"instId": market["id"],
@@ -3975,7 +3975,7 @@ func (this *Blofin) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string,
 			}
 		}
 	} else {
-		for i := 0; i < GetArrayLength(clientOrderIds); i++ {
+		for i := 0; i < len(clientOrderIds); i++ {
 			request = append(request, map[string]any{
 				"instId":        market["id"],
 				"clientOrderId": this.SafeString(clientOrderIds, i),

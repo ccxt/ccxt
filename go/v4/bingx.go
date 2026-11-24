@@ -8078,7 +8078,10 @@ func (this *Bingx) fetchMyLiquidationsBody(ch chan AsyncResult[[]Liquidation], o
 		//         }
 		//     }
 		//
-		response = this.SafeDictMap(swapResponse, "data", map[string]any{})
+		response, _ = swapResponse["data"].(map[string]any)
+		if response == nil {
+			response = map[string]any{}
+		}
 		key = "orders"
 	}
 	var liquidations []any = this.SafeListSlice(response, key, []any{})

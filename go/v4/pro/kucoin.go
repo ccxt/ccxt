@@ -2709,10 +2709,10 @@ func (this *Kucoin) HandleBookDelta(orderbook ccxt.OrderBookInterface, delta any
 		this.HandleBidAsks(storedAsks, asks)
 	}
 }
-func (this *Kucoin) HandleBidAsks(bookSide any, bidAsks []any) {
+func (this *Kucoin) HandleBidAsks(bookSide ccxt.IOrderBookSide, bidAsks []any) {
 	for i := 0; i < len(bidAsks); i++ {
 		var bidAsk []any = this.ParseOrderBookBidAsk(bidAsks[i])
-		bookSide.(ccxt.IOrderBookSide).StoreArray(bidAsk)
+		bookSide.StoreArray(bidAsk)
 	}
 }
 func (this *Kucoin) HandleOrderBookSubscription(client ccxt.ClientInterface, message map[string]any, subscription map[string]any) {
