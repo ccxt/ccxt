@@ -63,12 +63,8 @@ public static class Program
         var fileNames = new string[] { "keys.json", "keys.local.json" };
         foreach (var fileName in fileNames)
         {
-            // repo root (cwd of `npm run cli.cs`) first, then ../../ for runs from cs/cli,
-            // then the build output dir (bin/Debug/net10.0) for IDE/debugger runs, same anchor as exchangesPath
-            var candidatePaths = new string[] {
-                fileName,
-                "./../../" + fileName
-            };
+            // repo root (cwd of `npm run cli.cs`) first, then ../../ for runs from cs/cli
+            var candidatePaths = new string[] { fileName, "./../../" + fileName };
             foreach (var candidatePath in candidatePaths)
             {
                 if (!File.Exists(candidatePath))
