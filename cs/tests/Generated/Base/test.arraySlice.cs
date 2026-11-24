@@ -19,5 +19,8 @@ public partial class BaseTest
             AssertDeepEqual(exchange, null, "testArraySlice", exchange.arraySlice(arr, 3, 6), new List<object>() {"d", "e", "f"});
             AssertDeepEqual(exchange, null, "testArraySlice", exchange.arraySlice(arr, 2), new List<object>() {"c", "d", "e", "f"});
             AssertDeepEqual(exchange, null, "testArraySlice", exchange.arraySlice(arr, -2), new List<object>() {"e", "f"});
+            // an end index of 0 is a valid (empty) range, not "no end index"
+            AssertDeepEqual(exchange, null, "testArraySlice", exchange.arraySlice(arr, 0, 0), new List<object>() {});
+            AssertDeepEqual(exchange, null, "testArraySlice", exchange.arraySlice(arr, 3, 3), new List<object>() {});
         }
 }

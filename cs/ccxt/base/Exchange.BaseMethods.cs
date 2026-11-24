@@ -398,6 +398,13 @@ public partial class BaseExchange
         this.positionsByType = new Dictionary<string, object>() {};
     }
 
+    public virtual object beforeClose()
+    {
+        // called first by close (), a derived exchange overrides it to stop its own background loops
+        // (e.g. scheduled keep-alive requests that would otherwise keep the event loop alive)
+        return null;
+    }
+
     public virtual bool? safeBoolN(object dictionaryOrList, IList<object> keys, bool? defaultValue = null)
     {
         /**

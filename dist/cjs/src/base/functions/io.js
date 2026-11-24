@@ -97,7 +97,7 @@ function ensureWhitelistedFile(filePath) {
     if (exts.some(ext => sanitizedFilePath.endsWith('.' + ext))) {
         return;
     }
-    throw new Error('invalid file path: ' + filePath);
+    throw new Error('invalid file path: ' + filePath + ', allowed extensions are: ' + exts.join(' | '));
 }
 /*  ------------------------------------------------------------------------ */
 /**

@@ -388,8 +388,8 @@ impl crate::exchange::DerivedExchange for Alpaca {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_223: bool = true;
-            while { if !__for_first_223 { i += 1; } __for_first_223 = false; i < (positions.len() as i64) } {
+            let mut __for_first_224: bool = true;
+            while { if !__for_first_224 { i += 1; } __for_first_224 = false; i < (positions.len() as i64) } {
             let mut position: crate::value::Dict = self.safe_dict(&positions, Value::Int(i), &[]).into_dict();
             let mut positionSymbol: String = self.safe_string_k(&position, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if (positionSymbol == "") {
@@ -1983,8 +1983,8 @@ impl Alpaca {
                 let mut pageToken: Option<String> = self.safe_string_k_opt(response.clone(), "next_page_token", &[]);
                 {
                                         let mut i: i64 = 1;
-                    let mut __for_first_219: bool = true;
-                    while { if !__for_first_219 { i += 1; } __for_first_219 = false; matches!(paginationCalls, Some(__b) if (i as f64) < (__b as f64)) } {
+                    let mut __for_first_220: bool = true;
+                    while { if !__for_first_220 { i += 1; } __for_first_220 = false; matches!(paginationCalls, Some(__b) if (i as f64) < (__b as f64)) } {
                     let mut ohlcvsLength: i64 = ohlcvs.len() as i64;
                     if (pageToken.is_none()) || ((limit != Value::Null) && ((limit.as_i64().is_some() && Some(ohlcvsLength) >= limit.as_i64()))) {
                         break;
@@ -2174,8 +2174,8 @@ impl Alpaca {
         let mut marketIds: Vec<Value> = Value::Array(snapshots.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_220: bool = true;
-            while { if !__for_first_220 { i += 1; } __for_first_220 = false; i < (marketIds.len() as i64) } {
+            let mut __for_first_221: bool = true;
+            while { if !__for_first_221 { i += 1; } __for_first_221 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let mut market: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[]);
             let mut entry: Option<crate::value::Dict> = self.safe_dict(&snapshots, Value::from(marketId.as_deref()), &[]).into_opt_dict();
@@ -2992,8 +2992,8 @@ impl Alpaca {
             }
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_221: bool = true;
-                while { if !__for_first_221 { i += 1; } __for_first_221 = false; i < (ledger.len() as i64) } {
+                let mut __for_first_222: bool = true;
+                while { if !__for_first_222 { i += 1; } __for_first_222 = false; i < (ledger.len() as i64) } {
                 let mut entry: crate::value::Dict = ledger.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut activityType: Option<String> = self.safe_string_k_opt(&entry, "activity_type", &[]);
                 let mut amount: Option<String> = self.safe_string_k_opt(&entry, "net_amount", &[]);
@@ -3034,8 +3034,8 @@ impl Alpaca {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_222: bool = true;
-            while { if !__for_first_222 { i += 1; } __for_first_222 = false; i < (transfers.len() as i64) } {
+            let mut __for_first_223: bool = true;
+            while { if !__for_first_223 { i += 1; } __for_first_223 = false; i < (transfers.len() as i64) } {
             let mut entry: crate::value::Dict = transfers.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut direction: Option<String> = self.safe_string_k_opt(&entry, "direction", &[]);
             if (direction.as_deref() == Some(type_var.as_str().unwrap_or_default().to_string().as_str())) {

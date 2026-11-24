@@ -77,9 +77,9 @@ func (this *Apex) Describe() map[string]any {
 			"fetchDepositWithdrawFee":       false,
 			"fetchDepositWithdrawFees":      false,
 			"fetchFundingHistory":           true,
-			"fetchFundingRate":              false,
+			"fetchFundingRate":              true,
 			"fetchFundingRateHistory":       true,
-			"fetchFundingRates":             false,
+			"fetchFundingRates":             true,
 			"fetchGreeks":                   false,
 			"fetchIndexOHLCV":               false,
 			"fetchIsolatedBorrowRate":       false,
@@ -1390,6 +1390,130 @@ func (this *Apex) ParseOpenInterest(interest any, optionalArgs ...any) OpenInter
 
 /**
  * @method
+ * @name apex#fetchFundingRate
+ * @description fetches the current funding rate for a market
+ * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+ * @param {string} symbol unified symbol of the market to fetch the funding rate for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+ */
+func (this *Apex) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[FundingRate] {
+	ch := make(chan AsyncResult[FundingRate], 1)
+	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Apex) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var market map[string]any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"symbol": this.SafeString(market, "id2"),
+	}
+
+	r1 := <-this.PublicGetV3Ticker(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
+	//
+	//     {
+	//         "data": [
+	//             {
+	//                 "symbol": "BTCUSDT",
+	//                 "oraclePrice": "97359.83490000976",
+	//                 "price": "97358.69511000479",
+	//                 "price24hPcnt": "0.025227663459253",
+	//                 "priceChange": "2386.4656100048",
+	//                 "markPrice": "97348.43100000975",
+	//                 "indexPrice": "97354.92100000469",
+	//                 "fundingRate": "0",
+	//                 "predictedFundingRate": "0",
+	//                 "nextFundingTime": "10:00:00",
+	//                 "turnover24h": "5126062036.262683868",
+	//                 "volume24h": "52429.97800000007",
+	//                 "openInterest": "44708.50649999985",
+	//                 "askPrice": "97346.8",
+	//                 "askSize": "0.05",
+	//                 "askVol": "4871.995",
+	//                 "bidPrice": "97329.9",
+	//                 "bidSize": "0.0397",
+	//                 "bidVol": "3861.227",
+	//                 "lastPrice": "97341.22950000488",
+	//                 "highPrice24h": "97492.40501000491",
+	//                 "lowPrice24h": "93419.04950000459",
+	//                 "change15m": "0.000035268322022",
+	//                 "change1h": "0.001633604768945",
+	//                 "change24h": "0.025227663459253",
+	//                 "volume5m": "163.43330000000053",
+	//                 "volume1h": "5662.860900000013"
+	//             }
+	//         ]
+	//     }
+	//
+	var tickers []any = SafeListTyped(response, "data")
+	var rawTicker map[string]any = SafeMapTyped(tickers, 0)
+	if rawTicker == nil {
+		panic(BadResponse(this.Id + " fetchFundingRate() returned no data for " + symbol))
+	}
+	var responseMarketId *string = this.SafeString(rawTicker, "symbol", "")
+	if responseMarketId != this.SafeString(market, "id2") && (responseMarketId == nil || this.SafeString(market, "id2") == nil || *responseMarketId != *this.SafeString(market, "id2")) {
+		panic(BadResponse(this.Id + " fetchFundingRate() returned a ticker for " + *responseMarketId + " while " + symbol + " was requested"))
+	}
+
+	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(rawTicker, market)}
+	return nil
+}
+func (this *Apex) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+	//
+	//     {
+	//         "symbol": "BTCUSDT",
+	//         "oraclePrice": "97359.83490000976",
+	//         "price": "97358.69511000479",
+	//         "markPrice": "97348.43100000975",
+	//         "indexPrice": "97354.92100000469",
+	//         "fundingRate": "0",
+	//         "predictedFundingRate": "0",
+	//         "nextFundingTime": "10:00:00",
+	//         ...
+	//     }
+	//
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = market
+	var marketId *string = this.SafeString(contract, "symbol")
+	var marketResolved map[string]any = this.SafeMarket(marketId, market)
+	return FundingRateFromMap(map[string]any{
+		"info":                     contract,
+		"symbol":                   this.SafeSymbol(marketId, marketResolved),
+		"markPrice":                this.SafeNumber(contract, "markPrice"),
+		"indexPrice":               this.SafeNumber(contract, "indexPrice"),
+		"interestRate":             nil,
+		"estimatedSettlePrice":     nil,
+		"timestamp":                nil,
+		"datetime":                 nil,
+		"fundingRate":              this.SafeNumber(contract, "fundingRate"),
+		"fundingTimestamp":         nil,
+		"fundingDatetime":          nil,
+		"nextFundingRate":          nil,
+		"nextFundingTimestamp":     nil,
+		"nextFundingDatetime":      nil,
+		"previousFundingRate":      nil,
+		"previousFundingTimestamp": nil,
+		"previousFundingDatetime":  nil,
+		"interval":                 "1h",
+	})
+}
+
+/**
+ * @method
  * @name apex#fetchFundingRateHistory
  * @description fetches historical funding rate prices
  * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
@@ -1482,6 +1606,47 @@ func (this *Apex) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.FilterBySymbolSinceLimit(sorted, symbol, since, limit))}
+	return nil
+}
+
+/**
+ * @method
+ * @name apex#fetchFundingRates
+ * @description fetches the current funding rates for multiple markets
+ * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the funding rates for, all markets are returned when not assigned
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbol
+ */
+func (this *Apex) FetchFundingRatesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]FundingRate] {
+	ch := make(chan AsyncResult[map[string]FundingRate], 1)
+	go this.fetchFundingRatesBody(ch, optionalArgs...)
+	return ch
+}
+func (this *Apex) fetchFundingRatesBody(ch chan AsyncResult[map[string]FundingRate], optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var symbols []string = GetArgStringSlice(optionalArgs, 0, nil)
+	_ = symbols
+	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var unifiedSymbols []string = this.MarketSymbols(symbols)
+
+	r1 := <-this.PublicGetV3DataAllTickerInfo(params)
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
+	var data []any = SafeListTypedDefault(response, "data", []any{})
+
+	ch <- AsyncResult[map[string]FundingRate]{Value: FundingRateMapFromMap(this.ParseFundingRates(data, unifiedSymbols))}
 	return nil
 }
 func (this *Apex) ParseOrder(order any, optionalArgs ...any) Order {
@@ -3057,6 +3222,30 @@ func (this *Apex) FetchOpenInterest(symbol string, options ...FetchOpenInterestO
 
 /**
  * @method
+ * @name apex#fetchFundingRate
+ * @description fetches the current funding rate for a market
+ * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+ * @param {string} symbol unified symbol of the market to fetch the funding rate for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+ */
+func (this *Apex) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
+
+	opts := FetchFundingRateOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.FetchFundingRateAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return FundingRate{}, r.Err
+	}
+	var res FundingRate = r.Value
+	return res, nil
+}
+
+/**
+ * @method
  * @name apex#fetchFundingRateHistory
  * @description fetches historical funding rate prices
  * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
@@ -3080,6 +3269,30 @@ func (this *Apex) FetchFundingRateHistory(options ...FetchFundingRateHistoryOpti
 		return nil, r.Err
 	}
 	var res []FundingRateHistory = r.Value
+	return res, nil
+}
+
+/**
+ * @method
+ * @name apex#fetchFundingRates
+ * @description fetches the current funding rates for multiple markets
+ * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+ * @param {string[]} [symbols] unified symbols of the markets to fetch the funding rates for, all markets are returned when not assigned
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbol
+ */
+func (this *Apex) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
+
+	opts := FetchFundingRatesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.FetchFundingRatesAsync(opts.Symbols, opts.Params)
+	if r.Err != nil {
+		return FundingRates{}, r.Err
+	}
+	var res FundingRates = FundingRates{FundingRates: r.Value}
 	return res, nil
 }
 

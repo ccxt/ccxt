@@ -281,8 +281,8 @@ impl Dydx {
         let mut parsedTrades: crate::value::List = self.parse_trades(&rawTrades, Some(&market), &[]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_310: bool = true;
-            while { if !__for_first_310 { i += 1; } __for_first_310 = false; i < (parsedTrades.len() as i64) } {
+            let mut __for_first_312: bool = true;
+            while { if !__for_first_312 { i += 1; } __for_first_312 = false; i < (parsedTrades.len() as i64) } {
             stored.append(crate::value::KeyRead::read(&&parsedTrades, &Value::Int(i)));
         }
         }

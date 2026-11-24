@@ -425,6 +425,9 @@ func CreateExchange(exchangeId string, options map[string]any) IExchange {
 	case "indodax":
 		itf := NewIndodax(options)
 		return itf
+	case "interactivebrokers":
+		itf := NewInteractivebrokers(options)
+		return itf
 	case "kraken":
 		itf := NewKraken(options)
 		return itf

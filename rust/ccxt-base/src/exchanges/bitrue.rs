@@ -573,8 +573,8 @@ impl crate::exchange::DerivedExchange for Bitrue {
         let mut balances: crate::value::List = self.safe_list2(response, Value::Str("balances".into()), Value::Str("account".into()), &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_416: bool = true;
-            while { if !__for_first_416 { i += 1; } __for_first_416 = false; i < (balances.len() as i64) } {
+            let mut __for_first_417: bool = true;
+            while { if !__for_first_417 { i += 1; } __for_first_417 = false; i < (balances.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(&balances, Value::Int(i), &[]).into_dict();
             let mut currencyId: Option<String> = self.safe_string2_opt(&balance, Value::Str("asset".into()), Value::Str("marginCoin".into()), &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -646,8 +646,8 @@ impl crate::exchange::DerivedExchange for Bitrue {
         });
         {
                         let mut j: i64 = 0;
-            let mut __for_first_414: bool = true;
-            while { if !__for_first_414 { j += 1; } __for_first_414 = false; j < (networkDetails.len() as i64) } {
+            let mut __for_first_415: bool = true;
+            while { if !__for_first_415 { j += 1; } __for_first_415 = false; j < (networkDetails.len() as i64) } {
             let mut entry: crate::value::Dict = networkDetails.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string_k_opt(&entry, "chain", &[]);
             let mut network: Option<String> = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
@@ -900,8 +900,8 @@ impl crate::exchange::DerivedExchange for Bitrue {
         if (chainDetailLength != 0) {
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_418: bool = true;
-                while { if !__for_first_418 { i += 1; } __for_first_418 = false; i < chainDetailLength } {
+                let mut __for_first_419: bool = true;
+                while { if !__for_first_419 { i += 1; } __for_first_419 = false; i < chainDetailLength } {
                 let mut chainDetail: crate::value::Dict = self.safe_dict(&chainDetails, Value::Int(i), &[]).into_dict();
                 let mut networkId: Option<String> = self.safe_string_k_opt(&chainDetail, "chain", &[]);
                 let mut currencyCode: Option<String> = self.safe_string_k_opt(&currency, "code", &[]);
@@ -2375,8 +2375,8 @@ impl Bitrue {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_415: bool = true;
-            while { if !__for_first_415 { i += 1; } __for_first_415 = false; i < (types.len() as i64) } {
+            let mut __for_first_416: bool = true;
+            while { if !__for_first_416 { i += 1; } __for_first_416 = false; i < (types.len() as i64) } {
             let mut marketType: Option<String> = types.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (marketType.as_deref() == Some("spot")) {
                 promisesRaw.push(self.spot_v1_public_get_exchange_info(&[params.clone()]).await);
@@ -2967,8 +2967,8 @@ impl Bitrue {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_417: bool = true;
-            while { if !__for_first_417 { i += 1; } __for_first_417 = false; i < (data.len() as i64) } {
+            let mut __for_first_418: bool = true;
+            while { if !__for_first_418 { i += 1; } __for_first_418 = false; i < (data.len() as i64) } {
             let mut ticker: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4182,8 +4182,8 @@ impl Bitrue {
             let mut byLimit: crate::value::List = config.get("byLimit").cloned().unwrap_or_default().into_list();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_419: bool = true;
-                while { if !__for_first_419 { i += 1; } __for_first_419 = false; i < (byLimit.len() as i64) } {
+                let mut __for_first_420: bool = true;
+                while { if !__for_first_420 { i += 1; } __for_first_420 = false; i < (byLimit.len() as i64) } {
                 let mut entry: crate::value::List = byLimit.get(i as usize).cloned().unwrap_or(Value::Null).into_list();
                 let mut threshold: Option<i64> = self.safe_integer(&entry, Value::Int(0), &[]).as_i64();
                 if (limit.is_some()) && (threshold.is_some()) && (limit.is_some() && threshold.is_some() && limit <= threshold) {

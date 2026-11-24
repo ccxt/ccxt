@@ -72,6 +72,7 @@
 	- [hyperliquid](exchanges/hyperliquid.md)
 	- [independentreserve](exchanges/independentreserve.md)
 	- [indodax](exchanges/indodax.md)
+	- [interactivebrokers](exchanges/interactivebrokers.md)
 	- [kraken](exchanges/kraken.md)
 	- [krakenfutures](exchanges/krakenfutures.md)
 	- [kucoin](exchanges/kucoin.md)

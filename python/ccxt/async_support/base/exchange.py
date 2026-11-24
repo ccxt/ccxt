@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.93'
+__version__ = '4.5.94'
 
 # -----------------------------------------------------------------------------
 
@@ -118,7 +118,7 @@ class BaseExchange(SyncExchange):
 
         if self.ssl_context is None:
             # Create our SSL context object with our CA cert file
-            self.ssl_context = ssl.create_default_context(cafile=self.cafile) if self.verify else self.verify
+            self.ssl_context = ssl.create_default_context(cafile=self.cafile) if (self.verify and self.validateServerSsl) else False
             if (self.ssl_context and self.safe_bool(self.options, 'include_OS_certificates', False)):
                 os_default_paths = ssl.get_default_verify_paths()
                 if os_default_paths.cafile and os_default_paths.cafile != self.cafile:
@@ -135,6 +135,8 @@ class BaseExchange(SyncExchange):
     async def close(self, clean_instance_data=False):
         # set before the first await, a lazy open() during close() would leak a session
         self.closed_by_user = True
+        # a derived exchange stops its own background loops here (e.g. scheduled keep-alive requests)
+        self.before_close()
         # ##### language-specific cleanup of WS & REST resources #####
         # [WS]
         await self.close_ws_clients()
@@ -232,6 +234,8 @@ class BaseExchange(SyncExchange):
             del request_headers[content_type_key]
         final_session = proxy_session if proxy_session is not None else self.session
         session_method = getattr(final_session, method.lower())
+        # per-request override, the cached session/connector may have been built while validation was on
+        request_kwargs = {} if self.validateServerSsl else {'ssl': False}
 
         http_response = None
         http_status_code = None
@@ -245,7 +249,8 @@ class BaseExchange(SyncExchange):
                                       # which can hang indefinitely on stale keep-alive connections that a proxy
                                       # or cdn silently closed, see https://github.com/ccxt/ccxt/issues/27468
                                       timeout=aiohttp.ClientTimeout(total=(self.timeout / 1000), sock_connect=(self.timeout / 1000), sock_read=(self.timeout / 1000)),
-                                      proxy=final_proxy) as response:
+                                      proxy=final_proxy,
+                                      **request_kwargs) as response:
                 http_response = await response.text(errors='replace')
                 # CIMultiDictProxy
                 raw_headers = response.headers
@@ -390,6 +395,10 @@ class BaseExchange(SyncExchange):
     async def sleep(self, milliseconds):
         return await asyncio.sleep(milliseconds / 1000)
 
+    async def init_file_system(self):
+        # file io is synchronous in python, nothing to load before the first read_file call
+        return None
+
     def spawn(self, method, *args):
         def callback(asyncio_future):
             # a cancelled task (e.g. a background snapshot fetch cancelled on close or
@@ -447,6 +456,7 @@ class BaseExchange(SyncExchange):
                 'throttle': Throttler(self.tokenBucket, self.asyncio_loop),
                 'asyncio_loop': self.asyncio_loop,
                 'decompressBinary': self.safe_bool(self.options, 'decompressBinary', True),
+                'validateServerSsl': self.validateServerSsl,
             }, ws_options)
             # we use aiohttp instead of fastClient now because of this
             # https://github.com/ccxt/ccxt/pull/25995

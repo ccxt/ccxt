@@ -486,7 +486,7 @@ class toobit extends toobit$1["default"] {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': true,
+                        'triggerPrice': false,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
                         'stopLossPrice': false,
@@ -521,7 +521,7 @@ class toobit extends toobit$1["default"] {
                         'marginMode': false,
                         'trigger': false,
                         'trailing': false,
-                        'symbolRequired': false,
+                        'symbolRequired': true,
                     },
                     'fetchOpenOrders': {
                         'marginMode': false,

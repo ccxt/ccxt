@@ -44,6 +44,8 @@ class okx(ccxt.async_support.okx):
                 'watchFundingRates': True,
                 'unWatchTicker': True,
                 'unWatchTickers': True,
+                'unWatchMarkPrice': True,
+                'unWatchMarkPrices': True,
                 'unWatchOHLCV': True,
                 'unWatchOHLCVForSymbols': True,
                 'unWatchOrderBook': True,
@@ -509,6 +511,52 @@ class okx(ccxt.async_support.okx):
         if self.newUpdates:
             return newTickers
         return self.filter_by_array(self.tickers, 'symbol', symbolsNormalized)
+
+    async def un_watch_mark_price(self, symbol: str, params: dict = {}) -> object:
+        """
+
+        https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+
+        unWatches a mark price
+        :param str symbol: unified symbol of the market to stop watching the mark price for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.channel]: the channel to unsubscribe from, mark-price by default
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        return await self.un_watch_mark_prices([symbol], params)
+
+    async def un_watch_mark_prices(self, symbols: Strings = None, params: dict = {}) -> object:
+        """
+
+        https://www.okx.com/docs-v5/en/#public-data-websocket-mark-price-channel
+
+        unWatches mark prices
+        :param str[] [symbols]: unified symbols of the markets to stop watching the mark price for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.channel]: the channel to unsubscribe from, mark-price by default
+        :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols, None, False)
+        channel = self.handle_option_string_and_params(params, 'watchMarkPrices', 'channel', 'mark-price')[0]
+        topics = []
+        messageHashes = []
+        for i in range(0, len(symbolsNormalized)):
+            symbol = symbolsNormalized[i]
+            messageHashes.append('unsubscribe:mark-price:' + symbol)
+            marketId = self.market_id(symbol)
+            topic = {
+                'channel': channel,
+                'instId': marketId,
+            }
+            topics.append(topic)
+        request = {
+            'op': 'unsubscribe',
+            'args': topics,
+        }
+        url = self.get_url(channel, 'public')
+        return await self.watch_multiple(url, messageHashes, request, messageHashes)
 
     async def un_watch_tickers(self, symbols: Strings = None, params: dict = {}) -> object:
         """
@@ -2561,6 +2609,13 @@ class okx(ccxt.async_support.okx):
         if symbol in self.tickers:
             del self.tickers[symbol]
 
+    def handle_unsubscription_mark_price(self, client: Client, symbol: str, channel: str):
+        subMessageHash = channel + '::' + symbol
+        messageHash = 'unsubscribe:mark-price:' + symbol
+        self.clean_unsubscription(client, subMessageHash, messageHash)
+        if symbol in self.tickers:
+            del self.tickers[symbol]
+
     def handle_unsubscription(self, client: Client, message: dict):
         #
         # {
@@ -2584,6 +2639,8 @@ class okx(ccxt.async_support.okx):
             self.handle_un_subscription_trades(client, symbol, channel)
         elif channel.startswith('bbo') or channel.startswith('book'):
             self.handle_unsubscription_order_book(client, symbol, channel)
+        elif channel == 'mark-price':
+            self.handle_unsubscription_mark_price(client, symbol, channel)
         elif channel.find('tickers') > -1:
             self.handle_unsubscription_ticker(client, symbol, channel)
         elif channel.startswith('candle'):

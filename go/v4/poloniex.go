@@ -60,7 +60,7 @@ func (this *Poloniex) Describe() map[string]any {
 			"fetchFundingHistory":            false,
 			"fetchFundingInterval":           false,
 			"fetchFundingIntervals":          false,
-			"fetchFundingRate":               false,
+			"fetchFundingRate":               true,
 			"fetchFundingRateHistory":        false,
 			"fetchFundingRates":              nil,
 			"fetchGreeks":                    false,
@@ -657,6 +657,7 @@ func (this *Poloniex) Describe() map[string]any {
 		"precisionMode": TICK_SIZE,
 		"exceptions": map[string]any{
 			"exact": map[string]any{
+				"401":    PermissionDenied,
 				"500":    ExchangeNotAvailable,
 				"603":    RequestTimeout,
 				"601":    BadRequest,
@@ -798,7 +799,11 @@ func (this *Poloniex) Describe() map[string]any {
 				"12004":  PermissionDenied,
 				"21001":  OperationRejected,
 			},
-			"broad": map[string]any{},
+			"broad": map[string]any{
+				"Invalid Apikey or Signature": AuthenticationError,
+				"ApiKey not exist":            AuthenticationError,
+				"Illegal of ip":               PermissionDenied,
+			},
 		},
 	})
 }
@@ -892,11 +897,11 @@ func (this *Poloniex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes69219 []any = r1.Value
-		if retRes69219 == nil {
+		var retRes69719 []any = r1.Value
+		if retRes69719 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes69219)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes69719)}
 		}
 		return nil
 	}
@@ -2009,11 +2014,11 @@ func (this *Poloniex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes158519 []any = r1.Value
-		if retRes158519 == nil {
+		var retRes159019 []any = r1.Value
+		if retRes159019 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes158519)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes159019)}
 		}
 		return nil
 	}
@@ -3782,6 +3787,111 @@ func (this *Poloniex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 
 /**
  * @method
+ * @name poloniex#fetchFundingRate
+ * @description fetch the current funding rate
+ * @see https://api-docs.poloniex.com/v3/futures/api/market/get-current-funding-rate
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+ */
+func (this *Poloniex) FetchFundingRateAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[FundingRate] {
+	ch := make(chan AsyncResult[FundingRate], 1)
+	go this.fetchFundingRateBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Poloniex) fetchFundingRateBody(ch chan AsyncResult[FundingRate], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+
+	r := <-this.LoadMarketsAsync()
+	if r.Err != nil {
+		panic(r.Err)
+	}
+	var market map[string]any = this.Market(symbol)
+	if !(*this.SafeBool(market, "swap", false)) {
+		panic(BadSymbol(this.Id + " fetchFundingRate() supports swap contracts only"))
+	}
+	var request map[string]any = map[string]any{
+		"symbol": market["id"],
+	}
+
+	r1 := <-this.SwapPublicGetV3MarketFundingRate(this.Extend(request, params))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
+	//
+	//    {
+	//        "code": 200,
+	//        "msg": "Success",
+	//        "data": {
+	//            "s": "BTC_USDT_PERP",
+	//            "fR": "0.0001",
+	//            "fT": "1795276800000",
+	//            "nFR": "0.0001",
+	//            "nFT": "1795305600000"
+	//        }
+	//    }
+	//
+	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+
+	ch <- AsyncResult[FundingRate]{Value: this.ParseFundingRate(data, market)}
+	return nil
+}
+func (this *Poloniex) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {
+	//
+	//    {
+	//        "s": "BTC_USDT_PERP",
+	//        "fR": "0.0001",
+	//        "fT": "1795276800000",
+	//        "nFR": "0.0001",
+	//        "nFT": "1795305600000"
+	//    }
+	//
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = market
+	var marketId *string = this.SafeString(contract, "s")
+	// fR and fT are the funding that already settled, nFR and nFT the one about to be applied
+	var previousFundingTimestamp *int64 = this.SafeInteger(contract, "fT")
+	var fundingTimestamp *int64 = this.SafeInteger(contract, "nFT")
+	var intervalMilliseconds *string = Precise.StringSub(this.SafeString(contract, "nFT"), this.SafeString(contract, "fT"))
+	return FundingRateFromMap(map[string]any{
+		"info":                     contract,
+		"symbol":                   this.SafeSymbol(marketId, market),
+		"markPrice":                nil,
+		"indexPrice":               nil,
+		"interestRate":             nil,
+		"estimatedSettlePrice":     nil,
+		"timestamp":                nil,
+		"datetime":                 nil,
+		"fundingRate":              this.SafeNumber(contract, "nFR"),
+		"fundingTimestamp":         fundingTimestamp,
+		"fundingDatetime":          this.Iso8601(fundingTimestamp),
+		"nextFundingRate":          nil,
+		"nextFundingTimestamp":     nil,
+		"nextFundingDatetime":      nil,
+		"previousFundingRate":      this.SafeNumber(contract, "fR"),
+		"previousFundingTimestamp": previousFundingTimestamp,
+		"previousFundingDatetime":  this.Iso8601(previousFundingTimestamp),
+		"interval":                 this.ParseFundingInterval(intervalMilliseconds),
+	})
+}
+func (this *Poloniex) ParseFundingInterval(interval *string) *string {
+	var intervals map[string]any = map[string]any{
+		"3600000":  "1h",
+		"7200000":  "2h",
+		"14400000": "4h",
+		"28800000": "8h",
+		"57600000": "16h",
+		"86400000": "24h",
+	}
+	return this.SafeString(intervals, interval, interval)
+}
+
+/**
+ * @method
  * @name poloniex#createDepositAddress
  * @description create a currency deposit address
  * @see https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses
@@ -5417,8 +5527,8 @@ func (this *Poloniex) HandleErrors(code int64, reason string, url string, method
 	if (responseCode != nil) && (responseCode == nil || *responseCode != "200") {
 		var message *string = this.SafeString2(response, "message", "msg")
 		var feedback string = this.Id + " " + body
-		this.ThrowExactlyMatchedException(this.Exceptions["exact"], responseCode, feedback)
 		this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
+		this.ThrowExactlyMatchedException(this.Exceptions["exact"], responseCode, feedback)
 		panic(ExchangeError(feedback))
 	}
 	return nil
@@ -5988,6 +6098,30 @@ func (this *Poloniex) FetchOrderBook(symbol string, options ...FetchOrderBookOpt
 		return OrderBook{}, r.Err
 	}
 	var res OrderBook = r.Value
+	return res, nil
+}
+
+/**
+ * @method
+ * @name poloniex#fetchFundingRate
+ * @description fetch the current funding rate
+ * @see https://api-docs.poloniex.com/v3/futures/api/market/get-current-funding-rate
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+ */
+func (this *Poloniex) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
+
+	opts := FetchFundingRateOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.FetchFundingRateAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return FundingRate{}, r.Err
+	}
+	var res FundingRate = r.Value
 	return res, nil
 }
 

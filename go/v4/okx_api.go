@@ -737,6 +737,11 @@ func (this *Okx) PrivateGetAssetDepositWithdrawStatus(args ...any) <-chan Endpoi
 	return Fetch2Result[map[string]any](this, "asset/deposit-withdraw-status", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(20)})
 }
 
+// PrivateGetAssetTravelRuleGetLocked returns a channel that yields a JSON object.
+func (this *Okx) PrivateGetAssetTravelRuleGetLocked(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetAssetTravelRuleGetLocked", args...))
+}
+
 // PrivateGetAssetMonthlyStatement returns a channel that yields a JSON object.
 func (this *Okx) PrivateGetAssetMonthlyStatement(args ...any) <-chan EndpointResult[map[string]any] {
 	return Fetch2Result[map[string]any](this, "asset/monthly-statement", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(2)})
@@ -1700,6 +1705,11 @@ func (this *Okx) PrivatePostAssetWithdrawalLightning(args ...any) <-chan Endpoin
 // PrivatePostAssetCancelWithdrawal returns a channel that yields a JSON object.
 func (this *Okx) PrivatePostAssetCancelWithdrawal(args ...any) <-chan EndpointResult[map[string]any] {
 	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostAssetCancelWithdrawal", args...))
+}
+
+// PrivatePostAssetTravelRuleUnlock returns a channel that yields a JSON object.
+func (this *Okx) PrivatePostAssetTravelRuleUnlock(args ...any) <-chan EndpointResult[map[string]any] {
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostAssetTravelRuleUnlock", args...))
 }
 
 // PrivatePostAssetConvertDustAssets returns a channel that yields a JSON object.

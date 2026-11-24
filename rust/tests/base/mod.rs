@@ -79,6 +79,8 @@ pub use test_json::testJson;
 pub use test_keysort::testKeysort;
 #[path = "test.mergeBalanceAccount.rs"] pub mod test_mergeBalanceAccount;
 pub use test_mergeBalanceAccount::testMergeBalanceAccount;
+#[path = "test.modPow.rs"] pub mod test_modPow;
+pub use test_modPow::testModPow;
 #[path = "test.networkMethods.rs"] pub mod test_networkMethods;
 pub use test_networkMethods::testNetworkMethods;
 #[path = "test.numberToBE.rs"] pub mod test_numberToBE;

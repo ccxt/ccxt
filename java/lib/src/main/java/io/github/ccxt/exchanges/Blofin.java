@@ -15,6 +15,7 @@ import io.github.ccxt.types.FundingRate;
 import io.github.ccxt.types.FundingRateHistory;
 import io.github.ccxt.types.LedgerEntry;
 import io.github.ccxt.types.Leverage;
+import io.github.ccxt.types.LeverageTier;
 import io.github.ccxt.types.Leverages;
 import io.github.ccxt.types.MarginMode;
 import io.github.ccxt.types.MarketInterface;
@@ -84,7 +85,7 @@ public class Blofin extends BlofinApi
                 put( "createStopOrder", false );
                 put( "createTakeProfitOrder", true );
                 put( "createTriggerOrder", true );
-                put( "editOrder", false );
+                put( "editOrder", true );
                 put( "fetchAccounts", false );
                 put( "fetchBalance", true );
                 put( "fetchBidsAsks", null );
@@ -121,7 +122,7 @@ public class Blofin extends BlofinApi
                 put( "fetchLeverageTiers", false );
                 put( "fetchMarginMode", true );
                 put( "fetchMarginModes", false );
-                put( "fetchMarketLeverageTiers", false );
+                put( "fetchMarketLeverageTiers", true );
                 put( "fetchMarkets", true );
                 put( "fetchMarkOHLCV", false );
                 put( "fetchMySettlementHistory", false );
@@ -1882,6 +1883,10 @@ public class Blofin extends BlofinApi
         String symbol = this.safeSymbol(marketId, marketResolved, "-", (String) null);
         String filled = this.safeString(order, "filledSize");
         String price = this.safeStringN(order, new ArrayList<Object>(Arrays.asList("px", "price", "orderPrice")));
+        if (java.util.Objects.equals(price, "-1"))
+        {
+            price = null; // trigger orders send orderPrice -1 for market execution
+        }
         String average = this.safeString(order, "averagePrice");
         String status = this.parseOrderStatus(this.safeString(order, "state"));
         String feeCostString = this.safeString(order, "fee");
@@ -1935,6 +1940,7 @@ public class Blofin extends BlofinApi
         mapLiteral6.put("postOnly", postOnly);
         mapLiteral6.put("side", side);
         mapLiteral6.put("price", price);
+        mapLiteral6.put("triggerPrice", this.safeNumber(order, "triggerPrice", (Object) null));
         mapLiteral6.put("stopLossPrice", stopLossPrice);
         mapLiteral6.put("takeProfitPrice", takeProfitPrice);
         mapLiteral6.put("average", average);
@@ -2208,6 +2214,71 @@ public class Blofin extends BlofinApi
             List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             return this.parseOrders(data, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
+
+    }
+
+    /**
+     * @method
+     * @name blofin#editOrder
+     * @description edit a trade order
+     * @see https://docs.blofin.com/index.html#amend-order
+     * @param {string} id order id
+     * @param {string} symbol unified symbol of the market the order was made in
+     * @param {string} type 'market' or 'limit'
+     * @param {string} side 'buy' or 'sell'
+     * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+     * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+     */
+    public CompletableFuture<Order> editOrder(String id, String symbol, String type, String side, Object amount, Object price, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = this.market(symbol);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "instId", market.get("id") );
+            }};
+            String clientOrderId = this.safeString(parameters, "clientOrderId");
+            if (!java.util.Objects.equals(clientOrderId, null))
+            {
+                request.put("clientOrderId", clientOrderId);
+            } else
+            {
+                request.put("orderId", id);
+            }
+            if (!java.util.Objects.equals(amount, null))
+            {
+                request.put("newSize", this.amountToPrecision(symbol, amount));
+            }
+            if (!java.util.Objects.equals(price, null))
+            {
+                request.put("newPrice", this.priceToPrecision(symbol, price));
+            }
+            Map<String, Object> response = (this.privatePostTradeAmendOrder(this.extend(request, this.omit(parameters, "clientOrderId")))).join();
+            //
+            //     {
+            //         "code": "0",
+            //         "msg": "Order modified",
+            //         "data": {
+            //             "orderId": "6000004088576",
+            //             "clientOrderId": "",
+            //             "requestId": "",
+            //             "msg": "Order modified",
+            //             "code": "0",
+            //             "ts": "1795184228537"
+            //         }
+            //     }
+            //
+            Map<String, Object> data = this.safeDict(response, "data", new HashMap<String, Object>() {{}});
+            return this.parseOrder(data, market);
+        }).thenApply(Order::new);
 
     }
 
@@ -3777,6 +3848,77 @@ public class Blofin extends BlofinApi
         mapLiteral8.put("stopLossPrice", null);
         mapLiteral8.put("takeProfitPrice", null);
         return this.safePosition(mapLiteral8);
+    }
+
+    /**
+     * @method
+     * @name blofin#fetchMarketLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+     * @see https://docs.blofin.com/index.html#get-position-tiers
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
+     * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+     */
+    public CompletableFuture<List<LeverageTier>> fetchMarketLeverageTiers(String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = this.market(symbol);
+            Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchMarketLeverageTiers", parameters, "cross");
+            String marginMode = marginModequeryVariable.first();
+            Map<String, Object> query = marginModequeryVariable.second();
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "instId", market.get("id") );
+                put( "marginMode", marginMode );
+            }};
+            Map<String, Object> response = (this.publicGetMarketPositionTiers(this.extend(request, query))).join();
+            //
+            //     {
+            //         "code": "0",
+            //         "msg": "success",
+            //         "data": [
+            //             {
+            //                 "symbol": "LTC-USDT",
+            //                 "marginMode": "cross",
+            //                 "minSize": "0",
+            //                 "maxSize": "500",
+            //                 "maintenanceMarginRate": "0.0065",
+            //                 "maxLeverage": "50"
+            //             }
+            //         ]
+            //     }
+            //
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            return this.parseMarketLeverageTiers(data, market);
+        }).thenApply(res -> ((List<?>) res).stream().map(LeverageTier::new).collect(Collectors.toList()));
+
+    }
+
+    public Object parseMarketLeverageTiers(Object info, Map<String, Object> market)
+    {
+        List<Object> tiers = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < (switch ((Object)(info)) { case null -> 0; case List<?> j39v6 -> j39v6.size(); case String j39v7 -> j39v7.length(); case Object j39v8 -> j39v8.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v8) : 0; }); i++)
+        {
+            Map<String, Object> tier = this.safeDict(info, i, null);
+            String marketId = this.safeString(tier, "symbol");
+            HashMap<String, Object> j39v5 = new HashMap<String, Object>();
+            j39v5.put("tier", this.sum(i, 1));
+            j39v5.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+            j39v5.put("currency", this.safeString(market, "quote"));
+            j39v5.put("minNotional", this.safeNumber(tier, "minSize", (Object) null));
+            j39v5.put("maxNotional", this.safeNumber(tier, "maxSize", (Object) null));
+            j39v5.put("maintenanceMarginRate", this.safeNumber(tier, "maintenanceMarginRate", (Object) null));
+            j39v5.put("maxLeverage", this.safeNumber(tier, "maxLeverage", (Object) null));
+            j39v5.put("info", tier);
+            ((List<Object>)tiers).add(j39v5);
+        }
+        return tiers;
     }
 
     /**

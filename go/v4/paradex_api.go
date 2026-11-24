@@ -184,222 +184,222 @@ func (this *Paradex) PublicGetXpTransferTransferId(args ...any) <-chan EndpointR
 
 // PrivateGetAccount returns a channel that yields a JSON array.
 func (this *Paradex) PrivateGetAccount(args ...any) <-chan EndpointResult[[]any] {
-	return Fetch2Result[[]any](this, "account", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[[]any](this.callEndpointAsync("privateGetAccount", args...))
 }
 
 // PrivateGetAccountCompliance returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetAccountCompliance(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "account/compliance", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetAccountCompliance", args...))
 }
 
 // PrivateGetAccountHistory returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetAccountHistory(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "account/history", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetAccountHistory", args...))
 }
 
 // PrivateGetAccountInfo returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetAccountInfo(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "account/info", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetAccountInfo", args...))
 }
 
 // PrivateGetAccountMargin returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetAccountMargin(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "account/margin", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetAccountMargin", args...))
 }
 
 // PrivateGetAccountProfile returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetAccountProfile(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "account/profile", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetAccountProfile", args...))
 }
 
 // PrivateGetAccountSettings returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetAccountSettings(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "account/settings", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetAccountSettings", args...))
 }
 
 // PrivateGetAccountSubaccounts returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetAccountSubaccounts(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "account/subaccounts", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetAccountSubaccounts", args...))
 }
 
 // PrivateGetAccountSummary returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetAccountSummary(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "account/summary", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetAccountSummary", args...))
 }
 
 // PrivateGetBalance returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetBalance(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "balance", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetBalance", args...))
 }
 
 // PrivateGetFills returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetFills(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "fills", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetFills", args...))
 }
 
 // PrivateGetFundingPayments returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetFundingPayments(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "funding/payments", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetFundingPayments", args...))
 }
 
 // PrivateGetPositions returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetPositions(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "positions", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetPositions", args...))
 }
 
 // PrivateGetTradebusts returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetTradebusts(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "tradebusts", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetTradebusts", args...))
 }
 
 // PrivateGetTransactions returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetTransactions(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "transactions", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetTransactions", args...))
 }
 
 // PrivateGetAccountKeysSubkeys returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetAccountKeysSubkeys(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "account/keys/subkeys", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetAccountKeysSubkeys", args...))
 }
 
 // PrivateGetAccountKeysSubkeysPublicKey returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetAccountKeysSubkeysPublicKey(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "account/keys/subkeys/{public_key}", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetAccountKeysSubkeysPublicKey", args...))
 }
 
 // PrivateGetAccountTokens returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetAccountTokens(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "account/tokens", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetAccountTokens", args...))
 }
 
 // PrivateGetAlgoOrders returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetAlgoOrders(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "algo/orders", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetAlgoOrders", args...))
 }
 
 // PrivateGetAlgoOrdersHistory returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetAlgoOrdersHistory(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "algo/orders-history", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetAlgoOrdersHistory", args...))
 }
 
 // PrivateGetAlgoOrdersAlgoId returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetAlgoOrdersAlgoId(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "algo/orders/{algo_id}", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetAlgoOrdersAlgoId", args...))
 }
 
 // PrivateGetBlockTrades returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetBlockTrades(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "block-trades", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetBlockTrades", args...))
 }
 
 // PrivateGetBlockTradesBlockTradeId returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetBlockTradesBlockTradeId(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "block-trades/{block_trade_id}", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetBlockTradesBlockTradeId", args...))
 }
 
 // PrivateGetBlockTradesBlockTradeIdOffers returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetBlockTradesBlockTradeIdOffers(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "block-trades/{block_trade_id}/offers", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetBlockTradesBlockTradeIdOffers", args...))
 }
 
 // PrivateGetBlockTradesBlockTradeIdOffersOfferId returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetBlockTradesBlockTradeIdOffersOfferId(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "block-trades/{block_trade_id}/offers/{offer_id}", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetBlockTradesBlockTradeIdOffersOfferId", args...))
 }
 
 // PrivateGetLiquidations returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetLiquidations(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "liquidations", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetLiquidations", args...))
 }
 
 // PrivateGetOrders returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetOrders(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "orders", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetOrders", args...))
 }
 
 // PrivateGetOrdersHistory returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetOrdersHistory(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "orders-history", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetOrdersHistory", args...))
 }
 
 // PrivateGetOrdersByClientIdClientId returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetOrdersByClientIdClientId(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "orders/by_client_id/{client_id}", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetOrdersByClientIdClientId", args...))
 }
 
 // PrivateGetOrdersOrderId returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetOrdersOrderId(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "orders/{order_id}", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetOrdersOrderId", args...))
 }
 
 // PrivateGetReferralsQrCode returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetReferralsQrCode(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "referrals/qr-code", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetReferralsQrCode", args...))
 }
 
 // PrivateGetReferralsSummary returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetReferralsSummary(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "referrals/summary", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetReferralsSummary", args...))
 }
 
 // PrivateGetRfqs returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetRfqs(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "rfqs", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetRfqs", args...))
 }
 
 // PrivateGetRfqsDrafts returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetRfqsDrafts(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "rfqs/drafts", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetRfqsDrafts", args...))
 }
 
 // PrivateGetRfqsMarkets returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetRfqsMarkets(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "rfqs/markets", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetRfqsMarkets", args...))
 }
 
 // PrivateGetRfqsRfqIdBbo returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetRfqsRfqIdBbo(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "rfqs/{rfq_id}/bbo", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetRfqsRfqIdBbo", args...))
 }
 
 // PrivateGetStakingBalanceHistory returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetStakingBalanceHistory(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "staking/balance/history", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetStakingBalanceHistory", args...))
 }
 
 // PrivateGetStakingHistory returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetStakingHistory(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "staking/history", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetStakingHistory", args...))
 }
 
 // PrivateGetStakingSummary returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetStakingSummary(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "staking/summary", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetStakingSummary", args...))
 }
 
 // PrivateGetTransfers returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetTransfers(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "transfers", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetTransfers", args...))
 }
 
 // PrivateGetVaultsAccountSummary returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetVaultsAccountSummary(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "vaults/account-summary", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetVaultsAccountSummary", args...))
 }
 
 // PrivateGetVaultsMine returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetVaultsMine(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "vaults/mine", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetVaultsMine", args...))
 }
 
 // PrivateGetXpAccountBalance returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetXpAccountBalance(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "xp/account-balance", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetXpAccountBalance", args...))
 }
 
 // PrivateGetXpTransfers returns a channel that yields a JSON object.
 func (this *Paradex) PrivateGetXpTransfers(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "xp/transfers", []string{"private"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privateGetXpTransfers", args...))
 }
 
 // PrivatePostAccountCompliance returns a channel that yields a JSON object.
@@ -489,7 +489,7 @@ func (this *Paradex) PrivatePostAlgoOrders(args ...any) <-chan EndpointResult[ma
 
 // PrivatePostAuth returns a channel that yields a JSON object.
 func (this *Paradex) PrivatePostAuth(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "auth", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostAuth", args...))
 }
 
 // PrivatePostBlockTrades returns a channel that yields a JSON object.
@@ -514,7 +514,7 @@ func (this *Paradex) PrivatePostBlockTradesBlockTradeIdOffersOfferIdExecute(args
 
 // PrivatePostOnboarding returns a channel that yields a JSON object.
 func (this *Paradex) PrivatePostOnboarding(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "onboarding", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostOnboarding", args...))
 }
 
 // PrivatePostOrders returns a channel that yields a JSON object.
@@ -544,12 +544,12 @@ func (this *Paradex) PrivatePostRfqsRfqIdExecute(args ...any) <-chan EndpointRes
 
 // PrivatePostV2Auth returns a channel that yields a JSON object.
 func (this *Paradex) PrivatePostV2Auth(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v2/auth", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostV2Auth", args...))
 }
 
 // PrivatePostV2Onboarding returns a channel that yields a JSON object.
 func (this *Paradex) PrivatePostV2Onboarding(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v2/onboarding", []string{"private"}, "POST", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
+	return EndpointTyped[map[string]any](this.callEndpointAsync("privatePostV2Onboarding", args...))
 }
 
 // PrivatePostVaults returns a channel that yields a JSON object.

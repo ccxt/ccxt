@@ -450,8 +450,10 @@ class FakeWsConnection {
     // (subscriptions, futures, caches, message routing) runs unmodified
     public $sent_messages = array();
     public function send($message) {
-        // record the outgoing frame so the test can assert it
-        $this->sent_messages[] = json_decode($message, true);
+        // record the outgoing frame so the test can assert it,
+        // non-json text frames (e.g. interactivebrokers 'sbd+...') are kept as the raw string
+        $decoded = json_decode($message, true);
+        $this->sent_messages[] = (json_last_error() === JSON_ERROR_NONE) ? $decoded : $message;
         return null;
     }
     public function close($code = 1000, $reason = '') {
