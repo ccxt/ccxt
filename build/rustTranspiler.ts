@@ -4708,7 +4708,8 @@ function rustTypedSafeOrder (content: string): string {
         return true;
     };
     const baseRet = 'return self.extend(orderDict.clone(), &[';
-    const base = content.indexOf ('fn safe_order(&self, mut order: Value, market: Option<&crate::types::Market>) -> Value {');
+    const base = Math.max (content.indexOf ('fn safe_order(&self, mut order: Value, market: Option<&crate::types::Market>) -> Value {'),
+        content.indexOf ('fn safe_order(&self, order: impl crate::value::ExtendHead, market: Option<&crate::types::Market>) -> Value {'));
     if (base >= 0) typeBody (base, (b) => b.split (/\breturn\b/).length === 2 && b.includes (baseRet), (b) => b.replace (baseRet, 'return self.extend_t(orderDict.clone(), &['));
     const wsSig = 'pub fn parse_ws_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {';
     const ws = content.indexOf (wsSig);
@@ -10642,7 +10643,7 @@ export class RustTranspilerBuilder {
         const rules: any[] = [
             // Capitalise struct name (transpiler lowercases first letter)
             [/\bpub struct ([a-z])/g, (_: string, c: string) => `pub struct ${c.toUpperCase()}`],
-            [/\bimpl ([a-z])([A-Za-z0-9_]*)\b/g, (_: string, c: string, rest: string) =>
+            [/\bimpl ([a-z])([A-Za-z0-9_]*)\b(?!::)/g, (_: string, c: string, rest: string) =>
                 `impl ${c.toUpperCase()}${rest}`],
 
             // snake_case for method names inside impl blocks
@@ -11893,9 +11894,11 @@ export class RustTranspilerBuilder {
             const firstMatch = rawFirst.match(/^\s*([a-zA-Z_][a-zA-Z0-9_]*)\.clone\(\)\s*$/);
             const movable = firstMatch !== null && firstMatch[1] !== 'self' &&
                 this.rustArgIsDeadAfter(content, blocks, absStart, argEnd, firstMatch[1]);
+            // an owned `Dict` has no `KeyRead`: its last use lends it instead of moving it
+            const dictLocal = movable && new RegExp(`\\blet (?:mut )?${firstMatch[1]}: crate::value::Dict = `).test(content.slice(content.lastIndexOf('fn ', absStart), absStart));
             if (movable) {
                 out += content.slice(absStart, callStart) +
-                    rawFirst.replace(/\.clone\(\)(\s*)$/, '$1') +
+                    rawFirst.replace(/^(\s*)/, dictLocal ? '$1&' : '$1').replace(/\.clone\(\)(\s*)$/, '$1') +
                     content.slice(argEnd, j + 1);
             } else {
                 out += content.slice(absStart, j + 1);
