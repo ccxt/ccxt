@@ -1267,7 +1267,7 @@ export default class dydx extends Exchange {
     retrieveCredentials (): Dict {
         let credentials = this.safeDict (this.options, 'dydxCredentials');
         if (credentials !== undefined) {
-            return credentials;
+            return this.safeDict (this.options, 'dydxCredentials', {});
         }
         const privateKeyOption = this.safeString (this.options, 'privateKey');
         if (privateKeyOption !== undefined) {
@@ -1281,7 +1281,7 @@ export default class dydx extends Exchange {
             'publicKey': this.binaryToBase16 (credentials['publicKey']),
         };
         this.options['dydxCredentials'] = credentials;
-        return credentials;
+        return this.safeDict (this.options, 'dydxCredentials', {});
     }
 
     async fetchDydxAccount (): Promise<Dict> {
