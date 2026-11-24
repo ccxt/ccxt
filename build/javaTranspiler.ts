@@ -6615,10 +6615,13 @@ export function nativeJavaCoreArgIdentities (content: string): string {
                     const t = declaredType (arg);
                     native = t !== undefined && want.test (t);
                 } else if (helper === 'toMapArg') {
-                    const call = /^this\.\w+\(/.exec (arg);
+                    const call = /^(?:[A-Z]\w*\.)?this\.\w+\(/.exec (arg);
                     if (call !== null && closeOf (arg, call[0].length - 1) === arg.length - 1) {
-                        const head = call[0];
+                        const head = call[0].replace (/^[A-Z]\w*\./, '');
                         if (MAP_CALLS.test (head)) native = true;
+                        // the two-argument extend overload is declared Map<String, Object> (varargs one is Object)
+                        const ext = head === 'this.extend(' ? splitTopLevelArgs (arg.slice (call[0].length, -1)) : [];
+                        if (ext.length === 2 && ext.every ((a) => (a.match (/</g) ?? []).length === (a.match (/>/g) ?? []).length)) native = true;
                         if (head === 'this.omit(') {
                             // the omit(Map<String, Object>, ..) overloads return a Map
                             const first = /^this\.omit\(([A-Za-z_]\w*), /.exec (arg);
@@ -6669,7 +6672,7 @@ function javaCoreArgIdentitiesSelfTest (): string[] {
         '        String s = this.safeString(p, "s");',
         '        Long n = this.safeInteger(p, "n");',
         '        List<String> l = null;',
-        '        return this.f(Helpers.toMapArg(m), Helpers.toMapArg(o), Helpers.toStringArg(s), Helpers.toLongOrNull(n), Helpers.toStringListArg(l), Helpers.toMapArg(this.omit(q, "y")), Helpers.toMapArg(this.omit(p, "y")), Helpers.toStringArg(p), Helpers.toMapArg(this.currency((String) (s))));',
+        '        return this.f(Helpers.toMapArg(m), Helpers.toMapArg(o), Helpers.toStringArg(s), Helpers.toLongOrNull(n), Helpers.toStringListArg(l), Helpers.toMapArg(this.omit(q, "y")), Helpers.toMapArg(this.omit(p, "y")), Helpers.toStringArg(p), Helpers.toMapArg(this.currency((String) (s))), Helpers.toMapArg(Woo.this.extend(q, m)), Helpers.toMapArg(this.extend(q, m, o)));',
         '    }',
         '    public Object b(Object p)',
         '    {',
@@ -6679,7 +6682,7 @@ function javaCoreArgIdentitiesSelfTest (): string[] {
         '    }',
     ].join('\n');
     const out = nativeJavaCoreArgIdentities(body);
-    const want = 'return this.f(m, Helpers.toMapArg(o), s, n, l, this.omit(q, "y"), Helpers.toMapArg(this.omit(p, "y")), Helpers.toStringArg(p), this.currency((String) (s)));';
+    const want = 'return this.f(m, Helpers.toMapArg(o), s, n, l, this.omit(q, "y"), Helpers.toMapArg(this.omit(p, "y")), Helpers.toStringArg(p), this.currency((String) (s)), Woo.this.extend(q, m), Helpers.toMapArg(this.extend(q, m, o)));';
     if (!out.includes(want)) problems.push('declared-type core args must drop their identity wrapper (only those)');
     if (!out.includes('return this.g(Helpers.toMapArg(m));')) problems.push('a lambda-shadowed name must keep the wrapper');
     return problems;
