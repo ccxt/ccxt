@@ -928,7 +928,7 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
                 return orderBook;
             } catch(Exception e)
             {
-                if (Helpers.isEqual(((((long) i) + 1L)), fetchSnapshotMaxRetries))
+                if ((fetchSnapshotMaxRetries != null && ((((long) i) + 1L)) == fetchSnapshotMaxRetries))
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }

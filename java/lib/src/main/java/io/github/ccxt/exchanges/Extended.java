@@ -523,12 +523,12 @@ public class Extended extends ExtendedApi
         }});
     }
 
-    public CompletableFuture<Object> loadMarkets(Object reload, Object parameters)
+    public CompletableFuture<Object> loadMarkets(Object reload, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.loadMarketsCore(reload, parameters));
     }
 
-    private Object loadMarketsCore(Object reload, Object parameters)
+    private Object loadMarketsCore(Object reload, Map<String, Object> parameters)
     {
 
         Object markets = (super.loadMarkets(java.util.Objects.requireNonNullElse(reload, false), parameters)).join();
@@ -2686,7 +2686,7 @@ public class Extended extends ExtendedApi
         for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> fee = this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            Map<String, Object> parsed = this.parseTradingFee(fee, (Map<String, Object>) null);
+            Map<String, Object> parsed = this.parseTradingFee(fee, null);
             String symbol = this.safeString(parsed, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {

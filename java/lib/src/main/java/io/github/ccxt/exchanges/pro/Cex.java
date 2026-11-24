@@ -1267,7 +1267,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         String messageHash = ("orderbook:" + symbol);
         Long nonce = this.safeInteger(storedOrderBook, "nonce");
-        if ((java.util.Objects.equals(nonce, null)) || (!java.util.Objects.equals(incrementalId, (nonce + 1L))))
+        if ((java.util.Objects.equals(nonce, null)) || ((incrementalId == null || incrementalId != (nonce + 1L))))
         {
             client.subscriptions.remove(messageHash);
             var error = new InvalidNonce((this.id + " watchOrderBook() skipped a message"));

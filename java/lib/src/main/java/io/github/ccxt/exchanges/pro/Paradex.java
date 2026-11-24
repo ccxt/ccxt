@@ -1217,7 +1217,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 return;
             }
-            if (!java.util.Objects.equals(nonce, (storedNonce + 1L)))
+            if ((nonce == null || nonce != (storedNonce + 1L)))
             {
                 // a skipped delta leaves the book wrong, the feed is subscribed again for a fresh snapshot
                 stored.put("nonce", null);

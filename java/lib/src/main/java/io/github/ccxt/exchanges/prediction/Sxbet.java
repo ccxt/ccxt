@@ -2950,8 +2950,8 @@ public class Sxbet extends SxbetApi
             // return the freshly-seeded book immediately instead of blocking until the next publication
             client.resolve(this.safeValue(this.orderbooks, sym), messageHash);
         }
-        Object orderbook = ((io.github.ccxt.ws.Future)future).getFuture().join();
-        return Helpers.callDynamically(orderbook, "limit", new Object[]{});
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((io.github.ccxt.ws.Future)future).getFuture().join();
+        return orderbook.limit();
 
     }
 

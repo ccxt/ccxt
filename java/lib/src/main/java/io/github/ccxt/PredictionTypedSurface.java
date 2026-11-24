@@ -72,7 +72,7 @@ import java.util.stream.Collectors;
 public interface PredictionTypedSurface {
 
     // --- abstract core signatures (implemented by the transpiled tiers) ---
-    CompletableFuture<Object> loadMarkets(Object reload, Object params);
+    CompletableFuture<Object> loadMarkets(Object reload, Map<String, Object> params);
     CompletableFuture<Map<String, Object>> fetchCurrencies(Map<String, Object> params);
     CompletableFuture<List<Object>> fetchMarkets(Map<String, Object> params);
     CompletableFuture<List<Account>> fetchAccounts(Map<String, Object> params);

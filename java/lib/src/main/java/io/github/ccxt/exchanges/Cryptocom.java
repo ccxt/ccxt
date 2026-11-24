@@ -4206,17 +4206,13 @@ public class Cryptocom extends CryptocomApi
         return this.milliseconds();
     }
 
-    public Object paramsToString(Object obj, Object level)
+    public String paramsToString(Object obj, Object level)
     {
         Integer maxLevel = 3;
         Long depth = this.parseToInt(level);
-        if ((maxLevel == null || (depth != null && depth >= maxLevel)))
+        if (((maxLevel == null || (depth != null && depth >= maxLevel))) || ((obj instanceof String)))
         {
             return String.valueOf(obj);
-        }
-        if ((obj instanceof String))
-        {
-            return obj;
         }
         String returnString = "";
         Object paramsKeys = null;
@@ -4484,7 +4480,7 @@ public class Cryptocom extends CryptocomApi
             String nonce = this.numberToString(this.nonce());
             Map<String, Object> requestParams = this.extend(new HashMap<String, Object>() {{}}, parameters);
             List<String> paramsKeys = new ArrayList<String>(requestParams.keySet());
-            Object strSortKey = this.paramsToString(requestParams, 0);
+            String strSortKey = this.paramsToString(requestParams, 0);
             String payload = ((((path + nonce) + this.apiKey) + strSortKey) + nonce);
             String signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256());
             Integer paramsKeysLength = paramsKeys.size();

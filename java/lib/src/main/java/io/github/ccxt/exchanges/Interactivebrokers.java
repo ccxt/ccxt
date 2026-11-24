@@ -1809,12 +1809,12 @@ public class Interactivebrokers extends InteractivebrokersApi
         return null;
     }
 
-    public CompletableFuture<Object> loadMarkets(Object reload, Object parameters)
+    public CompletableFuture<Object> loadMarkets(Object reload, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.loadMarketsCore(reload, parameters));
     }
 
-    private Object loadMarketsCore(Object reload, Object parameters)
+    private Object loadMarketsCore(Object reload, Map<String, Object> parameters)
     {
 
         (this.authenticate(new HashMap<String, Object>() {{}})).join();

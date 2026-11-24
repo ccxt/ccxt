@@ -813,7 +813,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             market = this.safeMarket(this.symbol(this.safeString(message, "symbol")), null, null, null);
             Map<String, Object> data = this.safeDict(message, "publicSpotKline", new HashMap<String, Object>() {{}});
             String timeframeId = this.safeString(data, "interval");
-            timeframe = this.findTimeframe(timeframeId, this.options.get("timeframes"));
+            timeframe = this.findTimeframe(timeframeId, this.safeDict(this.options, "timeframes", null));
             parsed = this.parseWsOHLCV(data, market);
         } else
         {

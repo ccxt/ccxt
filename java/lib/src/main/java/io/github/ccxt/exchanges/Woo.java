@@ -1292,7 +1292,7 @@ public class Woo extends WooApi
         String price = this.safeString2(trade, "executed_price", "executedPrice");
         String amount = this.safeString2(trade, "executed_quantity", "executedQuantity");
         String order_id = this.safeString2(trade, "order_id", "orderId");
-        Object fee = this.parseTokenAndFeeTemp(this.extend(new HashMap<String, Object>() {{}}, trade), new ArrayList<Object>(Arrays.asList("fee_asset", "feeAsset")), new ArrayList<Object>(Arrays.asList("fee")));
+        Map<String, Object> fee = this.parseTokenAndFeeTemp(this.extend(new HashMap<String, Object>() {{}}, trade), new ArrayList<Object>(Arrays.asList("fee_asset", "feeAsset")), new ArrayList<Object>(Arrays.asList("fee")));
         String cost = Precise.stringMul(price, amount);
         String side = this.safeStringLower(trade, "side");
         String id = this.safeString(trade, "id");
@@ -1319,7 +1319,7 @@ public class Woo extends WooApi
         return this.safeTrade(mapLiteral2, marketResolved);
     }
 
-    public Object parseTokenAndFeeTemp(Map<String, Object> item, List<?> feeTokenKeys, List<?> feeAmountKeys)
+    public Map<String, Object> parseTokenAndFeeTemp(Map<String, Object> item, List<?> feeTokenKeys, List<?> feeAmountKeys)
     {
         String feeCost = this.safeStringN(item, feeAmountKeys);
         Map<String, Object> fee = null;
@@ -3610,7 +3610,7 @@ public class Woo extends WooApi
             direction = "in";
         }
         Long timestamp = this.safeTimestamp(item, "createdTime");
-        Object fee = this.parseTokenAndFeeTemp(item, new ArrayList<Object>(Arrays.asList("feeToken")), new ArrayList<Object>(Arrays.asList("feeAmount")));
+        Map<String, Object> fee = this.parseTokenAndFeeTemp(item, new ArrayList<Object>(Arrays.asList("feeToken")), new ArrayList<Object>(Arrays.asList("feeAmount")));
         HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
         mapLiteral6.put("info", item);
         mapLiteral6.put("id", this.safeString(item, "id"));
@@ -3774,7 +3774,7 @@ public class Woo extends WooApi
         {
             movementDirection = "withdrawal";
         }
-        Object fee = this.parseTokenAndFeeTemp(transaction, new ArrayList<Object>(Arrays.asList("fee_token", "feeToken")), new ArrayList<Object>(Arrays.asList("fee_amount", "feeAmount")));
+        Map<String, Object> fee = this.parseTokenAndFeeTemp(transaction, new ArrayList<Object>(Arrays.asList("fee_token", "feeToken")), new ArrayList<Object>(Arrays.asList("fee_amount", "feeAmount")));
         String addressTo = this.safeStringN(transaction, new ArrayList<Object>(Arrays.asList("target_address", "targetAddress", "addressTo")));
         String addressFrom = this.safeString2(transaction, "source_address", "sourceAddress");
         Long timestamp = this.safeTimestampN(transaction, new ArrayList<Object>(Arrays.asList("created_time", "createdTime")), this.safeInteger(transaction, "timestamp"));

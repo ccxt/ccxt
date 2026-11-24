@@ -3048,9 +3048,9 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> fetchOrdersByIds(List<?> ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> fetchOrdersByIds(List<?> ids, String symbol, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchOrdersByIdsCore(ids, symbol, parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchOrdersByIdsCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
     private Object fetchOrdersByIdsCore(List<?> ids, String symbol, Map<String, Object> parameters)

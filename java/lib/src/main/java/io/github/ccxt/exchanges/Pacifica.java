@@ -754,12 +754,12 @@ public class Pacifica extends PacificaApi
         }});
     }
 
-    public CompletableFuture<Object> initializeClient()
+    public CompletableFuture<Boolean> initializeClient()
     {
         return BaseExchange.supplyAsync(() -> this.initializeClientCore());
     }
 
-    private Object initializeClientCore()
+    private Boolean initializeClientCore()
     {
 
         try
@@ -2142,11 +2142,11 @@ public class Pacifica extends PacificaApi
         }};
     }
 
-    public Map<String, Object> createOrdersRequest(Object orders, Map<String, Object> parameters)
+    public Map<String, Object> createOrdersRequest(List<?> orders, Map<String, Object> parameters)
     {
         List<Object> actions = new ArrayList<Object>(Arrays.asList());
         Long timestamp = this.milliseconds(); // unified sequence
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             Map<String, Object> order = this.safeDict(orders, i, null);
             String symbol = this.safeString(order, "symbol");

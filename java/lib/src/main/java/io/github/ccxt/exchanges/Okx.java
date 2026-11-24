@@ -10683,7 +10683,7 @@ public class Okx extends OkxApi
         //
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         // rows cover every contract of the instrument family, including expired ids missing from markets
-        List<Object> settlements = this.parseSettlements(data, (Map<String, Object>) (null));
+        List<Object> settlements = this.parseSettlements(data, null);
         List<Object> sorted = this.sortBy(settlements, "timestamp");
         return this.filterBySinceLimit(sorted, since, limit, "timestamp", false);
 

@@ -8558,12 +8558,12 @@ public class Bitget extends BitgetApi
         return (Map<String, Object>) (this.extend(request, paramsMarketType));
     }
 
-    public CompletableFuture<List<Order>> createUtaOrders(Object orders, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> createUtaOrders(List<?> orders, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createUtaOrdersCore(orders, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
-    private Object createUtaOrdersCore(Object orders, Map<String, Object> parameters)
+    private Object createUtaOrdersCore(List<?> orders, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -8573,7 +8573,7 @@ public class Bitget extends BitgetApi
         List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
         String symbol = null;
         String marginMode = null;
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             Map<String, Object> rawOrder = this.safeDict(orders, i, null);
             String marketId = this.safeString(rawOrder, "symbol");

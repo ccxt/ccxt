@@ -1907,7 +1907,7 @@ public class Lbank extends LbankApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < fees.size(); i++)
         {
-            Map<String, Object> fee = this.parseTradingFee(this.extend(new HashMap<String, Object>() {{}}, (fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))), (Map<String, Object>) null);
+            Map<String, Object> fee = this.parseTradingFee(this.extend(new HashMap<String, Object>() {{}}, (fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))), null);
             String symbol = this.safeString(fee, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {

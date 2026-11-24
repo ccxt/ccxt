@@ -4938,7 +4938,7 @@ public class Hashkey extends HashkeyApi
         for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> fee = this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            Map<String, Object> parsedFee = this.parseTradingFee(fee, (Map<String, Object>) null);
+            Map<String, Object> parsedFee = this.parseTradingFee(fee, null);
             String feeSymbol = this.safeString(parsedFee, "symbol", "");
             result.put(feeSymbol, parsedFee);
         }

@@ -1576,7 +1576,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         }
         for (var i = 0; i < rawBalances.size(); i++)
         {
-            this.parseWsBalance((Map<String, Object>) ((rawBalances == null || i < 0 || i >= rawBalances.size() ? null : rawBalances.get(i))), account);
+            this.parseWsBalance(this.safeDict(rawBalances, i, new HashMap<String, Object>() {{}}), account);
         }
         if (!(((Map<?, ?>)this.balance).containsKey(account)))
         {

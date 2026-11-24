@@ -2301,7 +2301,7 @@ public class Coinsph extends CoinsphApi
         for (var i = 0; i < fees.size(); i++)
         {
             Map<String, Object> feeRow = this.safeDict(fees, i, new HashMap<String, Object>() {{}});
-            Map<String, Object> fee = this.parseTradingFee(feeRow, (Map<String, Object>) null);
+            Map<String, Object> fee = this.parseTradingFee(feeRow, null);
             String symbol = this.safeString(fee, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {

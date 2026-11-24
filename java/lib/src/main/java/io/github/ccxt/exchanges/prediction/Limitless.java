@@ -1933,9 +1933,9 @@ public class Limitless extends LimitlessApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public CompletableFuture<Object> fetchOrdersByIds(Object ids, String outcome, Map<String, Object> parameters)
+    public CompletableFuture<List<PredictionOrder>> fetchOrdersByIds(Object ids, String outcome, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchOrdersByIdsCore(ids, outcome, parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchOrdersByIdsCore(ids, outcome, parameters)).thenApply(res -> ((List<?>) res).stream().map(PredictionOrder::new).collect(Collectors.toList()));
     }
 
     private Object fetchOrdersByIdsCore(Object ids, String outcome, Map<String, Object> parameters)
@@ -2096,7 +2096,7 @@ public class Limitless extends LimitlessApi
         {
             (this.loadOutcome(outcome, false)).join();
         }
-        Object orders = (this.fetchOrdersByIds(new ArrayList<Object>(Arrays.asList(id)), outcome, parameters)).join();
+        List<PredictionOrder> orders = (this.fetchOrdersByIds(new ArrayList<Object>(Arrays.asList(id)), outcome, parameters)).join();
         Map<String, Object> order = this.safeDict(orders, 0, null);
         if (java.util.Objects.equals(order, null))
         {

@@ -2270,12 +2270,12 @@ public class Hyperliquid extends HyperliquidApi
 
     }
 
-    public CompletableFuture<Object> initializeClient()
+    public CompletableFuture<Boolean> initializeClient()
     {
         return BaseExchange.supplyAsync(() -> this.initializeClientCore());
     }
 
-    private Object initializeClientCore()
+    private Boolean initializeClientCore()
     {
 
         try

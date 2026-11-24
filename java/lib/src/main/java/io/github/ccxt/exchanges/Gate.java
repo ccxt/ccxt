@@ -5933,11 +5933,11 @@ public class Gate extends GateApi
 
     }
 
-    public List<Object> createOrdersRequest(Object orders, Map<String, Object> parameters)
+    public List<Object> createOrdersRequest(List<?> orders, Map<String, Object> parameters)
     {
         List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
         List<String> orderSymbols = new ArrayList<String>(Arrays.asList());
-        Integer ordersLength = ((List<?>)orders).size();
+        Integer ordersLength = orders.size();
         if (java.util.Objects.equals(ordersLength, 0))
         {
             throw new BadRequest((this.id + " createOrders() requires at least one order")) ;
@@ -5946,7 +5946,7 @@ public class Gate extends GateApi
         {
             throw new BadRequest((this.id + " createOrders() accepts a maximum of 10 orders at a time")) ;
         }
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             Map<String, Object> rawOrder = this.safeDict(orders, i, null);
             String marketId = this.safeString(rawOrder, "symbol");

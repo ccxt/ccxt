@@ -1257,8 +1257,7 @@ public class Mudrex extends MudrexApi
         {
             response = (this.privateGetFuturesOrders(request)).join();
         }
-        Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
-        List<Object> rows = this.toArray(data);
+        List<Object> rows = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> market = null;
         if (!java.util.Objects.equals(symbol, null))
         {
@@ -1366,12 +1365,7 @@ public class Mudrex extends MudrexApi
         }
         Map<String, Object> q = new HashMap<String, Object>() {{}};
         Map<String, Object> response = (this.privateGetFuturesPositions(this.extend(q, parameters))).join();
-        Object data = this.safeValue(response, "data", new ArrayList<Object>(Arrays.asList()));
-        if (java.util.Objects.equals(data, null))
-        {
-            return new ArrayList<Object>(Arrays.asList());
-        }
-        List<Object> rows = this.toArray(data);
+        List<Object> rows = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> outPos = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rows.size(); i++)
         {

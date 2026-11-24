@@ -1429,7 +1429,7 @@ public class Paradex extends ParadexApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < loadedFees.size(); i++)
         {
-            Map<String, Object> fee = this.parseTradingFee(this.extend(new HashMap<String, Object>() {{}}, (loadedFees == null || i < 0 || i >= loadedFees.size() ? null : loadedFees.get(i))), (Map<String, Object>) null);
+            Map<String, Object> fee = this.parseTradingFee(this.extend(new HashMap<String, Object>() {{}}, (loadedFees == null || i < 0 || i >= loadedFees.size() ? null : loadedFees.get(i))), null);
             String symbol = this.safeString(fee, "symbol");
             result.put((String)symbol, fee);
         }

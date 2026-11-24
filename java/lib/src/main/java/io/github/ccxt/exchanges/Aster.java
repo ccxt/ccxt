@@ -5461,12 +5461,12 @@ public class Aster extends AsterApi
 
     }
 
-    public CompletableFuture<Object> initializeClient(Map<String, Object> parameters)
+    public CompletableFuture<Boolean> initializeClient(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.initializeClientCore(parameters));
     }
 
-    private Object initializeClientCore(Map<String, Object> parameters)
+    private Boolean initializeClientCore(Map<String, Object> parameters)
     {
 
         Boolean builderFee = (Boolean) this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true)); // we shouldn't omit here

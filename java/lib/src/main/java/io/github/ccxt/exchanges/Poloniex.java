@@ -998,12 +998,12 @@ public class Poloniex extends PoloniexApi
 
     }
 
-    public CompletableFuture<Object> loadMarkets(Object reload, Object parameters)
+    public CompletableFuture<Object> loadMarkets(Object reload, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.loadMarketsCore(reload, parameters));
     }
 
-    private Object loadMarketsCore(Object reload, Object parameters)
+    private Object loadMarketsCore(Object reload, Map<String, Object> parameters)
     {
 
         Object markets = (super.loadMarkets(java.util.Objects.requireNonNullElse(reload, false), parameters)).join();

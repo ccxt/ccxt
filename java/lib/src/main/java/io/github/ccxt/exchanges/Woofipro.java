@@ -1192,7 +1192,7 @@ public class Woofipro extends WoofiproApi
         }});
     }
 
-    public Object parseTokenAndFeeTemp(Map<String, Object> item, String feeTokenKey, String feeAmountKey)
+    public Map<String, Object> parseTokenAndFeeTemp(Map<String, Object> item, String feeTokenKey, String feeAmountKey)
     {
         String feeCost = this.safeString(item, feeAmountKey);
         Map<String, Object> fee = null;
@@ -1247,7 +1247,7 @@ public class Woofipro extends WoofiproApi
         String price = this.safeString(trade, "executed_price");
         String amount = this.safeString(trade, "executed_quantity");
         String order_id = this.safeString(trade, "order_id");
-        Object fee = this.parseTokenAndFeeTemp(this.extend(new HashMap<String, Object>() {{}}, trade), "fee_asset", "fee");
+        Map<String, Object> fee = this.parseTokenAndFeeTemp(this.extend(new HashMap<String, Object>() {{}}, trade), "fee_asset", "fee");
         String side = this.safeStringLower(trade, "side");
         String id = this.safeString(trade, "id");
         String takerOrMaker = null;
@@ -3488,7 +3488,7 @@ public class Woofipro extends WoofiproApi
         String side = this.safeString(item, "token_side");
         String direction = (((java.util.Objects.equals(side, "DEPOSIT")))) ? "in" : "out";
         Long timestamp = this.safeInteger(item, "created_time");
-        Object fee = this.parseTokenAndFeeTemp(item, "fee_token", "fee_amount");
+        Map<String, Object> fee = this.parseTokenAndFeeTemp(item, "fee_token", "fee_amount");
         return this.safeLedgerEntry(new HashMap<String, Object>() {{
             put( "id", Woofipro.this.safeString(item, "id") );
             put( "currency", code );
@@ -3555,7 +3555,7 @@ public class Woofipro extends WoofiproApi
         {
             movementDirection = "withdrawal";
         }
-        Object fee = this.parseTokenAndFeeTemp(transaction, "fee_token", "fee_amount");
+        Map<String, Object> fee = this.parseTokenAndFeeTemp(transaction, "fee_token", "fee_amount");
         String addressTo = this.safeString(transaction, "target_address");
         String addressFrom = this.safeString(transaction, "source_address");
         Long timestamp = this.safeInteger(transaction, "created_time");

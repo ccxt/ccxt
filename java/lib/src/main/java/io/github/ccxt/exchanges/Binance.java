@@ -13642,7 +13642,7 @@ public class Binance extends BinanceApi
             List<Object> fees = this.toArray(response);
             for (var i = 0; i < fees.size(); i++)
             {
-                Map<String, Object> fee = this.parseTradingFee(this.extend(new HashMap<String, Object>() {{}}, (fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))), (Map<String, Object>) null);
+                Map<String, Object> fee = this.parseTradingFee(this.extend(new HashMap<String, Object>() {{}}, (fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))), null);
                 String symbol = this.safeString(fee, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {
@@ -14089,18 +14089,22 @@ public class Binance extends BinanceApi
             Object position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
             String marketId = this.safeString(position, "symbol");
             Map<String, Object> market = this.safeMarket(marketId, null, null, "contract");
-            Object code = ((Boolean.TRUE.equals((this.safeBool(market, "linear", false))))) ? market.get("quote") : market.get("base");
+            String marginCode = this.safeString(market, "base", "");
+            if (Boolean.TRUE.equals(this.safeBool(market, "linear", false)))
+            {
+                marginCode = this.safeString(market, "quote", "");
+            }
             String maintenanceMargin = this.safeString(position, "maintMargin");
             // check for maintenance margin so empty positions are not returned
             Boolean isPositionOpen = (!java.util.Objects.equals(maintenanceMargin, "0")) && (!java.util.Objects.equals(maintenanceMargin, "0.00000000"));
             if (!Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(filterClosed, false)) || Boolean.TRUE.equals(isPositionOpen))
             {
                 // sometimes not all the codes are correctly returned...
-                if (balances.containsKey(code))
+                if (balances.containsKey(marginCode))
                 {
                     HashMap<String, Object> j39v4 = new HashMap<String, Object>();
-                    j39v4.put("crossMargin", this.safeString((balances == null || code == null ? null : balances.get(code)), "crossMargin"));
-                    j39v4.put("crossWalletBalance", this.safeString((balances == null || code == null ? null : balances.get(code)), "crossWalletBalance"));
+                    j39v4.put("crossMargin", this.safeString((balances == null || marginCode == null ? null : balances.get(marginCode)), "crossMargin"));
+                    j39v4.put("crossWalletBalance", this.safeString((balances == null || marginCode == null ? null : balances.get(marginCode)), "crossWalletBalance"));
                     Map<String, Object> parsed = this.parseAccountPosition(this.extend(position, j39v4), market);
                     ((List<Object>)result).add(parsed);
                 }
@@ -15875,7 +15879,11 @@ public class Binance extends BinanceApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Map<String, Object> market = (((java.util.Objects.equals(symbol, null)))) ? null : this.market(symbol);
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
         Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters, null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
@@ -15938,7 +15946,11 @@ public class Binance extends BinanceApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Map<String, Object> market = (((java.util.Objects.equals(symbol, null)))) ? null : this.market(symbol);
+        Map<String, Object> market = null;
+        if (!java.util.Objects.equals(symbol, null))
+        {
+            market = this.market(symbol);
+        }
         Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMySettlementHistory", market, parameters, null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();

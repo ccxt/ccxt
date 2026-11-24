@@ -9430,7 +9430,7 @@ public Map<String, Object> describe()
                             Object index = (((long) i) + 1L);
                             this.log((((((("Request failed with the error: " + String.valueOf(e)) + ", retrying ") + String.valueOf(index)) + " of ") + String.valueOf(retriesMaxRetriesOnFailure)) + "..."));
                         }
-                        if ((!java.util.Objects.equals(retryDelayMaxRetriesOnFailureDelay, null)) && ((retryDelayMaxRetriesOnFailureDelay != 0)))
+                        if ((!java.util.Objects.equals(retryDelayMaxRetriesOnFailureDelay, null)) && ((retryDelayMaxRetriesOnFailureDelay == null || retryDelayMaxRetriesOnFailureDelay != 0)))
                         {
                             (this.sleep(retryDelayMaxRetriesOnFailureDelay)).join();
                         }

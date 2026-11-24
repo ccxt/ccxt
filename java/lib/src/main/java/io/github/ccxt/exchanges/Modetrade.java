@@ -1126,7 +1126,7 @@ public class Modetrade extends ModetradeApi
         return this.safeCurrencyStructure(mapLiteral3);
     }
 
-    public Object parseTokenAndFeeTemp(Map<String, Object> item, String feeTokenKey, String feeAmountKey)
+    public Map<String, Object> parseTokenAndFeeTemp(Map<String, Object> item, String feeTokenKey, String feeAmountKey)
     {
         String feeCost = this.safeString(item, feeAmountKey);
         Map<String, Object> fee = null;
@@ -1182,7 +1182,7 @@ public class Modetrade extends ModetradeApi
         String price = this.safeString(trade, "executed_price");
         String amount = this.safeString(trade, "executed_quantity");
         String order_id = this.safeString(trade, "order_id");
-        Object fee = this.parseTokenAndFeeTemp(this.extend(new HashMap<String, Object>() {{}}, trade), "fee_asset", "fee");
+        Map<String, Object> fee = this.parseTokenAndFeeTemp(this.extend(new HashMap<String, Object>() {{}}, trade), "fee_asset", "fee");
         String cost = Precise.stringMul(price, amount);
         String side = this.safeStringLower(trade, "side");
         String takerOrMaker = null;

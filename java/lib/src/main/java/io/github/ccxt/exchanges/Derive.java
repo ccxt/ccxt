@@ -1637,7 +1637,7 @@ public class Derive extends DeriveApi
         //
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         List<Object> expiries = this.safeList(result, "expiries", new ArrayList<Object>(Arrays.asList()));
-        List<Object> settlements = this.parseSettlements(expiries, (Map<String, Object>) null);
+        List<Object> settlements = this.parseSettlements(expiries, null);
         List<Object> sorted = this.sortBy(settlements, "timestamp");
         return this.filterBySinceLimit(sorted, since, limit, "timestamp", false);
 

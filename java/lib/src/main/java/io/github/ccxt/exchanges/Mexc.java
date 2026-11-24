@@ -3656,9 +3656,9 @@ public class Mexc extends MexcApi
 
     }
 
-    public CompletableFuture<Object> fetchOrdersByIds(List<?> ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<List<Order>> fetchOrdersByIds(List<?> ids, String symbol, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchOrdersByIdsCore(ids, symbol, parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchOrdersByIdsCore(ids, symbol, parameters)).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
     }
 
     private Object fetchOrdersByIdsCore(List<?> ids, String symbol, Map<String, Object> parameters)

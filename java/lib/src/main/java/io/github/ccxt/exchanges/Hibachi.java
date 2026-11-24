@@ -988,7 +988,7 @@ public class Hibachi extends HibachiApi
 
     }
 
-    public Object orderMessage(Map<String, Object> market, Object nonce, Double feeRate, String type, String side, Object amount, Object price)
+    public byte[] orderMessage(Map<String, Object> market, Object nonce, Double feeRate, String type, String side, Object amount, Object price)
     {
         Integer sideInternal = 0;
         if (java.util.Objects.equals(side, "sell"))
@@ -1037,7 +1037,7 @@ public class Hibachi extends HibachiApi
             // @ts-expect-error
             encodedPrice = this.base16ToBinary(pricePadded);
         }
-        Object message = this.binaryConcat(encodedNonce, encodedMarketId, encodedQuantity, encodedSide, encodedPrice, encodedFeeRate);
+        byte[] message = this.binaryConcat(encodedNonce, encodedMarketId, encodedQuantity, encodedSide, encodedPrice, encodedFeeRate);
         return message;
     }
 
@@ -1070,7 +1070,7 @@ public class Hibachi extends HibachiApi
         {
             priceInternal = this.priceToPrecision(symbol, price);
         }
-        Object message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
+        byte[] message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
         String signature = this.signMessage(message, (String) (this.privateKey));
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("symbol", this.safeString(market, "id"));
@@ -1218,7 +1218,7 @@ public class Hibachi extends HibachiApi
         Double takerFee = this.safeNumber(market, "taker", 0);
         Double makerFee = this.safeNumber(market, "maker", 0);
         Double feeRate = this.parseNumber(Precise.stringMax(this.numberToString(takerFee), this.numberToString(makerFee)));
-        Object message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
+        byte[] message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
         String signature = this.signMessage(message, (String) (this.privateKey));
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "orderId", id );
@@ -1474,7 +1474,7 @@ public class Hibachi extends HibachiApi
 
     }
 
-    public Object encodeWithdrawMessage(Double amount, Double maxFees, String address)
+    public byte[] encodeWithdrawMessage(Double amount, Double maxFees, String address)
     {
         // Converting them to internal representation:
         // - Quantity: Internal = External * (10^6)
@@ -1498,7 +1498,7 @@ public class Hibachi extends HibachiApi
         String maxFeesPadded = (((String)maxFees16).length() >= 16 ? ((String)maxFees16).substring(((String)maxFees16).length() - 16) : String.format("%" + (16 - ((String)maxFees16).length()) + "s", "").replace(' ', '0') + ((String)maxFees16));
         byte[] encodedMaxFees = this.base16ToBinary(maxFeesPadded);
         byte[] encodedAddress = this.base16ToBinary(address);
-        Object message = this.binaryConcat(encodedAssetId, encodedQuantity, encodedMaxFees, encodedAddress);
+        byte[] message = this.binaryConcat(encodedAssetId, encodedQuantity, encodedMaxFees, encodedAddress);
         return message;
     }
 
@@ -1537,7 +1537,7 @@ public class Hibachi extends HibachiApi
         Map<String, Object> feeConfig = this.safeDict(exchangeInfo, "feeConfig", null);
         Double maxFees = this.safeNumber(feeConfig, "withdrawalFees", null);
         // Generate the signature
-        Object message = this.encodeWithdrawMessage(amount, maxFees, withdrawAddress);
+        byte[] message = this.encodeWithdrawMessage(amount, maxFees, withdrawAddress);
         String signature = this.signMessage(message, (String) (this.privateKey));
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "accountId", Hibachi.this.getAccountId() );

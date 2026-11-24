@@ -153,7 +153,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             return;
         }
         Long previousNonce = this.safeInteger(orderbook, "nonce");
-        if ((!java.util.Objects.equals(previousNonce, null)) && (!java.util.Objects.equals(nonce, (previousNonce + 1L))))
+        if ((!java.util.Objects.equals(previousNonce, null)) && ((nonce == null || nonce != (previousNonce + 1L))))
         {
             client.subscriptions.remove(messageHash);
             this.orderbooks.remove(symbol);

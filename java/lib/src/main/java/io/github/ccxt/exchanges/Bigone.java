@@ -714,7 +714,7 @@ public class Bigone extends BigoneApi
         List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>(Arrays.<CompletableFuture<?>>asList(this.publicGetAssetPairs(parameters), this.contractPublicGetSymbols(parameters)));
         List<Object> promisesResult = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         Map<String, Object> response = this.safeDict(promisesResult, 0, null);
-        Object contractResponse = this.safeValue(promisesResult, 1);
+        List<Object> contractMarkets = this.safeList(promisesResult, 1, new ArrayList<Object>(Arrays.asList()));
         //
         //     {
         //         "code":0,
@@ -833,7 +833,6 @@ public class Bigone extends BigoneApi
             j39v1.put("info", market);
             ((List<Object>)result).add(this.safeMarketStructure(j39v1));
         }
-        List<Object> contractMarkets = this.toArray(contractResponse);
         for (var i = 0; i < contractMarkets.size(); i++)
         {
             Object market = (contractMarkets == null || i < 0 || i >= contractMarkets.size() ? null : contractMarkets.get(i));
