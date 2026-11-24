@@ -47,7 +47,7 @@ jobs:
       - name: Build (tsc + doc manifest + single-file bundle)
         run: npm run build
       - name: Test (unit + schema snapshot + stdio integration + bundle / bootstrap / launcher)
-        run: npm test
+        run: node scripts/run-tests.mjs
       # the plugin's bootstrap extracts exactly this path from the published tarball
       - name: Pack check (tarball contents, including the single-file server)
         run: |
