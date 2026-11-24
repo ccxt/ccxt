@@ -1608,7 +1608,7 @@ export default class coinbase extends Exchange {
         const data: Dict[] = this.safeList (spot, 'products', []);
         const result: Dict[] = [];
         for (let i = 0; i < data.length; i++) {
-            const spotMarket = this.parseSpotMarket (data[i], feeTier);
+            const spotMarket = this.parseSpotMarket (this.safeDict (data, i, {}), feeTier);
             if (spotMarket !== undefined) {
                 result.push (spotMarket);
             }
