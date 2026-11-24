@@ -9,7 +9,9 @@ import io.github.ccxt.Helpers;
 import io.github.ccxt.BaseExchange;
 import io.github.ccxt.types.Balances;
 import io.github.ccxt.types.FundingHistory;
+import io.github.ccxt.types.FundingRate;
 import io.github.ccxt.types.FundingRateHistory;
+import io.github.ccxt.types.FundingRates;
 import io.github.ccxt.types.MarketInterface;
 import io.github.ccxt.types.OHLCV;
 import io.github.ccxt.types.OpenInterest;
@@ -99,9 +101,9 @@ public class Apex extends ApexApi
                 put( "fetchDepositWithdrawFee", false );
                 put( "fetchDepositWithdrawFees", false );
                 put( "fetchFundingHistory", true );
-                put( "fetchFundingRate", false );
+                put( "fetchFundingRate", true );
                 put( "fetchFundingRateHistory", true );
-                put( "fetchFundingRates", false );
+                put( "fetchFundingRates", true );
                 put( "fetchGreeks", false );
                 put( "fetchIndexOHLCV", false );
                 put( "fetchIsolatedBorrowRate", false );
@@ -1270,6 +1272,121 @@ public class Apex extends ApexApi
 
     /**
      * @method
+     * @name apex#fetchFundingRate
+     * @description fetches the current funding rate for a market
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+     * @param {string} symbol unified symbol of the market to fetch the funding rate for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    public CompletableFuture<FundingRate> fetchFundingRate(String symbol, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchFundingRateCore(symbol, parameters)).thenApply(FundingRate::new);
+    }
+
+    private Object fetchFundingRateCore(String symbol, Map<String, Object> parameters)
+    {
+
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        Map<String, Object> market = this.market(symbol);
+        Map<String, Object> request = new HashMap<String, Object>() {{
+            put( "symbol", Apex.this.safeString(market, "id2") );
+        }};
+        Map<String, Object> response = (this.publicGetV3Ticker(this.extend(request, parameters))).join();
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "oraclePrice": "97359.83490000976",
+        //                 "price": "97358.69511000479",
+        //                 "price24hPcnt": "0.025227663459253",
+        //                 "priceChange": "2386.4656100048",
+        //                 "markPrice": "97348.43100000975",
+        //                 "indexPrice": "97354.92100000469",
+        //                 "fundingRate": "0",
+        //                 "predictedFundingRate": "0",
+        //                 "nextFundingTime": "10:00:00",
+        //                 "turnover24h": "5126062036.262683868",
+        //                 "volume24h": "52429.97800000007",
+        //                 "openInterest": "44708.50649999985",
+        //                 "askPrice": "97346.8",
+        //                 "askSize": "0.05",
+        //                 "askVol": "4871.995",
+        //                 "bidPrice": "97329.9",
+        //                 "bidSize": "0.0397",
+        //                 "bidVol": "3861.227",
+        //                 "lastPrice": "97341.22950000488",
+        //                 "highPrice24h": "97492.40501000491",
+        //                 "lowPrice24h": "93419.04950000459",
+        //                 "change15m": "0.000035268322022",
+        //                 "change1h": "0.001633604768945",
+        //                 "change24h": "0.025227663459253",
+        //                 "volume5m": "163.43330000000053",
+        //                 "volume1h": "5662.860900000013"
+        //             }
+        //         ]
+        //     }
+        //
+        List<Object> tickers = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        Map<String, Object> rawTicker = this.safeDict(tickers, 0, null);
+        if (java.util.Objects.equals(rawTicker, null))
+        {
+            throw new BadResponse(((this.id + " fetchFundingRate() returned no data for ") + symbol)) ;
+        }
+        String responseMarketId = this.safeString(rawTicker, "symbol", "");
+        if (!java.util.Objects.equals(responseMarketId, this.safeString(market, "id2")))
+        {
+            throw new BadResponse((((((this.id + " fetchFundingRate() returned a ticker for ") + responseMarketId) + " while ") + symbol) + " was requested")) ;
+        }
+        return this.parseFundingRate(rawTicker, market);
+
+    }
+
+    public Map<String, Object> parseFundingRate(Map<String, Object> contract, Map<String, Object> market)
+    {
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "oraclePrice": "97359.83490000976",
+        //         "price": "97358.69511000479",
+        //         "markPrice": "97348.43100000975",
+        //         "indexPrice": "97354.92100000469",
+        //         "fundingRate": "0",
+        //         "predictedFundingRate": "0",
+        //         "nextFundingTime": "10:00:00",
+        //         ...
+        //     }
+        //
+        String marketId = this.safeString(contract, "symbol");
+        Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
+        return new HashMap<String, Object>() {{
+            put( "info", contract );
+            put( "symbol", Apex.this.safeSymbol(marketId, marketResolved, null, null) );
+            put( "markPrice", Apex.this.safeNumber(contract, "markPrice", null) );
+            put( "indexPrice", Apex.this.safeNumber(contract, "indexPrice", null) );
+            put( "interestRate", null );
+            put( "estimatedSettlePrice", null );
+            put( "timestamp", null );
+            put( "datetime", null );
+            put( "fundingRate", Apex.this.safeNumber(contract, "fundingRate", null) );
+            put( "fundingTimestamp", null );
+            put( "fundingDatetime", null );
+            put( "nextFundingRate", null );
+            put( "nextFundingTimestamp", null );
+            put( "nextFundingDatetime", null );
+            put( "previousFundingRate", null );
+            put( "previousFundingTimestamp", null );
+            put( "previousFundingDatetime", null );
+            put( "interval", "1h" );
+        }};
+    }
+
+    /**
+     * @method
      * @name apex#fetchFundingRateHistory
      * @description fetches historical funding rate prices
      * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
@@ -1351,6 +1468,34 @@ public class Apex extends ApexApi
         }
         List<Object> sorted = this.sortBy(rates, "timestamp");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit, false);
+
+    }
+
+    /**
+     * @method
+     * @name apex#fetchFundingRates
+     * @description fetches the current funding rates for multiple markets
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the funding rates for, all markets are returned when not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbol
+     */
+    public CompletableFuture<FundingRates> fetchFundingRates(List<String> symbols, Map<String, Object> parameters)
+    {
+        return BaseExchange.supplyAsync(() -> this.fetchFundingRatesCore(symbols, parameters)).thenApply(FundingRates::new);
+    }
+
+    private Object fetchFundingRatesCore(List<String> symbols, Map<String, Object> parameters)
+    {
+
+        if (java.util.Objects.equals(this.markets, null))
+        {
+            (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+        }
+        List<String> unifiedSymbols = this.marketSymbols(symbols, null, true, false, false);
+        Map<String, Object> response = (this.publicGetV3DataAllTickerInfo(parameters)).join();
+        List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+        return this.parseFundingRates(data, unifiedSymbols);
 
     }
 

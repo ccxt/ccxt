@@ -2063,7 +2063,7 @@ public class Kalshi extends KalshiApi
         List<Map<String, Object>> parsed = new ArrayList<Map<String, Object>>();
         for (var i = 0; (rawSettlementsLength != null && i < rawSettlementsLength); i++)
         {
-            parsed.add(this.parseSettlement(this.extend(new HashMap<String, Object>() {{}}, (rawSettlements == null || i < 0 || i >= rawSettlements.size() ? null : rawSettlements.get(i))), (Map<String, Object>) null));
+            parsed.add(this.parseSettlement(this.extend(new HashMap<String, Object>() {{}}, (rawSettlements == null || i < 0 || i >= rawSettlements.size() ? null : rawSettlements.get(i))), null));
         }
         Map<String, Object> wantedOutcomeObj = (((!java.util.Objects.equals(outcome, null)))) ? this.outcome(outcome) : new HashMap<String, Object>() {{}};
         String wantedOutcome = this.safeString(wantedOutcomeObj, "outcome");

@@ -917,7 +917,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         {
             // one cache per market, kept in the options next to the request id counter: this.liquidations
             // is typed as a single cache in some languages and initialized as a map in others
-            Map<String, Object> liquidation = this.parseWsLiquidation(data, (Map<String, Object>) null);
+            Map<String, Object> liquidation = this.parseWsLiquidation(data, null);
             Map<String, Object> caches = this.safeDict(this.options, "liquidationsBySymbol", new HashMap<String, Object>() {{}});
             Object liquidations = this.safeValue(caches, symbol);
             if (java.util.Objects.equals(liquidations, null))

@@ -2120,7 +2120,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             this.positions = new ArrayCache.ArrayCacheBySymbolById();
         }
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
-        Map<String, Object> parsedPosition = this.parseWsPosition(data, (Map<String, Object>) null);
+        Map<String, Object> parsedPosition = this.parseWsPosition(data, null);
         Long microseconds = this.safeInteger(data, "E", 0);
         Long timestamp = this.parseToInt((((double) microseconds) / ((double) 1000)));
         parsedPosition.put("timestamp", timestamp);

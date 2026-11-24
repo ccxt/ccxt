@@ -2421,7 +2421,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         for (var i = 0; i < rawLiquidations.size(); i++)
         {
             Map<String, Object> rawLiquidation = (Map<String, Object>) (rawLiquidations == null || i < 0 || i >= rawLiquidations.size() ? null : rawLiquidations.get(i));
-            Map<String, Object> liquidation = this.parseWsLiquidation(rawLiquidation, (Map<String, Object>) null);
+            Map<String, Object> liquidation = this.parseWsLiquidation(rawLiquidation, null);
             cache.append(liquidation);
             ((List<Object>)newLiquidations).add(liquidation);
             String symbol = this.safeString(liquidation, "symbol");

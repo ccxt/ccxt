@@ -3879,7 +3879,7 @@ public class Gate extends GateApi
         for (var i = 0; i < response.size(); i++)
         {
             Map<String, Object> entry = this.safeDict(response, i, null);
-            Map<String, Object> funding = this.parseFundingHistory(entry, (Map<String, Object>) null);
+            Map<String, Object> funding = this.parseFundingHistory(entry, null);
             ((List<Object>)result).add(funding);
         }
         List<Object> sorted = this.sortBy(result, "timestamp");

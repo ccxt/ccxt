@@ -6419,7 +6419,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         for (var i = 0; i < rawPositions.size(); i++)
         {
             Map<String, Object> rawPosition = this.safeDict(rawPositions, i, null);
-            Map<String, Object> position = this.parseWsPosition(rawPosition, (Map<String, Object>) null);
+            Map<String, Object> position = this.parseWsPosition(rawPosition, null);
             Long timestamp = this.safeInteger(message, "E");
             position.put("timestamp", timestamp);
             position.put("datetime", this.iso8601(timestamp));

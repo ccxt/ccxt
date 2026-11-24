@@ -2134,7 +2134,7 @@ public class Sxbet extends SxbetApi
         Integer rawTradesLength = rawTrades.size();
         for (var i = 0; (rawTradesLength != null && i < rawTradesLength); i++)
         {
-            Map<String, Object> settlement = this.parseSettlement((Map<String, Object>) ((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i))), (Map<String, Object>) null);
+            Map<String, Object> settlement = this.parseSettlement((Map<String, Object>) ((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i))), null);
             if ((java.util.Objects.equals(wantedOutcomeId, null)) || (java.util.Objects.equals(this.safeString(settlement, "outcomeId"), wantedOutcomeId)))
             {
                 ((List<Object>)result).add(settlement);

@@ -1155,7 +1155,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         List<Object> rawLiquidations = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < rawLiquidations.size(); i++)
         {
-            Map<String, Object> liquidation = this.parseWsLiquidation((Map<String, Object>) ((rawLiquidations == null || i < 0 || i >= rawLiquidations.size() ? null : rawLiquidations.get(i))), (Map<String, Object>) null);
+            Map<String, Object> liquidation = this.parseWsLiquidation((Map<String, Object>) ((rawLiquidations == null || i < 0 || i >= rawLiquidations.size() ? null : rawLiquidations.get(i))), null);
             String symbol = this.safeString(liquidation, "symbol", "");
             if (java.util.Objects.equals(this.liquidations, null))
             {

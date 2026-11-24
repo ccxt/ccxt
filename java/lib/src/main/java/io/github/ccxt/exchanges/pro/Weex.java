@@ -2329,7 +2329,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> rawPosition = this.safeDict(data, i, new HashMap<String, Object>() {{}});
-            Map<String, Object> position = this.parseWsPosition(rawPosition, (Map<String, Object>) null);
+            Map<String, Object> position = this.parseWsPosition(rawPosition, null);
             cache.append(position);
             ((List<Object>)newPositions).add(position);
         }

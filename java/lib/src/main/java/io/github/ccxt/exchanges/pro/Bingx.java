@@ -1727,7 +1727,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         for (var i = 0; i < rawPositions.size(); i++)
         {
             Map<String, Object> rawPosition = (Map<String, Object>) (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
-            Map<String, Object> position = this.parseWsPosition(rawPosition, (Map<String, Object>) null);
+            Map<String, Object> position = this.parseWsPosition(rawPosition, null);
             String symbol = this.safeString(position, "symbol");
             if (java.util.Objects.equals(symbol, null))
             {

@@ -823,7 +823,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         io.github.ccxt.ws.ArrayCache positions = (io.github.ccxt.ws.ArrayCache) this.positions;
-        Map<String, Object> parsed = this.parseWsPosition(message, (Map<String, Object>) null);
+        Map<String, Object> parsed = this.parseWsPosition(message, null);
         positions.append(parsed);
         String messageHash = "positions";
         client.resolve(parsed, messageHash);

@@ -1415,7 +1415,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         }
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) (accountType == null || this.positionsByType == null ? null : ((Map<?, ?>)this.positionsByType).get(accountType));
         // handleMessage's fallback dispatches one item at a time
-        Map<String, Object> position = this.parseWsPosition(message, (Map<String, Object>) null);
+        Map<String, Object> position = this.parseWsPosition(message, null);
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList(position));
         cache.append(position);
         // no local may be named `positions` in this method: build/transpile.ts

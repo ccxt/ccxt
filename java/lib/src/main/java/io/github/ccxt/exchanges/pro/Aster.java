@@ -2100,7 +2100,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         for (var i = 0; i < rawPositions.size(); i++)
         {
             Map<String, Object> rawPosition = (Map<String, Object>) (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
-            Map<String, Object> position = this.parseWsPosition(rawPosition, (Map<String, Object>) null);
+            Map<String, Object> position = this.parseWsPosition(rawPosition, null);
             Long timestamp = this.safeInteger(message, "E");
             position.put("timestamp", timestamp);
             position.put("datetime", this.iso8601(timestamp));
