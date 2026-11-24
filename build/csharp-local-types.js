@@ -611,6 +611,7 @@ Object.assign (CSHARP_STRING_RETURN_METHODS, CSHARP_STRING_RETURN_METHODS_BOUNDA
 const CSHARP_STRING_RETURN_METHODS_VENUE_HELPERS = {
     'marketId': 'string?',
     'networkIdToCode': 'string?',
+    'tryGetSymbolFromFutureMarkets': 'string?',
 };
 Object.assign (CSHARP_STRING_RETURN_METHODS, CSHARP_STRING_RETURN_METHODS_VENUE_HELPERS);
 
@@ -19072,6 +19073,7 @@ export const CSHARP_STRING_PARAMS = {
     'pro/okx.handleUnsubscriptionMarkPrice': { 1: 'string?', 2: 'string' },
     'interactivebrokers.ibkrBaseString': { 0: 'string?', 3: 'string?' },
     'polymarket.signMessage': { 1: 'string?' },
+    'htx.tryGetSymbolFromFutureMarkets': { 0: 'string?' },
 };
 
 // the table type for a parameter of a listed generated method whose checker type is string-ish
