@@ -1953,7 +1953,7 @@ const WS_HANDLER_DICT_MESSAGE: Record<string, string[]> = {
 const WS_HANDLER_IDICT_MESSAGE: Record<string, string[]> = {
     aster: [ 'handleBalanceAndPosition', 'handleBidAsk', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handlePositions', 'handleTicker', 'handleTrade' ],
     bingx: [ 'handleUnSubscription' ],
-    deepcoin: [ 'handleUnSubscription' ],
+    deepcoin: [ 'handleUnSubscription', 'handleOrderBookMessage' ],
     htx: [ 'handleUnSubscription' ],
     hyperliquid: [ 'handleMyTradesUnsubscription', 'handleOHLCVUnsubscription', 'handleOrderBookUnsubscription', 'handleOrderUnsubscription', 'handlePositionsUnsubscription', 'handleSpotBalanceUnsubscription', 'handleTickerUnsubscription', 'handleTickersUnsubscription', 'handleTradesUnsubscription' ],
     independentreserve: [ 'handleHeartbeat', 'handleOrderBook', 'handleSubscriptions', 'handleTrades' ],
@@ -1964,6 +1964,11 @@ const WS_HANDLER_IDICT_MESSAGE: Record<string, string[]> = {
     poloniex: [ 'handleBalance', 'handleMyTrades', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handleTicker', 'handleTrade' ],
     upbit: [ 'handleBalance', 'handleMyOrder', 'handleOHLCV', 'handleOrder', 'handleOrderBook', 'handleTicker', 'handleTrades' ],
     xt: [ 'handleUnSubscription' ],
+    binance: [ 'handleOrderBookMessage', 'handleOrderBook' ],
+    bittrade: [ 'handleOrderBookMessage' ],
+    bitvavo: [ 'handleOrderBookMessage' ],
+    okx: [ 'handleOrderBookMessage' ],
+    woo: [ 'handleOrderBookMessage' ],
 };
 
 // `sign()` / `handleErrors()` parameter types keyed by POSITION (overrides rename parameters; types are
