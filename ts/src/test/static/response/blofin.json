@@ -3,6 +3,68 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "editOrder": [
+            {
+                "description": "edit price and amount",
+                "method": "editOrder",
+                "input": [
+                    "6000004088597",
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.3,
+                    24
+                ],
+                "httpResponse": {
+                    "code": "0",
+                    "msg": "Order modified",
+                    "data": {
+                        "orderId": "6000004088597",
+                        "clientOrderId": "",
+                        "requestId": "",
+                        "msg": "Order modified",
+                        "code": "0",
+                        "ts": "1795184314725"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "orderId": "6000004088597",
+                        "clientOrderId": "",
+                        "requestId": "",
+                        "msg": "Order modified",
+                        "code": "0",
+                        "ts": "1795184314725"
+                    },
+                    "id": "6000004088597",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "LTC/USDT:USDT",
+                    "type": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": null,
+                    "price": null,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "average": null,
+                    "cost": null,
+                    "amount": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": null,
+                    "fee": null,
+                    "trades": [],
+                    "reduceOnly": false,
+                    "fees": [],
+                    "stopPrice": null
+                }
+            }
+        ],
         "fetchMarketLeverageTiers": [
             {
                 "description": "fetchMarketLeverageTiers",
