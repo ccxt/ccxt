@@ -4757,6 +4757,7 @@ function auditSelfTest (): string[] {
         javaR92j8LocalsSelfTest,
         javaR93j2ListLocalsSelfTest,
         javaR93j8LocalsSelfTest,
+        javaAsyncPairReturnSelfTest,
         javaH26J03AsDictReaderSelfTest,
         h27J05HoistPureValuesSelfTest,
         h28J05HoistSelfTest,
@@ -9565,6 +9566,46 @@ function javaR92j8LocalsSelfTest (): string[] {
         if (!/private List<Object> zzr92j8LeafCore\(/.test(out)) problems.push("'zzr92j8Leaf' (a list fetcher returned only by `return await` from a Promise<Dict[]> method) must print a List<Object> core");
         if (!/Map<String, Object> signed = sorted;/.test(out) || !/\bsigned\.size\(\)/.test(out)) problems.push("'signed' (copy of a keysort Map local, published as Map<String,Object>) must print Map<String, Object> with a native size()");
         if (!/Map<String, Object> tickers = this\.omit\(/.test(out)) problems.push("'tickers' (omit of a Map, a same-named sibling binding written elsewhere) must print Map<String, Object>");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// an async venue method declared `Promise<[Str, Dict]>` whose every return is a proven pair prints the
+// future of the Pair; awaited destructurings read first() / second(); an unproven return keeps Object
+function javaAsyncPairReturnSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzasyncpairselftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict, Str } from './base/types.js';",
+        'export default class zzasyncpairselftest extends Exchange {',
+        "    async zzLoadId (params: Dict = {}): Promise<[string, Dict]> {",
+        "        const [ fromParams, query ] = this.handleOptionStringAndParams (params, 'zzLoadId', 'accountId');",
+        "        let id: Str = fromParams;",
+        "        if (id === undefined) {",
+        "            id = this.safeString (this.options, 'accountId');",
+        "        }",
+        "        return [ id, query ];",
+        "    }",
+        "    async zzUseId (params: Dict = {}) { const [ id, rest ] = await this.zzLoadId (params); return this.extend ({ 'id': id }, rest); }",
+        "    async zzLoose (params: Dict = {}): Promise<[string, Dict]> { return [ this.safeValue (params, 'x'), params ]; }",
+        "    async zzUseLoose (params: Dict = {}) { const [ a, b ] = await this.zzLoose (params); return [ a, b ]; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        resetJavaVenueIndexes();
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/CompletableFuture<(?:io\.github\.ccxt\.types\.)?Pair<String, (?:java\.util\.)?Map<String, Object>>> zzLoadId\(/.test(out)) problems.push("'zzLoadId' (async, every return a proven [String, Map]) must print the future of a Pair");
+        if (!/return new (?:io\.github\.ccxt\.types\.)?Pair<>\(id, query\);/.test(out)) problems.push("'zzLoadId' return must print new Pair<>(id, query)");
+        if (!/Map<String, Object> rest = \w+\.second\(\);/.test(out)) problems.push("the awaited 'rest' slot must read second() as a Map");
+        if (/\(\(java\.util\.List<Object>\) idrestVariable\)/.test(out)) problems.push("the awaited pair holder must not be read through a List cast");
+        if (!/CompletableFuture<Object> zzLoose\(/.test(out)) problems.push("'zzLoose' (an unproven Object element) must keep CompletableFuture<Object>");
         if (problems.length) problems.push('output:\n' + out);
     } catch (e) {
         problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);

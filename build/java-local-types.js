@@ -15319,7 +15319,7 @@ function pairMethodTypes (printer, declaration) {
     return undefined;
 }
 
-function pairCallTypes (printer, node) {
+function pairCallTypes (printer, node, awaited = false) {
     const call = unwrapParens (node);
     if (call === undefined || !ts.isCallExpression (call) || !ts.isPropertyAccessExpression (call.expression)
         || call.expression.expression.kind !== ts.SyntaxKind.ThisKeyword && !Object.hasOwn (PAIR_ELEMENT_TYPES, String (call.expression.name.text))) {
@@ -15329,6 +15329,10 @@ function pairCallTypes (printer, node) {
     try {
         declaration = printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve ();
     } catch (e) {
+        return undefined;
+    }
+    // an async pair method's call is its future; only the awaited read holds the Pair
+    if ((declaration?.modifiers ?? []).some ((m) => m.kind === ts.SyntaxKind.AsyncKeyword) && !awaited) {
         return undefined;
     }
     return pairMethodTypes (printer, declaration);
@@ -15345,7 +15349,7 @@ function pairSameType (a, b) {
 // { node, binding } (binding = the BindingElement of a declaration, undefined for an assignment)
 function pairRewriteBlock (printer, printed, holderName, types, targets) {
     const lines = printed.split ('\n');
-    const holderRe = new RegExp (`^(\\s*)(?:var|java\\.util\\.List<Object>) ${holderName} = (?:\\(java\\.util\\.List<Object>\\) )?((?:this|super|[A-Za-z_$][\\w$]*)\\.\\w+\\(.*)$`);
+    const holderRe = new RegExp (`^(\\s*)(?:var|java\\.util\\.List<Object>) ${holderName} = (?:\\(java\\.util\\.List<Object>\\) )?(\\(?(?:this|super|[A-Za-z_$][\\w$]*)\\.\\w+\\(.*)$`);
     const holderAt = lines.findIndex ((line) => holderRe.test (line));
     if (holderAt === -1) {
         return printed;
@@ -15508,6 +15512,24 @@ function pairVenueReturnsProven (printer, method, types) {
     return proven && count > 0;
 }
 
+// the `[A, B]` of a sync venue method, or of an async one declared `Promise<[A, B]>` whose core no venue table types
+function pairVenueTupleNode (declaration) {
+    const isAsync = (declaration.modifiers ?? []).some ((m) => m.kind === ts.SyntaxKind.AsyncKeyword);
+    const type = declaration.type;
+    if (!isAsync) {
+        return type;
+    }
+    const inner = type !== undefined && ts.isTypeReferenceNode (type) && ts.isIdentifier (type.typeName) && type.typeName.text === 'Promise'
+        && type.typeArguments?.length === 1 ? type.typeArguments[0] : undefined;
+    return inner !== undefined && !javaVenueAsyncReturnTable ().has (declaration.name.text) ? inner : undefined;
+}
+
+// `await this.m (..)` of an async pair venue method reads the joined Pair like a sync call
+function pairAwaitedCallTypes (printer, node) {
+    const value = unwrapParens (node);
+    return value?.kind === ts.SyntaxKind.AwaitExpression ? pairCallTypes (printer, value.expression, true) : pairCallTypes (printer, node);
+}
+
 function pairVenueDeclaredTypes (printer, declaration) {
     if (PAIR_VENUE_DECLARED.has (declaration)) {
         return PAIR_VENUE_DECLARED.get (declaration);
@@ -15515,10 +15537,10 @@ function pairVenueDeclaredTypes (printer, declaration) {
     PAIR_VENUE_DECLARED.set (declaration, undefined);
     let types;
     try {
-        const type = declaration.type;
         const file = pairDeclarationFile (declaration);
+        const type = pairVenueTupleNode (declaration);
         if (type !== undefined && ts.isTupleTypeNode (type) && type.elements.length === 2 && /ts[\\/]src[\\/]/.test (file)
-            && !/ts[\\/]src[\\/](base|test)[\\/]/.test (file) && !(declaration.modifiers ?? []).some ((m) => m.kind === ts.SyntaxKind.AsyncKeyword)
+            && !/ts[\\/]src[\\/](base|test)[\\/]/.test (file)
             && printer.getMethodOverride (declaration) === undefined) {
             const slots = type.elements.map (pairDeclaredSlotType);
             if (slots[0] !== undefined && slots[1] === PAIR_MAP && pairVenueReturnsProven (printer, declaration, slots)) {
@@ -15542,6 +15564,9 @@ export function installJavaTuplePairReturns (transpiler) {
     printer.printFunctionType = function (node, ...rest) {
         const own = upstreamFunctionType (node, ...rest);
         const types = pairMethodTypes (printer, node);
+        if (types !== undefined && printer.isAsyncFunction (node)) {
+            return `java.util.concurrent.CompletableFuture<${pairJavaType (types)}>`;
+        }
         return types === undefined ? own : pairJavaType (types);
     };
     const upstreamReturn = printer.printReturnStatement.bind (printer);
@@ -15574,7 +15599,7 @@ export function installJavaTuplePairReturns (transpiler) {
         if (node.declarations?.length !== 1 || declaration?.name?.kind !== ts.SyntaxKind.ArrayBindingPattern) {
             return printed;
         }
-        const types = pairCallTypes (printer, declaration.initializer);
+        const types = pairAwaitedCallTypes (printer, declaration.initializer);
         if (types === undefined) {
             return printed;
         }
@@ -15590,7 +15615,7 @@ export function installJavaTuplePairReturns (transpiler) {
             || node.left?.kind !== ts.SyntaxKind.ArrayLiteralExpression) {
             return printed;
         }
-        const types = pairCallTypes (printer, node.right);
+        const types = pairAwaitedCallTypes (printer, node.right);
         if (types === undefined) {
             return printed;
         }
