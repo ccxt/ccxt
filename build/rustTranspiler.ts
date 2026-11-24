@@ -9080,6 +9080,7 @@ const RUST_TYPED_DICT_PRODUCERS: Array<[string, 'dict' | 'opt' | 'built']> = [
     ['fetch_extended_account', 'built'],
     ['prepare_ws_stock_params', 'built'],
     ['parse_option', 'built'],
+    ['parse_long_short_ratio', 'built'],
 ];
 function rustTypedDictProducers (content: string): string {
     const parseOrder = '<Self as crate::exchange::DerivedExchange>::parse_order(', boxOrder = '.map_or(Value::Null, Value::Dict)';
