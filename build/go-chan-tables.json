@@ -696,7 +696,8 @@
         "Xt.ModifyMarginHelper": "MarginModification",
         "Xt.ReduceMargin": "MarginModification",
         "Zebpay.AddMargin": "MarginModification",
-        "Zebpay.ReduceMargin": "MarginModification"
+        "Zebpay.ReduceMargin": "MarginModification",
+        "Paradex.ResubscribeOrderBook": "bool"
     },
     "resolved": [
         "Authenticate",
