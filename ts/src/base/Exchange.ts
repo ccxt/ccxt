@@ -4847,7 +4847,7 @@ export class BaseExchange {
         return this.markets;
     }
 
-    setMarketsFromExchange (sourceExchange: any) {
+    setMarketsFromExchange (sourceExchange: BaseExchange) {
         // Validate that both exchanges are of the same type
         if (this.id !== sourceExchange.id) {
             throw new ArgumentsRequired (this.id + ' shareMarkets() can only share markets with exchanges of the same type (got ' + sourceExchange['id'] + ')');

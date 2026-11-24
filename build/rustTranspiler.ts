@@ -3998,7 +3998,6 @@ function typedBaseDictFields(content: string): string {
     content = content
         .replace(/self\.markets_by_id = Value::Null;/g, 'self.markets_by_id = None;')
         .replace(/let __t = ([^;]*); self\.markets_by_id = __t;/g, 'let __t = $1; self.markets_by_id = if let Value::Dict(__m) = __t { Some(__m) } else { None };')
-        .replace(/self\.markets_by_id = (get_value\(&\w+, &Value::Str\("markets_by_id"\.into\(\)\)\));/g, 'self.markets_by_id = if let Value::Dict(__m) = $1 { Some(__m) } else { None };')
         .replace(/self\.markets_by_id (==|!=) Value::Null/g, (_m, op) => 'self.markets_by_id.' + (op === '==' ? 'is_none()' : 'is_some()'))
         .replace(/(matches!\(\(&self\.markets_by_id, (?:[^()]|\((?:[^()]|\([^()]*\))*\))+?\), \()Value::Dict\(__d\)/g, '$1Some(__d)')
         .replace(/\(self\.markets_by_id\.as_map\(\), /g, '(self.markets_by_id.as_deref(), ')
@@ -4009,7 +4008,6 @@ function typedBaseDictFields(content: string): string {
     content = content
         .replace(/self\.markets = Value::Null;/g, 'self.markets = None;')
         .replace(/let __t = ([^;]*); self\.markets = __t;/g, 'let __t = $1; self.markets = if let Value::Dict(__m) = __t { Some(__m) } else { None };')
-        .replace(/self\.markets = (get_value\(&\w+, &Value::Str\("markets"\.into\(\)\)\));/g, 'self.markets = if let Value::Dict(__m) = $1 { Some(__m) } else { None };')
         .replace(/self\.markets (==|!=) Value::Null/g, (_m, op) => 'self.markets.' + (op === '==' ? 'is_none()' : 'is_some()'))
         .replace(/(matches!\(\(&self\.markets, (?:[^()]|\((?:[^()]|\([^()]*\))*\))+?\), \()Value::Dict\(__d\)/g, '$1Some(__d)')
         .replace(/self\.markets\.as_map\(\)/g, 'self.markets.as_deref()')
@@ -4021,13 +4019,11 @@ function typedBaseDictFields(content: string): string {
         .replace(/\{ let __t = self\.create_safe_dictionary\(&\[\]\); self\.currencies = __t; \}/g, 'self.currencies = crate::value::Dict::default();')
         .replace(/\{ let __t = self\.map_to_safe_map\(self\.deep_extend\(([^;\n]*)\)\); self\.currencies = __t; \}/g, (_m, args) => 'self.currencies = self.deep_extend_t(' + args.replace(/self\.currencies\.clone\(\)/g, 'Value::from(&self.currencies)') + ');')
         .replace(/\{ let __sv_tmp = (\w+)\.map_to_safe_map\(Value::Map\((\{[\s\S]*?\})\)\); \1\.currencies = __sv_tmp; \}/g, '$1.currencies = std::sync::Arc::new($2);')
-        .replace(/self\.currencies = (get_value\(&\w+, &Value::Str\("currencies"\.into\(\)\)\));/g, 'self.currencies = if let Value::Dict(__m) = $1 { __m } else { Default::default() };')
         .replace(/self\.currencies\.as_map\(\)\.map\(\|__m\| (__m\.keys\(\)\.map\(\|__k\| Value::Str\(__k\.clone\(\)\.into\(\)\)\)\.collect\(\))\)\.unwrap_or_default\(\)/g, (_m, keys) => keys.replace('__m', 'self.currencies'));
     // `currencies_by_id` is `Option<Dict>` like `markets_by_id` (undefined until setMarkets indexes currencies).
     content = content
         .replace(/self\.currencies_by_id = Value::Null;/g, 'self.currencies_by_id = None;')
         .replace(/let __t = ([^;]*); self\.currencies_by_id = __t;/g, 'let __t = $1; self.currencies_by_id = if let Value::Dict(__m) = __t { Some(__m) } else { None };')
-        .replace(/self\.currencies_by_id = (get_value\(&\w+, &Value::Str\("currencies_by_id"\.into\(\)\)\));/g, 'self.currencies_by_id = if let Value::Dict(__m) = $1 { Some(__m) } else { None };')
         .replace(/self\.currencies_by_id (==|!=) Value::Null/g, (_m, op) => 'self.currencies_by_id.' + (op === '==' ? 'is_none()' : 'is_some()'))
         .replace(/(matches!\(\(&self\.currencies_by_id, (?:[^()]|\((?:[^()]|\([^()]*\))*\))+?\), \()Value::Dict\(__d\)/g, '$1Some(__d)')
         .replace(/\(self\.currencies_by_id\.as_map\(\), /g, '(self.currencies_by_id.as_deref(), ')
