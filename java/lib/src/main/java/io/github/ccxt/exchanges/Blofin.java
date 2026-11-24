@@ -15,6 +15,7 @@ import io.github.ccxt.types.FundingRate;
 import io.github.ccxt.types.FundingRateHistory;
 import io.github.ccxt.types.LedgerEntry;
 import io.github.ccxt.types.Leverage;
+import io.github.ccxt.types.LeverageTier;
 import io.github.ccxt.types.Leverages;
 import io.github.ccxt.types.MarginMode;
 import io.github.ccxt.types.MarketInterface;
@@ -121,7 +122,7 @@ public class Blofin extends BlofinApi
                 put( "fetchLeverageTiers", false );
                 put( "fetchMarginMode", true );
                 put( "fetchMarginModes", false );
-                put( "fetchMarketLeverageTiers", false );
+                put( "fetchMarketLeverageTiers", true );
                 put( "fetchMarkets", true );
                 put( "fetchMarkOHLCV", false );
                 put( "fetchMySettlementHistory", false );
@@ -3782,6 +3783,77 @@ public class Blofin extends BlofinApi
         mapLiteral8.put("stopLossPrice", null);
         mapLiteral8.put("takeProfitPrice", null);
         return this.safePosition(mapLiteral8);
+    }
+
+    /**
+     * @method
+     * @name blofin#fetchMarketLeverageTiers
+     * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+     * @see https://docs.blofin.com/index.html#get-position-tiers
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
+     * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+     */
+    public CompletableFuture<List<LeverageTier>> fetchMarketLeverageTiers(String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = this.market(symbol);
+            Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchMarketLeverageTiers", parameters, "cross");
+            String marginMode = marginModequeryVariable.first();
+            Map<String, Object> query = marginModequeryVariable.second();
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "instId", market.get("id") );
+                put( "marginMode", marginMode );
+            }};
+            Map<String, Object> response = (this.publicGetMarketPositionTiers(this.extend(request, query))).join();
+            //
+            //     {
+            //         "code": "0",
+            //         "msg": "success",
+            //         "data": [
+            //             {
+            //                 "symbol": "LTC-USDT",
+            //                 "marginMode": "cross",
+            //                 "minSize": "0",
+            //                 "maxSize": "500",
+            //                 "maintenanceMarginRate": "0.0065",
+            //                 "maxLeverage": "50"
+            //             }
+            //         ]
+            //     }
+            //
+            List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            return this.parseMarketLeverageTiers(data, market);
+        }).thenApply(res -> ((List<?>) res).stream().map(LeverageTier::new).collect(Collectors.toList()));
+
+    }
+
+    public Object parseMarketLeverageTiers(Object info, Map<String, Object> market)
+    {
+        List<Object> tiers = new ArrayList<Object>(Arrays.asList());
+        for (var i = 0; i < (switch ((Object)(info)) { case null -> 0; case List<?> j39v6 -> j39v6.size(); case String j39v7 -> j39v7.length(); case Object j39v8 -> j39v8.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v8) : 0; }); i++)
+        {
+            Map<String, Object> tier = this.safeDict(info, i, null);
+            String marketId = this.safeString(tier, "symbol");
+            HashMap<String, Object> j39v5 = new HashMap<String, Object>();
+            j39v5.put("tier", this.sum(i, 1));
+            j39v5.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+            j39v5.put("currency", this.safeString(market, "quote"));
+            j39v5.put("minNotional", this.safeNumber(tier, "minSize", (Object) null));
+            j39v5.put("maxNotional", this.safeNumber(tier, "maxSize", (Object) null));
+            j39v5.put("maintenanceMarginRate", this.safeNumber(tier, "maintenanceMarginRate", (Object) null));
+            j39v5.put("maxLeverage", this.safeNumber(tier, "maxLeverage", (Object) null));
+            j39v5.put("info", tier);
+            ((List<Object>)tiers).add(j39v5);
+        }
+        return tiers;
     }
 
     /**
