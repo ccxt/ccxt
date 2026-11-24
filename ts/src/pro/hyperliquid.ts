@@ -1299,7 +1299,8 @@ export default class hyperliquid extends hyperliquidRest {
         this.balance[(account as string)]['info'] = info;
         this.balance[(account as string)]['timestamp'] = timestamp;
         this.balance[(account as string)]['datetime'] = this.iso8601 (timestamp);
-        this.balance[(account as string)] = this.safeBalance (this.balance[(account as string)]);
+        const accountEntry = this.safeDict (this.balance, account, {});
+        this.balance[(account as string)] = this.safeBalance (accountEntry);
         if (topic !== undefined) {
             const messageHash = topic + '::balance';
             client.resolve (this.balance[(account as string)], messageHash);

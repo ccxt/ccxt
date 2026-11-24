@@ -1068,7 +1068,7 @@ export default class derive extends deriveRest {
             updated = true;
         }
         if (updated) {
-            this.balance[subaccountIdKey] = this.safeBalance (subBalance as any);
+            this.balance[subaccountIdKey] = this.safeBalance (subBalance);
             client.resolve (this.safeValue (this.balance, subaccountIdKey), topic);
         }
         const positionUpdatesLength = positionUpdates.length;
