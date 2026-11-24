@@ -8030,6 +8030,24 @@ function goCallArgsSpanningText (text: string, open: number): string[] | undefin
     return undefined;
 }
 
+function goIsArithmeticExpressionText (text: string): boolean {
+    let depth = 0;
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        if (char === '"') {
+            i++;
+            while ((i < text.length) && (text[i] !== '"')) { if (text[i] === '\\') { i++; } i++; }
+        } else if ('([{'.includes (char)) {
+            depth++;
+        } else if (')]}'.includes (char)) {
+            depth--;
+        } else if ((depth === 0) && (i > 0) && / [-+*\/%] /.test (text.slice (i - 1, i + 2)) && (text[i] !== ' ')) {
+            return true;
+        }
+    }
+    return false;
+}
+
 function goAnyNilSafeWrite (rhs: string, scalarLocals: Set<string>, safeLocal: (name: string) => boolean, stringSlices: Set<string>): boolean {
     const text = rhs.replace (/\bccxt\./g, '').replace (/\s+\/\/[^"]*$/, '').trim ();
     if (/^(?:nil|true|false|-?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?|"(?:[^"\\]|\\.)*")$/.test (text)) {
@@ -8041,6 +8059,10 @@ function goAnyNilSafeWrite (rhs: string, scalarLocals: Set<string>, safeLocal: (
     }
     if (/^\w+$/.test (text)) {
         return scalarLocals.has (text) || safeLocal (text);
+    }
+    // a top-level Go arithmetic or concatenation yields a plain number or string, never nil or a pointer
+    if (goIsArithmeticExpressionText (text)) {
+        return true;
     }
     // the in-range native index of a []string (a guard proved the literal index): a plain string, never nil
     if (/^\w+\[\d+\]$/.test (text) && stringSlices.has (text.slice (0, text.indexOf ('[')))) {
@@ -8119,7 +8141,7 @@ function goAnyLocalNilCompareText (fn: string, isEqualFn: string): string {
     const scalarLocals = new Set<string> ();
     const stringSlices = new Set<string> ();
     for (const line of code) {
-        const decl = /^\s*var (\w+) (\w+|\[\]string) = /.exec (line);
+        const decl = /^\s*var (\w+) (\w+|\[\]string)(?: = |$)/.exec (line);
         if (decl && GO_ANY_NIL_SCALAR_TYPES.has (decl[2])) {
             scalarLocals.add (decl[1]);
         } else if (decl && (decl[2] === '[]string')) {
@@ -20964,6 +20986,11 @@ function goAnyNilCompareSelfTest (ok: SelfTestOk): void {
     ok (nil ('\tvar v any = this.SafeList(p, "a", this.SafeList(p, "b"))\n').includes ('if (v == nil) {'), 'SafeList with a safe default');
     ok (nil ('\tvar v any = this.SafeDict(p, "a", map[string]any{})\n').includes ('if (v == nil) {'), 'SafeDict literal default still native');
     ok (nil ('\tvar v any = this.SafeDict(p, "a", this.SafeValue(p, "b"))\n').includes ('if (v == nil) {'), 'SafeDict with a derefed SafeValue default');
+    ok (nil ('\tvar now int64 = this.Milliseconds()\n\tvar v any = nil\n\tif true {\n\t\tv = now - 7776000000\n\t}\n').includes ('if (v == nil) {'), 'arithmetic write compares natively');
+    ok (nil ('\tvar e int64\n\te = 1\n\tvar v any = nil\n\tv = e\n').includes ('if (v == nil) {'), 'a zero-declared int64 local is a scalar');
+    ok (nil ('\tvar v any = nil\n\tv = p\n\tv = this.Sum(v, 1)\n').includes ('IsEqual(v, nil)'), 'a parameter write keeps the helper');
+    ok (nil ('\tvar s *string = this.SafeString(p, "a")\n\tvar v any = nil\n\tv = s\n').includes ('IsEqual(v, nil)'), 'a pointer write keeps the helper');
+    ok (nil ('\tvar v any = nil\n\tv = Add(p, 1)\n').includes ('IsEqual(v, nil)'), 'a boxed call write keeps the helper');
     for (const keep of [
         '\tvar v any = this.SortBy2(p, k, "b")\n',
         '\tvar v any = this.SafeList(p, "a", p)\n',
