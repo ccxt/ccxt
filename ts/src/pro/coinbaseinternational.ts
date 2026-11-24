@@ -1318,7 +1318,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         }
     }
 
-    async resubscribeOrderBook (channel: string) {
+    async resubscribeOrderBook (channel: string): Promise<void> {
         const channelParts = channel.split ('.');
         const channelPartsLength = channelParts.length;
         const isPrivate = this.safeString (channelParts, channelPartsLength - 1) === 'raw';
@@ -1994,7 +1994,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
      * @param {bool} [params.invalidate_token] whether to invalidate session tokens, default true
      * @returns {object} the exchange response
      */
-    async logoutWs (params: Dict = {}) {
+    async logoutWs (params: Dict = {}): Promise<void> {
         const paramsResolved = this.handleRouteAndParams ('logoutWs', params);
         await this.authenticate ();
         const url = this.getWsUrl (true);
@@ -2006,6 +2006,5 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             'params': paramsResolved,
         };
         await client.send (request);
-        return undefined;
     }
 }

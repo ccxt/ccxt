@@ -2405,6 +2405,7 @@ class Transpiler {
                 'FeeString': 'dict',
                 // the ws order book side class prints untyped, as `any` did
                 'OrderBookSide': 'object',
+                'void': 'None',
             }
             const unwrapLists = (type: string) => {
                 // a union like `Dict | Dict[] | undefined` must be mapped member-by-member;
