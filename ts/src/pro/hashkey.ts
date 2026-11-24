@@ -403,7 +403,7 @@ export default class hashkey extends hashkeyRest {
         let messageHash = 'orders';
         const symbolResolved = (symbol !== undefined) ? this.symbol (symbol) : symbol;
         if (symbol !== undefined) {
-            messageHash = 'orders' + ':' + symbolResolved;
+            messageHash = 'orders' + ':' + this.symbol (symbol);
         }
         const orders: ArrayCache = await this.watchPrivate (messageHash);
         let limitResolved = limit;
@@ -527,7 +527,7 @@ export default class hashkey extends hashkeyRest {
         let messageHash = 'myTrades';
         const symbolResolved = (symbol !== undefined) ? this.symbol (symbol) : symbol;
         if (symbol !== undefined) {
-            messageHash = 'myTrades' + ':' + symbolResolved;
+            messageHash = 'myTrades' + ':' + this.symbol (symbol);
         }
         const trades: ArrayCache = await this.watchPrivate (messageHash);
         let limitResolved = limit;
