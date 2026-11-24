@@ -1036,7 +1036,7 @@ export default class interactivebrokers extends Exchange {
      * @param {string} [params.accountId] the account id to use
      * @returns {Array} the account id and the params without accountId
      */
-    async loadAccountId (params: Dict = {}): Promise<[Str, Dict]> {
+    async loadAccountId (params: Dict = {}): Promise<[string, Dict]> {
         const [ accountIdFromParams, query ] = this.handleOptionStringAndParams (params, 'loadAccountId', 'accountId');
         let accountId: Str = accountIdFromParams;
         if (accountId === undefined) {
