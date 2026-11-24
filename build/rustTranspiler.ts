@@ -5729,9 +5729,9 @@ function rustTypedMarketSymbols (content: string): string {
 
 // `safeStringList` is declared `Strings` (ts/src/base/Exchange.ts): a one-string list, the list safeListN finds, or undefined.
 function rustTypedSafeStringList (content: string): string {
-    const def = /(fn safe_string_list\(&self, dictionaryOrList: impl KeyRead, mut keys: Value\)) -> Value \{([\s\S]*?)return Value::from\(vec!\[str_val\.map\(Value::from\)\.unwrap_or\(Value::Null\)\]\);(\s*\}\s*)return (self\.safe_list_n\(&dictionaryOrList, keys, &\[\]\));\n\n(\s*)Value::Null\n\}/;
-    content = content.replace (def, (_s, sig: string, head: string, mid: string, list: string, ind: string) =>
-        `${sig} -> Option<crate::value::List> {${head}return Some(std::sync::Arc::new(vec![str_val.map(Value::from).unwrap_or(Value::Null)]));${mid}if let Value::Arr(list) = ${list} {\n${ind}    return Some(list);\n${ind}}\n${ind}None\n}`);
+    const def = /(fn safe_string_list\(&self, dictionaryOrList: impl KeyRead, mut keys: Value\)) -> Value \{([\s\S]*?)return Value::from\(vec!\[str_val\.map\(Value::from\)\.unwrap_or\(Value::Null\)\]\);(\s*\}\s*)return (self\.safe_list_n\(&dictionaryOrList, keys, &\[\]\))(\.map_or\(Value::Null, Value::Arr\))?;\n\n(\s*)Value::Null\n\}/;
+    content = content.replace (def, (_s, sig: string, head: string, mid: string, list: string, typed: string, ind: string) =>
+        `${sig} -> Option<crate::value::List> {${head}return Some(std::sync::Arc::new(vec![str_val.map(Value::from).unwrap_or(Value::Null)]));${mid}` + (typed ? `return ${list};\n}` : `if let Value::Arr(list) = ${list} {\n${ind}    return Some(list);\n${ind}}\n${ind}None\n}`));
     return rustTypedOptListProducer (content, 'safe_string_list', '');
 }
 
