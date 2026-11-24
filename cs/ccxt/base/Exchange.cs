@@ -1231,7 +1231,8 @@ public partial class BaseExchange
 
     public void delay(object timeout2, object methodName, object[] args = null)
     {
-        Task.Delay(Convert.ToInt32(timeout2)).ContinueWith((t) => spawn(methodName, args));
+        // Task.Delay rejects negatives; JS setTimeout treats them as 0
+        Task.Delay(Math.Max(0, Convert.ToInt32(timeout2))).ContinueWith((t) => spawn(methodName, args));
     }
     public void setProperty(object obj, object property, object defaultValue = null)
     {
