@@ -12573,9 +12573,9 @@ function goTypedRecvLocals (content: string): string {
 
 // `var x any = nil; if rN.Value != nil { x = <rN.Value | XsToList(rN.Value)> }` of a map/list receive: a nil map/slice
 // reads like the untyped nil through every use admitted here (Safe* readers, GetValue, GetArrayLength, native nil test,
-// the `[]any` slot of ParseOpenInterests / ParseMarkets),
+// the `[]any` slot of ParseOpenInterests / ParseMarkets, ToArray and IndexBy: both read a nil slice as untyped nil),
 // so x takes the receive's type and the guard goes.
-const GO_NIL_FOLD_READERS = /^(?:this\.(?:Safe(?:String|Integer|Number|Bool|Float|Dict|List|Value|Timestamp)\w*|IsEmpty)|(?:ccxt\.)?(?:SafeMapTyped|SafeListTyped\w*|GetValue|GetArrayLength)|this\.(?:ParseOpenInterests|ParseMarkets))\($/;
+const GO_NIL_FOLD_READERS = /^(?:this\.(?:Safe(?:String|Integer|Number|Bool|Float|Dict|List|Value|Timestamp)\w*|IsEmpty|ToArray|IndexBy)|(?:ccxt\.)?(?:SafeMapTyped|SafeListTyped\w*|GetValue|GetArrayLength)|this\.(?:ParseOpenInterests|ParseMarkets))\($/;
 function goTypedNilFoldLocals (content: string): string {
     if (!/\n\t+var \w+ any = nil\n\t+if r\d*\.Value != nil \{\n/.test (content)) {
         return content;
@@ -12765,6 +12765,8 @@ function goTypedNilFoldLocalsCheck (ok: SelfTestOk): void {
     ok (out.includes ('\tvar b []any = OrdersToList(r1.Value)\n'), 'ToList fold typed: ' + out);
     ok (out.includes ('\tvar c any = nil\n'), 'untabled fold kept: ' + out);
     ok (out.includes ('\tvar d any = nil\n'), 'fold handed on as a value kept: ' + out);
+    const arr = goTypedNilFoldLocals ('package ccxt\n\nfunc (this *Zz) g() any {\n' + fold ('r', 'FetchOrdersAsync()', 'e', 'OrdersToList(r.Value)') + '\treturn this.ToArray(e)\n}\n');
+    ok (arr.includes ('\tvar e []any = OrdersToList(r.Value)\n'), 'ToArray-read fold typed: ' + arr);
 }
 
 // `var x map[string]any = SafeMapTyped(m, k)` with `m` one map[string]any declaration and a literal or string key: the
