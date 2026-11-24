@@ -3841,7 +3841,20 @@ function csharpArithmeticNullableOperandKind (csharp, node, context) {
     if (node.kind !== ts.SyntaxKind.Identifier && node.kind !== ts.SyntaxKind.CallExpression) {
         return undefined;
     }
-    return (csharpTypeOfValue (csharp, node, context) === 'Int64?') ? 'Int64?' : undefined;
+    return ((csharpTypeOfValue (csharp, node, context) ?? printedUnwrittenParameterType (csharp, node)) === 'Int64?') ? 'Int64?' : undefined;
+}
+
+// the type a method parameter prints with (its ts declaration), for a parameter the body never
+// writes or passes by ref: every read of it is that static type
+function printedUnwrittenParameterType (csharp, node) {
+    if (node?.kind !== ts.SyntaxKind.Identifier || typeof csharp?.csharpPrintedParamType !== 'function') {
+        return undefined;
+    }
+    const type = csharp.csharpPrintedParamType (node);
+    if (type === undefined || csharp.csharpParameterWrittenAnywhere (node) || parameterIsRefSunk (csharp, node)) {
+        return undefined;
+    }
+    return type;
 }
 
 // { kind, nullable } for an operand that can bind the (Int64?, Int64?) twins: an int-like
@@ -3948,7 +3961,7 @@ function csharpArithmeticOperandKind (csharp, node, context) {
         return (node.name?.text === 'length') ? 'int' : undefined;
     case ts.SyntaxKind.Identifier:
     case ts.SyntaxKind.CallExpression:
-        return arithmeticKindOfType (csharpTypeOfValue (csharp, node, context));
+        return arithmeticKindOfType (csharpTypeOfValue (csharp, node, context) ?? printedUnwrittenParameterType (csharp, node));
     case ts.SyntaxKind.BinaryExpression:
         // a nested `+` is an add(...) call too: its own typed result is what the enclosing
         // arithmetic operator sees as an operand
