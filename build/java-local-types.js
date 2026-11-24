@@ -27466,6 +27466,95 @@ function javaUnifiedRequestListSlot (printer, node, method) {
     }
 }
 
+// a fixed `string[]` / `X[]` (X a base/types.ts interface) parameter of a venue method nothing overrides or redeclares,
+// never written, whose every ts/src caller (matched by name) passes an array literal or a single `const x: T[]` local
+const javaDeclaredListSlotCache = new WeakMap ();
+
+function javaDeclaredListParameter (printer, node) {
+    const method = node?.parent;
+    if (method?.kind !== ts.SyntaxKind.MethodDeclaration || node.initializer !== undefined || node.questionToken !== undefined
+        || node.dotDotDotToken !== undefined || !JAVA_LIST_PARAM_SLOT_FILES.test (node.getSourceFile ().fileName)) {
+        return undefined;
+    }
+    if (!javaDeclaredListSlotCache.has (node)) {
+        javaDeclaredListSlotCache.set (node, javaDeclaredListSlotUncached (printer, node, method));
+    }
+    return javaDeclaredListSlotCache.get (node);
+}
+
+// per method name, per call in ts/src (test/ and static_dependencies/ skipped): which arguments are typed lists
+let javaDeclaredListCalls;
+function javaDeclaredListCallIndex () {
+    if (javaDeclaredListCalls === undefined) {
+        javaDeclaredListCalls = new Map ();
+        const visit = (n) => {
+            if (ts.isCallExpression (n) && ts.isPropertyAccessExpression (n.expression)) {
+                const name = n.expression.name.text;
+                if (!javaDeclaredListCalls.has (name)) {
+                    javaDeclaredListCalls.set (name, []);
+                }
+                javaDeclaredListCalls.get (name).push (n.arguments.map (javaDeclaredListArgIsList));
+            }
+            n.forEachChild (visit);
+        };
+        const visitDir = (dir) => fs.readdirSync (dir, { withFileTypes: true }).forEach ((e) => (e.isDirectory ()
+            ? ([ 'test', 'static_dependencies' ].includes (e.name) || visitDir (path.join (dir, e.name)))
+            : isTsIndexSource (e.name) && visit (ts.createSourceFile (e.name, readTsIndexSource (path.join (dir, e.name)) ?? '', ts.ScriptTarget.Latest, true))));
+        visitDir (JAVA_FRESH_MAP_TS_ROOT);
+    }
+    return javaDeclaredListCalls;
+}
+
+function javaDeclaredListArgIsList (arg) {
+    arg = unwrapParens (arg);
+    if (arg !== undefined && ts.isArrayLiteralExpression (arg)) {
+        return true;
+    }
+    let method = arg?.parent;
+    while (method !== undefined && !ts.isMethodDeclaration (method)) {
+        method = method.parent;
+    }
+    if (arg === undefined || !ts.isIdentifier (arg) || method?.body === undefined
+        || method.parameters.some ((p) => ts.isIdentifier (p.name) && p.name.text === arg.text)) {
+        return false;
+    }
+    const locals = [];
+    const visit = (n) => {
+        if (ts.isVariableDeclaration (n) && ts.isIdentifier (n.name) && n.name.text === arg.text) {
+            locals.push (n);
+        }
+        n.forEachChild (visit);
+    };
+    method.body.forEachChild (visit);
+    return locals.length === 1 && locals[0].type !== undefined && ts.isArrayTypeNode (locals[0].type)
+        && (locals[0].parent.flags & ts.NodeFlags.Const) !== 0;
+}
+
+function javaDeclaredListSlotUncached (printer, node, method) {
+    try {
+        const annotation = node.type;
+        const name = method.name;
+        if (annotation === undefined || !ts.isArrayTypeNode (annotation) || method.body === undefined || !ts.isIdentifier (name ?? {})
+            || /[\\/]ts[\\/]src[\\/](test|base)[\\/]/.test (node.getSourceFile ().fileName)
+            || printer.getMethodOverride (method) !== undefined || javaRedeclaredByDescendant (method)
+            || printer.javaParameterIsWritten (node) || printer.javaParameterIsCompoundAssigned (node)) {
+            return undefined;
+        }
+        const element = annotation.elementType;
+        let ok = element.kind === ts.SyntaxKind.StringKeyword;
+        if (!ok && ts.isTypeReferenceNode (element)) {
+            const elementType = printer.getChecker ().getTypeFromTypeNode (element);
+            const decl = (elementType?.getSymbol?.() ?? elementType?.symbol)?.declarations?.[0]?.resolve ();
+            ok = decl !== undefined && ts.isInterfaceDeclaration (decl) && /[\\/]ts[\\/]src[\\/]base[\\/]types\.ts$/.test (decl.getSourceFile ().fileName);
+        }
+        const index = method.parameters.indexOf (node);
+        return ok && (javaDeclaredListCallIndex ().get (name.text) ?? []).every ((args) => args[index] === true)
+            ? JAVA_WILDCARD_LIST_PARAM_SLOT_TYPE : undefined;
+    } catch (e) {
+        return undefined;
+    }
+}
+
 function javaParamSlotTypeAt (name, index, fileName) {
     if (JAVA_BOOKSIDE_PARAM_SLOTS[name]?.includes (index)) {
         return JAVA_BOOKSIDE_PARAM_SLOT_TYPE;
@@ -27499,7 +27588,8 @@ function javaListSlotArgument (arg, printer) {
     try {
         const declaration = printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve ();
         const parameter = declaration?.parameters?.[index];
-        return parameter !== undefined && ts.isMethodDeclaration (declaration) ? javaUnifiedRequestListSlot (printer, parameter, declaration) : undefined;
+        return parameter !== undefined && ts.isMethodDeclaration (declaration)
+            ? javaUnifiedRequestListSlot (printer, parameter, declaration) ?? javaDeclaredListParameter (printer, parameter) : undefined;
     } catch (e) {
         return undefined;
     }
@@ -27521,7 +27611,8 @@ export function installJavaListParamSlots (transpiler) {
     printer._javaListParamSlotsPatched = true;
     const upstreamType = printer.javaNativeParameterTypeOf.bind (printer);
     printer.javaNativeParameterTypeOf = function (node) {
-        return javaListParamSlot (printer, node) ?? upstreamType (node);
+        const own = javaListParamSlot (printer, node) ?? upstreamType (node);
+        return own !== undefined && own !== 'Object' ? own : javaDeclaredListParameter (printer, node) ?? own;
     };
     const upstreamElement = printer.printElementAccessExpression.bind (printer);
     printer.printElementAccessExpression = function (node, identation) {
