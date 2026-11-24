@@ -3474,6 +3474,10 @@ class NewTranspiler {
         if (targetType === 'Int64?' && /^\.Value\b/.test (post)) {
             return 'read';
         }
+        // `alias.GetValueOrDefault()`: the printer's read of a shadow it proved never null (literal default)
+        if (targetType === 'Int64?' && /^\.GetValueOrDefault\(\)/.test (post)) {
+            return 'read';
+        }
         // `(alias == null)` / `(alias != null)`: the native spelling of the isEqual(alias, null)
         // guard this classifier already accepts at an argument position. The null test reads the
         // box itself and answers the same for `object` and every narrowed type here.
