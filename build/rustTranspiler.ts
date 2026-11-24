@@ -14424,6 +14424,8 @@ export class RustTranspilerBuilder {
                         const isSlice = /:\s*&\[/.test(p);
                         const nm = p.match(/^(mut\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*:/);
                         if (!nm) return '';
+                        // a lent list slot is one argument: the derived arm decodes it back to the slice
+                        if (isSlice && nm[2] !== 'optional_args') return ` __args.push(crate::Value::from(${nm[2]}.to_vec()));`;
                         if (isSlice) return ` __args.extend_from_slice(${nm[2]});`;
                         return ` __args.push(${nm[2]}.clone());`;
                     }).join('')
