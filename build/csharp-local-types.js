@@ -490,6 +490,7 @@ export const CORE_STRING_ARGS = {
     'withdraw': [ 0, 2 ],
     'withdrawRequest': [ 0, 3 ],
     'withdrawWs': [ 0, 2 ],
+    'cancelOrderRequest': [ 1 ],
     // fetchRestOrderBookSafe omitted: TS declares `symbol: any`, so the wrapper and the
     // hand-written WsBridge caller both pass `object` and cannot be narrowed here
 };
