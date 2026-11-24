@@ -1882,9 +1882,8 @@ export class BaseExchange {
                         // add cost here |
                         //               |
                         //               V
-                        client.throttle (cost).then (() => {
-                            client.send (message);
-                        }).catch ((e: any) => {
+                        // return the send promise so a send on a closed socket rejects into the catch below
+                        client.throttle (cost).then (() => client.send (message)).catch ((e: any) => {
                             for (let i = 0; i < missingSubscriptions.length; i++) {
                                 const subscribeHash = missingSubscriptions[i];
                                 delete client.subscriptions[subscribeHash];
@@ -1963,9 +1962,8 @@ export class BaseExchange {
                         // add cost here |
                         //               |
                         //               V
-                        client.throttle (cost).then (() => {
-                            client.send (message);
-                        }).catch ((e: any) => {
+                        // return the send promise so a send on a closed socket rejects into the catch below
+                        client.throttle (cost).then (() => client.send (message)).catch ((e: any) => {
                             client.onError (e);
                         });
                     } else {
