@@ -7136,7 +7136,7 @@ function rowWriteElementSnippetChecks84c3 (): string[] {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...copyLocalSnippetChecks77c5 (), ...helperReturnLocalsSnippetChecks (), ...rowWriteElementSnippetChecks84c3 (), ...copyLocalSnippetChecks84c5 (), ...nonNullStringCallSnippetChecks84c7 (), ...nullSeedNativeStringChecks87c4 (), ...nullSeedChecks90c4 (), ...nullSeedChecks92c4 (), ...nullSeedChecks93c4 (), ...copyLocalSnippetChecks87c5 (), ...readerSeedElementWriteChecks () ];
+        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...copyLocalSnippetChecks77c5 (), ...helperReturnLocalsSnippetChecks (), ...rowWriteElementSnippetChecks84c3 (), ...copyLocalSnippetChecks84c5 (), ...nonNullStringCallSnippetChecks84c7 (), ...nullSeedNativeStringChecks87c4 (), ...nullSeedChecks90c4 (), ...nullSeedChecks92c4 (), ...nullSeedChecks93c4 (), ...copyLocalSnippetChecks87c5 (), ...readerSeedElementWriteChecks (), ...tupleSlotDictLetChecks () ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -11130,3 +11130,21 @@ function h30C03OutcomeReturnIsTyped (expr: string, targetType: string): boolean 
     return csharpMatchingClose (value, m[0].length - 1, '(', ')', '"') === value.length - 1 ? true : undefined
 }
 // ===== end h30-C03
+
+// a `let x: Dict` written from slot 1 of a tuple helper whose printed slot is IDictionary keeps that type;
+// an unannotated let, a write of another kind and an unlisted helper keep `object`
+export function tupleSlotDictLetChecks (): string[] {
+    const problems: string[] = [];
+    const transpiler = new Transpiler ({ verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } } as any);
+    setupCsharpPrinter (transpiler);
+    const pre = 'type Dict = { [key: string]: any }; type Str = string | undefined;\nclass Test {\n getInstType (m: Str, p: Dict = {}): [Str, Dict] { return [ m, p ]; }\n fooAndParams (m: Str, p: Dict = {}): [Str, Dict] { return [ m, p ]; }\n extend (a, b = undefined): Dict { return a; }\n';
+    const check = (name: string, body: string, expected: string) => {
+        const out: string = (transpiler as any).transpileCSharp (pre + body + '\n}').content;
+        if (!out.includes (expected)) { problems.push (`tuple slot dict let: ${name}: ${out.replace (/\n/g, ' | ').slice (-500)}`); }
+    };
+    check ('declared Dict written from slot 1', 'f (c, m: Str) { let t: Str = "SPOT"; let q: Dict = {}; if (c) { [ t, q ] = this.getInstType (m, q); } return this.extend (q, { "a": t }); }', 'IDictionary<string, object> q = new Dictionary<string, object>()');
+    check ('unannotated let keeps object', 'f (c, m: Str) { let t: Str = "SPOT"; let q = {}; if (c) { [ t, q ] = this.getInstType (m, q); } return this.extend (q, { "a": t }); }', 'object q = new Dictionary<string, object>()');
+    check ('unlisted helper keeps object', 'f (c, m: Str) { let t: Str = "SPOT"; let q: Dict = {}; if (c) { [ t, q ] = this.fooAndParams (m, q); } return this.extend (q, { "a": t }); }', 'object q = new Dictionary<string, object>()');
+    check ('later write of another kind keeps object', 'f (c, m: Str) { let t: Str = "SPOT"; let q: Dict = {}; if (c) { [ t, q ] = this.getInstType (m, q); } q = (t as any); return this.extend (q, { "a": t }); }', 'object q = new Dictionary<string, object>()');
+    return problems;
+}

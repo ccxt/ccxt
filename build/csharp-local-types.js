@@ -25319,3 +25319,88 @@ function declaredIntCallType (csharp, call) {
     }
     return declaredIntNameType (csharp, name);
 }
+
+// ===== tuple slot 1 written into an outer `let x: Dict` =====
+// `let x: Dict = <dict>; if (..) { [ v, x ] = this.F (..); }` where F's printed tuple return names slot 1
+// IDictionary<string, object> (CSHARP_TUPLE_RETURN_ELEMENT1): the slot read `x = H.Item2` already has
+// that static type, so the declared Dict local takes it; every other write still passes the retype scan.
+const TUPLE_SLOT_DICT_TYPE = 'IDictionary<string, object>';
+function tupleSlotDictWrite (csharp, index, declaration, idNode, assignment) {
+    const pattern = idNode?.parent;
+    const call = stripParens (assignment?.right);
+    const callee = (call?.kind === ts.SyntaxKind.CallExpression) ? call.expression : undefined;
+    if (pattern?.kind !== ts.SyntaxKind.ArrayLiteralExpression || pattern.elements.length !== 2 || pattern.elements[1] !== idNode
+            || callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword
+            || call.questionDotToken !== undefined || tupleElement1 (callee.name?.text) !== TUPLE_SLOT_DICT_TYPE) {
+        return false;
+    }
+    if (enclosingFunction (idNode) !== enclosingFunction (declaration) || assignment.getStart () <= declaration.getStart ()) {
+        return false;
+    }
+    return (index.bindingCounts.get (csharp.printNode (idNode, 0)) ?? 0) === 1;
+}
+function tupleSlotDictDeclarationShape (declaration) {
+    return declaration?.kind === ts.SyntaxKind.VariableDeclaration && declaration.name?.kind === ts.SyntaxKind.Identifier
+        && declaration.type?.getText?.()?.trim () === 'Dict' && declaration.initializer !== undefined && !isNullInit (declaration)
+        && declaration.parent?.declarations?.length === 1 && isBlockScopedDeclaration (declaration);
+}
+const tupleSlotDictWritten = new WeakSet ();
+const tupleSlotDictUpstreamCastable = destructuredWriteIsCastable;
+// eslint-disable-next-line no-func-assign
+destructuredWriteIsCastable = function (csharp, scope, index, declaration, idNode, assignment, csharpType, context) {
+    if (tupleSlotDictUpstreamCastable (csharp, scope, index, declaration, idNode, assignment, csharpType, context)) {
+        return true;
+    }
+    if (csharpType === TUPLE_SLOT_DICT_TYPE && tupleSlotDictDeclarationShape (declaration) && tupleSlotDictWrite (csharp, index, declaration, idNode, assignment)) {
+        tupleSlotDictWritten.add (declaration);
+        return true;
+    }
+    return false;
+};
+const tupleSlotDictUpstreamLocalDeclaration = csharpLocalDeclaration;
+// eslint-disable-next-line no-func-assign
+csharpLocalDeclaration = function (csharp, declaration, context) {
+    const info = tupleSlotDictUpstreamLocalDeclaration (csharp, declaration, context);
+    // a declaration that would need a cast back keeps object (no cast spelling from this rule)
+    if (info !== undefined && info.cast !== undefined && tupleSlotDictWritten.has (declaration)) {
+        return undefined;
+    }
+    if (info !== undefined || c5ParameterProofDepth > 0 || !tupleSlotDictDeclarationShape (declaration) || classifyInProgress.has (declaration)) {
+        return info;
+    }
+    const scope = context?.scope ?? enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    let initial;
+    classifyInProgress.add (declaration);
+    try {
+        initial = csharpTypeOfValue (csharp, declaration.initializer, ctx);
+        if (initial !== TUPLE_SLOT_DICT_TYPE && initial !== 'Dictionary<string, object>') {
+            return undefined;
+        }
+        const index = indexScope (csharp, scope);
+        const name = declaration.name.text;
+        let slotWrites = 0;
+        for (const n of (index.identifiers.get (name) ?? [])) {
+            if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+                continue;
+            }
+            const parent = n.parent;
+            if (parent?.kind === ts.SyntaxKind.ArrayLiteralExpression && parent.parent?.kind === ts.SyntaxKind.BinaryExpression
+                    && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+                if (!tupleSlotDictWrite (csharp, index, declaration, n, parent.parent)) {
+                    return undefined;
+                }
+                slotWrites++;
+            }
+        }
+        if (slotWrites === 0 || !csharpLocalIsSafeToRetype (csharp, scope, declaration, name, TUPLE_SLOT_DICT_TYPE, ctx)) {
+            return undefined;
+        }
+    } finally {
+        classifyInProgress.delete (declaration);
+    }
+    return { type: TUPLE_SLOT_DICT_TYPE };
+};
