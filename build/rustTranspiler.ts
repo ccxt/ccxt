@@ -4740,7 +4740,7 @@ function rustTypedSafeOrder (content: string): string {
 
 // `parseOrder` builds every order through `safeOrder` (a `Dict`): a venue override returns `Some(..)` through the
 // `DerivedExchange` slot (`None` = not overridden), the base `Dict`. `.into_dict()` drops, `.as_map()` copies unwrap, any other use boxes it.
-function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'position' | 'transfer' | 'transaction' | 'balance' | 'margin_modification' | 'income' | 'margin_mode' | 'account' | 'funding_rate' | 'deposit_address' | 'leverage' | 'ledger_entry' | 'open_interest' | 'currency' | 'deposit_withdraw_fee' | 'market' | 'borrow_interest' | 'last_price' | 'prediction_order' | 'prediction_position' | 'adl_rank' | 'greeks', p0: string | undefined = undefined): string {
+function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'position' | 'transfer' | 'transaction' | 'balance' | 'margin_modification' | 'income' | 'margin_mode' | 'account' | 'funding_rate' | 'deposit_address' | 'leverage' | 'ledger_entry' | 'open_interest' | 'currency' | 'deposit_withdraw_fee' | 'market' | 'borrow_interest' | 'last_price' | 'prediction_order' | 'prediction_position' | 'adl_rank' | 'greeks' | 'liquidation' | 'funding_rate_history', p0: string | undefined = undefined): string {
     const fn = 'parse_' + fam, Fn = 'parse' + fam.replace (/(?:^|_)(\w)/g, (_x, c: string) => c.toUpperCase ());
     // `parseBalance (response)` and `parseAccount (account)` have no second argument; p0 names a base parameter that differs from the family
     const sub = p0 ?? fam;
@@ -4749,7 +4749,8 @@ function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'posit
     // `parseCurrency` takes `&mut self` and builds through `safeCurrencyStructure`
     const me = fam === 'currency' ? '&mut self' : '&self';
     // binance names the prediction market slot `outcomeObj`
-    const derivedSig = new RegExp ('\\n    fn ' + fn + '\\(' + me + ', \\w+: impl Into<crate::Value>' + (fam === 'prediction_order' || fam === 'prediction_position' ? arg2Re.replace (/^, \w+:/, ', \\w+:') : arg2Re) + '\\) -> Value \\{\\n');
+    // an owned `Value` row slot (the trait keeps it boxed) is typed the same way: no rebinding local
+    const derivedSig = new RegExp ('\\n    fn ' + fn + '\\(' + me + ', (?:\\w+: impl Into<crate::Value>|mut \\w+: Value)' + (fam === 'prediction_order' || fam === 'prediction_position' ? arg2Re.replace (/^, \w+:/, ', \\w+:') : arg2Re) + '\\) -> Value \\{\\n');
     const safeRet = 'Value::Dict(self.safe_' + fam + (fam === 'currency' || fam === 'market' ? '_structure(' : '(');
     const allSafe = (body: string) => { const r = body.match (/^ *return\b[^\n]*/gm) ?? []; return r.length > 0 && r.every ((x) => x.trim ().startsWith ('return ' + safeRet)); };
     const unbox = (body: string, wrap: string) => {
@@ -4818,6 +4819,8 @@ function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'posit
         if (fam === 'deposit_withdraw_fee') body = body.split ('return self.assign_default_deposit_withdraw_fees(').join ('return \u0000self.assign_default_deposit_withdraw_fees(');
         // `safeBalance` already returns `Dict`
         if (fam === 'balance') body = body.split ('return self.safe_balance(').join ('return \u0000self.safe_balance(');
+        // `safeLiquidation` returns its map argument; `.into_dict()` keeps it a `Dict` until the producer pass types it
+        if (fam === 'liquidation') body = body.split ('return self.safe_liquidation(').join ('return \u0000self.safe_liquidation(');
         let out = '', last = 0, r: RegExpExecArray | null;
         const ret = /(?<=^ *)return ([^;\n]*)/gm;
         while ((r = ret.exec (body)) !== null) {
@@ -4830,6 +4833,10 @@ function rustTypedParseFamily (content: string, fam: 'order' | 'ticker' | 'posit
             ret.lastIndex = last;
         }
         body = (out + body.slice (last)).replace (/\u0000/g, '') + '\n\n    None\n';
+        for (let k = body.indexOf ('return Some(self.safe_liquidation('); fam === 'liquidation' && k >= 0; k = body.indexOf ('return Some(self.safe_liquidation(', k + 1)) {
+            const c = balancedCloseIndex (body, k + 'return Some(self.safe_liquidation('.length) + 1;
+            body = body.slice (0, c) + '.into_dict()' + body.slice (c);
+        }
         content = content.slice (0, at) + content.slice (at, open).replace ('-> Value {', '-> Option<crate::value::Dict> {') + body + content.slice (end);
     }
     for (const name of dictFns) {
@@ -5238,6 +5245,7 @@ function rustTypedParsePositionFamilies (content: string): string {
     content = rustTypedParseFamily (rustTypedSafeDict (content, 'safe_prediction_position', 'mut position: Value', 'return Value::Map(', 'return std::sync::Arc::new('), 'prediction_position', 'position');
     content = rustTypedParseFamily (content, 'adl_rank', 'info');
     content = rustTypedParseFamily (content, 'greeks');
+    content = rustTypedParseFamily (content, 'funding_rate_history', 'info');
     // `safeMarketStructure` answers `extend (cleanStructure, market)` or `extend (cleanStructure)`: a map on every input
     const sms = 'fn safe_market_structure(&self, optional_args: &[Value]) -> Value {', smsAt = content.indexOf (sms);
     if (smsAt >= 0) {
@@ -5248,6 +5256,7 @@ function rustTypedParsePositionFamilies (content: string): string {
     }
     box ('safe_market_structure');
     content = rustTypedParseFamily (content, 'market');
+    content = rustTypedParseFamily (content, 'liquidation');
     content = rustTypedParseLeverageTiers (content);
     content = rustBorrowedParseRows (content);
     // a venue method whose every return is a map: `Value::Dict(e)` -> `e`, a literal -> `Arc::new`, `extend` -> `extend_t`
