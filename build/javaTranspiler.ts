@@ -4709,6 +4709,7 @@ function javaBaseProducerLocalsSelfTest (): string[] {
         "    typed (m: string): string { return m; }",
         "    pos (d: any, t: any, p: any) { const enc = this.ethEncodeStructuredData (d, t, p); const bin = this.encode ('x'); const n = this.binaryLength (bin); const r = this.randNumber (6); const q = this.precisionFromString ('0.01'); return [ this.sink (enc, 'k'), this.hash (bin, undefined, 'hex'), this.numberToString (n), this.numberToString (r), q ]; }",
         "    str (x: string) { const pp = this.parsePrecision (x); return { 'p': pp }; }",
+        "    b16 (h: string) { const hb = this.base16ToBinary (h); const hl = this.base16ToBinary (h); const hs = this.base16ToBinary (h); return [ this.sink (hb, 'k'), [ hl, 1 ], this.typed (hs as any) ]; }",
         "    neg (d: any, t: any, p: any) { const enc2 = this.ethEncodeStructuredData (d, t, p); const r2 = this.randNumber (6); const u = (d === undefined) ? r2 : 0; return [ this.typed (enc2 as any), u ]; }",
         '}',
     ].join('\n');
@@ -4720,6 +4721,9 @@ function javaBaseProducerLocalsSelfTest (): string[] {
         for (const name of [ 'n', 'r', 'q' ]) {
             if (!new RegExp(`Integer ${name} = this\\.`).test(out)) problems.push(`base producers: '${name}' (int producer) must print Integer`);
         }
+        if (!/byte\[\] hb = this\.base16ToBinary\(/.test(out)) problems.push("bytes helpers: 'hb' (base16ToBinary into a venue Object slot) must print byte[]");
+        if (!/byte\[\] hl = this\.base16ToBinary\(/.test(out)) problems.push("bytes helpers: 'hl' (base16ToBinary into a list literal) must print byte[]");
+        if (!/\bObject hs = /.test(out)) problems.push("bytes helpers: 'hs' feeds a typed String slot and must stay Object");
         if (!/\bObject enc2 = /.test(out)) problems.push("base producers: 'enc2' feeds a typed String slot and must stay Object");
         if (!/\bObject r2 = /.test(out)) problems.push("base producers: 'r2' is a ternary arm and must stay Object");
         // base-tier `: Str` methods printed below the transpile delimiter: a String-returning, never redeclared one prints String

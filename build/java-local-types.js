@@ -156,7 +156,7 @@ const JAVA_BYTES_CONSUMERS = new Set ([
     'hash', // BaseExchange.hash (Object, Object[, Object]): Crypto.Hash hashes a byte[] input as is
 ]);
 
-function javaBytesLocalIsSafe (declaration) {
+function javaBytesLocalIsSafe (declaration, printer) {
     const scope = enclosingFunction (declaration);
     if (scope === undefined) {
         return false;
@@ -167,8 +167,13 @@ function javaBytesLocalIsSafe (declaration) {
             || (ts.isPropertyAccessExpression (parent) && parent.name === n)) {
             continue; // declaration, sibling-scope declaration or `obj.<name>` member read
         }
+        if (ts.isArrayLiteralExpression (parent) && !(ts.isBinaryExpression (parent.parent) && parent.parent.left === parent)
+            && !ts.isForOfStatement (parent.parent) && !ts.isForInStatement (parent.parent)) {
+            continue; // a list literal element: Java prints it into `new ArrayList<Object>(Arrays.asList(..))`
+        }
         if (!(ts.isCallExpression (parent) && parent.arguments.includes (n) && isThisCall (parent)
-            && JAVA_BYTES_CONSUMERS.has (String (parent.expression.name.text)))) {
+            && (JAVA_BYTES_CONSUMERS.has (String (parent.expression.name.text))
+                || javaObjectSlotArgument (printer, parent, parent.arguments.indexOf (n))))) {
             return false;
         }
     }
@@ -207,7 +212,7 @@ export function patchJavaBytesHelperLocals (transpiler) {
         }
         let ok = false;
         try {
-            ok = javaBytesHelperCall (printer, declaration.initializer) && javaBytesLocalIsSafe (declaration);
+            ok = javaBytesHelperCall (printer, declaration.initializer) && javaBytesLocalIsSafe (declaration, printer);
         } catch (e) {
             ok = false;
         }
