@@ -6958,6 +6958,7 @@ const RUST_PARSE_LIST_FNS = [
     'fetch_raw_events_by_search',
     'fetch_raw_events_list',
     'fetch_settlement_history',
+    'fetch_my_settlement_history',
 ];
 // venue-declared members of the list above: typed only in a file whose own declaration passes the proof
 const RUST_VENUE_LIST_FNS = new Set(RUST_PARSE_LIST_FNS.slice(RUST_PARSE_LIST_FNS.indexOf('get_asset_history_rows')));
