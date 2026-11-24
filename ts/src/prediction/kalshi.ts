@@ -2480,7 +2480,7 @@ export default class kalshi extends Exchange {
      */
     override async fetchEvent (id: string, params: Dict = {}): Promise<PredictionEvent> {
         const fullEvent = await this.fetchRawEventByTicker (id, params);
-        const event = this.parseEvent (fullEvent);
+        const event = this.parseEvent (this.extend ({}, fullEvent));
         this.indexEventOutcomes (event);
         return event;
     }
