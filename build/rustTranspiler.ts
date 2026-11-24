@@ -14886,6 +14886,9 @@ ${fallthrough}
                 arms.push(`            "${name}" => crate::exchange_stubs::enqueue_spawn("${name}", args.to_vec()),`);
                 continue;
             }
+            // a handler that returns its message as the dict handle is still called by name; the arm drops the map
+            const dictCall = sig.ret === 'dict' ? sig.params.map((p, i) => rustDispatch.wsArg(p.kind, i)) : undefined;
+            if (dictCall !== undefined && dictCall.every(a => a !== undefined)) { seen.add(name); arms.push(`            "${name}" => { self.${name}(${dictCall.join(', ')}); },`); continue; }
             if (sig.ret !== 'void' && sig.ret !== 'value' && !rustDispatch.isKeptReturn(sig.ret)) continue;
             const callArgs = sig.params.map((p, i) => rustDispatch.wsArg(p.kind, i));
             if (callArgs.some(a => a === undefined)) continue;
