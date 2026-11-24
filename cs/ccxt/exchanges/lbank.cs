@@ -1530,7 +1530,7 @@ public partial class lbank : Exchange
         return this.safeBalance(result);
     }
 
-    public override Dictionary<string, object> parseFundingRate(object ticker, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRate(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         // {
         //     "symbol": "BTCUSDT",
@@ -2563,7 +2563,7 @@ public partial class lbank : Exchange
             { "assetCode", (currency.ContainsKey("id") ? currency["id"] : null) },
         };
         string? network = this.getNetworkCodeForCurrency(code, parameters);
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)(((network != null)) ? this.omit(parameters, "network") : parameters));
+        IDictionary<string, object> paramsOmitted = ((network != null)) ? this.omit(parameters, "network") : parameters;
         if ((network != null))
         {
             request["netWork"] = network; // ... yes, really lol
@@ -2607,7 +2607,7 @@ public partial class lbank : Exchange
             network = this.safeString(this.networkAliases, network, network);
         }
         network = this.safeString(networks, network, network);
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)(((network != null)) ? this.omit(parameters, "network") : parameters));
+        IDictionary<string, object> paramsOmitted = ((network != null)) ? this.omit(parameters, "network") : parameters;
         if ((network != null))
         {
             request["networkName"] = network;

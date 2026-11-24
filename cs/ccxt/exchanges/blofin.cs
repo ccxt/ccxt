@@ -1386,7 +1386,7 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit));
     }
 
-    public override Dictionary<string, object> parseFundingRate(object contract, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRate(IDictionary<string, object> contract, IDictionary<string, object> market = null)
     {
         //
         //    {
@@ -2787,6 +2787,7 @@ public partial class blofin : Exchange
             currency = this.currency(code);
             request["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
+        string? depositId = this.safeString(request, "depositId", "");
         Dictionary<string, object> response = await this.privateGetAssetDepositHistory(this.extend(request, parameters));
         List<object> data = this.safeList(response, "data", new List<object>() {});
         // only accept a row that matches the requested id, in case the
@@ -2795,12 +2796,12 @@ public partial class blofin : Exchange
         for (int i = 0; i < dataLength; i++)
         {
             IDictionary<string, object> entry = this.safeDict(data, i, new Dictionary<string, object>() {});
-            if ((this.safeString(entry, "depositId") == id))
+            if ((this.safeString(entry, "depositId") == depositId))
             {
                 return ccxt.BaseExchange.ToTransaction(this.parseTransaction(entry, currency));
             }
         }
-        throw new ExchangeError (((this.id + " fetchDeposit() could not find deposit ") + id)) ;
+        throw new ExchangeError (((this.id + " fetchDeposit() could not find deposit ") + depositId)) ;
     }
 
     /**
@@ -2828,7 +2829,9 @@ public partial class blofin : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (hasId)
         {
-            request["withdrawId"] = id;
+            request = new Dictionary<string, object>() {
+                { "withdrawId", id },
+            };
         }
         IDictionary<string, object> currency = null;
         if ((code != null))
@@ -2836,6 +2839,7 @@ public partial class blofin : Exchange
             currency = this.currency(code);
             request["currency"] = (currency.ContainsKey("id") ? currency["id"] : null);
         }
+        string? withdrawId = this.safeString(request, "withdrawId", "");
         Dictionary<string, object> response = await this.privateGetAssetWithdrawalHistory(this.extend(request, parameters));
         List<object> data = this.safeList(response, "data", new List<object>() {});
         // only accept a row that matches the requested id (or clientId), in
@@ -2847,7 +2851,7 @@ public partial class blofin : Exchange
             bool matches = false;
             if (hasId)
             {
-                matches = ((this.safeString(entry, "withdrawId") == id));
+                matches = ((this.safeString(entry, "withdrawId") == withdrawId));
             } else
             {
                 matches = ((this.safeString(entry, "clientId") == clientId));
@@ -2857,7 +2861,7 @@ public partial class blofin : Exchange
                 return ccxt.BaseExchange.ToTransaction(this.parseTransaction(entry, currency));
             }
         }
-        string? reference = hasId ? id : clientId;
+        string? reference = hasId ? withdrawId : clientId;
         throw new ExchangeError (((this.id + " fetchWithdrawal() could not find withdrawal ") + reference)) ;
     }
 

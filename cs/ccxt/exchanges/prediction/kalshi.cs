@@ -2930,7 +2930,7 @@ public partial class kalshi : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> fullEvent = await this.FetchRawEventByTicker(id, parameters);
-        Dictionary<string, object> eventVar = this.parseEvent(fullEvent);
+        Dictionary<string, object> eventVar = this.parseEvent(this.extend(new Dictionary<string, object>() {}, fullEvent));
         this.indexEventOutcomes(eventVar);
         return ccxt.BaseExchange.ToPredictionEvent(eventVar);
     }

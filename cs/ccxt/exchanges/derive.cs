@@ -1629,7 +1629,8 @@ public partial class derive : Exchange
         List<Dictionary<string, object>> result = new List<Dictionary<string, object>>() {};
         for (int i = 0; i < (settlements?.Count ?? 0); i++)
         {
-            result.Add(this.parseSettlement(this.extend(new Dictionary<string, object>() {}, (settlements != null && i < settlements.Count ? settlements[i] : null)), market));
+            Dictionary<string, object> settlementRow = this.extend(new Dictionary<string, object>() {}, (settlements != null && i < settlements.Count ? settlements[i] : null));
+            result.Add(this.parseSettlement(settlementRow, market));
         }
         return result;
     }
@@ -2190,7 +2191,7 @@ public partial class derive : Exchange
         return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate(data));
     }
 
-    public override Dictionary<string, object> parseFundingRate(object contract, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRate(IDictionary<string, object> contract, IDictionary<string, object> market = null)
     {
         string? symbol = this.safeString(contract, "symbol");
         Int64? fundingTimestamp = this.safeInteger(contract, "timestamp");

@@ -3948,7 +3948,7 @@ public partial class bitfinex : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(reversedArray);
     }
 
-    public override Dictionary<string, object> parseFundingRate(object contract, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRate(IDictionary<string, object> contract, IDictionary<string, object> market = null)
     {
         //
         //       [
@@ -4454,10 +4454,10 @@ public partial class bitfinex : Exchange
         //     ]
         //
         object data = this.safeValue(response, 0);
-        return ccxt.BaseExchange.ToMarginModification(this.parseMarginModification(data, market));
+        return ccxt.BaseExchange.ToMarginModification(this.parseMarginModificationRow(data, market));
     }
 
-    public override Dictionary<string, object> parseMarginModification(object data, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseMarginModificationRow(object data, IDictionary<string, object>? market = null)
     {
         //
         // setMargin

@@ -231,7 +231,7 @@ public partial class opinion : PredictionExchange
                 Int64? marketType = this.safeInteger(raw, "marketType");
                 if ((marketType == 1))
                 {
-                    Dictionary<string, object> eventVar = this.parseEvent(this.safeDict(rawMarkets, i, new Dictionary<string, object>() {}));
+                    Dictionary<string, object> eventVar = this.parseEvent(this.extend(new Dictionary<string, object>() {}, (rawMarkets != null && i < rawMarkets.Count ? rawMarkets[i] : null)));
                     List<object> childMarkets = this.safeList(eventVar, "markets", new List<object>() {});
                     int childMarketsLength = childMarkets.Count;
                     for (int ci = 0; ci < childMarketsLength; ci++)
@@ -524,7 +524,7 @@ public partial class opinion : PredictionExchange
         }
         for (int i = 0; i < rawEventsLength; i++)
         {
-            Dictionary<string, object> eventVar = this.parseEvent(this.safeDict(rawEvents, i, new Dictionary<string, object>() {}));
+            Dictionary<string, object> eventVar = this.parseEvent(this.extend(new Dictionary<string, object>() {}, (rawEvents != null && i < rawEvents.Count ? rawEvents[i] : null)));
             parsedEvents.Add(eventVar);
             // register the parsed markets so populateOutcomes can index their outcomes
             List<object> eventMarkets = this.safeList(eventVar, "markets", new List<object>() {});

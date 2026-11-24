@@ -1030,7 +1030,7 @@ public partial class hibachi : Exchange
         {
             request["triggerPrice"] = triggerPrice;
         }
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "postOnly", "timeInForce", "stopPrice", "triggerPrice"}));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "postOnly", "timeInForce", "stopPrice", "triggerPrice"});
         return this.extend(request, paramsOmitted);
     }
 
@@ -2395,7 +2395,8 @@ public partial class hibachi : Exchange
         List<Dictionary<string, object>> result = new List<Dictionary<string, object>>() {};
         for (int i = 0; i < (settlements?.Count ?? 0); i++)
         {
-            result.Add(this.parseSettlement(this.extend(new Dictionary<string, object>() {}, (settlements != null && i < settlements.Count ? settlements[i] : null)), market));
+            Dictionary<string, object> settlementRow = this.extend(new Dictionary<string, object>() {}, (settlements != null && i < settlements.Count ? settlements[i] : null));
+            result.Add(this.parseSettlement(settlementRow, market));
         }
         return result;
     }

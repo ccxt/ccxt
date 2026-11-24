@@ -82,7 +82,7 @@ public partial class polymarket : ccxt.polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw request frame to send
      */
-    public virtual Dictionary<string, object> sendSubscription(string action, IList<object> channels, IList<object> messageHashes, IList<object> subMessageHashes, IDictionary<string, object>? context = null, object parameters = null, IList<object>? checkHashes = null)
+    public virtual Dictionary<string, object> sendSubscription(string action, IList<object> channels, IList<object> messageHashes, IList<object> subMessageHashes, IDictionary<string, object>? context = null, IDictionary<string, object>? parameters = null, IList<object>? checkHashes = null)
     {
         context ??= new Dictionary<string, object>();
         parameters ??= new Dictionary<string, object>();
@@ -288,11 +288,11 @@ public partial class polymarket : ccxt.polymarket
             }
         }
         Dictionary<string, object> request = this.sendSubscription("sub", channels, messageHashes, messageHashes, new Dictionary<string, object>() {}, parameters);
-        object newTicker = await this.watchMultiple(url, messageHashes, request, messageHashes);
+        Dictionary<string, object> newTicker = ((Dictionary<string, object>)await this.watchMultiple(url, messageHashes, request, messageHashes));
         if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
-            result[(string)getValue(newTicker, "symbol")] = newTicker;
+            result[(string)(newTicker != null && newTicker.ContainsKey("symbol") ? newTicker["symbol"] : null)] = newTicker;
             return ccxt.BaseExchange.ToTickers(result);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.tickers, "symbol", symbolsNormalized));
@@ -362,11 +362,11 @@ public partial class polymarket : ccxt.polymarket
             channels.Add(("bbo::" + this.safeString(market, "id", "")));
         }
         Dictionary<string, object> request = this.sendSubscription("sub", channels, messageHashes, messageHashes, new Dictionary<string, object>() {}, parameters);
-        object ticker = await this.watchMultiple(url, messageHashes, request, messageHashes);
+        Dictionary<string, object> ticker = ((Dictionary<string, object>)await this.watchMultiple(url, messageHashes, request, messageHashes));
         if (this.newUpdates)
         {
             Dictionary<string, object> result = new Dictionary<string, object>() {};
-            result[(string)getValue(ticker, "symbol")] = ticker;
+            result[(string)(ticker != null && ticker.ContainsKey("symbol") ? ticker["symbol"] : null)] = ticker;
             return ccxt.BaseExchange.ToTickers(result);
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsNormalized));

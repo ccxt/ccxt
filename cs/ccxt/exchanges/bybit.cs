@@ -2910,8 +2910,9 @@ public partial class bybit : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public async virtual Task<List<ccxt.MarketInterface>> FetchSpotMarkets(object parameters)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchSpotMarkets(IDictionary<string, object> parameters = null)
     {
+        parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "category", "spot" },
         };
@@ -3945,7 +3946,7 @@ public partial class bybit : Exchange
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcvs, market,timeframeVar, since, limitResolved));
     }
 
-    public override Dictionary<string, object> parseFundingRate(object ticker, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRate(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -3973,7 +3974,7 @@ public partial class bybit : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(ticker, "timestamp"); // added artificially to avoid changing the signature
-        object tickerOmitted = this.omit(ticker, "timestamp");
+        Dictionary<string, object> tickerOmitted = this.omit(ticker, "timestamp");
         string? marketId = this.safeString(tickerOmitted, "symbol");
         string? symbol = this.safeSymbol(marketId, market, null, "swap");
         double? fundingRate = this.safeNumber(tickerOmitted, "fundingRate");
@@ -5432,7 +5433,7 @@ public partial class bybit : Exchange
         return this.parseOrder(order, market);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, object parameters = null, bool? isUTA = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, IDictionary<string, object>? parameters = null, bool? isUTA = null)
     {
         parameters ??= new Dictionary<string, object>();
         isUTA ??= true;
@@ -9308,7 +9309,7 @@ public partial class bybit : Exchange
         Int64? sinceResolved = ((since == null)) ? (this.milliseconds() - 2592000000) : since; // last 30 days
         request["startTime"] = sinceResolved;
         Int64? endTime = this.safeInteger2(parameters, "until", "endTime");
-        IDictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"until"});
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"until"});
         if ((endTime == null))
         {
             request["endTime"] = (sinceResolved + 2592000000); // since + 30 days
@@ -10181,7 +10182,8 @@ public partial class bybit : Exchange
         List<Dictionary<string, object>> result = new List<Dictionary<string, object>>() {};
         for (int i = 0; i < (settlements?.Count ?? 0); i++)
         {
-            result.Add(this.parseSettlement(this.extend(new Dictionary<string, object>() {}, (settlements != null && i < settlements.Count ? settlements[i] : null)), market));
+            Dictionary<string, object> settlementRow = this.extend(new Dictionary<string, object>() {}, (settlements != null && i < settlements.Count ? settlements[i] : null));
+            result.Add(this.parseSettlement(settlementRow, market));
         }
         return result;
     }
@@ -10687,7 +10689,7 @@ public partial class bybit : Exchange
         return ccxt.BaseExchange.ToLeverageTiers(this.parseLeverageTiers(data, symbolsNormalized, "symbol"));
     }
 
-    public override object parseLeverageTiers(object response, IList<object> symbols = null, object marketIdKey = null)
+    public override Dictionary<string, object> parseLeverageTiers(object response, IList<object> symbols = null, string? marketIdKey = null)
     {
         //
         //  [

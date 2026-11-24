@@ -2241,7 +2241,7 @@ public partial class kraken : Exchange
         //     }
         //
         bool? isUsingCost = this.safeBool(order, "usingCost", false);
-        object orderOmitted = this.omit(order, "usingCost");
+        Dictionary<string, object> orderOmitted = this.omit(order, "usingCost");
         IDictionary<string, object> description = this.safeDict(orderOmitted, "descr", new Dictionary<string, object>() {});
         IDictionary<string, object> orderDescriptionObj = this.safeDict(orderOmitted, "descr"); // can be null
         string? orderDescription = ((orderDescriptionObj != null)) ? this.safeString(orderDescriptionObj, "order") : this.safeString(orderOmitted, "descr");

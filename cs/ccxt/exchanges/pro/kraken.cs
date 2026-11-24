@@ -900,7 +900,7 @@ public partial class kraken : ccxt.kraken
         List<object> unsubMessageHashes = new List<object>() {};
         for (int i = 0; i < (symbolsNormalized?.Count ?? 0); i++)
         {
-            unsubMessageHashes.Add(("unsubscribe:" + this.getMessageHash("trade", null, symbolsNormalized[i])));
+            unsubMessageHashes.Add(("unsubscribe:" + this.getMessageHash("trade", null, this.symbol(symbolsNormalized[i]))));
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
@@ -1871,7 +1871,7 @@ public partial class kraken : ccxt.kraken
         client.resolve((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null), channel);
     }
 
-    public virtual string? getMessageHash(string unifiedElementName, string? subChannelName = null, object symbol = null)
+    public virtual string? getMessageHash(string unifiedElementName, string? subChannelName = null, string? symbol = null)
     {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
@@ -1882,7 +1882,7 @@ public partial class kraken : ccxt.kraken
             messageHash = ((object)(messageHash == null ? null : messageHash + "s"));
         } else
         {
-            messageHash = ((object)(messageHash == null ? null : messageHash + (string)(object)(("@" + (symbol)))));
+            messageHash = ((object)(messageHash == null ? null : messageHash + (string)(object)(("@" + symbol))));
         }
         if ((subChannelName != null))
         {

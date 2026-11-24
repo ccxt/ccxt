@@ -1304,7 +1304,7 @@ public partial class zebpay : Exchange
         string? quoteOrderQty = this.safeString2(parameters, "quoteOrderQty", "cost", null);
         string? timeInForce = this.safeString(parameters, "timeInForce", "GTC");
         string? clientOrderId = this.safeString(parameters, "clientOrderId", this.uuid());
-        IDictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"stopLossPrice", "cost", "timeInForce", "clientOrderId"});
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"stopLossPrice", "cost", "timeInForce", "clientOrderId"});
         request["type"] = upperCaseType;
         request["clientOrderId"] = clientOrderId;
         request["timeInForce"] = timeInForce;

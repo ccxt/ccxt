@@ -4139,7 +4139,7 @@ public partial class digifinex : Exchange
         return await this.FetchFundingRate(symbol, parameters);
     }
 
-    public override Dictionary<string, object> parseFundingRate(object contract, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRate(IDictionary<string, object> contract, IDictionary<string, object> market = null)
     {
         //
         //     {

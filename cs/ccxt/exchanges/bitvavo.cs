@@ -1667,8 +1667,8 @@ public partial class bitvavo : Exchange
         bool postOnly = this.isPostOnly(isMarketOrder, false, parameters);
         string? stopLossPrice = this.safeString(parameters, "stopLossPrice"); // trigger when price crosses from above to below this value
         string? takeProfitPrice = this.safeString(parameters, "takeProfitPrice"); // trigger when price crosses from below to above this value
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"}));
-        IDictionary<string, object> paramsCost = paramsOmitted;
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"});
+        Dictionary<string, object> paramsCost = paramsOmitted;
         if (isMarketOrder)
         {
             paramsCost = this.omit(paramsOmitted, new List<object>() {"cost"});

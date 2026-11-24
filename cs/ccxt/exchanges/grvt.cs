@@ -3793,7 +3793,7 @@ public partial class grvt : Exchange
         };
     }
 
-    public virtual List<object> handleUntilOptionString(string key, IDictionary<string, object> request, object parameters = null, object multiplier = null)
+    public virtual List<object> handleUntilOptionString(string key, IDictionary<string, object> request, IDictionary<string, object>? parameters = null, object multiplier = null)
     {
         parameters ??= new Dictionary<string, object>();
         multiplier ??= 1;

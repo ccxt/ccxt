@@ -322,7 +322,7 @@ public partial class myriad : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         Int64? limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "defaultFetchEventsLimit", 50));
         string? state = this.safeString(parameters, "state", this.safeString(this.options, "defaultMarketStatus", "open"));
-        IDictionary<string, object> rest = this.omit(parameters, new List<object>() {"limit", "state"});
+        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"limit", "state"});
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> rawMarkets = new List<object>() {};
         for (int i = 0; i < (queries?.Count ?? 0); i++)
@@ -370,7 +370,7 @@ public partial class myriad : PredictionExchange
         string? state = this.safeString2(parameters, "state", "status", this.safeString(this.options, "defaultMarketStatus", "open"));
         // include both AMM and order-book markets so order-book trading methods can resolve their markets
         string? tradingModel = this.safeString2(parameters, "tradingModel", "trading_model", this.safeString(this.options, "defaultTradingModel", "all"));
-        IDictionary<string, object> rest = this.omit(parameters, new List<object>() {"state", "status", "limit", "tradingModel", "trading_model"});
+        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"state", "status", "limit", "tradingModel", "trading_model"});
         List<object> allRawMarkets = new List<object>() {};
         // track the running count with an explicit counter (avoids inline array .length / .slice,
         // which the regex transpiler otherwise mistakes for string strlen()/mb_substr())
@@ -523,7 +523,7 @@ public partial class myriad : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         Int64? limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "defaultFetchEventsLimit", 50));
-        IDictionary<string, object> rest = this.omit(parameters, new List<object>() {"limit"});
+        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"limit"});
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> rawQuestions = new List<object>() {};
         for (int i = 0; i < (queries?.Count ?? 0); i++)
@@ -563,7 +563,7 @@ public partial class myriad : PredictionExchange
         Int64? limit = this.safeInteger(this.options, "defaultFetchEventsLimit", 50);
         Int64? maxQuestions = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchEventsLimit", 1000));
         string? state = this.safeString2(parameters, "state", "status", this.safeString(this.options, "defaultMarketStatus", "open"));
-        IDictionary<string, object> rest = this.omit(parameters, new List<object>() {"state", "status", "limit", "tradingModel", "trading_model"});
+        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"state", "status", "limit", "tradingModel", "trading_model"});
         List<object> allRawQuestions = new List<object>() {};
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         int collected = 0;
@@ -772,7 +772,7 @@ public partial class myriad : PredictionExchange
         {
             request["shares"] = amount;
         }
-        IDictionary<string, object> rest = this.omit(parameters, new List<object>() {"slippage"});
+        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"slippage"});
         Dictionary<string, object> response = await this.myriadPublicPostMarketsQuote(this.extend(request, rest));
         //
         //     {
@@ -1703,7 +1703,7 @@ public partial class myriad : PredictionExchange
         {
             request["limit"] = limit;
         }
-        IDictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"trader", "address", "status"});
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"trader", "address", "status"});
         Dictionary<string, object> response = await this.myriadPublicGetUsersAddressEvents(this.extend(request, paramsOmitted));
         //
         //     {

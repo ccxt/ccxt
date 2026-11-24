@@ -1243,7 +1243,7 @@ public partial class woofipro : Exchange
         return this.parseTrades(rows, market, since, limit);
     }
 
-    public override Dictionary<string, object> parseFundingRate(object fundingRate, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRate(IDictionary<string, object> fundingRate, IDictionary<string, object> market = null)
     {
         //
         //         {
@@ -2324,7 +2324,7 @@ public partial class woofipro : Exchange
             };
             request["child_orders"] = new List<object>() {outterOrder};
         }
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit"}));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit"});
         return this.extend(request, paramsOmitted);
     }
 

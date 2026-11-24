@@ -3005,12 +3005,13 @@ public partial class BaseExchange
 
     public virtual object parseFeeNumeric(object fee)
     {
-        ((IDictionary<string,object>)fee)["cost"] = this.safeNumber(fee, "cost"); // ensure numeric
-        if (inOp(fee, "rate"))
+        Dictionary<string, object> result = this.extend(new Dictionary<string, object>() {}, fee);
+        result["cost"] = this.safeNumber(result, "cost"); // ensure numeric
+        if (result.ContainsKey("rate"))
         {
-            ((IDictionary<string,object>)fee)["rate"] = this.safeNumber(fee, "rate");
+            result["rate"] = this.safeNumber(result, "rate");
         }
-        return fee;
+        return result;
     }
 
     public virtual object findNearestCeiling(IList<object> arr, object providedValue)
@@ -3918,7 +3919,7 @@ public partial class BaseExchange
         return this.filterBySinceLimit(sorted, since, limit, 0, tail);
     }
 
-    public virtual object parseLeverageTiers(object response, IList<object> symbols = null, object marketIdKey = null)
+    public virtual Dictionary<string, object> parseLeverageTiers(object response, IList<object> symbols = null, string? marketIdKey = null)
     {
         // marketIdKey should only be undefined when response is a dictionary.
         IList<object> symbolsNormalized = this.marketSymbols(symbols);
@@ -4950,7 +4951,7 @@ public partial class BaseExchange
             bool isNewCandle = (candle == -1);
             if (!isNewCandle)
             {
-                object candleTimestamp = (ohlcvs != null && candle < ohlcvs.Count && ohlcvs[candle] is IList<object> ohlcvsSlot327738 && i_timestamp < ohlcvsSlot327738.Count ? ohlcvsSlot327738[i_timestamp] : null);
+                object candleTimestamp = (ohlcvs != null && candle < ohlcvs.Count && ohlcvs[candle] is IList<object> ohlcvsSlot327808 && i_timestamp < ohlcvsSlot327808.Count ? ohlcvsSlot327808[i_timestamp] : null);
                 if ((candleTimestamp == null))
                 {
                     throw new ExchangeError ((this.id + " buildOHLCVC() missing candle timestamp")) ;
@@ -5460,7 +5461,7 @@ public partial class BaseExchange
         return this.safeValue(res, 0);
     }
 
-    public virtual List<object> handleMarketTypeAndParams(object methodName, object market = null, object parameters = null, object defaultValue = null)
+    public virtual List<object> handleMarketTypeAndParams(object methodName, IDictionary<string, object> market = null, object parameters = null, string? defaultValue = null)
     {
         /**
         * @ignore
@@ -5485,7 +5486,7 @@ public partial class BaseExchange
         // type from market
         if ((market != null))
         {
-            return new List<object>() {getValue(market, "type"), parameters};
+            return new List<object>() {(market != null && market.ContainsKey("type") ? market["type"] : null), parameters};
         }
         // type from default-argument
         if ((defaultValue != null))
@@ -6555,7 +6556,7 @@ public partial class BaseExchange
         return ((string?)((object)((marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null))));
     }
 
-    public virtual Dictionary<string, object> parseFundingRate(object contract, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseFundingRate(IDictionary<string, object> contract, IDictionary<string, object> market = null)
     {
         throw new NotSupported ((this.id + " parseFundingRate() is not supported yet")) ;
     }
@@ -6644,7 +6645,7 @@ public partial class BaseExchange
         allowEmpty ??= false;
         string? triggerDirection = this.safeString(parameters, "triggerDirection");
         bool exchangeSpecificDefined = ((exchangeSpecificKey != null)) && ((parameters != null && exchangeSpecificKey is string inOpKey8 && parameters.ContainsKey(inOpKey8)));
-        object paramsOmitted = ((triggerDirection != null)) ? this.omit(parameters, "triggerDirection") : parameters;
+        IDictionary<string, object> paramsOmitted = ((triggerDirection != null)) ? this.omit(parameters, "triggerDirection") : parameters;
         // throw exception if:
         // A) if provided value is not unified (support old "up/down" strings too)
         // B) if exchange specific "trigger direction key" (eg. "stopPriceSide") was not provided

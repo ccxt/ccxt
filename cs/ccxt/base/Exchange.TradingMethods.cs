@@ -855,7 +855,7 @@ public partial class Exchange
         throw new NotSupported ((this.id + " createTrailingAmountOrder() is not supported yet")) ;
     }
 
-    public async virtual Task<ccxt.Order> CreateTrailingPercentOrder(string symbol, string type, string side, double amount, double? price = null, object trailingPercent = null, object trailingTriggerPrice = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<ccxt.Order> CreateTrailingPercentOrder(string symbol, string type, string side, double amount, double? price = null, double? trailingPercent = null, double? trailingTriggerPrice = null, IDictionary<string, object> parameters = null)
     {
         /**
         * @method

@@ -999,13 +999,13 @@ public partial class woofipro : ccxt.woofipro
                 string? tradeId = ((string)this.omitZero(this.safeString(dataList, "tradeId")));
                 if ((tradeId != null))
                 {
-                    this.handleMyTrade(client, (dataList != null && i < dataList.Count ? dataList[i] : null));
+                    this.handleMyTrade(client, this.safeDict(dataList, i, new Dictionary<string, object>() {}));
                 }
-                this.handleOrder(client, (dataList != null && i < dataList.Count ? dataList[i] : null), topic);
+                this.handleOrder(client, this.safeDict(dataList, i, new Dictionary<string, object>() {}), topic);
             }
         } else
         {
-            object data = this.safeValue(message, "data");
+            IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
             // executionreport
             string? tradeId = ((string)this.omitZero(this.safeString(data, "tradeId")));
             if ((tradeId != null))
@@ -1016,7 +1016,7 @@ public partial class woofipro : ccxt.woofipro
         }
     }
 
-    public virtual void handleOrder(WebSocketClient client, object message, string? topic)
+    public virtual void handleOrder(WebSocketClient client, IDictionary<string, object> message, string? topic)
     {
         Dictionary<string, object> parsed = ccxt.BaseExchange.FromOrder(this.parseWsOrder(message));
         string? symbol = this.safeString(parsed, "symbol");
@@ -1054,7 +1054,7 @@ public partial class woofipro : ccxt.woofipro
         }
     }
 
-    public virtual void handleMyTrade(WebSocketClient client, object message)
+    public virtual void handleMyTrade(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // {

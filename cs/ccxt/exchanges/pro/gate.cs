@@ -1207,10 +1207,11 @@ public partial class gate : ccxt.gate
         // }
         //
         object rawResult = this.safeValue(message, "result");
+        List<object> tradeRows = this.safeList(message, "result");
         List<object> result = new List<object>() {};
-        if ((rawResult is IList<object> hxList53075))
+        if ((tradeRows != null))
         {
-            result = this.safeList(message, "result", new List<object>() {});
+            result = tradeRows;
         } else
         {
             result = new List<object>() {rawResult};
@@ -2721,7 +2722,7 @@ public partial class gate : ccxt.gate
         return reqid;
     }
 
-    public async virtual Task<T> subscribePublic<T>(object url, string messageHash, IList<object> payload, string channel, object parameters = null, object subscription = null)
+    public async virtual Task<T> subscribePublic<T>(object url, string messageHash, IList<object> payload, string channel, IDictionary<string, object>? parameters = null, object subscription = null)
     {
         parameters ??= new Dictionary<string, object>();
         Int64 requestId = this.requestId();

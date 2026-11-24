@@ -2745,7 +2745,7 @@ public partial class binance : ccxt.binance
         return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsNormalized));
     }
 
-    public async virtual Task<object> watchMultiTickerHelper(string methodName, object channelName, IList<object>? symbols = null, object parameters = null, bool? isUnsubscribe = null)
+    public async virtual Task<object> watchMultiTickerHelper(string methodName, object channelName, IList<object>? symbols = null, IDictionary<string, object>? parameters = null, bool? isUnsubscribe = null)
     {
         parameters ??= new Dictionary<string, object>();
         isUnsubscribe ??= false;
@@ -5676,10 +5676,11 @@ public partial class binance : ccxt.binance
             this.handleOrder(client, message);
             return;
         }
+        IDictionary<string, object> orderValue = this.safeDict(message, "o", message);
         object messageValue = message;
         if ((e == "ORDER_TRADE_UPDATE") || (e == "ALGO_UPDATE"))
         {
-            messageValue = this.safeDict(message, "o", message);
+            messageValue = orderValue;
             if ((e == "ALGO_UPDATE") && ((this.safeInteger(messageValue, "T") == null)))
             {
                 // keep the outer event time, the algo payload carries no timestamps

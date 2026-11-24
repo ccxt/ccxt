@@ -1833,13 +1833,13 @@ public partial class bullish : Exchange
         return paramsExtended;
     }
 
-    public virtual Dictionary<string, object> handleSinceAndUntil(Int64? since = null, object parameters = null, string? sinceKey = null, string? untilKey = null)
+    public virtual Dictionary<string, object> handleSinceAndUntil(Int64? since = null, IDictionary<string, object>? parameters = null, string? sinceKey = null, string? untilKey = null)
     {
         parameters ??= new Dictionary<string, object>();
         sinceKey ??= "createdAtDatetime[gte]";
         untilKey ??= "createdAtDatetime[lte]";
         Int64? untilParam = this.safeInteger(parameters, "until");
-        object until = null;
+        Int64? until = null;
         if ((untilParam != null))
         {
             until = untilParam;

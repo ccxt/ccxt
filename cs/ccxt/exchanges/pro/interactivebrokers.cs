@@ -771,33 +771,33 @@ public partial class interactivebrokers : ccxt.interactivebrokers
      */
     public virtual string? ibkrWsPeriod(Int64 duration, Int64? limit)
     {
-        object total = (duration * limit);
-        Int64? minutes = this.parseToInt(divide((add(total, 59)), 60));
+        Int64? total = (duration * limit);
+        Int64? minutes = this.parseToInt(((double?)((total + 59)) / 60));
         if ((minutes == null || minutes <= 30))
         {
             return (this.numberToString(mathMax(minutes, 1)) + "min");
         }
-        Int64? hours = this.parseToInt(divide((add(total, 3599)), 3600));
+        Int64? hours = this.parseToInt(((double?)((total + 3599)) / 3600));
         if ((hours == null || hours <= 8))
         {
             return (this.numberToString(hours) + "h");
         }
-        Int64? days = this.parseToInt(divide((add(total, 86399)), 86400));
+        Int64? days = this.parseToInt(((double?)((total + 86399)) / 86400));
         if ((days == null || days <= 1000))
         {
             return (this.numberToString(days) + "d");
         }
-        Int64? weeks = this.parseToInt(divide((add(total, 604799)), 604800));
+        Int64? weeks = this.parseToInt(((double?)((total + 604799)) / 604800));
         if ((weeks == null || weeks <= 792))
         {
             return (this.numberToString(weeks) + "w");
         }
-        Int64? months = this.parseToInt(divide((add(total, 2591999)), 2592000));
+        Int64? months = this.parseToInt(((double?)((total + 2591999)) / 2592000));
         if ((months == null || months <= 182))
         {
             return (this.numberToString(months) + "m");
         }
-        Int64? years = this.parseToInt(divide((add(total, 31535999)), 31536000));
+        Int64? years = this.parseToInt(((double?)((total + 31535999)) / 31536000));
         return (this.numberToString(mathMin(years, 15)) + "y");
     }
 

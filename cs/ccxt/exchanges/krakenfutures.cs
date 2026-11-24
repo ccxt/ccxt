@@ -3440,7 +3440,7 @@ public partial class krakenfutures : Exchange
         return ccxt.BaseExchange.ToFundingRates(this.indexBy(fundingRates, "symbol"));
     }
 
-    public override Dictionary<string, object> parseFundingRate(object ticker, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRate(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
     {
         //
         //     {

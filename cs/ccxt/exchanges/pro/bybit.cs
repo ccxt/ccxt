@@ -240,7 +240,7 @@ public partial class bybit : ccxt.bybit
 
     public virtual object cleanParams(IDictionary<string, object> parameters)
     {
-        object paramsOmitted = this.omit(parameters, new List<object>() {"type", "subType", "settle", "defaultSettle", "unifiedMargin"});
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"type", "subType", "settle", "defaultSettle", "unifiedMargin"});
         return paramsOmitted;
     }
 
@@ -2767,7 +2767,7 @@ public partial class bybit : ccxt.bybit
         return await this.watchMultiple<T>(url, messageHashes, message, messageHashes, subscription);
     }
 
-    public async virtual Task<object> unWatchTopics(object url, string topic, IList<object> symbols, IList<object> messageHashes, IList<object> subMessageHashes, IList<object> topics, object parameters = null, IDictionary<string, object>? subExtension = null)
+    public async virtual Task<object> unWatchTopics(object url, string topic, IList<object> symbols, IList<object> messageHashes, IList<object> subMessageHashes, IList<object> topics, IDictionary<string, object>? parameters = null, IDictionary<string, object>? subExtension = null)
     {
         parameters ??= new Dictionary<string, object>();
         subExtension ??= new Dictionary<string, object>();

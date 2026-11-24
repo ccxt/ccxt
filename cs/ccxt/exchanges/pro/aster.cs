@@ -2092,16 +2092,18 @@ public partial class aster : ccxt.aster
         IDictionary<string, object> rawOrder = this.safeDict(message, "o", message);
         string? e = this.safeString(message, "e");
         bool isOrderUpdate = (e == "ORDER_TRADE_UPDATE") || (e == "ALGO_UPDATE");
-        object tradeMessage = message;
-        if (isOrderUpdate)
-        {
-            tradeMessage = rawOrder;
-        }
+        IDictionary<string, object> tradeOrder = this.safeDict(message, "o");
         this.handleOrder(client, rawOrder);
-        this.handleMyTrade(client, tradeMessage);
+        if (isOrderUpdate && ((tradeOrder != null)))
+        {
+            this.handleMyTrade(client, tradeOrder);
+        } else
+        {
+            this.handleMyTrade(client, message);
+        }
     }
 
-    public virtual void handleMyTrade(WebSocketClient client, object message)
+    public virtual void handleMyTrade(WebSocketClient client, IDictionary<string, object> message)
     {
         string messageHash = "myTrades";
         string? executionType = this.safeString(message, "x");

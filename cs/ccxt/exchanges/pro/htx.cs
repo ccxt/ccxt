@@ -1060,7 +1060,7 @@ public partial class htx : ccxt.htx
         parameters ??= new Dictionary<string, object>();
         string? defaultOrderType = this.safeString(this.options, "orderType", "orders"); // orders or matchOrders
         string? orderType = this.safeString(parameters, "orderType", defaultOrderType);
-        IDictionary<string, object> paramsOmitted = this.omit(parameters, "orderType");
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, "orderType");
         string? marketCode = null;
         if ((market != null))
         {

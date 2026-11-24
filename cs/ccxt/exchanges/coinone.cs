@@ -614,7 +614,7 @@ public partial class coinone : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        Dictionary<string, object> balances = ((Dictionary<string, object>)this.omit(response, new List<object>() {"errorCode", "result", "normalWallets"}));
+        Dictionary<string, object> balances = this.omit(response, new List<object>() {"errorCode", "result", "normalWallets"});
         List<object> currencyIds = new List<object>(balances.Keys);
         for (int i = 0; i < currencyIds.Count; i++)
         {

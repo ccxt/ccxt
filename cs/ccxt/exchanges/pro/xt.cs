@@ -280,7 +280,7 @@ public partial class xt : ccxt.xt
      * @param {object} subscriptionParams extra parameters specific to the subscription
      * @returns {object} data from the websocket stream
      */
-    public async virtual Task<object> unSubscribe(string messageHash, string? name, string access, string methodName, object topic, IDictionary<string, object> market = null, IList<object>? symbols = null, object parameters = null, object subscriptionParams = null)
+    public async virtual Task<object> unSubscribe(string messageHash, string? name, string access, string methodName, object topic, IDictionary<string, object> market = null, IList<object>? symbols = null, IDictionary<string, object>? parameters = null, object subscriptionParams = null)
     {
         parameters ??= new Dictionary<string, object>();
         subscriptionParams ??= new Dictionary<string, object>();

@@ -190,7 +190,7 @@ public partial class kucoin : ccxt.kucoin
         return await this.watch(url, messageHash, message, subscriptionHash, subscription);
     }
 
-    public async virtual Task<object> subscribePublicUta(string? messageHash, string? channel, string? symbol, object parameters = null, object subscription = null)
+    public async virtual Task<object> subscribePublicUta(string? messageHash, string? channel, string? symbol, IDictionary<string, object>? parameters = null, object subscription = null)
     {
         parameters ??= new Dictionary<string, object>();
         string requestId = this.requestId().ToString();
@@ -307,13 +307,13 @@ public partial class kucoin : ccxt.kucoin
         return this.safeString(this.options, "utaToken");
     }
 
-    public async virtual Task<object> unSubscribe(string url, string messageHash, string topic, string subscriptionHash, object parameters = null, IDictionary<string, object>? subscription = null)
+    public async virtual Task<object> unSubscribe(string url, string messageHash, string topic, string subscriptionHash, IDictionary<string, object>? parameters = null, IDictionary<string, object>? subscription = null)
     {
         parameters ??= new Dictionary<string, object>();
         return await this.unSubscribeMultiple(url, new List<object>() {messageHash}, topic, new List<object>() {subscriptionHash}, parameters, subscription);
     }
 
-    public async virtual Task<object> subscribeMultiple(object url, IList<object> messageHashes, object topic, IList<object> subscriptionHashes, object parameters = null, object subscription = null)
+    public async virtual Task<object> subscribeMultiple(object url, IList<object> messageHashes, object topic, IList<object> subscriptionHashes, IDictionary<string, object>? parameters = null, object subscription = null)
     {
         parameters ??= new Dictionary<string, object>();
         string requestId = this.requestId().ToString();

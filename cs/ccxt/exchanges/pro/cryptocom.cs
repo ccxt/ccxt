@@ -1458,7 +1458,7 @@ public partial class cryptocom : ccxt.cryptocom
         return await this.watchMultiple<T>(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
     }
 
-    public async virtual Task<object> unWatchPublicMultiple(string topic, IList<object> symbols, IList<object> messageHashes, IList<object> subMessageHashes, IList<object> topics, object parameters = null, IDictionary<string, object>? subExtend = null)
+    public async virtual Task<object> unWatchPublicMultiple(string topic, IList<object> symbols, IList<object> messageHashes, IList<object> subMessageHashes, IList<object> topics, IDictionary<string, object>? parameters = null, IDictionary<string, object>? subExtend = null)
     {
         parameters ??= new Dictionary<string, object>();
         subExtend ??= new Dictionary<string, object>();

@@ -124,7 +124,7 @@ public partial class backpack : ccxt.backpack
      * @param {boolean} [unwatch] whether to unsubscribe
      * @returns {object} unified tickers
      */
-    public async virtual Task<object> subscribeWsTickers(string methodName, IList<object>? symbols = null, object parameters = null, bool? bidAsk = null, bool? unwatch = null)
+    public async virtual Task<object> subscribeWsTickers(string methodName, IList<object>? symbols = null, IDictionary<string, object>? parameters = null, bool? bidAsk = null, bool? unwatch = null)
     {
         parameters ??= new Dictionary<string, object>();
         bidAsk ??= false;
@@ -297,7 +297,7 @@ public partial class backpack : ccxt.backpack
         return await this.watchMultiple(url, messageHashes, message, messageHashes);
     }
 
-    public async virtual Task<object> watchPrivate(IList<object> topics, IList<object> messageHashes, object parameters = null, bool? unwatch = null)
+    public async virtual Task<object> watchPrivate(IList<object> topics, IList<object> messageHashes, IDictionary<string, object>? parameters = null, bool? unwatch = null)
     {
         parameters ??= new Dictionary<string, object>();
         unwatch ??= false;

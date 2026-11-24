@@ -2121,7 +2121,8 @@ public partial class bitstamp : Exchange
         IList<object> feesList = fees;
         for (int i = 0; i < (feesList?.Count ?? 0); i++)
         {
-            Dictionary<string, object> fee = this.parseTradingFee(((IDictionary<string, object>)feesList[i]));
+            IDictionary<string, object> feeRow = this.safeDict(feesList, i, new Dictionary<string, object>() {});
+            Dictionary<string, object> fee = this.parseTradingFee(feeRow);
             string? symbol = this.safeString(fee, "symbol");
             if ((symbol != null))
             {
@@ -3248,7 +3249,7 @@ public partial class bitstamp : Exchange
         return ccxt.BaseExchange.ToFundingRate(this.parseFundingRate(response, market));
     }
 
-    public override Dictionary<string, object> parseFundingRate(object fundingRate, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRate(IDictionary<string, object> fundingRate, IDictionary<string, object> market = null)
     {
         //
         //     {

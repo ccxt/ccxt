@@ -3428,7 +3428,7 @@ public partial class hashkey : Exchange
         }
         string methodName = "fetchOpenSpotOrders";
         string? methodNameOption = this.safeString(parameters, "methodName", methodName);
-        IDictionary<string, object> paramsMethodName = this.omit(parameters, "methodName");
+        Dictionary<string, object> paramsMethodName = this.omit(parameters, "methodName");
         IDictionary<string, object> market = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         List<object> response = null;
@@ -3477,7 +3477,7 @@ public partial class hashkey : Exchange
         parameters ??= new Dictionary<string, object>();
         string methodName = "fetchOpenSwapOrders";
         string? methodNameOption = this.safeString(parameters, "methodName", methodName);
-        IDictionary<string, object> paramsMethodName = this.omit(parameters, "methodName");
+        Dictionary<string, object> paramsMethodName = this.omit(parameters, "methodName");
         if ((symbol == null))
         {
             throw new ArgumentsRequired ((((this.id + " ") + methodNameOption) + "() requires a symbol argument for swap market orders")) ;
@@ -3951,7 +3951,7 @@ public partial class hashkey : Exchange
         return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(response, symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parseFundingRate(object contract, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRate(IDictionary<string, object> contract, IDictionary<string, object> market = null)
     {
         //
         //     {

@@ -1271,7 +1271,7 @@ public partial class coinbaseinternational : Exchange
         };
     }
 
-    public override Dictionary<string, object> parseFundingRate(object contract, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRate(IDictionary<string, object> contract, IDictionary<string, object> market = null)
     {
         //
         // fetchFundingRateHistory

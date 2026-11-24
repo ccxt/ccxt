@@ -237,7 +237,8 @@ public partial class lbank : ccxt.lbank
             { "topic", "ohlcv" },
             { "symbolsAndTimeframes", new List<object>() {new List<object>() {(market.ContainsKey("symbol") ? market["symbol"] : null), timeframeVar}} },
         };
-        return await this.unSubscribe(((("ohlcv:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))) + ":") + timeframeId), request, subscription, parameters);
+        string? symbolValue = this.safeString(market, "symbol", "");
+        return await this.unSubscribe(((("ohlcv:" + symbolValue) + ":") + timeframeId), request, subscription, parameters);
     }
 
     public virtual void handleOHLCV(WebSocketClient client, Dictionary<string, object> message)
@@ -576,7 +577,8 @@ public partial class lbank : ccxt.lbank
             { "topic", "trades" },
             { "symbols", new List<object>() {(market.ContainsKey("symbol") ? market["symbol"] : null)} },
         };
-        return await this.unSubscribe(("trades:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))), request, subscription, parameters);
+        string? symbolValue = this.safeString(market, "symbol", "");
+        return await this.unSubscribe(("trades:" + symbolValue), request, subscription, parameters);
     }
 
     public virtual void handleTrades(WebSocketClient client, Dictionary<string, object> message)

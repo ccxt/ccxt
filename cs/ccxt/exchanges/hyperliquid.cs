@@ -1506,7 +1506,7 @@ public partial class hyperliquid : Exchange
         return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(result, symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parseFundingRate(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRate(IDictionary<string, object> info, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -2948,7 +2948,7 @@ public partial class hyperliquid : Exchange
         return this.parseOrder(new Dictionary<string, object>() {             { "status", status },             { "oid", id },         }, market);
     }
 
-    public virtual Dictionary<string, object> cancelOrdersRequest(IList<object> ids, object symbol = null, IDictionary<string, object> parameters = null)
+    public virtual Dictionary<string, object> cancelOrdersRequest(IList<object> ids, string symbol = null, IDictionary<string, object> parameters = null)
     {
         /**
         * @method
@@ -3963,7 +3963,7 @@ public partial class hyperliquid : Exchange
         string? symbol = this.safeString(marketResolved, "symbol");
         Int64? timestamp = this.safeInteger(entry, "timestamp");
         string? status = this.safeString2(order, "status", "ccxtStatus");
-        object orderOmitted = this.omit(order, new List<object>() {"ccxtStatus"});
+        Dictionary<string, object> orderOmitted = this.omit(order, new List<object>() {"ccxtStatus"});
         string? side = this.safeString(entry, "side");
         if ((side != null))
         {

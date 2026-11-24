@@ -11675,7 +11675,7 @@ public partial class kucoin : Exchange
         return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(rates, symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parseFundingRate(object data, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRate(IDictionary<string, object> data, IDictionary<string, object> market = null)
     {
         // uta
         //     {
@@ -13342,7 +13342,7 @@ public partial class kucoin : Exchange
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         Dictionary<string, object> response = await this.utaGetMarketOpenInterest(this.extend(requestUntil, paramsUntil));
-        List<object> data = this.safeList(response, "data");
+        List<object> data = this.safeList(response, "data", new List<object>() {});
         return ccxt.BaseExchange.ToOpenInterestList(this.parseOpenInterestsHistory(data, market, since, limit));
     }
 

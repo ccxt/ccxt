@@ -5108,7 +5108,7 @@ public partial class coinbase : Exchange
             await this.loadMarkets();
         }
         string? accountId = this.safeString2(parameters, "account_id", "accountId");
-        IDictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"account_id", "accountId"});
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"account_id", "accountId"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account_id", accountId },
             { "amount", this.numberToString(amount) },
@@ -5190,7 +5190,7 @@ public partial class coinbase : Exchange
             await this.loadMarkets();
         }
         string? accountId = this.safeString2(parameters, "account_id", "accountId");
-        IDictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"account_id", "accountId"});
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"account_id", "accountId"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account_id", accountId },
             { "deposit_id", id },

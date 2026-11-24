@@ -2200,7 +2200,7 @@ public partial class aster : Exchange
         return ccxt.BaseExchange.ToTickers(this.parseTickers(response, symbolsNormalized));
     }
 
-    public override Dictionary<string, object> parseFundingRate(object contract, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseFundingRate(IDictionary<string, object> contract, IDictionary<string, object> market = null)
     {
         //
         // fundingRate
@@ -2848,7 +2848,7 @@ public partial class aster : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "clientOid");
-        IDictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "clientOid"});
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"clientOrderId", "clientOid"});
         if ((clientOrderId != null))
         {
             request["origClientOrderId"] = clientOrderId;
@@ -3396,7 +3396,7 @@ public partial class aster : Exchange
         IDictionary<string, object> paramsTifOption = (tifOptionparamsTifOptionVariable.Item2);
         bool tifIsMissing = timeInForceIsRequired && ((this.safeString(parameters, "timeInForce") == null)) && ((this.safeString(request, "timeInForce") == null));
         List<object> omitKeys = new List<object>() {"newClientOrderId", "clientOrderId", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "trailingDelta", "stopPrice", "stopLossPrice", "takeProfitPrice"};
-        object requestParams = null;
+        Dictionary<string, object> requestParams = null;
         if (tifIsMissing)
         {
             request["timeInForce"] = tifOption;

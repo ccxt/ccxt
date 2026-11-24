@@ -2144,7 +2144,8 @@ public partial class coinsph : Exchange
         IList<object> fees = response;
         for (int i = 0; i < (fees?.Count ?? 0); i++)
         {
-            Dictionary<string, object> fee = this.parseTradingFee(((IDictionary<string, object>)fees[i]));
+            IDictionary<string, object> feeRow = this.safeDict(fees, i, new Dictionary<string, object>() {});
+            Dictionary<string, object> fee = this.parseTradingFee(feeRow);
             string? symbol = this.safeString(fee, "symbol");
             if ((symbol != null))
             {
@@ -2549,7 +2550,7 @@ public partial class coinsph : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if ((((query != null && key != null && query.ContainsKey(key) ? query[key] : null)) is var hxArr112107 && ((hxArr112107 is IList<object>) || (hxArr112107 is not null && hxArr112107.GetType().IsGenericType && hxArr112107.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            if ((((query != null && key != null && query.ContainsKey(key) ? query[key] : null)) is var hxArr112162 && ((hxArr112162 is IList<object>) || (hxArr112162 is not null && hxArr112162.GetType().IsGenericType && hxArr112162.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 if ((i != 0))
                 {

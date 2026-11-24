@@ -3484,18 +3484,10 @@ public partial class bitrue : Exchange
         {
             throw new NotSupported ((this.id + " setMargin only support swap markets")) ;
         }
-        Dictionary<string, object> response = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "contractName", (market.ContainsKey("id") ? market["id"] : null) },
             { "amount", this.parseToNumeric(amount) },
         };
-        if ((this.safeBool(market, "linear", false) == true))
-        {
-            response = await this.fapiV2PrivatePostPositionMargin(this.extend(request, parameters));
-        } else if ((this.safeBool(market, "inverse", false) == true))
-        {
-            response = await this.dapiV2PrivatePostPositionMargin(this.extend(request, parameters));
-        }
         //
         //     {
         //         "code": 0,
@@ -3503,7 +3495,16 @@ public partial class bitrue : Exchange
         //         "data": null
         //     }
         //
-        return ccxt.BaseExchange.ToMarginModification(this.parseMarginModification(response, market));
+        if ((this.safeBool(market, "linear", false) == true))
+        {
+            Dictionary<string, object> response = await this.fapiV2PrivatePostPositionMargin(this.extend(request, parameters));
+            return ccxt.BaseExchange.ToMarginModification(this.parseMarginModification(response, market));
+        } else if ((this.safeBool(market, "inverse", false) == true))
+        {
+            Dictionary<string, object> response = await this.dapiV2PrivatePostPositionMargin(this.extend(request, parameters));
+            return ccxt.BaseExchange.ToMarginModification(this.parseMarginModification(response, market));
+        }
+        throw new NotSupported ((this.id + " setMargin only support linear or inverse swap markets")) ;
     }
 
     public override Dictionary<string, object> sign(string path, IList<object> api = null, string method = null, object parameters = null)
