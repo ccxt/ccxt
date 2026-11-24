@@ -472,8 +472,9 @@ func withDictFee(m map[string]any) map[string]any {
 // OHLCVFromList builds an OHLCV from a parsed [ts, o, h, l, c, v] row (nil elements read as 0);
 // the row itself is kept so OHLCVToList returns it unchanged.
 func OHLCVFromList(data any) OHLCV {
-	o := OHLCV{row: data}
+	o := OHLCV{}
 	if row, ok := data.([]any); ok {
+		o.row = row
 		if ts := SafeInt64Typed(row, 0); ts != nil {
 			o.Timestamp = *ts
 		}
@@ -487,7 +488,7 @@ func OHLCVFromList(data any) OHLCV {
 }
 
 // OHLCVToList is the inverse of OHLCVFromList.
-func OHLCVToList(o OHLCV) any {
+func OHLCVToList(o OHLCV) []any {
 	if o.row != nil {
 		return o.row
 	}
