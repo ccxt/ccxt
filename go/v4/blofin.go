@@ -52,7 +52,7 @@ func (this *Blofin) Describe() map[string]any {
 			"createStopOrder":                      false,
 			"createTakeProfitOrder":                true,
 			"createTriggerOrder":                   true,
-			"editOrder":                            false,
+			"editOrder":                            true,
 			"fetchAccounts":                        false,
 			"fetchBalance":                         true,
 			"fetchBidsAsks":                        nil,
@@ -2388,6 +2388,84 @@ func (this *Blofin) createOrdersBody(ch chan AsyncResult[[]Order], orders []any,
 
 /**
  * @method
+ * @name blofin#editOrder
+ * @description edit a trade order
+ * @see https://docs.blofin.com/index.html#amend-order
+ * @param {string} id order id
+ * @param {string} symbol unified symbol of the market the order was made in
+ * @param {string} type 'market' or 'limit'
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+ * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Blofin) EditOrderAsync(id string, symbol any, typeVar any, side any, optionalArgs ...any) <-chan AsyncResult[Order] {
+	ch := make(chan AsyncResult[Order], 1)
+	go this.editOrderBody(ch, id, symbol, typeVar, side, optionalArgs...)
+	return ch
+}
+func (this *Blofin) editOrderBody(ch chan AsyncResult[Order], id string, symbol any, typeVar any, side any, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var amount *float64 = GetArgFloat64Ptr(optionalArgs, 0, nil)
+	_ = amount
+	var price *float64 = GetArgFloat64Ptr(optionalArgs, 1, nil)
+	_ = price
+	var params map[string]any = GetArgMap(optionalArgs, 2, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var market map[string]any = this.Market(symbol)
+	var request map[string]any = map[string]any{
+		"instId": market["id"],
+	}
+	var clientOrderId *string = this.SafeString(params, "clientOrderId")
+	if clientOrderId != nil {
+		request["clientOrderId"] = clientOrderId
+	} else {
+		request["orderId"] = id
+	}
+	if amount != nil {
+		request["newSize"] = this.AmountToPrecision(symbol, amount)
+	}
+	if price != nil {
+		request["newPrice"] = this.PriceToPrecision(symbol, price)
+	}
+
+	r1 := <-this.PrivatePostTradeAmendOrder(this.Extend(request, this.Omit(params, "clientOrderId")))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
+	//
+	//     {
+	//         "code": "0",
+	//         "msg": "Order modified",
+	//         "data": {
+	//             "orderId": "6000004088576",
+	//             "clientOrderId": "",
+	//             "requestId": "",
+	//             "msg": "Order modified",
+	//             "code": "0",
+	//             "ts": "1795184228537"
+	//         }
+	//     }
+	//
+	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
+
+	ch <- AsyncResult[Order]{Value: this.ParseOrder(data, market)}
+	return nil
+}
+
+/**
+ * @method
  * @name blofin#fetchOrder
  * @description fetches information on an order made by the user
  * @see https://docs.blofin.com/index.html#get-order-detail
@@ -2505,11 +2583,11 @@ func (this *Blofin) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes188119 []any = r1.Value
-		if retRes188119 == nil {
+		var retRes193519 []any = r1.Value
+		if retRes193519 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes188119)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes193519)}
 		}
 		return nil
 	}
@@ -2601,11 +2679,11 @@ func (this *Blofin) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes193119 []any = r1.Value
-		if retRes193119 == nil {
+		var retRes198519 []any = r1.Value
+		if retRes198519 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes193119)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes198519)}
 		}
 		return nil
 	}
@@ -2711,11 +2789,11 @@ func (this *Blofin) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes200019 []any = r1.Value
-		if retRes200019 == nil {
+		var retRes205419 []any = r1.Value
+		if retRes205419 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes200019)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes205419)}
 		}
 		return nil
 	}
@@ -2787,11 +2865,11 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes204019 []any = r1.Value
-		if retRes204019 == nil {
+		var retRes209419 []any = r1.Value
+		if retRes209419 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes204019)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes209419)}
 		}
 		return nil
 	}
@@ -3476,11 +3554,11 @@ func (this *Blofin) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes254419 []any = r1.Value
-		if retRes254419 == nil {
+		var retRes259819 []any = r1.Value
+		if retRes259819 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes254419)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes259819)}
 		}
 		return nil
 	}
@@ -4616,11 +4694,11 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes338619 []any = r1.Value
-		if retRes338619 == nil {
+		var retRes344019 []any = r1.Value
+		if retRes344019 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes338619)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes344019)}
 		}
 		return nil
 	}
@@ -5426,6 +5504,36 @@ func (this *Blofin) CreateOrders(orders []OrderRequest, options ...CreateOrdersO
 		return nil, r.Err
 	}
 	var res []Order = r.Value
+	return res, nil
+}
+
+/**
+ * @method
+ * @name blofin#editOrder
+ * @description edit a trade order
+ * @see https://docs.blofin.com/index.html#amend-order
+ * @param {string} id order id
+ * @param {string} symbol unified symbol of the market the order was made in
+ * @param {string} type 'market' or 'limit'
+ * @param {string} side 'buy' or 'sell'
+ * @param {float} [amount] how much of the currency you want to trade in units of the base currency
+ * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.clientOrderId] client order id, used instead of the id argument
+ * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
+ */
+func (this *Blofin) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
+
+	opts := EditOrderOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.EditOrderAsync(id, symbol, typeVar, side, opts.Amount, opts.Price, opts.Params)
+	if r.Err != nil {
+		return Order{}, r.Err
+	}
+	var res Order = r.Value
 	return res, nil
 }
 
