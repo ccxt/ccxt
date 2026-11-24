@@ -30218,3 +30218,107 @@ function h30j07FeedsObjectListSink (printer, call) {
     }
 }
 // ===== end h30-J07
+
+// ===== venue Map returns through hand-written base Map calls =====
+// A sync venue method that overrides nothing and that no subclass redeclares returns Map when every
+// return is null or a this-call of a base Map-return method no class of its chain redeclares.
+let javaBaseMapCallReturnsTable;
+export function javaBaseMapCallReturnTable () {
+    if (javaBaseMapCallReturnsTable !== undefined) {
+        return javaBaseMapCallReturnsTable;
+    }
+    const files = javaStringReturnsClassIndex ();
+    const chain = (file) => {
+        const out = [];
+        for (let f = files.get (file)?.parent, depth = 0; f !== undefined && depth < 12; f = files.get (f)?.parent, depth++) {
+            out.push (f);
+        }
+        return out;
+    };
+    const below = new Map (); // file -> names some descendant declares
+    for (const [ file, entry ] of files) {
+        for (const ancestor of chain (file)) {
+            below.set (ancestor, new Set ([ ...(below.get (ancestor) ?? []), ...entry.methods ]));
+        }
+    }
+    const redeclaredBelow = (own, name) => below.get (own)?.has (name) === true;
+    const out = {};
+    for (const file of files.keys ()) {
+        const rel = path.relative (JAVA_FRESH_MAP_TS_ROOT, file).replace (/\\/g, '/').replace (/\.ts$/, '');
+        if (!/^(?:pro\/)?[a-z0-9_]+$/.test (rel)) {
+            continue;
+        }
+        const ancestors = chain (file);
+        // the abstract class imports the base by name, so the index chain stops above it
+        const base = path.join (JAVA_FRESH_MAP_TS_ROOT, 'base', 'Exchange.ts');
+        const sf = ts.createSourceFile (file, readTsIndexSource (file) ?? '', ts.ScriptTarget.Latest, true);
+        const toBase = (name) => files.get (base)?.methods.has (name) === true
+            && !files.get (file).methods.has (name) && ancestors.every ((f) => f === base || !files.get (f).methods.has (name));
+        const names = [];
+        for (const cls of sf.statements.filter ((n) => ts.isClassDeclaration (n))) {
+            for (const m of cls.members) {
+                if (!ts.isMethodDeclaration (m) || m.body === undefined || !ts.isIdentifier (m.name)
+                    || (m.modifiers ?? []).some ((mod) => mod.kind === ts.SyntaxKind.AsyncKeyword)) {
+                    continue;
+                }
+                const name = m.name.text;
+                if (ancestors.some ((f) => files.get (f).methods.has (name)) || redeclaredBelow (file, name)) {
+                    continue;
+                }
+                let ok = true;
+                let some = false;
+                const visit = (n) => {
+                    if (!ok || ts.isFunctionLike (n)) {
+                        return;
+                    }
+                    if (ts.isReturnStatement (n)) {
+                        const e = unwrapParens (n.expression);
+                        if (e === undefined) {
+                            ok = false;
+                        } else if (isThisCall (e) && !e.arguments.some ((a) => ts.isSpreadElement (a))
+                            && JAVA_MAP_RETURN_METHODS.has (e.expression.name.text) && toBase (e.expression.name.text)) {
+                            some = true;
+                        } else if (!isNullishInitializer (e)) {
+                            ok = false;
+                        }
+                    }
+                    n.forEachChild (visit);
+                };
+                m.body.forEachChild (visit);
+                if (ok && some) {
+                    names.push (name);
+                }
+            }
+        }
+        if (names.length > 0) {
+            out[rel] = names;
+        }
+    }
+    javaBaseMapCallReturnsTable = out;
+    return out;
+}
+
+// workers take the table the main thread built (no whole-tree scan per worker)
+export function javaSetBaseMapCallReturnTable (table) {
+    if (table !== undefined) {
+        javaBaseMapCallReturnsTable = table;
+    }
+}
+
+export function installJavaBaseMapCallReturns (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.javaNativeReturnType !== 'function' || printer._javaBaseMapCallReturnsPatched) {
+        return;
+    }
+    printer._javaBaseMapCallReturnsPatched = true;
+    const upstream = printer.javaNativeReturnType.bind (printer);
+    printer.javaNativeReturnType = function (node) {
+        const own = upstream (node);
+        if (own !== undefined || node === undefined || node.kind !== ts.SyntaxKind.MethodDeclaration || node.body === undefined
+            || !ts.isIdentifier (node.name)) {
+            return own;
+        }
+        const rel = path.relative (JAVA_FRESH_MAP_TS_ROOT, path.resolve (node.getSourceFile ().fileName)).replace (/\\/g, '/').replace (/\.ts$/, '');
+        return javaBaseMapCallReturnTable ()[rel]?.includes (node.name.text) ? JAVA_STRUCTURE_TYPE : undefined;
+    };
+}

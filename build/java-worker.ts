@@ -4,6 +4,7 @@ import { patchJavaLocalTypes } from './javaTranspiler.js';
 import { installJavaExpressionTypeResolver, installJavaOwnerStores, installJavaRepoMethodUses } from './javaTranspiler.js';
 import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, patchJavaStringReceiverCasts, patchJavaMapChannelStringCasts, patchJavaConsumerStringCasts, installJavaDeclaredLocalTypes, installJavaObjectParamPositions, installJavaStringListParamTypes, installJavaNullScalarLocalTypes, patchJavaOmitLocalTypes, patchJavaQualifiedDtoListElementLocals, patchJavaStringAccumulatorLists, patchJavaRowAccumulatorLists, patchJavaTupleHolderElementLocals, patchJavaOrderBookCacheLocals, patchJavaDeclaredMapReceiverCasts, patchJavaBaseMapFieldReceiverCasts, patchJavaFreshMapElementWrites, patchJavaDeclaredBoxLiteralEquality, patchJavaObjectKeysLength, patchJavaMapArgIdentity, patchJavaNonNullStringLocals, patchJavaNonNullLongSubtract, installJavaBooleanParams, installJavaStringDefaultParams, installJavaTuplePairReturns, installJavaStringListArgs, installJavaBooleanFixedParams, installJavaBooleanWriteLocals, installJavaLongSlots, installJavaMapLocals, patchJavaUntilOmitMapWrites, installJavaNativeReplace, installJavaStringReturnSites } from './java-local-types.js';
 import { javaCoreSetHandedSpellings } from './java-local-types.js';
+import { javaSetBaseMapCallReturnTable } from './java-local-types.js';
 import { installJavaFreshObjectMapWrites } from './java-local-types.js';
 import { installJavaStringCoreArgs } from './java-local-types.js';
 import { installJavaNativePadStartFirst, installJavaLiteralReplace } from './java-local-types.js';
@@ -48,6 +49,7 @@ import { installJavaR92j2MarketTypeParams, installJavaTypedDefaultReaders } from
 import { installJavaR92j2MapSlotHandOff } from './java-local-types.js';
 import { installJavaR92j2StringSlotLocals } from './java-local-types.js';
 import { installJavaR93j2ListLocals } from './java-local-types.js';
+import { installJavaBaseMapCallReturns } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
@@ -118,6 +120,7 @@ interface JavaWorkerTask {
     roots?: string[];
     handed?: Record<string, Record<string, string[]>>;
     handedKey?: string;
+    baseMapReturns?: Record<string, string[]>;
 }
 
 // piscina reuses worker threads across tasks — cache the Transpiler per thread
@@ -138,8 +141,9 @@ let programCache: ReturnType<typeof Transpiler.createProgramCache> | null = null
 
 const verbose = !!process.env['CCXT_TRANSPILE_VERBOSE'];
 
-export default async ({ transpilerConfig, configKey, file, files, roots, handed, handedKey }: JavaWorkerTask) => {
+export default async ({ transpilerConfig, configKey, file, files, roots, handed, handedKey, baseMapReturns }: JavaWorkerTask) => {
     javaCoreSetHandedSpellings (handedKey ?? '', handed);
+    javaSetBaseMapCallReturnTable (baseMapReturns);
     const key = configKey || JSON.stringify (transpilerConfig);
     if (!cachedTranspiler || cachedConfigKey !== key) {
         if (!programCache) programCache = Transpiler.createProgramCache ();
@@ -253,6 +257,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots, handed,
         installJavaR92j2MapSlotHandOff (cachedTranspiler);
         installJavaR92j2StringSlotLocals (cachedTranspiler);
         installJavaR93j2ListLocals (cachedTranspiler);
+        installJavaBaseMapCallReturns (cachedTranspiler);
         installJavaMapCopyLocals (cachedTranspiler);
         installJavaEventsParamsSlots (cachedTranspiler);
         installJavaCurrenciesByIdReads (cachedTranspiler);

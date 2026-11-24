@@ -67,6 +67,7 @@ import { installJavaR92j2MarketTypeParams, installJavaTypedDefaultReaders } from
 import { installJavaR92j2MapSlotHandOff } from './java-local-types.js';
 import { installJavaR92j2StringSlotLocals } from './java-local-types.js';
 import { installJavaR93j2ListLocals } from './java-local-types.js';
+import { installJavaBaseMapCallReturns } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
@@ -82,6 +83,7 @@ import { installJ6ReaderLocals } from './java-local-types.js';
 import { installJ84j6TrueOnlyLocals } from './java-local-types.js';
 import { installJ84j6StringListLocals } from './java-local-types.js';
 import { javaCoreBaseTierSpellings } from './java-local-types.js';
+import { javaBaseMapCallReturnTable } from './java-local-types.js';
 import { isTsIndexSource, readTsIndexSource } from './csharp-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose, javaTypedCoreDirectReturnSelfTest } from "./javaTypedCore.js";
@@ -2161,6 +2163,7 @@ class NewTranspiler {
             installJavaR92j2MapSlotHandOff,
             installJavaR92j2StringSlotLocals,
             installJavaR93j2ListLocals,
+            installJavaBaseMapCallReturns,
             installJavaMapCopyLocals,
             installJavaEventsParamsSlots,
             installJavaCurrenciesByIdReads,
@@ -2728,6 +2731,7 @@ class NewTranspiler {
         const configKey = JSON.stringify(parserConfig);
         const handed = this.javaCoreHanded;
         const handedKey = handed === undefined ? '' : JSON.stringify (handed);
+        const baseMapReturns = javaBaseMapCallReturnTable ();
 
         // One file per task (load-balances; a slow file can't stall others). `roots` is
         // the FULL stage list on every task so each worker builds ONE sticky ts.Program
@@ -2735,7 +2739,7 @@ class NewTranspiler {
         const promises: any = [];
         const now = Date.now();
         for (const file of allFiles) {
-            promises.push(piscina.run({ transpilerConfig: parserConfig, configKey, roots: allFiles, files: [file], handed, handedKey }));
+            promises.push(piscina.run({ transpilerConfig: parserConfig, configKey, roots: allFiles, files: [file], handed, handedKey, baseMapReturns }));
         }
         const workerResult = await Promise.all(promises);
         const elapsed = Date.now() - now;
