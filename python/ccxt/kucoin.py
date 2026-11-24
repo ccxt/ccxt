@@ -11055,7 +11055,7 @@ class kucoin(Exchange, ImplicitAPI):
             request['pageSize'] = limit
         requestUntil, paramsUntil = self.handle_until_option('endAt', request, paramsPaginate)
         response = self.utaGetMarketOpenInterest(self.extend(requestUntil, paramsUntil))
-        data = self.safe_list(response, 'data')
+        data = self.safe_list(response, 'data', [])
         return self.parse_open_interests_history(data, market, since, limit)
 
     def is_uta_enabled(self, params: dict = {}) -> bool:

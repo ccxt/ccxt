@@ -8230,7 +8230,7 @@ class htx(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_dict(response, 'data')
-        tick = self.safe_list(data, 'tick')
+        tick = self.safe_list(data, 'tick', [])
         return self.parse_open_interests_history(tick, market, since, limit)
 
     def fetch_open_interests(self, symbols: Strings = None, params: dict = {}) -> OpenInterests:

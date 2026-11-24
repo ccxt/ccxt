@@ -966,9 +966,10 @@ class gate(ccxt.async_support.gate):
         # }
         #
         rawResult = self.safe_value(message, 'result')
+        tradeRows = self.safe_list(message, 'result')
         result = []
-        if isinstance(rawResult, list):
-            result = self.safe_list(message, 'result', [])
+        if tradeRows is not None:
+            result = tradeRows
         else:
             result = [rawResult]
         parsedTrades = self.parse_trades(result)

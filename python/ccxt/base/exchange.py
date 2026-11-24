@@ -4918,10 +4918,11 @@ class BaseExchange(object):
         return [fee, fees]
 
     def parse_fee_numeric(self, fee: object):
-        fee['cost'] = self.safe_number(fee, 'cost')  # ensure numeric
-        if 'rate' in fee:
-            fee['rate'] = self.safe_number(fee, 'rate')
-        return fee
+        result = self.extend({}, fee)
+        result['cost'] = self.safe_number(result, 'cost')  # ensure numeric
+        if 'rate' in result:
+            result['rate'] = self.safe_number(result, 'rate')
+        return result
 
     def find_nearest_ceiling(self, arr: list[float], providedValue: float):
         #  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
@@ -7092,7 +7093,7 @@ class BaseExchange(object):
     def parse_borrow_rate(self, info: object, currency: Currency = None):
         raise NotSupported(self.id + ' parseBorrowRate() is not supported yet')
 
-    def parse_borrow_rate_history(self, response: object, code: Str, since: Int, limit: Int):
+    def parse_borrow_rate_history(self, response: list[object], code: Str, since: Int, limit: Int):
         result = []
         for i in range(0, len(response)):
             result.append(self.parse_borrow_rate(self.safe_dict(response, i)))
@@ -7275,7 +7276,7 @@ class BaseExchange(object):
                 result[symbol] = parsed
         return self.index_by(self.filter_by_array(result, 'symbol', symbols, False), 'symbol')
 
-    def parse_open_interests_history(self, response: object, market: Market = None, since: Int = None, limit: Int = None):
+    def parse_open_interests_history(self, response: list[object], market: Market = None, since: Int = None, limit: Int = None):
         interests = []
         for i in range(0, len(response)):
             interests.append(self.parse_open_interest(response[i], market))

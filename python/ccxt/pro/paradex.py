@@ -92,7 +92,7 @@ class paradex(ccxt.async_support.paradex):
             schemaVersion = self.safe_string(self.options, 'sbeSchemaVersion', '3')
             return url + '?sbeSchemaId=1&sbeSchemaVersion=' + schemaVersion
 
-    def get_order_book_channel(self, marketId: Str, deltas: bool = False) -> str:
+    def get_order_book_channel(self, marketId: str, deltas: bool = False) -> str:
         if deltas:
             # the docs list the channel as order_book.{market_symbol}.{feed_type}@15@{refresh_rate}, but the deltas feed
             # takes none of those parameters: it sends one full-depth snapshot on subscribe, then incremental updates
@@ -497,13 +497,15 @@ class paradex(ccxt.async_support.paradex):
         if symbolsLength == 0:
             raise ArgumentsRequired(self.id + ' watchTradesForSymbols() requires a non-empty array of symbols')
         channels = []
+        messageHashes = []
         for i in range(0, symbolsLength):
             market = self.market(symbolsNormalized[i])
             marketId = self.safe_string(market, 'id', '')
             channels.append('trades.' + marketId)
+            messageHashes.append('trades.' + marketId)
         url = self.get_ws_url()
         # handleTrade resolves the channel of each market
-        trades = await self.subscribe_channels(url, channels, channels, params)
+        trades = await self.subscribe_channels(url, messageHashes, channels, params)
         first = self.safe_dict(trades, 0)
         tradeSymbol = self.safe_string(first, 'symbol')
         limitResolved = limit
@@ -540,12 +542,14 @@ class paradex(ccxt.async_support.paradex):
             await self.load_markets()
         symbolsNormalized = self.market_symbols(symbols, None, False)
         channels = []
+        subMessageHashes = []
         for i in range(0, len(symbolsNormalized)):
             market = self.market(symbolsNormalized[i])
             marketId = self.safe_string(market, 'id', '')
             channels.append('trades.' + marketId)
+            subMessageHashes.append('trades.' + marketId)
         # the watchers of a market wait on its channel
-        return await self.unsubscribe_channels(self.get_ws_url(), 'trades', channels, channels, symbolsNormalized, params)
+        return await self.unsubscribe_channels(self.get_ws_url(), 'trades', channels, subMessageHashes, symbolsNormalized, params)
 
     async def watch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Liquidation]:
         """
@@ -692,16 +696,16 @@ class paradex(ccxt.async_support.paradex):
         feeds = []
         for i in range(0, symbolsLength):
             feedMarket = self.market(symbolsNormalized[i])
-            feeds.append(self.get_order_book_channel(self.safe_string(feedMarket, 'id'), True))
-            feeds.append(self.get_order_book_channel(self.safe_string(feedMarket, 'id'), False))
+            feeds.append(self.get_order_book_channel(self.safe_string(feedMarket, 'id', ''), True))
+            feeds.append(self.get_order_book_channel(self.safe_string(feedMarket, 'id', ''), False))
         await self.wait_for_pending_unsubscribe(url, feeds)
         client = self.client(url)
         channels = []
         messageHashes = []
         for i in range(0, symbolsLength):
             market = self.market(symbolsNormalized[i])
-            deltasChannel = self.get_order_book_channel(self.safe_string(market, 'id'), True)
-            snapshotChannel = self.get_order_book_channel(self.safe_string(market, 'id'), False)
+            deltasChannel = self.get_order_book_channel(self.safe_string(market, 'id', ''), True)
+            snapshotChannel = self.get_order_book_channel(self.safe_string(market, 'id', ''), False)
             # one feed per market on a connection: both send BookEvent frames, which do not name their channel,
             # and the 15-level snapshots would cut a full-depth book down. The deltas feed is a superset, it stays
             # the market stays on the deltas feed from the first call that asks for it, a call made while the
@@ -757,8 +761,8 @@ class paradex(ccxt.async_support.paradex):
         for i in range(0, len(symbolsNormalized)):
             market = self.market(symbolsNormalized[i])
             # the feed the market is on, a market is on one of them at a time
-            deltasChannel = self.get_order_book_channel(self.safe_string(market, 'id'), True)
-            snapshotChannel = self.get_order_book_channel(self.safe_string(market, 'id'), False)
+            deltasChannel = self.get_order_book_channel(self.safe_string(market, 'id', ''), True)
+            snapshotChannel = self.get_order_book_channel(self.safe_string(market, 'id', ''), False)
             channel = deltasChannel if (deltasOption is True) else snapshotChannel
             # a market switching to the deltas feed is on neither feed until its snapshot unsubscribe is acknowledged
             requestedHash = deltasChannel + ':requested'
@@ -847,7 +851,7 @@ class paradex(ccxt.async_support.paradex):
                 else:
                     asks.append([price, size])
         if self.safe_string(data, 'update_type') == 'd':
-            deltasChannel = self.get_order_book_channel(marketId, True)
+            deltasChannel = self.get_order_book_channel(self.safe_string(data, 'market', ''), True)
             stored = self.safe_value(self.orderbooks, symbol)
             # a delta applies only to the book of the deltas feed
             if (stored is None) or not (deltasChannel in client.subscriptions):

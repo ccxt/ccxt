@@ -1290,7 +1290,8 @@ class derive(Exchange, ImplicitAPI):
     def parse_settlements(self, settlements: list[dict], market: Market = None) -> list:
         result = []
         for i in range(0, len(settlements)):
-            result.append(self.parse_settlement(self.extend({}, settlements[i]), market))
+            settlementRow = self.extend({}, settlements[i])
+            result.append(self.parse_settlement(settlementRow, market))
         return result
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:

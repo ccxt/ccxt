@@ -204,7 +204,8 @@ class lbank(ccxt.async_support.lbank):
             'topic': 'ohlcv',
             'symbolsAndTimeframes': [[market['symbol'], timeframe]],
         }
-        return await self.un_subscribe('ohlcv:' + market['symbol'] + ':' + timeframeId, request, subscription, params)
+        symbolValue = self.safe_string(market, 'symbol', '')
+        return await self.un_subscribe('ohlcv:' + symbolValue + ':' + timeframeId, request, subscription, params)
 
     def handle_ohlcv(self, client: Client, message: dict):
         #
@@ -516,7 +517,8 @@ class lbank(ccxt.async_support.lbank):
             'topic': 'trades',
             'symbols': [market['symbol']],
         }
-        return await self.un_subscribe('trades:' + market['symbol'], request, subscription, params)
+        symbolValue = self.safe_string(market, 'symbol', '')
+        return await self.un_subscribe('trades:' + symbolValue, request, subscription, params)
 
     def handle_trades(self, client: Client, message: dict):
         #

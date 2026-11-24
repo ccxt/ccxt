@@ -1470,7 +1470,8 @@ class bitstamp(Exchange, ImplicitAPI):
         result = {'info': fees}
         feesList = self.to_array(fees)
         for i in range(0, len(feesList)):
-            fee = self.parse_trading_fee(feesList[i])
+            feeRow = self.safe_dict(feesList, i, {})
+            fee = self.parse_trading_fee(feeRow)
             symbol = self.safe_string(fee, 'symbol')
             if symbol is not None:
                 result[symbol] = fee

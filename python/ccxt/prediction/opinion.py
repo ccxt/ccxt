@@ -208,7 +208,7 @@ class opinion(PredictionExchange, ImplicitAPI):
                 fetchedRawRows.append(raw)
                 marketType = self.safe_integer(raw, 'marketType')
                 if marketType == 1:
-                    event = self.parse_event(self.safe_dict(rawMarkets, i, {}))
+                    event = self.parse_event(self.extend({}, rawMarkets[i]))
                     childMarkets = self.safe_list(event, 'markets', [])
                     childMarketsLength = len(childMarkets)
                     for ci in range(0, childMarketsLength):
@@ -438,7 +438,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         if self.markets is None:
             self.markets = self.create_safe_dictionary()
         for i in range(0, rawEventsLength):
-            event = self.parse_event(self.safe_dict(rawEvents, i, {}))
+            event = self.parse_event(self.extend({}, rawEvents[i]))
             parsedEvents.append(event)
             # register the parsed markets so populateOutcomes can index their outcomes
             eventMarkets = self.safe_list(event, 'markets', [])

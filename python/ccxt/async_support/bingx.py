@@ -980,7 +980,7 @@ class bingx(Exchange, ImplicitAPI):
             'type': 'crypto',  # only cryptos now
         })
 
-    async def fetch_spot_markets(self, params: object) -> list[Market]:
+    async def fetch_spot_markets(self, params: dict = {}) -> list[Market]:
         response = await self.spotV1PublicGetCommonSymbols(params)
         #
         #    {
@@ -1013,7 +1013,7 @@ class bingx(Exchange, ImplicitAPI):
         markets = self.safe_list(data, 'symbols', [])
         return self.parse_markets(markets)
 
-    async def fetch_swap_markets(self, params: object) -> list[Market]:
+    async def fetch_swap_markets(self, params: dict = {}) -> list[Market]:
         response = await self.swapV2PublicGetQuoteContracts(params)
         #
         #    {
@@ -1049,7 +1049,7 @@ class bingx(Exchange, ImplicitAPI):
         markets = self.safe_list(response, 'data', [])
         return self.parse_markets(markets)
 
-    async def fetch_inverse_swap_markets(self, params: object) -> list[Market]:
+    async def fetch_inverse_swap_markets(self, params: dict = {}) -> list[Market]:
         response = await self.cswapV1PublicGetMarketContracts(params)
         #
         #     {

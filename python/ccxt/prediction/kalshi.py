@@ -2222,7 +2222,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :returns dict: a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
         """
         fullEvent = await self.fetch_raw_event_by_ticker(id, params)
-        event = self.parse_event(fullEvent)
+        event = self.parse_event(self.extend({}, fullEvent))
         self.index_event_outcomes(event)
         return event
 

@@ -3260,7 +3260,8 @@ class delta(Exchange, ImplicitAPI):
     def parse_settlements(self, settlements: list[dict], market: Market) -> list[dict]:
         result = []
         for i in range(0, len(settlements)):
-            result.append(self.parse_settlement(self.extend({}, settlements[i]), market))
+            settlementRow = self.extend({}, settlements[i])
+            result.append(self.parse_settlement(settlementRow, market))
         return result
 
     async def fetch_greeks(self, symbol: str, params: dict = {}) -> Greeks:

@@ -3044,7 +3044,7 @@ class bitrue(Exchange, ImplicitAPI):
             response = self.dapiV2PrivatePostLevelEdit(self.extend(request, params))
         return response
 
-    def parse_margin_modification(self, data: object, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
         #
         # setMargin
         #
@@ -3084,15 +3084,10 @@ class bitrue(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not self.safe_bool(market, 'swap', False):
             raise NotSupported(self.id + ' setMargin only support swap markets')
-        response = None
         request = {
             'contractName': market['id'],
             'amount': self.parse_to_numeric(amount),
         }
-        if self.safe_bool(market, 'linear', False):
-            response = self.fapiV2PrivatePostPositionMargin(self.extend(request, params))
-        elif self.safe_bool(market, 'inverse', False):
-            response = self.dapiV2PrivatePostPositionMargin(self.extend(request, params))
         #
         #     {
         #         "code": 0,
@@ -3100,7 +3095,13 @@ class bitrue(Exchange, ImplicitAPI):
         #         "data": null
         #     }
         #
-        return self.parse_margin_modification(response, market)
+        if self.safe_bool(market, 'linear', False):
+            response = self.fapiV2PrivatePostPositionMargin(self.extend(request, params))
+            return self.parse_margin_modification(response, market)
+        elif self.safe_bool(market, 'inverse', False):
+            response = self.dapiV2PrivatePostPositionMargin(self.extend(request, params))
+            return self.parse_margin_modification(response, market)
+        raise NotSupported(self.id + ' setMargin only support linear or inverse swap markets')
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
         requestBody = None

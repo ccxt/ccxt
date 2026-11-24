@@ -1965,7 +1965,7 @@ class bybit(Exchange, ImplicitAPI):
         # return this.arrayConcat (spotMarkets, derivativeMarkets);
         return result
 
-    def fetch_spot_markets(self, params: object) -> list[Market]:
+    def fetch_spot_markets(self, params: dict = {}) -> list[Market]:
         request = {
             'category': 'spot',
         }
@@ -8050,7 +8050,8 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #
         result = []
         for i in range(0, len(settlements)):
-            result.append(self.parse_settlement(self.extend({}, settlements[i]), market))
+            settlementRow = self.extend({}, settlements[i])
+            result.append(self.parse_settlement(settlementRow, market))
         return result
 
     def fetch_volatility_history(self, code: str, params: dict = {}) -> list[dict]:

@@ -3653,9 +3653,9 @@ class bitfinex(Exchange, ImplicitAPI):
         #     ]
         #
         data = self.safe_value(response, 0)
-        return self.parse_margin_modification(data, market)
+        return self.parse_margin_modification_row(data, market)
 
-    def parse_margin_modification(self, data: list, market: Market = None) -> MarginModification:
+    def parse_margin_modification_row(self, data: list, market: Market = None) -> MarginModification:
         #
         # setMargin
         #

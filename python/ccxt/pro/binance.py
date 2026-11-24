@@ -4538,9 +4538,10 @@ class binance(ccxt.async_support.binance):
         if e == 'orderReport':
             self.handle_order(client, message)
             return
+        orderValue = self.safe_dict(message, 'o', message)
         messageValue = message
         if (e == 'ORDER_TRADE_UPDATE') or (e == 'ALGO_UPDATE'):
-            messageValue = self.safe_dict(message, 'o', message)
+            messageValue = orderValue
             if (e == 'ALGO_UPDATE') and (self.safe_integer(messageValue, 'T') is None):
                 # keep the outer event time, the algo payload carries no timestamps
                 messageValue = self.extend(messageValue, {'T': self.safe_integer(message, 'T')})

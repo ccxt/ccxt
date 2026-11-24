@@ -762,7 +762,7 @@ class kraken(ccxt.async_support.kraken):
         symbolsNormalized = self.market_symbols(symbols, None, False, True, False)
         unsubMessageHashes = []
         for i in range(0, len(symbolsNormalized)):
-            unsubMessageHashes.append('unsubscribe:' + self.get_message_hash('trade', None, symbolsNormalized[i]))
+            unsubMessageHashes.append('unsubscribe:' + self.get_message_hash('trade', None, self.symbol(symbolsNormalized[i])))
         request = {
             'method': 'unsubscribe',
             'params': {

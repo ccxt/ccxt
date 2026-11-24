@@ -2234,6 +2234,7 @@ class blofin(Exchange, ImplicitAPI):
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
+        depositId = self.safe_string(request, 'depositId', '')
         response = await self.privateGetAssetDepositHistory(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
         # only accept a row that matches the requested id, in case the
@@ -2241,9 +2242,9 @@ class blofin(Exchange, ImplicitAPI):
         dataLength = len(data)
         for i in range(0, dataLength):
             entry = self.safe_dict(data, i, {})
-            if self.safe_string(entry, 'depositId') == id:
+            if self.safe_string(entry, 'depositId') == depositId:
                 return self.parse_transaction(entry, currency)
-        raise ExchangeError(self.id + ' fetchDeposit() could not find deposit ' + id)
+        raise ExchangeError(self.id + ' fetchDeposit() could not find deposit ' + depositId)
 
     async def fetch_withdrawal(self, id: str, code: Str = None, params: dict = {}) -> Transaction:
         """
@@ -2265,11 +2266,14 @@ class blofin(Exchange, ImplicitAPI):
         await self.load_markets()
         request = {}
         if hasId:
-            request['withdrawId'] = id
+            request = {
+                'withdrawId': id,
+            }
         currency = None
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
+        withdrawId = self.safe_string(request, 'withdrawId', '')
         response = await self.privateGetAssetWithdrawalHistory(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
         # only accept a row that matches the requested id (or clientId), in
@@ -2279,12 +2283,12 @@ class blofin(Exchange, ImplicitAPI):
             entry = self.safe_dict(data, i, {})
             matches = False
             if hasId:
-                matches = (self.safe_string(entry, 'withdrawId') == id)
+                matches = (self.safe_string(entry, 'withdrawId') == withdrawId)
             else:
                 matches = (self.safe_string(entry, 'clientId') == clientId)
             if matches:
                 return self.parse_transaction(entry, currency)
-        reference = id if hasId else clientId
+        reference = withdrawId if hasId else clientId
         raise ExchangeError(self.id + ' fetchWithdrawal() could not find withdrawal ' + reference)
 
     async def withdraw(self, code: str, amount: float, address: str, params: dict = {}) -> Transaction:

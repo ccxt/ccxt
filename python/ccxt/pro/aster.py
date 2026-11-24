@@ -1663,11 +1663,12 @@ class aster(ccxt.async_support.aster):
         rawOrder = self.safe_dict(message, 'o', message)
         e = self.safe_string(message, 'e')
         isOrderUpdate = (e == 'ORDER_TRADE_UPDATE') or (e == 'ALGO_UPDATE')
-        tradeMessage = message
-        if isOrderUpdate:
-            tradeMessage = rawOrder
+        tradeOrder = self.safe_dict(message, 'o')
         self.handle_order(client, rawOrder)
-        self.handle_my_trade(client, tradeMessage)
+        if isOrderUpdate and (tradeOrder is not None):
+            self.handle_my_trade(client, tradeOrder)
+        else:
+            self.handle_my_trade(client, message)
 
     def handle_my_trade(self, client: Client, message: dict):
         messageHash = 'myTrades'
