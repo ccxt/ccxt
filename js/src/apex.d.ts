@@ -1,5 +1,5 @@
 import Exchange from './abstract/apex.js';
-import type { Account, Balances, Currencies, Currency, CurrencyInterface, Dict, FundingRateHistory, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, NullableDict, FundingHistory, OpenInterest, Bool } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, Dict, FundingHistory, FundingRate, FundingRateHistory, FundingRates, Int, Market, MarketInterface, NullableDict, Num, OHLCV, OpenInterest, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int } from './base/types.js';
 /**
  * @class apex
  * @augments Exchange
@@ -130,6 +130,17 @@ export default class apex extends Exchange {
     parseOpenInterest(interest: NullableDict, market?: Market): OpenInterest;
     /**
      * @method
+     * @name apex#fetchFundingRate
+     * @description fetches the current funding rate for a market
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+     * @param {string} symbol unified symbol of the market to fetch the funding rate for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    fetchFundingRate(symbol: string, params?: Dict): Promise<FundingRate>;
+    parseFundingRate(contract: NullableDict, market?: Market): FundingRate;
+    /**
+     * @method
      * @name apex#fetchFundingRateHistory
      * @description fetches historical funding rate prices
      * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-funding-rate-history-v3
@@ -142,6 +153,16 @@ export default class apex extends Exchange {
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
     fetchFundingRateHistory(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<FundingRateHistory[]>;
+    /**
+     * @method
+     * @name apex#fetchFundingRates
+     * @description fetches the current funding rates for multiple markets
+     * @see https://api-docs.omni.apex.exchange/#publicapi-v3-for-omni-get-ticker-data-v3
+     * @param {string[]} [symbols] unified symbols of the markets to fetch the funding rates for, all markets are returned when not assigned
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a dictionary of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}, indexed by market symbol
+     */
+    fetchFundingRates(symbols?: Strings, params?: Dict): Promise<FundingRates>;
     parseOrder(order: Dict, market?: Market): Order;
     parseTimeInForce(timeInForce: Str): Str;
     parseOrderStatus(status: Str): Str;
