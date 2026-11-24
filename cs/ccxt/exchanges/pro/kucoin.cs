@@ -2073,7 +2073,7 @@ public partial class kucoin : ccxt.kucoin
         }
     }
 
-    public virtual void handleOrderBookSubscription(WebSocketClient client, object message, IDictionary<string, object> subscription)
+    public virtual void handleOrderBookSubscription(WebSocketClient client, IDictionary<string, object> message, IDictionary<string, object> subscription)
     {
         Int64? limit = this.safeInteger(subscription, "limit");
         List<object> symbols = this.safeList(subscription, "symbols");
@@ -3917,7 +3917,7 @@ public partial class kucoin : ccxt.kucoin
         client.lastPong = this.milliseconds();
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -3950,7 +3950,7 @@ public partial class kucoin : ccxt.kucoin
             ((IDictionary<string,object>)(this.options != null && this.options.ContainsKey("urls") ? this.options["urls"] : null))[type] = null;
         }
         this.handleErrors(1L, "",((string)client.url), "", new Dictionary<string, object>() {},data, message, new Dictionary<string, object>() {},((string)null));
-        return ((bool?)((object)(false)));
+        return false;
     }
 
     public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)

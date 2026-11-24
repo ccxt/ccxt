@@ -81,7 +81,7 @@ public partial class luno : ccxt.luno
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limitResolved, "timestamp", true));
     }
 
-    public virtual void handleTrades(WebSocketClient client, object message, object subscription)
+    public virtual void handleTrades(WebSocketClient client, object message, IDictionary<string, object> subscription)
     {
         //
         //     {
@@ -205,7 +205,7 @@ public partial class luno : ccxt.luno
         return (orderbook as IOrderBook).limit().Copy();
     }
 
-    public virtual void handleOrderBook(WebSocketClient client, object message, object subscription)
+    public virtual void handleOrderBook(WebSocketClient client, object message, IDictionary<string, object> subscription)
     {
         //
         //     {

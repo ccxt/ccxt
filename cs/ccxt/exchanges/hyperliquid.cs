@@ -1895,7 +1895,7 @@ public partial class hyperliquid : Exchange
         return signature;
     }
 
-    public virtual Dictionary<string, object> signUserSignedAction(object messageTypes, object message)
+    public virtual Dictionary<string, object> signUserSignedAction(IDictionary<string, object> messageTypes, object message)
     {
         string? zeroAddress = this.safeString(this.options, "zeroAddress");
         int chainId = 421614; // check this out
@@ -2042,7 +2042,7 @@ public partial class hyperliquid : Exchange
         return this.signUserSignedAction(messageTypes, message);
     }
 
-    public virtual Dictionary<string, object> buildApproveBuilderFeeSig(object message)
+    public virtual Dictionary<string, object> buildApproveBuilderFeeSig(IDictionary<string, object> message)
     {
         Dictionary<string, object> messageTypes = new Dictionary<string, object>() {
             { "HyperliquidTransaction:ApproveBuilderFee", new List<object>() {new Dictionary<string, object>() {
@@ -2547,7 +2547,7 @@ public partial class hyperliquid : Exchange
         return this.parseOrders(ordersToBeParsed);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, string? amount, object price = null, IDictionary<string, object>? parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, string? amount, string? price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))

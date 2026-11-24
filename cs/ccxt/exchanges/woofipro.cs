@@ -1170,7 +1170,7 @@ public partial class woofipro : Exchange
         string? price = this.safeString(trade, "executed_price");
         string? amount = this.safeString(trade, "executed_quantity");
         string? order_id = this.safeString(trade, "order_id");
-        Dictionary<string, object> fee = this.parseTokenAndFeeTemp(trade, "fee_asset", "fee");
+        Dictionary<string, object> fee = this.parseTokenAndFeeTemp(this.extend(new Dictionary<string, object>() {}, trade), "fee_asset", "fee");
         string? side = this.safeStringLower(trade, "side");
         string? id = this.safeString(trade, "id");
         string? takerOrMaker = null;

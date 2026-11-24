@@ -704,7 +704,7 @@ public partial class alpaca : ccxt.alpaca
         return await (future as Exchange.Future);
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {

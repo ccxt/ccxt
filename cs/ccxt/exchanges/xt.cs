@@ -2384,17 +2384,16 @@ public partial class xt : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < tickers.Count; i++)
         {
-            IDictionary<string, object> rawTicker = ((IDictionary<string, object>)tickers[i]);
             // the spot and contract payloads share the same field names, so
             // the market type cannot be inferred from the entry itself
-            string? marketId = this.safeString(rawTicker, "s");
+            string? marketId = this.safeString((tickers != null && i < tickers.Count ? tickers[i] : null), "s");
             string marketType = "spot";
             if (isContract)
             {
                 marketType = "contract";
             }
             Dictionary<string, object> marketInner = this.safeMarket(marketId, market, "_",marketType);
-            ccxt.Ticker ticker = this.parseTicker(rawTicker, marketInner);
+            ccxt.Ticker ticker = this.parseTicker(this.safeDict(tickers, i, new Dictionary<string, object>() {}), marketInner);
             string? symbol = ticker.symbol;
             if ((symbol != null))
             {

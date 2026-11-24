@@ -1053,7 +1053,7 @@ public partial class modetrade : Exchange
         });
     }
 
-    public virtual Dictionary<string, object> parseTokenAndFeeTemp(object item, string feeTokenKey, string feeAmountKey)
+    public virtual Dictionary<string, object> parseTokenAndFeeTemp(IDictionary<string, object> item, string feeTokenKey, string feeAmountKey)
     {
         string? feeCost = this.safeString(item, feeAmountKey);
         Dictionary<string, object> fee = null;
@@ -1107,7 +1107,7 @@ public partial class modetrade : Exchange
         string? price = this.safeString(trade, "executed_price");
         string? amount = this.safeString(trade, "executed_quantity");
         string? order_id = this.safeString(trade, "order_id");
-        Dictionary<string, object> fee = this.parseTokenAndFeeTemp(trade, "fee_asset", "fee");
+        Dictionary<string, object> fee = this.parseTokenAndFeeTemp(this.extend(new Dictionary<string, object>() {}, trade), "fee_asset", "fee");
         string? cost = Precise.stringMul(price, amount);
         string? side = this.safeStringLower(trade, "side");
         string? takerOrMaker = null;

@@ -1820,7 +1820,7 @@ public partial class coinbase : Exchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            Dictionary<string, object> spotMarket = this.parseSpotMarket(data[i], feeTier);
+            Dictionary<string, object> spotMarket = this.parseSpotMarket(this.safeDict(data, i, new Dictionary<string, object>() {}), feeTier);
             if ((spotMarket != null))
             {
                 result.Add(spotMarket);
@@ -1866,7 +1866,7 @@ public partial class coinbase : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(newMarkets);
     }
 
-    public virtual Dictionary<string, object> parseSpotMarket(object market, IDictionary<string, object> feeTier)
+    public virtual Dictionary<string, object> parseSpotMarket(IDictionary<string, object> market, IDictionary<string, object> feeTier)
     {
         //
         //         {
@@ -2497,11 +2497,10 @@ public partial class coinbase : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            IDictionary<string, object> entry = ((IDictionary<string, object>)data[i]);
-            string? marketId = this.safeString(entry, "product_id");
+            string? marketId = this.safeString((data != null && i < data.Count ? data[i] : null), "product_id");
             Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
             string? symbol = this.safeString(market, "symbol", "");
-            result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(entry, market));
+            result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(this.safeDict(data, i, new Dictionary<string, object>() {}), market));
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }
@@ -5642,7 +5641,7 @@ public partial class coinbase : Exchange
      * @param {string} methodName the name of the calling method
      * @param {object} params the parameters passed to the calling method
      */
-    public virtual void checkIntxPortfolioParam(string methodName, object parameters)
+    public virtual void checkIntxPortfolioParam(string methodName, IDictionary<string, object> parameters)
     {
         string? portfolio = this.safeString(parameters, "portfolio");
         if ((portfolio != null))

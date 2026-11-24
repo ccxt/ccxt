@@ -118,7 +118,7 @@ public partial class okx : ccxt.okx
         return ((url + "/private") + sandboxSuffix);
     }
 
-    public async virtual Task<object> subscribeMultiple(string access, string? channel, IList<object>? symbols = null, object parameters = null)
+    public async virtual Task<object> subscribeMultiple(string access, string? channel, IList<object>? symbols = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -1148,7 +1148,7 @@ public partial class okx : ccxt.okx
         }
     }
 
-    public virtual Dictionary<string, object> parseWsMyLiquidation(object liquidation, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsMyLiquidation(IDictionary<string, object> liquidation, IDictionary<string, object>? market = null)
     {
         //
         //    {
@@ -1303,7 +1303,7 @@ public partial class okx : ccxt.okx
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr54603 && ((hxArr54603 is IList<object>) || (hxArr54603 is not null && hxArr54603.GetType().IsGenericType && hxArr54603.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr54597 && ((hxArr54597 is IList<object>) || (hxArr54597 is not null && hxArr54597.GetType().IsGenericType && hxArr54597.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }
@@ -1358,7 +1358,7 @@ public partial class okx : ccxt.okx
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr57079 && ((hxArr57079 is IList<object>) || (hxArr57079 is not null && hxArr57079.GetType().IsGenericType && hxArr57079.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr57073 && ((hxArr57073 is IList<object>) || (hxArr57073 is not null && hxArr57073.GetType().IsGenericType && hxArr57073.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
         }
@@ -1657,7 +1657,7 @@ public partial class okx : ccxt.okx
         }
     }
 
-    public virtual object handleOrderBookMessage(WebSocketClient client, object message, ccxt.pro.IOrderBook orderbook, object messageHash, IDictionary<string, object> market = null)
+    public virtual object handleOrderBookMessage(WebSocketClient client, IDictionary<string, object> message, ccxt.pro.IOrderBook orderbook, object messageHash, IDictionary<string, object> market = null)
     {
         //
         //     {
@@ -2968,7 +2968,7 @@ public partial class okx : ccxt.okx
         client.lastPong = this.milliseconds();
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     { event: 'error', msg: "Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}", code: "60012" }
@@ -3028,12 +3028,12 @@ public partial class okx : ccxt.okx
             if ((id != null))
             {
                 client.reject(e, id);
-                return ((bool?)((object)(false)));
+                return false;
             }
             client.reject(e);
-            return ((bool?)((object)(false)));
+            return false;
         }
-        return ((bool?)((object)(true)));
+        return true;
     }
 
     public override void handleTextMessage(WebSocketClient client, string message)
@@ -3046,7 +3046,7 @@ public partial class okx : ccxt.okx
 
     public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
-        if (!(this.handleErrorMessage(client, message) == true))
+        if ((this.handleErrorMessage(client, message) != true))
         {
             return;
         }

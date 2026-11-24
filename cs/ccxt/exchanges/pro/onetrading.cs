@@ -330,19 +330,19 @@ public partial class onetrading : ccxt.onetrading
 }} },
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
-        object trades = await this.watch(url, messageHash, request, subscribeHash, request);
+        ccxt.pro.ArrayCache trades = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, subscribeHash, request));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(trades, symbolResolved, limit));
+            limitResolved = ((Int64?)trades.getLimit(symbolResolved, limit));
         }
-        trades = this.filterBySymbolSinceLimit(this.toArray(trades), symbolResolved, since, limitResolved);
-        int numTrades = getArrayLength(trades);
+        IList<object> filtered = this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved);
+        int numTrades = (filtered?.Count ?? 0);
         if ((numTrades == 0))
         {
             return await this.WatchMyTrades(symbolResolved, since,ccxt.BaseExchange.ToInt64Arg(limitResolved), parameters);
         }
-        return ccxt.BaseExchange.ToTradeList(trades);
+        return ccxt.BaseExchange.ToTradeList(filtered);
     }
 
     /**
@@ -517,19 +517,19 @@ public partial class onetrading : ccxt.onetrading
 }} },
         };
         Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
-        object orders = await this.watch(url, messageHash, request, subscribeHash, request);
+        ccxt.pro.ArrayCache orders = ((ccxt.pro.ArrayCache)await this.watch(url, messageHash, request, subscribeHash, request));
         Int64? limitResolved = limit;
         if (this.newUpdates)
         {
-            limitResolved = ((Int64?)ccxt.pro.BaseCache.getLimitOf(orders, symbolResolved, limit));
+            limitResolved = ((Int64?)orders.getLimit(symbolResolved, limit));
         }
-        orders = this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limitResolved);
-        int numOrders = getArrayLength(orders);
+        IList<object> filtered = this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved);
+        int numOrders = (filtered?.Count ?? 0);
         if ((numOrders == 0))
         {
             return await this.WatchOrders(symbolResolved, since,ccxt.BaseExchange.ToInt64Arg(limitResolved), parameters);
         }
-        return ccxt.BaseExchange.ToOrderList(orders);
+        return ccxt.BaseExchange.ToOrderList(filtered);
     }
 
     public virtual void handleTrading(WebSocketClient client, Dictionary<string, object> message)
@@ -1335,7 +1335,7 @@ public partial class onetrading : ccxt.onetrading
         return message;
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         throw new ExchangeError (((this.id + " ") + this.json(message))) ;
     }

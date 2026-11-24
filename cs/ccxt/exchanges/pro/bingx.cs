@@ -372,12 +372,12 @@ public partial class bingx : ccxt.bingx
         return limit;
     }
 
-    public virtual string? getMessageHash(string unifiedChannel, object symbol = null, object extra = null)
+    public virtual string? getMessageHash(string unifiedChannel, string? symbol = null, object extra = null)
     {
         object hash = unifiedChannel;
         if ((symbol != null))
         {
-            hash = ((object)(hash == null ? null : hash + (string)(object)(("::" + (symbol)))));
+            hash = ((object)(hash == null ? null : hash + (string)(object)(("::" + symbol))));
         } else
         {
             hash = ((object)(hash == null ? null : hash + "s")); // tickers, orderbooks, ohlcvs, etc ...
@@ -1351,7 +1351,7 @@ public partial class bingx : ccxt.bingx
         return ccxt.BaseExchange.ToBalances(await this.watch(url, messageHash, request, subscriptionHash, subscription));
     }
 
-    public virtual void setBalanceCache(WebSocketClient client, string type, string? subType, string subscriptionHash, object parameters)
+    public virtual void setBalanceCache(WebSocketClient client, string type, string? subType, string subscriptionHash, IDictionary<string, object> parameters)
     {
         if ((client.subscriptions != null && client.subscriptions.ContainsKey(subscriptionHash)))
         {

@@ -301,7 +301,7 @@ public partial class woo : ccxt.woo
         }
     }
 
-    public virtual void handleOrderBookSubscription(WebSocketClient client, object message, IDictionary<string, object> subscription)
+    public virtual void handleOrderBookSubscription(WebSocketClient client, IDictionary<string, object> message, IDictionary<string, object> subscription)
     {
         Int64? defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
         Int64? limit = this.safeInteger(subscription, "limit", defaultLimit);
@@ -1751,19 +1751,19 @@ public partial class woo : ccxt.woo
         client.resolve(fundingRate, messageHash);
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //
         if (!((message != null && message.ContainsKey("success"))))
         {
-            return ((bool?)((object)(false)));
+            return false;
         }
         bool? success = this.safeBool(message, "success", false);
         if ((success == true))
         {
-            return ((bool?)((object)(false)));
+            return false;
         }
         string? errorMessage = this.safeString(message, "errorMsg");
         try
@@ -1773,7 +1773,7 @@ public partial class woo : ccxt.woo
                 string feedback = ((this.id + " ") + this.json(message));
                 this.throwExactlyMatchedException(this.exceptionsExact, errorMessage, feedback);
             }
-            return ((bool?)((object)(false)));
+            return false;
         } catch(Exception error)
         {
             if (error is AuthenticationError)
@@ -1788,7 +1788,7 @@ public partial class woo : ccxt.woo
             {
                 client.reject(error);
             }
-            return ((bool?)((object)(true)));
+            return true;
         }
     }
 

@@ -863,7 +863,7 @@ public partial class bullish : ccxt.bullish
         client.resolve(positions, "positions");
     }
 
-    public virtual void handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -889,6 +889,7 @@ public partial class bullish : ccxt.bullish
         {
             client.reject(e);
         }
+        return false;
     }
 
     public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)

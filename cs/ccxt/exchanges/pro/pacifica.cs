@@ -887,11 +887,10 @@ public partial class pacifica : ccxt.pacifica
         List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; i < data.Count; i++)
         {
-            IDictionary<string, object> info = ((IDictionary<string, object>)data[i]);
-            string? marketId = this.safeString(info, "symbol");
+            string? marketId = this.safeString((data != null && i < data.Count ? data[i] : null), "symbol");
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = this.safeString(market, "symbol", "");
-            ccxt.Ticker ticker = this.parseTicker(info, market);
+            ccxt.Ticker ticker = this.parseTicker(this.safeDict(data, i, new Dictionary<string, object>() {}), market);
             this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             parsedTickers.Add(ccxt.BaseExchange.FromTicker(ticker));
         }
@@ -1510,7 +1509,7 @@ public partial class pacifica : ccxt.pacifica
         client.resolve(stored, messageHash);
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         // 'rl' key is present only when a rate-limited API key is used
@@ -1533,9 +1532,9 @@ public partial class pacifica : ccxt.pacifica
         } catch(Exception e)
         {
             client.reject(e, id);
-            return ((bool?)((object)(true)));
+            return true;
         }
-        return ((bool?)((object)(false)));
+        return false;
     }
 
     public virtual void handleOrderBookUnsubscription(WebSocketClient client, IDictionary<string, object> subscription)

@@ -1110,7 +1110,7 @@ public partial class coinsph : Exchange
         {
             ticker = await this.publicGetOpenapiQuoteV1Ticker24hr(this.extend(request, parameters));
         }
-        return this.parseTicker(((IDictionary<string, object>)ticker), market);
+        return this.parseTicker(this.extend(new Dictionary<string, object>() {}, ticker), market);
     }
 
     public override ccxt.Ticker parseTicker(IDictionary<string, object> ticker, IDictionary<string, object> market = null)
@@ -2549,7 +2549,7 @@ public partial class coinsph : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            if ((((query != null && key != null && query.ContainsKey(key) ? query[key] : null)) is var hxArr112089 && ((hxArr112089 is IList<object>) || (hxArr112089 is not null && hxArr112089.GetType().IsGenericType && hxArr112089.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            if ((((query != null && key != null && query.ContainsKey(key) ? query[key] : null)) is var hxArr112107 && ((hxArr112107 is IList<object>) || (hxArr112107 is not null && hxArr112107.GetType().IsGenericType && hxArr112107.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 if ((i != 0))
                 {

@@ -707,7 +707,8 @@ public partial class zebpay : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < fees.Count; i++)
         {
-            Dictionary<string, object> fee = this.parseTradingFee(((IDictionary<string, object>)fees[i]));
+            IDictionary<string, object> feeRow = this.safeDict(fees, i, new Dictionary<string, object>() {});
+            Dictionary<string, object> fee = this.parseTradingFee(feeRow);
             string? symbol = this.safeString(fee, "symbol");
             if ((symbol != null))
             {

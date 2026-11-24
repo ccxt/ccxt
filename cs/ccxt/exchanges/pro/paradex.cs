@@ -173,7 +173,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters merged into each subscribe request
      * @returns {object} the first update
      */
-    public async virtual Task<T> subscribeChannels<T>(object url, IList<object> messageHashes, IList<object> channels, object parameters = null)
+    public async virtual Task<T> subscribeChannels<T>(object url, IList<object> messageHashes, IList<object> channels, IDictionary<string, object>? parameters = null)
     {
         // messageHashes[i] is the hash the updates of channels[i] resolve. The channels still to subscribe are
         // looked up again after each await: another watch may have subscribed one meanwhile, and a reconnect
@@ -2961,7 +2961,7 @@ public partial class paradex : ccxt.paradex
         return account;
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -2980,7 +2980,7 @@ public partial class paradex : ccxt.paradex
         IDictionary<string, object> error = this.safeDict(message, "error");
         if ((error == null))
         {
-            return ((bool?)((object)(true)));
+            return true;
         }
         try
         {
@@ -3033,7 +3033,7 @@ public partial class paradex : ccxt.paradex
                 client.reject(e);
             }
         }
-        return ((bool?)((object)(false)));
+        return false;
     }
 
     public override void handleBinaryMessage(WebSocketClient client, object message)
@@ -3053,7 +3053,7 @@ public partial class paradex : ccxt.paradex
 
     public virtual void handleStreamMessage(WebSocketClient client, object message)
     {
-        if (!(this.handleErrorMessage(client,((IDictionary<string, object>)message)) == true))
+        if ((this.handleErrorMessage(client,((IDictionary<string, object>)message)) != true))
         {
             return;
         }

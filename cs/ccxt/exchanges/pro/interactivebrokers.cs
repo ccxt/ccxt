@@ -712,7 +712,7 @@ public partial class interactivebrokers : ccxt.interactivebrokers
         string symbol = this.safeString(subscription, "symbol");
         string timeframe = this.safeString(subscription, "timeframe");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol, new Dictionary<string, object>() {}), timeframe));
+        ccxt.pro.ArrayCacheByTimestamp stored = ((ccxt.pro.ArrayCacheByTimestamp)this.safeValue(this.safeDict(this.ohlcvs, symbol), timeframe));
         if ((stored == null))
         {
             return;

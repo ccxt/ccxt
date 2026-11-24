@@ -231,7 +231,7 @@ public partial class opinion : PredictionExchange
                 Int64? marketType = this.safeInteger(raw, "marketType");
                 if ((marketType == 1))
                 {
-                    Dictionary<string, object> eventVar = this.parseEvent(raw);
+                    Dictionary<string, object> eventVar = this.parseEvent(this.safeDict(rawMarkets, i, new Dictionary<string, object>() {}));
                     List<object> childMarkets = this.safeList(eventVar, "markets", new List<object>() {});
                     int childMarketsLength = childMarkets.Count;
                     for (int ci = 0; ci < childMarketsLength; ci++)
@@ -524,7 +524,7 @@ public partial class opinion : PredictionExchange
         }
         for (int i = 0; i < rawEventsLength; i++)
         {
-            Dictionary<string, object> eventVar = this.parseEvent((rawEvents != null && i < rawEvents.Count ? rawEvents[i] : null));
+            Dictionary<string, object> eventVar = this.parseEvent(this.safeDict(rawEvents, i, new Dictionary<string, object>() {}));
             parsedEvents.Add(eventVar);
             // register the parsed markets so populateOutcomes can index their outcomes
             List<object> eventMarkets = this.safeList(eventVar, "markets", new List<object>() {});
@@ -583,7 +583,7 @@ public partial class opinion : PredictionExchange
      * @param {object} rawEvent the raw opinion categorical market object
      * @returns {object} an event structure
      */
-    public virtual Dictionary<string, object> parseEvent(object rawEvent)
+    public virtual Dictionary<string, object> parseEvent(IDictionary<string, object> rawEvent)
     {
         // {
         //     "chainId": "56",
@@ -2494,8 +2494,8 @@ public partial class opinion : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         string? apiGroup = ((string)(api != null && 0 < api.Count ? api[0] : null));
         string? access = ((string)(api != null && 1 < api.Count ? api[1] : null));
-        object baseUrls = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
-        string baseUrl = this.safeString(baseUrls, apiGroup, ((string)getValue(baseUrls, "opinion")));
+        IDictionary<string, object> baseUrls = this.urlsApi;
+        string baseUrl = this.safeString(baseUrls, apiGroup, ((string)(baseUrls != null && baseUrls.ContainsKey("opinion") ? baseUrls["opinion"] : null)));
         string url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         Dictionary<string, object> existingHeaders = new Dictionary<string, object>() {};

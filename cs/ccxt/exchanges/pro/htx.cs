@@ -2738,7 +2738,7 @@ public partial class htx : ccxt.htx
         promise.resolve(message);
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -2778,7 +2778,7 @@ public partial class htx : ccxt.htx
             string? id = this.safeString(message, "id");
             if ((id == null))
             {
-                return ((bool?)((object)(false)));
+                return false;
             }
             Dictionary<string, object> subscriptionsById = this.indexBy(client.subscriptions, "id");
             IDictionary<string, object> subscription = this.safeDict(subscriptionsById, id);
@@ -2811,7 +2811,7 @@ public partial class htx : ccxt.htx
                     }
                 }
             }
-            return ((bool?)((object)(false)));
+            return false;
         }
         string? code = this.safeString2(message, "code", "err-code");
         if ((code != null) && ((code != "200") && (code != "0")))
@@ -2831,14 +2831,14 @@ public partial class htx : ccxt.htx
                     {
                         ((IDictionary<string,object>)client.subscriptions).Remove(method);
                     }
-                    return ((bool?)((object)(false)));
+                    return false;
                 } else
                 {
                     client.reject(e);
                 }
             }
         }
-        return ((bool?)((object)(true)));
+        return true;
     }
 
     public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)

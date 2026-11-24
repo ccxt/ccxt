@@ -995,7 +995,7 @@ public partial class dydx : Exchange
         return ccxt.BaseExchange.ToFundingRateHistoryList(this.filterBySymbolSinceLimit(sorted, symbol, since, limit));
     }
 
-    public virtual List<object> handlePublicAddress(string? methodName, object parameters)
+    public virtual List<object> handlePublicAddress(string? methodName, IDictionary<string, object> parameters)
     {
         (string?, IDictionary<string, object>) userAuxparamsUserVariable = this.handleOptionStringAndParams(parameters, methodName, "user");
         string? userAux = userAuxparamsUserVariable.Item1;

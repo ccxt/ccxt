@@ -1432,7 +1432,7 @@ public partial class bitrue : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         object response = null;
-        object data = new Dictionary<string, object>() {};
+        Dictionary<string, object> data = new Dictionary<string, object>() {};
         if ((this.safeBool(market, "swap", false) == true))
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1445,14 +1445,14 @@ public partial class bitrue : Exchange
             {
                 response = await this.dapiV1PublicGetTicker(this.extend(request, parameters));
             }
-            data = response;
+            data = this.extend(data, response);
         } else if ((this.safeBool(market, "spot", false) == true))
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             };
             response = await this.spotV1PublicGetTicker24hr(this.extend(request, parameters));
-            data = this.safeDict(response, 0, new Dictionary<string, object>() {});
+            data = this.extend(data, this.safeDict(response, 0, new Dictionary<string, object>() {}));
         } else
         {
             throw new NotSupported ((this.id + " fetchTicker only support spot & swap markets")) ;
@@ -1495,7 +1495,7 @@ public partial class bitrue : Exchange
         //         "time": 1699348013000
         //     }
         //
-        return this.parseTicker(((IDictionary<string, object>)data), market);
+        return this.parseTicker(data, market);
     }
 
     /**

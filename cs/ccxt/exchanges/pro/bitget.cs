@@ -1609,7 +1609,7 @@ public partial class bitget : ccxt.bitget
         IDictionary<string, object> market = null;
         string messageHash = "";
         string subscriptionHash = "positions";
-        string instType = "USDT-FUTURES";
+        string? instType = "USDT-FUTURES";
         (bool?, IDictionary<string, object>) utaparamsUtaVariable = this.handleOptionBoolAndParams(parameters, "watchPositions", "uta", false);
         bool? uta = utaparamsUtaVariable.Item1;
         IDictionary<string, object> paramsUta = (utaparamsUtaVariable.Item2);
@@ -1630,10 +1630,10 @@ public partial class bitget : ccxt.bitget
         {
             instType = "UTA";
         }
-        messageHash = ((instType + ":positions") + messageHash);
         Dictionary<string, object> args = new Dictionary<string, object>() {
             { "instType", instType },
         };
+        messageHash = ((this.safeString(args, "instType", "") + ":positions") + messageHash);
         string topicOrChannel = "channel";
         if ((uta == true))
         {
@@ -2983,7 +2983,7 @@ public partial class bitget : ccxt.bitget
         client.resolve(this.balance, messageHash);
     }
 
-    public async virtual Task<T> watchPublic<T>(object uta, object messageHash, IDictionary<string, object> args, object parameters = null)
+    public async virtual Task<T> watchPublic<T>(object uta, object messageHash, IDictionary<string, object> args, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object url = ((uta is true)) ? (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("utaPublic") ? this.urlsApiSections["ws"]["utaPublic"] : null) : (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null);
@@ -3068,7 +3068,7 @@ public partial class bitget : ccxt.bitget
         return await this.watch(url, messageHash, message, messageHash);
     }
 
-    public async virtual Task<T> watchPublicMultiple<T>(object uta, IList<object> messageHashes, IList<object> argsArray, object parameters = null)
+    public async virtual Task<T> watchPublicMultiple<T>(object uta, IList<object> messageHashes, IList<object> argsArray, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object url = ((uta is true)) ? (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("utaPublic") ? this.urlsApiSections["ws"]["utaPublic"] : null) : (this.urlsApiSections.ContainsKey("ws") && this.urlsApiSections["ws"].ContainsKey("public") ? this.urlsApiSections["ws"]["public"] : null);
@@ -3160,7 +3160,7 @@ public partial class bitget : ccxt.bitget
         (future as Future).resolve(true);
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    { event: "error", code: 30015, msg: "Invalid sign" }
@@ -3177,7 +3177,7 @@ public partial class bitget : ccxt.bitget
                 this.throwBroadlyMatchedException((this.exceptionsWs != null && this.exceptionsWs.ContainsKey("broad") ? this.exceptionsWs["broad"] : null), msg, feedback);
                 throw new ExchangeError (feedback) ;
             }
-            return ((bool?)((object)(false)));
+            return false;
         } catch(Exception e)
         {
             if (e is AuthenticationError)
@@ -3193,7 +3193,7 @@ public partial class bitget : ccxt.bitget
                 // Note: if error happens on a subscribe event, user will have to close exchange to resubscribe. Issue #19041
                 client.reject(e);
             }
-            return ((bool?)((object)(true)));
+            return true;
         }
     }
 

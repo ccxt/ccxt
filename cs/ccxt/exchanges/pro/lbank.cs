@@ -1076,7 +1076,7 @@ public partial class lbank : ccxt.lbank
         client.resolve(orderbook, messageHash);
     }
 
-    public virtual void handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -1089,6 +1089,7 @@ public partial class lbank : ccxt.lbank
         string? errMsg = this.safeString(message, "message", "");
         var error = new ExchangeError(((this.id + " ") + errMsg));
         client.reject(error);
+        return false;
     }
 
     public async virtual Task handlePing(WebSocketClient client, Dictionary<string, object> message)

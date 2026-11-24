@@ -1667,7 +1667,7 @@ public partial class hibachi : Exchange
      * @param {string} [params.cursorOrderId] pagination cursor, returns orders with orderId strictly less than this value
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<List<ccxt.Order>> FetchOrdersByStatus(object status, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchOrdersByStatus(object status, string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

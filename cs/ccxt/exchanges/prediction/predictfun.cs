@@ -594,7 +594,7 @@ public partial class predictfun : PredictionExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < rawTopicsLength; i++)
         {
-            Dictionary<string, object> parsedEvent = this.parseEvent((rawTopics != null && i < rawTopics.Count ? rawTopics[i] : null));
+            Dictionary<string, object> parsedEvent = this.parseEvent(this.extend(new Dictionary<string, object>() {}, (rawTopics != null && i < rawTopics.Count ? rawTopics[i] : null)));
             result.Add(parsedEvent);
             List<object> parsedMarkets = this.safeList(parsedEvent, "markets", new List<object>() {});
             int parsedMarketsLength = parsedMarkets.Count;
@@ -817,7 +817,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} rawTopic the raw market topic object
      * @returns {object} an event structure
      */
-    public virtual Dictionary<string, object> parseEvent(object rawTopic)
+    public virtual Dictionary<string, object> parseEvent(IDictionary<string, object> rawTopic)
     {
         //
         //     {
@@ -1113,7 +1113,7 @@ public partial class predictfun : PredictionExchange
      * @param {object} rawTopic the enclosing raw market topic (carries slug/vendor/fees/dates)
      * @returns {object} a market structure
      */
-    public virtual Dictionary<string, object> parseTopicMarket(object rawMarket, object rawTopic)
+    public virtual Dictionary<string, object> parseTopicMarket(object rawMarket, IDictionary<string, object> rawTopic)
     {
         //
         //     {
@@ -3608,7 +3608,7 @@ public partial class predictfun : PredictionExchange
      */
     public virtual string? socketUrl()
     {
-        object urls = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
+        IDictionary<string, object> urls = this.urlsApi;
         string? bs = this.safeString(urls, "ws");
         if ((bs == null))
         {
@@ -4271,8 +4271,8 @@ public partial class predictfun : PredictionExchange
             throw new AuthenticationError ((this.id + " sign() requires the \"apiKey\" credential for all endpoints")) ;
         }
         string? apiGroup = ((string)(api != null && 0 < api.Count ? api[0] : null));
-        object baseUrls = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
-        string baseUrl = this.safeString(baseUrls, apiGroup, ((string)getValue(baseUrls, "predictfun")));
+        IDictionary<string, object> baseUrls = this.urlsApi;
+        string baseUrl = this.safeString(baseUrls, apiGroup, ((string)(baseUrls != null && baseUrls.ContainsKey("predictfun") ? baseUrls["predictfun"] : null)));
         string url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));
         if ((method == "GET"))

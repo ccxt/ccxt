@@ -4567,7 +4567,7 @@ public partial class kucoin : Exchange
         return orderbook;
     }
 
-    public virtual void checkTriggerPrices(object parameters)
+    public virtual void checkTriggerPrices(IDictionary<string, object> parameters)
     {
         double? triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
         double? stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
@@ -6300,7 +6300,7 @@ public partial class kucoin : Exchange
      * Check fetchSpotOrdersByStatus(), fetchContractOrdersByStatus() and fetchUtaOrdersByStatus() for more details on the extra parameters that can be used in params
      * @returns An [array of order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async virtual Task<List<ccxt.Order>> FetchOrdersByStatus(string status, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchOrdersByStatus(string status, string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -7223,7 +7223,7 @@ public partial class kucoin : Exchange
         return this.parseOrder(data, market);
     }
 
-    public virtual string? handleTradeType(object isContractMarket = null, object marginMode = null, bool? isUnified = null, object parameters = null)
+    public virtual string? handleTradeType(object isContractMarket = null, string? marginMode = null, bool? isUnified = null, object parameters = null)
     {
         isContractMarket ??= false;
         isUnified ??= false;
@@ -7236,7 +7236,7 @@ public partial class kucoin : Exchange
                 tradeType = "FUTURES";
             } else if ((marginMode != null))
             {
-                tradeType = ((string)marginMode).ToUpper();
+                tradeType = marginMode.ToUpper();
                 if (isUnified == true)
                 {
                     if (tradeType == "ISOLATED")

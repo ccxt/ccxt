@@ -1615,7 +1615,7 @@ public partial class grvt : Exchange
         };
     }
 
-    public virtual string? getSubAccountId(object parameters)
+    public virtual string? getSubAccountId(IDictionary<string, object> parameters)
     {
         string? subAccountId = this.safeString(this.handleOptionAndParams(parameters, "getSubAccountId", "accountId"), 0);
         if ((subAccountId == null))

@@ -1871,7 +1871,7 @@ public partial class kraken : ccxt.kraken
         client.resolve((this.balance != null && type != null && this.balance.ContainsKey(type) ? this.balance[type] : null), channel);
     }
 
-    public virtual string? getMessageHash(string unifiedElementName, object subChannelName = null, object symbol = null)
+    public virtual string? getMessageHash(string unifiedElementName, string? subChannelName = null, object symbol = null)
     {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
@@ -1886,7 +1886,7 @@ public partial class kraken : ccxt.kraken
         }
         if ((subChannelName != null))
         {
-            messageHash = ((object)(messageHash == null ? null : messageHash + (string)(object)(("#" + (subChannelName)))));
+            messageHash = ((object)(messageHash == null ? null : messageHash + (string)(object)(("#" + subChannelName))));
         }
         return ((string?)((object)(messageHash)));
     }
@@ -1963,7 +1963,7 @@ public partial class kraken : ccxt.kraken
         return message;
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -2002,9 +2002,9 @@ public partial class kraken : ccxt.kraken
             {
                 client.reject(exception, requestId);
             }
-            return ((bool?)((object)(false)));
+            return false;
         }
-        return ((bool?)((object)(true)));
+        return true;
     }
 
     public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)

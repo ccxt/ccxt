@@ -1200,7 +1200,7 @@ public partial class binance : ccxt.binance
         }
     }
 
-    public virtual object handleOrderBookMessage(WebSocketClient client, object message, ccxt.pro.IOrderBook orderbook)
+    public virtual object handleOrderBookMessage(WebSocketClient client, IDictionary<string, object> message, ccxt.pro.IOrderBook orderbook)
     {
         Int64? u = this.safeInteger(message, "u");
         this.handleDeltas(orderbook?.asks, this.safeList(message, "a", new List<object>() {}));
@@ -1405,7 +1405,7 @@ public partial class binance : ccxt.binance
         return message;
     }
 
-    public virtual void handleUnSubscription(WebSocketClient client, object subscription)
+    public virtual void handleUnSubscription(WebSocketClient client, IDictionary<string, object> subscription)
     {
         List<object> messageHashes = this.safeStringList(subscription, new List<object>() {"messageHashes"});
         List<object> subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
@@ -6713,7 +6713,7 @@ public partial class binance : ccxt.binance
         client.resolve(newPositions, (accountType + ":positions"));
     }
 
-    public virtual void handleWsError(WebSocketClient client, Dictionary<string, object> message)
+    public virtual void handleWsError(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -6805,7 +6805,7 @@ public partial class binance : ccxt.binance
         IDictionary<string, object> error = this.safeDict(messageValue, "error");
         if (((error != null)) || ((status != null) && status != "200"))
         {
-            this.handleWsError(client, (Dictionary<string, object>)messageValue);
+            this.handleWsError(client, messageValue);
             return;
         }
         // user subscription wraps message in subscriptionId and event

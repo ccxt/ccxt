@@ -1852,7 +1852,7 @@ public partial class xt : ccxt.xt
         this.cleanCache(subscription);
     }
 
-    public virtual void handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //    {
@@ -1869,9 +1869,10 @@ public partial class xt : ccxt.xt
                 ((IDictionary<string,object>)client.subscriptions).Remove("token");
             }
             this.getListenKey(true);
-            return;
+            return false;
         }
         var error = new ExchangeError(((this.id + " ") + this.json(message)));
         client.reject(error);
+        return false;
     }
 }

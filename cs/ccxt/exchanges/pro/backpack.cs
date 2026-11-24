@@ -331,7 +331,7 @@ public partial class backpack : ccxt.backpack
         return await this.watchMultiple(url, messageHashes, message, messageHashes);
     }
 
-    public virtual void handleUnsubscriptions(object url, IList<object> messageHashes, object message)
+    public virtual void handleUnsubscriptions(object url, IList<object> messageHashes, IDictionary<string, object> message)
     {
         var client = this.client(url);
         this.watchMultiple(url, messageHashes, message, messageHashes);
@@ -2023,7 +2023,7 @@ public partial class backpack : ccxt.backpack
 
     public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
     {
-        if (!(this.handleErrorMessage(client, message) == true))
+        if ((this.handleErrorMessage(client, message) != true))
         {
             return;
         }
@@ -2062,7 +2062,7 @@ public partial class backpack : ccxt.backpack
         }
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -2082,11 +2082,11 @@ public partial class backpack : ccxt.backpack
                 string? msg = this.safeString(error, "message", "");
                 throw new ExchangeError (((this.id + " ") + msg)) ;
             }
-            return ((bool?)((object)(true)));
+            return true;
         } catch(Exception e)
         {
             client.reject(e);
         }
-        return ((bool?)((object)(true)));
+        return true;
     }
 }

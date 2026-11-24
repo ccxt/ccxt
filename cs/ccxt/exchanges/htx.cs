@@ -8524,7 +8524,7 @@ public partial class htx : Exchange
         return ccxt.BaseExchange.ToIsolatedBorrowRates(this.parseIsolatedBorrowRates(data));
     }
 
-    public override Dictionary<string, object> parseIsolatedBorrowRate(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseIsolatedBorrowRate(IDictionary<string, object> info, IDictionary<string, object> market = null)
     {
         //
         //     {

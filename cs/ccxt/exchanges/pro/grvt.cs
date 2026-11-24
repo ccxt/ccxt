@@ -1058,7 +1058,7 @@ public partial class grvt : ccxt.grvt
         return this.parseOrder(this.extend(new Dictionary<string, object>() {}, order), market);
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> response)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> response)
     {
         //
         //    {
@@ -1083,6 +1083,6 @@ public partial class grvt : ccxt.grvt
             this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (((this.id + " ") + body)) ;
         }
-        return ((bool?)((object)(false)));
+        return false;
     }
 }

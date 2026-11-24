@@ -1079,7 +1079,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         return message;
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, Dictionary<string, object> message)
     {
         //
         //     {
@@ -1110,7 +1110,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         } catch(Exception error)
         {
             client.reject(error);
-            return ((bool?)((object)(true)));
+            return true;
         }
     }
 

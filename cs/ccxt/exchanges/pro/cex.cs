@@ -1687,7 +1687,7 @@ public partial class cex : ccxt.cex
         return message;
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         try
         {
@@ -1705,7 +1705,7 @@ public partial class cex : ccxt.cex
             if ((future != null))
             {
                 client.reject(error, messageHash);
-                return ((bool?)((object)(true)));
+                return true;
             } else
             {
                 throw error;

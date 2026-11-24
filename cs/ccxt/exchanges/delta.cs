@@ -1547,13 +1547,12 @@ public partial class delta : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; i < tickers.Count; i++)
         {
-            IDictionary<string, object> rawTicker = ((IDictionary<string, object>)tickers[i]);
-            string? contractType = this.safeString(rawTicker, "contract_type");
+            string? contractType = this.safeString((tickers != null && i < tickers.Count ? tickers[i] : null), "contract_type");
             if ((contractType == "options_combos") || (contractType == "binary_call_options") || (contractType == "binary_put_options"))
             {
                 continue;
             }
-            ccxt.Ticker ticker = this.parseTicker(rawTicker);
+            ccxt.Ticker ticker = this.parseTicker(this.safeDict(tickers, i, new Dictionary<string, object>() {}));
             string? symbol = ticker.symbol;
             if ((symbol != null))
             {

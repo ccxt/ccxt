@@ -4294,7 +4294,7 @@ public partial class mexc : Exchange
         return this.safeString(statuses, orderType, orderType);
     }
 
-    public async virtual Task<Dictionary<string, object>> FetchAccountHelper(string? type, object parameters)
+    public async virtual Task<Dictionary<string, object>> FetchAccountHelper(string? type, IDictionary<string, object> parameters)
     {
         if ((type == "spot"))
         {

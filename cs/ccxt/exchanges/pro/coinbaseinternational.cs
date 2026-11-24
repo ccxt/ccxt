@@ -1481,6 +1481,10 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         string? symbol = this.safeSymbol(marketId);
         Int64? timestamp = this.safeInteger(data, "timestamp");
         string? channel = this.safeString(parameters, "channel");
+        if ((channel == null))
+        {
+            throw new ExchangeError ((this.id + " order book update has no channel")) ;
+        }
         List<object> channelParts = channel.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
         int channelPartsLength = channelParts.Count;
         bool isGrouped = (channelPartsLength == 5);

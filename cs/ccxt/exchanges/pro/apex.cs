@@ -1032,7 +1032,7 @@ public partial class apex : ccxt.apex
         return await (future as Exchange.Future);
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //   {
@@ -1102,7 +1102,7 @@ public partial class apex : ccxt.apex
                 // because apex doesn't echo a `reqId` on these warnings.
                 if ((ret_msg != null) && ret_msg.IndexOf("already subscribed", StringComparison.Ordinal) >= 0)
                 {
-                    return ((bool?)((object)(false)));
+                    return false;
                 }
                 if (op == "auth")
                 {
@@ -1112,7 +1112,7 @@ public partial class apex : ccxt.apex
                     throw new ExchangeError (((this.id + " ") + ret_msg)) ;
                 }
             }
-            return ((bool?)((object)(false)));
+            return false;
         } catch(Exception error)
         {
             if (error is AuthenticationError)
@@ -1128,7 +1128,7 @@ public partial class apex : ccxt.apex
                 string? messageHash = this.safeString(message, "reqId");
                 client.reject(error, messageHash);
             }
-            return ((bool?)((object)(true)));
+            return true;
         }
     }
 

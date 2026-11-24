@@ -2388,7 +2388,7 @@ public partial class hyperliquid : PredictionExchange
         return this.hash(this.base16ToBinary(data), keccak, "binary");
     }
 
-    public virtual Dictionary<string, object> signL1Action(object action, Int64? nonce, object vaultAddress = null)
+    public virtual Dictionary<string, object> signL1Action(IDictionary<string, object> action, Int64? nonce, object vaultAddress = null)
     {
         this.checkRequiredCredentials();
         object hash = this.actionHash(action, vaultAddress, nonce);
@@ -2414,7 +2414,7 @@ public partial class hyperliquid : PredictionExchange
         return this.signMessage(msg, this.privateKey);
     }
 
-    public virtual Dictionary<string, object> signUserSignedAction(object messageTypes, object message)
+    public virtual Dictionary<string, object> signUserSignedAction(IDictionary<string, object> messageTypes, object message)
     {
         string? zeroAddress = this.safeString(this.options, "zeroAddress");
         int chainId = 421614;
@@ -2429,7 +2429,7 @@ public partial class hyperliquid : PredictionExchange
         return signature;
     }
 
-    public virtual Dictionary<string, object> buildApproveBuilderFeeSig(object message)
+    public virtual Dictionary<string, object> buildApproveBuilderFeeSig(IDictionary<string, object> message)
     {
         Dictionary<string, object> messageTypes = new Dictionary<string, object>() {
             { "HyperliquidTransaction:ApproveBuilderFee", new List<object>() {new Dictionary<string, object>() {
@@ -2516,7 +2516,7 @@ public partial class hyperliquid : PredictionExchange
         return null;
     }
 
-    public virtual List<object> handlePublicAddress(string? methodName, object parameters)
+    public virtual List<object> handlePublicAddress(string? methodName, IDictionary<string, object> parameters)
     {
         (string?, IDictionary<string, object>) userAuxparamsUserVariable = this.handleOptionStringAndParams2(parameters, methodName, "user", "subAccountAddress");
         string? userAux = userAuxparamsUserVariable.Item1;

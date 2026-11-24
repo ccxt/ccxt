@@ -1821,7 +1821,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         client.resolve(stored, messageHash);
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -1861,7 +1861,7 @@ public partial class hyperliquid : ccxt.hyperliquid
                 // a duplicate subscribe is harmless - the server-side subscription is intact
                 // and data keeps flowing; rejecting all pending futures here would poison the
                 // whole connection, see https://github.com/ccxt/ccxt/issues/28369
-                return ((bool?)((object)(true)));
+                return true;
             }
             if ((ret_msg?.IndexOf("Already unsubscribed", StringComparison.Ordinal) ?? -1) >= 0)
             {
@@ -1872,12 +1872,12 @@ public partial class hyperliquid : ccxt.hyperliquid
                 if ((subscription != null))
                 {
                     this.handleUnsubscription(client, subscription);
-                    return ((bool?)((object)(true)));
+                    return true;
                 }
             }
             var error = new ExchangeError(((this.id + " ") + ret_msg));
             client.reject(error);
-            return ((bool?)((object)(true)));
+            return true;
         }
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? id = this.safeString(message, "id");
@@ -1892,14 +1892,14 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             var error = new ExchangeError(((this.id + " ") + this.json(payload)));
             client.reject(error, id);
-            return ((bool?)((object)(true)));
+            return true;
         }
         string? type = this.safeString(payload, "type");
         if (type == "error")
         {
             var error = new ExchangeError(((this.id + " ") + this.json(payload)));
             client.reject(error, id);
-            return ((bool?)((object)(true)));
+            return true;
         }
         try
         {
@@ -1907,9 +1907,9 @@ public partial class hyperliquid : ccxt.hyperliquid
         } catch(Exception e)
         {
             client.reject(e, id);
-            return ((bool?)((object)(true)));
+            return true;
         }
-        return ((bool?)((object)(false)));
+        return false;
     }
 
     /**

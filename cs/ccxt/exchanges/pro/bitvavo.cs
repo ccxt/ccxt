@@ -184,16 +184,15 @@ public partial class bitvavo : ccxt.bitvavo
         List<object> result = new List<object>() {};
         for (int i = 0; i < tickers.Count; i++)
         {
-            IDictionary<string, object> data = ((IDictionary<string, object>)tickers[i]);
-            string? marketId = this.safeString(data, "market");
+            string? marketId = this.safeString((tickers != null && i < tickers.Count ? tickers[i] : null), "market");
             Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
-            ccxt.Ticker ticker = this.parseTicker(data, market);
+            ccxt.Ticker ticker = this.parseTicker(this.safeDict(tickers, i, new Dictionary<string, object>() {}), market);
             string? symbol = ticker.symbol;
             this.tickers[(string)symbol] = ccxt.BaseExchange.FromTicker(ticker);
             result.Add(ccxt.BaseExchange.FromTicker(ticker));
             if ((eventVar != null))
             {
-                string messageHash = ((eventVar + "@") + this.safeString(data, "market", ""));
+                string messageHash = ((eventVar + "@") + this.safeString((tickers != null && i < tickers.Count ? tickers[i] : null), "market", ""));
                 client.resolve(ccxt.BaseExchange.FromTicker(ticker), messageHash);
             }
         }
@@ -812,7 +811,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
     }
 
-    public virtual object handleOrderBookMessage(WebSocketClient client, object message, ccxt.pro.IOrderBook orderbook)
+    public virtual object handleOrderBookMessage(WebSocketClient client, IDictionary<string, object> message, ccxt.pro.IOrderBook orderbook)
     {
         //
         //     {
@@ -1369,12 +1368,12 @@ public partial class bitvavo : ccxt.bitvavo
         return this.parseToInt((ts + randomPart));
     }
 
-    public async virtual Task<object> watchRequest(string? action, object request)
+    public async virtual Task<object> watchRequest(string? action, IDictionary<string, object> request)
     {
         Int64? messageHash = ((Int64)this.requestId());
         string messageHashStr = ((object)messageHash).ToString();
-        ((IDictionary<string,object>)request)["action"] = action;
-        ((IDictionary<string,object>)request)["requestId"] = messageHash;
+        request["action"] = action;
+        request["requestId"] = messageHash;
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws");
         return await this.watch(url, messageHashStr, request, messageHashStr);
     }
@@ -2026,7 +2025,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -2046,7 +2045,7 @@ public partial class bitvavo : ccxt.bitvavo
         string? error = this.safeString(message, "error");
         if ((error == null))
         {
-            return ((bool?)((object)(null)));
+            return false;
         }
         Int64? code = this.safeInteger(error, "errorCode");
         string? action = this.safeString(message, "action");
@@ -2065,9 +2064,9 @@ public partial class bitvavo : ccxt.bitvavo
         {
             var feedback = new ExchangeError(((this.id + " ") + this.json(message)));
             client.reject(feedback, messageHash);
-            return ((bool?)((object)(true)));
+            return true;
         }
-        return ((bool?)((object)(null)));
+        return false;
     }
 
     public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)

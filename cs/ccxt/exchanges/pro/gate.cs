@@ -1056,10 +1056,9 @@ public partial class gate : ccxt.gate
         bool isTicker = ((objectName == "ticker")); // whether ticker or bid-ask
         for (int i = 0; i < (results?.Count ?? 0); i++)
         {
-            IDictionary<string, object> rawTicker = ((IDictionary<string, object>)results[i]);
-            string? marketId = this.safeString(rawTicker, "s");
+            string? marketId = this.safeString((results != null && i < results.Count ? results[i] : null), "s");
             Dictionary<string, object> market = this.safeMarket(marketId, null, "_",marketType);
-            ccxt.Ticker parsedItem = this.parseTicker(rawTicker, market);
+            ccxt.Ticker parsedItem = this.parseTicker(this.safeDict(results, i, new Dictionary<string, object>() {}), market);
             string? symbol = parsedItem.symbol;
             if (isTicker)
             {
@@ -1209,7 +1208,7 @@ public partial class gate : ccxt.gate
         //
         object rawResult = this.safeValue(message, "result");
         List<object> result = new List<object>() {};
-        if ((rawResult is IList<object> hxList53095))
+        if ((rawResult is IList<object> hxList53075))
         {
             result = this.safeList(message, "result", new List<object>() {});
         } else
@@ -1704,28 +1703,29 @@ public partial class gate : ccxt.gate
         {
             market = this.getMarketFromSymbols(symbolsNormalized);
         }
-        string? type = null;
-        object query = null;
-        IList<object> typequeryVariable = (IList<object>)this.handleMarketTypeAndParams("watchPositions", market, parameters);
-        type = (string)typequeryVariable[0];
-        query = typequeryVariable[1];
-        if (type == "spot")
+        IList<object> marketTypemarketQueryVariable = (IList<object>)this.handleMarketTypeAndParams("watchPositions", market, parameters);
+        string marketType = (string)marketTypemarketQueryVariable[0];
+        IDictionary<string, object> marketQuery = ((IDictionary<string, object>)marketTypemarketQueryVariable[1]);
+        object query = marketQuery;
+        string type = marketType;
+        string messageHash = (marketType + ":positions");
+        if ((marketType == "spot"))
         {
             type = "swap";
+            messageHash = "swap:positions";
         }
         string typeId = this.getSupportedMapping(type, new Dictionary<string, object>() {
             { "future", "futures" },
             { "swap", "futures" },
             { "option", "options" },
         });
-        object messageHash = (type == null ? null : type + ":positions");
         if (!this.isEmpty(symbolsNormalized))
         {
             if ((symbolsNormalized == null))
             {
                 throw new ArgumentsRequired ((this.id + " watchPositions() symbols is required")) ;
             }
-            messageHash = ((object)(messageHash == null ? null : messageHash + ("::" + String.Join(",", symbolsNormalized.ToArray()))));
+            messageHash = messageHash + ("::" + String.Join(",", symbolsNormalized.ToArray()));
         }
         string channel = (typeId + ".positions");
         string? subType = null;
@@ -1741,7 +1741,7 @@ public partial class gate : ccxt.gate
         ccxt.pro.ArrayCache cache = ((ccxt.pro.ArrayCache)this.safeValue(this.positionsByType, type));
         if (((fetchPositionsSnapshot == true)) && ((awaitPositionsSnapshot == true)) && ((cache == null)))
         {
-            return ccxt.BaseExchange.ToPositionList(await client.future((type == null ? null : type + ":fetchPositionsSnapshot")));
+            return ccxt.BaseExchange.ToPositionList(await client.future((type + ":fetchPositionsSnapshot")));
         }
         object positions = await this.subscribePrivate<object>(url, messageHash, payload, channel, query, true);
         if (this.newUpdates)
@@ -1751,17 +1751,17 @@ public partial class gate : ccxt.gate
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(this.safeValue(this.positionsByType, type)), symbolsNormalized, since, limit, true));
     }
 
-    public virtual void setPositionsCache(WebSocketClient client, string? type, IList<object>? symbols = null)
+    public virtual void setPositionsCache(WebSocketClient client, string type, IList<object>? symbols = null)
     {
-        if ((this.positionsByType != null && type is string inOpKey0 && this.positionsByType.ContainsKey(inOpKey0)))
+        if ((this.positionsByType != null && this.positionsByType.ContainsKey(type)))
         {
             return;
         }
         bool fetchPositionsSnapshot = ((bool)this.handleOption("watchPositions", "fetchPositionsSnapshot", false));
         if ((fetchPositionsSnapshot == true))
         {
-            string? messageHash = ((string)((type + ":fetchPositionsSnapshot")));
-            if (!((client.futures != null && messageHash != null && client.futures.ContainsKey(messageHash))))
+            string messageHash = (type + ":fetchPositionsSnapshot");
+            if (!((client.futures != null && client.futures.ContainsKey(messageHash))))
             {
                 client.future(messageHash);
                 this.spawn(this.loadPositionsSnapshot, new object[] { client, messageHash, type});
@@ -2245,7 +2245,7 @@ public partial class gate : ccxt.gate
         }
     }
 
-    public virtual Dictionary<string, object> parseWsLiquidation(object liquidation, IDictionary<string, object>? market = null)
+    public virtual Dictionary<string, object> parseWsLiquidation(IDictionary<string, object> liquidation, IDictionary<string, object>? market = null)
     {
         //
         // future / delivery
@@ -2295,7 +2295,7 @@ public partial class gate : ccxt.gate
         }, marketResolved);
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -2400,9 +2400,9 @@ public partial class gate : ccxt.gate
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(id);
             }
-            return ((bool?)((object)(true)));
+            return true;
         }
-        return ((bool?)((object)(false)));
+        return false;
     }
 
     public virtual void handleBalanceSubscription(WebSocketClient client, Dictionary<string, object> message, object subscription = null)
@@ -2672,10 +2672,10 @@ public partial class gate : ccxt.gate
         }
     }
 
-    public virtual string? getUrlByMarketType(object type, bool? isInverse = null)
+    public virtual string? getUrlByMarketType(string? type, bool? isInverse = null)
     {
         isInverse ??= false;
-        if (((type is "swap")) || ((type is "future")))
+        if (((type == "swap")) || ((type == "future")))
         {
             string settleKey = (isInverse == true) ? "btc" : "usdt";
             return this.safeString(this.safeDict((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), type), settleKey);
@@ -2841,7 +2841,7 @@ public partial class gate : ccxt.gate
         return await this.watch(url, messageHash, request, messageHash, requestIdResolved);
     }
 
-    public async virtual Task<T> subscribePrivate<T>(object url, object messageHash, object payload, string channel, object parameters, bool? requiresUid = null)
+    public async virtual Task<T> subscribePrivate<T>(object url, string messageHash, object payload, string channel, object parameters, bool? requiresUid = null)
     {
         requiresUid ??= false;
         this.checkRequiredCredentials();
@@ -2881,7 +2881,7 @@ public partial class gate : ccxt.gate
             request["payload"] = payload;
         }
         var client = this.client(url);
-        if (!((client.subscriptions != null && messageHash is string inOpKey1 && client.subscriptions.ContainsKey(inOpKey1))))
+        if (!((client.subscriptions != null && client.subscriptions.ContainsKey(messageHash))))
         {
             string tempSubscriptionHash = ((object)requestId).ToString();
             // in case of authenticationError we will throw

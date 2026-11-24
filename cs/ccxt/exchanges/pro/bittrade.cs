@@ -376,7 +376,7 @@ public partial class bittrade : ccxt.bittrade
         return (orderbook as IOrderBook).limit().Copy();
     }
 
-    public virtual void handleOrderBookSnapshot(WebSocketClient client, object message, object subscription)
+    public virtual void handleOrderBookSnapshot(WebSocketClient client, object message, IDictionary<string, object> subscription)
     {
         //
         //     {
@@ -698,7 +698,7 @@ public partial class bittrade : ccxt.bittrade
         this.spawn(this.pong, new object[] { client, message});
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -715,7 +715,7 @@ public partial class bittrade : ccxt.bittrade
             string? id = this.safeString(message, "id");
             if ((id == null))
             {
-                return ((bool?)((object)(false)));
+                return false;
             }
             Dictionary<string, object> subscriptionsById = this.indexBy(client.subscriptions, "id");
             IDictionary<string, object> subscription = this.safeDict(subscriptionsById, id);
@@ -740,9 +740,9 @@ public partial class bittrade : ccxt.bittrade
                     }
                 }
             }
-            return ((bool?)((object)(false)));
+            return false;
         }
-        return ((bool?)((object)(true)));
+        return true;
     }
 
     public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)

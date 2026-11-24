@@ -209,7 +209,7 @@ public partial class binance : PredictionExchange
         int rawTopicsLength = (rawTopics?.Count ?? 0);
         for (int i = 0; i < rawTopicsLength; i++)
         {
-            Dictionary<string, object> parsedEvent = this.parseEvent((rawTopics != null && i < rawTopics.Count ? rawTopics[i] : null));
+            Dictionary<string, object> parsedEvent = this.parseEvent(this.extend(new Dictionary<string, object>() {}, (rawTopics != null && i < rawTopics.Count ? rawTopics[i] : null)));
             parsedEvents.Add(parsedEvent);
             List<object> eventMarkets = this.safeList(parsedEvent, "markets", new List<object>() {});
             int eventMarketsLength = eventMarkets.Count;
@@ -475,7 +475,7 @@ public partial class binance : PredictionExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < rawTopicsLength; i++)
         {
-            Dictionary<string, object> parsedEvent = this.parseEvent((rawTopics != null && i < rawTopics.Count ? rawTopics[i] : null));
+            Dictionary<string, object> parsedEvent = this.parseEvent(this.extend(new Dictionary<string, object>() {}, (rawTopics != null && i < rawTopics.Count ? rawTopics[i] : null)));
             result.Add(parsedEvent);
             List<object> parsedMarkets = this.safeList(parsedEvent, "markets", new List<object>() {});
             int parsedMarketsLength = parsedMarkets.Count;
@@ -593,7 +593,7 @@ public partial class binance : PredictionExchange
      * @param {object} rawTopic the raw market topic object
      * @returns {object} an event structure
      */
-    public virtual Dictionary<string, object> parseEvent(object rawTopic)
+    public virtual Dictionary<string, object> parseEvent(IDictionary<string, object> rawTopic)
     {
         //
         //     {
@@ -683,7 +683,7 @@ public partial class binance : PredictionExchange
      * @param {object} rawTopic the enclosing raw market topic (carries slug/vendor/fees/dates)
      * @returns {object} a market structure
      */
-    public virtual Dictionary<string, object> parseTopicMarket(object rawMarket, object rawTopic)
+    public virtual Dictionary<string, object> parseTopicMarket(object rawMarket, IDictionary<string, object> rawTopic)
     {
         //
         //     {

@@ -954,7 +954,7 @@ public partial class extended : ccxt.extended
         return ((IDictionary<string, object>)((object)(null)));
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
@@ -962,7 +962,7 @@ public partial class extended : ccxt.extended
         IDictionary<string, object> error = this.safeDict(message, "error");
         if ((error == null))
         {
-            return ((bool?)((object)(false)));
+            return false;
         }
         string feedback = ((this.id + " ") + this.json(message));
         string? errorCode = this.safeString(error, "code");

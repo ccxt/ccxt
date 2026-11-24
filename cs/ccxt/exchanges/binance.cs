@@ -5586,15 +5586,15 @@ public partial class binance : Exchange
         return account;
     }
 
-    public virtual object parseBalanceCustom(object response, object type = null, object marginMode = null)
+    public virtual object parseBalanceCustom(object response, string? type = null, string? marginMode = null)
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
         Int64? timestamp = null;
-        bool isolated = (marginMode is "isolated");
-        bool cross = ((type is "margin")) || ((marginMode is "cross"));
-        if (!isolated && (((type is "spot")) || cross))
+        bool isolated = (marginMode == "isolated");
+        bool cross = ((type == "margin")) || ((marginMode == "cross"));
+        if (!isolated && (((type == "spot")) || cross))
         {
             timestamp = this.safeInteger(response, "updateTime");
             List<object> balances = this.safeList2(response, "balances", "userAssets", new List<object>() {});
@@ -5636,7 +5636,7 @@ public partial class binance : Exchange
                     result = this.mergeBalanceAccount(result,quoteCode, this.parseBalanceHelper(quote));
                 }
             }
-        } else if ((type is "savings"))
+        } else if ((type == "savings"))
         {
             List<object> positionAmountVos = this.safeList(response, "positionAmountVos", new List<object>() {});
             for (int i = 0; i < positionAmountVos.Count; i++)
@@ -5663,7 +5663,7 @@ public partial class binance : Exchange
         return this.safeBalance(result);
     }
 
-    public virtual Dictionary<string, object> parseBalanceList(IList<object> response, object type = null, object marginMode = null, bool? isPortfolioMargin = null, object info = null)
+    public virtual Dictionary<string, object> parseBalanceList(IList<object> response, string? type = null, string? marginMode = null, bool? isPortfolioMargin = null, object info = null)
     {
         isPortfolioMargin ??= false;
         Dictionary<string, object> result = new Dictionary<string, object>() {
@@ -5673,7 +5673,7 @@ public partial class binance : Exchange
         {
             result["info"] = info;
         }
-        bool cross = ((type is "margin")) || ((marginMode is "cross"));
+        bool cross = ((type == "margin")) || ((marginMode == "cross"));
         if (isPortfolioMargin == true)
         {
             for (int i = 0; i < (response?.Count ?? 0); i++)
@@ -5682,11 +5682,11 @@ public partial class binance : Exchange
                 Dictionary<string, object> accountPapi = this.account();
                 string? currencyId = this.safeString(entry, "asset");
                 string? code = this.safeCurrencyCode(currencyId);
-                if ((type is "linear"))
+                if ((type == "linear"))
                 {
                     accountPapi["free"] = this.safeString(entry, "umWalletBalance");
                     accountPapi["used"] = this.safeString(entry, "umUnrealizedPNL");
-                } else if ((type is "inverse"))
+                } else if ((type == "inverse"))
                 {
                     accountPapi["free"] = this.safeString(entry, "cmWalletBalance");
                     accountPapi["used"] = this.safeString(entry, "cmUnrealizedPNL");
@@ -5711,7 +5711,7 @@ public partial class binance : Exchange
                     result[(string)code] = accountPapi;
                 }
             }
-        } else if ((type is "funding"))
+        } else if ((type == "funding"))
         {
             for (int i = 0; i < (response?.Count ?? 0); i++)
             {
@@ -16638,7 +16638,7 @@ public partial class binance : Exchange
         };
     }
 
-    public override Dictionary<string, object> parseIsolatedBorrowRate(object info, IDictionary<string, object> market = null)
+    public override Dictionary<string, object> parseIsolatedBorrowRate(IDictionary<string, object> info, IDictionary<string, object> market = null)
     {
         //
         //    {

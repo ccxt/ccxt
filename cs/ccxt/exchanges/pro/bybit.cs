@@ -238,7 +238,7 @@ public partial class bybit : ccxt.bybit
         return ((string?)((object)(urlResolved)));
     }
 
-    public virtual object cleanParams(object parameters)
+    public virtual object cleanParams(IDictionary<string, object> parameters)
     {
         object paramsOmitted = this.omit(parameters, new List<object>() {"type", "subType", "settle", "defaultSettle", "unifiedMargin"});
         return paramsOmitted;
@@ -2638,7 +2638,7 @@ public partial class bybit : ccxt.bybit
         }
     }
 
-    public virtual void parseWsBalance(object balance, object accountType = null)
+    public virtual void parseWsBalance(object balance, string? accountType = null)
     {
         //
         // spot
@@ -2813,7 +2813,7 @@ public partial class bybit : ccxt.bybit
         return await (future as Exchange.Future);
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //   {
@@ -2883,7 +2883,7 @@ public partial class bybit : ccxt.bybit
                     throw new ExchangeError (((this.id + " ") + ret_msg)) ;
                 }
             }
-            return ((bool?)((object)(false)));
+            return false;
         } catch(Exception error)
         {
             string? reqId = this.safeString2(message, "req_id", "reqId");
@@ -2938,7 +2938,7 @@ public partial class bybit : ccxt.bybit
                     client.reject(error, reqId);
                 }
             }
-            return ((bool?)((object)(true)));
+            return true;
         }
     }
 

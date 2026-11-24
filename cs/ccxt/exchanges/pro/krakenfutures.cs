@@ -1863,7 +1863,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         return ((client.subscriptions != null && hash != null && client.subscriptions.ContainsKey(hash)));
     }
 
-    public virtual string? getMessageHash(string unifiedElementName, object subChannelName = null, object symbol = null)
+    public virtual string? getMessageHash(string unifiedElementName, string? subChannelName = null, string? symbol = null)
     {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
@@ -1874,16 +1874,16 @@ public partial class krakenfutures : ccxt.krakenfutures
             messageHash = ((object)(messageHash == null ? null : messageHash + "s"));
         } else
         {
-            messageHash = ((object)(messageHash == null ? null : messageHash + (string)(object)((":" + (symbol)))));
+            messageHash = ((object)(messageHash == null ? null : messageHash + (string)(object)((":" + symbol))));
         }
         if ((subChannelName != null))
         {
-            messageHash = ((object)(messageHash == null ? null : messageHash + (string)(object)(("#" + (subChannelName)))));
+            messageHash = ((object)(messageHash == null ? null : messageHash + (string)(object)(("#" + subChannelName))));
         }
         return ((string?)((object)(messageHash)));
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -1903,7 +1903,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         // mirrors the bitmart 90008 fix.
         if ((errMsg != null) && errMsg.IndexOf("Already subscribed", StringComparison.Ordinal) >= 0)
         {
-            return ((bool?)((object)(false)));
+            return false;
         }
         try
         {
@@ -1911,7 +1911,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         } catch(Exception error)
         {
             client.reject(error);
-            return ((bool?)((object)(false)));
+            return false;
         }
     }
 

@@ -3617,7 +3617,7 @@ public partial class hashkey : Exchange
         return this.parseOrders(response, market, since, limit);
     }
 
-    public virtual void checkTypeParam(string? methodName, object parameters)
+    public virtual void checkTypeParam(string? methodName, IDictionary<string, object> parameters)
     {
         // some hashkey endpoints have a type param for swap markets that defines the type of an order
         // type param is reserved in ccxt for defining the type of the market
@@ -4552,10 +4552,10 @@ public partial class hashkey : Exchange
             return ccxt.BaseExchange.ToTradingFeeInterface(fee);
         } else if ((this.safeBool(market, "swap", false) == true))
         {
-            response = await this.privateGetApiV1FuturesCommissionRate(this.extend(new Dictionary<string, object>() {
+            Dictionary<string, object> swapResponse = await this.privateGetApiV1FuturesCommissionRate(this.extend(new Dictionary<string, object>() {
                 { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             }, parameters));
-            return ccxt.BaseExchange.ToTradingFeeInterface(this.parseTradingFee(((IDictionary<string, object>)response), market));
+            return ccxt.BaseExchange.ToTradingFeeInterface(this.parseTradingFee(swapResponse, market));
         } else
         {
             string? marketTypeValue = this.safeString(market, "type", "");

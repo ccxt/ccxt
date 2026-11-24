@@ -906,7 +906,7 @@ public partial class deepcoin : ccxt.deepcoin
         client.resolve(orderbook, messageHash);
     }
 
-    public virtual void handleOrderBookMessage(WebSocketClient client, object message, ccxt.pro.IOrderBook orderbook)
+    public virtual void handleOrderBookMessage(WebSocketClient client, IDictionary<string, object> message, ccxt.pro.IOrderBook orderbook)
     {
         //     {
         //         "a": "PMO",
@@ -1450,7 +1450,7 @@ public partial class deepcoin : ccxt.deepcoin
         this.cleanCache(subscription);
     }
 
-    public virtual void handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -1487,5 +1487,6 @@ public partial class deepcoin : ccxt.deepcoin
         {
             client.reject(e, messageHash);
         }
+        return false;
     }
 }

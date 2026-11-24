@@ -1431,7 +1431,7 @@ public partial class toobit : ccxt.toobit
         return ((wsBaseUrl + "/api/v1/ws/") + listenKey);
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -1446,8 +1446,8 @@ public partial class toobit : ccxt.toobit
             string msg = ((((this.id + " code: ") + code) + " message: ") + desc);
             var exception = new ExchangeError(msg); // c# fix
             client.reject(exception);
-            return ((bool?)((object)(true)));
+            return true;
         }
-        return ((bool?)((object)(false)));
+        return false;
     }
 }

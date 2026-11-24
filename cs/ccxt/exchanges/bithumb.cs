@@ -1890,7 +1890,7 @@ public partial class bithumb : Exchange
         return this.parseOrders(data, market);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, IDictionary<string, object>? parameters = null)
     {
         /**
         * @method
@@ -3653,7 +3653,7 @@ public partial class bithumb : Exchange
         return this.milliseconds();
     }
 
-    public virtual string? urlencodeWithArrayBrackets(object query)
+    public virtual string? urlencodeWithArrayBrackets(IDictionary<string, object> query)
     {
         Dictionary<string, object> queryCopy = this.extend(new Dictionary<string, object>() {}, query);
         List<object> keys = new List<object>(queryCopy.Keys);

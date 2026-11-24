@@ -2799,7 +2799,7 @@ public partial class gate : Exchange
         return (request, query);
     }
 
-    public virtual (string?, IDictionary<string, object>) getMarginMode(bool? trigger, object parameters)
+    public virtual (string?, IDictionary<string, object>) getMarginMode(bool? trigger, IDictionary<string, object> parameters)
     {
         /**
          * @ignore
@@ -6931,7 +6931,7 @@ public partial class gate : Exchange
         return new List<object>() {request, finalParams};
     }
 
-    public async virtual Task<List<ccxt.Order>> FetchOrdersByStatus(string status, object symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchOrdersByStatus(string status, string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

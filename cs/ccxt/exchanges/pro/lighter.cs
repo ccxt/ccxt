@@ -59,7 +59,7 @@ public partial class lighter : ccxt.lighter
         });
     }
 
-    public virtual string? getMessageHash(string unifiedChannel, object symbol = null, object extra = null)
+    public virtual string? getMessageHash(string unifiedChannel, object symbol = null, string? extra = null)
     {
         object hash = unifiedChannel;
         if ((symbol != null))
@@ -71,7 +71,7 @@ public partial class lighter : ccxt.lighter
         }
         if ((extra != null))
         {
-            hash = ((object)(hash == null ? null : hash + (string)(object)(("::" + (extra)))));
+            hash = ((object)(hash == null ? null : hash + (string)(object)(("::" + extra))));
         }
         return ((string?)((object)(hash)));
     }
@@ -118,7 +118,7 @@ public partial class lighter : ccxt.lighter
         return await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscription);
     }
 
-    public async virtual Task<T> subscribePrivate<T>(object messageHash, IDictionary<string, object>? parameters = null)
+    public async virtual Task<T> subscribePrivate<T>(string? messageHash, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.preLoadLighterLibrary();

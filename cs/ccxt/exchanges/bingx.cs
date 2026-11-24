@@ -2916,7 +2916,8 @@ public partial class bingx : Exchange
             //     ]
             // }
             //
-            return this.parseTicker(this.safeDict((response != null && response.ContainsKey("data") ? response["data"] : null), 0, new Dictionary<string, object>() {}), market);
+            List<object> rows = this.safeList(response, "data", new List<object>() {});
+            return this.parseTicker(this.safeDict(rows, 0, new Dictionary<string, object>() {}), market);
         } else
         {
             response = await this.swapV2PublicGetQuotePremiumIndex(this.extend(request, paramsSubType));

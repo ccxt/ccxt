@@ -1632,7 +1632,7 @@ public partial class blofin : Exchange
         return ccxt.BaseExchange.ToBalances(this.parseBalanceByType(response));
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, object parameters = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, double? amount, double? price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))

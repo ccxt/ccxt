@@ -1066,7 +1066,7 @@ public partial class whitebit : ccxt.whitebit
         }
     }
 
-    public async virtual Task<object> watchPrivate(string messageHash, object method, IList<object>? reqParams = null, object parameters = null)
+    public async virtual Task<object> watchPrivate(string messageHash, object method, IList<object>? reqParams = null, IDictionary<string, object>? parameters = null)
     {
         reqParams ??= new List<object>();
         parameters ??= new Dictionary<string, object>();
@@ -1185,7 +1185,7 @@ public partial class whitebit : ccxt.whitebit
         return message;
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //     {
@@ -1212,10 +1212,10 @@ public partial class whitebit : ccxt.whitebit
                 {
                     ((IDictionary<string,object>)client.subscriptions).Remove("authenticated");
                 }
-                return ((bool?)((object)(false)));
+                return false;
             }
         }
-        return ((bool?)((object)(true)));
+        return true;
     }
 
     public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)
@@ -1227,7 +1227,7 @@ public partial class whitebit : ccxt.whitebit
         // pong
         //    { error: null, result: "pong", id: 0 }
         //
-        if (!(this.handleErrorMessage(client, message) == true))
+        if ((this.handleErrorMessage(client, message) != true))
         {
             return;
         }

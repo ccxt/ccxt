@@ -983,7 +983,7 @@ public partial class krakenfutures : Exchange
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object>? market = null, object volume = null)
+    public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object>? market = null, string? volume = null)
     {
         //
         //    {

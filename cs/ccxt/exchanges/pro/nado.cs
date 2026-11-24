@@ -349,7 +349,7 @@ public partial class nado : ccxt.nado
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr16499 && ((hxArr16499 is IList<object>) || (hxArr16499 is not null && hxArr16499.GetType().IsGenericType && hxArr16499.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr16493 && ((hxArr16493 is IList<object>) || (hxArr16493 is not null && hxArr16493.GetType().IsGenericType && hxArr16493.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]")) ;
         }
@@ -414,7 +414,7 @@ public partial class nado : ccxt.nado
     {
         parameters ??= new Dictionary<string, object>();
         int symbolsLength = symbolsAndTimeframes?.Count ?? 0;
-        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr19681 && ((hxArr19681 is IList<object>) || (hxArr19681 is not null && hxArr19681.GetType().IsGenericType && hxArr19681.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if ((symbolsLength == 0) || !(((symbolsAndTimeframes != null && 0 < symbolsAndTimeframes.Count ? symbolsAndTimeframes[0] : null)) is var hxArr19675 && ((hxArr19675 is IList<object>) || (hxArr19675 is not null && hxArr19675.GetType().IsGenericType && hxArr19675.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             throw new ArgumentsRequired ((this.id + " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]")) ;
         }
@@ -1199,7 +1199,7 @@ public partial class nado : ccxt.nado
         return await this.watch<T>(url, messageHash);
     }
 
-    public async virtual Task<T> watchPrivate<T>(string streamType, IDictionary<string, object> stream, string messageHash, object parameters = null)
+    public async virtual Task<T> watchPrivate<T>(string streamType, IDictionary<string, object> stream, string messageHash, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "subscriptions");
@@ -1226,7 +1226,7 @@ public partial class nado : ccxt.nado
         return await this.watch<T>(url, messageHash);
     }
 
-    public async virtual Task<object> unWatchPrivate(IDictionary<string, object> stream, string? messageHash, object parameters = null)
+    public async virtual Task<object> unWatchPrivate(IDictionary<string, object> stream, string? messageHash, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         string? url = this.safeString((this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null), "subscriptions");
@@ -2150,13 +2150,13 @@ public partial class nado : ccxt.nado
         return message;
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         object error = this.safeValue(message, "error");
         string? status = this.safeString(message, "status");
         if (((error == null)) && (status != "failure"))
         {
-            return ((bool?)((object)(false)));
+            return false;
         }
         var feedback = new ExchangeError(((this.id + " ") + this.json(message)));
         string? id = this.safeString(message, "id", "");
@@ -2168,7 +2168,7 @@ public partial class nado : ccxt.nado
             {
                 ((IDictionary<string,object>)client.subscriptions).Remove(executeHash);
                 client.reject(feedback, executeHash);
-                return ((bool?)((object)(true)));
+                return true;
             }
         }
         IDictionary<string, object> subscription = this.safeDict(client.subscriptions, ("subscription:" + id));
@@ -2181,7 +2181,7 @@ public partial class nado : ccxt.nado
         {
             client.reject(feedback);
         }
-        return ((bool?)((object)(true)));
+        return true;
     }
 
     public override void handleMessage(WebSocketClient client, IDictionary<string, object> message)

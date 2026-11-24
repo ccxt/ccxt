@@ -462,7 +462,7 @@ public partial class kalshi : PredictionExchange
         return ccxt.BaseExchange.ToMarketInterfaceList(flatMarkets);
     }
 
-    public virtual List<object> parseBinaryMarketToOutcomes(object raw)
+    public virtual List<object> parseBinaryMarketToOutcomes(IDictionary<string, object> raw)
     {
         return new List<object> {this.parseMarket(raw)};
     }
@@ -2647,7 +2647,7 @@ public partial class kalshi : PredictionExchange
         List<object> result = new List<object>() {};
         for (int di = 0; di < rawEventsLength; di++)
         {
-            Dictionary<string, object> parsedEvent = this.parseEvent((rawEvents != null && di < rawEvents.Count ? rawEvents[di] : null));
+            Dictionary<string, object> parsedEvent = this.parseEvent(this.extend(new Dictionary<string, object>() {}, (rawEvents != null && di < rawEvents.Count ? rawEvents[di] : null)));
             result.Add(parsedEvent);
             // register the parsed markets so populateOutcomes can index their outcomes
             object parsedMarkets = (parsedEvent != null && parsedEvent.ContainsKey("markets") ? parsedEvent["markets"] : null);
@@ -2943,7 +2943,7 @@ public partial class kalshi : PredictionExchange
      * @param {object} rawEvent the raw event object
      * @returns {object} an event structure
      */
-    public virtual Dictionary<string, object> parseEvent(object rawEvent)
+    public virtual Dictionary<string, object> parseEvent(IDictionary<string, object> rawEvent)
     {
         // {
         //         "available_on_brokers": true,
@@ -3123,7 +3123,7 @@ public partial class kalshi : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         string? apiGroup = ((string)(api != null && 0 < api.Count ? api[0] : null));
         string? access = ((string)(api != null && 1 < api.Count ? api[1] : null));
-        object baseUrls = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
+        IDictionary<string, object> baseUrls = this.urlsApi;
         string? baseUrlDefault = this.safeString(baseUrls, "kalshi", "");
         string? baseUrl = this.safeString(baseUrls, apiGroup, baseUrlDefault);
         string? implodedPath = this.implodeParams(path, parameters);

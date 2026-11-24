@@ -1058,7 +1058,7 @@ public partial class derive : ccxt.derive
         return ccxt.BaseExchange.ToPositionList(this.filterBySymbolsSinceLimit(this.toArray(this.safeValue(this.positionsByType, subaccountIdKey)), symbolsResolved, since, limit, true));
     }
 
-    public virtual IDictionary<string, object> handlePositionDelta(string subaccountIdKey, object entry)
+    public virtual IDictionary<string, object> handlePositionDelta(string subaccountIdKey, IDictionary<string, object> entry)
     {
         string? marketId = this.safeString(entry, "name");
         Dictionary<string, object> market = this.safeMarket(marketId);

@@ -788,7 +788,7 @@ public partial class bithumb : ccxt.bithumb
         }, market);
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -810,29 +810,29 @@ public partial class bithumb : ccxt.bithumb
                 addedMessage = "";
             }
             client.reject(new ExchangeError((((this.id + " websocket error ") + errorName) + addedMessage)));
-            return ((bool?)((object)(false)));
+            return false;
         }
         if (!((message != null && message.ContainsKey("status"))))
         {
-            return ((bool?)((object)(true)));
+            return true;
         }
         string? errorCode = this.safeString(message, "status");
         try
         {
             if ((errorCode == "UP") || (errorCode == "0000"))
             {
-                return ((bool?)((object)(true)));
+                return true;
             }
             if (errorCode != "0000")
             {
                 string? msg = this.safeString(message, "resmsg");
                 throw new ExchangeError (((this.id + " ") + msg)) ;
             }
-            return ((bool?)((object)(true)));
+            return true;
         } catch(Exception e)
         {
             client.reject(e);
-            return ((bool?)((object)(false)));
+            return false;
         }
     }
 
@@ -1196,7 +1196,7 @@ public partial class bithumb : ccxt.bithumb
             this.handlePing(client, message);
             return;
         }
-        if (!(this.handleErrorMessage(client, message) == true))
+        if ((this.handleErrorMessage(client, message) != true))
         {
             return;
         }

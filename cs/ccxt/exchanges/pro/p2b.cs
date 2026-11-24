@@ -540,14 +540,14 @@ public partial class p2b : ccxt.p2b
         }
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         string? error = this.safeString(message, "error");
         if ((error != null))
         {
             throw new ExchangeError (((this.id + " error: ") + this.json(error))) ;
         }
-        return ((bool?)((object)(false)));
+        return false;
     }
 
     public override object ping(WebSocketClient client)

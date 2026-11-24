@@ -1212,7 +1212,7 @@ public partial class woo : Exchange
         string? price = this.safeString2(trade, "executed_price", "executedPrice");
         string? amount = this.safeString2(trade, "executed_quantity", "executedQuantity");
         string? order_id = this.safeString2(trade, "order_id", "orderId");
-        Dictionary<string, object> fee = this.parseTokenAndFeeTemp(trade, new List<object>() {"fee_asset", "feeAsset"}, new List<object>() {"fee"});
+        Dictionary<string, object> fee = this.parseTokenAndFeeTemp(this.extend(new Dictionary<string, object>() {}, trade), new List<object>() {"fee_asset", "feeAsset"}, new List<object>() {"fee"});
         string? cost = Precise.stringMul(price, amount);
         string? side = this.safeStringLower(trade, "side");
         string? id = this.safeString(trade, "id");

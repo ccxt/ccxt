@@ -431,7 +431,7 @@ public partial class hashkey : ccxt.hashkey
         string? symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;
         if ((symbol != null))
         {
-            messageHash = (("orders" + ":") + symbolResolved);
+            messageHash = (("orders" + ":") + this.symbol(symbol));
         }
         ccxt.pro.ArrayCache orders = await this.watchPrivate<ccxt.pro.ArrayCache>(messageHash);
         Int64? limitResolved = limit;
@@ -564,7 +564,7 @@ public partial class hashkey : ccxt.hashkey
         string? symbolResolved = ((symbol != null)) ? this.symbol(symbol) : symbol;
         if ((symbol != null))
         {
-            messageHash = (("myTrades" + ":") + symbolResolved);
+            messageHash = (("myTrades" + ":") + this.symbol(symbol));
         }
         ccxt.pro.ArrayCache trades = await this.watchPrivate<ccxt.pro.ArrayCache>(messageHash);
         Int64? limitResolved = limit;

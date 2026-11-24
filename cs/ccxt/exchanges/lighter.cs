@@ -947,7 +947,7 @@ public partial class lighter : Exchange
         this.options["chainId"] = enable == true ? 300 : 304;
     }
 
-    public virtual List<object> createOrderRequest(object symbol, string? type, object side, object amount, object price = null, object parameters = null)
+    public virtual List<object> createOrderRequest(object symbol, string? type, object side, object amount, object price = null, IDictionary<string, object>? parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((type == null))

@@ -1321,11 +1321,10 @@ public partial class poloniex : ccxt.poloniex
         Dictionary<string, object> newTickers = new Dictionary<string, object>() {};
         for (int i = 0; i < data.Count; i++)
         {
-            IDictionary<string, object> item = ((IDictionary<string, object>)data[i]);
-            string? marketId = this.safeString(item, "symbol");
+            string? marketId = this.safeString((data != null && i < data.Count ? data[i] : null), "symbol");
             if ((marketId != null))
             {
-                ccxt.Ticker ticker = this.parseTicker(item);
+                ccxt.Ticker ticker = this.parseTicker(this.safeDict(data, i, new Dictionary<string, object>() {}));
                 string? symbol = ticker.symbol;
                 if ((symbol != null))
                 {
@@ -1644,7 +1643,7 @@ public partial class poloniex : ccxt.poloniex
         }
     }
 
-    public virtual bool? handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
+    public virtual bool handleErrorMessage(WebSocketClient client, IDictionary<string, object> message)
     {
         //
         //    {
@@ -1704,10 +1703,10 @@ public partial class poloniex : ccxt.poloniex
                 {
                     client.reject(e, id);
                 }
-                return ((bool?)((object)(true)));
+                return true;
             }
         }
-        return ((bool?)((object)(false)));
+        return false;
     }
 
     public virtual IDictionary<string, object> handleAuthenticate(WebSocketClient client, IDictionary<string, object> message)

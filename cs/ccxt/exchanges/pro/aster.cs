@@ -2377,7 +2377,7 @@ public partial class aster : ccxt.aster
         });
     }
 
-    public virtual Dictionary<string, object> getMarketFromOrder(WebSocketClient client, object order)
+    public virtual Dictionary<string, object> getMarketFromOrder(WebSocketClient client, IDictionary<string, object> order)
     {
         string? marketId = this.safeString(order, "s");
         string marketType = this.getAccountTypeFromUrl(client.url);

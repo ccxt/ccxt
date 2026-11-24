@@ -1305,7 +1305,8 @@ public partial class kraken : Exchange
         };
         Dictionary<string, object> response = await this.publicGetTicker(this.extend(request, parameters));
         IDictionary<string, object> tickerResult = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        return this.parseTicker(this.safeDict(tickerResult, (market.ContainsKey("id") ? market["id"] : null), new Dictionary<string, object>() {}), market);
+        string? marketId = this.safeString(market, "id", "");
+        return this.parseTicker(this.safeDict(tickerResult, marketId, new Dictionary<string, object>() {}), market);
     }
 
     public override IList<object> parseOHLCV(object ohlcv, IDictionary<string, object> market = null)

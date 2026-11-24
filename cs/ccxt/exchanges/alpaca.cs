@@ -1265,7 +1265,7 @@ public partial class alpaca : Exchange
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(results, "symbol", symbolsNormalized));
     }
 
-    public virtual string? generateClientOrderId(object parameters)
+    public virtual string? generateClientOrderId(IDictionary<string, object> parameters)
     {
         string? clientOrderIdprefix = this.safeString(this.options, "clientOrderId");
         string uuid = this.uuid();

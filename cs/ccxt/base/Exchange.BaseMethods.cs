@@ -1342,7 +1342,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " parseBorrowInterest() is not supported yet")) ;
     }
 
-    public virtual Dictionary<string, object> parseIsolatedBorrowRate(object info, IDictionary<string, object> market = null)
+    public virtual Dictionary<string, object> parseIsolatedBorrowRate(IDictionary<string, object> info, IDictionary<string, object> market = null)
     {
         throw new NotSupported ((this.id + " parseIsolatedBorrowRate() is not supported yet")) ;
     }

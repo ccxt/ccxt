@@ -1028,7 +1028,7 @@ public partial class phemex : Exchange
         });
     }
 
-    public virtual Dictionary<string, object> parseSpotMarket(object market)
+    public virtual Dictionary<string, object> parseSpotMarket(IDictionary<string, object> market)
     {
         //
         //     {
@@ -1366,10 +1366,9 @@ public partial class phemex : Exchange
                 string? baseCurrency = this.safeString(market, "baseCurrency");
                 IDictionary<string, object> currencyValues = this.safeDict(currenciesByCode, baseCurrency, new Dictionary<string, object>() {});
                 string? valueScale = this.safeString(currencyValues, "valueScale", "8");
-                market = this.extend(market, new Dictionary<string, object>() {
+                market = this.parseSpotMarket(this.extend(market, new Dictionary<string, object>() {
                     { "valueScale", valueScale },
-                });
-                market = this.parseSpotMarket(market);
+                }));
             }
             if ((market != null))
             {
@@ -3668,9 +3667,9 @@ public partial class phemex : Exchange
         }
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object order = data;
-        if ((data is IList<object> hxList171004))
+        if ((data is IList<object> hxList170971))
         {
-            int numOrders = hxList171004.Count;
+            int numOrders = hxList170971.Count;
             if (numOrders < 1)
             {
                 if ((clientOrderId != null))

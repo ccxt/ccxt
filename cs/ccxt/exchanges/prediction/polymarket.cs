@@ -601,7 +601,7 @@ public partial class polymarket : PredictionExchange
             {
                 flatMarkets.Add(ccxtMarkets[mi]);
             }
-            Dictionary<string, object> parsedEvent = this.parseEvent(rawEvent);
+            Dictionary<string, object> parsedEvent = this.parseEvent(this.extend(new Dictionary<string, object>() {}, rawEvent));
             string? eventSlug = this.safeString(rawEvent, "slug");
             if (((eventSlug != null)) && (eventSlug != ""))
             {
@@ -3113,7 +3113,7 @@ public partial class polymarket : PredictionExchange
                 }
                 this.markets[(string)(m != null && m.ContainsKey("market") ? m["market"] : null)] = m;
             }
-            Dictionary<string, object> parsedEvent = this.parseEvent(eventForParsing);
+            Dictionary<string, object> parsedEvent = this.parseEvent(this.extend(new Dictionary<string, object>() {}, eventForParsing));
             result.Add(parsedEvent);
         }
         // populateOutcomes rebuilds the outcome cache from the markets registered above; the
@@ -3166,12 +3166,12 @@ public partial class polymarket : PredictionExchange
         {
             eventForParsing = new Dictionary<string, object>() {};
         }
-        Dictionary<string, object> eventVar = this.parseEvent(eventForParsing);
+        Dictionary<string, object> eventVar = this.parseEvent(this.extend(new Dictionary<string, object>() {}, eventForParsing));
         this.indexEventOutcomes(eventVar);
         return ccxt.BaseExchange.ToPredictionEvent(eventVar);
     }
 
-    public virtual Dictionary<string, object> parseEvent(object rawEvent)
+    public virtual Dictionary<string, object> parseEvent(IDictionary<string, object> rawEvent)
     {
         // {
         //     "id": "73113",
@@ -3297,7 +3297,7 @@ public partial class polymarket : PredictionExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (rawEvents?.Count ?? 0); i++)
         {
-            result.Add(this.parseEvent((rawEvents != null && i < rawEvents.Count ? rawEvents[i] : null)));
+            result.Add(this.parseEvent(this.safeDict(rawEvents, i, new Dictionary<string, object>() {})));
         }
         return result;
     }
@@ -3346,8 +3346,8 @@ public partial class polymarket : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         string? apiGroup = ((string)(api != null && 0 < api.Count ? api[0] : null));
         string? access = ((string)(api != null && 1 < api.Count ? api[1] : null));
-        object baseUrls = (this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null);
-        string? baseUrl = this.safeString(baseUrls, apiGroup, getValue(baseUrls, "gamma"));
+        IDictionary<string, object> baseUrls = this.urlsApi;
+        string? baseUrl = this.safeString(baseUrls, apiGroup, (baseUrls != null && baseUrls.ContainsKey("gamma") ? baseUrls["gamma"] : null));
         object url = (baseUrl == null ? null : baseUrl + "/" + this.implodeParams(path, parameters));
         // an empty params container must not become a body: in PHP an empty array is
         // indistinguishable from an empty dict, so a bare Array.isArray check would json it to "[]"
@@ -3373,7 +3373,7 @@ public partial class polymarket : PredictionExchange
             List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
             for (int i = 0; i < queryKeys.Count; i++)
             {
-                if (((getValue(query, queryKeys[i])) is var hxArr152178 && ((hxArr152178 is IList<object>) || (hxArr152178 is not null && hxArr152178.GetType().IsGenericType && hxArr152178.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+                if (((getValue(query, queryKeys[i])) is var hxArr152252 && ((hxArr152252 is IList<object>) || (hxArr152252 is not null && hxArr152252.GetType().IsGenericType && hxArr152252.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
                 {
                     hasArrayParam = true;
                 }

@@ -932,7 +932,7 @@ public partial class blofin : ccxt.blofin
         client.resolve(fundingRate, messageHash);
     }
 
-    public async virtual Task<T> watchMultipleWrapper<T>(bool? isPublic, object channelName, object callerMethodName, object symbolsArray = null, object parameters = null)
+    public async virtual Task<T> watchMultipleWrapper<T>(bool? isPublic, object channelName, object callerMethodName, object symbolsArray = null, IDictionary<string, object>? parameters = null)
     {
         // underlier method for all watch-multiple symbols
         parameters ??= new Dictionary<string, object>();
