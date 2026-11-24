@@ -15347,6 +15347,9 @@ function pairReturnElementProven (printer, node, element) {
     if (pairSameType (element, PAIR_MAP) && javaOmitMapCall (printer, value) !== undefined) {
         return true; // omit of a Map binds the Map overload: a fresh Map, or null
     }
+    if (ts.isPropertyAccessExpression (value) && value.expression.kind === ts.SyntaxKind.ThisKeyword && value.name.text === 'walletAddress') {
+        return element === 'String' && javaBaseDeclaredString (printer, value.name); // hand-written BaseExchange `public String walletAddress`
+    }
     if (!ts.isIdentifier (value)) {
         return false;
     }
