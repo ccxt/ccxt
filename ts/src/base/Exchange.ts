@@ -878,7 +878,7 @@ export class BaseExchange {
         return this.decode (binary);
     }
 
-    decodeProtoMsg (data: any) {
+    decodeProtoMsg (data: any): Dict {
         if (protobufMexc === undefined) {
             throw new NotSupported (this.id + ' requires protobuf to decode messages, please install it with `npm install protobufjs`');
         }

@@ -2524,13 +2524,13 @@ func (this *BaseExchange) IsBinaryMessage(message any) bool {
 	return false
 }
 
-func (this *BaseExchange) DecodeProtoMsg(message any) any {
+func (this *BaseExchange) DecodeProtoMsg(message any) map[string]any {
 	var msg pb.PushDataV3ApiWrapper
 	if err := proto.Unmarshal(message.([]byte), &msg); err != nil {
 		panic(fmt.Sprintf("failed to unmarshal proto message: %v", err))
 	}
 	jsonBytes, _ := protojson.Marshal(&msg)
-	var v any
+	var v map[string]any
 	_ = json.Unmarshal(jsonBytes, &v)
 	return v
 }
