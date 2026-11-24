@@ -191,7 +191,7 @@ public interface TypedSurface {
     CompletableFuture<Order> fetchUnifiedOrder(Object order, Map<String, Object> params);
     CompletableFuture<Order> createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> params);
     CompletableFuture<Order> createTrailingAmountOrder(String symbol, String type, String side, Double amount, Double price, Object trailingAmount, Object trailingTriggerPrice, Map<String, Object> params);
-    CompletableFuture<Order> createTrailingPercentOrder(String symbol, String type, String side, Double amount, Double price, Object trailingPercent, Object trailingTriggerPrice, Map<String, Object> params);
+    CompletableFuture<Order> createTrailingPercentOrder(String symbol, String type, String side, Double amount, Double price, Double trailingPercent, Double trailingTriggerPrice, Map<String, Object> params);
     CompletableFuture<Order> createMarketOrderWithCost(String symbol, String side, Double cost, Map<String, Object> params);
     CompletableFuture<Order> createMarketBuyOrderWithCost(String symbol, Double cost, Map<String, Object> params);
     CompletableFuture<Order> createMarketSellOrderWithCost(String symbol, Double cost, Map<String, Object> params);

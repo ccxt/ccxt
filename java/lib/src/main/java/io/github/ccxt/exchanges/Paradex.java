@@ -1837,7 +1837,7 @@ public class Paradex extends ParadexApi
 
     }
 
-    public Map<String, Object> parseFundingRate(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> contract, Map<String, Object> market)
     {
         //
         //     {
@@ -4496,9 +4496,9 @@ public class Paradex extends ParadexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */
-    public CompletableFuture<Object> fetchAllGreeks(List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<io.github.ccxt.types.AllGreeks> fetchAllGreeks(List<String> symbols, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchAllGreeksCore(symbols, parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchAllGreeksCore(symbols, parameters)).thenApply(io.github.ccxt.types.AllGreeks::new);
     }
 
     private Object fetchAllGreeksCore(List<String> symbols, Map<String, Object> parameters)

@@ -1743,9 +1743,9 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             instType = "UTA";
         }
-        messageHash = ((instType + ":positions") + messageHash);
         Map<String, Object> args = new HashMap<String, Object>();
         args.put("instType", instType);
+        messageHash = ((this.safeString(args, "instType", "") + ":positions") + messageHash);
         String topicOrChannel = "channel";
         if (Boolean.TRUE.equals(uta))
         {
@@ -2106,7 +2106,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         {
             channel = "orders-algo";
         }
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchOrders", paramsInstType, null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchOrders", paramsInstType, (String) null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         if (!java.util.Objects.equals(marginMode, null))
@@ -2895,7 +2895,7 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", null, paramsStock, null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchBalance", paramsMarketType, null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchBalance", paramsMarketType, (String) null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         String instTypeDefault = null;
@@ -3216,12 +3216,12 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
 
     }
 
-    public CompletableFuture<Object> watchPublicMultiple(Object uta, Object messageHashes, Object argsArray, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchPublicMultiple(Object uta, Object messageHashes, List<Object> argsArray, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchPublicMultipleCore(uta, messageHashes, argsArray, parameters));
     }
 
-    private Object watchPublicMultipleCore(Object uta, Object messageHashes, Object argsArray, Map<String, Object> parameters)
+    private Object watchPublicMultipleCore(Object uta, Object messageHashes, List<Object> argsArray, Map<String, Object> parameters)
     {
 
         Object url = (((java.util.Objects.equals(uta, true)))) ? ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("utaPublic") : ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");

@@ -3442,7 +3442,7 @@ public class Bitstamp extends BitstampApi
 
     }
 
-    public Map<String, Object> parseFundingRate(Object fundingRate, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> fundingRate, Map<String, Object> market)
     {
         //
         //     {

@@ -1077,12 +1077,12 @@ public class Nado extends NadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the request payload for the cancel_orders execute
      */
-    public CompletableFuture<Map<String, Object>> cancelOrdersRequest(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> cancelOrdersRequest(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.cancelOrdersRequestCore(ids, symbol, parameters));
     }
 
-    private Map<String, Object> cancelOrdersRequestCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Map<String, Object> cancelOrdersRequestCore(List<String> ids, String symbol, Map<String, Object> parameters)
     {
 
         Map<String, Object> market = this.market(symbol);
@@ -1092,7 +1092,7 @@ public class Nado extends NadoApi
         Map<String, Object> paramsSubaccount = subaccountparamsSubaccountVariable.second();
         String sender = this.createSubaccount((String) (this.walletAddress), subaccount);
         List<Object> productIds = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)ids).size(); i++)
+        for (var i = 0; i < ids.size(); i++)
         {
             ((List<Object>)productIds).add(productId);
         }
@@ -2892,7 +2892,7 @@ public class Nado extends NadoApi
         return this.safeTrade(mapLiteral3, marketResolved);
     }
 
-    public Map<String, Object> parseFundingRate(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> contract, Map<String, Object> market)
     {
         //
         //     {

@@ -2335,7 +2335,7 @@ public class Derive extends DeriveApi
 
     }
 
-    public Map<String, Object> parseFundingRate(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> contract, Map<String, Object> market)
     {
         String symbol = this.safeString(contract, "symbol");
         Long fundingTimestamp = this.safeInteger(contract, "timestamp");
@@ -2361,7 +2361,7 @@ public class Derive extends DeriveApi
         }};
     }
 
-    public String hashOrderMessage(Object order)
+    public String hashOrderMessage(List<Object> order)
     {
         Object accountHash = this.hash(this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("bytes32", "uint256", "uint256", "address", "bytes32", "uint256", "address", "address")), order), keccak(), "binary");
         Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
@@ -2376,7 +2376,7 @@ public class Derive extends DeriveApi
         return (String) (this.hash(this.binaryConcat(prefix, binaryDomainSeparator, accountHash), keccak(), "hex"));
     }
 
-    public String signOrder(Object order, String privateKey)
+    public String signOrder(List<Object> order, String privateKey)
     {
         String hashOrder = this.hashOrderMessage(order);
         return this.signHash(hashOrder, privateKey);

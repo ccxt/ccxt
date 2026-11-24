@@ -1515,7 +1515,7 @@ public class Bitrue extends BitrueApi
         }
         Map<String, Object> market = this.market(symbol);
         Object response = null;
-        Object data = new HashMap<String, Object>() {{}};
+        Map<String, Object> data = new HashMap<String, Object>() {{}};
         if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
         {
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1528,14 +1528,14 @@ public class Bitrue extends BitrueApi
             {
                 response = (this.dapiV1PublicGetTicker(this.extend(request, parameters))).join();
             }
-            data = response;
+            data = this.extend(data, response);
         } else if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
             response = (this.spotV1PublicGetTicker24hr(this.extend(request, parameters))).join();
-            data = this.safeDict(response, 0, new HashMap<String, Object>() {{}});
+            data = this.extend(data, this.safeDict(response, 0, new HashMap<String, Object>() {{}}));
         } else
         {
             throw new NotSupported((this.id + " fetchTicker only support spot & swap markets")) ;
@@ -1578,7 +1578,7 @@ public class Bitrue extends BitrueApi
         //         "time": 1699348013000
         //     }
         //
-        return this.parseTicker((Map<String, Object>) (data), market);
+        return this.parseTicker(data, market);
 
     }
 

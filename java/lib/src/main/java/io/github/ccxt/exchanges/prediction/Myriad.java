@@ -476,7 +476,7 @@ public class Myriad extends MyriadApi
         if (id.indexOf(":") < 0)
         {
             Map<String, Object> rawQuestion = (this.fetchRawQuestionById(id, parameters)).join();
-            Map<String, Object> orderBookEvent = this.parseEvent(rawQuestion);
+            Map<String, Object> orderBookEvent = this.parseEvent(this.extend(new HashMap<String, Object>() {{}}, rawQuestion));
             this.indexEventOutcomes(orderBookEvent);
             return orderBookEvent;
         }
@@ -3711,8 +3711,7 @@ public class Myriad extends MyriadApi
         Integer rawQuestionsLength = rawQuestions.size();
         for (var i = 0; (rawQuestionsLength != null && i < rawQuestionsLength); i++)
         {
-            Map<String, Object> rawQuestion = (Map<String, Object>) (rawQuestions == null || i < 0 || i >= rawQuestions.size() ? null : rawQuestions.get(i));
-            Map<String, Object> ev = this.parseEvent(rawQuestion);
+            Map<String, Object> ev = this.parseEvent(this.safeDict(rawQuestions, i, new HashMap<String, Object>() {{}}));
             List<Object> evMarkets = this.safeList(ev, "markets", new ArrayList<Object>(Arrays.asList()));
             Integer evMarketsLength = evMarkets.size();
             List<Object> filteredMarkets = new ArrayList<Object>(Arrays.asList());

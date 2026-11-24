@@ -1181,10 +1181,10 @@ public class Bitfinex extends BitfinexApi
 
     }
 
-    public Map<String, Object> parseCurrenciesCustom(Object ids, Map<String, Object> indexed, Map<String, Object> indexedNetworks)
+    public Map<String, Object> parseCurrenciesCustom(List<Object> ids, Map<String, Object> indexed, Map<String, Object> indexedNetworks)
     {
         List<Object> allowedIds = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)ids).size(); i++)
+        for (var i = 0; i < ids.size(); i++)
         {
             String id = this.safeString(ids, i, "");
             if (id.endsWith("F0"))
@@ -2259,7 +2259,7 @@ public class Bitfinex extends BitfinexApi
         {
             orderType = "FOK";
         }
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters, null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters, (String) null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         if (Boolean.TRUE.equals((this.safeBool(market, "spot", false))) && (java.util.Objects.equals(marginMode, null)))
@@ -4183,7 +4183,7 @@ public class Bitfinex extends BitfinexApi
 
     }
 
-    public Map<String, Object> parseFundingRate(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> contract, Map<String, Object> market)
     {
         //
         //       [

@@ -785,7 +785,8 @@ public class Zebpay extends ZebpayApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < fees.size(); i++)
         {
-            Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) ((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))), (Map<String, Object>) null);
+            Map<String, Object> feeRow = this.safeDict(fees, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> fee = this.parseTradingFee(feeRow, (Map<String, Object>) null);
             String symbol = this.safeString(fee, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {

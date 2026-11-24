@@ -2029,7 +2029,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                     // Match both id and symbol: several cached orders can share a symbol.
                     for (var i = 0; i < ((List<?>)stored).size(); i++)
                     {
-                        Object previousOrder = (stored == null || i < 0 || i >= ((List<?>)stored).size() ? null : ((List<?>)stored).get(i));
+                        Object previousOrder = (stored == null || i < 0 || i >= stored.size() ? null : stored.get(i));
                         if ((java.util.Objects.equals(this.safeString(previousOrder, "id"), orderId)) && (java.util.Objects.equals(this.safeString(previousOrder, "symbol"), this.safeString(parsedOrder, "symbol"))))
                         {
                             Long previousTimestamp = this.safeInteger(previousOrder, "lastUpdateTimestamp");

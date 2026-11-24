@@ -271,12 +271,12 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
 
     }
 
-    public CompletableFuture<Object> subscribePrivateUta(Object messageHashes, String subscribeHash, String channel, String symbol, Map<String, Object> parameters, Object subscription)
+    public CompletableFuture<Object> subscribePrivateUta(List<?> messageHashes, String subscribeHash, String channel, String symbol, Map<String, Object> parameters, Object subscription)
     {
         return BaseExchange.supplyAsync(() -> this.subscribePrivateUtaCore(messageHashes, subscribeHash, channel, symbol, parameters, subscription));
     }
 
-    private Object subscribePrivateUtaCore(Object messageHashes, String subscribeHash, String channel, String symbol, Map<String, Object> parameters, Object subscription)
+    private Object subscribePrivateUtaCore(List<?> messageHashes, String subscribeHash, String channel, String symbol, Map<String, Object> parameters, Object subscription)
     {
 
         this.checkRequiredCredentials(true);
@@ -2248,11 +2248,11 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
         }
     }
 
-    public void handleBidAsks(Object bookSide, Object bidAsks)
+    public void handleBidAsks(Object bookSide, List<Object> bidAsks)
     {
-        for (var i = 0; i < ((List<?>)bidAsks).size(); i++)
+        for (var i = 0; i < bidAsks.size(); i++)
         {
-            List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk((bidAsks == null || i < 0 || i >= ((List<?>)bidAsks).size() ? null : ((List<?>)bidAsks).get(i)), 0, 1, 2);
+            List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk((bidAsks == null || i < 0 || i >= bidAsks.size() ? null : bidAsks.get(i)), 0, 1, 2);
             ((io.github.ccxt.ws.OrderBookSide) bookSide).storeArray(bidAsk);
         }
     }

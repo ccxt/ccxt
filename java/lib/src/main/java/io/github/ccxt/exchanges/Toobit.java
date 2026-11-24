@@ -1917,7 +1917,7 @@ public class Toobit extends ToobitApi
 
     }
 
-    public Map<String, Object> parseFundingRate(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> contract, Map<String, Object> market)
     {
         String marketId = this.safeString(contract, "symbol");
         String symbol = this.safeSymbol(marketId, market, null, null);

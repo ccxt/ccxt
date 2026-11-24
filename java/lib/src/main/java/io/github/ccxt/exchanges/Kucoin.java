@@ -4917,7 +4917,7 @@ public class Kucoin extends KucoinApi
         Double takeProfitPrice = this.safeNumber(paramsSync, "takeProfitPrice", null);
         String tradeType = this.safeString(paramsSync, "tradeType"); // keep it for backward compatibility
         Boolean isTriggerOrder = (!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(stopLossPrice, null)) || (!java.util.Objects.equals(takeProfitPrice, null));
-        String marginMode = (String) ((List<Object>)this.handleMarginModeAndParams("createOrder", paramsSync, null)).get(0);
+        String marginMode = (String) ((List<Object>)this.handleMarginModeAndParams("createOrder", paramsSync, (String) null)).get(0);
         Boolean isMarginOrder = java.util.Objects.equals(tradeType, "MARGIN_TRADE") || !java.util.Objects.equals(marginMode, null);
         // don't omit anything before calling createOrderRequest
         Map<String, Object> orderRequest = this.createSpotOrderRequest(symbol, type, side, amount, price, paramsSync);
@@ -4993,7 +4993,7 @@ public class Kucoin extends KucoinApi
         String amountString = null;
         String costString = null;
         String marginMode = null;
-        Pair<String, Map<String, Object>> marginModeparamsOmittedVariable = this.handleMarginModeAndParams("createOrder", paramsOmitted, null);
+        Pair<String, Map<String, Object>> marginModeparamsOmittedVariable = this.handleMarginModeAndParams("createOrder", paramsOmitted, (String) null);
         marginMode = marginModeparamsOmittedVariable.first();
         paramsOmitted = marginModeparamsOmittedVariable.second();
         if (java.util.Objects.equals(type, "market"))
@@ -5420,7 +5420,7 @@ public class Kucoin extends KucoinApi
         paramsRequest = accountModeparamsRequestVariable.second();
         Boolean isUnified = (java.util.Objects.equals(accountMode, "unified"));
         String marginMode = null;
-        Pair<String, Map<String, Object>> marginModeparamsRequestVariable = this.handleMarginModeAndParams("createOrder", paramsRequest, null);
+        Pair<String, Map<String, Object>> marginModeparamsRequestVariable = this.handleMarginModeAndParams("createOrder", paramsRequest, (String) null);
         marginMode = marginModeparamsRequestVariable.first();
         paramsRequest = marginModeparamsRequestVariable.second();
         String tradeType = this.handleTradeType(isContract, marginMode, isUnified, paramsRequest);
@@ -6085,7 +6085,7 @@ public class Kucoin extends KucoinApi
         Pair<Boolean, Map<String, Object>> useSyncparamsSyncVariable = this.handleOptionBoolAndParams((Map<String, Object>) (paramsHf), "cancelOrder", "sync", false);
         Boolean useSync = useSyncparamsSyncVariable.first();
         Map<String, Object> paramsSync = useSyncparamsSyncVariable.second();
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("cancelOrder", paramsSync, null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("cancelOrder", paramsSync, (String) null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         String tradeType = this.safeString(paramsMarginMode, "tradeType"); // keep it for backward compatibility
@@ -6312,7 +6312,7 @@ public class Kucoin extends KucoinApi
         paramsOmitted = accountModeparamsOmittedVariable.second();
         request.put("accountMode", accountMode);
         String marginMode = null;
-        Pair<String, Map<String, Object>> marginModeparamsOmittedVariable = this.handleMarginModeAndParams("cancelOrder", paramsOmitted, null);
+        Pair<String, Map<String, Object>> marginModeparamsOmittedVariable = this.handleMarginModeAndParams("cancelOrder", paramsOmitted, (String) null);
         marginMode = marginModeparamsOmittedVariable.first();
         paramsOmitted = marginModeparamsOmittedVariable.second();
         Boolean isUnified = (java.util.Objects.equals(accountMode, "unified"));
@@ -6428,7 +6428,7 @@ public class Kucoin extends KucoinApi
         Boolean hf = (Boolean) ((List<Object>) hfparamsHfVariable).get(0);
         Map<String, Object> paramsHf = (Map<String, Object>) ((List<Object>) hfparamsHfVariable).get(1);
         Map<String, Object> paramsOmitted = this.omit(paramsHf, new ArrayList<Object>(Arrays.asList("stop", "trigger")));
-        Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("cancelAllOrders", paramsOmitted, null);
+        Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("cancelAllOrders", paramsOmitted, (String) null);
         String marginMode = marginModequeryVariable.first();
         Map<String, Object> query = marginModequeryVariable.second();
         Boolean isMarginOrders = !java.util.Objects.equals(marginMode, null);
@@ -6738,7 +6738,7 @@ public class Kucoin extends KucoinApi
             throw new ArgumentsRequired((this.id + " fetchOrdersByStatus() requires a symbol parameter for hf orders")) ;
         }
         Map<String, Object> paramsOmitted = this.omit(paramsHf, new ArrayList<Object>(Arrays.asList("stop", "trigger", "till", "until")));
-        Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchOrdersByStatus", paramsOmitted, null);
+        Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchOrdersByStatus", paramsOmitted, (String) null);
         String marginMode = marginModequeryVariable.first();
         Map<String, Object> query = marginModequeryVariable.second();
         Boolean isMarginOrder = !java.util.Objects.equals(marginMode, null);
@@ -7032,7 +7032,7 @@ public class Kucoin extends KucoinApi
         {
             throw new ArgumentsRequired((this.id + " fetchOrdersByStatus() requires a symbol argument for spot and margin markets when using uta endpoint")) ;
         }
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrdersByStatus", paramsOmitted, null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrdersByStatus", paramsOmitted, (String) null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         Boolean isUnified = (java.util.Objects.equals(accountModeOption, "unified"));
@@ -7332,7 +7332,7 @@ public class Kucoin extends KucoinApi
         List<Object> hfparamsHfVariable = (List<Object>) this.handleHfAndParams(parameters);
         Boolean hf = (Boolean) ((List<Object>) hfparamsHfVariable).get(0);
         Map<String, Object> paramsHf = (Map<String, Object>) ((List<Object>) hfparamsHfVariable).get(1);
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrder", paramsHf, null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrder", paramsHf, (String) null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         Boolean isMarginOrder = !java.util.Objects.equals(marginMode, null);
@@ -7558,7 +7558,7 @@ public class Kucoin extends KucoinApi
         paramsOmitted = accountModeparamsOmittedVariable.second();
         request.put("accountMode", accountMode);
         String marginMode = null;
-        Pair<String, Map<String, Object>> marginModeparamsOmittedVariable = this.handleMarginModeAndParams("fetchOrder", paramsOmitted, null);
+        Pair<String, Map<String, Object>> marginModeparamsOmittedVariable = this.handleMarginModeAndParams("fetchOrder", paramsOmitted, (String) null);
         marginMode = marginModeparamsOmittedVariable.first();
         paramsOmitted = marginModeparamsOmittedVariable.second();
         Boolean isUnified = (java.util.Objects.equals(accountMode, "unified"));
@@ -8266,7 +8266,7 @@ public class Kucoin extends KucoinApi
         hf = (Boolean) ((List<Object>) hfparamsRequestVariable).get(0);
         paramsRequest = (Map<String, Object>) ((List<Object>) hfparamsRequestVariable).get(1);
         String marginMode = null;
-        Pair<String, Map<String, Object>> marginModeparamsRequestVariable = this.handleMarginModeAndParams("fetchMyTrades", paramsRequest, null);
+        Pair<String, Map<String, Object>> marginModeparamsRequestVariable = this.handleMarginModeAndParams("fetchMyTrades", paramsRequest, (String) null);
         marginMode = marginModeparamsRequestVariable.first();
         paramsRequest = marginModeparamsRequestVariable.second();
         Boolean isMargin = !java.util.Objects.equals(marginMode, null);
@@ -8543,7 +8543,7 @@ public class Kucoin extends KucoinApi
         paramsOmitted = accountModeparamsOmittedVariable.second();
         request.put("accountMode", accountMode);
         String marginMode = null;
-        Pair<String, Map<String, Object>> marginModeparamsOmittedVariable = this.handleMarginModeAndParams("fetchMyTrades", paramsOmitted, null);
+        Pair<String, Map<String, Object>> marginModeparamsOmittedVariable = this.handleMarginModeAndParams("fetchMyTrades", paramsOmitted, (String) null);
         marginMode = marginModeparamsOmittedVariable.first();
         paramsOmitted = marginModeparamsOmittedVariable.second();
         Boolean isUnified = (java.util.Objects.equals(accountMode, "unified"));
@@ -9900,7 +9900,7 @@ public class Kucoin extends KucoinApi
         {
             type = "trade_hf";
         }
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBalance", paramsHf, null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBalance", paramsHf, (String) null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         Boolean isolated = (java.util.Objects.equals(marginMode, "isolated")) || (java.util.Objects.equals(type, "isolated"));
@@ -10346,9 +10346,9 @@ public class Kucoin extends KucoinApi
      * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB or SUB_TO_SUB
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<Object> transferUta(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transferUta(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.transferUtaCore(code, amount, fromAccount, toAccount, parameters));
+        return BaseExchange.supplyAsync(() -> this.transferUtaCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
     private Object transferUtaCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
@@ -10460,9 +10460,9 @@ public class Kucoin extends KucoinApi
      * @param {string} [params.toUserId] required if transferType is PARENT_TO_SUB
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<Object> transferClassic(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transferClassic(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.transferClassicCore(code, amount, fromAccount, toAccount, parameters));
+        return BaseExchange.supplyAsync(() -> this.transferClassicCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
     private Object transferClassicCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
@@ -10930,7 +10930,7 @@ public class Kucoin extends KucoinApi
         requestedType = requestedTypeparamsRequestVariable.first();
         paramsRequest = requestedTypeparamsRequestVariable.second();
         String marginMode = null;
-        Pair<String, Map<String, Object>> marginModeparamsRequestVariable = this.handleMarginModeAndParams("fetchLedger", paramsRequest, null);
+        Pair<String, Map<String, Object>> marginModeparamsRequestVariable = this.handleMarginModeAndParams("fetchLedger", paramsRequest, (String) null);
         marginMode = marginModeparamsRequestVariable.first();
         paramsRequest = marginModeparamsRequestVariable.second();
         if (Boolean.TRUE.equals(uta) && (java.util.Objects.equals(requestedType, "margin")))
@@ -11545,7 +11545,7 @@ public class Kucoin extends KucoinApi
 
     }
 
-    public Map<String, Object> parseBorrowRateHistories(Object response, Object codes, Long since, Long limit)
+    public Map<String, Object> parseBorrowRateHistories(List<Object> response, Object codes, Long since, Long limit)
     {
         //
         //     [
@@ -11558,7 +11558,7 @@ public class Kucoin extends KucoinApi
         //     ]
         //
         Map<String, Object> borrowRateHistories = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)response).size(); i++)
+        for (var i = 0; i < response.size(); i++)
         {
             Map<String, Object> item = this.safeDict(response, i, null);
             String code = this.safeCurrencyCode(this.safeString(item, "currency"), null);
@@ -12022,7 +12022,7 @@ public class Kucoin extends KucoinApi
             put( "leverage", Kucoin.this.numberToString(leverage) );
         }};
         String marginMode = null;
-        Pair<String, Map<String, Object>> marginModeparamsRequestVariable = this.handleMarginModeAndParams("setLeverage", paramsRequest, null);
+        Pair<String, Map<String, Object>> marginModeparamsRequestVariable = this.handleMarginModeAndParams("setLeverage", paramsRequest, (String) null);
         marginMode = marginModeparamsRequestVariable.first();
         paramsRequest = marginModeparamsRequestVariable.second();
         Boolean uta = (this.isUTAEnabled(new HashMap<String, Object>() {{}})).join();
@@ -12092,7 +12092,7 @@ public class Kucoin extends KucoinApi
         {
             throw new ArgumentsRequired((this.id + " setLeverage() requires a symbol argument")) ;
         }
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("setLeverage", parameters, null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("setLeverage", parameters, (String) null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         if ((!java.util.Objects.equals(marginMode, null)) && (!java.util.Objects.equals(marginMode, "cross")))
@@ -12298,7 +12298,7 @@ public class Kucoin extends KucoinApi
 
     }
 
-    public Map<String, Object> parseFundingRate(Object data, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> data, Map<String, Object> market)
     {
         // uta
         //     {
@@ -13237,7 +13237,7 @@ public class Kucoin extends KucoinApi
             paramsRequest = accountModeparamsRequestVariable.second();
             request.put("accountMode", accountMode);
             String marginMode = null;
-            Pair<String, Map<String, Object>> marginModeparamsRequestVariable = this.handleMarginModeAndParams("cancelOrders", paramsRequest, null);
+            Pair<String, Map<String, Object>> marginModeparamsRequestVariable = this.handleMarginModeAndParams("cancelOrders", paramsRequest, (String) null);
             marginMode = marginModeparamsRequestVariable.first();
             paramsRequest = marginModeparamsRequestVariable.second();
             Boolean isUnified = (java.util.Objects.equals(accountMode, "unified"));

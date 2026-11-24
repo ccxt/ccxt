@@ -939,11 +939,11 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         return (long) (((List<?>)cache).size());
     }
 
-    public void handleBidAsks(Object bookSide, Object bidAsks)
+    public void handleBidAsks(Object bookSide, List<Object> bidAsks)
     {
-        for (var i = 0; i < ((List<?>)bidAsks).size(); i++)
+        for (var i = 0; i < bidAsks.size(); i++)
         {
-            Object bidAsk = (bidAsks == null || i < 0 || i >= ((List<?>)bidAsks).size() ? null : ((List<?>)bidAsks).get(i));
+            Object bidAsk = (bidAsks == null || i < 0 || i >= bidAsks.size() ? null : bidAsks.get(i));
             if ((bidAsk instanceof List))
             {
                 ((io.github.ccxt.ws.OrderBookSide) bookSide).storeArray(this.parseOrderBookBidAsk(bidAsk, 0, 1, 2));
@@ -1178,10 +1178,9 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         Boolean isTicker = (java.util.Objects.equals(objectName, "ticker")); // whether ticker or bid-ask
         for (var i = 0; i < results.size(); i++)
         {
-            Map<String, Object> rawTicker = (Map<String, Object>) (results == null || i < 0 || i >= results.size() ? null : results.get(i));
-            String marketId = this.safeString(rawTicker, "s");
+            String marketId = this.safeString((results == null || i < 0 || i >= results.size() ? null : results.get(i)), "s");
             Map<String, Object> market = this.safeMarket(marketId, null, "_", marketType);
-            Map<String, Object> parsedItem = (Map<String, Object>) this.parseTicker(rawTicker, market);
+            Map<String, Object> parsedItem = (Map<String, Object>) this.parseTicker(this.safeDict(results, i, new HashMap<String, Object>() {{}}), market);
             String symbol = (String) parsedItem.get("symbol");
             if (Boolean.TRUE.equals(isTicker))
             {
@@ -1874,21 +1873,22 @@ public class Gate extends io.github.ccxt.exchanges.Gate
         {
             market = (Map<String, Object>) this.getMarketFromSymbols(symbolsNormalized);
         }
-        String type = null;
-        Map<String, Object> query = null;
-        Pair<String, Map<String, Object>> typequeryVariable = this.handleMarketTypeAndParams("watchPositions", market, parameters, null);
-        type = typequeryVariable.first();
-        query = typequeryVariable.second();
-        if (java.util.Objects.equals(type, "spot"))
+        Pair<String, Map<String, Object>> marketTypemarketQueryVariable = this.handleMarketTypeAndParams("watchPositions", market, parameters, null);
+        String marketType = marketTypemarketQueryVariable.first();
+        Map<String, Object> marketQuery = marketTypemarketQueryVariable.second();
+        Map<String, Object> query = marketQuery;
+        String type = marketType;
+        String messageHash = (marketType + ":positions");
+        if (java.util.Objects.equals(marketType, "spot"))
         {
             type = "swap";
+            messageHash = "swap:positions";
         }
         String typeId = this.getSupportedMapping(type, new HashMap<String, Object>() {{
             put( "future", "futures" );
             put( "swap", "futures" );
             put( "option", "options" );
         }});
-        String messageHash = (type + ":positions");
         if (!this.isEmpty(symbolsNormalized))
         {
             if (java.util.Objects.equals(symbolsNormalized, null))
@@ -3007,12 +3007,12 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     }
 
-    public CompletableFuture<Object> unSubscribePublicMultiple(String url, String topic, Object symbols, Object messageHashes, Object subMessageHashes, Object payload, String channel, Map<String, Object> parameters)
+    public CompletableFuture<Object> unSubscribePublicMultiple(String url, String topic, List<?> symbols, List<?> messageHashes, List<?> subMessageHashes, Object payload, String channel, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unSubscribePublicMultipleCore(url, topic, symbols, messageHashes, subMessageHashes, payload, channel, parameters));
     }
 
-    private Object unSubscribePublicMultipleCore(String url, String topic, Object symbols, Object messageHashes, Object subMessageHashes, Object payload, String channel, Map<String, Object> parameters)
+    private Object unSubscribePublicMultipleCore(String url, String topic, List<?> symbols, List<?> messageHashes, List<?> subMessageHashes, Object payload, String channel, Map<String, Object> parameters)
     {
 
         Long requestId = this.requestId();

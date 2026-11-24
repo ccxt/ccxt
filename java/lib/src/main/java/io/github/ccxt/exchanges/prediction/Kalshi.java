@@ -2825,7 +2825,7 @@ public class Kalshi extends KalshiApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var di = 0; (rawEventsLength != null && di < rawEventsLength); di++)
         {
-            Map<String, Object> parsedEvent = this.parseEvent((Map<String, Object>) ((rawEvents == null || di < 0 || di >= rawEvents.size() ? null : rawEvents.get(di))));
+            Map<String, Object> parsedEvent = this.parseEvent(this.extend(new HashMap<String, Object>() {{}}, (rawEvents == null || di < 0 || di >= rawEvents.size() ? null : rawEvents.get(di))));
             ((List<Object>)result).add(parsedEvent);
             // register the parsed markets so populateOutcomes can index their outcomes
             Object parsedMarkets = parsedEvent.get("markets");

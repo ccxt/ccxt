@@ -1362,11 +1362,11 @@ public class Cryptomus extends CryptomusApi
 
     }
 
-    public Map<String, Object> parseFeeTiers(Object feeTiers, Map<String, Object> market)
+    public Map<String, Object> parseFeeTiers(List<Object> feeTiers, Map<String, Object> market)
     {
         List<Object> takerFees = new ArrayList<Object>(Arrays.asList());
         List<Object> makerFees = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)feeTiers).size(); i++)
+        for (var i = 0; i < feeTiers.size(); i++)
         {
             Map<String, Object> tier = this.safeDict(feeTiers, i, null);
             Double turnover = this.safeNumber(tier, "from_turnover", null);

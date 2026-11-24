@@ -1955,7 +1955,7 @@ public class Coinbase extends CoinbaseApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < data.size(); i++)
         {
-            MarketInterface spotMarket = this.parseSpotMarket((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), feeTier);
+            MarketInterface spotMarket = this.parseSpotMarket(this.safeDict(data, i, new HashMap<String, Object>() {{}}), feeTier);
             if (!java.util.Objects.equals(spotMarket, null))
             {
                 ((List<Object>)result).add(spotMarket);
@@ -2662,11 +2662,10 @@ public class Coinbase extends CoinbaseApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> entry = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-            String marketId = this.safeString(entry, "product_id");
+            String marketId = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "product_id");
             Map<String, Object> market = this.safeMarket(marketId, null, "-", null);
             String symbol = this.safeString(market, "symbol", "");
-            result.put(symbol, this.parseTicker(entry, market));
+            result.put(symbol, this.parseTicker(this.safeDict(data, i, new HashMap<String, Object>() {{}}), market));
         }
         return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
 

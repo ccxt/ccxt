@@ -1232,12 +1232,12 @@ public CompletableFuture<Order> closePosition(String symbol, String side, Map<St
 
     }
 
-    public CompletableFuture<Order> createTrailingPercentOrder(String symbol, String type, String side, Double amount, Double price, Object trailingPercent, Object trailingTriggerPrice, Map<String, Object> parameters)
+    public CompletableFuture<Order> createTrailingPercentOrder(String symbol, String type, String side, Double amount, Double price, Double trailingPercent, Double trailingTriggerPrice, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createTrailingPercentOrderCore(symbol, type, side, amount, price, trailingPercent, trailingTriggerPrice, parameters)).thenApply(Order::new);
     }
 
-    private Object createTrailingPercentOrderCore(String symbol, String type, String side, Double amount, Double price, Object trailingPercent, Object trailingTriggerPrice, Map<String, Object> parameters)
+    private Object createTrailingPercentOrderCore(String symbol, String type, String side, Double amount, Double price, Double trailingPercent, Double trailingTriggerPrice, Map<String, Object> parameters)
     {
 
         /**

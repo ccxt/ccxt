@@ -1247,7 +1247,7 @@ public class Woofipro extends WoofiproApi
         String price = this.safeString(trade, "executed_price");
         String amount = this.safeString(trade, "executed_quantity");
         String order_id = this.safeString(trade, "order_id");
-        Object fee = this.parseTokenAndFeeTemp((Map<String, Object>) (trade), "fee_asset", "fee");
+        Object fee = this.parseTokenAndFeeTemp(this.extend(new HashMap<String, Object>() {{}}, trade), "fee_asset", "fee");
         String side = this.safeStringLower(trade, "side");
         String id = this.safeString(trade, "id");
         String takerOrMaker = null;
@@ -1326,7 +1326,7 @@ public class Woofipro extends WoofiproApi
 
     }
 
-    public Map<String, Object> parseFundingRate(Object fundingRate, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> fundingRate, Map<String, Object> market)
     {
         //
         //         {

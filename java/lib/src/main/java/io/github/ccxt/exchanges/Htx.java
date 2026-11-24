@@ -4692,7 +4692,7 @@ public class Htx extends HtxApi
         Boolean swap = (java.util.Objects.equals(type, "swap"));
         Boolean linear = (java.util.Objects.equals(subTypeOption, null)) || (java.util.Objects.equals(subTypeOption, "linear"));
         Boolean inverse = !java.util.Objects.equals(subTypeOption, null) && java.util.Objects.equals(subTypeOption, "inverse");
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBalance", paramsMultiAsset, null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBalance", paramsMultiAsset, (String) null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         Boolean isolated = (java.util.Objects.equals(marginMode, "isolated"));
@@ -6505,12 +6505,12 @@ public class Htx extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createTrailingPercentOrder(String symbol, String type, String side, Double amount, Double price, Object trailingPercent, Object trailingTriggerPrice, Map<String, Object> parameters)
+    public CompletableFuture<Order> createTrailingPercentOrder(String symbol, String type, String side, Double amount, Double price, Double trailingPercent, Double trailingTriggerPrice, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createTrailingPercentOrderCore(symbol, type, side, amount, price, trailingPercent, trailingTriggerPrice, parameters)).thenApply(Order::new);
     }
 
-    private Object createTrailingPercentOrderCore(String symbol, String type, String side, Double amount, Double price, Object trailingPercent, Object trailingTriggerPrice, Map<String, Object> parameters)
+    private Object createTrailingPercentOrderCore(String symbol, String type, String side, Double amount, Double price, Double trailingPercent, Double trailingTriggerPrice, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(trailingPercent, null))
@@ -6566,7 +6566,7 @@ public class Htx extends HtxApi
         String typeStr = type;
         String sideStr = side;
         Map<String, Object> market = this.market(symbol);
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters, null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters, (String) null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         String accountId = (this.fetchAccountIdByType((String) (market.get("type")), marginMode, symbol, new HashMap<String, Object>() {{}})).join();
@@ -7234,7 +7234,7 @@ public class Htx extends HtxApi
             Double amount = this.safeNumber(rawOrder, "amount", null);
             Double price = this.safeNumber(rawOrder, "price", null);
             Map<String, Object> orderParams = this.safeDict(rawOrder, "params", new HashMap<String, Object>() {{}});
-            Pair<String, Map<String, Object>> currentMarginModeVariable = this.handleMarginModeAndParams("createOrders", orderParams, null);
+            Pair<String, Map<String, Object>> currentMarginModeVariable = this.handleMarginModeAndParams("createOrders", orderParams, (String) null);
             String currentMarginMode = currentMarginModeVariable.first();
             if (!java.util.Objects.equals(currentMarginMode, null))
             {
@@ -9067,7 +9067,7 @@ public class Htx extends HtxApi
 
     }
 
-    public Map<String, Object> parseFundingRate(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> contract, Map<String, Object> market)
     {
         //
         // inverse swap
@@ -9279,7 +9279,7 @@ public class Htx extends HtxApi
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Pair<String, Map<String, Object>> marginModeOptionparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBorrowInterest", parameters, null);
+        Pair<String, Map<String, Object>> marginModeOptionparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBorrowInterest", parameters, (String) null);
         String marginModeOption = marginModeOptionparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeOptionparamsMarginModeVariable.second();
         Map<String, Object> request = new HashMap<String, Object>() {{}};
@@ -10136,7 +10136,7 @@ public class Htx extends HtxApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        Pair<String, Map<String, Object>> marginModeOptionparamsMarginModeVariable = this.handleMarginModeAndParams("fetchPosition", parameters, null);
+        Pair<String, Map<String, Object>> marginModeOptionparamsMarginModeVariable = this.handleMarginModeAndParams("fetchPosition", parameters, (String) null);
         String marginModeOption = marginModeOptionparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeOptionparamsMarginModeVariable.second();
         Pair<String, Map<String, Object>> marketTypequeryVariable = this.handleMarketTypeAndParams("fetchPosition", market, paramsMarginMode, null);

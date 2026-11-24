@@ -1635,13 +1635,12 @@ public class Delta extends DeltaApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < tickers.size(); i++)
         {
-            Map<String, Object> rawTicker = (Map<String, Object>) (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
-            String contractType = this.safeString(rawTicker, "contract_type");
+            String contractType = this.safeString((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)), "contract_type");
             if ((java.util.Objects.equals(contractType, "options_combos")) || (java.util.Objects.equals(contractType, "binary_call_options")) || (java.util.Objects.equals(contractType, "binary_put_options")))
             {
                 continue;
             }
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker, null);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(tickers, i, new HashMap<String, Object>() {{}}), null);
             String symbol = this.safeString(ticker, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -3216,7 +3215,7 @@ public class Delta extends DeltaApi
 
     }
 
-    public Map<String, Object> parseFundingRate(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> contract, Map<String, Object> market)
     {
         //
         //     {

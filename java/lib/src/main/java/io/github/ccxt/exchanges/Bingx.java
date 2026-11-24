@@ -2427,7 +2427,7 @@ public class Bingx extends BingxApi
 
     }
 
-    public Map<String, Object> parseFundingRate(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> contract, Map<String, Object> market)
     {
         //
         //     {
@@ -3072,7 +3072,8 @@ public class Bingx extends BingxApi
             //     ]
             // }
             //
-            return this.parseTicker(this.safeDict(((Map<String, Object>)response).get("data"), 0, new HashMap<String, Object>() {{}}), market);
+            List<Object> rows = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            return this.parseTicker(this.safeDict(rows, 0, new HashMap<String, Object>() {{}}), market);
         } else
         {
             response = (this.swapV2PublicGetQuotePremiumIndex(this.extend(request, paramsSubType))).join();

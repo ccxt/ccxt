@@ -1004,11 +1004,10 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         List<Object> data = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> info = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-            String marketId = this.safeString(info, "symbol");
+            String marketId = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "symbol");
             Map<String, Object> market = this.safeMarket(marketId, null, null, null);
             String symbol = this.safeString(market, "symbol", "");
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(info, market);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(data, i, new HashMap<String, Object>() {{}}), market);
             this.tickers.put(symbol, ticker);
             parsedTickers.add(ticker);
         }

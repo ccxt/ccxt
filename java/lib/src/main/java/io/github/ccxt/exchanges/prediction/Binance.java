@@ -244,7 +244,7 @@ public class Binance extends BinanceApi
         Integer rawTopicsLength = rawTopics.size();
         for (var i = 0; (rawTopicsLength != null && i < rawTopicsLength); i++)
         {
-            Map<String, Object> parsedEvent = this.parseEvent((Map<String, Object>) ((rawTopics == null || i < 0 || i >= rawTopics.size() ? null : rawTopics.get(i))));
+            Map<String, Object> parsedEvent = this.parseEvent(this.extend(new HashMap<String, Object>() {{}}, (rawTopics == null || i < 0 || i >= rawTopics.size() ? null : rawTopics.get(i))));
             ((List<Object>)parsedEvents).add(parsedEvent);
             List<Object> eventMarkets = this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList()));
             Integer eventMarketsLength = eventMarkets.size();
@@ -534,7 +534,7 @@ public class Binance extends BinanceApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; (rawTopicsLength != null && i < rawTopicsLength); i++)
         {
-            Map<String, Object> parsedEvent = this.parseEvent((Map<String, Object>) ((rawTopics == null || i < 0 || i >= rawTopics.size() ? null : rawTopics.get(i))));
+            Map<String, Object> parsedEvent = this.parseEvent(this.extend(new HashMap<String, Object>() {{}}, (rawTopics == null || i < 0 || i >= rawTopics.size() ? null : rawTopics.get(i))));
             ((List<Object>)result).add(parsedEvent);
             List<Object> parsedMarkets = this.safeList(parsedEvent, "markets", new ArrayList<Object>(Arrays.asList()));
             Integer parsedMarketsLength = parsedMarkets.size();

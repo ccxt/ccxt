@@ -175,7 +175,7 @@ public class TestCreateOrder extends BaseTest {
             (tcoTryCancelOrder(exchange, (String) (symbol), entryorderFilled, skippedProperties)).join();
             Object entryorderFetched = (TestSharedMethods.fetchOrder(exchange, (String) (symbol), (String) (Helpers.GetValue(entryorderFilled, "id")), skippedProperties)).join();
             tcoAssertFilledOrder(exchange, market, logPrefix, skippedProperties, entryorderFilled, entryorderFetched, entrySide, entryAmount);
-            Object amountToClose = exchange.parseToNumeric(exchange.safeString(entryorderFetched, "filled"));
+            Object amountToClose = exchange.safeNumber(entryorderFetched, "filled", (Object) null);
             Map<String, Object> parameters = new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals(isSwapFuture))
             {

@@ -2482,17 +2482,16 @@ public class Xt extends XtApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < tickers.size(); i++)
         {
-            Map<String, Object> rawTicker = (Map<String, Object>) (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
             // the spot and contract payloads share the same field names, so
             // the market type cannot be inferred from the entry itself
-            String marketId = this.safeString(rawTicker, "s");
+            String marketId = this.safeString((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)), "s");
             String marketType = "spot";
             if (Boolean.TRUE.equals(isContract))
             {
                 marketType = "contract";
             }
             Map<String, Object> marketInner = this.safeMarket(marketId, market, "_", marketType);
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker, marketInner);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(tickers, i, new HashMap<String, Object>() {{}}), marketInner);
             String symbol = this.safeString(ticker, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -2759,7 +2758,7 @@ public class Xt extends XtApi
             }
         } else
         {
-            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchMyTrades", paramsSubType, null);
+            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchMyTrades", paramsSubType, (String) null);
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             String marginOrSpotRequest = "SPOT";
@@ -3288,7 +3287,7 @@ public class Xt extends XtApi
         request.put("side", side.toUpperCase());
         request.put("type", type.toUpperCase());
         String timeInForce = null;
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters, null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters, (String) null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         String marginOrSpotRequest = "SPOT";
@@ -3849,7 +3848,7 @@ public class Xt extends XtApi
             response = (this.privateLinearGetFutureTradeV1OrderListHistory(this.extend(request, paramsSubType))).join();
         } else
         {
-            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrders", paramsSubType, null);
+            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrders", paramsSubType, (String) null);
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             String marginOrSpotRequest = "SPOT";
@@ -4119,7 +4118,7 @@ public class Xt extends XtApi
             }
         } else
         {
-            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrdersByStatus", paramsSubType, null);
+            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOrdersByStatus", paramsSubType, (String) null);
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             String marginOrSpotRequest = "SPOT";
@@ -4662,7 +4661,7 @@ public class Xt extends XtApi
             response = (this.privateLinearPostFutureTradeV1OrderCancelAll(this.extend(request, paramsSubType))).join();
         } else
         {
-            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("cancelAllOrders", paramsSubType, null);
+            Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("cancelAllOrders", paramsSubType, (String) null);
             String marginMode = marginModeparamsMarginModeVariable.first();
             Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
             String marginOrSpotRequest = "SPOT";
@@ -6063,7 +6062,7 @@ public class Xt extends XtApi
 
     }
 
-    public Map<String, Object> parseFundingRate(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> contract, Map<String, Object> market)
     {
         //
         //     {

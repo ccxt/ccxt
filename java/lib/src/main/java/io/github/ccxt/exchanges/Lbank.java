@@ -1624,7 +1624,7 @@ public class Lbank extends LbankApi
         return this.safeBalance(result);
     }
 
-    public Map<String, Object> parseFundingRate(Object ticker, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> ticker, Map<String, Object> market)
     {
         // {
         //     "symbol": "BTCUSDT",

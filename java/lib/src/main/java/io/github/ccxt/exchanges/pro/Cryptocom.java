@@ -1648,12 +1648,12 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
 
     }
 
-    public CompletableFuture<Object> unWatchPublicMultiple(String topic, Object symbols, Object messageHashes, Object subMessageHashes, Object topics, Map<String, Object> parameters, Map<String, Object> subExtend)
+    public CompletableFuture<Object> unWatchPublicMultiple(String topic, List<?> symbols, List<?> messageHashes, Object subMessageHashes, Object topics, Map<String, Object> parameters, Map<String, Object> subExtend)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchPublicMultipleCore(topic, symbols, messageHashes, subMessageHashes, topics, parameters, subExtend));
     }
 
-    private Object unWatchPublicMultipleCore(String topic, Object symbols, Object messageHashes, Object subMessageHashes, Object topics, Map<String, Object> parameters, Map<String, Object> subExtend)
+    private Object unWatchPublicMultipleCore(String topic, List<?> symbols, List<?> messageHashes, Object subMessageHashes, Object topics, Map<String, Object> parameters, Map<String, Object> subExtend)
     {
 
         String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("public");

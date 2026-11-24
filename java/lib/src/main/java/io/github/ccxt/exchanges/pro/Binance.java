@@ -400,12 +400,12 @@ public class Binance extends io.github.ccxt.exchanges.Binance
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} the raw stream subscription response
      */
-    public CompletableFuture<Object> watchStockMarketStream(Object streams, Object messageHashes, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchStockMarketStream(List<?> streams, List<?> messageHashes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchStockMarketStreamCore(streams, messageHashes, parameters));
     }
 
-    private Object watchStockMarketStreamCore(Object streams, Object messageHashes, Map<String, Object> parameters)
+    private Object watchStockMarketStreamCore(List<?> streams, List<?> messageHashes, Map<String, Object> parameters)
     {
 
         String url = this.getStockWsUrl("market");
@@ -3830,7 +3830,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             (this.ensureUserDataStreamWsSubscribeSignature("spot")).join();
             return null;
         }
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("authenticate", paramsPortfolioMargin, null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("authenticate", paramsPortfolioMargin, (String) null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         Boolean isIsolatedMargin = (java.util.Objects.equals(marginMode, "isolated"));
@@ -5548,7 +5548,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         mapLiteral9.put("subType", subType);
         Map<String, Object> paramsExtended = this.extend(paramsValue, mapLiteral9); // needed inside authenticate for isolated margin
         (this.authenticate(paramsExtended)).join();
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchOrders", paramsExtended, null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("watchOrders", paramsExtended, (String) null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         String urlType = type;

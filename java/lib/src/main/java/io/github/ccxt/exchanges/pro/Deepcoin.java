@@ -1552,7 +1552,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         this.cleanCache(subscription);
     }
 
-    public void handleErrorMessage(Client client, Map<String, Object> message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -1589,5 +1589,6 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         {
             client.reject(e, messageHash);
         }
+        return false;
     }
 }

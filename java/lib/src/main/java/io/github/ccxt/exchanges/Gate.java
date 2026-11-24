@@ -3237,7 +3237,7 @@ public class Gate extends GateApi
 
     }
 
-    public Map<String, Object> parseFundingRate(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> contract, Map<String, Object> market)
     {
         //
         //    {
@@ -3873,10 +3873,10 @@ public class Gate extends GateApi
 
     }
 
-    public Object parseFundingHistories(Object response, String symbol, Long since, Long limit)
+    public List<Object> parseFundingHistories(List<Object> response, String symbol, Long since, Long limit)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)response).size(); i++)
+        for (var i = 0; i < response.size(); i++)
         {
             Map<String, Object> entry = this.safeDict(response, i, null);
             Map<String, Object> funding = this.parseFundingHistory(entry, (Map<String, Object>) null);

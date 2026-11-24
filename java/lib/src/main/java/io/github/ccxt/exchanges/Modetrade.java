@@ -1182,7 +1182,7 @@ public class Modetrade extends ModetradeApi
         String price = this.safeString(trade, "executed_price");
         String amount = this.safeString(trade, "executed_quantity");
         String order_id = this.safeString(trade, "order_id");
-        Object fee = this.parseTokenAndFeeTemp((Map<String, Object>) (trade), "fee_asset", "fee");
+        Object fee = this.parseTokenAndFeeTemp(this.extend(new HashMap<String, Object>() {{}}, trade), "fee_asset", "fee");
         String cost = Precise.stringMul(price, amount);
         String side = this.safeStringLower(trade, "side");
         String takerOrMaker = null;
@@ -1261,7 +1261,7 @@ public class Modetrade extends ModetradeApi
 
     }
 
-    public Map<String, Object> parseFundingRate(Object fundingRate, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> fundingRate, Map<String, Object> market)
     {
         //
         //         {

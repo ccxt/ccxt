@@ -5873,7 +5873,7 @@ public class Binance extends BinanceApi
         paramsSubType = isPortfolioMarginparamsSubTypeVariable.second();
         String marginMode = null;
         Map<String, Object> query = null;
-        Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchBalance", paramsSubType, null);
+        Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchBalance", paramsSubType, (String) null);
         marginMode = marginModequeryVariable.first();
         query = marginModequeryVariable.second();
         query = this.omit(query, "type");
@@ -9476,7 +9476,7 @@ public class Binance extends BinanceApi
         Pair<Boolean, Map<String, Object>> isPortfolioMarginparamsPortfolioMarginVariable = this.handleOptionBoolAndParams2(paramsAlgo, "createOrder", "papi", "portfolioMargin", false);
         Boolean isPortfolioMargin = isPortfolioMarginparamsPortfolioMarginVariable.first();
         Map<String, Object> paramsPortfolioMargin = isPortfolioMarginparamsPortfolioMarginVariable.second();
-        Pair<String, Map<String, Object>> marginModeparamsPapiVariable = this.handleMarginModeAndParams("createOrder", paramsPortfolioMargin, null);
+        Pair<String, Map<String, Object>> marginModeparamsPapiVariable = this.handleMarginModeAndParams("createOrder", paramsPortfolioMargin, (String) null);
         String marginMode = marginModeparamsPapiVariable.first();
         Map<String, Object> paramsPapi = marginModeparamsPapiVariable.second();
         // keys dropped from the request params, extended below as the order shape is resolved
@@ -10097,7 +10097,7 @@ public class Binance extends BinanceApi
         subType = (String) ((List<Object>) subTypeparamsStockVariable).get(0);
         paramsStock = subTypeparamsStockVariable.second();
         String marginMode = null;
-        Pair<String, Map<String, Object>> marginModeparamsStockVariable = this.handleMarginModeAndParams("fetchOrder", paramsStock, null);
+        Pair<String, Map<String, Object>> marginModeparamsStockVariable = this.handleMarginModeAndParams("fetchOrder", paramsStock, (String) null);
         marginMode = marginModeparamsStockVariable.first();
         paramsStock = marginModeparamsStockVariable.second();
         Boolean isPortfolioMargin = null;
@@ -10265,7 +10265,7 @@ public class Binance extends BinanceApi
         subType = (String) ((List<Object>) subTypeparamsPaginateVariable).get(0);
         paramsPaginate = subTypeparamsPaginateVariable.second();
         String marginMode = null;
-        Pair<String, Map<String, Object>> marginModeparamsPaginateVariable = this.handleMarginModeAndParams("fetchOrders", paramsPaginate, null);
+        Pair<String, Map<String, Object>> marginModeparamsPaginateVariable = this.handleMarginModeAndParams("fetchOrders", paramsPaginate, (String) null);
         marginMode = marginModeparamsPaginateVariable.first();
         paramsPaginate = marginModeparamsPaginateVariable.second();
         Boolean isPortfolioMargin = null;
@@ -10645,7 +10645,7 @@ public class Binance extends BinanceApi
         Map<String, Object> request = new HashMap<String, Object>() {{}};
         String marginMode = null;
         Map<String, Object> paramsMarginMode = null;
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters, null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters, (String) null);
         marginMode = marginModeparamsMarginModeVariable.first();
         paramsMarginMode = marginModeparamsMarginModeVariable.second();
         Boolean isPortfolioMargin = null;
@@ -11272,7 +11272,7 @@ public class Binance extends BinanceApi
         subType = (String) ((List<Object>) subTypeparamsStockVariable).get(0);
         paramsStock = subTypeparamsStockVariable.second();
         String marginMode = null;
-        Pair<String, Map<String, Object>> marginModeparamsStockVariable = this.handleMarginModeAndParams("cancelOrder", paramsStock, null);
+        Pair<String, Map<String, Object>> marginModeparamsStockVariable = this.handleMarginModeAndParams("cancelOrder", paramsStock, (String) null);
         marginMode = marginModeparamsStockVariable.first();
         paramsStock = marginModeparamsStockVariable.second();
         Boolean isPortfolioMargin = null;
@@ -11473,7 +11473,7 @@ public class Binance extends BinanceApi
         Boolean isInverseType = this.isInverse(type, subType);
         paramsStock = this.omit(paramsStock, new ArrayList<Object>(Arrays.asList("stop", "trigger", "conditional")));
         String marginMode = null;
-        Pair<String, Map<String, Object>> marginModeparamsStockVariable = this.handleMarginModeAndParams("cancelAllOrders", paramsStock, null);
+        Pair<String, Map<String, Object>> marginModeparamsStockVariable = this.handleMarginModeAndParams("cancelAllOrders", paramsStock, (String) null);
         marginMode = marginModeparamsStockVariable.first();
         paramsStock = marginModeparamsStockVariable.second();
         Object response = null;
@@ -11818,7 +11818,7 @@ public class Binance extends BinanceApi
             response = (this.eapiPrivateGetUserTrades(this.extend(request, paramsPaginate))).join();
         } else
         {
-            Pair<String, Map<String, Object>> marginModeparamsPaginateVariable = this.handleMarginModeAndParams("fetchMyTrades", paramsPaginate, null);
+            Pair<String, Map<String, Object>> marginModeparamsPaginateVariable = this.handleMarginModeAndParams("fetchMyTrades", paramsPaginate, (String) null);
             marginMode = marginModeparamsPaginateVariable.first();
             paramsPaginate = marginModeparamsPaginateVariable.second();
             Boolean isPortfolioMargin = null;
@@ -13757,9 +13757,9 @@ public class Binance extends BinanceApi
      * @param {float} params.recvWindow
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=futures-transfer-structure}
      */
-    public CompletableFuture<Object> futuresTransfer(String code, Double amount, Long type, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> futuresTransfer(String code, Double amount, Long type, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.futuresTransferCore(code, amount, type, parameters));
+        return BaseExchange.supplyAsync(() -> this.futuresTransferCore(code, amount, type, parameters)).thenApply(TransferEntry::new);
     }
 
     private Object futuresTransferCore(String code, Double amount, Long type, Map<String, Object> parameters)
@@ -13997,7 +13997,7 @@ public class Binance extends BinanceApi
 
     }
 
-    public Map<String, Object> parseFundingRate(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> contract, Map<String, Object> market)
     {
         // ensure it matches with https://www.binance.com/en/futures/funding-history/0
         //
@@ -18233,9 +18233,9 @@ public class Binance extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */
-    public CompletableFuture<Object> fetchAllGreeks(List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<io.github.ccxt.types.AllGreeks> fetchAllGreeks(List<String> symbols, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchAllGreeksCore(symbols, parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchAllGreeksCore(symbols, parameters)).thenApply(io.github.ccxt.types.AllGreeks::new);
     }
 
     private Object fetchAllGreeksCore(List<String> symbols, Map<String, Object> parameters)
@@ -19260,7 +19260,7 @@ public class Binance extends BinanceApi
 
     }
 
-    public Object parseLongShortRatio(Map<String, Object> info, Map<String, Object> market)
+    public Map<String, Object> parseLongShortRatio(Map<String, Object> info, Map<String, Object> market)
     {
         //
         // linear

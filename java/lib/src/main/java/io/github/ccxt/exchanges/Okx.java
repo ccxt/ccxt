@@ -6850,7 +6850,7 @@ public class Okx extends OkxApi
         method = this.safeString(paramsPaginate, "method", method);
         Map<String, Object> paramsOmitted = this.omit(paramsPaginate, "method");
         Map<String, Object> request = new HashMap<String, Object>() {{}};
-        Pair<String, Map<String, Object>> marginModeOptionparamsMarginModeVariable = this.handleMarginModeAndParams("fetchLedger", paramsOmitted, null);
+        Pair<String, Map<String, Object>> marginModeOptionparamsMarginModeVariable = this.handleMarginModeAndParams("fetchLedger", paramsOmitted, (String) null);
         String marginModeOption = marginModeOptionparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeOptionparamsMarginModeVariable.second();
         String marginMode = marginModeOption;
@@ -8703,7 +8703,7 @@ public class Okx extends OkxApi
         }
     }
 
-    public Map<String, Object> parseFundingRate(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> contract, Map<String, Object> market)
     {
         //
         //    {
@@ -9387,7 +9387,7 @@ public class Okx extends OkxApi
         }};
     }
 
-    public Map<String, Object> parseBorrowRateHistories(Object response, Object codes, Long since, Long limit)
+    public Map<String, Object> parseBorrowRateHistories(List<Object> response, Object codes, Long since, Long limit)
     {
         //
         //    [
@@ -9401,7 +9401,7 @@ public class Okx extends OkxApi
         //    ]
         //
         Map<String, Object> borrowRateHistories = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)response).size(); i++)
+        for (var i = 0; i < response.size(); i++)
         {
             Map<String, Object> item = this.safeDict(response, i, null);
             String code = this.safeCurrencyCode(this.safeString(item, "ccy"), null);
@@ -10968,9 +10968,9 @@ public class Okx extends OkxApi
      * @param {string} params.instFamily Instrument family, either uly or instFamily is required
      * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */
-    public CompletableFuture<Object> fetchAllGreeks(List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<io.github.ccxt.types.AllGreeks> fetchAllGreeks(List<String> symbols, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchAllGreeksCore(symbols, parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchAllGreeksCore(symbols, parameters)).thenApply(io.github.ccxt.types.AllGreeks::new);
     }
 
     private Object fetchAllGreeksCore(List<String> symbols, Map<String, Object> parameters)
@@ -12084,7 +12084,7 @@ public class Okx extends OkxApi
 
     }
 
-    public Object parseLongShortRatio(Map<String, Object> info, Map<String, Object> market)
+    public Map<String, Object> parseLongShortRatio(Map<String, Object> info, Map<String, Object> market)
     {
         Long timestamp = this.safeInteger(info, "timestamp");
         String symbol = null;

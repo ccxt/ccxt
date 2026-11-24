@@ -633,13 +633,13 @@ public class Polymarket extends PolymarketApi
         Map<String, Object> eventsDict = new HashMap<String, Object>() {{}};
         for (var rei = 0; rei < rawEvents.size(); rei++)
         {
-            Map<String, Object> rawEvent = (Map<String, Object>) (rawEvents == null || rei < 0 || rei >= rawEvents.size() ? null : rawEvents.get(rei));
+            Map<String, Object> rawEvent = (Map<String, Object>) ((rawEvents == null || rei < 0 || rei >= rawEvents.size() ? null : rawEvents.get(rei)));
             List<Object> ccxtMarkets = this.parseEventToMarkets(rawEvent);
             for (var mi = 0; mi < ccxtMarkets.size(); mi++)
             {
                 ((List<Object>)flatMarkets).add((ccxtMarkets == null || mi < 0 || mi >= ccxtMarkets.size() ? null : ccxtMarkets.get(mi)));
             }
-            Map<String, Object> parsedEvent = this.parseEvent(rawEvent);
+            Map<String, Object> parsedEvent = this.parseEvent(this.extend(new HashMap<String, Object>() {{}}, rawEvent));
             String eventSlug = this.safeString(rawEvent, "slug");
             if ((!java.util.Objects.equals(eventSlug, null)) && (!java.util.Objects.equals(eventSlug, "")))
             {
@@ -3323,7 +3323,7 @@ public class Polymarket extends PolymarketApi
                 }
                 ((Map<Object, Object>) (Map<?, ?>) this.markets).put(((Map<String, Object>)m).get("market"), m);
             }
-            Map<String, Object> parsedEvent = this.parseEvent((Map<String, Object>) (eventForParsing));
+            Map<String, Object> parsedEvent = this.parseEvent(this.extend(new HashMap<String, Object>() {{}}, eventForParsing));
             ((List<Object>)result).add(parsedEvent);
         }
         // populateOutcomes rebuilds the outcome cache from the markets registered above; the
@@ -3382,7 +3382,7 @@ public class Polymarket extends PolymarketApi
         {
             eventForParsing = new HashMap<String, Object>() {{}};
         }
-        Map<String, Object> eventVar = this.parseEvent(eventForParsing);
+        Map<String, Object> eventVar = this.parseEvent(this.extend(new HashMap<String, Object>() {{}}, eventForParsing));
         this.indexEventOutcomes(eventVar);
         return eventVar;
 
@@ -3514,7 +3514,7 @@ public class Polymarket extends PolymarketApi
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < rawEvents.size(); i++)
         {
-            ((List<Object>)result).add(this.parseEvent((Map<String, Object>) ((rawEvents == null || i < 0 || i >= rawEvents.size() ? null : rawEvents.get(i)))));
+            ((List<Object>)result).add(this.parseEvent(this.safeDict(rawEvents, i, new HashMap<String, Object>() {{}})));
         }
         return result;
     }

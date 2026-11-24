@@ -1386,7 +1386,8 @@ public class Kraken extends KrakenApi
         }};
         Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
         Map<String, Object> tickerResult = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-        return this.parseTicker(this.safeDict(tickerResult, market.get("id"), new HashMap<String, Object>() {{}}), market);
+        String marketId = this.safeString(market, "id", "");
+        return this.parseTicker(this.safeDict(tickerResult, marketId, new HashMap<String, Object>() {{}}), market);
 
     }
 
@@ -1618,12 +1619,12 @@ public class Kraken extends KrakenApi
 
     }
 
-    public CompletableFuture<Object> fetchLedgerEntriesByIds(Object ids, String code, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchLedgerEntriesByIds(List<?> ids, String code, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchLedgerEntriesByIdsCore(ids, code, parameters));
     }
 
-    private Object fetchLedgerEntriesByIdsCore(Object ids, String code, Map<String, Object> parameters)
+    private Object fetchLedgerEntriesByIdsCore(List<?> ids, String code, Map<String, Object> parameters)
     {
 
         // https://www.kraken.com/features/api#query-ledgers
@@ -3047,12 +3048,12 @@ public class Kraken extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Object> fetchOrdersByIds(Object ids, String symbol, Map<String, Object> parameters)
+    public CompletableFuture<Object> fetchOrdersByIds(List<?> ids, String symbol, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchOrdersByIdsCore(ids, symbol, parameters));
     }
 
-    private Object fetchOrdersByIdsCore(Object ids, String symbol, Map<String, Object> parameters)
+    private Object fetchOrdersByIdsCore(List<?> ids, String symbol, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))
@@ -4305,9 +4306,9 @@ public class Kraken extends KrakenApi
      * @param {dict} [params] Exchange specific parameters
      * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<Object> transferOut(String code, Double amount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transferOut(String code, Double amount, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.transferOutCore(code, amount, parameters));
+        return BaseExchange.supplyAsync(() -> this.transferOutCore(code, amount, parameters)).thenApply(TransferEntry::new);
     }
 
     private Object transferOutCore(String code, Double amount, Map<String, Object> parameters)

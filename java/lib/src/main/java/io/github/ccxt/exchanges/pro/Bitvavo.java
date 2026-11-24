@@ -235,16 +235,15 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < tickers.size(); i++)
         {
-            Map<String, Object> data = (Map<String, Object>) (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
-            String marketId = this.safeString(data, "market");
+            String marketId = this.safeString((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)), "market");
             Map<String, Object> market = this.safeMarket(marketId, null, "-", null);
-            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, market);
+            Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(tickers, i, new HashMap<String, Object>() {{}}), market);
             String symbol = this.safeString(ticker, "symbol");
             this.tickers.put(symbol, ticker);
             ((List<Object>)result).add(ticker);
             if (!java.util.Objects.equals(eventVar, null))
             {
-                String messageHash = ((eventVar + "@") + this.safeString(data, "market", ""));
+                String messageHash = ((eventVar + "@") + this.safeString((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)), "market", ""));
                 client.resolve(ticker, messageHash);
             }
         }
@@ -1138,12 +1137,12 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         }
     }
 
-    public CompletableFuture<Object> unWatchChannels(String topic, List<Object> channels, Object subMessageHashes, Map<String, Object> subscriptionArgs, Map<String, Object> parameters)
+    public CompletableFuture<Object> unWatchChannels(String topic, List<Object> channels, List<?> subMessageHashes, Map<String, Object> subscriptionArgs, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchChannelsCore(topic, channels, subMessageHashes, subscriptionArgs, parameters));
     }
 
-    private Object unWatchChannelsCore(String topic, List<Object> channels, Object subMessageHashes, Map<String, Object> subscriptionArgs, Map<String, Object> parameters)
+    private Object unWatchChannelsCore(String topic, List<Object> channels, List<?> subMessageHashes, Map<String, Object> subscriptionArgs, Map<String, Object> parameters)
     {
 
         String url = this.safeString(this.urls.get("api"), "ws");
@@ -1152,7 +1151,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             put( "channels", channels );
         }};
         List<String> unsubHashes = new ArrayList<String>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)subMessageHashes).size(); i++)
+        for (var i = 0; i < subMessageHashes.size(); i++)
         {
             unsubHashes.add(("unsubscribe:" + this.safeString(subMessageHashes, i, "")));
         }
@@ -2298,7 +2297,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         String error = this.safeString(message, "error");
         if (java.util.Objects.equals(error, null))
         {
-            return null;
+            return false;
         }
         Long code = this.safeInteger(error, "errorCode");
         String action = this.safeString(message, "action");
@@ -2319,7 +2318,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             client.reject(feedback, messageHash);
             return true;
         }
-        return null;
+        return false;
     }
 
     public void handleMessage(Client client, Map<String, Object> message)

@@ -1503,7 +1503,7 @@ public class Pacifica extends PacificaApi
 
     }
 
-    public Map<String, Object> parseFundingRate(Object info, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> info, Map<String, Object> market)
     {
         //
         //      {
@@ -2319,10 +2319,10 @@ public class Pacifica extends PacificaApi
 
     }
 
-    public Map<String, Object> cancelOrdersRequest(Object ids, String symbol, Map<String, Object> parameters)
+    public Map<String, Object> cancelOrdersRequest(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         List<Object> actions = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)ids).size(); i++)
+        for (var i = 0; i < ids.size(); i++)
         {
             String id = this.safeString(ids, i);
             Map<String, Object> request = this.cancelOrderRequest(id, symbol, parameters);

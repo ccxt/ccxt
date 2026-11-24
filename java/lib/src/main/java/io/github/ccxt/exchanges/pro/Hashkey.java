@@ -498,7 +498,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
         if (!java.util.Objects.equals(symbol, null))
         {
-            messageHash = (("orders" + ":") + symbolResolved);
+            messageHash = (("orders" + ":") + this.symbol(symbol));
         }
         io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.watchPrivate(messageHash)).join();
         Long limitResolved = limit;
@@ -637,7 +637,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         String symbolResolved = (((!java.util.Objects.equals(symbol, null)))) ? this.symbol(symbol) : symbol;
         if (!java.util.Objects.equals(symbol, null))
         {
-            messageHash = (("myTrades" + ":") + symbolResolved);
+            messageHash = (("myTrades" + ":") + this.symbol(symbol));
         }
         io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.watchPrivate(messageHash)).join();
         Long limitResolved = limit;

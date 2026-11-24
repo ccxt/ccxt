@@ -2011,9 +2011,9 @@ public class Cex extends CexApi
 
     }
 
-    public CompletableFuture<Object> transferBetweenMainAndSubAccount(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transferBetweenMainAndSubAccount(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.transferBetweenMainAndSubAccountCore(code, amount, fromAccount, toAccount, parameters));
+        return BaseExchange.supplyAsync(() -> this.transferBetweenMainAndSubAccountCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
     private Object transferBetweenMainAndSubAccountCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
@@ -2059,9 +2059,9 @@ public class Cex extends CexApi
 
     }
 
-    public CompletableFuture<Object> transferBetweenSubAccounts(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transferBetweenSubAccounts(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.transferBetweenSubAccountsCore(code, amount, fromAccount, toAccount, parameters));
+        return BaseExchange.supplyAsync(() -> this.transferBetweenSubAccountsCore(code, amount, fromAccount, toAccount, parameters)).thenApply(TransferEntry::new);
     }
 
     private Object transferBetweenSubAccountsCore(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> parameters)

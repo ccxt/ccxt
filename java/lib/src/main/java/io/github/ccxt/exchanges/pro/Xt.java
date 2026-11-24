@@ -2011,7 +2011,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         this.cleanCache(subscription);
     }
 
-    public void handleErrorMessage(Client client, Map<String, Object> message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -2028,9 +2028,10 @@ public class Xt extends io.github.ccxt.exchanges.Xt
                 client.subscriptions.remove("token");
             }
             this.getListenKey(true);
-            return;
+            return false;
         }
         var error = new ExchangeError(((this.id + " ") + this.json(message)));
         client.reject(error);
+        return false;
     }
 }

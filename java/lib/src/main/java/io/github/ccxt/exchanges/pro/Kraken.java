@@ -1401,10 +1401,10 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         client.resolve(orderbook, messageHash);
     }
 
-    public void customHandleDeltas(Object bookside, Object deltas)
+    public void customHandleDeltas(Object bookside, List<Object> deltas)
     {
         // const sortOrder = (key === 'bids') ? true : false;
-        for (var j = 0; j < ((List<?>)deltas).size(); j++)
+        for (var j = 0; j < deltas.size(); j++)
         {
             Map<String, Object> delta = this.safeDict(deltas, j, null);
             Double price = this.safeNumber(delta, "price", null);

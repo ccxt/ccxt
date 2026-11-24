@@ -4083,7 +4083,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public Map<String, Object> parseFundingRate(Object ticker, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -4111,7 +4111,7 @@ public class Bybit extends BybitApi
         //     }
         //
         Long timestamp = this.safeInteger(ticker, "timestamp"); // added artificially to avoid changing the signature
-        Object tickerOmitted = this.omit(ticker, "timestamp");
+        Map<String, Object> tickerOmitted = this.omit(ticker, "timestamp");
         String marketId = this.safeString(tickerOmitted, "symbol");
         String symbol = this.safeSymbol(marketId, market, null, "swap");
         Double fundingRate = this.safeNumber(tickerOmitted, "fundingRate", null);
@@ -5053,7 +5053,7 @@ public class Bybit extends BybitApi
         }
         Map<String, Object> accountTypes = this.safeDict(this.options, "accountsByType", new HashMap<String, Object>() {{}});
         String unifiedType = this.safeStringUpper(accountTypes, type, type);
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBalance", paramsSubType, null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBalance", paramsSubType, (String) null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         Map<String, Object> response = null;
@@ -10302,7 +10302,8 @@ public class Bybit extends BybitApi
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         for (var i = 0; i < fees.size(); i++)
         {
-            Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) ((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))), (Map<String, Object>) null);
+            Map<String, Object> feeRow = this.safeDict(fees, i, new HashMap<String, Object>() {{}});
+            Map<String, Object> fee = this.parseTradingFee(feeRow, (Map<String, Object>) null);
             String symbol = this.safeString(fee, "symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -10712,7 +10713,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public List<Object> parseVolatilityHistory(Object volatility)
+    public List<Object> parseVolatilityHistory(List<Object> volatility)
     {
         //
         //     {
@@ -10722,7 +10723,7 @@ public class Bybit extends BybitApi
         //     }
         //
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)volatility).size(); i++)
+        for (var i = 0; i < volatility.size(); i++)
         {
             Map<String, Object> entry = this.safeDict(volatility, i, null);
             Long timestamp = this.safeInteger(entry, "time");
@@ -10824,9 +10825,9 @@ public class Bybit extends BybitApi
      * @param {string} [params.baseCoin] the baseCoin of the symbol, default is BTC
      * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */
-    public CompletableFuture<Object> fetchAllGreeks(List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<io.github.ccxt.types.AllGreeks> fetchAllGreeks(List<String> symbols, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchAllGreeksCore(symbols, parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchAllGreeksCore(symbols, parameters)).thenApply(io.github.ccxt.types.AllGreeks::new);
     }
 
     private Object fetchAllGreeksCore(List<String> symbols, Map<String, Object> parameters)
@@ -12221,7 +12222,7 @@ public class Bybit extends BybitApi
 
     }
 
-    public Object parseLongShortRatio(Map<String, Object> info, Map<String, Object> market)
+    public Map<String, Object> parseLongShortRatio(Map<String, Object> info, Map<String, Object> market)
     {
         //
         //     {

@@ -4153,7 +4153,7 @@ public class Deribit extends DeribitApi
 
     }
 
-    public Map<String, Object> parseFundingRate(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> contract, Map<String, Object> market)
     {
         //
         //   {
@@ -4274,24 +4274,24 @@ public class Deribit extends DeribitApi
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         String cursor = this.safeString(result, "continuation");
         List<Object> settlements = this.safeList(result, "settlements", new ArrayList<Object>(Arrays.asList()));
-        Object settlementsWithCursor = this.addPaginationCursorToResult(cursor, settlements);
+        List<Object> settlementsWithCursor = this.addPaginationCursorToResult(cursor, settlements);
         return this.parseLiquidations(settlementsWithCursor, market, since, limit);
 
     }
 
-    public Object addPaginationCursorToResult(String cursor, Object data)
+    public List<Object> addPaginationCursorToResult(String cursor, List<Object> data)
     {
         if (!java.util.Objects.equals(cursor, null))
         {
-            Integer dataLength = ((List<?>)data).size();
+            Integer dataLength = data.size();
             if ((dataLength != null && dataLength > 0))
             {
                 Map<String, Object> first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
                 Map<String, Object> last = this.safeDict(data, (((long) dataLength) - 1L), new HashMap<String, Object>() {{}});
                 first.put("continuation", cursor);
                 last.put("continuation", cursor);
-                ((List<Object>)data).set(0, first);
-                ((List<Object>)data).set((int) (long) ((((long) dataLength) - 1L)), last);
+                data.set(0, first);
+                data.set((int) (long) ((((long) dataLength) - 1L)), last);
             }
         }
         return data;

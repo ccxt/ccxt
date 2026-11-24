@@ -308,12 +308,12 @@ public class Apex extends io.github.ccxt.exchanges.Apex
 
     }
 
-    public CompletableFuture<Object> watchTopics(String url, Object messageHashes, Object topics, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchTopics(String url, List<?> messageHashes, Object topics, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchTopicsCore(url, messageHashes, topics, parameters));
     }
 
-    private Object watchTopicsCore(String url, Object messageHashes, Object topics, Map<String, Object> parameters)
+    private Object watchTopicsCore(String url, List<?> messageHashes, Object topics, Map<String, Object> parameters)
     {
 
         // apex's server rejects a subscribe whose args include any

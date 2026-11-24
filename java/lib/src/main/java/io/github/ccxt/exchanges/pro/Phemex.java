@@ -826,12 +826,12 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
 
     }
 
-    public CompletableFuture<Object> unSubscribePublic(String method, String subMessageHash, Object marketParams, Map<String, Object> subscription, Map<String, Object> parameters)
+    public CompletableFuture<Object> unSubscribePublic(String method, String subMessageHash, List<Object> marketParams, Map<String, Object> subscription, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unSubscribePublicCore(method, subMessageHash, marketParams, subscription, parameters));
     }
 
-    private Object unSubscribePublicCore(String method, String subMessageHash, Object marketParams, Map<String, Object> subscription, Map<String, Object> parameters)
+    private Object unSubscribePublicCore(String method, String subMessageHash, List<Object> marketParams, Map<String, Object> subscription, Map<String, Object> parameters)
     {
 
         String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
@@ -972,11 +972,11 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
     }
 
-    public void customHandleDeltas(Object bookside, Object deltas, Map<String, Object> market)
+    public void customHandleDeltas(Object bookside, List<Object> deltas, Map<String, Object> market)
     {
-        for (var i = 0; i < ((List<?>)deltas).size(); i++)
+        for (var i = 0; i < deltas.size(); i++)
         {
-            this.customHandleDelta(bookside, (deltas == null || i < 0 || i >= ((List<?>)deltas).size() ? null : ((List<?>)deltas).get(i)), market);
+            this.customHandleDelta(bookside, (deltas == null || i < 0 || i >= deltas.size() ? null : deltas.get(i)), market);
         }
     }
 

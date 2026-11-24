@@ -1222,12 +1222,12 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     }
 
-    public CompletableFuture<Object> watchPrivateMultiple(Object messageHashes, Map<String, Object> message, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchPrivateMultiple(List<?> messageHashes, Map<String, Object> message, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchPrivateMultipleCore(messageHashes, message, parameters));
     }
 
-    private Object watchPrivateMultipleCore(Object messageHashes, Map<String, Object> message, Map<String, Object> parameters)
+    private Object watchPrivateMultipleCore(List<?> messageHashes, Map<String, Object> message, Map<String, Object> parameters)
     {
 
         (this.authenticate(parameters)).join();

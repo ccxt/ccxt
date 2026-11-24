@@ -812,7 +812,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         String symbol = this.safeString(subscription, "symbol");
         String timeframe = this.safeString(subscription, "timeframe");
         Map<String, Object> market = this.safeMarket(marketId, null, null, null);
-        Object stored = this.safeValue(this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}), timeframe);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.safeDict(this.ohlcvs, symbol, null), timeframe);
         if (java.util.Objects.equals(stored, null))
         {
             return;
@@ -840,9 +840,9 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             }
         }
         // the live candles built from smd before the history arrived are kept only when they are newer than the history
-        for (var i = 0; i < (switch ((Object)(stored)) { case null -> 0; case List<?> j39v3 -> j39v3.size(); case String j39v4 -> j39v4.length(); case Object j39v5 -> j39v5.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v5) : 0; }); i++)
+        for (var i = 0; i < (stored == null ? 0 : stored.size()); i++)
         {
-            Object candle = Helpers.GetValue(stored, i);
+            Object candle = (stored == null || i < 0 || i >= stored.size() ? null : stored.get(i));
             if ((java.util.Objects.equals(lastHistoryTimestamp, null)) || (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } return j38g; }).test(Helpers.GetValue(candle, 0), lastHistoryTimestamp)))
             {
                 ((List<Object>)bars).add(candle);
@@ -959,7 +959,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             Object stored = (ohlcvsBySymbol == null || timeframe == null ? null : ohlcvsBySymbol.get(timeframe));
             Long duration = (((long) this.parseTimeframe(timeframe)) * 1000L);
             Long candleTimestamp = (this.parseToInt((((double) timestamp) / ((double) duration))) * duration);
-            Integer length = (switch ((Object)(stored)) { case null -> 0; case List<?> j39v6 -> j39v6.size(); case String j39v7 -> j39v7.length(); case Object j39v8 -> j39v8.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v8) : 0; });
+            Integer length = (switch ((Object)(stored)) { case null -> 0; case List<?> j39v3 -> j39v3.size(); case String j39v4 -> j39v4.length(); case Object j39v5 -> j39v5.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v5) : 0; });
             Object candle = null;
             if ((length != null && length > 0))
             {

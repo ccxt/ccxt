@@ -2912,23 +2912,23 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         }
     }
 
-    public CompletableFuture<Object> watchTopics(String url, Object messageHashes, Object topics, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchTopics(String url, List<?> messageHashes, Object topics, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchTopicsCore(url, messageHashes, topics, parameters));
     }
 
-    private Object watchTopicsCore(String url, Object messageHashes, Object topics, Map<String, Object> parameters)
+    private Object watchTopicsCore(String url, List<?> messageHashes, Object topics, Map<String, Object> parameters)
     {
 
         Client client = this.client(url);
         List<Object> newTopics = new ArrayList<Object>(Arrays.asList());
         Integer topicsLength = ((List<?>)topics).size();
-        Integer messageHashesLength = ((List<?>)messageHashes).size();
+        Integer messageHashesLength = messageHashes.size();
         if (java.util.Objects.equals(topicsLength, messageHashesLength))
         {
             for (var i = 0; (messageHashesLength != null && i < messageHashesLength); i++)
             {
-                Object messageHash = (messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i));
+                Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
                 if (!(client.subscriptions.containsKey(messageHash)))
                 {
                     ((List<Object>)newTopics).add(this.safeString(topics, i, ""));
@@ -2982,12 +2982,12 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
 
     }
 
-    public CompletableFuture<Object> unWatchTopics(String url, String topic, Object symbols, Object messageHashes, Object subMessageHashes, Object topics, Map<String, Object> parameters, Map<String, Object> subExtension)
+    public CompletableFuture<Object> unWatchTopics(String url, String topic, Object symbols, List<?> messageHashes, List<?> subMessageHashes, Object topics, Map<String, Object> parameters, Map<String, Object> subExtension)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchTopicsCore(url, topic, symbols, messageHashes, subMessageHashes, topics, parameters, subExtension));
     }
 
-    private Object unWatchTopicsCore(String url, String topic, Object symbols, Object messageHashes, Object subMessageHashes, Object topics, Map<String, Object> parameters, Map<String, Object> subExtension)
+    private Object unWatchTopicsCore(String url, String topic, Object symbols, List<?> messageHashes, List<?> subMessageHashes, Object topics, Map<String, Object> parameters, Map<String, Object> subExtension)
     {
 
         Long reqId = this.requestId();

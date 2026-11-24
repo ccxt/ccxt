@@ -1411,10 +1411,9 @@ public class Phemex extends PhemexApi
                 String baseCurrency = this.safeString(market, "baseCurrency");
                 Map<String, Object> currencyValues = this.safeDict(currenciesByCode, baseCurrency, new HashMap<String, Object>() {{}});
                 String valueScale = this.safeString(currencyValues, "valueScale", "8");
-                market = this.extend(market, new HashMap<String, Object>() {{
+                market = this.parseSpotMarket(this.extend(market, new HashMap<String, Object>() {{
                     put( "valueScale", valueScale );
-                }});
-                market = this.parseSpotMarket((Map<String, Object>) (market));
+                }}));
             }
             if (!java.util.Objects.equals(market, null))
             {
@@ -5158,7 +5157,7 @@ public class Phemex extends PhemexApi
 
     }
 
-    public Map<String, Object> parseFundingRate(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> contract, Map<String, Object> market)
     {
         //
         //     {

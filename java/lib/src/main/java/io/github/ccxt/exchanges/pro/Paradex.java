@@ -209,19 +209,19 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
      * @param {object} [params] extra parameters merged into each subscribe request
      * @returns {object} the first update
      */
-    public CompletableFuture<Object> subscribeChannels(String url, Object messageHashes, Object channels, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribeChannels(String url, List<?> messageHashes, List<?> channels, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.subscribeChannelsCore(url, messageHashes, channels, parameters));
     }
 
-    private Object subscribeChannelsCore(String url, Object messageHashes, Object channels, Map<String, Object> parameters)
+    private Object subscribeChannelsCore(String url, List<?> messageHashes, List<?> channels, Map<String, Object> parameters)
     {
 
         // messageHashes[i] is the hash the updates of channels[i] resolve. The channels still to subscribe are
         // looked up again after each await: another watch may have subscribed one meanwhile, and a reconnect
         // starts a client without any. Each but the last is sent once the previous one is acknowledged
         (this.waitForPendingUnsubscribe(url, channels)).join();
-        Integer channelsLength = ((List<?>)channels).size();
+        Integer channelsLength = channels.size();
         for (var attempt = 0; (channelsLength != null && attempt < channelsLength); attempt++)
         {
             List<Long> pending = this.unsubscribedChannels(url, channels);
@@ -312,15 +312,15 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
      * @param {object} [params] extra parameters merged into each unsubscribe request
      * @returns {boolean} true once every channel is unsubscribed
      */
-    public CompletableFuture<Object> unsubscribeChannels(String url, String topic, Object channels, Object subMessageHashes, Object symbols, Map<String, Object> parameters)
+    public CompletableFuture<Object> unsubscribeChannels(String url, String topic, List<?> channels, List<?> subMessageHashes, List<?> symbols, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.unsubscribeChannelsCore(url, topic, channels, subMessageHashes, symbols, parameters));
     }
 
-    private Object unsubscribeChannelsCore(String url, String topic, Object channels, Object subMessageHashes, Object symbols, Map<String, Object> parameters)
+    private Object unsubscribeChannelsCore(String url, String topic, List<?> channels, List<?> subMessageHashes, List<?> symbols, Map<String, Object> parameters)
     {
 
-        for (var i = 0; i < ((List<?>)channels).size(); i++)
+        for (var i = 0; i < channels.size(); i++)
         {
             try
             {
@@ -1531,12 +1531,12 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
      * @param {object} [params] extra parameters merged into the request
      * @returns {object} the first [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure} updated
      */
-    public CompletableFuture<Object> subscribeMarketsSummary(Object symbols, Object messageHashes, Map<String, Object> parameters)
+    public CompletableFuture<Object> subscribeMarketsSummary(Object symbols, List<?> messageHashes, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.subscribeMarketsSummaryCore(symbols, messageHashes, parameters));
     }
 
-    private Object subscribeMarketsSummaryCore(Object symbols, Object messageHashes, Map<String, Object> parameters)
+    private Object subscribeMarketsSummaryCore(Object symbols, List<?> messageHashes, Map<String, Object> parameters)
     {
 
         String url = this.getWsUrl();

@@ -1168,7 +1168,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         client.resolve(orderbook, messageHash);
     }
 
-    public void handleErrorMessage(Client client, Map<String, Object> message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //    {
@@ -1181,6 +1181,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         String errMsg = this.safeString(message, "message", "");
         var error = new ExchangeError(((this.id + " ") + errMsg));
         client.reject(error);
+        return false;
     }
 
     public CompletableFuture<Object> handlePing(Client client, Map<String, Object> message)

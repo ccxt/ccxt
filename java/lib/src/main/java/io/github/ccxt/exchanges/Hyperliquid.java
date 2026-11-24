@@ -1297,7 +1297,7 @@ public class Hyperliquid extends HyperliquidApi
         Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchBalance", null, paramsPublicAddress, null);
         String type = typeparamsMarketTypeVariable.first();
         Map<String, Object> paramsMarketType = typeparamsMarketTypeVariable.second();
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBalance", paramsMarketType, null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("fetchBalance", paramsMarketType, (String) null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         var isUnifiedEnabledparamsValueVariable = (this.isUnifiedEnabled("fetchBalance", userAddress, shouldRefresh, paramsMarginMode)).join();
@@ -1627,7 +1627,7 @@ public class Hyperliquid extends HyperliquidApi
 
     }
 
-    public Map<String, Object> parseFundingRate(Object info, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> info, Map<String, Object> market)
     {
         //
         //     {
@@ -3165,7 +3165,7 @@ public class Hyperliquid extends HyperliquidApi
 
     }
 
-    public Map<String, Object> cancelOrdersRequest(Object ids, String symbol, Map<String, Object> parameters)
+    public Map<String, Object> cancelOrdersRequest(List<String> ids, String symbol, Map<String, Object> parameters)
     {
         /**
          * @method
@@ -3206,7 +3206,7 @@ public class Hyperliquid extends HyperliquidApi
         } else
         {
             cancelAction.put("type", "cancel");
-            for (var i = 0; i < ((List<?>)ids).size(); i++)
+            for (var i = 0; i < ids.size(); i++)
             {
                 Object o = this.parseToNumeric(this.safeString(ids, i));
                 ((List<Object>)cancelReq).add(new HashMap<String, Object>() {{

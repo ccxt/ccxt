@@ -251,11 +251,11 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
         this.handleBidAsks((orderbook == null ? null : orderbook.get("asks")), asks);
     }
 
-    public void handleBidAsks(Object bookSide, Object bidAsks)
+    public void handleBidAsks(Object bookSide, List<Object> bidAsks)
     {
-        for (var i = 0; i < ((List<?>)bidAsks).size(); i++)
+        for (var i = 0; i < bidAsks.size(); i++)
         {
-            List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk((bidAsks == null || i < 0 || i >= ((List<?>)bidAsks).size() ? null : ((List<?>)bidAsks).get(i)), 0, 1, 2);
+            List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk((bidAsks == null || i < 0 || i >= bidAsks.size() ? null : bidAsks.get(i)), 0, 1, 2);
             ((io.github.ccxt.ws.OrderBookSide) bookSide).storeArray(bidAsk);
         }
     }

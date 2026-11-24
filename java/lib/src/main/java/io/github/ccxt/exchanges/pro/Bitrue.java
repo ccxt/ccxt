@@ -536,10 +536,10 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         return null;
     }
 
-    public List<Object> parseContractBidsAsks(Object bidsAsks, String symbol)
+    public List<Object> parseContractBidsAsks(List<Object> bidsAsks, String symbol)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)bidsAsks).size(); i++)
+        for (var i = 0; i < bidsAsks.size(); i++)
         {
             List<Object> level = this.safeList(bidsAsks, i, null);
             Double price = this.safeNumber(level, 0, null);

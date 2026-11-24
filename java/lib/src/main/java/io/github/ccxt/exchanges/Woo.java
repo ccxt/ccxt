@@ -1292,7 +1292,7 @@ public class Woo extends WooApi
         String price = this.safeString2(trade, "executed_price", "executedPrice");
         String amount = this.safeString2(trade, "executed_quantity", "executedQuantity");
         String order_id = this.safeString2(trade, "order_id", "orderId");
-        Object fee = this.parseTokenAndFeeTemp((Map<String, Object>) (trade), new ArrayList<Object>(Arrays.asList("fee_asset", "feeAsset")), new ArrayList<Object>(Arrays.asList("fee")));
+        Object fee = this.parseTokenAndFeeTemp(this.extend(new HashMap<String, Object>() {{}}, trade), new ArrayList<Object>(Arrays.asList("fee_asset", "feeAsset")), new ArrayList<Object>(Arrays.asList("fee")));
         String cost = Precise.stringMul(price, amount);
         String side = this.safeStringLower(trade, "side");
         String id = this.safeString(trade, "id");
@@ -1773,12 +1773,12 @@ public class Woo extends WooApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public CompletableFuture<Order> createTrailingPercentOrder(String symbol, String type, String side, Double amount, Double price, Object trailingPercent, Object trailingTriggerPrice, Map<String, Object> parameters)
+    public CompletableFuture<Order> createTrailingPercentOrder(String symbol, String type, String side, Double amount, Double price, Double trailingPercent, Double trailingTriggerPrice, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.createTrailingPercentOrderCore(symbol, type, side, amount, price, trailingPercent, trailingTriggerPrice, parameters)).thenApply(Order::new);
     }
 
-    private Object createTrailingPercentOrderCore(String symbol, String type, String side, Double amount, Double price, Object trailingPercent, Object trailingTriggerPrice, Map<String, Object> parameters)
+    private Object createTrailingPercentOrderCore(String symbol, String type, String side, Double amount, Double price, Double trailingPercent, Double trailingTriggerPrice, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(trailingPercent, null))
@@ -1841,7 +1841,7 @@ public class Woo extends WooApi
         Map<String, Object> request = new HashMap<String, Object>();
         request.put("symbol", market.get("id"));
         request.put("side", orderSide);
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", paramsOmitted, null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", paramsOmitted, (String) null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         if (!java.util.Objects.equals(marginMode, null))
@@ -4403,7 +4403,7 @@ public class Woo extends WooApi
 
     }
 
-    public Map<String, Object> parseFundingRate(Object fundingRate, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> fundingRate, Map<String, Object> market)
     {
         //
         //     {

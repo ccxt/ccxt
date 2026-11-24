@@ -1475,7 +1475,7 @@ public class Blofin extends BlofinApi
 
     }
 
-    public Map<String, Object> parseFundingRate(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> contract, Map<String, Object> market)
     {
         //
         //    {
@@ -3880,7 +3880,7 @@ public class Blofin extends BlofinApi
         }
         String marginMode = null;
         Map<String, Object> query = null;
-        Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchLeverages", parameters, null);
+        Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchLeverages", parameters, (String) null);
         marginMode = marginModequeryVariable.first();
         query = marginModequeryVariable.second();
         if (java.util.Objects.equals(marginMode, null))
@@ -3939,7 +3939,7 @@ public class Blofin extends BlofinApi
         }
         String marginMode = null;
         Map<String, Object> query = null;
-        Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchLeverage", parameters, null);
+        Pair<String, Map<String, Object>> marginModequeryVariable = this.handleMarginModeAndParams("fetchLeverage", parameters, (String) null);
         marginMode = marginModequeryVariable.first();
         query = marginModequeryVariable.second();
         if (java.util.Objects.equals(marginMode, null))

@@ -1747,7 +1747,7 @@ public class Btse extends BtseApi
 
     }
 
-    public Map<String, Object> parseFundingRate(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> contract, Map<String, Object> market)
     {
         //
         // ticker/24hr contract rows
@@ -3342,12 +3342,12 @@ public class Btse extends BtseApi
 
     }
 
-    public CompletableFuture<Object> requestWalletHistoryRows(String methodName, Object historyTypes, String code, Long since, Long limit, Map<String, Object> parameters)
+    public CompletableFuture<Object> requestWalletHistoryRows(String methodName, List<?> historyTypes, String code, Long since, Long limit, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.requestWalletHistoryRowsCore(methodName, historyTypes, code, since, limit, parameters));
     }
 
-    private Object requestWalletHistoryRowsCore(String methodName, Object historyTypes, String code, Long since, Long limit, Map<String, Object> parameters)
+    private Object requestWalletHistoryRowsCore(String methodName, List<?> historyTypes, String code, Long since, Long limit, Map<String, Object> parameters)
     {
 
         // the helper always receives a non empty history type list, the list is
@@ -4349,7 +4349,7 @@ public class Btse extends BtseApi
         // the endpoint defaults to the ISOLATED bucket when marginMode is omitted,
         // verified live - a bare call on a cross account silently changes the
         // isolated leverage only, so the unified marginMode param is translated here
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("setLeverage", parameters, null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("setLeverage", parameters, (String) null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
         if (!java.util.Objects.equals(marginMode, null))

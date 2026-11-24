@@ -2427,13 +2427,13 @@ public class Sxbet extends SxbetApi
      * @param {object} rowsByHash best-odds rows indexed by market hash
      * @returns {object} a dictionary of [prediction ticker structures](https://docs.ccxt.com/#/?id=prediction-ticker-structure) indexed by outcome
      */
-    public Map<String, Object> parseSxbetTickersByHash(Object outcomesList, Map<String, Object> rowsByHash)
+    public Map<String, Object> parseSxbetTickersByHash(List<?> outcomesList, Map<String, Object> rowsByHash)
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        Integer outcomesLength = ((List<?>)outcomesList).size();
+        Integer outcomesLength = outcomesList.size();
         for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
         {
-            Map<String, Object> outcomeObj = this.outcome((String) ((outcomesList == null || i < 0 || i >= ((List<?>)outcomesList).size() ? null : ((List<?>)outcomesList).get(i))));
+            Map<String, Object> outcomeObj = this.outcome((String) ((outcomesList == null || i < 0 || i >= outcomesList.size() ? null : outcomesList.get(i))));
             String marketHash = this.safeString(outcomeObj.get("info"), "marketHash", "");
             Map<String, Object> raw = this.safeDict(rowsByHash, marketHash, null);
             if (java.util.Objects.equals(raw, null))

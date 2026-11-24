@@ -385,13 +385,13 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         {
             limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(trades, symbolResolved, limit);
         }
-        trades = this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, false);
-        Integer numTrades = (trades == null ? 0 : trades.size());
-        if ((numTrades != null && numTrades == 0))
+        List<Object> filtered = this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, false);
+        Integer numTrades = filtered.size();
+        if (java.util.Objects.equals(numTrades, 0))
         {
             return (this.watchMyTrades(symbolResolved, since, limitResolved, parameters)).join();
         }
-        return trades;
+        return filtered;
 
     }
 
@@ -583,13 +583,13 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         {
             limitResolved = io.github.ccxt.ws.ArrayCache.getLimitOf(orders, symbolResolved, limit);
         }
-        orders = this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, false);
-        Integer numOrders = (orders == null ? 0 : orders.size());
-        if ((numOrders != null && numOrders == 0))
+        List<Object> filtered = this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, false);
+        Integer numOrders = filtered.size();
+        if (java.util.Objects.equals(numOrders, 0))
         {
             return (this.watchOrders(symbolResolved, since, limitResolved, parameters)).join();
         }
-        return orders;
+        return filtered;
 
     }
 

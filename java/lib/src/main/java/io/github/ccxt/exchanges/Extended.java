@@ -1443,7 +1443,7 @@ public class Extended extends ExtendedApi
         }};
     }
 
-    public Object parseFundingHistories(Object histories, Map<String, Object> market, Long since, Long limit)
+    public List<Object> parseFundingHistories(Object histories, Map<String, Object> market, Long since, Long limit)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)histories).size(); i++)

@@ -3622,7 +3622,7 @@ public class Krakenfutures extends KrakenfuturesApi
 
     }
 
-    public Map<String, Object> parseFundingRate(Object ticker, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> ticker, Map<String, Object> market)
     {
         //
         //     {
@@ -4257,9 +4257,9 @@ public class Krakenfutures extends KrakenfuturesApi
      * @param {dict} [params] Exchange specific parameters
      * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public CompletableFuture<Object> transferOut(String code, Double amount, Map<String, Object> parameters)
+    public CompletableFuture<TransferEntry> transferOut(String code, Double amount, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.transferOutCore(code, amount, parameters));
+        return BaseExchange.supplyAsync(() -> this.transferOutCore(code, amount, parameters)).thenApply(TransferEntry::new);
     }
 
     private Object transferOutCore(String code, Double amount, Map<String, Object> parameters)

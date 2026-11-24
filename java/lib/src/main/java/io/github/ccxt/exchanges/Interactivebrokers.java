@@ -2872,12 +2872,12 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} the raw snapshot items
      */
-    public CompletableFuture<Object> ibkrFetchSnapshot(Object symbols, String fields, Object readyFields, Map<String, Object> parameters)
+    public CompletableFuture<Object> ibkrFetchSnapshot(Object symbols, String fields, List<?> readyFields, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.ibkrFetchSnapshotCore(symbols, fields, readyFields, parameters));
     }
 
-    private Object ibkrFetchSnapshotCore(Object symbols, String fields, Object readyFields, Map<String, Object> parameters)
+    private Object ibkrFetchSnapshotCore(Object symbols, String fields, List<?> readyFields, Map<String, Object> parameters)
     {
 
         List<String> conids = new ArrayList<String>(Arrays.asList());

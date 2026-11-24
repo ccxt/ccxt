@@ -1623,17 +1623,17 @@ public class Nado extends io.github.ccxt.exchanges.Nado
 
     }
 
-    public CompletableFuture<Object> unWatchPublicMultiple(String streamType, List<Object> markets, Object messageHashes, Map<String, Object> parameters, Object subscriptionParams)
+    public CompletableFuture<Object> unWatchPublicMultiple(String streamType, List<Object> markets, List<?> messageHashes, Map<String, Object> parameters, Object subscriptionParams)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchPublicMultipleCore(streamType, markets, messageHashes, parameters, subscriptionParams));
     }
 
-    private Object unWatchPublicMultipleCore(String streamType, List<Object> markets, Object messageHashes, Map<String, Object> parameters, Object subscriptionParams)
+    private Object unWatchPublicMultipleCore(String streamType, List<Object> markets, List<?> messageHashes, Map<String, Object> parameters, Object subscriptionParams)
     {
 
         String url = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "subscriptions");
         Client client = this.client(url);
-        for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
+        for (var i = 0; i < messageHashes.size(); i++)
         {
             String messageHash = this.safeString(messageHashes, i, "");
             Long id = this.requestId();

@@ -1059,7 +1059,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 String cancelledOrderId = this.safeString(message, "order_id");
                 for (var i = 0; i < ((List<?>)orders).size(); i++)
                 {
-                    Object currentOrder = (orders == null || i < 0 || i >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(i));
+                    Object currentOrder = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
                     String currentOrderId = this.safeString(currentOrder, "id");
                     if (java.util.Objects.equals(currentOrderId, cancelledOrderId))
                     {

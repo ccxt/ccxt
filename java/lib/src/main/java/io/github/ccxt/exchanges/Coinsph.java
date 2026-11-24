@@ -1183,7 +1183,7 @@ public class Coinsph extends CoinsphApi
         {
             ticker = (this.publicGetOpenapiQuoteV1Ticker24hr(this.extend(request, parameters))).join();
         }
-        return this.parseTicker((Map<String, Object>) (ticker), market);
+        return this.parseTicker(this.extend(new HashMap<String, Object>() {{}}, ticker), market);
 
     }
 

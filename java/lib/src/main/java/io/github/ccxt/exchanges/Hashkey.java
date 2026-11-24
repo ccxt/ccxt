@@ -4214,7 +4214,7 @@ public class Hashkey extends HashkeyApi
 
     }
 
-    public Map<String, Object> parseFundingRate(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> contract, Map<String, Object> market)
     {
         //
         //     {
@@ -4878,10 +4878,10 @@ public class Hashkey extends HashkeyApi
             return fee;
         } else if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
         {
-            response = (this.privateGetApiV1FuturesCommissionRate(this.extend(new HashMap<String, Object>() {{
+            Map<String, Object> swapResponse = (this.privateGetApiV1FuturesCommissionRate(this.extend(new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }}, parameters))).join();
-            return this.parseTradingFee((Map<String, Object>) (response), market);
+            return this.parseTradingFee(swapResponse, market);
         } else
         {
             String marketTypeValue = this.safeString(market, "type", "");

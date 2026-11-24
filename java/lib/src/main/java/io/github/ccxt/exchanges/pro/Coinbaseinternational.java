@@ -1720,6 +1720,10 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         String symbol = this.safeSymbol(marketId, null, null, null);
         Long timestamp = this.safeInteger(data, "timestamp");
         String channel = this.safeString(parameters, "channel");
+        if (java.util.Objects.equals(channel, null))
+        {
+            throw new ExchangeError((this.id + " order book update has no channel")) ;
+        }
         List<Object> channelParts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
         Integer channelPartsLength = channelParts.size();
         Boolean isGrouped = java.util.Objects.equals(channelPartsLength, 5);

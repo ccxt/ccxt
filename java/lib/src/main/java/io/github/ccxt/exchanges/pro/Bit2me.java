@@ -958,7 +958,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
         return message;
     }
 
-    public void handleErrorMessage(Client client, Map<String, Object> message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     { "event": "added-order", "symbol": "BTC/USDC", "error": { "code": "PRICE_LOWER_MARKET_MIN", "minPrice": 0.001, "message": "The price can not be lower than 0.001" } }
@@ -1046,6 +1046,7 @@ public class Bit2me extends io.github.ccxt.exchanges.Bit2me
                 }
             }
         }
+        return false;
     }
 
     public void handleMessage(Client client, Map<String, Object> message)

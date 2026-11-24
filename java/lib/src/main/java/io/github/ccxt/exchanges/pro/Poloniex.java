@@ -1469,11 +1469,10 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         Map<String, Object> newTickers = new HashMap<String, Object>() {{}};
         for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> item = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-            String marketId = this.safeString(item, "symbol");
+            String marketId = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "symbol");
             if (!java.util.Objects.equals(marketId, null))
             {
-                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(item, null);
+                Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(data, i, new HashMap<String, Object>() {{}}), null);
                 String symbol = this.safeString(ticker, "symbol");
                 if (!java.util.Objects.equals(symbol, null))
                 {

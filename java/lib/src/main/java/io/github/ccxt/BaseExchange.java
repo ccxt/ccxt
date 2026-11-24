@@ -10367,10 +10367,10 @@ public Map<String, Object> describe()
 
     }
 
-    public CompletableFuture<Object> fetchAllGreeks(List<String> symbols, Map<String, Object> parameters)
+    public CompletableFuture<io.github.ccxt.types.AllGreeks> fetchAllGreeks(List<String> symbols, Map<String, Object> parameters)
     {
 
-        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchAllGreeks() is not supported yet")));
+        return CompletableFuture.failedFuture(new NotSupported((this.id + " fetchAllGreeks() is not supported yet"))).thenApply(io.github.ccxt.types.AllGreeks::new);
 
     }
 
@@ -11102,7 +11102,7 @@ public Map<String, Object> describe()
         return (String) marketResolved.get("symbol");
     }
 
-    public Map<String, Object> parseFundingRate(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> contract, Map<String, Object> market)
     {
         throw new NotSupported((this.id + " parseFundingRate() is not supported yet")) ;
     }
@@ -11122,7 +11122,7 @@ public Map<String, Object> describe()
         return this.indexBy(this.filterByArray(fundingRates, "symbol", symbols, false), "symbol");
     }
 
-    public Object parseLongShortRatio(Map<String, Object> info, Map<String, Object> market)
+    public Map<String, Object> parseLongShortRatio(Map<String, Object> info, Map<String, Object> market)
     {
         throw new NotSupported((this.id + " parseLongShortRatio() is not supported yet")) ;
     }

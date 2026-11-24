@@ -3350,7 +3350,7 @@ public class Cryptocom extends CryptocomApi
         Map<String, Object> paramsOmitted = this.omit(parameters, "margin");
         String marginMode = null;
         Map<String, Object> paramsMarginMode = null;
-        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams(methodName, paramsOmitted, null);
+        Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams(methodName, paramsOmitted, (String) null);
         marginMode = marginModeparamsMarginModeVariable.first();
         paramsMarginMode = marginModeparamsMarginModeVariable.second();
         if (!java.util.Objects.equals(marginMode, null))
@@ -3886,7 +3886,7 @@ public class Cryptocom extends CryptocomApi
 
     }
 
-    public Map<String, Object> parseFundingRate(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRate(Map<String, Object> contract, Map<String, Object> market)
     {
         //
         //                 {

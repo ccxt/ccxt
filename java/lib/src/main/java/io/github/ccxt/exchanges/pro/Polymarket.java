@@ -109,7 +109,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw request frame to send
      */
-    public Object sendSubscription(String action, Object channels, Object messageHashes, Object subMessageHashes, Map<String, Object> context, Map<String, Object> parameters, Object checkHashes)
+    public Object sendSubscription(String action, List<?> channels, List<?> messageHashes, Object subMessageHashes, Map<String, Object> context, Map<String, Object> parameters, Object checkHashes)
     {
         String url = this.safeString(this.urls.get("api"), "ws");
         Client client = this.client(url);
@@ -117,7 +117,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         // subscribed yet, so a pending entry is registered under the same
         // condition - otherwise no ack would ever arrive to consume it, the
         // private channels register a shared hash next to narrowed ones
-        List<Object> hashesToCheck = (List<Object>) ((((java.util.Objects.equals(checkHashes, null)))) ? messageHashes : checkHashes);
+        List<?> hashesToCheck = (List<?>) ((((java.util.Objects.equals(checkHashes, null)))) ? messageHashes : checkHashes);
         Boolean willSend = false;
         for (var i = 0; i < hashesToCheck.size(); i++)
         {

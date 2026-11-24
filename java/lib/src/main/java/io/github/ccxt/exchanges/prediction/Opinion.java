@@ -265,7 +265,7 @@ public class Opinion extends OpinionApi
                 Long marketType = this.safeInteger(raw, "marketType");
                 if ((marketType != null && marketType == 1))
                 {
-                    Map<String, Object> eventVar = this.parseEvent(raw);
+                    Map<String, Object> eventVar = this.parseEvent(this.safeDict(rawMarkets, i, new HashMap<String, Object>() {{}}));
                     List<Object> childMarkets = this.safeList(eventVar, "markets", new ArrayList<Object>(Arrays.asList()));
                     Integer childMarketsLength = childMarkets.size();
                     for (var ci = 0; (childMarketsLength != null && ci < childMarketsLength); ci++)
@@ -572,7 +572,7 @@ public class Opinion extends OpinionApi
         }
         for (var i = 0; (rawEventsLength != null && i < rawEventsLength); i++)
         {
-            Map<String, Object> eventVar = this.parseEvent((Map<String, Object>) ((rawEvents == null || i < 0 || i >= rawEvents.size() ? null : rawEvents.get(i))));
+            Map<String, Object> eventVar = this.parseEvent(this.safeDict(rawEvents, i, new HashMap<String, Object>() {{}}));
             ((List<Object>)parsedEvents).add(eventVar);
             // register the parsed markets so populateOutcomes can index their outcomes
             List<Object> eventMarkets = this.safeList(eventVar, "markets", new ArrayList<Object>(Arrays.asList()));

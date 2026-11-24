@@ -940,7 +940,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         client.resolve(positions, "positions");
     }
 
-    public void handleErrorMessage(Client client, Map<String, Object> message)
+    public Boolean handleErrorMessage(Client client, Map<String, Object> message)
     {
         //
         //     {
@@ -966,6 +966,7 @@ public class Bullish extends io.github.ccxt.exchanges.Bullish
         {
             client.reject(e);
         }
+        return false;
     }
 
     public void handleMessage(Client client, Map<String, Object> message)
