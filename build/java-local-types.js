@@ -5932,6 +5932,8 @@ export function installJavaLocalTypes (transpiler) {
 // Scope safety: one binding per function, unique printed name, no read before the declaration.
 
 const JAVA_DATAFLOW_STRING = 'String';
+// zero-argument String methods the printer emits natively (printToLowerCaseCall and siblings)
+const JAVA_DATAFLOW_STRING_METHODS = new Set ([ 'toLowerCase', 'toUpperCase', 'trim' ]);
 const MAX_DATAFLOW_DEPTH = 8;
 const DATAFLOW_DEBUG = process.env['CCXT_JAVA_DATAFLOW_DEBUG'] === '1';
 
@@ -6255,6 +6257,10 @@ function dataflowValueType (printer, node, context) {
             const method = String (callee.name.text);
             if ((method === 'toString' && node.arguments.length === 0)
                 || ((method === 'replace' || method === 'replaceAll') && node.arguments.length === 2)) {
+                return JAVA_DATAFLOW_STRING;
+            }
+            // `x.toLowerCase ()` / `toUpperCase` / `trim` print the native String method; `xs.join (sep)` prints String.join
+            if ((JAVA_DATAFLOW_STRING_METHODS.has (method) && node.arguments.length === 0) || (method === 'join' && node.arguments.length === 1)) {
                 return JAVA_DATAFLOW_STRING;
             }
             return undefined;
