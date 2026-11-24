@@ -1011,7 +1011,7 @@ class grvt extends \ccxt\async\grvt {
         $client->resolve($this->orders, 'order::' . $this->safe_string($order, 'symbol', ''));
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null): array {
+    public function parse_ws_order(array $order, ?array $market = null): array {
         // same as REST api
         return $this->parse_order($this->extend(array(), $order), $market);
     }

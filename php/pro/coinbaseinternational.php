@@ -2091,7 +2091,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         }
         $symbolsResolved = $this->market_symbols($symbols);
         $result = Async\await($this->request_ws('private/get_positions', $paramsResolved, true));
-        $positions = $this->parse_positions($result);
+        $positions = $this->parse_positions($this->to_array($result));
         return $this->filter_by_array_positions($positions, 'symbol', $symbolsResolved);
     }
 

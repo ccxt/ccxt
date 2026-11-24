@@ -5880,7 +5880,7 @@ class bitget extends Exchange {
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function create_uta_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
@@ -6657,7 +6657,7 @@ class bitget extends Exchange {
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -6830,12 +6830,12 @@ class bitget extends Exchange {
             $order = $this->safe_dict($orderInfo, 0, array());
         } else {
             if ($isStockOrUta && ($trigger === true)) {
-                $order = $response;
+                $order = $this->extend(array(), $response);
             } else {
                 $order = $data;
             }
         }
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array(), $order), $market);
     }
 
     public function cancel_uta_orders(array $ids, ?string $symbol = null, $params = array()): array {
@@ -7259,7 +7259,7 @@ class bitget extends Exchange {
         $data = $this->safe_dict($response, 'data');
         if (($data !== null)) {
             if ((gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
-                return $this->parse_order($data, $market);
+                return $this->parse_order($this->extend(array(), $data), $market);
             }
         }
         $dataList = $this->safe_list($response, 'data', array());
@@ -7268,7 +7268,7 @@ class bitget extends Exchange {
             throw new OrderNotFound($this->id . ' fetchOrder() could not find order id ' . $id . ' in ' . $this->json($response));
         }
         $first = $this->safe_dict($dataList, 0, array());
-        return $this->parse_order($first, $market);
+        return $this->parse_order($this->extend(array(), $first), $market);
         // const first = this.safeDict (data, 0, data);
         // return this.parseOrder (first, market);
     }
@@ -11605,7 +11605,7 @@ class bitget extends Exchange {
         }
         $data = $this->safe_dict($response, 'data', array());
         $order = $this->safe_list_2($data, 'successList', 'list', array());
-        return $this->parse_order($this->safe_dict($order, 0, array()), $market);
+        return $this->parse_order($this->extend(array(), $this->safe_dict($order, 0, array())), $market);
     }
 
     public function close_all_positions($params = array()): array {

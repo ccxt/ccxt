@@ -4115,7 +4115,7 @@ class kucoin extends Exchange {
         //    }
         //
         $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function create_spot_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
@@ -4269,7 +4269,7 @@ class kucoin extends Exchange {
         //    }
         //
         $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function create_contract_order_request(?string $symbol, ?string $type, ?string $side, ?float $amount, ?float $price = null, $params = array()): array {
@@ -4467,7 +4467,7 @@ class kucoin extends Exchange {
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function create_uta_order_request(?string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): array {
@@ -4932,7 +4932,7 @@ class kucoin extends Exchange {
         // }
         //
         $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -5230,7 +5230,7 @@ class kucoin extends Exchange {
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()): array {
@@ -6093,7 +6093,7 @@ class kucoin extends Exchange {
         if ($responseData === null) {
             $responseData = $this->safe_dict($this->safe_list($response, 'data', array()), 0, array());
         }
-        return $this->parse_order($responseData, $market);
+        return $this->parse_order($this->extend(array(), $responseData), $market);
     }
 
     public function fetch_contract_order(?string $id, ?string $symbol = null, $params = array()): array {
@@ -6168,7 +6168,7 @@ class kucoin extends Exchange {
         //
         $market = ($symbol !== null) ? $this->market($symbol) : null;
         $responseData = $this->safe_dict($response, 'data', array());
-        return $this->parse_order($responseData, $market);
+        return $this->parse_order($this->extend(array(), $responseData), $market);
     }
 
     public function fetch_uta_order(?string $id, ?string $symbol = null, $params = array()): array {
@@ -6255,7 +6255,7 @@ class kucoin extends Exchange {
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function handle_trade_type(bool $isContractMarket = false, ?string $marginMode = null, bool $isUnified = false, $params = array()): ?string {
@@ -11485,7 +11485,7 @@ class kucoin extends Exchange {
         } else {
             $response = $this->futuresPrivatePostOrders($this->extend($request, $paramsOmitted));
         }
-        return $this->parse_order($response, $market);
+        return $this->parse_order($this->extend(array(), $response), $market);
     }
 
     public function fetch_market_leverage_tiers(string $symbol, $params = array()): array {

@@ -2798,7 +2798,7 @@ class sxbet extends Exchange {
         for ($i = 0; $i < $rowsLength; $i++) {
             $rawRow = $rows[$i];
             $row = $this->safe_dict($rawRow, 'order', $rawRow);
-            $order = $this->parse_prediction_order($row);
+            $order = $this->parse_prediction_order($this->extend(array(), $row));
             if ($this->orders === null) {
                 $cacheLimit = $this->safe_integer($this->options, 'ordersLimit', 1000);
                 $this->orders = new ArrayCacheByOutcomeById($cacheLimit);

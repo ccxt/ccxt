@@ -882,11 +882,9 @@ class bitrue extends Exchange {
             }
         }
         $promises = Async\await(Promise\all($promisesRaw));
-        $spotMarkets = $this->safe_list($this->safe_dict($promises, 0), 'symbols', array());
         $futureMarkets = $this->safe_list($promises, 1, array());
         $deliveryMarkets = $this->safe_list($promises, 2, array());
-        $markets = $spotMarkets;
-        $markets = $this->array_concat($markets, $futureMarkets);
+        $markets = $this->array_concat($this->safe_list($this->safe_dict($promises, 0), 'symbols', array()), $futureMarkets);
         $markets = $this->array_concat($markets, $deliveryMarkets);
         //
         // spot

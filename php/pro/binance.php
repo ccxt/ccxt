@@ -241,7 +241,7 @@ class binance extends \ccxt\async\binance {
         if ($stream === null) {
             $previousStreamIndex = $this->safe_integer($this->options, 'streamIndex', -1);
             $streamLimits = $this->safe_dict($this->options, 'streamLimits');
-            $streamLimit = $this->safe_integer($streamLimits, $type);
+            $streamLimit = $this->safe_integer($streamLimits, $type, 50);
             $streamIndex = $previousStreamIndex + 1;
             $normalizedIndex = fmod($streamIndex, $streamLimit);
             $this->options['streamIndex'] = $streamIndex;
@@ -1272,7 +1272,7 @@ class binance extends \ccxt\async\binance {
         }
     }
 
-    public function handle_order_book_subscription(Client $client, mixed $message, array $subscription) {
+    public function handle_order_book_subscription(Client $client, array $message, array $subscription) {
         $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
         // const messageHash = this.safeString (subscription, 'messageHash');
         $symbolOfSubscription = $this->safe_string($subscription, 'symbol'); // watchOrderBook
@@ -4364,7 +4364,7 @@ class binance extends \ccxt\async\binance {
         $result = $this->safe_dict($message, 'result', array());
         $newSpotOrder = $this->safe_dict($result, 'newOrderResponse');
         if ($newSpotOrder !== null) {
-            $order = $this->parse_order($newSpotOrder);
+            $order = $this->parse_order($this->extend(array(), $newSpotOrder));
         } else {
             $order = $this->parse_order($result);
         }
@@ -5193,9 +5193,9 @@ class binance extends \ccxt\async\binance {
         $messageValue = $message;
         if (($e === 'ORDER_TRADE_UPDATE') || ($e === 'ALGO_UPDATE')) {
             $messageValue = $orderValue;
-            if (($e === 'ALGO_UPDATE') && ($this->safe_integer($messageValue, 'T') === null)) {
+            if (($e === 'ALGO_UPDATE') && ($this->safe_integer($orderValue, 'T') === null)) {
                 // keep the outer event time, the algo payload carries no timestamps
-                $messageValue = $this->extend($messageValue, array( 'T' => $this->safe_integer($message, 'T') ));
+                $messageValue = $this->extend($orderValue, array( 'T' => $this->safe_integer($message, 'T') ));
             }
         }
         if (($e === 'ORDER_TRADE_UPDATE') || ($e === 'ALGO_UPDATE')) {

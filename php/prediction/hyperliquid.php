@@ -1616,7 +1616,7 @@ class hyperliquid extends Exchange {
         $orderStatusResponse = Async\await($this->publicPostInfo($this->extend($request, $paramsValue)));
         $orderStatus = $this->info_dict($orderStatusResponse);
         $orderWrapper = $this->safe_dict($orderStatus, 'order', $orderStatus);
-        $parsed = $this->parse_prediction_order($orderWrapper, null);
+        $parsed = $this->parse_prediction_order($this->extend(array(), $orderWrapper), null);
         if ($outcome !== null) {
             Async\await($this->load_outcome($outcome));
             $outcomeObj = $this->outcome($outcome);

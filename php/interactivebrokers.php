@@ -1363,7 +1363,7 @@ class interactivebrokers extends Exchange {
         return $result;
     }
 
-    public function fetch_sec_with_details(array $plainEntries) {
+    public function fetch_sec_with_details(array $plainEntries): array {
         $detailIds = is_array($plainEntries) ? array_keys($plainEntries) : array();
         $entries = array();
         $numDetails = count($detailIds);
@@ -1604,10 +1604,9 @@ class interactivebrokers extends Exchange {
         $allowedVenues = array( 'CME', 'CFE', 'COINDERIV' );
         $detailMarkets = array();
         for ($i = 0; $i < count($details); $i++) {
-            $detail = $details[$i];
-            $venue = $this->safe_string($detail, 'listingExchange');
+            $venue = $this->safe_string($details[$i], 'listingExchange');
             if ($this->in_array($venue, $allowedVenues)) {
-                $detailMarkets[] = $detail;
+                $detailMarkets[] = $this->safe_dict($details, $i);
             }
         }
         $markets = $this->parse_markets($detailMarkets);
@@ -1666,10 +1665,9 @@ class interactivebrokers extends Exchange {
         for ($i = 0; $i < count($cfdExchanges); $i++) {
             $cfdExchange = $this->safe_string($cfdExchanges, $i, '');
             for ($j = 0; $j < $detailMarketsLength; $j++) {
-                $detail = $detailMarkets[$j];
-                $listingExchange = $this->safe_string($detail, 'listingExchange', '');
+                $listingExchange = $this->safe_string($detailMarkets[$j], 'listingExchange', '');
                 if ($listingExchange === $cfdExchange) {
-                    $result[] = $detail;
+                    $result[] = $this->safe_dict($detailMarkets, $j);
                 }
             }
         }
@@ -3057,7 +3055,7 @@ class interactivebrokers extends Exchange {
         //
         //     { "msg": "Request was submitted", "order_id": 123456789, "conid": 265598, "account": "U1234567" }
         //
-        return $this->parse_order($response, $market);
+        return $this->parse_order($this->extend(array(), $response), $market);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -3120,7 +3118,7 @@ class interactivebrokers extends Exchange {
         if ($response === null) {
             throw new NullResponse($this->id . ' fetchOrder() returned empty response');
         }
-        return $this->parse_order($response, $market);
+        return $this->parse_order($this->extend(array(), $response), $market);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {

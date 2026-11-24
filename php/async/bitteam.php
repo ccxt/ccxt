@@ -1080,7 +1080,7 @@ class bitteam extends Exchange {
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
-        return $this->parse_order($result, $market);
+        return $this->parse_order($this->extend(array(), $result), $market);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -1218,7 +1218,7 @@ class bitteam extends Exchange {
         //     }
         //
         $order = $this->safe_dict($response, 'result', array());
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array(), $order), $market);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
@@ -1252,7 +1252,7 @@ class bitteam extends Exchange {
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
-        return $this->parse_order($result);
+        return $this->parse_order($this->extend(array(), $result));
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {

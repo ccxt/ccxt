@@ -882,7 +882,7 @@ class cex extends Exchange {
             if ($useKeyAsId) {
                 $market = $this->safe_market($key);
             }
-            $parsed = $this->parse_trading_fee($response[$key], $market);
+            $parsed = $this->parse_trading_fee($this->safe_dict($response, $key, array()), $market);
             $parsedSymbol = $this->safe_string($parsed, 'symbol');
             if ($parsedSymbol !== null) {
                 $result[$parsedSymbol] = $parsed;

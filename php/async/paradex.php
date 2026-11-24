@@ -1100,7 +1100,7 @@ class paradex extends Exchange {
         $loadedFees = $this->filter_loaded_summaries($fees);
         $result = array();
         for ($i = 0; $i < count($loadedFees); $i++) {
-            $fee = $this->parse_trading_fee($loadedFees[$i]);
+            $fee = $this->parse_trading_fee($this->extend(array(), $loadedFees[$i]));
             $symbol = $this->safe_string($fee, 'symbol');
             $result[$symbol] = $fee;
         }
@@ -2458,7 +2458,7 @@ class paradex extends Exchange {
         for ($i = 0; $i < count($orders); $i++) {
             $responseOrder = $this->safe_dict($responseOrders, $i);
             if ($responseOrder !== null) {
-                $result[] = $this->parse_order($responseOrder);
+                $result[] = $this->parse_order($this->extend(array(), $responseOrder));
             } else {
                 $error = $this->safe_dict($errors, $i);
                 $result[] = $this->safe_order(array(

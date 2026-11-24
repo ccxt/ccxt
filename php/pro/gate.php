@@ -1606,10 +1606,12 @@ class gate extends \ccxt\async\gate {
         list($marketType, $marketQuery) = $this->handle_market_type_and_params('watchPositions', $market, $params);
         $query = $marketQuery;
         $type = $marketType;
-        $messageHash = $marketType . ':positions';
+        $messageHash = 'swap:positions';
+        if (($marketType !== null) && ($marketType !== 'spot')) {
+            $messageHash = $marketType . ':positions';
+        }
         if ($marketType === 'spot') {
             $type = 'swap';
-            $messageHash = 'swap:positions';
         }
         $typeId = $this->get_supported_mapping($type, array(
             'future' => 'futures',

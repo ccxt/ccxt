@@ -1095,7 +1095,7 @@ class indodax extends Exchange {
         //    }
         //
         $data = $this->safe_dict($response, 'return');
-        return $this->parse_order($data);
+        return $this->parse_order($this->extend(array(), $data));
     }
 
     public function fetch_transaction_fee(string $code, $params = array()) {

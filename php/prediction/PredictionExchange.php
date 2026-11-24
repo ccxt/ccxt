@@ -1577,7 +1577,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         $rows = $this->to_array($orders);
         $results = array();
         for ($i = 0; $i < count($rows); $i++) {
-            $parsed = $this->parse_prediction_order($rows[$i], $outcomeObj);
+            $parsed = $this->parse_prediction_order($this->safe_dict($rows, $i, array()), $outcomeObj);
             $order = $this->extend($parsed, $params);
             $results[] = $order;
         }

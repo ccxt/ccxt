@@ -3776,7 +3776,7 @@ class coinbase extends Exchange {
         //         }
         //     }
         //
-        return $this->parse_order($response, $market);
+        return $this->parse_order($this->extend(array(), $response), $market);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {

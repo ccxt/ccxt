@@ -2969,7 +2969,7 @@ class myriad extends Exchange {
         $responses = Async\await(Promise\all($promises));
         for ($i = 0; $i < count($marketKeys); $i++) {
             $key = $marketKeys[$i];
-            $response = $responses[$i];
+            $response = $this->safe_dict($responses, $i, array());
             $grouped = $outcomesByMarket[$key];
             for ($j = 0; $j < count($grouped); $j++) {
                 $outcomeObj = $grouped[$j];
@@ -3172,7 +3172,7 @@ class myriad extends Exchange {
         $result = array();
         $rawQuestionsLength = count($rawQuestions);
         for ($i = 0; $i < $rawQuestionsLength; $i++) {
-            $ev = $this->parse_event($this->safe_dict($rawQuestions, $i, array()));
+            $ev = $this->parse_event($this->extend(array(), $rawQuestions[$i]));
             $evMarkets = $this->safe_list($ev, 'markets', array());
             $evMarketsLength = count($evMarkets);
             $filteredMarkets = array();

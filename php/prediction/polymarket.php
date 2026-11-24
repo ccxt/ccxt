@@ -2130,7 +2130,7 @@ class polymarket extends Exchange {
                 $result[] = $parsedItem;
             }
         } else {
-            $result[] = $this->parse_prediction_order($response);
+            $result[] = $this->parse_prediction_order($this->safe_dict($response, 0, array()));
         }
         return $result;
     }
@@ -2796,7 +2796,7 @@ class polymarket extends Exchange {
          */
         $result = array();
         for ($i = 0; $i < count($rawEvents); $i++) {
-            $result[] = $this->parse_event($this->safe_dict($rawEvents, $i, array()));
+            $result[] = $this->parse_event($this->extend(array(), $rawEvents[$i]));
         }
         return $result;
     }
@@ -3510,7 +3510,7 @@ class polymarket extends Exchange {
             $this->orders = new ArrayCacheByOutcomeById($limit);
         }
         $stored = $this->orders;
-        $parsed = $this->parse_prediction_order($event);
+        $parsed = $this->parse_prediction_order($this->extend(array(), $event));
         $stored->append($parsed);
         $client->resolve($stored, 'orders');
         $outcome = $this->safe_string($parsed, 'outcome');

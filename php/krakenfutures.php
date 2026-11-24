@@ -1450,7 +1450,7 @@ class krakenfutures extends Exchange {
         $sendStatus = $this->safe_dict($response, 'sendStatus');
         $status = $this->safe_string($sendStatus, 'status');
         $this->verify_order_action_success($status, 'createOrder', array( 'filled' ));
-        return $this->parse_order($sendStatus, $market);
+        return $this->parse_order($this->extend(array(), $sendStatus), $market);
     }
 
     public function create_orders(array $orders, $params = array()): array {

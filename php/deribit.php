@@ -2080,7 +2080,7 @@ class deribit extends Exchange {
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
-        return $this->parse_order($result, $market);
+        return $this->parse_order($this->extend(array(), $result), $market);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
@@ -2324,7 +2324,7 @@ class deribit extends Exchange {
         );
         $response = $this->privateGetCancel($this->extend($request, $params));
         $result = $this->safe_dict($response, 'result', array());
-        return $this->parse_order($result);
+        return $this->parse_order($this->extend(array(), $result));
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()): array {

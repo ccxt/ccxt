@@ -532,13 +532,13 @@ class extended extends \ccxt\async\extended {
         }
         $orders = $this->orders;
         $data = $this->safe_dict($message, 'data', array());
-        $rawOrders = $this->safe_list($data, 'orders');
+        $rawOrders = $this->safe_list($data, 'orders', array());
         $symbols = array();
         $first = $this->safe_dict($rawOrders, 0);
         if ($first === null) {
             return;
         }
-        for ($i = 0; $i < count(($rawOrders)); $i++) {
+        for ($i = 0; $i < count($rawOrders); $i++) {
             $order = $this->parse_order($this->safe_dict($rawOrders, $i, array()));
             $symbol = $this->safe_string($order, 'symbol');
             $symbols[$symbol] = true;

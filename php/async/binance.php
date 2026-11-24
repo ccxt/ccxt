@@ -11101,7 +11101,7 @@ class binance extends Exchange {
         if ($data === null) {
             throw new NullResponse($this->id . ' parseTradingFee() returned empty response');
         }
-        return $this->parse_trading_fee($data, $market);
+        return $this->parse_trading_fee($this->extend(array(), $data), $market);
     }
 
     public function fetch_trading_fees($params = array()): PromiseInterface {
@@ -11205,7 +11205,7 @@ class binance extends Exchange {
             }
             $fees = $this->to_array($response);
             for ($i = 0; $i < count($fees); $i++) {
-                $fee = $this->parse_trading_fee($fees[$i]);
+                $fee = $this->parse_trading_fee($this->extend(array(), $fees[$i]));
                 $symbol = $this->safe_string($fee, 'symbol');
                 if ($symbol !== null) {
                     $spotFees[$symbol] = $fee;

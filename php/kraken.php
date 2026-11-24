@@ -1756,7 +1756,7 @@ class kraken extends Exchange {
         // it's impossible to know if the order was created using cost or base currency
         // because kraken only returns something like this: { order: 'buy 10.00000000 LTCUSD @ market' }
         // this usingCost flag is used to help the parsing but omitted from the order
-        return $this->parse_order($result);
+        return $this->parse_order($this->extend(array(), $result));
     }
 
     public function create_orders(array $orders, $params = array()): array {
@@ -2397,7 +2397,7 @@ class kraken extends Exchange {
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
-        return $this->parse_order($result, $market);
+        return $this->parse_order($this->extend(array(), $result), $market);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {

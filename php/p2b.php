@@ -949,7 +949,7 @@ class p2b extends Exchange {
         //    }
         //
         $result = $this->safe_dict($response, 'result');
-        return $this->parse_order($result, $market);
+        return $this->parse_order($this->extend(array(), $result), $market);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -998,7 +998,7 @@ class p2b extends Exchange {
         //    }
         //
         $result = $this->safe_dict($response, 'result');
-        return $this->parse_order($result);
+        return $this->parse_order($this->extend(array(), $result));
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {

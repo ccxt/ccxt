@@ -861,7 +861,7 @@ class bitvavo extends \ccxt\async\bitvavo {
             return;
         }
         if ($this->safe_integer($orderbook, 'nonce') === null) {
-            $subscription = $this->safe_value($client->subscriptions, $messageHash, array());
+            $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
             // multi-symbol watches share one subscription object, so the
             // snapshot-in-flight flag must be tracked per market
             $flagKey = 'watchingOrderBookSnapshot@' . $this->safe_string($message, 'market', '');
@@ -1860,7 +1860,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         $market = $this->safe_market($marketId, null, '-');
         $symbol = $this->safe_string($market, 'symbol', '');
         $messageHash = 'order:' . $symbol;
-        $order = $this->parse_order($message, $market);
+        $order = $this->parse_order($this->extend(array(), $message), $market);
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById($limit);

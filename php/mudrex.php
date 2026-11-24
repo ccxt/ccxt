@@ -726,7 +726,7 @@ class mudrex extends Exchange {
             }
             $riskResponse = $this->privatePostFuturesPositionsPositionIdRiskorder($this->extend($riskRequest, $paramsOmitted));
             $riskData = $this->safe_dict($riskResponse, 'data', $riskResponse);
-            return $this->parse_order($riskData, $market);
+            return $this->parse_order($this->extend(array(), $riskData), $market);
         }
         $lev = $this->safe_integer($params, 'leverage', 1);
         if (($type === 'market') && ($price === null)) {
@@ -796,7 +796,7 @@ class mudrex extends Exchange {
         }
         $response = $this->privatePatchFuturesOrdersOrderId($this->extend($request, $params));
         $data = $this->safe_dict($response, 'data', $response);
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function parse_order_status(?string $status): ?string {
@@ -906,7 +906,7 @@ class mudrex extends Exchange {
         );
         $response = $this->privateDeleteFuturesOrdersOrderId($this->extend($request, $params));
         $data = $this->safe_dict($response, 'data', $response);
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -932,7 +932,7 @@ class mudrex extends Exchange {
         );
         $response = $this->privateGetFuturesOrdersOrderId($this->extend($request, $params));
         $data = $this->safe_dict($response, 'data', $response);
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function fetch_orders_by_state(string $state, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -1198,12 +1198,12 @@ class mudrex extends Exchange {
             $partialParams = $this->omit($params, array( 'order_type', 'limit_price', 'amount', 'position_id' ));
             $partialResponse = $this->privatePostFuturesPositionsPositionIdClosePartial($this->extend($request, $partialParams));
             $partialData = $this->safe_dict($partialResponse, 'data', $partialResponse);
-            return $this->parse_order($partialData, $market);
+            return $this->parse_order($this->extend(array(), $partialData), $market);
         }
         $closeParams = $this->omit($params, array( 'position_id' ));
         $response = $this->privatePostFuturesPositionsPositionIdClose($this->extend($request, $closeParams));
         $data = $this->safe_dict($response, 'data', $response);
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function add_margin(string $symbol, float $amount, $params = array()): array {

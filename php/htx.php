@@ -3920,7 +3920,7 @@ class htx extends Exchange {
         if ($order === null) {
             $order = $this->safe_dict($this->safe_list($response, 'data', array()), 0, array());
         }
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array(), $order), $market);
     }
 
     public function parse_margin_balance_helper(array $balance, string $code, array $result): array {
@@ -5621,7 +5621,7 @@ class htx extends Exchange {
             if ($result === null) {
                 throw new NullResponse($this->id . ' parseOrder() returned empty response');
             }
-            return $this->extend($this->parse_order($result, $market), array(
+            return $this->extend($this->parse_order($this->extend(array(), $result), $market), array(
                 'type' => $type,
                 'side' => $side,
                 'price' => $price,
@@ -5639,7 +5639,7 @@ class htx extends Exchange {
         if ($result === null) {
             throw new NullResponse($this->id . ' parseOrder() returned empty response');
         }
-        return $this->parse_order($result, $market);
+        return $this->parse_order($this->extend(array(), $result), $market);
     }
 
     public function create_orders(array $orders, $params = array()): array {

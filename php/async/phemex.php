@@ -3040,7 +3040,7 @@ class phemex extends Exchange {
         //     }
         //
         $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): PromiseInterface {
@@ -3120,7 +3120,7 @@ class phemex extends Exchange {
             $response = Async\await($this->privatePutSpotOrders($this->extend($request, $paramsOmitted3)));
         }
         $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
@@ -3169,7 +3169,7 @@ class phemex extends Exchange {
             $response = Async\await($this->privateDeleteSpotOrders($this->extend($request, $paramsOmitted)));
         }
         $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {

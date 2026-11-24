@@ -1932,7 +1932,7 @@ class hitbtc extends Exchange {
         //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
-            $fee = $this->parse_trading_fee($this->safe_dict($response, $i, array()));
+            $fee = $this->parse_trading_fee($this->extend(array(), $this->safe_dict($response, $i, array())));
             $symbol = $this->safe_string($fee, 'symbol');
             if ($symbol !== null) {
                 $result[$symbol] = $fee;

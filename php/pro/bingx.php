@@ -1740,7 +1740,7 @@ class bingx extends \ccxt\async\bingx {
             $this->orders = new ArrayCacheBySymbolById($limit);
         }
         $stored = $this->orders;
-        $parsedOrder = $this->parse_order($data);
+        $parsedOrder = $this->parse_order($this->extend(array(), $data));
         if (!$isSpot) {
             // The envelope T is the order update time; o.T is the trade time.
             $updateTimestamp = $this->safe_integer($message, 'T');

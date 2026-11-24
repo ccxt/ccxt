@@ -1653,11 +1653,11 @@ class blofin extends Exchange {
         }
         if ($isCombinedSlTp || $isSlOrTp || $isTriggerOrder) {
             $dataDict = $this->safe_dict($response, 'data', array());
-            return $this->parse_order($dataDict, $market);
+            return $this->parse_order($this->extend(array(), $dataDict), $market);
         }
         $data = $this->safe_list($response, 'data', array());
         $first = $this->safe_dict($data, 0);
-        $order = $this->parse_order($first, $market);
+        $order = $this->parse_order($this->extend(array(), $first), $market);
         $order['type'] = $type;
         $order['side'] = $side;
         return $order;
@@ -1768,12 +1768,12 @@ class blofin extends Exchange {
         } elseif ($isTrigger) {
             $triggerResponse = $this->privatePostTradeCancelAlgo($this->extend($request, $query));
             $triggerData = $this->safe_dict($triggerResponse, 'data');
-            return $this->parse_order($triggerData, $market);
+            return $this->parse_order($this->extend(array(), $triggerData), $market);
         }
         $response = $this->privatePostTradeCancelOrder($this->extend($request, $query));
         $data = $this->safe_list($response, 'data', array());
         $order = $this->safe_dict($data, 0);
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array(), $order), $market);
     }
 
     public function create_orders(array $orders, $params = array()): array {

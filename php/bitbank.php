@@ -801,7 +801,7 @@ class bitbank extends Exchange {
         }
         $response = $this->privatePostUserSpotOrder($this->extend($request, $params));
         $data = $this->safe_dict($response, 'data');
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -894,7 +894,7 @@ class bitbank extends Exchange {
         //    }
         //
         $data = $this->safe_dict($response, 'data');
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {

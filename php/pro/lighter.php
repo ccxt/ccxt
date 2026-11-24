@@ -1338,7 +1338,7 @@ class lighter extends \ccxt\async\lighter {
             'id' => $requestId,
         );
         $rawMessage = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
-        return $this->parse_order($this->deep_extend($rawMessage, $order), $market);
+        return $this->parse_order($this->extend(array(), $this->deep_extend($rawMessage, $order)), $market);
     }
 
     public function cancel_order_ws(string $id, ?string $symbol = null, $params = array()): PromiseInterface {

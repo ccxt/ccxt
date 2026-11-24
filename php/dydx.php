@@ -1259,7 +1259,7 @@ class dydx extends Exchange {
     public function retrieve_credentials(): array {
         $credentials = $this->safe_dict($this->options, 'dydxCredentials');
         if ($credentials !== null) {
-            return $credentials;
+            return $this->safe_dict($this->options, 'dydxCredentials', array());
         }
         $privateKeyOption = $this->safe_string($this->options, 'privateKey');
         if ($privateKeyOption !== null) {
@@ -1273,7 +1273,7 @@ class dydx extends Exchange {
             'publicKey' => bin2hex($credentials['publicKey']),
         );
         $this->options['dydxCredentials'] = $credentials;
-        return $credentials;
+        return $this->safe_dict($this->options, 'dydxCredentials', array());
     }
 
     public function fetch_dydx_account(): array {

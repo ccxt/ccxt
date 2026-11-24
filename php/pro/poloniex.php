@@ -1110,7 +1110,7 @@ class poloniex extends \ccxt\async\poloniex {
         $orders = $this->orders;
         $marketIds = array();
         for ($i = 0; $i < count($data); $i++) {
-            $order = $this->safe_dict($data, $i);
+            $order = $this->safe_dict($data, $i, array());
             $marketId = $this->safe_string($order, 'symbol');
             $eventType = $this->safe_string($order, 'eventType');
             if ($marketId !== null) {
@@ -1195,7 +1195,7 @@ class poloniex extends \ccxt\async\poloniex {
         return $message;
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null) {
         //
         //    {
         //        "symbol": "BTC_USDT",

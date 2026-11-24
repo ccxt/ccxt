@@ -2115,7 +2115,7 @@ class poloniex extends Exchange {
         //         "clientOrderId" : ""
         //     }
         //
-        return $this->parse_order($response, $market);
+        return $this->parse_order($this->extend(array(), $response), $market);
     }
 
     public function create_orders(array $orders, $params = array()) {
@@ -2353,7 +2353,7 @@ class poloniex extends Exchange {
             'side' => $side,
             'type' => $type,
         ));
-        return $this->parse_order($response, $market);
+        return $this->parse_order($this->extend(array(), $response), $market);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array()): array {
@@ -2411,7 +2411,7 @@ class poloniex extends Exchange {
         //       "message":""
         //   }
         //
-        return $this->parse_order($response);
+        return $this->parse_order($this->extend(array(), $response));
     }
 
     public function cancel_orders(array $ids, ?string $symbol = null, $params = array()) {
@@ -2607,7 +2607,7 @@ class poloniex extends Exchange {
         //         "updateTime": 1646196019020
         //     }
         //
-        $order = $this->parse_order($response);
+        $order = $this->parse_order($this->extend(array(), $response));
         $order['id'] = $idValue;
         return $order;
     }

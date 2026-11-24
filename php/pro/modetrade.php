@@ -994,7 +994,7 @@ class modetrade extends \ccxt\async\modetrade {
         //         }
         //     }
         //
-        $topic = $this->safe_string($message, 'topic');
+        $topic = $this->safe_string($message, 'topic', '');
         $data = $this->safe_value($message, 'data');
         $dataIsArray = (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)));
         if ($dataIsArray) {
@@ -1017,11 +1017,12 @@ class modetrade extends \ccxt\async\modetrade {
             if ($tradeId !== null) {
                 $this->handle_my_trade($client, $data);
             }
-            $this->handle_order($client, $data, $topic);
+            $dataDict = $this->safe_dict($message, 'data', array());
+            $this->handle_order($client, $dataDict, $topic);
         }
     }
 
-    public function handle_order(Client $client, array $message, ?string $topic) {
+    public function handle_order(Client $client, array $message, string $topic) {
         $parsed = $this->parse_ws_order($message);
         $symbol = $this->safe_string($parsed, 'symbol');
         $orderId = $this->safe_string($parsed, 'id');

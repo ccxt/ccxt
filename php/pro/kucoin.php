@@ -2178,7 +2178,7 @@ class kucoin extends \ccxt\async\kucoin {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_ws_order(mixed $order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null) {
         //
         // /spotMarket/tradeOrders
         //
@@ -2388,7 +2388,7 @@ class kucoin extends \ccxt\async\kucoin {
         //        "type": "open"
         //    }
         //
-        $data = $this->safe_dict($message, 'data');
+        $data = $this->safe_dict($message, 'data', array());
         $tradeId = $this->safe_string($data, 'tradeId');
         if ($tradeId !== null) {
             $this->handle_my_trade($client, $message);

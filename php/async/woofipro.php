@@ -2492,7 +2492,7 @@ class woofipro extends Exchange {
         if ($parsedOrders === null) {
             $parsedOrders = array();
         }
-        return $this->parse_order($parsedOrders, $market);
+        return $this->parse_order($this->extend(array(), $parsedOrders), $market);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {

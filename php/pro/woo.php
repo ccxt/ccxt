@@ -1306,7 +1306,7 @@ class woo extends \ccxt\async\woo {
         //         }
         //     }
         //
-        $topic = $this->safe_string($message, 'topic');
+        $topic = $this->safe_string($message, 'topic', '');
         $dataList = $this->safe_list($message, 'data');
         if ($dataList !== null) {
             // algoexecutionreportv2
@@ -1328,7 +1328,7 @@ class woo extends \ccxt\async\woo {
         }
     }
 
-    public function handle_order(Client $client, array $message, ?string $topic) {
+    public function handle_order(Client $client, array $message, string $topic) {
         $parsed = $this->parse_ws_order($message);
         $symbol = $this->safe_string($parsed, 'symbol');
         $orderId = $this->safe_string($parsed, 'id');

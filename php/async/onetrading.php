@@ -1595,7 +1595,7 @@ class onetrading extends Exchange {
         //
         // responds with an empty body
         //
-        return $this->parse_order($response);
+        return $this->parse_order($this->extend(array(), $response));
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {

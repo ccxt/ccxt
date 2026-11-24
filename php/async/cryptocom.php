@@ -1399,7 +1399,7 @@ class cryptocom extends Exchange {
         //     }
         //
         $order = $this->safe_dict($response, 'result', array());
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array(), $order), $market);
     }
 
     public function create_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
@@ -1539,7 +1539,7 @@ class cryptocom extends Exchange {
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
-        return $this->parse_order($result, $market);
+        return $this->parse_order($this->extend(array(), $result), $market);
     }
 
     public function create_orders(array $orders, $params = array()): PromiseInterface {
@@ -1775,7 +1775,7 @@ class cryptocom extends Exchange {
         $request = $this->edit_order_request($id, $symbol, $amount, $price, $params);
         $response = Async\await($this->v1PrivatePostPrivateAmendOrder($request));
         $result = $this->safe_dict($response, 'result', array());
-        return $this->parse_order($result);
+        return $this->parse_order($this->extend(array(), $result));
     }
 
     public function edit_order_request(?string $id, string $symbol, ?float $amount = null, ?float $price = null, $params = array()): array {
@@ -1865,7 +1865,7 @@ class cryptocom extends Exchange {
         //     }
         //
         $result = $this->safe_dict($response, 'result', array());
-        return $this->parse_order($result, $market);
+        return $this->parse_order($this->extend(array(), $result), $market);
     }
 
     public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {
@@ -3625,7 +3625,7 @@ class cryptocom extends Exchange {
         //    }
         //
         $result = $this->safe_dict($response, 'result');
-        return $this->parse_order($result, $market);
+        return $this->parse_order($this->extend(array(), $result), $market);
     }
 
     public function fetch_trading_fee(string $symbol, $params = array()): PromiseInterface {

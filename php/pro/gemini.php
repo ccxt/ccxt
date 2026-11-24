@@ -821,7 +821,7 @@ class gemini extends \ccxt\async\gemini {
         }
         $orders = $this->orders;
         for ($i = 0; $i < count($message); $i++) {
-            $order = $this->parse_ws_order($this->safe_value($message, $i));
+            $order = $this->parse_ws_order($this->safe_dict($message, $i, array()));
             $orders->append($order);
         }
         $client->resolve($this->orders, $messageHash);

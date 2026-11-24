@@ -823,7 +823,7 @@ class hitbtc extends \ccxt\async\hitbtc {
                 $stored = new ArrayCache($tradesLimit);
                 $this->trades[$symbol] = $stored;
             }
-            $trades = $this->parse_ws_trades($data[$marketId], $market);
+            $trades = $this->parse_ws_trades($this->safe_list($data, $marketId, array()), $market);
             for ($j = 0; $j < count($trades); $j++) {
                 $stored->append($trades[$j]);
             }
@@ -1559,7 +1559,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $parsedOrders = array();
             $rowsLength = count($rows);
             for ($i = 0; $i < $rowsLength; $i++) {
-                $parsedOrder = $this->parse_ws_order($rows[$i]);
+                $parsedOrder = $this->parse_ws_order($this->safe_dict($rows, $i, array()));
                 $parsedOrders[] = $parsedOrder;
             }
             $client->resolve($parsedOrders, $messageHash);

@@ -2961,7 +2961,7 @@ class mexc extends Exchange {
             //
             $data = $this->safe_dict($response, 'data', array());
         }
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -3532,7 +3532,7 @@ class mexc extends Exchange {
                 throw new InvalidOrder($this->id . ' cancelOrder() the order with id ' . $id . ' cannot be cancelled => ' . $errorMsg);
             }
         }
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {

@@ -2825,7 +2825,7 @@ class xt extends Exchange {
         //         "result": "206410760006650176"
         //     }
         //
-        return $this->parse_order($response, $market);
+        return $this->parse_order($this->extend(array(), $response), $market);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array()): array {

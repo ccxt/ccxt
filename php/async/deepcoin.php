@@ -1617,7 +1617,7 @@ class deepcoin extends Exchange {
             $response = Async\await($this->privatePostDeepcoinTradeOrder($request));
         }
         $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function create_order_request(?string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): array {
@@ -1984,7 +1984,7 @@ class deepcoin extends Exchange {
         //
         $data = $this->safe_list($response, 'data', array());
         $entry = $this->safe_dict($data, 0, array());
-        return $this->parse_order($entry, $market);
+        return $this->parse_order($this->extend(array(), $entry), $market);
     }
 
     public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
@@ -2020,7 +2020,7 @@ class deepcoin extends Exchange {
             throw new OrderNotFound($this->id . ' fetchOpenOrder() could not find order id ' . $id);
         }
         $entry = $this->safe_dict($data, 0, array());
-        return $this->parse_order($entry, $market);
+        return $this->parse_order($this->extend(array(), $entry), $market);
     }
 
     public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -2364,7 +2364,7 @@ class deepcoin extends Exchange {
             $response = Async\await($this->privatePostDeepcoinTradeCancelOrder($this->extend($request, $params)));
         }
         $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_order($data, $market);
+        return $this->parse_order($this->extend(array(), $data), $market);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
@@ -2481,7 +2481,7 @@ class deepcoin extends Exchange {
             $response = Async\await($this->privatePostDeepcoinTradeReplaceOrder($this->extend($request, $params)));
         }
         $data = $this->safe_dict($response, 'data', array());
-        return $this->parse_order($data);
+        return $this->parse_order($this->extend(array(), $data));
     }
 
     public function cancel_orders(array $ids, ?string $symbol = null, $params = array()): PromiseInterface {

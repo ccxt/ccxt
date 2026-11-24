@@ -1662,7 +1662,7 @@ class lbank extends Exchange {
         $fees = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($fees); $i++) {
-            $fee = $this->parse_trading_fee($fees[$i]);
+            $fee = $this->parse_trading_fee($this->extend(array(), $fees[$i]));
             $symbol = $this->safe_string($fee, 'symbol');
             if ($symbol !== null) {
                 $result[$symbol] = $fee;

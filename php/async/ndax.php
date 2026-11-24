@@ -2478,7 +2478,7 @@ class ndax extends Exchange {
         //    ]"
         //
         if (gettype($response) === 'string') {
-            return $this->parse_transactions(json_decode($response, $as_associative_array = true), $currency, $since, $limit);
+            return $this->parse_transactions($this->to_array(json_decode($response, $as_associative_array = true)), $currency, $since, $limit);
         }
         return $this->parse_transactions($response, $currency, $since, $limit);
     }

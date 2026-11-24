@@ -3174,7 +3174,7 @@ class hashkey extends Exchange {
         } else {
             throw new NotSupported($this->id . ' ' . $methodName . '() is not supported for ' . $marketType . ' type of markets');
         }
-        return $this->parse_order($response);
+        return $this->parse_order($this->extend(array(), $response));
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
@@ -3379,7 +3379,7 @@ class hashkey extends Exchange {
         } else {
             throw new NotSupported($this->id . ' ' . $methodName . '() is not supported for ' . $marketType . ' type of markets');
         }
-        return $this->parse_order($response);
+        return $this->parse_order($this->extend(array(), $response));
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {

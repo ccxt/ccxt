@@ -296,7 +296,7 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
         return null;
     }
 
-    public function ibkr_market_data_request(?string $marketId, $params = array()): array {
+    public function ibkr_market_data_request(string $marketId, $params = array()): array {
         /**
          * builds the smd subscription message of a market
          * @ignore
@@ -308,7 +308,7 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
         $options = $this->safe_dict($this->options, 'watchTickers', array());
         $defaultFields = $this->safe_list($options, 'fields', array());
         $fields = $this->safe_list($params, 'fields', $defaultFields);
-        $query = $this->omit($params, 'fields');
+        $query = $this->extend(array(), $this->omit($params, 'fields'));
         $request = 'smd+' . $marketId . '+' . $this->json(array( 'fields' => $fields ));
         return array( $request, $query );
     }
@@ -391,7 +391,7 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
         }
         for ($i = 0; $i < count($marketSymbols); $i++) {
             $market = $this->market($marketSymbols[$i]);
-            list($request, $query) = $this->ibkr_market_data_request($this->safe_string($market, 'id'), $params);
+            list($request, $query) = $this->ibkr_market_data_request($this->safe_string($market, 'id', ''), $params);
             $subscription = $this->extend(array( 'conid' => $market['id'], 'symbol' => $market['symbol'] ), $query);
             Async\await($this->ibkr_subscribe($client, $messageHashes[$i], $request, $subscription));
         }
@@ -550,7 +550,7 @@ class interactivebrokers extends \ccxt\async\interactivebrokers {
         // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
         $future = $client->reusableFuture($messageHash);
         // the last price stream, it builds the current candles
-        list($marketDataRequest, $query) = $this->ibkr_market_data_request($this->safe_string($market, 'id'), $params);
+        list($marketDataRequest, $query) = $this->ibkr_market_data_request($this->safe_string($market, 'id', ''), $params);
         Async\await($this->ibkr_subscribe($client, $messageHash, $marketDataRequest, array( 'conid' => $market['id'], 'symbol' => $unifiedSymbol, 'timeframe' => $timeframe )));
         // the history, it seeds the candles
         $historyHash = 'smh::' . $historyMarketId . '::' . $timeframe;

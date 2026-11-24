@@ -1813,7 +1813,7 @@ class toobit extends Exchange {
         //         "priceType": "INPUT"                   // only in contract
         //     }
         //
-        return $this->parse_order($response, $market);
+        return $this->parse_order($this->extend(array(), $response), $market);
     }
 
     public function create_order_request(?string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): array {
@@ -2104,7 +2104,7 @@ class toobit extends Exchange {
         if ($status !== 'open') {
             throw new OrderNotFound($this->id . ' order ' . $id . ' can not be canceled, ' . $this->json($response));
         }
-        return $this->parse_order($response, $market);
+        return $this->parse_order($this->extend(array(), $response), $market);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()): array {
@@ -2261,7 +2261,7 @@ class toobit extends Exchange {
         //        "priceType": "INPUT"                 // only in CONTRACT
         //    }
         //
-        return $this->parse_order($response, $market);
+        return $this->parse_order($this->extend(array(), $response), $market);
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {

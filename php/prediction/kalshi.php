@@ -795,7 +795,7 @@ class kalshi extends Exchange {
         //         }
         //     }
         //
-        $raw = $this->safe_dict($response, 'market', $response);
+        $raw = $this->extend(array(), $this->safe_dict($response, 'market', $response));
         return $this->parse_prediction_ticker($raw, $outcomeObj);
     }
 
@@ -1063,7 +1063,7 @@ class kalshi extends Exchange {
             $response = Async\await($this->kalshiPublicGetMarkets($this->extend($request, $params)));
             $rawMarkets = $this->safe_list($response, 'markets', array());
             for ($i = 0; $i < count($rawMarkets); $i++) {
-                $raw = $rawMarkets[$i];
+                $raw = $this->safe_dict($rawMarkets, $i, array());
                 $marketTicker = $this->safe_string($raw, 'ticker');
                 if (($marketTicker === null) || !(is_array($outcomesByTicker) && array_key_exists($marketTicker ?? '', $outcomesByTicker))) {
                     continue;
@@ -1932,7 +1932,7 @@ class kalshi extends Exchange {
             Async\await($this->load_outcome($outcome));
         }
         $response = Async\await($this->kalshiPrivateGetPortfolioOrdersOrderId($this->extend(array( 'order_id' => $id ), $params)));
-        return $this->parse_prediction_order($this->safe_dict($response, 'order', $response));
+        return $this->parse_prediction_order($this->extend(array(), $this->safe_dict($response, 'order', $response)));
     }
 
     public function parse_prediction_order(array $order, ?array $market = null): array {
@@ -2190,7 +2190,7 @@ class kalshi extends Exchange {
         $response = Async\await($this->kalshiPrivateDeletePortfolioEventsOrdersOrderId($this->extend(array( 'order_id' => $id ), $params)));
         // the delete response is minimal (no ticker/action/id/status): pass the resolved outcome so
         // the parser can fill outcome/outcomeId/market/label, then backfill the id and canceled status
-        $order = $this->parse_prediction_order($this->safe_dict($response, 'order', $response), $outcomeObj);
+        $order = $this->parse_prediction_order($this->extend(array(), $this->safe_dict($response, 'order', $response)), $outcomeObj);
         if ($this->safe_string($order, 'id') === null) {
             $order['id'] = $id;
         }
@@ -2230,13 +2230,12 @@ class kalshi extends Exchange {
         $restingOrdersLength = count($restingOrders);
         $canceledOrders = array();
         for ($i = 0; $i < $restingOrdersLength; $i++) {
-            $restingOrder = $restingOrders[$i];
-            $orderId = $this->safe_string($restingOrder, 'order_id');
+            $orderId = $this->safe_string($restingOrders[$i], 'order_id');
             if ($orderId !== null) {
                 Async\await($this->kalshiPrivateDeletePortfolioEventsOrdersOrderId($this->extend(array( 'order_id' => $orderId ), $params)));
                 // the DELETE body is minimal — parse the already-fetched resting order instead, which
                 // carries the true side/outcome/price/count, then mark it canceled
-                $parsed = $this->parse_prediction_order($restingOrder);
+                $parsed = $this->parse_prediction_order($this->safe_dict($restingOrders, $i, array()));
                 $parsed['status'] = 'canceled';
                 $canceledOrders[] = $parsed;
             }

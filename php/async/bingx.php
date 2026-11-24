@@ -4488,7 +4488,7 @@ class bingx extends Exchange {
         //
         $data = $this->safe_dict($response, 'data', array());
         $order = $this->safe_dict($data, 'order', $data);
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array(), $order), $market);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array()): PromiseInterface {
@@ -5001,7 +5001,7 @@ class bingx extends Exchange {
         }
         $data = $this->safe_dict($response, 'data', array());
         $order = $this->safe_dict($data, 'order', $data);
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array(), $order), $market);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -7446,7 +7446,7 @@ class bingx extends Exchange {
                 $commission = $this->safe_dict($data, 'commission', array());
             }
         }
-        return $this->parse_trading_fee($commission, $market);
+        return $this->parse_trading_fee($this->extend(array(), $commission), $market);
     }
 
     public function parse_trading_fee(array $fee, ?array $market = null): array {

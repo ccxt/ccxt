@@ -3740,13 +3740,15 @@ class BaseExchange extends \ccxt\BaseExchange {
         if ($this->has['fetchTradingLimits'] !== null && $this->has['fetchTradingLimits'] !== false) {
             if ($reload || !(is_array($this->options) && array_key_exists('limitsLoaded' ?? '', $this->options))) {
                 $response = Async\await($this->fetch_trading_limits($symbols));
-                $symbolsArray = $this->require_value($symbols, 'loadTradingLimits() requires a symbols argument');
+                if ($symbols === null) {
+                    throw new ArgumentsRequired($this->id . ' loadTradingLimits() requires a symbols argument');
+                }
                 $markets = $this->markets;
                 if ($markets === null) {
                     throw new ExchangeError($this->id . ' markets not loaded');
                 }
-                for ($i = 0; $i < count($symbolsArray); $i++) {
-                    $symbol = $symbolsArray[$i];
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $symbol = $symbols[$i];
                     $markets[$symbol] = $this->deep_extend($markets[$symbol], $response[$symbol]);
                 }
                 $this->options['limitsLoaded'] = $this->milliseconds();

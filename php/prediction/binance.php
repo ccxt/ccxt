@@ -897,7 +897,7 @@ class binance extends Exchange {
                 $response = Async\await($this->sapiPrivateGetOrderBookLastTradePrice($this->extend($request, $params)));
                 $responsesByMarketId[$marketId] = $response;
             }
-            $ticker = $this->parse_prediction_ticker($response, $outcomeObj);
+            $ticker = $this->parse_prediction_ticker($this->extend(array(), $response), $outcomeObj);
             $symbolKey = $this->safe_string($ticker, 'outcome', $outcomes[$i]);
             $result[$symbolKey] = $ticker;
         }

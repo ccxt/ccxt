@@ -1036,7 +1036,7 @@ class lighter extends Exchange {
         //     "predicted_execution_time_ms": 1766088500120
         // }
         //
-        return $this->parse_order($this->deep_extend($response, $order), $market);
+        return $this->parse_order($this->extend(array(), $this->deep_extend($response, $order)), $market);
     }
 
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {

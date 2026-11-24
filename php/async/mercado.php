@@ -687,7 +687,7 @@ class mercado extends Exchange {
         //
         $responseData = $this->safe_dict($response, 'response_data', array());
         $order = $this->safe_dict($responseData, 'order', array());
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array(), $order), $market);
     }
 
     public function parse_order_status(?string $status): ?string {
@@ -798,7 +798,7 @@ class mercado extends Exchange {
         $response = Async\await($this->privatePostGetOrder($this->extend($request, $params)));
         $responseData = $this->safe_dict($response, 'response_data', array());
         $order = $this->safe_dict($responseData, 'order');
-        return $this->parse_order($order, $market);
+        return $this->parse_order($this->extend(array(), $order), $market);
     }
 
     public function withdraw(string $code, float $amount, string $address, $params = array()): PromiseInterface {
