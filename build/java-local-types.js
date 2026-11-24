@@ -10039,7 +10039,10 @@ const JAVA_VENUE_FILE_STRING_CORES = [ [ 'pro', 'hashkey', 'authenticate' ], [ '
     [ '', 'hyperliquid', 'initializeClient', 'boolean', 'Boolean' ],
     [ '', 'pacifica', 'initializeClient', 'boolean', 'Boolean' ],
     [ '', 'grvt', 'initializeClient', 'Bool', 'Boolean' ],
-    [ '', 'aster', 'initializeClient', 'Bool', 'Boolean' ] ];
+    [ '', 'aster', 'initializeClient', 'Bool', 'Boolean' ],
+    [ '', 'kraken', 'fetchOrdersByIds', 'Order[]', 'List<Order>' ],
+    [ '', 'mexc', 'fetchOrdersByIds', 'Order[]', 'List<Order>' ],
+    [ 'prediction', 'limitless', 'fetchOrdersByIds', 'PredictionOrder[]', 'List<PredictionOrder>' ] ];
 const javaVenueFileCoreCache = new Map ();
 
 export function javaVenueFileAsyncReturns (tsFile) {
@@ -10059,7 +10062,7 @@ export function javaVenueFileAsyncReturns (tsFile) {
             + declares (path.join (JAVA_VENUE_TS_ROOT, 'base', 'Exchange.ts'), any)
             + declares (path.join (JAVA_VENUE_TS_ROOT, 'base', 'PredictionExchange.ts'), any);
         if (own === 1 && elsewhere === 0) {
-            out.set (name, { name, javaReturnType: javaType, isArray: false });
+            out.set (name, { name, javaReturnType: javaType, isArray: false, ...javaVenueDtoListInfo (javaType) });
         }
     }
     javaVenueFileCoreCache.set (rel, out);
@@ -30204,7 +30207,7 @@ function h30j07FeedsObjectListSink (printer, call) {
             const parent = n.parent;
             if (parent === undefined || !ts.isCallExpression (parent) || parent.arguments[0] !== n || !isThisCall (parent)
                 || !H30J07_OBJECT_LIST_SINKS.has (parent.expression.name.text)
-                || !(resolvesToMethodNamed (printer, parent, parent.expression.name.text) || h48j40BaseFieldAliasSink (printer, parent))) {
+                || !resolvesToMethodNamed (printer, parent, parent.expression.name.text)) {
                 return false;
             }
             uses++;
@@ -30213,11 +30216,5 @@ function h30j07FeedsObjectListSink (printer, call) {
     } catch (e) {
         return false;
     }
-}
-// a field-alias sink (`indexBy = indexBy`) resolves into base/functions: gate on the property declared in ts/src/base
-function h48j40BaseFieldAliasSink (printer, call) {
-    const declaration = printer.getChecker ().getSymbolAtLocation (call.expression)?.valueDeclaration?.resolve ();
-    const file = declaration?.getSourceFile?.().fileName;
-    return declaration !== undefined && ts.isPropertyDeclaration (declaration) && file !== undefined && HELPER_SOURCE_FILE.test (file);
 }
 // ===== end h30-J07
