@@ -2594,7 +2594,7 @@ export default class interactivebrokers extends Exchange {
      */
     override async fetchAccounts (params: Dict = {}): Promise<Account[]> {
         // as required by IBKR, iserver/accounts must be called at least once before any other trading endpoint
-        const portfolioAccounts = await this.fetchPortfolioAccounts (params);
+        const portfolioAccounts: List = await this.fetchPortfolioAccounts (params);
         const accountIds = Object.keys (this.indexBy (portfolioAccounts, 'accountId'));
         const length = accountIds.length;
         if (length === 0) {

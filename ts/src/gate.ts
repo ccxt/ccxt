@@ -4645,7 +4645,7 @@ export default class gate extends Exchange {
             await this.loadMarkets ();
         }
         await this.loadUnifiedStatus ();
-        const ordersRequests = this.createOrdersRequest (orders, params);
+        const ordersRequests: Dict[] = this.createOrdersRequest (orders, params);
         let symbol: Str = undefined;
         for (let i = 0; i < orders.length; i++) {
             if (i === 0) {
