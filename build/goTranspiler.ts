@@ -7371,8 +7371,8 @@ const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
     // boxed: paradex watchTrades hands over an optional symbol)
     'fetchLeverage': [ 0 ], 'fetchPosition': [ 0 ], 'fetchTrades': [ 0 ],
     'fetchMarginMode': [ 0 ], 'setMargin': [ 0 ],
-    // `calculateFee (symbol: string, ..)`: base and both overrides; no generated Go caller
-    'calculateFee': [ 0 ],
+    // `calculateFee (symbol: string, type: string, side: string, ..)`: base and both overrides; no generated Go caller
+    'calculateFee': [ 0, 1, 2 ],
     // interactivebrokers `createTestOrder (symbol: string, ..)`: the typed CreateTestOrder wrapper takes a Go string
     'createTestOrder': [ 0 ],
     // required `string` params whose callers pass a Go string: bitfinex currency code, withdraw address
@@ -7452,6 +7452,7 @@ const GO_UNIFIED_FLOAT64_PARAMS: { [method: string]: number[] } = {
     'addMargin': [ 1 ], 'reduceMargin': [ 1 ], 'setMargin': [ 1 ], 'borrowCrossMargin': [ 1 ], 'repayCrossMargin': [ 1 ],
     'borrowIsolatedMargin': [ 2 ], 'repayIsolatedMargin': [ 2 ],
     'repayMargin': [ 1 ],
+    'calculateFee': [ 3, 4 ],
 };
 
 for (const [method, indexes] of Object.entries (GO_UNIFIED_REQUIRED_ID_PARAMS)) {
