@@ -89,7 +89,7 @@ func (this *Blofin) Describe() map[string]any {
 			"fetchLeverageTiers":                   false,
 			"fetchMarginMode":                      true,
 			"fetchMarginModes":                     false,
-			"fetchMarketLeverageTiers":             false,
+			"fetchMarketLeverageTiers":             true,
 			"fetchMarkets":                         true,
 			"fetchMarkOHLCV":                       false,
 			"fetchMySettlementHistory":             false,
@@ -4227,6 +4227,87 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) Position {
 
 /**
  * @method
+ * @name blofin#fetchMarketLeverageTiers
+ * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+ * @see https://docs.blofin.com/index.html#get-position-tiers
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
+ * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+ */
+func (this *Blofin) FetchMarketLeverageTiersAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]LeverageTier] {
+	ch := make(chan AsyncResult[[]LeverageTier], 1)
+	go this.fetchMarketLeverageTiersBody(ch, symbol, optionalArgs...)
+	return ch
+}
+func (this *Blofin) fetchMarketLeverageTiersBody(ch chan AsyncResult[[]LeverageTier], symbol string, optionalArgs ...any) any {
+	defer close(ch)
+	defer ReturnPanicError(ch)
+	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
+	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
+	var market map[string]any = this.Market(symbol)
+	marginMode, query := this.HandleMarginModeAndParams("fetchMarketLeverageTiers", params, "cross")
+	var request map[string]any = map[string]any{
+		"instId":     market["id"],
+		"marginMode": marginMode,
+	}
+
+	r1 := <-this.PublicGetMarketPositionTiers(this.Extend(request, query))
+	if r1.Err != nil {
+		panic(r1.Err)
+	}
+	var response map[string]any = r1.Value
+	//
+	//     {
+	//         "code": "0",
+	//         "msg": "success",
+	//         "data": [
+	//             {
+	//                 "symbol": "LTC-USDT",
+	//                 "marginMode": "cross",
+	//                 "minSize": "0",
+	//                 "maxSize": "500",
+	//                 "maintenanceMarginRate": "0.0065",
+	//                 "maxLeverage": "50"
+	//             }
+	//         ]
+	//     }
+	//
+	var data []any = SafeListTypedDefault(response, "data", []any{})
+
+	ch <- AsyncResult[[]LeverageTier]{Value: LeverageTiersFromList(this.ParseMarketLeverageTiers(data, market))}
+	return nil
+}
+func (this *Blofin) ParseMarketLeverageTiers(info any, optionalArgs ...any) []any {
+	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
+	_ = market
+	var tiers []any = []any{}
+	for i := 0; i < GetArrayLength(info); i++ {
+		var tier map[string]any = SafeMapTyped(info, i)
+		var marketId *string = this.SafeString(tier, "symbol")
+		tiers = append(tiers, map[string]any{
+			"tier":                  this.Sum(i, 1),
+			"symbol":                this.SafeSymbol(marketId, market),
+			"currency":              this.SafeString(market, "quote"),
+			"minNotional":           this.SafeNumber(tier, "minSize"),
+			"maxNotional":           this.SafeNumber(tier, "maxSize"),
+			"maintenanceMarginRate": this.SafeNumber(tier, "maintenanceMarginRate"),
+			"maxLeverage":           this.SafeNumber(tier, "maxLeverage"),
+			"info":                  tier,
+		})
+	}
+	return tiers
+}
+
+/**
+ * @method
  * @name blofin#fetchLeverages
  * @description fetch the set leverage for all contract markets
  * @see https://docs.blofin.com/index.html#get-multiple-leverage
@@ -4535,11 +4616,11 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes332619 []any = r1.Value
-		if retRes332619 == nil {
+		var retRes338619 []any = r1.Value
+		if retRes338619 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes332619)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes338619)}
 		}
 		return nil
 	}
@@ -5800,6 +5881,31 @@ func (this *Blofin) FetchPositionsHistory(options ...FetchPositionsHistoryOption
 		return nil, r.Err
 	}
 	var res []Position = r.Value
+	return res, nil
+}
+
+/**
+ * @method
+ * @name blofin#fetchMarketLeverageTiers
+ * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+ * @see https://docs.blofin.com/index.html#get-position-tiers
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.marginMode] 'cross' or 'isolated', default is 'cross'
+ * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
+ */
+func (this *Blofin) FetchMarketLeverageTiers(symbol string, options ...FetchMarketLeverageTiersOptions) ([]LeverageTier, error) {
+
+	opts := FetchMarketLeverageTiersOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+	r := <-this.FetchMarketLeverageTiersAsync(symbol, opts.Params)
+	if r.Err != nil {
+		return nil, r.Err
+	}
+	var res []LeverageTier = r.Value
 	return res, nil
 }
 
