@@ -19065,11 +19065,12 @@ export const CSHARP_STRING_PARAMS = {
     'hibachi.signMessage': { 1: 'string?' },
     'hyperliquid.signHash': { 0: 'string?', 1: 'string?' },
     'prediction/hyperliquid.signHash': { 0: 'string?', 1: 'string?' },
-    'polymarket.signHash': { 0: 'string?' },
+    'polymarket.signHash': { 0: 'string?', 1: 'string?' },
     'prediction/polymarket.signHash': { 0: 'string?', 1: 'string?' },
     'signEvmTransaction': { 1: 'string?' },
     'pro/okx.handleUnsubscriptionMarkPrice': { 1: 'string?', 2: 'string' },
     'interactivebrokers.ibkrBaseString': { 0: 'string?', 3: 'string?' },
+    'polymarket.signMessage': { 1: 'string?' },
 };
 
 // the table type for a parameter of a listed generated method whose checker type is string-ish
