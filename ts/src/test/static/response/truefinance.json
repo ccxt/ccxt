@@ -1,0 +1,1919 @@
+{
+    "exchange": "truefinance",
+    "skipKeys": [
+        "timestamp",
+        "datetime",
+        "nonce"
+    ],
+    "options": {
+        "adjustForTimeDifference": false
+    },
+    "methods": {
+        "fetchTime": [
+            {
+                "description": "fetchTime happy path",
+                "method": "fetchTime",
+                "input": [],
+                "httpResponse": {
+                    "ok": true,
+                    "serverTime": 1792320833465
+                },
+                "parsedResponse": 1792320833465
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "ticker row merged with the bbo (one mocked response serves both calls)",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "ok": true,
+                    "data": {
+                        "results": [
+                            {
+                                "symbol": "BTCUSDC",
+                                "last_traded_price": "82159",
+                                "volume_24h": "260288.9711",
+                                "price_change_rate_24h": "0.008853",
+                                "timestamp": 1792320839446
+                            }
+                        ],
+                        "market": "BTCUSDC",
+                        "bid": "82031",
+                        "bid_size": "0.2537",
+                        "ask": "82045",
+                        "ask_size": "0.2537"
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDC:USDC",
+                    "timestamp": 1792320839446,
+                    "datetime": "2026-10-18T10:53:59.446Z",
+                    "high": null,
+                    "low": null,
+                    "bid": 82031,
+                    "bidVolume": 0.2537,
+                    "ask": 82045,
+                    "askVolume": 0.2537,
+                    "vwap": null,
+                    "open": 81438.02912812868,
+                    "close": 82159,
+                    "last": 82159,
+                    "previousClose": null,
+                    "change": 720.9708718713232,
+                    "percentage": 0.8853,
+                    "average": 81798,
+                    "baseVolume": 260288.9711,
+                    "quoteVolume": null,
+                    "info": {
+                        "symbol": "BTCUSDC",
+                        "last_traded_price": "82159",
+                        "volume_24h": "260288.9711",
+                        "price_change_rate_24h": "0.008853",
+                        "timestamp": 1792320839446,
+                        "results": [
+                            {
+                                "symbol": "BTCUSDC",
+                                "last_traded_price": "82159",
+                                "volume_24h": "260288.9711",
+                                "price_change_rate_24h": "0.008853",
+                                "timestamp": 1792320839446
+                            }
+                        ],
+                        "market": "BTCUSDC",
+                        "bid": "82031",
+                        "bid_size": "0.2537",
+                        "ask": "82045",
+                        "ask_size": "0.2537"
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "fetchTickers happy path",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "BTC/USDC:USDC",
+                        "ETH/USDC:USDC"
+                    ]
+                ],
+                "httpResponse": {
+                    "ok": true,
+                    "data": {
+                        "results": [
+                            {
+                                "symbol": "BTCUSDC",
+                                "last_traded_price": "82159",
+                                "volume_24h": "260288.9711",
+                                "price_change_rate_24h": "0.008853",
+                                "timestamp": 1792320839446
+                            },
+                            {
+                                "symbol": "ETHUSDC",
+                                "last_traded_price": "2416",
+                                "volume_24h": "115526.4358",
+                                "price_change_rate_24h": "-0.006048",
+                                "timestamp": 1792320839446
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": {
+                    "BTC/USDC:USDC": {
+                        "symbol": "BTC/USDC:USDC",
+                        "timestamp": 1792320839446,
+                        "datetime": "2026-10-18T10:53:59.446Z",
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 81438.02912812868,
+                        "close": 82159,
+                        "last": 82159,
+                        "previousClose": null,
+                        "change": 720.9708718713232,
+                        "percentage": 0.8853,
+                        "average": 81798,
+                        "baseVolume": 260288.9711,
+                        "quoteVolume": null,
+                        "info": {
+                            "symbol": "BTCUSDC",
+                            "last_traded_price": "82159",
+                            "volume_24h": "260288.9711",
+                            "price_change_rate_24h": "0.008853",
+                            "timestamp": 1792320839446
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    },
+                    "ETH/USDC:USDC": {
+                        "symbol": "ETH/USDC:USDC",
+                        "timestamp": 1792320839446,
+                        "datetime": "2026-10-18T10:53:59.446Z",
+                        "high": null,
+                        "low": null,
+                        "bid": null,
+                        "bidVolume": null,
+                        "ask": null,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 2430.700878915682,
+                        "close": 2416,
+                        "last": 2416,
+                        "previousClose": null,
+                        "change": -14.700878915682045,
+                        "percentage": -0.6048,
+                        "average": 2423.3,
+                        "baseVolume": 115526.4358,
+                        "quoteVolume": null,
+                        "info": {
+                            "symbol": "ETHUSDC",
+                            "last_traded_price": "2416",
+                            "volume_24h": "115526.4358",
+                            "price_change_rate_24h": "-0.006048",
+                            "timestamp": 1792320839446
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                }
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook happy path",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USDC:USDC",
+                    3
+                ],
+                "httpResponse": {
+                    "ok": true,
+                    "data": {
+                        "asks": {
+                            "82045": "0.2537",
+                            "82051": "0.4646",
+                            "82058": "0.771"
+                        },
+                        "bids": {
+                            "82017": "0.295",
+                            "82024": "0.4648",
+                            "82031": "0.2537"
+                        },
+                        "event_seq": 181394977
+                    }
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDC:USDC",
+                    "bids": [
+                        [
+                            82031,
+                            0.2537
+                        ],
+                        [
+                            82024,
+                            0.4648
+                        ],
+                        [
+                            82017,
+                            0.295
+                        ]
+                    ],
+                    "asks": [
+                        [
+                            82045,
+                            0.2537
+                        ],
+                        [
+                            82051,
+                            0.4646
+                        ],
+                        [
+                            82058,
+                            0.771
+                        ]
+                    ],
+                    "timestamp": 1792320933207,
+                    "datetime": "2026-10-18T10:55:33.207Z",
+                    "nonce": null
+                }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades happy path",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "ok": true,
+                    "data": {
+                        "next": "ABMAAAAOAQAAAAGhTaZZiwAAAAAKtp_Y",
+                        "prev": null,
+                        "results": [
+                            {
+                                "created_at": 1792304072682,
+                                "id": "179737578",
+                                "market": "BTCUSDC",
+                                "price": "81670",
+                                "side": "BUY",
+                                "size": "0.0131",
+                                "trade_type": "FILL"
+                            },
+                            {
+                                "created_at": 1792304108952,
+                                "id": "179740540",
+                                "market": "BTCUSDC",
+                                "price": "81640",
+                                "side": "SELL",
+                                "size": "0.0004",
+                                "trade_type": "FILL"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "179737578",
+                        "order": null,
+                        "timestamp": 1792304072682,
+                        "datetime": "2026-10-18T06:14:32.682Z",
+                        "symbol": "BTC/USDC:USDC",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 81670,
+                        "amount": 0.0131,
+                        "cost": 1069.877,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "created_at": 1792304072682,
+                            "id": "179737578",
+                            "market": "BTCUSDC",
+                            "price": "81670",
+                            "side": "BUY",
+                            "size": "0.0131",
+                            "trade_type": "FILL"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": "179740540",
+                        "order": null,
+                        "timestamp": 1792304108952,
+                        "datetime": "2026-10-18T06:15:08.952Z",
+                        "symbol": "BTC/USDC:USDC",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 81640,
+                        "amount": 0.0004,
+                        "cost": 32.656,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "created_at": 1792304108952,
+                            "id": "179740540",
+                            "market": "BTCUSDC",
+                            "price": "81640",
+                            "side": "SELL",
+                            "size": "0.0004",
+                            "trade_type": "FILL"
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchFundingRate": [
+            {
+                "description": "fetchFundingRate happy path",
+                "method": "fetchFundingRate",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "ok": true,
+                    "markets": [
+                        {
+                            "symbol": "BTCUSDC",
+                            "base": "BTC",
+                            "quote": "USDC",
+                            "status": "Normal",
+                            "active": true,
+                            "lotSize": "0.0001",
+                            "tickSize": "1",
+                            "minOrderNotionalUsd": 5,
+                            "maxOrderSize": "10",
+                            "maxPositionSize": "30",
+                            "maxLeverage": 50,
+                            "makerFeePct": 0.02,
+                            "takerFeePct": 0.065,
+                            "fundingRate8h": "0.000051621847",
+                            "priceBands": {
+                                "min": "38862",
+                                "max": "116586"
+                            },
+                            "isNew": false
+                        },
+                        {
+                            "symbol": "ETHUSDC",
+                            "base": "ETH",
+                            "quote": "USDC",
+                            "status": "Normal",
+                            "active": true,
+                            "lotSize": "0.001",
+                            "tickSize": "0.1",
+                            "minOrderNotionalUsd": 5,
+                            "maxOrderSize": "100",
+                            "maxPositionSize": "800",
+                            "maxLeverage": 40,
+                            "makerFeePct": 0.02,
+                            "takerFeePct": 0.065,
+                            "fundingRate8h": "0.000051403218",
+                            "priceBands": {
+                                "min": "1250.1",
+                                "max": "3750.5"
+                            },
+                            "isNew": false
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "info": {
+                        "symbol": "BTCUSDC",
+                        "base": "BTC",
+                        "quote": "USDC",
+                        "status": "Normal",
+                        "active": true,
+                        "lotSize": "0.0001",
+                        "tickSize": "1",
+                        "minOrderNotionalUsd": 5,
+                        "maxOrderSize": "10",
+                        "maxPositionSize": "30",
+                        "maxLeverage": 50,
+                        "makerFeePct": 0.02,
+                        "takerFeePct": 0.065,
+                        "fundingRate8h": "0.000051621847",
+                        "priceBands": {
+                            "min": "38862",
+                            "max": "116586"
+                        },
+                        "isNew": false
+                    },
+                    "symbol": "BTC/USDC:USDC",
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "interestRate": null,
+                    "estimatedSettlePrice": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "fundingRate": 0.000051621847,
+                    "fundingTimestamp": null,
+                    "fundingDatetime": null,
+                    "nextFundingRate": null,
+                    "nextFundingTimestamp": null,
+                    "nextFundingDatetime": null,
+                    "previousFundingRate": null,
+                    "previousFundingTimestamp": null,
+                    "previousFundingDatetime": null,
+                    "interval": "8h"
+                }
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "fetchBalance happy path",
+                "method": "fetchBalance",
+                "input": [],
+                "httpResponse": {
+                    "ok": true,
+                    "accountKey": "AccountPubkey11111111111111111111111111111111",
+                    "account": {
+                        "equityUsd": 8497.211464,
+                        "freeCollateralUsd": 7319.981774,
+                        "totalCollateralUsd": 7478.245996,
+                        "marginUsed": 1177.22969,
+                        "maintenanceMarginUsd": 787.951296,
+                        "health": 10.78393,
+                        "marginType": "cross",
+                        "status": "ACTIVE",
+                        "accountId": 2,
+                        "raw": {
+                            "account": "AccountPubkey11111111111111111111111111111111",
+                            "account_value": "8497.211464",
+                            "free_collateral": "7319.981774",
+                            "initial_margin_requirement": "1177.22969",
+                            "maintenance_margin_requirement": "787.951296",
+                            "margin_cushion": "7709.260168",
+                            "settlement_asset": "USDC",
+                            "status": "ACTIVE",
+                            "total_collateral": "7478.245996",
+                            "health": "10.78393",
+                            "liquidation_target_health": "1.05",
+                            "margin_type": "cross",
+                            "account_id": 2,
+                            "kind": "main",
+                            "parent_account_id": null,
+                            "sub_account": false,
+                            "closed": false
+                        }
+                    },
+                    "balances": {
+                        "USDC": "7478.245996"
+                    },
+                    "positions": [
+                        {
+                            "account_id": 2,
+                            "market": "NVDAUSDC",
+                            "size": "9.17",
+                            "entry_price": "218.02",
+                            "leverage": 10,
+                            "margin": "199.92434",
+                            "realized_pnl": "-1.299508",
+                            "unrealized_pnl": "-38.474935",
+                            "funding_cumulative_index": "0.209772279918917939",
+                            "liquidation_price": null,
+                            "liquidation_price_basis": "cross",
+                            "liquidation_mark": "213.92",
+                            "maintenance_margin": "29.424696",
+                            "initial_margin": "196.16464",
+                            "pending_funding": "0.877935",
+                            "maintenance_margin_rate": "0.015",
+                            "health": "10.78393"
+                        },
+                        {
+                            "account_id": 2,
+                            "market": "ETHUSDC",
+                            "size": "15.685",
+                            "entry_price": "2349.8",
+                            "leverage": 40,
+                            "margin": "921.415325",
+                            "realized_pnl": "769.066975",
+                            "unrealized_pnl": "1057.440403",
+                            "funding_cumulative_index": "-52.749996222582713696",
+                            "liquidation_price": "1916.4",
+                            "liquidation_price_basis": "cross",
+                            "liquidation_mark": "2418",
+                            "maintenance_margin": "758.5266",
+                            "initial_margin": "948.15825",
+                            "pending_funding": "12.276597",
+                            "maintenance_margin_rate": "0.02",
+                            "health": "10.78393"
+                        }
+                    ],
+                    "openOrders": [
+                        {
+                            "id": 42834527,
+                            "account": "AccountPubkey11111111111111111111111111111111",
+                            "account_id": 2,
+                            "market_id": 0,
+                            "client_id": "",
+                            "side": "BUY",
+                            "size": "0.001",
+                            "remaining_size": "0.001",
+                            "price": "81677",
+                            "status": "open",
+                            "order_type": "LIMIT",
+                            "flags": [],
+                            "time_in_force": "GTC",
+                            "timestamp": 1792318788491,
+                            "market": "BTCUSDC"
+                        },
+                        {
+                            "id": 42834528,
+                            "account": "AccountPubkey11111111111111111111111111111111",
+                            "account_id": 2,
+                            "market_id": 0,
+                            "client_id": "",
+                            "side": "SELL",
+                            "size": "0.001",
+                            "remaining_size": "0.001",
+                            "price": "82497",
+                            "status": "open",
+                            "order_type": "LIMIT",
+                            "flags": [],
+                            "time_in_force": "GTC",
+                            "timestamp": 1792318788518,
+                            "market": "BTCUSDC"
+                        }
+                    ],
+                    "leverages": {
+                        "AAPLUSDC": 10,
+                        "AAVEUSDC": 20,
+                        "ADAUSDC": 6,
+                        "AMZNUSDC": 10,
+                        "ARBUSDC": 20,
+                        "AVAXUSDC": 20,
+                        "BNBUSDC": 20,
+                        "BTCUSDC": 5,
+                        "COINUSDC": 10,
+                        "DOGEUSDC": 6,
+                        "ENAUSDC": 20,
+                        "ETHUSDC": 40,
+                        "EURUSDC": 10,
+                        "FETUSDC": 7,
+                        "GOOGLUSDC": 10,
+                        "HOODUSDC": 10,
+                        "HYPEUSDC": 20,
+                        "INTCUSDC": 10,
+                        "LINKUSDC": 6,
+                        "LITUSDC": 20,
+                        "LTCUSDC": 20,
+                        "METAUSDC": 10,
+                        "MSFTUSDC": 10,
+                        "MSTRUSDC": 10,
+                        "MUUSDC": 10,
+                        "NEARUSDC": 20,
+                        "NVDAUSDC": 10,
+                        "ONDOUSDC": 10,
+                        "PENGUUSDC": 20,
+                        "PONSUSDC": 20,
+                        "PUMPUSDC": 20,
+                        "QNTUSDC": 20,
+                        "QQQXUSDC": 10,
+                        "SNDKUSDC": 10,
+                        "SOLUSDC": 25,
+                        "SPYXUSDC": 10,
+                        "SUIUSDC": 10,
+                        "TAOUSDC": 6,
+                        "TSLAUSDC": 10,
+                        "UNIUSDC": 20,
+                        "WLDUSDC": 20,
+                        "WTIUSDC": 10,
+                        "XAGUSDC": 6,
+                        "XAUTUSDC": 8,
+                        "XAUUSDC": 10,
+                        "XMRUSDC": 20,
+                        "XRPUSDC": 10,
+                        "ZECUSDC": 20
+                    },
+                    "marginType": "cross",
+                    "positionsOk": true,
+                    "ordersOk": true
+                },
+                "parsedResponse": {
+                    "info": {
+                        "ok": true,
+                        "accountKey": "AccountPubkey11111111111111111111111111111111",
+                        "account": {
+                            "equityUsd": 8497.211464,
+                            "freeCollateralUsd": 7319.981774,
+                            "totalCollateralUsd": 7478.245996,
+                            "marginUsed": 1177.22969,
+                            "maintenanceMarginUsd": 787.951296,
+                            "health": 10.78393,
+                            "marginType": "cross",
+                            "status": "ACTIVE",
+                            "accountId": 2,
+                            "raw": {
+                                "account": "AccountPubkey11111111111111111111111111111111",
+                                "account_value": "8497.211464",
+                                "free_collateral": "7319.981774",
+                                "initial_margin_requirement": "1177.22969",
+                                "maintenance_margin_requirement": "787.951296",
+                                "margin_cushion": "7709.260168",
+                                "settlement_asset": "USDC",
+                                "status": "ACTIVE",
+                                "total_collateral": "7478.245996",
+                                "health": "10.78393",
+                                "liquidation_target_health": "1.05",
+                                "margin_type": "cross",
+                                "account_id": 2,
+                                "kind": "main",
+                                "parent_account_id": null,
+                                "sub_account": false,
+                                "closed": false
+                            }
+                        },
+                        "balances": {
+                            "USDC": "7478.245996"
+                        },
+                        "positions": [
+                            {
+                                "account_id": 2,
+                                "market": "NVDAUSDC",
+                                "size": "9.17",
+                                "entry_price": "218.02",
+                                "leverage": 10,
+                                "margin": "199.92434",
+                                "realized_pnl": "-1.299508",
+                                "unrealized_pnl": "-38.474935",
+                                "funding_cumulative_index": "0.209772279918917939",
+                                "liquidation_price": null,
+                                "liquidation_price_basis": "cross",
+                                "liquidation_mark": "213.92",
+                                "maintenance_margin": "29.424696",
+                                "initial_margin": "196.16464",
+                                "pending_funding": "0.877935",
+                                "maintenance_margin_rate": "0.015",
+                                "health": "10.78393"
+                            },
+                            {
+                                "account_id": 2,
+                                "market": "ETHUSDC",
+                                "size": "15.685",
+                                "entry_price": "2349.8",
+                                "leverage": 40,
+                                "margin": "921.415325",
+                                "realized_pnl": "769.066975",
+                                "unrealized_pnl": "1057.440403",
+                                "funding_cumulative_index": "-52.749996222582713696",
+                                "liquidation_price": "1916.4",
+                                "liquidation_price_basis": "cross",
+                                "liquidation_mark": "2418",
+                                "maintenance_margin": "758.5266",
+                                "initial_margin": "948.15825",
+                                "pending_funding": "12.276597",
+                                "maintenance_margin_rate": "0.02",
+                                "health": "10.78393"
+                            }
+                        ],
+                        "openOrders": [
+                            {
+                                "id": 42834527,
+                                "account": "AccountPubkey11111111111111111111111111111111",
+                                "account_id": 2,
+                                "market_id": 0,
+                                "client_id": "",
+                                "side": "BUY",
+                                "size": "0.001",
+                                "remaining_size": "0.001",
+                                "price": "81677",
+                                "status": "open",
+                                "order_type": "LIMIT",
+                                "flags": [],
+                                "time_in_force": "GTC",
+                                "timestamp": 1792318788491,
+                                "market": "BTCUSDC"
+                            },
+                            {
+                                "id": 42834528,
+                                "account": "AccountPubkey11111111111111111111111111111111",
+                                "account_id": 2,
+                                "market_id": 0,
+                                "client_id": "",
+                                "side": "SELL",
+                                "size": "0.001",
+                                "remaining_size": "0.001",
+                                "price": "82497",
+                                "status": "open",
+                                "order_type": "LIMIT",
+                                "flags": [],
+                                "time_in_force": "GTC",
+                                "timestamp": 1792318788518,
+                                "market": "BTCUSDC"
+                            }
+                        ],
+                        "leverages": {
+                            "AAPLUSDC": 10,
+                            "AAVEUSDC": 20,
+                            "ADAUSDC": 6,
+                            "AMZNUSDC": 10,
+                            "ARBUSDC": 20,
+                            "AVAXUSDC": 20,
+                            "BNBUSDC": 20,
+                            "BTCUSDC": 5,
+                            "COINUSDC": 10,
+                            "DOGEUSDC": 6,
+                            "ENAUSDC": 20,
+                            "ETHUSDC": 40,
+                            "EURUSDC": 10,
+                            "FETUSDC": 7,
+                            "GOOGLUSDC": 10,
+                            "HOODUSDC": 10,
+                            "HYPEUSDC": 20,
+                            "INTCUSDC": 10,
+                            "LINKUSDC": 6,
+                            "LITUSDC": 20,
+                            "LTCUSDC": 20,
+                            "METAUSDC": 10,
+                            "MSFTUSDC": 10,
+                            "MSTRUSDC": 10,
+                            "MUUSDC": 10,
+                            "NEARUSDC": 20,
+                            "NVDAUSDC": 10,
+                            "ONDOUSDC": 10,
+                            "PENGUUSDC": 20,
+                            "PONSUSDC": 20,
+                            "PUMPUSDC": 20,
+                            "QNTUSDC": 20,
+                            "QQQXUSDC": 10,
+                            "SNDKUSDC": 10,
+                            "SOLUSDC": 25,
+                            "SPYXUSDC": 10,
+                            "SUIUSDC": 10,
+                            "TAOUSDC": 6,
+                            "TSLAUSDC": 10,
+                            "UNIUSDC": 20,
+                            "WLDUSDC": 20,
+                            "WTIUSDC": 10,
+                            "XAGUSDC": 6,
+                            "XAUTUSDC": 8,
+                            "XAUUSDC": 10,
+                            "XMRUSDC": 20,
+                            "XRPUSDC": 10,
+                            "ZECUSDC": 20
+                        },
+                        "marginType": "cross",
+                        "positionsOk": true,
+                        "ordersOk": true
+                    },
+                    "USDC": {
+                        "free": 7319.981774,
+                        "used": 1177.22969,
+                        "total": 8497.211464
+                    },
+                    "free": {
+                        "USDC": 7319.981774
+                    },
+                    "used": {
+                        "USDC": 1177.22969
+                    },
+                    "total": {
+                        "USDC": 8497.211464
+                    }
+                }
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions happy path",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": {
+                    "ok": true,
+                    "positions": [
+                        {
+                            "account_id": 2,
+                            "market": "ETHUSDC",
+                            "size": "15.685",
+                            "entry_price": "2349.8",
+                            "leverage": 40,
+                            "margin": "921.415325",
+                            "realized_pnl": "769.066975",
+                            "unrealized_pnl": "1057.440267",
+                            "funding_cumulative_index": "-52.749996222582713696",
+                            "liquidation_price": "1916.4",
+                            "liquidation_price_basis": "cross",
+                            "liquidation_mark": "2418",
+                            "maintenance_margin": "758.5266",
+                            "initial_margin": "948.15825",
+                            "pending_funding": "12.276733",
+                            "maintenance_margin_rate": "0.02",
+                            "health": "10.78393"
+                        }
+                    ],
+                    "positionsOk": true
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "account_id": 2,
+                            "market": "ETHUSDC",
+                            "size": "15.685",
+                            "entry_price": "2349.8",
+                            "leverage": 40,
+                            "margin": "921.415325",
+                            "realized_pnl": "769.066975",
+                            "unrealized_pnl": "1057.440267",
+                            "funding_cumulative_index": "-52.749996222582713696",
+                            "liquidation_price": "1916.4",
+                            "liquidation_price_basis": "cross",
+                            "liquidation_mark": "2418",
+                            "maintenance_margin": "758.5266",
+                            "initial_margin": "948.15825",
+                            "pending_funding": "12.276733",
+                            "maintenance_margin_rate": "0.02",
+                            "health": "10.78393"
+                        },
+                        "id": null,
+                        "symbol": "ETH/USDC:USDC",
+                        "timestamp": null,
+                        "datetime": null,
+                        "lastUpdateTimestamp": null,
+                        "hedged": false,
+                        "side": "long",
+                        "contracts": 15.685,
+                        "contractSize": 1,
+                        "entryPrice": 2349.8,
+                        "markPrice": 2418,
+                        "lastPrice": null,
+                        "notional": 37926.33,
+                        "leverage": 40,
+                        "collateral": 921.415325,
+                        "initialMargin": 948.15825,
+                        "maintenanceMargin": 758.5266,
+                        "initialMarginPercentage": 0.025,
+                        "maintenanceMarginPercentage": 0.02,
+                        "unrealizedPnl": 1057.440267,
+                        "realizedPnl": 769.066975,
+                        "liquidationPrice": 1916.4,
+                        "marginMode": "cross",
+                        "marginRatio": 0.8232,
+                        "percentage": 111.52,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": null,
+                        "positionMargin": null
+                    }
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders happy path",
+                "method": "fetchOpenOrders",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "ok": true,
+                    "orders": [
+                        {
+                            "id": 42834527,
+                            "account": "AccountPubkey11111111111111111111111111111111",
+                            "account_id": 2,
+                            "market_id": 0,
+                            "client_id": "",
+                            "side": "BUY",
+                            "size": "0.001",
+                            "remaining_size": "0.001",
+                            "price": "81677",
+                            "status": "open",
+                            "order_type": "LIMIT",
+                            "flags": [],
+                            "time_in_force": "GTC",
+                            "timestamp": 1792318788491,
+                            "market": "BTCUSDC"
+                        },
+                        {
+                            "id": 42834528,
+                            "account": "AccountPubkey11111111111111111111111111111111",
+                            "account_id": 2,
+                            "market_id": 0,
+                            "client_id": "",
+                            "side": "SELL",
+                            "size": "0.001",
+                            "remaining_size": "0.001",
+                            "price": "82497",
+                            "status": "open",
+                            "order_type": "LIMIT",
+                            "flags": [],
+                            "time_in_force": "GTC",
+                            "timestamp": 1792318788518,
+                            "market": "BTCUSDC"
+                        }
+                    ],
+                    "ordersOk": true
+                },
+                "parsedResponse": [
+                    {
+                        "id": "42834527",
+                        "clientOrderId": null,
+                        "timestamp": 1792318788491,
+                        "datetime": "2026-10-18T10:19:48.491Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "BTC/USDC:USDC",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 81677,
+                        "triggerPrice": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "amount": 0.001,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.001,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "info": {
+                            "id": 42834527,
+                            "account": "AccountPubkey11111111111111111111111111111111",
+                            "account_id": 2,
+                            "market_id": 0,
+                            "client_id": "",
+                            "side": "BUY",
+                            "size": "0.001",
+                            "remaining_size": "0.001",
+                            "price": "81677",
+                            "status": "open",
+                            "order_type": "LIMIT",
+                            "flags": [],
+                            "time_in_force": "GTC",
+                            "timestamp": 1792318788491,
+                            "market": "BTCUSDC"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": "42834528",
+                        "clientOrderId": null,
+                        "timestamp": 1792318788518,
+                        "datetime": "2026-10-18T10:19:48.518Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "BTC/USDC:USDC",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "sell",
+                        "price": 82497,
+                        "triggerPrice": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "amount": 0.001,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.001,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "info": {
+                            "id": 42834528,
+                            "account": "AccountPubkey11111111111111111111111111111111",
+                            "account_id": 2,
+                            "market_id": 0,
+                            "client_id": "",
+                            "side": "SELL",
+                            "size": "0.001",
+                            "remaining_size": "0.001",
+                            "price": "82497",
+                            "status": "open",
+                            "order_type": "LIMIT",
+                            "flags": [],
+                            "time_in_force": "GTC",
+                            "timestamp": 1792318788518,
+                            "market": "BTCUSDC"
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchOrders": [
+            {
+                "description": "fetchOrders happy path",
+                "method": "fetchOrders",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "ok": true,
+                    "page": {
+                        "next": null,
+                        "prev": null,
+                        "results": [
+                            {
+                                "id": 42834528,
+                                "account": "AccountPubkey11111111111111111111111111111111",
+                                "market": "BTCUSDC",
+                                "client_id": "",
+                                "side": "SELL",
+                                "size": "0.001",
+                                "remaining_size": "0.001",
+                                "price": "82497",
+                                "status": "open",
+                                "order_type": "LIMIT",
+                                "flags": [],
+                                "time_in_force": "GTC",
+                                "timestamp": 1792318788518
+                            },
+                            {
+                                "id": 42834527,
+                                "account": "AccountPubkey11111111111111111111111111111111",
+                                "market": "BTCUSDC",
+                                "client_id": "",
+                                "side": "BUY",
+                                "size": "0.001",
+                                "remaining_size": "0.001",
+                                "price": "81677",
+                                "status": "open",
+                                "order_type": "LIMIT",
+                                "flags": [],
+                                "time_in_force": "GTC",
+                                "timestamp": 1792318788491
+                            },
+                            {
+                                "id": 42607445,
+                                "account": "AccountPubkey11111111111111111111111111111111",
+                                "market": "BTCUSDC",
+                                "client_id": "",
+                                "side": "BUY",
+                                "size": "0.0001",
+                                "remaining_size": "0.0001",
+                                "price": "64369",
+                                "status": "closed",
+                                "order_type": "LIMIT",
+                                "flags": [
+                                    "POST_ONLY"
+                                ],
+                                "time_in_force": "GTC",
+                                "timestamp": 1792284978039,
+                                "cancel_reason": "USER_CANCELED"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "42607445",
+                        "clientOrderId": null,
+                        "timestamp": 1792284978039,
+                        "datetime": "2026-10-18T00:56:18.039Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "BTC/USDC:USDC",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": true,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 64369,
+                        "triggerPrice": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "amount": 0.0001,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.0001,
+                        "status": "canceled",
+                        "fee": null,
+                        "trades": [],
+                        "info": {
+                            "id": 42607445,
+                            "account": "AccountPubkey11111111111111111111111111111111",
+                            "market": "BTCUSDC",
+                            "client_id": "",
+                            "side": "BUY",
+                            "size": "0.0001",
+                            "remaining_size": "0.0001",
+                            "price": "64369",
+                            "status": "closed",
+                            "order_type": "LIMIT",
+                            "flags": [
+                                "POST_ONLY"
+                            ],
+                            "time_in_force": "GTC",
+                            "timestamp": 1792284978039,
+                            "cancel_reason": "USER_CANCELED"
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": "42834527",
+                        "clientOrderId": null,
+                        "timestamp": 1792318788491,
+                        "datetime": "2026-10-18T10:19:48.491Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "BTC/USDC:USDC",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 81677,
+                        "triggerPrice": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "amount": 0.001,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.001,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "info": {
+                            "id": 42834527,
+                            "account": "AccountPubkey11111111111111111111111111111111",
+                            "market": "BTCUSDC",
+                            "client_id": "",
+                            "side": "BUY",
+                            "size": "0.001",
+                            "remaining_size": "0.001",
+                            "price": "81677",
+                            "status": "open",
+                            "order_type": "LIMIT",
+                            "flags": [],
+                            "time_in_force": "GTC",
+                            "timestamp": 1792318788491
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": "42834528",
+                        "clientOrderId": null,
+                        "timestamp": 1792318788518,
+                        "datetime": "2026-10-18T10:19:48.518Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "BTC/USDC:USDC",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "sell",
+                        "price": 82497,
+                        "triggerPrice": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "amount": 0.001,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.001,
+                        "status": "open",
+                        "fee": null,
+                        "trades": [],
+                        "info": {
+                            "id": 42834528,
+                            "account": "AccountPubkey11111111111111111111111111111111",
+                            "market": "BTCUSDC",
+                            "client_id": "",
+                            "side": "SELL",
+                            "size": "0.001",
+                            "remaining_size": "0.001",
+                            "price": "82497",
+                            "status": "open",
+                            "order_type": "LIMIT",
+                            "flags": [],
+                            "time_in_force": "GTC",
+                            "timestamp": 1792318788518
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades happy path",
+                "method": "fetchMyTrades",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "ok": true,
+                    "page": {
+                        "next": "ACAAAAAJBAEAAAAAAAAAAgAAAAGhTD7l2gkABQAAAAAKktqkAQ",
+                        "results": [
+                            {
+                                "account": "AccountPubkey11111111111111111111111111111111",
+                                "client_id": "",
+                                "created_at": 1792295269930,
+                                "fee": "22.924626",
+                                "fee_currency": "USDC",
+                                "fill_type": "FILL",
+                                "flags": [],
+                                "id": "178920566-0",
+                                "liquidity": "TAKER",
+                                "market": "BTCUSDC",
+                                "order_id": "42581393",
+                                "orderbook_seq_no": 0,
+                                "price": "81982",
+                                "realized_pnl": "-344.284026",
+                                "remaining_size": "0",
+                                "side": "BUY",
+                                "size": "0.4302",
+                                "underlying_price": "0"
+                            },
+                            {
+                                "account": "AccountPubkey11111111111111111111111111111111",
+                                "client_id": "",
+                                "created_at": 1792280552922,
+                                "fee": "10.534148",
+                                "fee_currency": "USDC",
+                                "fill_type": "FILL",
+                                "flags": [],
+                                "id": "177396390-1",
+                                "liquidity": "TAKER",
+                                "market": "BTCUSDC",
+                                "order_id": "42579204",
+                                "orderbook_seq_no": 0,
+                                "price": "81235",
+                                "realized_pnl": "-10.534148",
+                                "remaining_size": "0",
+                                "side": "SELL",
+                                "size": "0.1995",
+                                "underlying_price": "0"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "177396390-1",
+                        "order": "42579204",
+                        "timestamp": 1792280552922,
+                        "datetime": "2026-10-17T23:42:32.922Z",
+                        "symbol": "BTC/USDC:USDC",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": 81235,
+                        "amount": 0.1995,
+                        "cost": 16206.3825,
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 10.534148
+                        },
+                        "info": {
+                            "account": "AccountPubkey11111111111111111111111111111111",
+                            "client_id": "",
+                            "created_at": 1792280552922,
+                            "fee": "10.534148",
+                            "fee_currency": "USDC",
+                            "fill_type": "FILL",
+                            "flags": [],
+                            "id": "177396390-1",
+                            "liquidity": "TAKER",
+                            "market": "BTCUSDC",
+                            "order_id": "42579204",
+                            "orderbook_seq_no": 0,
+                            "price": "81235",
+                            "realized_pnl": "-10.534148",
+                            "remaining_size": "0",
+                            "side": "SELL",
+                            "size": "0.1995",
+                            "underlying_price": "0"
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDC",
+                                "cost": 10.534148
+                            }
+                        ]
+                    },
+                    {
+                        "id": "178920566-0",
+                        "order": "42581393",
+                        "timestamp": 1792295269930,
+                        "datetime": "2026-10-18T03:47:49.930Z",
+                        "symbol": "BTC/USDC:USDC",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": 81982,
+                        "amount": 0.4302,
+                        "cost": 35268.6564,
+                        "fee": {
+                            "currency": "USDC",
+                            "cost": 22.924626
+                        },
+                        "info": {
+                            "account": "AccountPubkey11111111111111111111111111111111",
+                            "client_id": "",
+                            "created_at": 1792295269930,
+                            "fee": "22.924626",
+                            "fee_currency": "USDC",
+                            "fill_type": "FILL",
+                            "flags": [],
+                            "id": "178920566-0",
+                            "liquidity": "TAKER",
+                            "market": "BTCUSDC",
+                            "order_id": "42581393",
+                            "orderbook_seq_no": 0,
+                            "price": "81982",
+                            "realized_pnl": "-344.284026",
+                            "remaining_size": "0",
+                            "side": "BUY",
+                            "size": "0.4302",
+                            "underlying_price": "0"
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDC",
+                                "cost": 22.924626
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder happy path",
+                "method": "fetchOrder",
+                "input": [
+                    "42834527",
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "ok": true,
+                    "order": {
+                        "id": "42834527",
+                        "market": "BTCUSDC",
+                        "side": "buy",
+                        "type": "LIMIT",
+                        "price": "81677",
+                        "size": "0.001",
+                        "remainingSize": "0.001",
+                        "filledSize": "0",
+                        "status": "open",
+                        "venueStatus": "open",
+                        "cancelReason": null,
+                        "timestamp": 1792318788491,
+                        "raw": {
+                            "id": 42834527,
+                            "account": "AccountPubkey11111111111111111111111111111111",
+                            "account_id": 2,
+                            "market_id": 0,
+                            "client_id": "",
+                            "side": "BUY",
+                            "size": "0.001",
+                            "remaining_size": "0.001",
+                            "price": "81677",
+                            "status": "open",
+                            "order_type": "LIMIT",
+                            "flags": [],
+                            "time_in_force": "GTC",
+                            "timestamp": 1792318788491,
+                            "market": "BTCUSDC"
+                        }
+                    }
+                },
+                "parsedResponse": {
+                    "id": "42834527",
+                    "clientOrderId": null,
+                    "timestamp": 1792318788491,
+                    "datetime": "2026-10-18T10:19:48.491Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDC:USDC",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": false,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": 81677,
+                    "triggerPrice": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": 0.001,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.001,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "info": {
+                        "id": "42834527",
+                        "market": "BTCUSDC",
+                        "side": "buy",
+                        "type": "LIMIT",
+                        "price": "81677",
+                        "size": "0.001",
+                        "remainingSize": "0.001",
+                        "filledSize": "0",
+                        "status": "open",
+                        "venueStatus": "open",
+                        "cancelReason": null,
+                        "timestamp": 1792318788491,
+                        "raw": {
+                            "id": 42834527,
+                            "account": "AccountPubkey11111111111111111111111111111111",
+                            "account_id": 2,
+                            "market_id": 0,
+                            "client_id": "",
+                            "side": "BUY",
+                            "size": "0.001",
+                            "remaining_size": "0.001",
+                            "price": "81677",
+                            "status": "open",
+                            "order_type": "LIMIT",
+                            "flags": [],
+                            "time_in_force": "GTC",
+                            "timestamp": 1792318788491,
+                            "market": "BTCUSDC"
+                        }
+                    },
+                    "fees": []
+                }
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "fetchOHLCV happy path",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "1h"
+                ],
+                "httpResponse": {
+                    "ok": true,
+                    "market": "BTCUSDC",
+                    "interval": "1h",
+                    "candles": [
+                        [
+                            "1792285200000",
+                            "81500",
+                            "81900",
+                            "81400",
+                            "81800",
+                            "12.5"
+                        ],
+                        [
+                            "1792288800000",
+                            "81800",
+                            "82100",
+                            "81700",
+                            "82000",
+                            "9.75"
+                        ]
+                    ]
+                },
+                "parsedResponse": [
+                    [
+                        1792285200000,
+                        81500,
+                        81900,
+                        81400,
+                        81800,
+                        12.5
+                    ],
+                    [
+                        1792288800000,
+                        81800,
+                        82100,
+                        81700,
+                        82000,
+                        9.75
+                    ]
+                ]
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "createOrder happy path",
+                "method": "createOrder",
+                "input": [
+                    "BTC/USDC:USDC",
+                    "limit",
+                    "buy",
+                    0.0001,
+                    50000,
+                    {
+                        "postOnly": true,
+                        "clientOrderId": "ccxt-fixture-1"
+                    }
+                ],
+                "httpResponse": {
+                    "ok": true,
+                    "clientOrderId": "ccxt-fixture-1",
+                    "order": {
+                        "id": 42900001,
+                        "account": "AccountPubkey11111111111111111111111111111111",
+                        "account_id": 2,
+                        "market_id": 0,
+                        "client_id": "ccxt-fixture-1",
+                        "side": "BUY",
+                        "size": "0.0001",
+                        "remaining_size": "0.0001",
+                        "price": "50000",
+                        "status": "open",
+                        "order_type": "LIMIT",
+                        "flags": [
+                            "POST_ONLY"
+                        ],
+                        "time_in_force": "GTC",
+                        "timestamp": 1792320900000,
+                        "market": "BTCUSDC"
+                    }
+                },
+                "parsedResponse": {
+                    "id": "42900001",
+                    "clientOrderId": "ccxt-fixture-1",
+                    "timestamp": 1792320900000,
+                    "datetime": "2026-10-18T10:55:00.000Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "symbol": "BTC/USDC:USDC",
+                    "type": "limit",
+                    "timeInForce": "GTC",
+                    "postOnly": true,
+                    "reduceOnly": false,
+                    "side": "buy",
+                    "price": 50000,
+                    "triggerPrice": null,
+                    "stopPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "amount": 0.0001,
+                    "cost": 0,
+                    "average": null,
+                    "filled": 0,
+                    "remaining": 0.0001,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "info": {
+                        "id": 42900001,
+                        "account": "AccountPubkey11111111111111111111111111111111",
+                        "account_id": 2,
+                        "market_id": 0,
+                        "client_id": "ccxt-fixture-1",
+                        "side": "BUY",
+                        "size": "0.0001",
+                        "remaining_size": "0.0001",
+                        "price": "50000",
+                        "status": "open",
+                        "order_type": "LIMIT",
+                        "flags": [
+                            "POST_ONLY"
+                        ],
+                        "time_in_force": "GTC",
+                        "timestamp": 1792320900000,
+                        "market": "BTCUSDC",
+                        "clientOrderId": "ccxt-fixture-1"
+                    },
+                    "fees": []
+                }
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder happy path",
+                "method": "cancelOrder",
+                "input": [
+                    "42900001",
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "ok": true,
+                    "orderId": "42900001",
+                    "market": "BTCUSDC"
+                },
+                "parsedResponse": {
+                    "id": "42900001",
+                    "symbol": "BTC/USDC:USDC",
+                    "status": "canceled",
+                    "info": {
+                        "ok": true,
+                        "orderId": "42900001",
+                        "market": "BTCUSDC"
+                    },
+                    "fees": [],
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "type": null,
+                    "side": null,
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "price": null,
+                    "amount": null,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "trades": [],
+                    "reduceOnly": null,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "fee": null
+                }
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancelAllOrders happy path",
+                "method": "cancelAllOrders",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "ok": true,
+                    "results": [
+                        {
+                            "orderId": "42900001",
+                            "market": "BTCUSDC",
+                            "ok": true
+                        },
+                        {
+                            "orderId": "42900002",
+                            "market": "BTCUSDC",
+                            "ok": false,
+                            "error": "order_not_open"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "id": "42900001",
+                        "symbol": "BTC/USDC:USDC",
+                        "status": "canceled",
+                        "info": {
+                            "orderId": "42900001",
+                            "market": "BTCUSDC",
+                            "ok": true
+                        },
+                        "fees": [],
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    },
+                    {
+                        "id": "42900002",
+                        "symbol": "BTC/USDC:USDC",
+                        "status": "open",
+                        "info": {
+                            "orderId": "42900002",
+                            "market": "BTCUSDC",
+                            "ok": false,
+                            "error": "order_not_open"
+                        },
+                        "fees": [],
+                        "clientOrderId": null,
+                        "timestamp": null,
+                        "datetime": null,
+                        "type": null,
+                        "side": null,
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "price": null,
+                        "amount": null,
+                        "cost": null,
+                        "average": null,
+                        "filled": null,
+                        "remaining": null,
+                        "timeInForce": null,
+                        "postOnly": null,
+                        "trades": [],
+                        "reduceOnly": null,
+                        "stopPrice": null,
+                        "triggerPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "fee": null
+                    }
+                ]
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "setLeverage happy path",
+                "method": "setLeverage",
+                "input": [
+                    5,
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "ok": true,
+                    "market": "BTCUSDC",
+                    "leverage": 5
+                },
+                "parsedResponse": {
+                    "ok": true,
+                    "market": "BTCUSDC",
+                    "leverage": 5
+                }
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "venue closed word mapped to closed or canceled by remaining size and cancel reason",
+                "method": "fetchClosedOrders",
+                "input": [
+                    "BTC/USDC:USDC"
+                ],
+                "httpResponse": {
+                    "ok": true,
+                    "page": {
+                        "next": null,
+                        "results": [
+                            {
+                                "id": 42599337,
+                                "market": "BTCUSDC",
+                                "client_id": "",
+                                "side": "BUY",
+                                "size": "0.002",
+                                "remaining_size": "0.002",
+                                "price": "81000",
+                                "status": "closed",
+                                "cancel_reason": "USER_CANCELED",
+                                "order_type": "LIMIT",
+                                "flags": [
+                                    "POST_ONLY"
+                                ],
+                                "time_in_force": "GTC",
+                                "timestamp": 1792280000500
+                            },
+                            {
+                                "id": 42599338,
+                                "market": "BTCUSDC",
+                                "client_id": "",
+                                "side": "SELL",
+                                "size": "0.002",
+                                "remaining_size": "0",
+                                "price": "82000",
+                                "status": "closed",
+                                "order_type": "LIMIT",
+                                "flags": [],
+                                "time_in_force": "GTC",
+                                "timestamp": 1792280001500
+                            },
+                            {
+                                "id": 42599339,
+                                "market": "BTCUSDC",
+                                "client_id": "",
+                                "side": "SELL",
+                                "size": "0.002",
+                                "remaining_size": "0.001",
+                                "price": "82000",
+                                "status": "open",
+                                "order_type": "LIMIT",
+                                "flags": [],
+                                "time_in_force": "GTC",
+                                "timestamp": 1792280002500
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "id": "42599337",
+                        "clientOrderId": null,
+                        "timestamp": 1792280000500,
+                        "datetime": "2026-10-17T23:33:20.500Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "BTC/USDC:USDC",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": true,
+                        "reduceOnly": false,
+                        "side": "buy",
+                        "price": 81000,
+                        "triggerPrice": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "amount": 0.002,
+                        "cost": 0,
+                        "average": null,
+                        "filled": 0,
+                        "remaining": 0.002,
+                        "status": "canceled",
+                        "fee": null,
+                        "trades": [],
+                        "info": {
+                            "id": 42599337,
+                            "market": "BTCUSDC",
+                            "client_id": "",
+                            "side": "BUY",
+                            "size": "0.002",
+                            "remaining_size": "0.002",
+                            "price": "81000",
+                            "status": "closed",
+                            "cancel_reason": "USER_CANCELED",
+                            "order_type": "LIMIT",
+                            "flags": [
+                                "POST_ONLY"
+                            ],
+                            "time_in_force": "GTC",
+                            "timestamp": 1792280000500
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": "42599338",
+                        "clientOrderId": null,
+                        "timestamp": 1792280001500,
+                        "datetime": "2026-10-17T23:33:21.500Z",
+                        "lastTradeTimestamp": null,
+                        "lastUpdateTimestamp": null,
+                        "symbol": "BTC/USDC:USDC",
+                        "type": "limit",
+                        "timeInForce": "GTC",
+                        "postOnly": false,
+                        "reduceOnly": false,
+                        "side": "sell",
+                        "price": 82000,
+                        "triggerPrice": null,
+                        "stopPrice": null,
+                        "takeProfitPrice": null,
+                        "stopLossPrice": null,
+                        "amount": 0.002,
+                        "cost": 164,
+                        "average": null,
+                        "filled": 0.002,
+                        "remaining": 0,
+                        "status": "closed",
+                        "fee": null,
+                        "trades": [],
+                        "info": {
+                            "id": 42599338,
+                            "market": "BTCUSDC",
+                            "client_id": "",
+                            "side": "SELL",
+                            "size": "0.002",
+                            "remaining_size": "0",
+                            "price": "82000",
+                            "status": "closed",
+                            "order_type": "LIMIT",
+                            "flags": [],
+                            "time_in_force": "GTC",
+                            "timestamp": 1792280001500
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ]
+    }
+}
