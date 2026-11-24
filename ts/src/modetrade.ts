@@ -772,7 +772,7 @@ export default class modetrade extends Exchange {
         });
     }
 
-    parseTokenAndFeeTemp (item: Dict, feeTokenKey: string, feeAmountKey: string) {
+    parseTokenAndFeeTemp (item: Dict, feeTokenKey: string, feeAmountKey: string): FeeString {
         const feeCost = this.safeString (item, feeAmountKey);
         let fee: FeeString = undefined;
         if (feeCost !== undefined) {

@@ -964,7 +964,7 @@ export default class woo extends Exchange {
         }, marketResolved);
     }
 
-    parseTokenAndFeeTemp (item: Dict, feeTokenKeys: string[], feeAmountKeys: string[]) {
+    parseTokenAndFeeTemp (item: Dict, feeTokenKeys: string[], feeAmountKeys: string[]): FeeString {
         const feeCost = this.safeStringN (item, feeAmountKeys);
         let fee: FeeString = undefined;
         if (feeCost !== undefined) {
