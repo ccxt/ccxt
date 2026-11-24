@@ -227,6 +227,9 @@ type BaseExchange struct {
 	// the string leaves of UrlsApi / UrlsApiSections, as *string (an absent or non-string entry reads nil)
 	UrlsApiStrings        map[string]*string
 	UrlsApiSectionStrings map[string]map[string]*string
+
+	// exceptions["ws"], exactly as stored (exceptions is written once, at options init)
+	ExceptionsWs map[string]any
 }
 
 // Exchange is the thin, public REST exchange type. All shared infrastructure lives in the

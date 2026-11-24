@@ -46,6 +46,7 @@ func (this *BaseExchange) initializeProperties(extendedProperties map[string]any
 	this.Has = SafeValue(extendedProperties, "has", map[string]any{}).(map[string]any)
 	// this.httpExceptions = SafeValue(extendedProperties, "httpExceptions",map[string]any{}).(map[string]any)
 	this.Exceptions = SafeValue(extendedProperties, "exceptions", map[string]any{}).(map[string]any)
+	this.ExceptionsWs, _ = this.Exceptions["ws"].(map[string]any)
 	propertiesMarkets := SafeValue(extendedProperties, "markets", nil)
 	if propertiesMarkets != nil {
 		this.Markets = this.Extend(propertiesMarkets)
