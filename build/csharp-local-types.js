@@ -19718,6 +19718,80 @@ export function installCsharpOrderBookSideReads (transpiler) {
     csharp._orderBookSideReadsPatched = true;
 }
 
+// ===== declared [ string, Dict ] tuple returns =====
+// A venue method (not in ts/src/base) whose every bodied declaration is sync, declares
+// `[ string, Dict ]` and returns only `[ a, b ]` of two own locals annotated `string` and `Dict`:
+// the printed locals are string / Dictionary, so the value tuple holds exactly the boxes the list did.
+function declaredStringDictTupleMethods () {
+    const names = new Set ();
+    const candidates = new Set ();
+    for (const [ file, text ] of tupleDictSourceTexts ()) {
+        if (/[\\/]base[\\/]/.test (file)) {
+            continue;
+        }
+        const re = /^\s+(\w+)\s*\([^)]*\)\s*:\s*\[\s*string\s*,\s*Dict\s*\]\s*\{/gm;
+        let m;
+        while ((m = re.exec (text)) !== null) {
+            candidates.add (m[1]);
+        }
+    }
+    for (const name of candidates) {
+        if (Object.prototype.hasOwnProperty.call (CSHARP_TUPLE_RETURN_ELEMENT0, name)) {
+            continue;
+        }
+        const declarations = tupleDictDeclarations (name);
+        if (declarations !== undefined && declarations.every ((d) => declaredStringDictTupleBody (d)) && !declarations.some ((d) => /[\\/]base[\\/]/.test (d.getSourceFile ().fileName))) {
+            names.add (name);
+        }
+    }
+    return names;
+}
+
+function declaredStringDictTupleBody (method) {
+    const type = method.type;
+    const slot = (i) => type?.elements?.[i];
+    if (tupleDictIsAsync (method) || method.body === undefined || type?.kind !== ts.SyntaxKind.TupleType || type.elements.length !== 2
+            || slot (0).kind !== ts.SyntaxKind.StringKeyword || !tupleDictDeclaresSlot (method)) {
+        return false;
+    }
+    const annotated = (name, kind) => {
+        const found = [];
+        const visit = (node) => {
+            if (node !== method && isFunctionScope (node)) {
+                return;
+            }
+            if ((node.kind === ts.SyntaxKind.VariableDeclaration || node.kind === ts.SyntaxKind.Parameter || node.kind === ts.SyntaxKind.BindingElement) && bindingNamesOf (node.name).includes (name)) {
+                found.push (node);
+            }
+            node.forEachChild (visit);
+        };
+        visit (method);
+        const d = found[0];
+        const typed = (kind === 'string') ? (d?.type?.kind === ts.SyntaxKind.StringKeyword)
+            : (d?.type?.kind === ts.SyntaxKind.TypeReference && d.type.typeName?.kind === ts.SyntaxKind.Identifier && d.type.typeName.text === 'Dict');
+        return found.length === 1 && d.kind === ts.SyntaxKind.VariableDeclaration && d.name.kind === ts.SyntaxKind.Identifier
+            && (d.parent?.flags & ts.NodeFlags.Const) !== 0 && d.initializer !== undefined && typed;
+    };
+    let returns = 0;
+    let ok = true;
+    const visit = (node) => {
+        if (!ok || (node !== method && isFunctionScope (node))) {
+            return;
+        }
+        if (node.kind === ts.SyntaxKind.ReturnStatement) {
+            returns++;
+            const value = unwrapPassthroughExpression (node.expression);
+            const [ a, b ] = value?.elements ?? [];
+            ok = value?.kind === ts.SyntaxKind.ArrayLiteralExpression && value.elements.length === 2
+                && a.kind === ts.SyntaxKind.Identifier && b.kind === ts.SyntaxKind.Identifier && annotated (a.text, 'string') && annotated (b.text, 'Dict');
+            return;
+        }
+        node.forEachChild (visit);
+    };
+    method.body.forEachChild (visit);
+    return ok && returns > 0;
+}
+
 // ===== value-tuple returns of the checkOption*-backed [value, params] helpers =====
 // Element 0 is the checkOption* result (or safeString2 for the network code) on every path, so the
 // signature names it; element 1 stays `object` (the caller's params box). Post-print text pass over
@@ -19746,6 +19820,12 @@ export const CSHARP_TUPLE_RETURN_ELEMENT1 = {
     'getInstType': 'IDictionary<string, object>', 'handleUTAAndParams': 'IDictionary<string, object>',
 };
 const tupleElement1 = (name) => (Object.prototype.hasOwnProperty.call (CSHARP_TUPLE_RETURN_ELEMENT1, name) ? CSHARP_TUPLE_RETURN_ELEMENT1[name] : 'object');
+// venue methods whose every ts/src declaration returns `[ string, Dict ]` built from two locals annotated with those types
+const DECLARED_TUPLE_RETURNS = declaredStringDictTupleMethods ();
+DECLARED_TUPLE_RETURNS.forEach ((name) => {
+    CSHARP_TUPLE_RETURN_ELEMENT0[name] = 'string?';
+    CSHARP_TUPLE_RETURN_ELEMENT1[name] = 'IDictionary<string, object>';
+});
 const TUPLE_NAMES = Object.keys (CSHARP_TUPLE_RETURN_ELEMENT0).sort ((a, b) => b.length - a.length).join ('|');
 const TUPLE_CALL_RE = new RegExp ('\\b(?:this|base|exchange)\\.(' + TUPLE_NAMES + ')\\(', 'g');
 const TUPLE_SIG_RE = new RegExp ('^(\\s*public (?:virtual|override) )List<object> (' + TUPLE_NAMES + ')\\(');
@@ -19823,6 +19903,9 @@ export function csharpTupleReturns (content, file = '') {
         if (holder !== null) {
             holders.set (holder[2], [ CSHARP_TUPLE_RETURN_ELEMENT0[holder[4]], tupleElement1 (holder[4]) ]);
             line = holder[1] + '(' + CSHARP_TUPLE_RETURN_ELEMENT0[holder[4]] + ', ' + tupleElement1 (holder[4]) + ') ' + holder[2] + ' = ' + holder[3] + line.slice (holder[0].length);
+            if (DECLARED_TUPLE_RETURNS.has (holder[4])) {
+                (holders.declaredSlots ??= new Set ()).add (holder[2]);
+            }
         } else {
             for (const [ name, types ] of holders) {
                 if (!new RegExp ('\\b' + name + '\\b').test (line)) {
@@ -19840,6 +19923,10 @@ export function csharpTupleReturns (content, file = '') {
                     return (read === null) ? '(' + cast + ')' + item (i) : read;
                 });
                 line = line.replace (new RegExp ('\\b' + name + '\\[(\\d)\\]', 'g'), (all, i) => item (i));
+                // a declared-tuple slot local takes the slot's declared type
+                if (holders.declaredSlots?.has (name)) {
+                    line = line.replace (new RegExp ('^(\\s*)var (\\w+) = (' + name + '\\.Item([12]);)'), (all, indent, local, read, i) => indent + types[Number (i) - 1] + ' ' + local + ' = ' + read);
+                }
                 // an untyped `var x = H.Item1` keeps its object static type
                 line = line.replace (new RegExp ('^(\\s*)var (\\w+) = (' + name + '\\.Item\\d;)'), '$1object $2 = $3');
                 const rest = line.replace (new RegExp ('\\b' + name + '\\.Item[12]\\b', 'g'), '');
