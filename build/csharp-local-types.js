@@ -20813,6 +20813,8 @@ const CSHARP_EXCHANGE_LOCAL_STRING_PARAMS = {
     'parseStatus': { 0: 'string?' }, 'parseTransactionStatus': { 1: 'string?' }, 'parseTransactionStatusByType': { 1: 'string?' },
     'parseTransactionWithType': { 2: 'string?' }, 'parseTransferStatus': { 0: 'string?' }, 'pow': { 0: 'string?' },
     'verifyOrderActionSuccess': { 1: 'string?' },
+    'pro/bybit.getUrlByMarketType': { 2: 'string?' },
+    'handleMarketTypeAndParams': { 0: 'string?' },
 };
 for (const [ name, positions ] of Object.entries (CSHARP_EXCHANGE_LOCAL_STRING_PARAMS)) {
     CSHARP_STRING_PARAMS[name] = Object.assign ({}, positions, CSHARP_STRING_PARAMS[name] ?? {});
