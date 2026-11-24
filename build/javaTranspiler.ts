@@ -1585,7 +1585,7 @@ function javaRepoMethodUsesIndex (): any {
             if (text === undefined) {
                 continue;
             }
-            const source: any = ts.createSourceFile (full, text);
+            const source: any = ts.createSourceFile (full, text, ts.ScriptTarget.Latest, true);
             const inBase = /[\\/]ts[\\/]src[\\/]base[\\/]/.test (full); // the base tier prints its own returns
             const visit = (n: any) => {
                 if ((ts.isMethodDeclaration (n) || ts.isPropertyDeclaration (n) || ts.isPropertyAssignment (n)) && n.name !== undefined && ts.isIdentifier (n.name)) {
