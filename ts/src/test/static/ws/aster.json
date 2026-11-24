@@ -1,0 +1,220 @@
+{
+    "exchange": "aster",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "unWatchTicker": [
+            {
+                "description": "swap ticker unsubscribe acknowledged",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see binance.json",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://fstream.asterdex.com/stream",
+                "messages": [
+                    {
+                        "result": null,
+                        "id": 1
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "UNSUBSCRIBE",
+                        "params": [
+                            "btcusdt@ticker"
+                        ],
+                        "id": 1
+                    }
+                ],
+                "parsedResponse": true
+            },
+            {
+                "description": "spot ticker unsubscribe acknowledged",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see binance.json",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "url": "wss://sstream.asterdex.com/stream",
+                "messages": [
+                    {
+                        "result": null,
+                        "id": 1
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "UNSUBSCRIBE",
+                        "params": [
+                            "btcusdt@ticker"
+                        ],
+                        "id": 1
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchTickers": [
+            {
+                "description": "two swap tickers settle on one acknowledgement",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see binance.json",
+                "input": [
+                    [
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "url": "wss://fstream.asterdex.com/stream",
+                "messages": [
+                    {
+                        "result": null,
+                        "id": 1
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "UNSUBSCRIBE",
+                        "params": [
+                            "btcusdt@ticker",
+                            "ethusdt@ticker"
+                        ],
+                        "id": 1
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchMarkPrice": [
+            {
+                "description": "swap mark price unsubscribe acknowledged",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see binance.json",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://fstream.asterdex.com/stream",
+                "messages": [
+                    {
+                        "result": null,
+                        "id": 1
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "UNSUBSCRIBE",
+                        "params": [
+                            "btcusdt@markPrice@1s"
+                        ],
+                        "id": 1
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchBidsAsks": [
+            {
+                "description": "swap bids/asks unsubscribe acknowledged",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see binance.json",
+                "input": [
+                    [
+                        "BTC/USDT:USDT"
+                    ]
+                ],
+                "url": "wss://fstream.asterdex.com/stream",
+                "messages": [
+                    {
+                        "result": null,
+                        "id": 1
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "UNSUBSCRIBE",
+                        "params": [
+                            "btcusdt@bookTicker"
+                        ],
+                        "id": 1
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchTrades": [
+            {
+                "description": "swap trades unsubscribe acknowledged",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see binance.json",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://fstream.asterdex.com/stream",
+                "messages": [
+                    {
+                        "result": null,
+                        "id": 1
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "UNSUBSCRIBE",
+                        "params": [
+                            "btcusdt@aggTrade"
+                        ],
+                        "id": 1
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOrderBook": [
+            {
+                "description": "swap order book unsubscribe acknowledged",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see binance.json",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://fstream.asterdex.com/stream",
+                "messages": [
+                    {
+                        "result": null,
+                        "id": 1
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "UNSUBSCRIBE",
+                        "params": [
+                            "btcusdt@depth20"
+                        ],
+                        "id": 1
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ],
+        "unWatchOHLCV": [
+            {
+                "description": "swap ohlcv unsubscribe acknowledged",
+                "disabledCS": "the c# base leaves the unsubscribe future unresolved - cs/ccxt/base/Exchange.BaseMethods.cs cleanUnsubscription ends with a commented-out `// client.resolve(true, unsubHash);` while ts/src/base/Exchange.ts resolves, so every unWatch* fixture hangs in c# only - pre-existing on master, see binance.json",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m"
+                ],
+                "url": "wss://fstream.asterdex.com/stream",
+                "messages": [
+                    {
+                        "result": null,
+                        "id": 1
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "UNSUBSCRIBE",
+                        "params": [
+                            "btcusdt@kline_1m"
+                        ],
+                        "id": 1
+                    }
+                ],
+                "parsedResponse": true
+            }
+        ]
+    }
+}
