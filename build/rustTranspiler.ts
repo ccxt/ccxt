@@ -7017,6 +7017,7 @@ const RUST_PARSE_LIST_FNS = [
     'fetch_borrow_rate_history',
     'parse_borrow_rate_history',
     'fetch_orders_by_state',
+    'fetch_option_markets',
 ];
 // venue-declared members of the list above: typed only in a file whose own declaration passes the proof
 const RUST_VENUE_LIST_FNS = new Set(RUST_PARSE_LIST_FNS.slice(RUST_PARSE_LIST_FNS.indexOf('get_asset_history_rows')));
