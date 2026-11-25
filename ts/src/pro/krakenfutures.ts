@@ -813,9 +813,8 @@ export default class krakenfutures extends krakenfuturesRest {
                     previousOrder['average'] = Precise.stringDiv (totalCost, totalAmount);
                 }
                 previousOrder['cost'] = totalCost;
-                const filledString = this.numberToString (trade['amount']);
                 const stringOrderFilled = this.safeString (previousOrder, 'filled', '0');
-                const totalFilled = Precise.stringAdd (stringOrderFilled, filledString);
+                const totalFilled = this.safeString (order, 'filled', stringOrderFilled);
                 previousOrder['filled'] = totalFilled;
                 const prevAmountString = this.safeString (previousOrder, 'amount');
                 const remaining = Precise.stringSub (prevAmountString, totalFilled);
