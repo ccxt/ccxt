@@ -4780,24 +4780,7 @@ function goArithStripParens (text: string, literalAware = false): string {
 }
 
 // Go type of `name` when the function text declares it exactly once (a `var`, a signature param)
-// pure in (maskedFunc, signature, name): callers probe many names of one function, so keep that function's answers
-let goArithDeclaredTypeKey = '';
-let goArithDeclaredTypeSig = '';
-let goArithDeclaredTypeMemo = new Map<string, string | undefined> ();
 function goArithDeclaredType (maskedFunc: string, signature: string, name: string): string | undefined {
-    if ((goArithDeclaredTypeKey !== maskedFunc) || (goArithDeclaredTypeSig !== signature)) {
-        goArithDeclaredTypeKey = maskedFunc;
-        goArithDeclaredTypeSig = signature;
-        goArithDeclaredTypeMemo = new Map ();
-    } else if (goArithDeclaredTypeMemo.has (name)) {
-        return goArithDeclaredTypeMemo.get (name);
-    }
-    const out = goArithDeclaredTypeScan (maskedFunc, signature, name);
-    goArithDeclaredTypeMemo.set (name, out);
-    return out;
-}
-
-function goArithDeclaredTypeScan (maskedFunc: string, signature: string, name: string): string | undefined {
     const vars = [ ...maskedFunc.matchAll (new RegExp ('\\bvar\\s+' + name + '\\s+([^=\\n]+?)\\s*(?:=|\\n)', 'g')) ];
     const shortDecls = maskedFunc.match (new RegExp ('(?:^|[^\\w.])' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=', 'gm')) ?? [];
     const literalParams = [ ...maskedFunc.matchAll (/\bfunc\s*\(([^()]*)\)/g) ].filter ((m) => new RegExp ('\\b' + name + '\\b').test (m[1]));
@@ -5609,6 +5592,23 @@ const GO_TUPLE_ELEMENT_PTR_TYPES: [ RegExp, string ][] = [
     [ /^(?:HandleOptionBoolAndParams2?Nullable|HandleParamBool2?)$/, '*bool' ],
 ];
 
+// pure in (maskedFunc, signature, name): callers probe many names of one function, so keep that function's answers
+let goArithDeclaredTypeKey = '';
+let goArithDeclaredTypeSig = '';
+let goArithDeclaredTypeCache = new Map<string, string | undefined> ();
+function goArithDeclaredTypeMemo (maskedFunc: string, signature: string, name: string): string | undefined {
+    if ((goArithDeclaredTypeKey !== maskedFunc) || (goArithDeclaredTypeSig !== signature)) {
+        goArithDeclaredTypeKey = maskedFunc;
+        goArithDeclaredTypeSig = signature;
+        goArithDeclaredTypeCache = new Map ();
+    } else if (goArithDeclaredTypeCache.has (name)) {
+        return goArithDeclaredTypeCache.get (name);
+    }
+    const out = goArithDeclaredType (maskedFunc, signature, name);
+    goArithDeclaredTypeCache.set (name, out);
+    return out;
+}
+
 let goDeclCountKey = '';
 let goDeclCountMemo = new Map<string, number> ();
 function goDeclCount (masked: string, name: string): number {
@@ -6089,7 +6089,7 @@ function goAnyToInt64RetypeFunc (text: string, ownMethods: Set<string>): string 
                 continue;
             }
         }
-        if ((goArithDeclaredType (masked, scope.signature, name) !== 'any') || (goDeclCount (masked, name) !== 1)) {
+        if ((goArithDeclaredTypeMemo (masked, scope.signature, name) !== 'any') || (goDeclCount (masked, name) !== 1)) {
             continue;
         }
         if (new RegExp ('[\\w.](?:\\s*,\\s*' + name + ')+\\s*:?=(?!=)|(?<![\\w.])' + name + '\\s*,[\\w\\s,]*:?=(?!=)|&' + name + '\\b|(?<![\\w.])' + name + '\\s*(?:\\+\\+|--|[-+*/%]=)').test (masked)) {
