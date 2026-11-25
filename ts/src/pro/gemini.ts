@@ -1014,15 +1014,13 @@ export default class gemini extends geminiRest {
         // this.options = this.extend (defaultOptions, this.options);
         this.extendExchangeOptions (defaultOptions);
         const wsOptions: Dict = this.safeDict (this.options, 'ws', {});
-        const wsSubOptions: Dict = this.safeDict (wsOptions, 'options', {});
-        const originalHeaders: Dict = this.safeDict (wsSubOptions, 'headers', {});
         const headers: Dict = {
             'X-GEMINI-APIKEY': this.apiKey,
             'X-GEMINI-PAYLOAD': b64,
             'X-GEMINI-SIGNATURE': signature,
         };
-        this.options['ws']['options']['headers'] = headers;
+        this.options['ws'] = this.extend (wsOptions, { 'options': this.extend (this.safeDict (wsOptions, 'options'), { 'headers': headers }) });
         this.client (url);
-        this.options['ws']['options']['headers'] = originalHeaders;
+        this.options['ws'] = wsOptions;
     }
 }
