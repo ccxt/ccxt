@@ -11798,15 +11798,21 @@ function gofmtSelfTest (ok: SelfTestOk): void {
 
 // A TS undefined-check next to the printer's own nil-guard yields `(x != nil) && (x != nil ...`,
 // which `go vet` rejects ("redundant and/or"): collapse the duplicated operand.
+const GO_NIL_COLLAPSE_ID = '([A-Za-z_][A-Za-z0-9_]*)';
+const GO_NIL_COLLAPSE_RULES: [ string, RegExp, string ][] = [
+    // (x != nil) && (x != nil && rest   ->  (x != nil) && (rest
+    [ ' != nil) && (', new RegExp ('\\(' + GO_NIL_COLLAPSE_ID + ' != nil\\) && \\(\\1 != nil && ', 'g'), '($1 != nil) && (' ],
+    [ ' == nil) || (', new RegExp ('\\(' + GO_NIL_COLLAPSE_ID + ' == nil\\) \\|\\| \\(\\1 == nil \\|\\| ', 'g'), '($1 == nil) || (' ],
+    // (x != nil) && (x != nil)          ->  (x != nil)
+    [ ' != nil) && (', new RegExp ('\\(' + GO_NIL_COLLAPSE_ID + ' != nil\\) && \\(\\1 != nil\\)', 'g'), '($1 != nil)' ],
+    [ ' == nil) || (', new RegExp ('\\(' + GO_NIL_COLLAPSE_ID + ' == nil\\) \\|\\| \\(\\1 == nil\\)', 'g'), '($1 == nil)' ],
+];
+
 export function collapseRedundantNilChecks (content: string): string {
-    const id = '([A-Za-z_][A-Za-z0-9_]*)';
-    return content
-        // (x != nil) && (x != nil && rest   ->  (x != nil) && (rest
-        .replace (new RegExp ('\\(' + id + ' != nil\\) && \\(\\1 != nil && ', 'g'), '($1 != nil) && (')
-        .replace (new RegExp ('\\(' + id + ' == nil\\) \\|\\| \\(\\1 == nil \\|\\| ', 'g'), '($1 == nil) || (')
-        // (x != nil) && (x != nil)          ->  (x != nil)
-        .replace (new RegExp ('\\(' + id + ' != nil\\) && \\(\\1 != nil\\)', 'g'), '($1 != nil)')
-        .replace (new RegExp ('\\(' + id + ' == nil\\) \\|\\| \\(\\1 == nil\\)', 'g'), '($1 == nil)');
+    for (const [ token, rx, replacement ] of GO_NIL_COLLAPSE_RULES) {
+        content = content.includes (token) ? content.replace (rx, replacement) : content;
+    }
+    return content;
 }
 
 // Methods whose generated Go signature already returns map[string]any: MapTyped around their call is
@@ -12150,8 +12156,8 @@ function goGofmtAlignRuns (content: string, aligner: GoCompositeEntryAligner): s
 }
 
 export function goGofmtLayout (content: string, aligner: GoCompositeEntryAligner = goCompositeKeyAligner ()): string {
-    const code = goMaskGoCode (content).split ('\n');
-    const commentFree = goMaskGoCode (content, false).split ('\n');
+    // a live line starts in code state, so masking it alone equals its slice of the whole-file mask
+    const blockHead = /^\t*(?:if|for|switch|select)\b/;
     const live = goTextCodeLineStarts (content);
     const lines = content.split ('\n');
     const out: string[] = [];
@@ -12168,7 +12174,7 @@ export function goGofmtLayout (content: string, aligner: GoCompositeEntryAligner
             out.push ('');
             continue;
         }
-        const expanded = goGofmtExpandBlockLine (line, code[i], commentFree[i]);
+        const expanded = blockHead.test (line) ? goGofmtExpandBlockLine (line, goMaskGoCode (line), goMaskGoCode (line, false)) : null;
         if (expanded !== null) {
             out.push (...expanded);
             continue;
@@ -12657,384 +12663,110 @@ const GO_TEST_ANY_RECEIVE_REGEX: [RegExp, string] = [
 
 const VIRTUAL_BASE_METHODS: { [key: string]: boolean} = {
     "cancelOrder": true, // true if the method returns a channel (async in JS)
-    "cancelOrdersWithClientOrderIds": true,
-    "cancelOrderWithClient": true,
-    "createExpiredOptionMarket": false,
-    "createOrder": true,
-    "editOrder": true,
-    "editOrderWithClientOrderId": true,
-    "fetchAccounts": true,
+    "cancelOrdersWithClientOrderIds": true, "cancelOrderWithClient": true, "createExpiredOptionMarket": false,
+    "createOrder": true, "editOrder": true, "editOrderWithClientOrderId": true, "fetchAccounts": true,
     "fetchEvents": true, // prediction base -> venue override (loadEventsHelper)
     "fetchOutcome": true, // prediction base -> venue override (kalshi on-demand loadOutcome)
     "fetchOutcomes": true, // prediction base loadOutcomes -> venue batch override (kalshi tickers=, polymarket clob_token_ids)
     "signEvmTransaction": false, // sync (returns hex string, not a channel); prediction base sendEvmTransaction -> venue override
-    "fetchBalance": true,
-    "fetchClosedOrders": true,
-    "fetchDepositAddressesByNetwork": true,
-    "fetchDeposits": true,
-    "fetchDepositsWithdrawals": true,
-    "fetchDepositWithdrawFees": true,
-    "fetchFundingInterval": true,
-    "fetchFundingIntervals": true,
-    "fetchFundingRates": true,
-    "fetchL2OrderBook": true,
-    "fetchL3OrderBook": true,
-    "fetchLeverage": true,
-    "fetchLeverages": true,
-    "fetchLeverageTiers": true,
-    "fetchMarginMode": true,
-    "fetchMarginModes": true,
-    "fetchMyTrades": true,
-    "fetchOHLCV": true,
-    "fetchOpenOrders": true,
-    "fetchTradingFees": true,
-    "fetchOption": true,
-    "fetchOrder": true,
-    "fetchOrderWithClientOrderId": true,
-    "fetchOrderBook": true,
-    "fetchOrderBooks": true,
-    "fetchOrders": true,
-    "fetchOrderTrades": true,
-    "fetchPositionsHistory": true,
-    "fetchStatus": true,
-    "fetchTicker": true,
-    "fetchTickers": true,
-    "fetchTime": true,
-    "fetchTrades": true,
-    "fetchTransactions": true,
-    "fetchWithdrawals": true,
-    "parseAccount": false,
-    "parseBalance": false,
-    "parseOrderBookBidsAsks": false,
-    "parseBorrowInterest": false,
-    "parseBorrowRate": false,
-    "parseCurrency": false,
-    "parseDeposit": false,
-    "parseDepositAddress": false,
-    "parseDepositStatus": false,
-    "parseDepositWithdrawFee": false,
-    "parseFundingRate": false,
-    "parseFundingRateHistory": false,
-    "parseIncome": false,
-    "parseLedgerEntry": false,
-    "parseLiquidation": false,
-    "parseMarginMode": false,
-    "parseMarginModification": false,
-    "parseMarket": false,
-    "parseMarketLeverageTiers": false,
-    "parseOHLCV": false,
-    "parseOpenInterest": false,
-    "parseOption": false,
-    "parseOrder": false,
-    "parseOrderSide": false,
-    "parseOrderStatus": false,
-    "parseOrderType": false,
-    "parsePosition": false,
-    "parseTicker": false,
-    "parseTrade": false,
-    "parseWsTrade": false,
-    "parseGreeks": false,
-    "parseTransaction": false,
-    "parseTransfer": false,
-    "parseWithdrawal": false,
-    "parseLeverage": false,
-    "parseWithdrawalStatus": false,
+    "fetchBalance": true, "fetchClosedOrders": true, "fetchDepositAddressesByNetwork": true, "fetchDeposits": true,
+    "fetchDepositsWithdrawals": true, "fetchDepositWithdrawFees": true, "fetchFundingInterval": true,
+    "fetchFundingIntervals": true, "fetchFundingRates": true, "fetchL2OrderBook": true, "fetchL3OrderBook": true,
+    "fetchLeverage": true, "fetchLeverages": true, "fetchLeverageTiers": true, "fetchMarginMode": true,
+    "fetchMarginModes": true, "fetchMyTrades": true, "fetchOHLCV": true, "fetchOpenOrders": true,
+    "fetchTradingFees": true, "fetchOption": true, "fetchOrder": true, "fetchOrderWithClientOrderId": true,
+    "fetchOrderBook": true, "fetchOrderBooks": true, "fetchOrders": true, "fetchOrderTrades": true,
+    "fetchPositionsHistory": true, "fetchStatus": true, "fetchTicker": true, "fetchTickers": true, "fetchTime": true,
+    "fetchTrades": true, "fetchTransactions": true, "fetchWithdrawals": true, "parseAccount": false,
+    "parseBalance": false, "parseOrderBookBidsAsks": false, "parseBorrowInterest": false, "parseBorrowRate": false,
+    "parseCurrency": false, "parseDeposit": false, "parseDepositAddress": false, "parseDepositStatus": false,
+    "parseDepositWithdrawFee": false, "parseFundingRate": false, "parseFundingRateHistory": false, "parseIncome": false,
+    "parseLedgerEntry": false, "parseLiquidation": false, "parseMarginMode": false, "parseMarginModification": false,
+    "parseMarket": false, "parseMarketLeverageTiers": false, "parseOHLCV": false, "parseOpenInterest": false,
+    "parseOption": false, "parseOrder": false, "parseOrderSide": false, "parseOrderStatus": false,
+    "parseOrderType": false, "parsePosition": false, "parseTicker": false, "parseTrade": false, "parseWsTrade": false,
+    "parseGreeks": false, "parseTransaction": false, "parseTransfer": false, "parseWithdrawal": false,
+    "parseLeverage": false, "parseWithdrawalStatus": false,
     "safeMarket": false, // try to remove custom implementations
-    "market": false,
-    "setSandboxMode": false,
-    "safeCurrencyCode": false,
-    "parseConversion": false,
-    "sign": false,
+    "market": false, "setSandboxMode": false, "safeCurrencyCode": false, "parseConversion": false, "sign": false,
     "nonce": false, // venues override nonce() (e.g. hyperliquid); base incrementingNonce() must reach the override, matching Rust
     "signIn": true,
     // ws methods
-    'cancelAllOrdersWs': true,
-    'cancelOrdersWs': true,
-    'cancelOrderWs': true,
-    'createLimitBuyOrderWs': true,
-    'createLimitOrderWs': true,
-    'createLimitSellOrderWs': true,
-    'createMarketBuyOrderWs': true,
-    'createMarketOrderWithCostWs': true,
-    'createMarketOrderWs': true,
-    'createMarketSellOrderWs': true,
-    'createOrdersWs': true,
-    'createOrderWithTakeProfitAndStopLossWs': true,
-    'createOrderWs': true,
-    'createPostOnlyOrderWs': true,
-    'createReduceOnlyOrderWs': true,
-    'createStopLimitOrderWs': true,
-    'createStopLossOrderWs': true,
-    'createStopMarketOrderWs': true,
-    'createStopOrderWs': true,
-    'createTakeProfitOrderWs': true,
-    'createTrailingAmountOrderWs': true,
-    'createTrailingPercentOrderWs': true,
-    'createTriggerOrderWs': true,
-    'editOrderWs': true,
-    'fetchBalanceWs': true,
-    'fetchClosedOrdersWs': true,
-    'fetchDepositsWs': true,
-    'fetchMyTradesWs': true,
-    'fetchOHLCVWs': true,
-    'fetchOpenOrdersWs': true,
-    'fetchOrderBookWs': true,
-    'fetchOrdersByStatusWs': true,
-    'fetchOrdersWs': true,
-    'fetchOrderWs': true,
-    'fetchOpenInterests': true,
-    'fetchPositionsForSymbolWs': true,
-    'fetchPositionsWs': true,
-    'fetchPositionWs': true,
-    'fetchTickersWs': true,
-    'fetchTickerWs': true,
-    'fetchTradesWs': true,
-    'fetchTradingFeesWs': true,
-    'fetchWithdrawalsWs': true,
-    'handleDelta': false,
-    'unWatchBidsAsks': true,
-    'unWatchMyTrades': true,
-    'unWatchOHLCV': true,
-    'watchBalance': true,
-    'watchBidsAsks': true,
-    'watchLiquidations': true,
-    'watchMarkPrice': true,
-    'watchMarkPrices': true,
-    'watchMyLiquidations': true,
-    'watchMyLiquidationsForSymbols': true,
-    'watchMyTrades': true,
-    'watchOHLCV': true,
-    'watchOHLCVForSymbols': true,
-    'watchOrderBook': true,
-    'watchOrderBookForSymbols': true,
-    'watchOrders': true,
-    'watchOrdersForSymbols': true,
-    'watchPosition': true,
-    'watchPositions': true,
-    'watchTicker': true,
-    'watchTickers': true,
-    'watchTrades': true,
-    'watchTradesForSymbols': true,
-    'withdrawWs': true,
-    "parseLastPrice": false,
-    'fetchPositionsADLRank': true,
+    'cancelAllOrdersWs': true, 'cancelOrdersWs': true, 'cancelOrderWs': true, 'createLimitBuyOrderWs': true,
+    'createLimitOrderWs': true, 'createLimitSellOrderWs': true, 'createMarketBuyOrderWs': true,
+    'createMarketOrderWithCostWs': true, 'createMarketOrderWs': true, 'createMarketSellOrderWs': true,
+    'createOrdersWs': true, 'createOrderWithTakeProfitAndStopLossWs': true, 'createOrderWs': true,
+    'createPostOnlyOrderWs': true, 'createReduceOnlyOrderWs': true, 'createStopLimitOrderWs': true,
+    'createStopLossOrderWs': true, 'createStopMarketOrderWs': true, 'createStopOrderWs': true,
+    'createTakeProfitOrderWs': true, 'createTrailingAmountOrderWs': true, 'createTrailingPercentOrderWs': true,
+    'createTriggerOrderWs': true, 'editOrderWs': true, 'fetchBalanceWs': true, 'fetchClosedOrdersWs': true,
+    'fetchDepositsWs': true, 'fetchMyTradesWs': true, 'fetchOHLCVWs': true, 'fetchOpenOrdersWs': true,
+    'fetchOrderBookWs': true, 'fetchOrdersByStatusWs': true, 'fetchOrdersWs': true, 'fetchOrderWs': true,
+    'fetchOpenInterests': true, 'fetchPositionsForSymbolWs': true, 'fetchPositionsWs': true, 'fetchPositionWs': true,
+    'fetchTickersWs': true, 'fetchTickerWs': true, 'fetchTradesWs': true, 'fetchTradingFeesWs': true,
+    'fetchWithdrawalsWs': true, 'handleDelta': false, 'unWatchBidsAsks': true, 'unWatchMyTrades': true,
+    'unWatchOHLCV': true, 'watchBalance': true, 'watchBidsAsks': true, 'watchLiquidations': true,
+    'watchMarkPrice': true, 'watchMarkPrices': true, 'watchMyLiquidations': true, 'watchMyLiquidationsForSymbols': true,
+    'watchMyTrades': true, 'watchOHLCV': true, 'watchOHLCVForSymbols': true, 'watchOrderBook': true,
+    'watchOrderBookForSymbols': true, 'watchOrders': true, 'watchOrdersForSymbols': true, 'watchPosition': true,
+    'watchPositions': true, 'watchTicker': true, 'watchTickers': true, 'watchTrades': true,
+    'watchTradesForSymbols': true, 'withdrawWs': true, "parseLastPrice": false, 'fetchPositionsADLRank': true,
     'parseADLRank': false
     // 'fetchCurrenciesWs': true,
     // 'fetchMarketsWs': true,
 }
 
 const INTERFACE_METHODS = [
-    'cancelOrders',
-    'cancelOrdersWithClientOrderIds',
-    'cancelAllOrders',
-    'cancelAllOrdersAfter',
-    'cancelOrder',
-    'cancelOrderWithClientOrderId',
-    'cancelOrdersForSymbols',
-    'closePosition',
-    'createConvertTrade',
-    'createDepositAddress',
-    'createLimitBuyOrder',
-    'createLimitOrder',
-    'createLimitSellOrder',
-    'createMarketBuyOrder',
-    'createMarketBuyOrderWithCost',
-    'createMarketOrder',
-    'createMarketOrderWithCost',
-    'createMarketSellOrder',
-    'createMarketSellOrderWithCost',
-    'createOrder',
-    'createOrders',
-    'createOrderWithTakeProfitAndStopLoss',
-    'createPostOnlyOrder',
-    'createReduceOnlyOrder',
-    'createStopLimitOrder',
-    'createStopLossOrder',
-    'createStopMarketOrder',
-    'createStopOrder',
-    'createTakeProfitOrder',
-    'createTrailingAmountOrder',
-    'createTrailingPercentOrder',
-    'createTriggerOrder',
-    'editLimitBuyOrder',
-    'editLimitOrder',
-    'editLimitSellOrder',
-    'editOrder',
-    'editOrderWithClientOrderId',
-    'editOrders',
-    'fetchAccounts',
-    'fetchAllGreeks',
-    'fetchBalance',
-    'fetchBidsAsks',
-    'fetchBorrowInterest',
-    'fetchBorrowRate',
-    'fetchCanceledAndClosedOrders',
-    'fetchClosedOrders',
-    'fetchConvertCurrencies',
-    'fetchConvertQuote',
-    'fetchConvertTrade',
-    'fetchConvertTradeHistory',
-    'fetchCrossBorrowRate',
-    'fetchCrossBorrowRates',
-    'fetchCurrencies',
-    'fetchDepositAddress',
-    'fetchDepositAddresses',
-    'fetchDepositAddressesByNetwork',
-    'fetchDeposits',
-    'fetchDepositsWithdrawals',
-    'fetchDepositWithdrawFee',
-    'fetchDepositWithdrawFees',
-    'fetchFreeBalance',
-    'fetchFundingHistory',
-    'fetchFundingInterval',
-    'fetchFundingIntervals',
-    'fetchFundingRate',
-    'fetchFundingRateHistory',
-    'fetchFundingRates',
-    'fetchGreeks',
-    'fetchIndexOHLCV',
-    'fetchIsolatedBorrowRate',
-    'fetchIsolatedBorrowRates',
-    'fetchLastPrices',
-    'fetchLedger',
-    'fetchLedgerEntry',
-    'fetchLeverage',
-    'fetchLeverages',
-    'fetchLeverageTiers',
-    'fetchLiquidations',
-    'fetchLongShortRatio',
-    'fetchLongShortRatioHistory',
-    'fetchMarginAdjustmentHistory',
-    'fetchMarginMode',
-    'fetchMarginModes',
-    'fetchMarketLeverageTiers',
-    'fetchMarkets',
-    'fetchMarkOHLCV',
-    'fetchMarkPrice',
-    'fetchMarkPrices',
-    'fetchMyLiquidations',
-    'fetchMyTrades',
-    'fetchOHLCV',
-    'fetchOpenInterest',
-    'fetchOpenInterestHistory',
-    'fetchOpenInterests',
-    'fetchOpenOrders',
-    'fetchOption',
-    'fetchOptionChain',
-    'fetchOrder',
-    'fetchOrderWithClientOrderId',
-    'fetchOrderBook',
-    'fetchOrderBooks',
-    'fetchOrders',
-    'fetchOrderStatus',
-    'fetchOrderTrades',
-    'fetchPaymentMethods',
-    'fetchPosition',
-    'fetchPositionHistory',
-    'fetchPositionMode',
-    'fetchPositions',
-    'fetchPositionsForSymbol',
-    'fetchPositionsHistory',
-    'fetchPositionsRisk',
-    'fetchPremiumIndexOHLCV',
-    'fetchStatus',
-    'fetchTicker',
-    'fetchTickers',
-    'fetchTime',
-    'fetchTrades',
-    'fetchTradingFee',
-    'fetchTradingFees',
-    'fetchTradingLimits',
-    'fetchTransactionFee',
-    'fetchTransactionFees',
-    'fetchTransactions',
-    'fetchTransfer',
-    'fetchTransfers',
-    'fetchWithdrawals',
+    'cancelOrders', 'cancelOrdersWithClientOrderIds', 'cancelAllOrders', 'cancelAllOrdersAfter', 'cancelOrder',
+    'cancelOrderWithClientOrderId', 'cancelOrdersForSymbols', 'closePosition', 'createConvertTrade',
+    'createDepositAddress', 'createLimitBuyOrder', 'createLimitOrder', 'createLimitSellOrder', 'createMarketBuyOrder',
+    'createMarketBuyOrderWithCost', 'createMarketOrder', 'createMarketOrderWithCost', 'createMarketSellOrder',
+    'createMarketSellOrderWithCost', 'createOrder', 'createOrders', 'createOrderWithTakeProfitAndStopLoss',
+    'createPostOnlyOrder', 'createReduceOnlyOrder', 'createStopLimitOrder', 'createStopLossOrder',
+    'createStopMarketOrder', 'createStopOrder', 'createTakeProfitOrder', 'createTrailingAmountOrder',
+    'createTrailingPercentOrder', 'createTriggerOrder', 'editLimitBuyOrder', 'editLimitOrder', 'editLimitSellOrder',
+    'editOrder', 'editOrderWithClientOrderId', 'editOrders', 'fetchAccounts', 'fetchAllGreeks', 'fetchBalance',
+    'fetchBidsAsks', 'fetchBorrowInterest', 'fetchBorrowRate', 'fetchCanceledAndClosedOrders', 'fetchClosedOrders',
+    'fetchConvertCurrencies', 'fetchConvertQuote', 'fetchConvertTrade', 'fetchConvertTradeHistory',
+    'fetchCrossBorrowRate', 'fetchCrossBorrowRates', 'fetchCurrencies', 'fetchDepositAddress', 'fetchDepositAddresses',
+    'fetchDepositAddressesByNetwork', 'fetchDeposits', 'fetchDepositsWithdrawals', 'fetchDepositWithdrawFee',
+    'fetchDepositWithdrawFees', 'fetchFreeBalance', 'fetchFundingHistory', 'fetchFundingInterval',
+    'fetchFundingIntervals', 'fetchFundingRate', 'fetchFundingRateHistory', 'fetchFundingRates', 'fetchGreeks',
+    'fetchIndexOHLCV', 'fetchIsolatedBorrowRate', 'fetchIsolatedBorrowRates', 'fetchLastPrices', 'fetchLedger',
+    'fetchLedgerEntry', 'fetchLeverage', 'fetchLeverages', 'fetchLeverageTiers', 'fetchLiquidations',
+    'fetchLongShortRatio', 'fetchLongShortRatioHistory', 'fetchMarginAdjustmentHistory', 'fetchMarginMode',
+    'fetchMarginModes', 'fetchMarketLeverageTiers', 'fetchMarkets', 'fetchMarkOHLCV', 'fetchMarkPrice',
+    'fetchMarkPrices', 'fetchMyLiquidations', 'fetchMyTrades', 'fetchOHLCV', 'fetchOpenInterest',
+    'fetchOpenInterestHistory', 'fetchOpenInterests', 'fetchOpenOrders', 'fetchOption', 'fetchOptionChain',
+    'fetchOrder', 'fetchOrderWithClientOrderId', 'fetchOrderBook', 'fetchOrderBooks', 'fetchOrders', 'fetchOrderStatus',
+    'fetchOrderTrades', 'fetchPaymentMethods', 'fetchPosition', 'fetchPositionHistory', 'fetchPositionMode',
+    'fetchPositions', 'fetchPositionsForSymbol', 'fetchPositionsHistory', 'fetchPositionsRisk',
+    'fetchPremiumIndexOHLCV', 'fetchStatus', 'fetchTicker', 'fetchTickers', 'fetchTime', 'fetchTrades',
+    'fetchTradingFee', 'fetchTradingFees', 'fetchTradingLimits', 'fetchTransactionFee', 'fetchTransactionFees',
+    'fetchTransactions', 'fetchTransfer', 'fetchTransfers', 'fetchWithdrawals',
     // 'setLeverage', // tmp remove we have to unify types
-    'setMargin',
-    'setMarginMode',
-    'setPositionMode',
-    'transfer',
-    'withdraw',
+    'setMargin', 'setMarginMode', 'setPositionMode', 'transfer', 'withdraw',
     // ws methods
-    'cancelAllOrdersWs',
-    'cancelOrdersWs',
-    'cancelOrderWs',
-    'createLimitBuyOrderWs',
-    'createLimitOrderWs',
-    'createLimitSellOrderWs',
-    'createMarketBuyOrderWs',
-    'createMarketOrderWithCostWs',
-    'createMarketOrderWs',
-    'createMarketSellOrderWs',
-    'createOrdersWs',
-    'createOrderWithTakeProfitAndStopLossWs',
-    'createOrderWs',
-    'createPostOnlyOrderWs',
-    'createReduceOnlyOrderWs',
-    'createStopLimitOrderWs',
-    'createStopLossOrderWs',
-    'createStopMarketOrderWs',
-    'createStopOrderWs',
-    'createTakeProfitOrderWs',
-    'createTrailingAmountOrderWs',
-    'createTrailingPercentOrderWs',
-    'createTriggerOrderWs',
-    'editOrderWs',
-    'fetchBalanceWs',
-    'fetchClosedOrdersWs',
+    'cancelAllOrdersWs', 'cancelOrdersWs', 'cancelOrderWs', 'createLimitBuyOrderWs', 'createLimitOrderWs',
+    'createLimitSellOrderWs', 'createMarketBuyOrderWs', 'createMarketOrderWithCostWs', 'createMarketOrderWs',
+    'createMarketSellOrderWs', 'createOrdersWs', 'createOrderWithTakeProfitAndStopLossWs', 'createOrderWs',
+    'createPostOnlyOrderWs', 'createReduceOnlyOrderWs', 'createStopLimitOrderWs', 'createStopLossOrderWs',
+    'createStopMarketOrderWs', 'createStopOrderWs', 'createTakeProfitOrderWs', 'createTrailingAmountOrderWs',
+    'createTrailingPercentOrderWs', 'createTriggerOrderWs', 'editOrderWs', 'fetchBalanceWs', 'fetchClosedOrdersWs',
     // 'fetchCurrenciesWs',
     'fetchDepositsWs',
     // 'fetchMarketsWs',
-    'fetchMyTradesWs',
-    'fetchOHLCVWs',
-    'fetchOpenOrdersWs',
-    'fetchOrderBookWs',
-    'fetchOrdersByStatusWs',
-    'fetchOrdersWs',
-    'fetchOrderWs',
-    'fetchPositionsForSymbolWs',
-    'fetchPositionsWs',
-    'fetchPositionWs',
-    'fetchTickersWs',
-    'fetchTickerWs',
-    'fetchTradesWs',
-    'fetchTradingFeesWs',
-    'fetchWithdrawalsWs',
-    'unWatchBidsAsks',
+    'fetchMyTradesWs', 'fetchOHLCVWs', 'fetchOpenOrdersWs', 'fetchOrderBookWs', 'fetchOrdersByStatusWs',
+    'fetchOrdersWs', 'fetchOrderWs', 'fetchPositionsForSymbolWs', 'fetchPositionsWs', 'fetchPositionWs',
+    'fetchTickersWs', 'fetchTickerWs', 'fetchTradesWs', 'fetchTradingFeesWs', 'fetchWithdrawalsWs', 'unWatchBidsAsks',
     'unWatchMyTrades',
     // 'unWatchOHLCV',
-    'unWatchOHLCV',
-    'unWatchOHLCVForSymbols',
-    'unWatchOrderBook',
-    'unWatchOrderBookForSymbols',
-    'unWatchOrders',
-    'unWatchTicker',
-    'unWatchTickers',
-    'unWatchTrades',
-    'unWatchTradesForSymbols',
-    'watchBalance',
-    'watchBidsAsks',
-    'watchLiquidations',
-    'watchMarkPrice',
-    'watchMarkPrices',
-    'watchMyLiquidations',
-    'watchMyLiquidationsForSymbols',
-    'watchMyTrades',
-    'watchOHLCV',
-    'watchOHLCVForSymbols',
-    'watchOrderBook',
-    'watchOrderBookForSymbols',
-    'watchOrders',
-    'watchOrdersForSymbols',
-    'watchPosition',
-    'watchPositions',
-    'watchTicker',
-    'watchTickers',
-    'watchTrades',
-    'watchTradesForSymbols',
-    'withdrawWs',
+    'unWatchOHLCV', 'unWatchOHLCVForSymbols', 'unWatchOrderBook', 'unWatchOrderBookForSymbols', 'unWatchOrders',
+    'unWatchTicker', 'unWatchTickers', 'unWatchTrades', 'unWatchTradesForSymbols', 'watchBalance', 'watchBidsAsks',
+    'watchLiquidations', 'watchMarkPrice', 'watchMarkPrices', 'watchMyLiquidations', 'watchMyLiquidationsForSymbols',
+    'watchMyTrades', 'watchOHLCV', 'watchOHLCVForSymbols', 'watchOrderBook', 'watchOrderBookForSymbols', 'watchOrders',
+    'watchOrdersForSymbols', 'watchPosition', 'watchPositions', 'watchTicker', 'watchTickers', 'watchTrades',
+    'watchTradesForSymbols', 'withdrawWs',
     
 ];
 
@@ -13109,20 +12841,18 @@ class NewTranspiler {
             [/Dictionary<string,object>\)client\.futures/g, 'client.(*WSClient).Futures'],
             [/this\.safeValue\(client\.futures,/g, 'this.SafeValue(client.(*WSClient).Futures,'],
             [/Dictionary<string,object>\)this\.clients/g, 'this.Clients'],
-            [/(\w+)(\.cache)/g, '$1.Cache'],
-            [/((\w+)(\.hashmap))/g, '$1.Hashmap'],
+            [/(\w+)(\.cache)/g, '$1.Cache', '.cache'],
+            [/((\w+)(\.hashmap))/g, '$1.Hashmap', '.hashmap'],
             [/(countedBookSide)\.store\(/g, '$1.Store('],
-            [/(\w+)\.(store|storeArray)\(/g, '$1.$2('],
-            [/(\w+)\.call\(this,(.+)\)/g, 'this.CallDynamically($1, $2)'],
-            [/(\w+)\.limit\(\)/g, '$1.Limit()'],
+            [/(\w+)\.call\(this,(.+)\)/g, 'this.CallDynamically($1, $2)', '.call(this,'],
+            [/(\w+)\.limit\(\)/g, '$1.Limit()', '.limit()'],
             [/future\.resolve/g, 'future.(*Future).Resolve'],
-            [/(\w+)\.(resolve|reject)/g, '$1.$2'],
             [/this\.spawn\((this\.\w+),(.+)\)/g, 'this.Spawn($1, $2)'],
             [/this\.delay\(([^,]+),([^,]+),(.+)\)/g, 'this.Delay($1, $2, $3)'],
             [/(((?:this\.)?\w+))\.(append|resolve|getLimit)\(/g, 'ccxt.CallDynamically($1, "$3", '],
             // callDynamically array wrapper removal
             [/NewGetValue\(([A-Za-z0-9]+), ([A-Za-z0-9]+)\)\(([A-Za-z0-9]+)\)/g, 'ccxt.CallDynamically(GetValue($1, $2), $3)'],
-            [/([a-zA-Z0-9]+)\.Call\(this, /g, 'ccxt.CallDynamically($1, '],
+            [/([a-zA-Z0-9]+)\.Call\(this, /g, 'ccxt.CallDynamically($1, ', '.Call(this, '],
             
             [/;\s*\n/g, '\n'],  // Remove stray semicolons that leak from TS/CS syntax
             
@@ -13135,7 +12865,7 @@ class NewTranspiler {
             [/<-spawaned/g, '<-spawaned.(<-chan any)'],
             // `promise.Resolve(m)` (assertion + ToGetsLimit) is printed by the printer (90g3 R2)
             // GetsLimit
-            [/([a-zA-Z]\w*)\.GetLimit/g, 'ToGetsLimit($1).GetLimit'],
+            [/([a-zA-Z]\w*)\.GetLimit/g, 'ToGetsLimit($1).GetLimit', '.GetLimit'],
             [/order.Limit([^"])/g, 'ToGetsLimit(orderbooks).Limit$1'],
             // OrderBook
             // `X.Store` / `X.StoreArray` side assertions are printed by the printer (90g3 R1)
@@ -13206,7 +12936,10 @@ class NewTranspiler {
     // accepts an array like [ [ regex, substitution ], ... ]
 
     regexAll (text: string, rules: any[]) {
-        for (const [pattern, replacement] of rules) {
+        for (const [pattern, replacement, guard] of rules) {
+            if ((guard !== undefined) && !text.includes (guard)) {
+                continue;  // the rule's literal token is absent: no match possible
+            }
             const rx = typeof pattern === 'string' ? new RegExp(pattern, 'g') : pattern;
             text = text.replace(rx, replacement);
         }
@@ -13533,70 +13266,20 @@ class NewTranspiler {
 
     shouldCreateWrapper(methodName: string, isWs = false): boolean {
         const allowedPrefixes = [
-            'fetch',
-            'create',
-            'edit',
-            'cancel',
-            'closePosition',
-            'setP',
-            'setM',
-            'setL',
-            'transfer',
-            'withdraw',
-            'watch',
-            'unWatch'
+            'fetch', 'create', 'edit', 'cancel', 'closePosition', 'setP', 'setM', 'setL', 'transfer', 'withdraw',
+            'watch', 'unWatch'
         ];
         const blacklistMethods = new Set ([
-            'createOrderRequest',
-            'editOrderRequest',
-            'cancelOrdersRequest',
-            'cancelAllOrdersRequest',
-            'createContractOrder',
-            'createSpotOrder',
-            'createSwapOrder',
-            'createVault',
-            'fetch',
-            'fetchCurrenciesWs',
-            'fetchMarketsWs',
-            'fetchPortfolioDetails',
-            'loadMarketsHelper',
-            'loadOrderBook',
-            'setPositionCache',
-            'setPositionsCache',
-            'setLastRequest',
-            'setLastRestRequestTimestamp',
-            'setProperty',
-            'setProxyAgents',
-            'setSandBoxMode',
-            'unWatch',
-            'unWatchChannel',
-            'unWatchMultiple',
-            'unWatchPrivate',
-            'unWatchPublic',
-            'unWatchPublicMultiple',
-            'unWatchTopics',
-            'watch',
-            'watchMany',
-            'watchMultiHelper',
-            'watchMultiple',
-            'watchMultipleSubscription',
-            'watchMultipleWrapper',
-            'watchMultiRequest',
-            'watchMultiTicker',
-            'watchMultiTickerHelper',
-            'watchPrivate',
-            'watchPrivateMultiple',
-            'watchPrivateRequest',
-            'watchPrivateSubscribe',
-            'watchPublic',
-            'watchPublicMultiple',
-            'watchSpotPrivate',
-            'watchStockMarketStream',
-            'watchSwapPrivate',
-            'watchSpotPublic',
-            'watchSwapPublic',
-            'watchTopics',
-            'unWatchChannels',
+            'createOrderRequest', 'editOrderRequest', 'cancelOrdersRequest', 'cancelAllOrdersRequest',
+            'createContractOrder', 'createSpotOrder', 'createSwapOrder', 'createVault', 'fetch', 'fetchCurrenciesWs',
+            'fetchMarketsWs', 'fetchPortfolioDetails', 'loadMarketsHelper', 'loadOrderBook', 'setPositionCache',
+            'setPositionsCache', 'setLastRequest', 'setLastRestRequestTimestamp', 'setProperty', 'setProxyAgents',
+            'setSandBoxMode', 'unWatch', 'unWatchChannel', 'unWatchMultiple', 'unWatchPrivate', 'unWatchPublic',
+            'unWatchPublicMultiple', 'unWatchTopics', 'watch', 'watchMany', 'watchMultiHelper', 'watchMultiple',
+            'watchMultipleSubscription', 'watchMultipleWrapper', 'watchMultiRequest', 'watchMultiTicker',
+            'watchMultiTickerHelper', 'watchPrivate', 'watchPrivateMultiple', 'watchPrivateRequest',
+            'watchPrivateSubscribe', 'watchPublic', 'watchPublicMultiple', 'watchSpotPrivate', 'watchStockMarketStream',
+            'watchSwapPrivate', 'watchSpotPublic', 'watchSwapPublic', 'watchTopics', 'unWatchChannels',
         ]); // improve this later
         if (methodName.toLowerCase().includes('uta')) {
             return false; // skip UTA methods
@@ -14801,22 +14484,9 @@ ${caseStatements.join('\n')}
             return this._typeAndFuncNamesCache[dirPath];
         }
         const results = new Set<string>([
-            'Precise',
-            'DECIMAL_PLACES',
-            'SIGNIFICANT_DIGITS',
-            'TICK_SIZE',
-            'NO_PADDING',
-            'PAD_WITH_ZERO',
-            'TRUNCATE',
-            'ROUND',
-            'ROUND_UP',
-            'ROUND_DOWN',
-            'toFixed',
-            'throwDynamicException',
-            'NewArrayCache',
-            'NewArrayCacheByTimestamp',
-            'NewArrayCacheBySymbolById',
-            'NewArrayCacheBySymbolBySide'
+            'Precise', 'DECIMAL_PLACES', 'SIGNIFICANT_DIGITS', 'TICK_SIZE', 'NO_PADDING', 'PAD_WITH_ZERO', 'TRUNCATE',
+            'ROUND', 'ROUND_UP', 'ROUND_DOWN', 'toFixed', 'throwDynamicException', 'NewArrayCache',
+            'NewArrayCacheByTimestamp', 'NewArrayCacheBySymbolById', 'NewArrayCacheBySymbolBySide'
         ]);
 
         const files = fs.readdirSync(dirPath);
@@ -15311,7 +14981,7 @@ ${caseStatements.join('\n')}
             const signature = fn.slice (0, fn.indexOf ('{'));
             const anyLocals = new Set ((fn.match (/var (\w+) any\b/g) || []).map ((d: string) => d.split (' ')[1]));
             // `any` parameters (and the `x := GetArg(...)` optionals) are untyped sinks too
-            const paramMatches = (signature.match (/(\w+) any\b/g) || []).concat (fn.match (/(\w+) := GetArg\(/g) || []);
+            const paramMatches = (signature.match (/(\w+) any\b/g) || []).concat ((fn.includes (' := GetArg(') && fn.match (/(\w+) := GetArg\(/g)) || []);
             for (const param of paramMatches) {
                 anyLocals.add (param.split (' ')[0]);
             }
@@ -15326,7 +14996,16 @@ ${caseStatements.join('\n')}
                     wrapLines.add (index);
                 }
             });
-            const redundantWraps = goDerefWrapRedundantLocals (fn, wrapLines, anyLocals);
+            // the proof is only consulted for locals a wrap is removed from or withheld on
+            const candidates = new Set<string> ();
+            for (const m of fn.matchAll (/var (\w+) any = (?:ccxt\.)?DerefScalar\(/g)) {
+                candidates.add (m[1]);
+            }
+            for (const m of fn.matchAll (safeReassignRx)) {
+                candidates.add (m[2]);
+            }
+            const proofNames = [ ...anyLocals ].filter ((n) => candidates.has (n));
+            const redundantWraps = proofNames.length ? goDerefWrapRedundantLocals (fn, wrapLines, proofNames) : new Set<string> ();
             fn = goUnwrapDerefWraps (fn, redundantWraps, safeCall);
             fn = fn.replace (safeReassignRx, ((m: string, pre: string, name: string, call: string) => (anyLocals.has (name) && !typedLocals.has (name) && !redundantWraps.has (name)) ? pre + name + ' = ' + derefFn + call + ')' : m) as any);
             // `any` operands of ==/!= compare interfaces, so route them via IsEqual: an `any` name vs a literal (it can hold a
@@ -15358,21 +15037,21 @@ ${caseStatements.join('\n')}
 
         if (!isWs) {
             content = this.regexAll(content, [
-                [/base\.(\w+)\(/gm, "this.Exchange.$1("],
-                [/base\.Describe/gm, "this.Exchange.Describe"],
-                [/var (precise|preciseAmount) any = /gm, "$1 := "],
-                [/binaryMessage.ByteLength/gm, 'GetValue(binaryMessage, "byteLength")'],
-                [/ToString\((precise\w*)\)/gm, "$1.ToString()"],
-                [/<\-callDynamically/gm, '<-this.CallDynamically'],
-                [/callDynamically\(/gm, 'this.CallDynamically('],
-                [/toFixed/gm, 'ToFixed'],
-                [/throwDynamicException/gm, 'ThrowDynamicException'],
+                [/base\.(\w+)\(/gm, "this.Exchange.$1(", 'base.'],
+                [/base\.Describe/gm, "this.Exchange.Describe", 'base.Describe'],
+                [/var (precise|preciseAmount) any = /gm, "$1 := ", 'var precise'],
+                [/binaryMessage.ByteLength/gm, 'GetValue(binaryMessage, "byteLength")', 'binaryMessage'],
+                [/ToString\((precise\w*)\)/gm, "$1.ToString()", 'ToString(precise'],
+                [/<\-callDynamically/gm, '<-this.CallDynamically', '<-callDynamically'],
+                [/callDynamically\(/gm, 'this.CallDynamically(', 'callDynamically('],
+                [/toFixed/gm, 'ToFixed', 'toFixed'],
+                [/throwDynamicException/gm, 'ThrowDynamicException', 'throwDynamicException'],
                 // for-loops initialized from a transpiled (any-typed) variable need a
                 // numeric loop counter, e.g. `for i := startIndex;` -> `for i := int(ParseInt(startIndex));`
                 [/for (\w+) := ([a-zA-Z_]\w*); /g, 'for $1 := int(ParseInt($2)); '],
             ]);
             // `"\0"` is emitted as a raw NUL byte, which is not valid Go source: splice in
-            content = content.replace (/"\0"/gm, ((_match: string, offset: number) => (this.goGofmtArithmeticDepth (content, offset) > 1) ? '"//"+"0"' : '"//" + "0"') as any);
+            content = !content.includes ('"\0"') ? content : content.replace (/"\0"/gm, ((_match: string, offset: number) => (this.goGofmtArithmeticDepth (content, offset) > 1) ? '"//"+"0"' : '"//" + "0"') as any);
             if (this.isPrediction) {
                 // prediction cores embed PredictionExchange (which embeds BaseExchange) instead
                 // of Exchange directly, so they inherit the prediction methods + state
