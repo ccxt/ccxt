@@ -2758,10 +2758,15 @@ function goChan3IsPredOnlyStruct (t: string): boolean {
     return /^(?:map\[string\]|\[\])?Prediction/.test (t);
 }
 
+let goChan3StructTypesCache: Set<string> | undefined;
 function goChan3StructTypes (): Set<string> {
+    if (goChan3StructTypesCache !== undefined) {
+        return goChan3StructTypesCache;
+    }
     const base = [ ...new Set ([ ...Object.keys (GO_STRUCT_RETURN_TYPES).filter ((t) => GO_STRUCT_RETURN_TYPES[t].to === undefined), ...GO_CHAN3_EXTRA_STRUCTS ]) ];
     // map-of-struct channels: `map[string]T` (a string-keyed dict of T, e.g. fetchTickers) rides the same pass
-    return new Set ([ ...base, ...base.filter ((t) => GO_CHAN3_STRUCT_MAPS[t] !== undefined).map ((t) => 'map[string]' + t), 'map[string]map[string][]OHLCV' ]);
+    goChan3StructTypesCache = new Set ([ ...base, ...base.filter ((t) => GO_CHAN3_STRUCT_MAPS[t] !== undefined).map ((t) => 'map[string]' + t), 'map[string]map[string][]OHLCV' ]);
+    return goChan3StructTypesCache;
 }
 
 // struct element -> the typed wrapper container of its string-keyed dict (`Tickers{Tickers: map[string]Ticker}`)
@@ -2816,21 +2821,23 @@ function goChan3Escape (s: string): string {
 // method -> struct T of the tabled struct channels
 function goChan3StructEntries (table: Map<string, string>, predScope = false): Map<string, string> {
     const structs = goChan3StructTypes ();
-    if (!predScope) {
-        return new Map ([ ...table ].filter (([ m, t ]) => !m.startsWith ('Prediction.') && structs.has (t) && (!goChan3IsPredOnlyStruct (t) || GO_CHAN3_SHARED_PRED_STRUCTS.has (goChan3StructMapElem (t) ?? t))));
-    }
+    return goChan3FamilyEntries (table, predScope, (t) => (structs.has (t) ? t : undefined), (t) => goChan3StructMapElem (t) ?? t, () => false);
+}
+
+// method -> element of one tabled channel family (`sel` picks the element, `key` its shared-pred name; a pred scope
+// keeps the pred-only / shared / `extra` elements and lifts `Prediction.`-prefixed entries over them)
+function goChan3FamilyEntries (table: Map<string, string>, predScope: boolean, sel: (t: string) => string | undefined, key: (e: string) => string, extra: (e: string) => boolean): Map<string, string> {
     const out = new Map<string, string> ();
     for (const [ m, t ] of table) {
-        if (!structs.has (t)) {
-            continue;
-        }
-        if (!m.startsWith ('Prediction.') && (goChan3IsPredOnlyStruct (t) || GO_CHAN3_SHARED_PRED_STRUCTS.has (goChan3StructMapElem (t) ?? t))) {
-            out.set (m, t);
+        const e = sel (t);
+        if ((e !== undefined) && !m.startsWith ('Prediction.') && ((goChan3IsPredOnlyStruct (t) !== predScope) ? GO_CHAN3_SHARED_PRED_STRUCTS.has (key (e)) || (predScope && extra (e)) : true)) {
+            out.set (m, e);
         }
     }
-    for (const [ m, t ] of table) {
-        if (m.startsWith ('Prediction.') && structs.has (t)) {
-            out.set (m.slice (11), t);
+    for (const [ m, t ] of (predScope ? table : [])) {
+        const e = sel (t);
+        if ((e !== undefined) && m.startsWith ('Prediction.')) {
+            out.set (m.slice (11), e);
         }
     }
     return out;
@@ -3392,29 +3399,7 @@ function goChan3ListSendBefore (before: string): boolean {
 
 // method -> T of the tabled list-of-struct channels
 function goChan3StructListEntries (table: Map<string, string>, predScope = false): Map<string, string> {
-    const out = new Map<string, string> ();
-    if (!predScope) {
-        for (const [ m, t ] of table) {
-            const e = goChan3ListElem (t);
-            if ((e !== undefined) && !m.startsWith ('Prediction.') && (!goChan3IsPredOnlyStruct (t) || GO_CHAN3_SHARED_PRED_STRUCTS.has (e))) {
-                out.set (m, e);
-            }
-        }
-        return out;
-    }
-    for (const [ m, t ] of table) {
-        const e = goChan3ListElem (t);
-        if ((e !== undefined) && !m.startsWith ('Prediction.') && (goChan3IsPredOnlyStruct (t) || GO_CHAN3_SHARED_PRED_STRUCTS.has (e) || (e === 'map[string]any') || (e === 'string'))) {
-            out.set (m, e);
-        }
-    }
-    for (const [ m, t ] of table) {
-        const e = goChan3ListElem (t);
-        if ((e !== undefined) && m.startsWith ('Prediction.')) {
-            out.set (m.slice (11), e);
-        }
-    }
-    return out;
+    return goChan3FamilyEntries (table, predScope, goChan3ListElem, (e) => e, (e) => (e === 'map[string]any') || (e === 'string'));
 }
 
 function goChan3StructListPass (content: string, table: Map<string, string>): string {
