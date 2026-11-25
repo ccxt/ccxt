@@ -8567,7 +8567,17 @@ function goStrPtrLocalRetypeText (fn: string, ptrMethods: Map<string, Set<string
     for (const p of signature.matchAll (/[(,]\s*(\w+) \*string\b/g)) {
         if (!new RegExp ('&' + p[1] + '\\b|(?<![.\\w])' + p[1] + '\\s*(?:,[\\w\\s,]*)?:?=[^=]|\\*' + p[1] + '\\s*=[^=]').test (fn.slice (sigEnd))) { ptrParams.add (p[1]); }
     }
-    const declCount = (name: string): number => code.filter ((l) => new RegExp ('\\bvar ' + name + '\\b').test (l)).length;
+    // lines declaring each name (`\bvar name\b`), counted once per line
+    const declLines = new Map<string, number> ();
+    for (const l of code) {
+        if (l.indexOf ('var ') < 0) {
+            continue;
+        }
+        for (const v of new Set (Array.from (l.matchAll (/\bvar (\w+)/g), (m) => m[1]))) {
+            declLines.set (v, (declLines.get (v) || 0) + 1);
+        }
+    }
+    const declCount = (name: string): number => declLines.get (name) || 0;
     for (const name of Array.from (ptrLocals)) {
         if ((declCount (name) !== 1) || new RegExp ('[(,]\\s*' + name + ' ').test (signature) || new RegExp ('&' + name + '\\b|(?<![.\\w])' + name + '\\s*(?:,[\\w\\s,]*)?:=').test (fn)) {
             ptrLocals.delete (name);
@@ -8599,13 +8609,17 @@ function goStrPtrLocalRetypeText (fn: string, ptrMethods: Map<string, Set<string
         }
         const list: Write[] = [];
         let ok = true;
+        const writeRe = new RegExp ('^\\s*(?:var ' + name + ' any = |' + name + ' = )(.*)$');
+        const bareRe = new RegExp ('^\\s*var ' + name + ' any$');
         for (let i = 0; ok && (i < lines.length); i++) {
-            const w = new RegExp ('^\\s*(?:var ' + name + ' any = |' + name + ' = )(.*)$').exec (code[i]);
-            const bare = new RegExp ('^\\s*var ' + name + ' any$').test (code[i]);
-            if (bare) {
+            if (code[i].indexOf (name) < 0) {
+                continue;
+            }
+            const w = writeRe.exec (code[i]);
+            if (bareRe.test (code[i])) {
                 list.push ({ 'line': i, 'rhs': 'nil' });
             } else if (w) {
-                const rhs = new RegExp ('^\\s*(?:var ' + name + ' any = |' + name + ' = )(.*)$').exec (lines[i])[1];
+                const rhs = writeRe.exec (lines[i])[1];
                 const end = iife (i, rhs);
                 if ((end === undefined) && (rhs.trim () === 'func() any {')) {
                     ok = false;
@@ -8681,8 +8695,9 @@ function goStrPtrLocalRetypeText (fn: string, ptrMethods: Map<string, Set<string
                 ? lines.slice (w.line + 1, w.end).every ((l, k) => { const r = /^\s*return (.*)$/.exec (l); return r ? producer (r[1]) : !/\breturn\b/.test (code[w.line + 1 + k]); })
                 : producer (w.rhs, true));
             const mention = new RegExp ('(?<![.\\w])' + name + '(?!\\w)');
+            const escape = new RegExp ('&' + name + '\\b|' + name + '\\s*(?:,[\\w\\s,]*)?:=|\\*' + name + '\\b');
             for (let i = 0; ok && (i < code.length); i++) {
-                if (mention.test (code[i]) && (new RegExp ('&' + name + '\\b|' + name + '\\s*(?:,[\\w\\s,]*)?:=|\\*' + name + '\\b').test (code[i]) || !readsOk (name, i))) {
+                if ((code[i].indexOf (name) >= 0) && mention.test (code[i]) && (escape.test (code[i]) || !readsOk (name, i))) {
                     ok = false;
                 }
             }
