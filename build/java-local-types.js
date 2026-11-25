@@ -17929,6 +17929,10 @@ function javaMapLocalValue (printer, node, declaration, depth = 0) {
     if (depth > 0 || isAsyncMethodCall (printer, value)) {
         return undefined;
     }
+    // a sync callee whose printed Java return is Map<String, Object> (safeMarket, resolveMarketByAltnameOrId)
+    if (String (syncCoreCallType (printer, value) ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '') === 'Map<String,Object>') {
+        return { cast: false };
+    }
     return venueCallJavaType (printer, value) === JAVA_MAP_TYPE ? { cast: false } : undefined;
 }
 
