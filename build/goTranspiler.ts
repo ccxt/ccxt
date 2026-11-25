@@ -17404,13 +17404,18 @@ function goDerefAtEntryMethods (): string[] {
 
 function nativeDerefArgMapReads (content: string): string {
     // a method redeclared in this file (an exchange override) may not deref its argument
-    const methods = goDerefAtEntryMethods ().filter ((m: string) => !new RegExp ('\\nfunc \\(this \\*\\w+\\) ' + m + '\\(').test ('\n' + content));
+    if (content.indexOf ('GetValue(') < 0) { return content; }
+    const own = new Set ([ ...('\n' + content).matchAll (/\nfunc \(this \*\w+\) (\w+)\(/g) ].map ((d) => d[1]));
+    const methods = goDerefAtEntryMethods ().filter ((m: string) => !own.has (m));
     const head = '(?:(?<![\\w.])(?:ccxt\\.)?(?:' + goDerefAtEntryFuncs ().join ('|') + ')|\\bthis\\.(?:' + methods.join ('|') + '))\\(';
     const rx = new RegExp ('(' + head + ')(?:ccxt\\.)?GetValue\\((\\w+), (\"[^\"\\\\\\n]*\"|\\w+)\\)', 'g');
     return goRewriteEachFunc (content, /GetValue\(\w+, /.test (content), (lines, masked, start, k) => goDerefArgRewriteFunc (lines, masked, start, k, rx, head));
 }
 
 function goDerefArgRewriteFunc (lines: string[], masked: string[], start: number, end: number, rx: RegExp, head: string) {
+    let any = false;
+    for (let k = start + 1; k < end && !any; k++) { any = masked[k].indexOf ('GetValue(') >= 0; }
+    if (!any) { return; }
     const { maskedFunc, declOf, typeAt } = goFuncTypeAt (lines, masked, start, end);
     const receiverOk = new Map<string, boolean> ();
     for (let k = start + 1; k < end; k++) {
@@ -18548,11 +18553,13 @@ function goTypedAddElemMapWrite (rhs: string, n: string, nilOk = false): string 
 }
 
 function goTypedAddElemRetypeFunc (lines: string[], masked: string[], start: number, end: number) {
+    if (!goLinesInclude (masked, start, end, 'AddElementToObject(') && !goLinesInclude (masked, start, end, 'ObjectKeys(')) { return; }
     const maskedFunc = masked.slice (start, end + 1).join ('\n');
     const names = new Set ([ ...maskedFunc.matchAll (/(?<![\w.])(?:ccxt\.)?AddElementToObject\((\w+), /g) ].map ((m) => m[1]));
     // a `var ks []string = ObjectKeys(x)` receiver typed the same way reaches the keys-range rule
-    for (const m of maskedFunc.matchAll (/^\s*var \w+ \[\]string = (?:ccxt\.)?ObjectKeys\((\w+)\)$/gm)) {
-        names.add (m[1]);
+    for (let k = start; k <= end; k++) {
+        const m = (masked[k].indexOf ('ObjectKeys(') >= 0) ? /^\s*var \w+ \[\]string = (?:ccxt\.)?ObjectKeys\((\w+)\)$/.exec (masked[k]) : null;
+        if (m !== null) { names.add (m[1]); }
     }
     for (const name of names) {
         const n = goAccessEscape (name);
@@ -20852,13 +20859,61 @@ function goStringPointerLocals (masked: string, fileIndex: GoFileAddIndex): Set<
     return goOnceTypedLocals (masked, fileIndex, '\\*string', true);
 }
 
+// one pass per function text: `var x` counts (all / not `string` / not `*string`), names bound by a `:=` list,
+// and names inside a `func (...)` literal's parameter text (the body after the first `{`)
+type GoLocalDeclIndex = { varAll: Map<string, number>; varNotStr: Map<string, number>; shorts: Set<string>; lits: Set<string> };
+
+function goLocalDeclIndex (masked: string): GoLocalDeclIndex {
+    const cache: any = goLocalDeclIndex;
+    if ((cache._v !== undefined) && (cache._k === masked)) {
+        return cache._v;
+    }
+    const inc = (m: Map<string, number>, k: string) => { m.set (k, (m.get (k) ?? 0) + 1); };
+    const varAll = new Map<string, number> ();
+    const varNotStr = new Map<string, number> ();
+    let m: RegExpExecArray | null;
+    const varRe = /\bvar (\w+)/g;
+    while ((m = varRe.exec (masked)) !== null) {
+        inc (varAll, m[1]);
+        const rest = masked.slice (varRe.lastIndex, varRe.lastIndex + 9);
+        if (!/^ string\b/.test (rest)) { inc (varNotStr, m[1]); }
+    }
+    const shorts = new Set<string> ();
+    const isW = (c: number) => (c >= 48 && c <= 57) || (c >= 65 && c <= 90) || (c >= 97 && c <= 122) || c === 95;
+    const isS = (c: number) => (c === 32) || (c >= 9 && c <= 13) || (c === 0xa0) || (c > 127 && /\s/.test (String.fromCharCode (c)));
+    for (let i = masked.indexOf (':='); i >= 0; i = masked.indexOf (':=', i + 1)) {
+        let j = i - 1;
+        for (;;) {
+            while (j >= 0 && isS (masked.charCodeAt (j))) { j--; }
+            const end = j + 1;
+            while (j >= 0 && isW (masked.charCodeAt (j))) { j--; }
+            if (j + 1 === end) { break; }
+            shorts.add (masked.slice (j + 1, end));
+            while (j >= 0 && isS (masked.charCodeAt (j))) { j--; }
+            if (masked.charCodeAt (j) !== 44) { break; }
+            j--;
+        }
+    }
+    const lits = new Set<string> ();
+    const braceAt = masked.indexOf ('{');
+    const body = masked.slice (braceAt < 0 ? 0 : braceAt);
+    const litRe = /\bfunc\s*\(/g;
+    while ((m = litRe.exec (body)) !== null) {
+        const close = body.indexOf (')', litRe.lastIndex);
+        for (const w of body.slice (litRe.lastIndex, close < 0 ? body.length : close).match (/\w+/g) ?? []) { lits.add (w); }
+    }
+    cache._k = masked;
+    cache._v = { varAll, varNotStr, shorts, lits };
+    return cache._v;
+}
+
 // locals/params of Go type `ty` (regex source) declared once: no other-typed var/param, `:=`, or closure param.
 // ptr mode counts the typed decl itself (exactly one var-or-param), string mode forbids any other-typed var.
 function goOnceTypedLocals (masked: string, fileIndex: GoFileAddIndex, ty: string, ptr: boolean): Set<string> {
     const out = new Set<string> ();
     const braceAt = masked.indexOf ('{');
     const signature = masked.slice (0, braceAt < 0 ? masked.length : braceAt);
-    const body = masked.slice (braceAt < 0 ? 0 : braceAt);
+    const idx = goLocalDeclIndex (masked);
     const candidates = new Set<string> ();
     let m: RegExpExecArray | null;
     const varRe = new RegExp ('\\bvar (\\w+) ' + ty + '\\b', 'g');
@@ -20866,14 +20921,12 @@ function goOnceTypedLocals (masked: string, fileIndex: GoFileAddIndex, ty: strin
     const paramRe = new RegExp ('[(,]\\s*(\\w+) ' + ty + '(?=[,)])', 'g');
     while ((m = paramRe.exec (signature)) !== null) { candidates.add (m[1]); }
     for (const name of candidates) {
-        if (fileIndex.globals.has (name)) { continue; }
-        const shorts = new RegExp ('\\b' + name + '\\s*(,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(,\\s*\\w+\\s*)*:=').test (masked);
-        const lits = new RegExp ('\\bfunc\\s*\\([^)]*\\b' + name + '\\b').test (body);
+        if (fileIndex.globals.has (name) || idx.shorts.has (name) || idx.lits.has (name)) { continue; }
         const otherParam = new RegExp ('[(,]\\s*' + name + ' (?!' + ty + '[,)])').test (signature);
         const once = ptr
-            ? ((masked.match (new RegExp ('\\bvar ' + name + '\\b', 'g')) || []).length + (new RegExp ('[(,]\\s*' + name + ' ' + ty + '(?=[,)])').test (signature) ? 1 : 0) === 1)
-            : !masked.match (new RegExp ('\\bvar ' + name + '\\b(?! ' + ty + '\\b)', 'g'));
-        if (once && !otherParam && !shorts && !lits) { out.add (name); }
+            ? ((idx.varAll.get (name) ?? 0) + (new RegExp ('[(,]\\s*' + name + ' ' + ty + '(?=[,)])').test (signature) ? 1 : 0) === 1)
+            : !idx.varNotStr.has (name);
+        if (once && !otherParam) { out.add (name); }
     }
     return out;
 }
@@ -21142,14 +21195,15 @@ function goRowStringLocals (fn: string, masked: string, fileIndex: GoFileAddInde
     const signature = masked.slice (0, braceAt < 0 ? masked.length : braceAt);
     const body = masked.slice (braceAt < 0 ? 0 : braceAt);
     const kinds: [string, string[], string][] = [ [ 'Market', [ 'symbol' ], 'm' ], [ 'Currency', [ 'id', 'code' ], 'c' ] ];
+    if (body.indexOf ('map[string]any = ') < 0) { return out; }
+    const idx = goLocalDeclIndex (masked);
     const declRe = /\bvar (\w+) map\[string\]any = /g;
     let m: RegExpExecArray | null;
     while ((m = declRe.exec (body)) !== null) {
         const name = m[1];
-        if (fileIndex.globals.has (name)) { continue; }
-        if ((body.match (new RegExp ('\\bvar ' + name + '\\b', 'g')) || []).length !== 1) { continue; }
+        if (fileIndex.globals.has (name) || (idx.varAll.get (name) !== 1) || idx.shorts.has (name) || idx.lits.has (name)) { continue; }
         if (new RegExp ('[(,]\\s*' + name + '\\b').test (signature)) { continue; }
-        if (new RegExp ('&' + name + '\\b|\\b' + name + '\\s*(,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(,\\s*\\w+\\s*)*:=|\\bfunc\\s*\\([^)]*\\b' + name + '\\b|AddElementToObject\\(' + name + '\\b').test (body)) { continue; }
+        if (new RegExp ('&' + name + '\\b|AddElementToObject\\(' + name + '\\b').test (body)) { continue; }
         // every write: `[var name map[string]any ]name = <rhs>` as a whole statement
         const writes = [ ...body.matchAll (new RegExp ('(?<![\\w.\\]])' + name + '\\s*(?:map\\[string\\]any)?(\\[[^\\n]*?\\])?\\s*=(?!=)([^\\n]*)', 'g')) ];
         for (const [ fns, keys, tag ] of kinds) {
@@ -21303,7 +21357,16 @@ function goBlockScopeResolver (masked: string[], start: number, end: number) {
     };
 }
 
+// some line in [start, end] contains `token`
+function goLinesInclude (lines: string[], start: number, end: number, token: string | RegExp): boolean {
+    for (let k = start; k <= end; k++) {
+        if ((typeof token === 'string') ? (lines[k].indexOf (token) >= 0) : token.test (lines[k])) { return true; }
+    }
+    return false;
+}
+
 function goBlockScopedDeclFunc (lines: string[], masked: string[], start: number, end: number) {
+    if (!goLinesInclude (masked, start + 1, end - 1, /\b(?:GetArrayLength|GetValue|AddElementToObject|InOp|IsEqual)\(/)) { return; }
     const resolve = goBlockScopeResolver (masked, start, end);
     const maskedFunc = masked.slice (start, end + 1).join ('\n');
     const notRebound = (name: string): boolean => !new RegExp ('(?:^|[^\\w.&*])' + goAccessEscape (name) + '\\s*=(?!=)|&\\s*' + goAccessEscape (name) + '\\b', 'm').test (maskedFunc);
