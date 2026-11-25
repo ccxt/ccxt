@@ -10021,6 +10021,8 @@ const RUST_WRITE_PASSES: Array<(content: string) => string> = [
     // re-run: tuple-slot passes above print fresh `x.clone()` call arguments at a last use
     moveLocalsAtLastUse,
     rustDropUnusedMut,
+    // re-run: the passes above leave borrowed parse rows read only by key readers and the `info` entry
+    rustStrParamCopyDrop,
     splitLongRustLines,
 ];
 function applyRustWritePasses(content: string): string {
