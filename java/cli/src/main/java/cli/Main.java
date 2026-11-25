@@ -139,6 +139,17 @@ public class Main {
             }
         }
 
+        // apply per-exchange "options" (non-secret config, e.g. defaultType) from keys files
+        if (keysJsonContent != null && keysJsonContent.get(instance.id) instanceof Map) {
+            Map<String, Object> exchangeConfig = (Map<String, Object>) keysJsonContent.get(instance.id);
+            Object fileOptions = exchangeConfig.get("options");
+            if (fileOptions instanceof Map) {
+                System.out.println("Setting options from keys files: " + instance.id + ".options");
+                // deep-merge here, extendExchangeOptions only does a shallow extend
+                instance.extendExchangeOptions(deepExtend(instance.options, (Map<String, Object>) fileOptions));
+            }
+        }
+
         Map<String, Boolean> credentials = (Map<String, Boolean>)instance.requiredCredentials;
         if (noKeys || credentials == null) {
             return;
@@ -157,7 +168,7 @@ public class Main {
                 Map<String, Object> instanceCredentials = (Map<String, Object>)keysJsonContent.get(instanceIdKey);
                 if (instanceCredentials.containsKey(key)) {
                     credentialValue = instanceCredentials.get(key).toString();
-                    System.out.println("Setting credential from keys.json: " + instanceIdKey + "." + key);
+                    System.out.println("Setting credential from keys .json: " + instanceIdKey + "." + key);
                     setProperty(instance, key, credentialValue);
                     continue;
                 }
