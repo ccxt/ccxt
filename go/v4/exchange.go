@@ -591,7 +591,7 @@ func (this *BaseExchange) Sleep(milliseconds any) <-chan bool {
 
 	// Type assertion to handle various types for milliseconds
 	ch := make(chan bool)
-	go func() any {
+	go func() {
 		// derefScalar: generated callers may pass typed pointers (SafeInteger's *int64)
 		switch v := derefScalar(milliseconds).(type) {
 		case int:
@@ -606,13 +606,12 @@ func (this *BaseExchange) Sleep(milliseconds any) <-chan bool {
 		default:
 			// never leave the channel unserved: a silent return deadlocks the caller
 			close(ch)
-			return false
+			return
 		}
 
 		// Sleep for the specified duration
 		time.Sleep(duration)
 		ch <- true
-		return true
 	}()
 	return ch
 }
@@ -2543,7 +2542,7 @@ func (this *BaseExchange) Uuid5(namespace any, name any) string {
 // Prediction exchanges override it (kalshi resolves a single outcome on demand).
 func (this *BaseExchange) FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResult[PredictionOutcome] {
 	ch := make(chan AsyncResult[PredictionOutcome])
-	go func() any {
+	go func() {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		_ = outcomeSymbol
@@ -2557,7 +2556,7 @@ func (this *BaseExchange) FetchOutcomeAsync(outcomeSymbol any) <-chan AsyncResul
 // kalshi/polymarket override it with batched by-id requests.
 func (this *BaseExchange) FetchOutcomesAsync(outcomeSymbols []string) <-chan AsyncResult[map[string]PredictionOutcome] {
 	ch := make(chan AsyncResult[map[string]PredictionOutcome])
-	go func() any {
+	go func() {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		_ = outcomeSymbols
@@ -2578,7 +2577,7 @@ func (this *BaseExchange) SignEvmTransaction(tx map[string]any, privateKey strin
 // Prediction exchanges (PredictionExchange and its derivatives) override it.
 func (this *BaseExchange) FetchEventsAsync(optionalArgs ...any) <-chan AsyncResult[[]PredictionEvent] {
 	ch := make(chan AsyncResult[[]PredictionEvent])
-	go func() any {
+	go func() {
 		defer close(ch)
 		defer ReturnPanicError(ch)
 		queries := GetArg(optionalArgs, 0, nil)
