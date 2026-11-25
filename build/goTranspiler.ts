@@ -13249,20 +13249,18 @@ class NewTranspiler {
             [/Dictionary<string,object>\)client\.futures/g, 'client.(*WSClient).Futures'],
             [/this\.safeValue\(client\.futures,/g, 'this.SafeValue(client.(*WSClient).Futures,'],
             [/Dictionary<string,object>\)this\.clients/g, 'this.Clients'],
-            [/(\w+)(\.cache)/g, '$1.Cache'],
-            [/((\w+)(\.hashmap))/g, '$1.Hashmap'],
+            [/(\w+)(\.cache)/g, '$1.Cache', '.cache'],
+            [/((\w+)(\.hashmap))/g, '$1.Hashmap', '.hashmap'],
             [/(countedBookSide)\.store\(/g, '$1.Store('],
-            [/(\w+)\.(store|storeArray)\(/g, '$1.$2('],
-            [/(\w+)\.call\(this,(.+)\)/g, 'this.CallDynamically($1, $2)'],
-            [/(\w+)\.limit\(\)/g, '$1.Limit()'],
+            [/(\w+)\.call\(this,(.+)\)/g, 'this.CallDynamically($1, $2)', '.call(this,'],
+            [/(\w+)\.limit\(\)/g, '$1.Limit()', '.limit()'],
             [/future\.resolve/g, 'future.(*Future).Resolve'],
-            [/(\w+)\.(resolve|reject)/g, '$1.$2'],
             [/this\.spawn\((this\.\w+),(.+)\)/g, 'this.Spawn($1, $2)'],
             [/this\.delay\(([^,]+),([^,]+),(.+)\)/g, 'this.Delay($1, $2, $3)'],
             [/(((?:this\.)?\w+))\.(append|resolve|getLimit)\(/g, 'ccxt.CallDynamically($1, "$3", '],
             // callDynamically array wrapper removal
             [/NewGetValue\(([A-Za-z0-9]+), ([A-Za-z0-9]+)\)\(([A-Za-z0-9]+)\)/g, 'ccxt.CallDynamically(GetValue($1, $2), $3)'],
-            [/([a-zA-Z0-9]+)\.Call\(this, /g, 'ccxt.CallDynamically($1, '],
+            [/([a-zA-Z0-9]+)\.Call\(this, /g, 'ccxt.CallDynamically($1, ', '.Call(this, '],
             
             [/;\s*\n/g, '\n'],  // Remove stray semicolons that leak from TS/CS syntax
             
@@ -13275,7 +13273,7 @@ class NewTranspiler {
             [/<-spawaned/g, '<-spawaned.(<-chan any)'],
             // `promise.Resolve(m)` (assertion + ToGetsLimit) is printed by the printer (90g3 R2)
             // GetsLimit
-            [/([a-zA-Z]\w*)\.GetLimit/g, 'ToGetsLimit($1).GetLimit'],
+            [/([a-zA-Z]\w*)\.GetLimit/g, 'ToGetsLimit($1).GetLimit', '.GetLimit'],
             [/order.Limit([^"])/g, 'ToGetsLimit(orderbooks).Limit$1'],
             // OrderBook
             // `X.Store` / `X.StoreArray` side assertions are printed by the printer (90g3 R1)
@@ -13346,7 +13344,10 @@ class NewTranspiler {
     // accepts an array like [ [ regex, substitution ], ... ]
 
     regexAll (text: string, rules: any[]) {
-        for (const [pattern, replacement] of rules) {
+        for (const [pattern, replacement, guard] of rules) {
+            if ((guard !== undefined) && !text.includes (guard)) {
+                continue;  // the rule's literal token is absent: no match possible
+            }
             const rx = typeof pattern === 'string' ? new RegExp(pattern, 'g') : pattern;
             text = text.replace(rx, replacement);
         }
@@ -15451,7 +15452,7 @@ ${caseStatements.join('\n')}
             const signature = fn.slice (0, fn.indexOf ('{'));
             const anyLocals = new Set ((fn.match (/var (\w+) any\b/g) || []).map ((d: string) => d.split (' ')[1]));
             // `any` parameters (and the `x := GetArg(...)` optionals) are untyped sinks too
-            const paramMatches = (signature.match (/(\w+) any\b/g) || []).concat (fn.match (/(\w+) := GetArg\(/g) || []);
+            const paramMatches = (signature.match (/(\w+) any\b/g) || []).concat ((fn.includes (' := GetArg(') && fn.match (/(\w+) := GetArg\(/g)) || []);
             for (const param of paramMatches) {
                 anyLocals.add (param.split (' ')[0]);
             }
@@ -15466,7 +15467,16 @@ ${caseStatements.join('\n')}
                     wrapLines.add (index);
                 }
             });
-            const redundantWraps = goDerefWrapRedundantLocals (fn, wrapLines, anyLocals);
+            // the proof is only consulted for locals a wrap is removed from or withheld on
+            const candidates = new Set<string> ();
+            for (const m of fn.matchAll (/var (\w+) any = (?:ccxt\.)?DerefScalar\(/g)) {
+                candidates.add (m[1]);
+            }
+            for (const m of fn.matchAll (safeReassignRx)) {
+                candidates.add (m[2]);
+            }
+            const proofNames = [ ...anyLocals ].filter ((n) => candidates.has (n));
+            const redundantWraps = proofNames.length ? goDerefWrapRedundantLocals (fn, wrapLines, proofNames) : new Set<string> ();
             fn = goUnwrapDerefWraps (fn, redundantWraps, safeCall);
             fn = fn.replace (safeReassignRx, ((m: string, pre: string, name: string, call: string) => (anyLocals.has (name) && !typedLocals.has (name) && !redundantWraps.has (name)) ? pre + name + ' = ' + derefFn + call + ')' : m) as any);
             // `any` operands of ==/!= compare interfaces, so route them via IsEqual: an `any` name vs a literal (it can hold a
