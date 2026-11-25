@@ -1741,7 +1741,8 @@ function javaAddPrintedDeclarations (index: Map<string, string[][] | undefined>)
             const visit = (n: any) => {
                 if (ts.isMethodDeclaration (n) && n.body !== undefined && n.name !== undefined && ts.isIdentifier (n.name)) {
                     const name = n.name.text;
-                    if (inBase && handWritten.has (name)) {
+                    // a hand-written declaration of another arity (TypeHelper.safeBool) does not hide the printed one
+                    if (inBase && handWritten.has (name) && (index.get (name)?.some ((t) => t.length === n.parameters.length) ?? true)) {
                         // a base method Java declares by hand is not printed
                     } else if ((ts.getModifiers (n) ?? []).some ((m: any) => m.kind === ts.SyntaxKind.OverrideKeyword)) {
                         // an override keeps its ancestor's printed Java parameter types
