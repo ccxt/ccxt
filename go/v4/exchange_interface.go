@@ -363,7 +363,7 @@ type ICoreExchange interface {
 	SafeStringLower2(obj any, key any, key2 any, defaultValue ...any) *string
 	SafeFloatN(obj any, keys []any, defaultValue ...any) *float64
 	SafeStringN(obj any, keys2 any, defaultValue ...any) *string
-	SafeIntegerOmitZero(obj any, key any, optionalArgs ...any) any
+	SafeIntegerOmitZero(obj any, key any, defaultValue ...any) *int64
 	SafeIntegerProduct(obj any, key any, multiplier any, defaultValue ...any) *int64
 	SafeIntegerProduct2(obj any, key1, key2 any, multiplier any, defaultValue ...any) *int64
 	SafeBoolN(dictionaryOrList any, keys any, optionalArgs ...any) *bool

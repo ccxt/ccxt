@@ -10840,6 +10840,8 @@ ${constStatements.join('\n')}
                 'HandleOptionStringAndParams2', 'HandleUntilOption', 'HandleMaxEntriesPerRequestAndParams', 'HandleTriggerPricesAndParams', 'MarketSymbols', 'MarketCodes', 'ImplodeHostname', 'MarketIds' ].join ('|')})\\([^{]*\\{[\\s\\S]*?\\n\\}\\n`, 'g'), ''],
             // safeStringList is hand-written in exchange_safe.go with its []string answer: drop the copy
             [/func\s+\(this \*BaseExchange\)\s+SafeStringList\([^{]*\{[\s\S]*?\n\}\n/g, ''],
+            // safeIntegerOmitZero is hand-written in exchange_safe.go with its *int64 answer: drop the copy
+            [/func\s+\(this \*BaseExchange\)\s+SafeIntegerOmitZero\([^{]*\{[\s\S]*?\n\}\n/g, ''],
         ]);
 
         // SafeCurrencyCode / SafeSymbol carry the `*string` shape the hand-written Safe*

@@ -860,6 +860,16 @@ func (this *BaseExchange) SafeInteger(obj any, key any, defaultValue ...any) *in
 	return nil
 }
 
+// SafeIntegerOmitZero mirrors the TS safeIntegerOmitZero (nil when absent or zero); the
+// transpiled copy is dropped in favour of this *int64 one (build/goTranspiler.ts).
+func (this *BaseExchange) SafeIntegerOmitZero(obj any, key any, defaultValue ...any) *int64 {
+	var timestamp *int64 = this.SafeInteger(obj, key, defaultValue...)
+	if timestamp == nil || *timestamp == 0 {
+		return nil
+	}
+	return timestamp
+}
+
 func (this *BaseExchange) SafeInteger2(obj any, key any, key2 any, defaultValue ...any) *int64 {
 	var defVal any = nil
 	if len(defaultValue) > 0 {
