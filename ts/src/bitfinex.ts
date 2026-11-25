@@ -3387,8 +3387,7 @@ export default class bitfinex extends Exchange {
         const rates: FundingRateHistory[] = [];
         for (let i = 0; i < rawRatesData.length; i++) {
             const fr = rawRatesData[i];
-            const rate = this.parseFundingRateHistory (fr, market);
-            rates.push (rate);
+            rates.push (this.parseFundingRateHistoryRow (fr, market));
         }
         const reversedArray: FundingRateHistory[] = [];
         const rawRates = this.filterBySymbolSinceLimit (rates, symbol, since, limit);
@@ -3455,7 +3454,7 @@ export default class bitfinex extends Exchange {
         } as FundingRate;
     }
 
-    override parseFundingRateHistory (contract: any, market: Market = undefined): FundingRateHistory {
+    parseFundingRateHistoryRow (contract: any, market: Market = undefined): FundingRateHistory {
         //
         // [
         //     1691165494000,

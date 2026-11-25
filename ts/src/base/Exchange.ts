@@ -4024,7 +4024,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parsePosition() is not supported yet');
     }
 
-    parseFundingRateHistory (info: any, market: Market = undefined): FundingRateHistory {
+    parseFundingRateHistory (info: Dict, market: Market = undefined): FundingRateHistory {
         throw new NotSupported (this.id + ' parseFundingRateHistory() is not supported yet');
     }
 

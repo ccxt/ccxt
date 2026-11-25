@@ -5341,6 +5341,7 @@ function rustBorrowedParseRows (content: string): string {
     optFns.push ('parse_funding_rate');
     optFns.push ('parse_my_trade');
     optFns.push ('parse_ticker');
+    optFns.push ('parse_funding_rate_history');
     // an inherent override borrows `Option<&Dict>` too; its `self.X(` callers and dispatch arm in the same file lend
     const venue = RUST_BORROWED_VENUE_ROWS.filter ((f) => content.includes ('\n    pub fn ' + f + '(&self, ') && !rustBorrowedRowBoxedCaller (content, f));
     // only the `impl Into<Value>` slot is borrowed; a `mut x: Value` slot (a `Dict` declaration) keeps its callers boxed
@@ -5863,6 +5864,8 @@ function rustStrParamCopyDrop (content: string): string {
                 // one `info` entry of the result shares the borrowed handle: `Value::from` is the copy's own `Arc` (or `Null`)
                 const info = /\b\w+\.insert\("info"\.to_string\(\), $/.test (content.slice (Math.max (0, at - 80), at)) ? /^(?:\.clone\(\))?(?=\);)/.exec (after) : null;
                 if (info !== null && !local.some ((e) => e.text === `Value::from(${name})`)) { local.push ({ start: at, end: at + name.length + info[0].length, text: `Value::from(${name})` }); continue; }
+                // a reader's by-value copy (`x.clone(),`) takes the `Copy` borrow itself
+                if (/\bself\.safe_(?:string|integer|number|value|dict|list|bool|float|timestamp)[a-z0-9_]*\($/.test (lead) && after.startsWith ('.clone(),')) { local.push ({ start: at, end: at + name.length + '.clone()'.length, text: name }); continue; }
                 if (!(/\bself\.safe_(?:string|integer|number|value|dict|list|bool|float|timestamp)[a-z0-9_]*\(&?$/.test (lead) && after.startsWith (','))) ok = false;
                 continue;
             }
