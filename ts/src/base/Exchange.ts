@@ -5131,7 +5131,10 @@ export class BaseExchange {
         }
         // we have trades with string values at this point so we will mutate them
         for (let i = 0; i < trades.length; i++) {
-            const entry = trades[i];
+            const entry = this.safeDict (trades, i);
+            if (entry === undefined) {
+                continue;
+            }
             entry['amount'] = this.safeNumber (entry, 'amount');
             entry['price'] = this.safeNumber (entry, 'price');
             entry['cost'] = this.safeNumber (entry, 'cost');

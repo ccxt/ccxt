@@ -633,7 +633,10 @@ export default class PredictionExchange extends BaseExchange {
         }
         const outcomesList = this.safeList (market, 'outcomes', []);
         for (let j = 0; j < outcomesList.length; j++) {
-            const oc = outcomesList[j];
+            const oc = this.safeDict (outcomesList, j);
+            if (oc === undefined) {
+                continue;
+            }
             let ocSymbol: Str = this.safeString2 (oc, 'outcome', 'symbol');
             const ocId = this.safeString2 (oc, 'outcomeId', 'id');
             // assign unconditionally — safeString2 keeps the canonical key when present
