@@ -1220,7 +1220,7 @@ export default class phemex extends Exchange {
         }
         let amount = this.safeString (bidask, amountKey);
         if (this.safeBool (market, 'spot', false)) {
-            amount = this.fromEv (amount, market);
+            amount = this.fromEv (this.safeString (bidask, amountKey), market);
         }
         return [
             this.parseNumber (this.fromEp (this.safeString (bidask, priceKey), market)),
@@ -1945,12 +1945,14 @@ export default class phemex extends Exchange {
                 id = this.safeString (trade, tradeLength - 4);
             }
             side = this.safeStringLower (trade, tradeLength - 3);
-            priceString = this.safeString (trade, tradeLength - 2);
-            amountString = this.safeString (trade, tradeLength - 1);
-            const priceAmount = trade[tradeLength - 2];
+            const priceIndex = tradeLength - 2;
+            const amountIndex = tradeLength - 1;
+            priceString = this.safeString (trade, priceIndex);
+            amountString = this.safeString (trade, amountIndex);
+            const priceAmount = trade[priceIndex];
             if (typeof priceAmount === 'number') {
-                priceString = this.fromEp (priceString, marketResolved);
-                amountString = this.fromEv (amountString, marketResolved);
+                priceString = this.fromEp (this.safeString (trade, priceIndex), marketResolved);
+                amountString = this.fromEv (this.safeString (trade, amountIndex), marketResolved);
             }
         } else {
             timestamp = this.safeIntegerProduct (trade, 'transactTimeNs', 0.000001);
