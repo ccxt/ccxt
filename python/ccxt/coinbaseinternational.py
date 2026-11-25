@@ -973,7 +973,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         rawRates = self.safe_list(response, 'result', [])
         return self.parse_funding_rate_histories(rawRates, market, since, limit)
 
-    def parse_funding_rate_history(self, info: object, market: Market = None) -> FundingRateHistory:
+    def parse_funding_rate_history(self, info: dict, market: Market = None) -> FundingRateHistory:
         fundingRate = self.parse_funding_rate(self.extend({}, info), market)
         return {
             'info': info,

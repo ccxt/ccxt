@@ -726,10 +726,10 @@ class bybit(ccxt.async_support.bybit):
         rawHashes = []
         messageHashes = []
         for i in range(0, len(symbolsAndTimeframes)):
-            data = symbolsAndTimeframes[i]
-            market = self.market(data[0])
+            data = self.safe_list(symbolsAndTimeframes, i)
+            market = self.market(self.safe_string(data, 0, ''))
             symbolString = self.safe_string(market, 'symbol', '')
-            unfiedTimeframe = data[1]
+            unfiedTimeframe = self.safe_string(data, 1, '')
             timeframeId = self.safe_string(self.timeframes, unfiedTimeframe, unfiedTimeframe)
             marketId = self.safe_string(market, 'id', '')
             rawHashes.append('kline.' + timeframeId + '.' + marketId)
@@ -762,10 +762,10 @@ class bybit(ccxt.async_support.bybit):
         subMessageHashes = []
         messageHashes = []
         for i in range(0, len(symbolsAndTimeframes)):
-            data = symbolsAndTimeframes[i]
-            market = self.market(data[0])
+            data = self.safe_list(symbolsAndTimeframes, i)
+            market = self.market(self.safe_string(data, 0, ''))
             symbolString = self.safe_string(market, 'symbol', '')
-            unfiedTimeframe = data[1]
+            unfiedTimeframe = self.safe_string(data, 1, '')
             timeframeId = self.safe_string(self.timeframes, unfiedTimeframe, unfiedTimeframe)
             marketId = self.safe_string(market, 'id', '')
             rawHashes.append('kline.' + timeframeId + '.' + marketId)

@@ -461,7 +461,6 @@ class mercado(Exchange, ImplicitAPI):
         timestamp = self.safe_timestamp_2(trade, 'date', 'executed_timestamp')
         marketResolved = self.safe_market(None, market)
         id = self.safe_string_2(trade, 'tid', 'operation_id')
-        type = None
         side = self.safe_string(trade, 'type')
         price = self.safe_string(trade, 'price')
         amount = self.safe_string_2(trade, 'amount', 'quantity')
@@ -479,7 +478,7 @@ class mercado(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'symbol': marketResolved['symbol'],
             'order': None,
-            'type': type,
+            'type': None,
             'side': side,
             'takerOrMaker': None,
             'price': price,

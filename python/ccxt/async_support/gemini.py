@@ -1443,7 +1443,6 @@ class gemini(Exchange, ImplicitAPI):
             type = 'market'
         else:
             type = self.safe_string(order, 'type')
-        fee = None
         marketId = self.safe_string(order, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         id = self.safe_string(order, 'order_id')
@@ -1481,7 +1480,7 @@ class gemini(Exchange, ImplicitAPI):
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
-            'fee': fee,
+            'fee': None,
             'trades': None,
         }, market)
 

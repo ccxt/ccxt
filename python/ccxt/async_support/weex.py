@@ -1921,7 +1921,7 @@ class weex(Exchange, ImplicitAPI):
         response = await self.contractGetCapiV3MarketFundingRate(self.extend(requestUntil, paramsUntil))
         return self.parse_funding_rate_histories(response, market, since, limit)
 
-    def parse_funding_rate_history(self, contract: object, market: Market = None) -> FundingRateHistory:
+    def parse_funding_rate_history(self, contract: dict, market: Market = None) -> FundingRateHistory:
         #
         #     {
         #         "symbol": "ETHUSDT",
@@ -3477,15 +3477,16 @@ class weex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        marketSymbol = self.safe_string(market, 'symbol', '')
         sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
         if sandboxMode:
             # the demo trading API does not provide a single-position endpoint
-            return await self.fetch_positions([market['symbol']], params)
+            return await self.fetch_positions([marketSymbol], params)
         request = {
             'symbol': market['id'],
         }
         response = await self.contractPrivateGetCapiV3AccountPositionSinglePosition(self.extend(request, params))
-        return self.parse_positions(response, [market['symbol']])
+        return self.parse_positions(response, [marketSymbol])
 
     def parse_position(self, position: dict, market: Market = None) -> Position:
         #

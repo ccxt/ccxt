@@ -980,7 +980,6 @@ class latoken(Exchange, ImplicitAPI):
         #         "makerBuyer":false
         #     }
         #
-        type = None
         timestamp = self.safe_integer(trade, 'timestamp')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'quantity')
@@ -1024,7 +1023,7 @@ class latoken(Exchange, ImplicitAPI):
             'symbol': symbol,
             'id': id,
             'order': orderId,
-            'type': type,
+            'type': None,
             'takerOrMaker': takerOrMaker,
             'side': side,
             'price': priceString,

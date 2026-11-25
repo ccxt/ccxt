@@ -165,14 +165,14 @@ class aster(ccxt.async_support.aster):
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscriptionArgs = []
         messageHashes = []
-        request = {
-            'method': 'SUBSCRIBE',
-            'params': subscriptionArgs,
-        }
         for i in range(0, len(symbolsNormalized)):
             market = self.market(self.safe_string(symbolsNormalized, i, ''))
             subscriptionArgs.append(self.safe_string_lower(market, 'id', '') + '@ticker')
             messageHashes.append('ticker:' + self.safe_string(market, 'symbol', ''))
+        request = {
+            'method': 'SUBSCRIBE',
+            'params': subscriptionArgs,
+        }
         newTicker = await self.watch_multiple(url, messageHashes, self.extend(request, self.omit(paramsCallerMethodName, 'callerMethodName')), messageHashes)
         if self.newUpdates:
             result = {}
@@ -211,14 +211,14 @@ class aster(ccxt.async_support.aster):
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscriptionArgs = []
         messageHashes = []
-        request = {
-            'method': 'UNSUBSCRIBE',
-            'params': subscriptionArgs,
-        }
         for i in range(0, len(symbolsNormalized)):
             market = self.market(self.safe_string(symbolsNormalized, i, ''))
             subscriptionArgs.append(self.safe_string_lower(market, 'id', '') + '@ticker')
             messageHashes.append('unsubscribe:ticker:' + self.safe_string(market, 'symbol', ''))
+        request = {
+            'method': 'UNSUBSCRIBE',
+            'params': subscriptionArgs,
+        }
         return await self.watch_multiple(url, messageHashes, self.extend(request, self.omit(paramsCallerMethodName, 'callerMethodName')), messageHashes)
 
     async def watch_mark_price(self, symbol: str, params: dict = {}) -> Ticker:
@@ -284,10 +284,6 @@ class aster(ccxt.async_support.aster):
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscriptionArgs = []
         messageHashes = []
-        request = {
-            'method': 'SUBSCRIBE',
-            'params': subscriptionArgs,
-        }
         use1sFreq = self.safe_bool(paramsOmitted, 'use1sFreq', True)
         for i in range(0, len(symbolsNormalized)):
             market = self.market(self.safe_string(symbolsNormalized, i, ''))
@@ -296,6 +292,10 @@ class aster(ccxt.async_support.aster):
                 suffix = '@1s'
             subscriptionArgs.append(self.safe_string_lower(market, 'id', '') + '@markPrice' + suffix)
             messageHashes.append('ticker:' + self.safe_string(market, 'symbol', ''))
+        request = {
+            'method': 'SUBSCRIBE',
+            'params': subscriptionArgs,
+        }
         newTicker = await self.watch_multiple(url, messageHashes, self.extend(request, paramsOmitted), messageHashes)
         if self.newUpdates:
             result = {}
@@ -334,10 +334,6 @@ class aster(ccxt.async_support.aster):
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscriptionArgs = []
         messageHashes = []
-        request = {
-            'method': 'UNSUBSCRIBE',
-            'params': subscriptionArgs,
-        }
         use1sFreq = self.safe_bool(paramsOmitted, 'use1sFreq', True)
         for i in range(0, len(symbolsNormalized)):
             market = self.market(self.safe_string(symbolsNormalized, i, ''))
@@ -346,6 +342,10 @@ class aster(ccxt.async_support.aster):
                 suffix = '@1s'
             subscriptionArgs.append(self.safe_string_lower(market, 'id', '') + '@markPrice' + suffix)
             messageHashes.append('unsubscribe:ticker:' + self.safe_string(market, 'symbol', ''))
+        request = {
+            'method': 'UNSUBSCRIBE',
+            'params': subscriptionArgs,
+        }
         return await self.watch_multiple(url, messageHashes, self.extend(request, paramsOmitted), messageHashes)
 
     def handle_ticker(self, client: Client, message: dict):
@@ -455,14 +455,14 @@ class aster(ccxt.async_support.aster):
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscriptionArgs = []
         messageHashes = []
-        request = {
-            'method': 'SUBSCRIBE',
-            'params': subscriptionArgs,
-        }
         for i in range(0, len(symbolsNormalized)):
             market = self.market(self.safe_string(symbolsNormalized, i, ''))
             subscriptionArgs.append(self.safe_string_lower(market, 'id', '') + '@bookTicker')
             messageHashes.append('bidask:' + self.safe_string(market, 'symbol', ''))
+        request = {
+            'method': 'SUBSCRIBE',
+            'params': subscriptionArgs,
+        }
         newTicker = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
         if self.newUpdates:
             result = {}
@@ -500,14 +500,14 @@ class aster(ccxt.async_support.aster):
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscriptionArgs = []
         messageHashes = []
-        request = {
-            'method': 'UNSUBSCRIBE',
-            'params': subscriptionArgs,
-        }
         for i in range(0, len(symbolsNormalized)):
             market = self.market(self.safe_string(symbolsNormalized, i, ''))
             subscriptionArgs.append(self.safe_string_lower(market, 'id', '') + '@bookTicker')
             messageHashes.append('unsubscribe:bidask:' + self.safe_string(market, 'symbol', ''))
+        request = {
+            'method': 'UNSUBSCRIBE',
+            'params': subscriptionArgs,
+        }
         return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes)
 
     def handle_bid_ask(self, client: Client, message: dict):
@@ -610,11 +610,6 @@ class aster(ccxt.async_support.aster):
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscriptionArgs = []
         messageHashes = []
-        request = {
-            'method': 'SUBSCRIBE',
-            'params': subscriptionArgs,
-            'id': 1,
-        }
         for i in range(0, len(symbolsNormalized)):
             market = self.market(self.safe_string(symbolsNormalized, i, ''))
             marketId = self.safe_string_lower(market, 'id')
@@ -622,6 +617,11 @@ class aster(ccxt.async_support.aster):
                 continue
             subscriptionArgs.append(marketId + '@aggTrade')
             messageHashes.append('trade::' + self.safe_string(market, 'symbol', ''))
+        request = {
+            'method': 'SUBSCRIBE',
+            'params': subscriptionArgs,
+            'id': 1,
+        }
         trades = await self.watch_multiple(url, messageHashes, self.extend(request, self.omit(paramsCallerMethodName, 'callerMethodName')), messageHashes)
         first = self.safe_dict(trades, 0)
         tradeSymbol = self.safe_string(first, 'symbol')
@@ -655,14 +655,14 @@ class aster(ccxt.async_support.aster):
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscriptionArgs = []
         messageHashes = []
-        request = {
-            'method': 'UNSUBSCRIBE',
-            'params': subscriptionArgs,
-        }
         for i in range(0, len(symbolsNormalized)):
             market = self.market(self.safe_string(symbolsNormalized, i, ''))
             subscriptionArgs.append(self.safe_string_lower(market, 'id', '') + '@aggTrade')
             messageHashes.append('unsubscribe:trade:' + self.safe_string(market, 'symbol', ''))
+        request = {
+            'method': 'UNSUBSCRIBE',
+            'params': subscriptionArgs,
+        }
         return await self.watch_multiple(url, messageHashes, self.extend(request, self.omit(paramsCallerMethodName, 'callerMethodName')), messageHashes)
 
     def handle_trade(self, client: Client, message: dict):
@@ -903,10 +903,6 @@ class aster(ccxt.async_support.aster):
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscriptionArgs = []
         messageHashes = []
-        request = {
-            'method': 'SUBSCRIBE',
-            'params': subscriptionArgs,
-        }
         depthSuffix = '@depth20'
         if limit == 5:
             depthSuffix = '@depth5'
@@ -916,6 +912,10 @@ class aster(ccxt.async_support.aster):
             market = self.market(self.safe_string(symbolsNormalized, i, ''))
             subscriptionArgs.append(self.safe_string_lower(market, 'id', '') + depthSuffix)
             messageHashes.append('orderbook:' + self.safe_string(market, 'symbol', ''))
+        request = {
+            'method': 'SUBSCRIBE',
+            'params': subscriptionArgs,
+        }
         orderbook = await self.watch_multiple(url, messageHashes, self.extend(request, self.omit(paramsCallerMethodName, 'callerMethodName')), messageHashes)
         return orderbook.limit()
 
@@ -948,10 +948,6 @@ class aster(ccxt.async_support.aster):
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscriptionArgs = []
         messageHashes = []
-        request = {
-            'method': 'UNSUBSCRIBE',
-            'params': subscriptionArgs,
-        }
         limit = self.safe_number(paramsOmitted, 'limit')
         depthSuffix = '@depth20'
         if limit == 5:
@@ -962,6 +958,10 @@ class aster(ccxt.async_support.aster):
             market = self.market(self.safe_string(symbolsNormalized, i, ''))
             subscriptionArgs.append(self.safe_string_lower(market, 'id', '') + depthSuffix)
             messageHashes.append('unsubscribe:orderbook:' + self.safe_string(market, 'symbol', ''))
+        request = {
+            'method': 'UNSUBSCRIBE',
+            'params': subscriptionArgs,
+        }
         return await self.watch_multiple(url, messageHashes, self.extend(request, self.omit(paramsOmitted, 'limit')), messageHashes)
 
     def handle_order_book(self, client: Client, message: dict):
@@ -1067,10 +1067,6 @@ class aster(ccxt.async_support.aster):
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscriptionArgs = []
         messageHashes = []
-        request = {
-            'method': 'SUBSCRIBE',
-            'params': subscriptionArgs,
-        }
         for i in range(0, symbolsLength):
             data = self.safe_list(symbolsAndTimeframes, i)
             symbolString = self.safe_string(data, 0)
@@ -1082,6 +1078,10 @@ class aster(ccxt.async_support.aster):
             timeframeId = self.safe_string(self.timeframes, unfiedTimeframe, unfiedTimeframe)
             subscriptionArgs.append(self.safe_string_lower(market, 'id', '') + '@kline_' + timeframeId)
             messageHashes.append('ohlcv:' + self.safe_string(market, 'symbol', '') + ':' + unfiedTimeframe)
+        request = {
+            'method': 'SUBSCRIBE',
+            'params': subscriptionArgs,
+        }
         symbol, timeframe, stored = await self.watch_multiple(url, messageHashes, self.extend(request, self.omit(paramsCallerMethodName, 'callerMethodName')), messageHashes)
         limitResolved = limit
         if self.newUpdates:
@@ -1115,10 +1115,6 @@ class aster(ccxt.async_support.aster):
             raise ExchangeError(self.id + ' has no websocket url for self endpoint')
         subscriptionArgs = []
         messageHashes = []
-        request = {
-            'method': 'UNSUBSCRIBE',
-            'params': subscriptionArgs,
-        }
         for i in range(0, symbolsLength):
             data = self.safe_list(symbolsAndTimeframes, i)
             symbolString = self.safe_string(data, 0)
@@ -1130,6 +1126,10 @@ class aster(ccxt.async_support.aster):
             timeframeId = self.safe_string(self.timeframes, unfiedTimeframe, unfiedTimeframe)
             subscriptionArgs.append(self.safe_string_lower(market, 'id', '') + '@kline_' + timeframeId)
             messageHashes.append('unsubscribe:ohlcv:' + self.safe_string(market, 'symbol', '') + ':' + unfiedTimeframe)
+        request = {
+            'method': 'UNSUBSCRIBE',
+            'params': subscriptionArgs,
+        }
         return await self.watch_multiple(url, messageHashes, self.extend(request, self.omit(paramsCallerMethodName, 'callerMethodName')), messageHashes)
 
     def handle_ohlcv(self, client: Client, message: dict):

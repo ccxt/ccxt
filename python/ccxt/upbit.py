@@ -915,7 +915,6 @@ class upbit(Exchange, ImplicitAPI):
         #         }
         #
         id = self.safe_string_2(trade, 'sequential_id', 'uuid')
-        orderId = None
         timestamp = self.safe_integer(trade, 'timestamp')
         if timestamp is None:
             timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
@@ -940,7 +939,7 @@ class upbit(Exchange, ImplicitAPI):
         return self.safe_trade({
             'id': id,
             'info': trade,
-            'order': orderId,
+            'order': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': marketResolved['symbol'],

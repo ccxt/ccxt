@@ -929,13 +929,11 @@ class gemini(ccxt.async_support.gemini):
         # this.options = this.extend (defaultOptions, this.options);
         self.extend_exchange_options(defaultOptions)
         wsOptions = self.safe_dict(self.options, 'ws', {})
-        wsSubOptions = self.safe_dict(wsOptions, 'options', {})
-        originalHeaders = self.safe_dict(wsSubOptions, 'headers', {})
         headers = {
             'X-GEMINI-APIKEY': self.apiKey,
             'X-GEMINI-PAYLOAD': b64,
             'X-GEMINI-SIGNATURE': signature,
         }
-        self.options['ws']['options']['headers'] = headers
+        self.options['ws'] = self.extend(wsOptions, {'options': self.extend(self.safe_dict(wsOptions, 'options'), {'headers': headers})})
         self.client(url)
-        self.options['ws']['options']['headers'] = originalHeaders
+        self.options['ws'] = wsOptions

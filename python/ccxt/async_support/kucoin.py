@@ -9745,7 +9745,7 @@ class kucoin(Exchange, ImplicitAPI):
         result = self.safe_list(response, resultKey, [])
         return self.parse_funding_rate_histories(result, market, since, limit)
 
-    def parse_funding_rate_history(self, info: object, market: Market = None) -> FundingRateHistory:
+    def parse_funding_rate_history(self, info: dict, market: Market = None) -> FundingRateHistory:
         #
         # uta
         #     {

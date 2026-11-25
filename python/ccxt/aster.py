@@ -1964,7 +1964,7 @@ class aster(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate_histories(response, market)
 
-    def parse_funding_rate_history(self, contract: object, market: Market = None) -> FundingRateHistory:
+    def parse_funding_rate_history(self, contract: dict, market: Market = None) -> FundingRateHistory:
         #
         #     {
         #         "symbol": "BTCUSDT",

@@ -824,7 +824,6 @@ class indodax(Exchange, ImplicitAPI):
             # only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
             filled = self.safe_string(order, 'receive_' + baseId)
         timestamp = self.safe_integer(order, 'submit_time')
-        fee = None
         id = self.safe_string(order, 'order_id')
         return self.safe_order({
             'info': order,
@@ -846,7 +845,7 @@ class indodax(Exchange, ImplicitAPI):
             'filled': filled,
             'remaining': remaining,
             'status': status,
-            'fee': fee,
+            'fee': None,
             'trades': None,
         })
 

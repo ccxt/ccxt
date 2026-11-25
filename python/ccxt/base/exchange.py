@@ -3764,7 +3764,7 @@ class BaseExchange(object):
     def parse_position(self, position: dict, market: Market = None):
         raise NotSupported(self.id + ' parsePosition() is not supported yet')
 
-    def parse_funding_rate_history(self, info: object, market: Market = None):
+    def parse_funding_rate_history(self, info: dict, market: Market = None):
         raise NotSupported(self.id + ' parseFundingRateHistory() is not supported yet')
 
     def parse_borrow_interest(self, info: dict, market: Market = None):
@@ -4061,7 +4061,7 @@ class BaseExchange(object):
         :returns dict: returns feature value
         """
         market = self.market(symbol)
-        return self.feature_value_by_type(market['type'], market['subType'], methodName, paramName, defaultValue)
+        return self.feature_value_by_type(self.safe_string(market, 'type', ''), self.safe_string(market, 'subType'), methodName, paramName, defaultValue)
 
     def feature_value_by_type(self, marketType: str, subType: Str, methodName: Str = None, paramName: Str = None, defaultValue: object = None):
         """
@@ -4675,7 +4675,9 @@ class BaseExchange(object):
             price = average
         # we have trades with string values at this point so we will mutate them
         for i in range(0, len(trades)):
-            entry = trades[i]
+            entry = self.safe_dict(trades, i)
+            if entry is None:
+                continue
             entry['amount'] = self.safe_number(entry, 'amount')
             entry['price'] = self.safe_number(entry, 'price')
             entry['cost'] = self.safe_number(entry, 'cost')

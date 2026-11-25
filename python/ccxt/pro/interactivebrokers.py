@@ -123,21 +123,21 @@ class interactivebrokers(ccxt.async_support.interactivebrokers):
                 },
             }
             self.extend_exchange_options(defaultOptions)
-            originalHeaders = self.options['ws']['options']['headers']
+            wsOptions = self.safe_dict(self.options, 'ws', {})
             # with oauth the cookie carries the raw session id (not the {"session":"..."} json used by the
             # client portal gateway) and the upgrade is rejected with http 403 unless the user agent is ClientPortalGW
             userAgent = self.safe_string(self.options, 'wsUserAgent', 'ClientPortalGW/1')
             cookie = 'api=' + session
             if useGateway:
                 cookie = 'api=' + self.json({'session': session})
-            headers = self.extend(originalHeaders, {
+            headers = self.extend(self.safe_dict(self.safe_dict(wsOptions, 'options'), 'headers'), {
                 'Cookie': cookie,
                 'User-Agent': userAgent,
             })
-            self.options['ws']['options']['headers'] = headers
+            self.options['ws'] = self.extend(wsOptions, {'options': self.extend(self.safe_dict(wsOptions, 'options'), {'headers': headers})})
             # instantiate client
             newClient = self.client(url)
-            self.options['ws']['options']['headers'] = originalHeaders
+            self.options['ws'] = wsOptions
             tickleInterval = self.safe_integer(self.options, 'tickleInterval', 240000)
             self.delay(tickleInterval, self.ibkr_keep_alive_session, newClient)
         client = self.client(url)

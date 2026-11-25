@@ -661,9 +661,6 @@ class blofin(Exchange, ImplicitAPI):
         symbol = base + '/' + quote
         if swap:
             symbol = base + '/' + quote + ':' + settle
-        expiry = None
-        strikePrice = None
-        optionType = None
         tickSize = self.safe_string(market, 'tickSize')
         fees = self.safe_dict_2(self.fees, type, 'trading', {})
         taker = self.safe_number(fees, 'taker')
@@ -702,10 +699,10 @@ class blofin(Exchange, ImplicitAPI):
             'linear': (contractType == 'linear') if contract else None,
             'inverse': (contractType == 'inverse') if contract else None,
             'contractSize': self.safe_number(market, 'contractValue') if contract else None,
-            'expiry': expiry,
-            'expiryDatetime': expiry,
-            'strike': strikePrice,
-            'optionType': optionType,
+            'expiry': None,
+            'expiryDatetime': None,
+            'strike': None,
+            'optionType': None,
             'created': self.safe_integer(market, 'listTime'),
             'precision': {
                 'amount': self.safe_number(market, 'lotSize'),

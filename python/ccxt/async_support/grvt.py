@@ -1257,7 +1257,7 @@ class grvt(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result', [])
         return self.parse_funding_rate_histories(result, market)
 
-    def parse_funding_rate_history(self, rawItem: object, market: Market = None) -> FundingRateHistory:
+    def parse_funding_rate_history(self, rawItem: dict, market: Market = None) -> FundingRateHistory:
         #
         #            {
         #                "instrument": "BTC_USDT_Perp",

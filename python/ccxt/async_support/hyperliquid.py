@@ -1295,7 +1295,8 @@ class hyperliquid(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        rates = await self.fetch_funding_rates([market['symbol']], params)
+        marketSymbol = self.safe_string(market, 'symbol', '')
+        rates = await self.fetch_funding_rates([marketSymbol], params)
         rate = self.safe_dict(rates, market['symbol'])
         if rate is None:
             raise BadSymbol(self.id + ' fetchFundingRate() could not find a funding rate for ' + symbol)

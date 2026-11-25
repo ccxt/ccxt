@@ -1347,7 +1347,7 @@ class extended(Exchange, ImplicitAPI):
         sorted = self.sort_by(result, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbolValue, sinceResolved, limitResolved)
 
-    def parse_funding_rate_history(self, info: object, market: Market = None) -> FundingRateHistory:
+    def parse_funding_rate_history(self, info: dict, market: Market = None) -> FundingRateHistory:
         #
         #     {
         #       "m": "BTC-USD",

@@ -531,7 +531,9 @@ class PredictionExchange(BaseExchange):
             self.outcomes_by_id = {}
         outcomesList = self.safe_list(market, 'outcomes', [])
         for j in range(0, len(outcomesList)):
-            oc = outcomesList[j]
+            oc = self.safe_dict(outcomesList, j)
+            if oc is None:
+                continue
             ocSymbol = self.safe_string_2(oc, 'outcome', 'symbol')
             ocId = self.safe_string_2(oc, 'outcomeId', 'id')
             # assign unconditionally — safeString2 keeps the canonical key when present

@@ -1321,11 +1321,12 @@ class poloniex(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
+        marketSymbol = self.safe_string(market, 'symbol', '')
         request = {
             'symbol': market['id'],
         }
         if self.safe_bool(market, 'contract', False):
-            tickers = self.fetch_tickers([market['symbol']], params)
+            tickers = self.fetch_tickers([marketSymbol], params)
             contractTicker = self.safe_dict(tickers, symbol)
             return contractTicker
         response = self.publicGetMarketsSymbolTicker24h(self.extend(request, params))

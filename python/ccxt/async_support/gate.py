@@ -5314,7 +5314,7 @@ class gate(Exchange, ImplicitAPI):
             request['last_id'] = lastId
         return [request, finalParams]
 
-    async def fetch_orders_by_status(self, status: Str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
+    async def fetch_orders_by_status(self, status: str, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         if self.markets is None:
             await self.load_markets()
         await self.load_unified_status()

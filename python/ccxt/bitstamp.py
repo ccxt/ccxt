@@ -1149,7 +1149,6 @@ class bitstamp(Exchange, ImplicitAPI):
         side = None
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        type = None
         costString = self.safe_string(trade, 'cost')
         rawMarketId = None
         # resolved in the key scan below, falling back to the passed market
@@ -1230,7 +1229,7 @@ class bitstamp(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'order': self.safe_string(trade, 'order_id'),
-            'type': type,
+            'type': None,
             'side': side,
             'takerOrMaker': None,
             'price': priceString,
@@ -1901,7 +1900,7 @@ class bitstamp(Exchange, ImplicitAPI):
         values = self.safe_list(response, 'funding_rate_history', [])
         return self.parse_funding_rate_histories(values, market, since, limit)
 
-    def parse_funding_rate_history(self, contract: object, market: Market = None) -> FundingRateHistory:
+    def parse_funding_rate_history(self, contract: dict, market: Market = None) -> FundingRateHistory:
         #
         #     {
         #         "funding_rate": "0.0024",

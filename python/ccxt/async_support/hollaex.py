@@ -1769,10 +1769,8 @@ class hollaex(Exchange, ImplicitAPI):
         amount = self.safe_number(transaction, 'amount')
         address = self.safe_string(transaction, 'address')
         addressTo = None
-        addressFrom = None
         tag = None
         tagTo = None
-        tagFrom = None
         if address is not None:
             parts = address.split(':')
             address = self.safe_string(parts, 0)
@@ -1809,10 +1807,10 @@ class hollaex(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'network': None,
-            'addressFrom': addressFrom,
+            'addressFrom': None,
             'address': address,
             'addressTo': addressTo,
-            'tagFrom': tagFrom,
+            'tagFrom': None,
             'tag': tag,
             'tagTo': tagTo,
             'type': type,

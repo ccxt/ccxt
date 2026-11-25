@@ -1678,7 +1678,6 @@ class mexc(Exchange, ImplicitAPI):
         orderId = None
         symbol = None
         fee = None
-        type = None
         side = None
         takerOrMaker = None
         priceString = None
@@ -1804,7 +1803,7 @@ class mexc(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'type': type,
+            'type': None,
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': priceString,

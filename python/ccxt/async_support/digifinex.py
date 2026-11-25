@@ -3313,7 +3313,7 @@ class digifinex(Exchange, ImplicitAPI):
             'info': info,
         }
 
-    def parse_borrow_rates(self, info: list[object], codeKey: Str) -> dict:
+    def parse_borrow_rates(self, info: list[object], codeKey: str) -> dict:
         #
         #     {
         #         "valuation_rate": 1,

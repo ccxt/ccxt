@@ -996,7 +996,7 @@ class btse(Exchange, ImplicitAPI):
                 result.append(rate)
         return result
 
-    def parse_funding_rate_history(self, contract: object, market: Market = None) -> FundingRateHistory:
+    def parse_funding_rate_history(self, contract: dict, market: Market = None) -> FundingRateHistory:
         #
         #     {
         #         "timestamp": 1786003200911,

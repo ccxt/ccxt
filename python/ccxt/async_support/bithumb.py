@@ -1448,7 +1448,6 @@ class bithumb(Exchange, ImplicitAPI):
                 timestamp = productTimestamp
                 if (productTimestamp is not None) and (not isGenerationTwo):
                     timestamp = productTimestamp - 9 * 3600000  # they report UTC + 9 hours, server in Korean timezone
-        type = None
         side = self.safe_string_lower_2(trade, 'ask_bid', 'type')
         if side == 'bid':
             side = 'buy'
@@ -1479,7 +1478,7 @@ class bithumb(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
             'symbol': marketResolved['symbol'],
             'order': None,
-            'type': type,
+            'type': None,
             'side': side,
             'takerOrMaker': None,
             'price': priceString,

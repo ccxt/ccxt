@@ -800,8 +800,9 @@ class lbank(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
+        marketSymbol = self.safe_string(market, 'symbol', '')
         if self.safe_bool(market, 'swap', False):
-            responseForSwap = self.fetch_tickers([market['symbol']], params)
+            responseForSwap = self.fetch_tickers([marketSymbol], params)
             swapTicker = self.safe_dict(responseForSwap, market['symbol'])
             return swapTicker
         request = {
@@ -1389,7 +1390,8 @@ class lbank(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        responseForSwap = self.fetch_funding_rates([market['symbol']], params)
+        marketSymbol = self.safe_string(market, 'symbol', '')
+        responseForSwap = self.fetch_funding_rates([marketSymbol], params)
         fundingRate = self.safe_dict(responseForSwap, market['symbol'])
         return fundingRate
 

@@ -388,7 +388,6 @@ class coincheck(Exchange, ImplicitAPI):
         amount = self.safe_string(order, 'pending_amount')
         remaining = self.safe_string(order, 'pending_amount')
         price = self.safe_string(order, 'rate')
-        status = None
         marketId = self.safe_string(order, 'pair')
         symbol = self.safe_symbol(marketId, market, '_')
         return self.safe_order({
@@ -404,7 +403,7 @@ class coincheck(Exchange, ImplicitAPI):
             'type': None,
             'timeInForce': None,
             'postOnly': None,
-            'status': status,
+            'status': None,
             'symbol': symbol,
             'price': price,
             'triggerPrice': None,

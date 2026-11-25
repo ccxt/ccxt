@@ -9058,20 +9058,17 @@ class binance(Exchange, ImplicitAPI):
         if costString is not None:
             if (amountString is not None) and (amountString != ''):
                 priceString = Precise.string_div(costString, amountString)
-        id = None
         amount = self.parse_number(amountString)
         price = self.parse_number(priceString)
         cost = self.parse_number(costString)
-        type = None
-        takerOrMaker = None
         return {
-            'id': id,
+            'id': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
             'order': orderId,
-            'type': type,
-            'takerOrMaker': takerOrMaker,
+            'type': None,
+            'takerOrMaker': None,
             'side': side,
             'amount': amount,
             'price': price,
@@ -10583,7 +10580,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate_histories(response, market, since, limit)
 
-    def parse_funding_rate_history(self, contract: object, market: Market = None) -> FundingRateHistory:
+    def parse_funding_rate_history(self, contract: dict, market: Market = None) -> FundingRateHistory:
         #
         #     {
         #         "symbol": "BTCUSDT",

@@ -1558,7 +1558,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             },
         })
 
-    async def watch_multi_helper(self, unifiedName: str, channelName: str, symbols: object = None, subscriptionArgs: dict | None = None, params: dict = {}):
+    async def watch_multi_helper(self, unifiedName: str, channelName: str, symbols: Strings = None, subscriptionArgs: dict | None = None, params: dict = {}):
         if self.markets is None:
             await self.load_markets()
         url = self.urls['api']['ws']

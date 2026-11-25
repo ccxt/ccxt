@@ -506,7 +506,6 @@ class btcbox(Exchange, ImplicitAPI):
         id = self.safe_string(trade, 'tid')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        type = None
         side = self.safe_string(trade, 'type')
         return self.safe_trade({
             'info': trade,
@@ -515,7 +514,7 @@ class btcbox(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': marketResolved['symbol'],
-            'type': type,
+            'type': None,
             'side': side,
             'takerOrMaker': None,
             'price': priceString,

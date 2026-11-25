@@ -2496,10 +2496,8 @@ class delta(Exchange, ImplicitAPI):
         #
         id = self.safe_string(item, 'uuid')
         direction = None
-        account = None
         metaData = self.safe_dict(item, 'meta_data', {})
         referenceId = self.safe_string(metaData, 'transaction_id')
-        referenceAccount = None
         type = self.safe_string(item, 'transaction_type')
         if (type == 'deposit') or (type == 'commission_rebate') or (type == 'referral_bonus') or (type == 'pnl') or (type == 'withdrawal_cancellation') or (type == 'promo_credit'):
             direction = 'in'
@@ -2519,9 +2517,9 @@ class delta(Exchange, ImplicitAPI):
             'info': item,
             'id': id,
             'direction': direction,
-            'account': account,
+            'account': None,
             'referenceId': referenceId,
-            'referenceAccount': referenceAccount,
+            'referenceAccount': None,
             'type': type,
             'currency': code,
             'amount': self.parse_number(amount),

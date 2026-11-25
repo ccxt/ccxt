@@ -2387,6 +2387,7 @@ class deepcoin(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        marketSymbol = self.safe_string(market, 'symbol', '')
         instrumentType = self.convert_to_instrument_type(self.safe_string(market, 'type'))
         request = {
             'instType': instrumentType,
@@ -2394,7 +2395,7 @@ class deepcoin(Exchange, ImplicitAPI):
         }
         response = await self.privateGetDeepcoinAccountPositions(self.extend(request, params))
         data = self.safe_list(response, 'data', [])
-        return self.parse_positions(data, [market['symbol']])
+        return self.parse_positions(data, [marketSymbol])
 
     async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
@@ -2730,7 +2731,7 @@ class deepcoin(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'rows', [])
         return self.parse_funding_rate_histories(rows, market, since, limit)
 
-    def parse_funding_rate_history(self, info: object, market: Market = None) -> FundingRateHistory:
+    def parse_funding_rate_history(self, info: dict, market: Market = None) -> FundingRateHistory:
         #
         #     {
         #         "instrumentID": "ETHUSD",

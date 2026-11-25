@@ -3196,8 +3196,7 @@ class bitfinex(Exchange, ImplicitAPI):
         rates = []
         for i in range(0, len(rawRatesData)):
             fr = rawRatesData[i]
-            rate = self.parse_funding_rate_history(fr, market)
-            rates.append(rate)
+            rates.append(self.parse_funding_rate_history_row(fr, market))
         reversedArray = []
         rawRates = self.filter_by_symbol_since_limit(rates, symbol, since, limit)
         ratesLength = len(rawRates)
@@ -3260,7 +3259,7 @@ class bitfinex(Exchange, ImplicitAPI):
             'interval': None,
         }
 
-    def parse_funding_rate_history(self, contract: object, market: Market = None) -> FundingRateHistory:
+    def parse_funding_rate_history_row(self, contract: object, market: Market = None) -> FundingRateHistory:
         #
         # [
         #     1691165494000,

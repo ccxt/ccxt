@@ -1271,7 +1271,6 @@ class coinsph(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(trade, 'time')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'qty')
-        type = None
         fee = {}
         feeCost = self.safe_string(trade, 'commission')
         if feeCost is not None:
@@ -1297,7 +1296,7 @@ class coinsph(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': symbol,
-            'type': type,
+            'type': None,
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': priceString,
@@ -2041,7 +2040,6 @@ class coinsph(Exchange, ImplicitAPI):
         code = self.safe_currency_code(currencyId, currency)
         timestamp = None
         timestamp = self.safe_integer_2(transaction, 'insertTime', 'applyTime')
-        updated = None
         type = None
         withdrawOrderId = self.safe_string(transaction, 'withdrawOrderId')
         depositOrderId = self.safe_string(transaction, 'depositOrderId')
@@ -2074,7 +2072,7 @@ class coinsph(Exchange, ImplicitAPI):
             'amount': amount,
             'currency': code,
             'status': status,
-            'updated': updated,
+            'updated': None,
             'internal': internal,
             'comment': None,
             'fee': fee,

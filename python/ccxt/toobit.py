@@ -1626,7 +1626,7 @@ class toobit(Exchange, ImplicitAPI):
         #
         return self.parse_funding_rate_histories(response, market, since, limit)
 
-    def parse_funding_rate_history(self, contract: object, market: Market = None) -> FundingRateHistory:
+    def parse_funding_rate_history(self, contract: dict, market: Market = None) -> FundingRateHistory:
         timestamp = self.safe_integer(contract, 'settleTime')
         marketId = self.safe_string(contract, 'symbol')
         return {

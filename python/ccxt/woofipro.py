@@ -2926,7 +2926,8 @@ class woofipro(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)
-        marginModes = self.fetch_margin_modes([market['symbol']], params)
+        marketSymbol = self.safe_string(market, 'symbol', '')
+        marginModes = self.fetch_margin_modes([marketSymbol], params)
         marginMode = self.safe_dict(marginModes, market['symbol'])
         if marginMode is None:
             raise BadSymbol(self.id + ' fetchMarginMode() did not return a margin mode for ' + market['symbol'])

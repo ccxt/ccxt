@@ -2412,7 +2412,6 @@ class bitvavo(Exchange, ImplicitAPI):
         #         "txId":"0x5167b473fd37811f9ef22364c3d54726a859ef9d98934b3a1e11d7baa8d2c2e2"
         #     }
         #
-        id = None
         timestamp = self.safe_integer(transaction, 'timestamp')
         currencyId = self.safe_string(transaction, 'symbol')
         code = self.safe_currency_code(currencyId, currency)
@@ -2435,7 +2434,7 @@ class bitvavo(Exchange, ImplicitAPI):
         tag = self.safe_string(transaction, 'paymentId')
         return {
             'info': transaction,
-            'id': id,
+            'id': None,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),

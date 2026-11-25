@@ -570,7 +570,8 @@ class lighter(Exchange, ImplicitAPI):
             self.check_required_credentials()
             raise AuthenticationError(self.id + ' could not load the signer, set options["libraryPath"] to the lighter signing library. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt')
         token = self.lighter_create_auth_token(signer, request)
-        self.set_auth_entry(accountIndex, apiKeyIndex, {'deadline': deadline, 'token': token})
+        if (accountIndex is not None) and (apiKeyIndex is not None):
+            self.set_auth_entry(accountIndex, apiKeyIndex, {'deadline': deadline, 'token': token})
         return token
 
     def pow(self, n: str, m: str) -> Str:

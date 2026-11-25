@@ -1213,7 +1213,7 @@ class phemex(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' customParseBidAsk() requires a market argument')
         amount = self.safe_string(bidask, amountKey)
         if self.safe_bool(market, 'spot', False):
-            amount = self.from_ev(amount, market)
+            amount = self.from_ev(self.safe_string(bidask, amountKey), market)
         return [
             self.parse_number(self.from_ep(self.safe_string(bidask, priceKey), market)),
             self.parse_number(amount),
@@ -1891,12 +1891,14 @@ class phemex(Exchange, ImplicitAPI):
             if tradeLength > 4:
                 id = self.safe_string(trade, tradeLength - 4)
             side = self.safe_string_lower(trade, tradeLength - 3)
-            priceString = self.safe_string(trade, tradeLength - 2)
-            amountString = self.safe_string(trade, tradeLength - 1)
-            priceAmount = trade[tradeLength - 2]
+            priceIndex = tradeLength - 2
+            amountIndex = tradeLength - 1
+            priceString = self.safe_string(trade, priceIndex)
+            amountString = self.safe_string(trade, amountIndex)
+            priceAmount = trade[priceIndex]
             if isinstance(priceAmount, numbers.Real):
-                priceString = self.from_ep(priceString, marketResolved)
-                amountString = self.from_ev(amountString, marketResolved)
+                priceString = self.from_ep(self.safe_string(trade, priceIndex), marketResolved)
+                amountString = self.from_ev(self.safe_string(trade, amountIndex), marketResolved)
         else:
             timestamp = self.safe_integer_product(trade, 'transactTimeNs', 0.000001)
             if timestamp is None:
@@ -3626,7 +3628,6 @@ class phemex(Exchange, ImplicitAPI):
         #
         id = self.safe_string(transaction, 'id')
         address = self.safe_string(transaction, 'address')
-        tag = None
         txid = self.safe_string(transaction, 'txHash')
         currencyId = self.safe_string(transaction, 'currency')
         currencyResolved = self.safe_currency(currencyId, currency)
@@ -3658,8 +3659,8 @@ class phemex(Exchange, ImplicitAPI):
             'address': address,
             'addressTo': address,
             'addressFrom': None,
-            'tag': tag,
-            'tagTo': tag,
+            'tag': None,
+            'tagTo': None,
             'tagFrom': None,
             'type': type,
             'amount': amount,
