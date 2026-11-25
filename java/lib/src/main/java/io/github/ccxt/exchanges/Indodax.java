@@ -988,7 +988,6 @@ public class Indodax extends IndodaxApi
             filled = this.safeString(order, ("receive_" + baseId));
         }
         Long timestamp = this.safeInteger(order, "submit_time");
-        List<String> fee = null;
         String id = this.safeString(order, "order_id");
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("info", order);
@@ -1010,7 +1009,7 @@ public class Indodax extends IndodaxApi
         mapLiteral1.put("filled", filled);
         mapLiteral1.put("remaining", remaining);
         mapLiteral1.put("status", status);
-        mapLiteral1.put("fee", fee);
+        mapLiteral1.put("fee", null);
         mapLiteral1.put("trades", null);
         return this.safeOrder(mapLiteral1, null);
     }

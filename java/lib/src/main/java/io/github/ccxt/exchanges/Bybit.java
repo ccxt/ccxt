@@ -7757,7 +7757,7 @@ public class Bybit extends BybitApi
         List<Object> chains = this.safeList(result, "chains", new ArrayList<Object>(Arrays.asList()));
         String coin = this.safeString(result, "coin");
         Map<String, Object> currencyFromResponse = this.currency(coin);
-        Object parsed = this.parseDepositAddresses(chains, new ArrayList<String>(Arrays.asList(this.safeString(currencyFromResponse, "code", ""))), false, new HashMap<String, Object>() {{
+        List<Object> parsed = this.parseDepositAddresses(chains, new ArrayList<String>(Arrays.asList(this.safeString(currencyFromResponse, "code", ""))), false, new HashMap<String, Object>() {{
             put( "currency", currencyFromResponse.get("code") );
         }});
         return this.indexBy(parsed, "network");

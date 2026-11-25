@@ -789,10 +789,13 @@ public class Lighter extends LighterApi
             throw new AuthenticationError((this.id + " could not load the signer, set options[\"libraryPath\"] to the lighter signing library. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt")) ;
         }
         String token = this.lighterCreateAuthToken(signer, request);
-        this.setAuthEntry((String) (accountIndex), (String) (apiKeyIndex), new HashMap<String, Object>() {{
-            put( "deadline", deadline );
-            put( "token", token );
-        }});
+        if ((!java.util.Objects.equals(accountIndex, null)) && (!java.util.Objects.equals(apiKeyIndex, null)))
+        {
+            this.setAuthEntry(accountIndex, apiKeyIndex, new HashMap<String, Object>() {{
+                put( "deadline", deadline );
+                put( "token", token );
+            }});
+        }
         return token;
     }
 

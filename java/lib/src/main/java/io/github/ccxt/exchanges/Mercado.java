@@ -570,7 +570,6 @@ public class Mercado extends MercadoApi
         Long timestamp = this.safeTimestamp2(trade, "date", "executed_timestamp");
         Map<String, Object> marketResolved = this.safeMarket(null, market, null, null);
         String id = this.safeString2(trade, "tid", "operation_id");
-        List<String> type = null;
         String side = this.safeString(trade, "type");
         String price = this.safeString(trade, "price");
         String amount = this.safeString2(trade, "amount", "quantity");
@@ -592,7 +591,7 @@ public class Mercado extends MercadoApi
         mapLiteral1.put("datetime", this.iso8601(timestamp));
         mapLiteral1.put("symbol", marketResolved.get("symbol"));
         mapLiteral1.put("order", null);
-        mapLiteral1.put("type", type);
+        mapLiteral1.put("type", null);
         mapLiteral1.put("side", side);
         mapLiteral1.put("takerOrMaker", null);
         mapLiteral1.put("price", price);

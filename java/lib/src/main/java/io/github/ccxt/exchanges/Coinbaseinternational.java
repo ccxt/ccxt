@@ -1317,7 +1317,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
 
     }
 
-    public Map<String, Object> parseFundingRateHistory(Object info, Map<String, Object> market)
+    public Map<String, Object> parseFundingRateHistory(Map<String, Object> info, Map<String, Object> market)
     {
         Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(this.extend(new HashMap<String, Object>() {{}}, info), market);
         return new HashMap<String, Object>() {{

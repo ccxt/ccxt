@@ -3405,7 +3405,7 @@ public class Gate extends GateApi
         List<Object> chains = this.safeList(response, "multichain_addresses", new ArrayList<Object>(Arrays.asList()));
         String currencyId = this.safeString(response, "currency");
         currency = this.safeCurrency(currencyId, currency);
-        Object parsed = this.parseDepositAddresses(chains, null, false, new HashMap<String, Object>() {{}});
+        List<Object> parsed = this.parseDepositAddresses(chains, null, false, new HashMap<String, Object>() {{}});
         return this.indexBy(parsed, "network");
 
     }

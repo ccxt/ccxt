@@ -1934,12 +1934,12 @@ public class Interactivebrokers extends InteractivebrokersApi
         return result;
     }
 
-    public CompletableFuture<Object> fetchSecWithDetails(Map<String, Object> plainEntries)
+    public CompletableFuture<List<Object>> fetchSecWithDetails(Map<String, Object> plainEntries)
     {
         return BaseExchange.supplyAsync(() -> this.fetchSecWithDetailsCore(plainEntries));
     }
 
-    private Object fetchSecWithDetailsCore(Map<String, Object> plainEntries)
+    private List<Object> fetchSecWithDetailsCore(Map<String, Object> plainEntries)
     {
 
         List<String> detailIds = new ArrayList<String>(plainEntries.keySet());
@@ -2034,8 +2034,8 @@ public class Interactivebrokers extends InteractivebrokersApi
                 }
             }
         }
-        Object detailMarkets = (this.fetchSecWithDetails(entries)).join();
-        return this.parseMarkets((List<Object>) (detailMarkets));
+        List<Object> detailMarkets = (this.fetchSecWithDetails(entries)).join();
+        return this.parseMarkets(detailMarkets);
 
     }
 
@@ -2083,8 +2083,8 @@ public class Interactivebrokers extends InteractivebrokersApi
                 }
             }
         }
-        Object detailMarkets = (this.fetchSecWithDetails(entries)).join();
-        return this.parseMarkets((List<Object>) (detailMarkets));
+        List<Object> detailMarkets = (this.fetchSecWithDetails(entries)).join();
+        return this.parseMarkets(detailMarkets);
 
     }
 
@@ -2216,14 +2216,14 @@ public class Interactivebrokers extends InteractivebrokersApi
                 }
             }
         }
-        Object details = (this.fetchSecWithDetails(entries)).join();
+        List<Object> details = (this.fetchSecWithDetails(entries)).join();
         // generic tickers (e.g. SOL, XRP, ADA, XLM) are queried by bare symbol, so trsrv/futures can return
         // unrelated contracts listed on other venues (e.g. EUREX), only the crypto futures venues are kept
         List<String> allowedVenues = new ArrayList<String>(Arrays.asList("CME", "CFE", "COINDERIV"));
         List<Object> detailMarkets = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)details).size(); i++)
+        for (var i = 0; i < details.size(); i++)
         {
-            String venue = this.safeString((details == null || i < 0 || i >= ((List<?>)details).size() ? null : ((List<?>)details).get(i)), "listingExchange");
+            String venue = this.safeString((details == null || i < 0 || i >= details.size() ? null : details.get(i)), "listingExchange");
             if (this.inArray(venue, allowedVenues))
             {
                 ((List<Object>)detailMarkets).add(this.safeDict(details, i, null));
@@ -2288,16 +2288,16 @@ public class Interactivebrokers extends InteractivebrokersApi
                 entries.put(conid, cfd);
             }
         }
-        Object detailMarkets = (this.fetchSecWithDetails(entries)).join();
+        List<Object> detailMarkets = (this.fetchSecWithDetails(entries)).join();
         // keep the order of options.fetchMarkets.cfdExchanges, the first exchange wins the plain symbol on collisions
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        Integer detailMarketsLength = ((List<?>)detailMarkets).size();
+        Integer detailMarketsLength = detailMarkets.size();
         for (var i = 0; i < cfdExchanges.size(); i++)
         {
             String cfdExchange = this.safeString(cfdExchanges, i, "");
             for (var j = 0; (detailMarketsLength != null && j < detailMarketsLength); j++)
             {
-                String listingExchange = this.safeString((detailMarkets == null || j < 0 || j >= ((List<?>)detailMarkets).size() ? null : ((List<?>)detailMarkets).get(j)), "listingExchange", "");
+                String listingExchange = this.safeString((detailMarkets == null || j < 0 || j >= detailMarkets.size() ? null : detailMarkets.get(j)), "listingExchange", "");
                 if (java.util.Objects.equals(listingExchange, cfdExchange))
                 {
                     ((List<Object>)result).add(this.safeDict(detailMarkets, j, null));
@@ -2637,8 +2637,8 @@ public class Interactivebrokers extends InteractivebrokersApi
                 }
             }
         }
-        Object detailMarkets = (this.fetchSecWithDetails(entries)).join();
-        List<Object> markets = this.parseMarkets((List<Object>) (detailMarkets));
+        List<Object> detailMarkets = (this.fetchSecWithDetails(entries)).join();
+        List<Object> markets = this.parseMarkets(detailMarkets);
         // bonds sharing the issuer, coupon and maturity (e.g. a bill and a strip) are told apart by the conid, e.g. US-T-270215-265342934.SMART/USD
         Map<String, Object> seen = new HashMap<String, Object>() {{}};
         List<Object> result = new ArrayList<Object>(Arrays.asList());
@@ -2700,8 +2700,8 @@ public class Interactivebrokers extends InteractivebrokersApi
                 }
             }
         }
-        Object markets = (this.fetchSecWithDetails(entries)).join();
-        return this.parseMarkets((List<Object>) (markets));
+        List<Object> markets = (this.fetchSecWithDetails(entries)).join();
+        return this.parseMarkets(markets);
 
     }
 
@@ -3857,7 +3857,7 @@ public class Interactivebrokers extends InteractivebrokersApi
     {
 
         // as required by IBKR, iserver/accounts must be called at least once before any other trading endpoint
-        Object portfolioAccounts = (this.fetchPortfolioAccounts(parameters)).join();
+        List<Object> portfolioAccounts = (this.fetchPortfolioAccounts(parameters)).join();
         List<String> accountIds = new ArrayList<String>(((Map<String, Object>)this.indexBy(portfolioAccounts, "accountId")).keySet());
         Integer length = accountIds.size();
         if (java.util.Objects.equals(length, 0))
@@ -3875,9 +3875,9 @@ public class Interactivebrokers extends InteractivebrokersApi
             }
         }
         List<Object> accounts = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)portfolioAccounts).size(); i++)
+        for (var i = 0; i < portfolioAccounts.size(); i++)
         {
-            ((List<Object>)accounts).add(this.parseAccount(this.extend(new HashMap<String, Object>() {{}}, (portfolioAccounts == null || i < 0 || i >= ((List<?>)portfolioAccounts).size() ? null : ((List<?>)portfolioAccounts).get(i)))));
+            ((List<Object>)accounts).add(this.parseAccount(this.extend(new HashMap<String, Object>() {{}}, (portfolioAccounts == null || i < 0 || i >= portfolioAccounts.size() ? null : portfolioAccounts.get(i)))));
         }
         return accounts;
 
@@ -4016,12 +4016,12 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @param {string} [params.method] 'privateGetPortfolioAccounts' (default) or 'privateGetPortfolioSubaccounts'
      * @returns {object[]} the raw response from the exchange
      */
-    public CompletableFuture<Object> fetchPortfolioAccounts(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchPortfolioAccounts(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.fetchPortfolioAccountsCore(parameters));
     }
 
-    private Object fetchPortfolioAccountsCore(Map<String, Object> parameters)
+    private List<Object> fetchPortfolioAccountsCore(Map<String, Object> parameters)
     {
 
         (this.authenticate(new HashMap<String, Object>() {{}})).join();
@@ -5519,7 +5519,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         String prefix = "https://api.ibkr.com/";
         if (baseUrl.startsWith(((String)prefix)))
         {
-            String path = Helpers.replace(((String)baseUrl), prefix, "");
+            String path = (baseUrl == null ? null : ((String)baseUrl).replaceFirst(java.util.regex.Pattern.quote(prefix), ""));
             return (gateway + path);
         }
         return baseUrl;

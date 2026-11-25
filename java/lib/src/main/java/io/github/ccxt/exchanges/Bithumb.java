@@ -1749,7 +1749,6 @@ public class Bithumb extends BithumbApi
                 }
             }
         }
-        List<String> type = null;
         String side = this.safeStringLower2(trade, "ask_bid", "type");
         if (java.util.Objects.equals(side, "bid"))
         {
@@ -1788,7 +1787,7 @@ public class Bithumb extends BithumbApi
         mapLiteral3.put("datetime", this.iso8601(timestamp));
         mapLiteral3.put("symbol", marketResolved.get("symbol"));
         mapLiteral3.put("order", null);
-        mapLiteral3.put("type", type);
+        mapLiteral3.put("type", null);
         mapLiteral3.put("side", side);
         mapLiteral3.put("takerOrMaker", null);
         mapLiteral3.put("price", priceString);

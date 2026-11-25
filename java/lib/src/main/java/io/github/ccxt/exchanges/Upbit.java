@@ -1207,7 +1207,6 @@ public class Upbit extends UpbitApi
         //         }
         //
         String id = this.safeString2(trade, "sequential_id", "uuid");
-        List<String> orderId = null;
         Long timestamp = this.safeInteger(trade, "timestamp");
         if (java.util.Objects.equals(timestamp, null))
         {
@@ -1241,7 +1240,7 @@ public class Upbit extends UpbitApi
         HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
         mapLiteral6.put("id", id);
         mapLiteral6.put("info", trade);
-        mapLiteral6.put("order", orderId);
+        mapLiteral6.put("order", null);
         mapLiteral6.put("timestamp", timestamp);
         mapLiteral6.put("datetime", this.iso8601(timestamp));
         mapLiteral6.put("symbol", marketResolved.get("symbol"));

@@ -1939,7 +1939,6 @@ public class Gemini extends GeminiApi
         {
             type = this.safeString(order, "type");
         }
-        List<String> fee = null;
         String marketId = this.safeString(order, "symbol");
         String symbol = this.safeSymbol(marketId, market, null, null);
         String id = this.safeString(order, "order_id");
@@ -1983,7 +1982,7 @@ public class Gemini extends GeminiApi
         mapLiteral8.put("amount", amount);
         mapLiteral8.put("filled", filled);
         mapLiteral8.put("remaining", remaining);
-        mapLiteral8.put("fee", fee);
+        mapLiteral8.put("fee", null);
         mapLiteral8.put("trades", null);
         return this.safeOrder(mapLiteral8, market);
     }
@@ -2590,7 +2589,7 @@ public class Gemini extends GeminiApi
         HashMap<String, Object> j39v5 = new HashMap<String, Object>();
         j39v5.put("network", networkCode);
         j39v5.put("currency", codeValue);
-        Object results = this.parseDepositAddresses(response, new ArrayList<String>(Arrays.asList(codeValue)), false, j39v5);
+        List<Object> results = this.parseDepositAddresses(response, new ArrayList<String>(Arrays.asList(codeValue)), false, j39v5);
         // one address structure per network, like every other venue (the endpoint is scoped to a
         // single network, so the last address the venue lists for it wins — same as before)
         return this.indexBy(results, "network");

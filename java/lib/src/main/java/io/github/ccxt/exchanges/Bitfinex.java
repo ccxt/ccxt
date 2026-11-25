@@ -4167,8 +4167,7 @@ public class Bitfinex extends BitfinexApi
         for (var i = 0; i < rawRatesData.size(); i++)
         {
             Object fr = (rawRatesData == null || i < 0 || i >= rawRatesData.size() ? null : rawRatesData.get(i));
-            Map<String, Object> rate = this.parseFundingRateHistory(fr, market);
-            ((List<Object>)rates).add(rate);
+            ((List<Object>)rates).add(this.parseFundingRateHistoryRow(fr, market));
         }
         List<Object> reversedArray = new ArrayList<Object>(Arrays.asList());
         List<Object> rawRates = this.filterBySymbolSinceLimit(rates, symbol, since, limit, false);
@@ -4238,7 +4237,7 @@ public class Bitfinex extends BitfinexApi
         }};
     }
 
-    public Map<String, Object> parseFundingRateHistory(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRateHistoryRow(Object contract, Map<String, Object> market)
     {
         //
         // [

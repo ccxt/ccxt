@@ -3180,6 +3180,7 @@ public class Deepcoin extends DeepcoinApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
+        String marketSymbol = this.safeString(market, "symbol", "");
         String instrumentType = this.convertToInstrumentType(this.safeString(market, "type"));
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "instType", instrumentType );
@@ -3187,7 +3188,7 @@ public class Deepcoin extends DeepcoinApi
         }};
         Map<String, Object> response = (this.privateGetDeepcoinAccountPositions(this.extend(request, parameters))).join();
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        return this.parsePositions(data, ((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), new HashMap<String, Object>() {{}});
+        return this.parsePositions(data, new ArrayList<String>(Arrays.asList(marketSymbol)), new HashMap<String, Object>() {{}});
 
     }
 
@@ -3613,7 +3614,7 @@ public class Deepcoin extends DeepcoinApi
 
     }
 
-    public Map<String, Object> parseFundingRateHistory(Object info, Map<String, Object> market)
+    public Map<String, Object> parseFundingRateHistory(Map<String, Object> info, Map<String, Object> market)
     {
         //
         //     {

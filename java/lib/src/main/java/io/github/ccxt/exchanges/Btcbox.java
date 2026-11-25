@@ -621,7 +621,6 @@ public class Btcbox extends BtcboxApi
         String id = this.safeString(trade, "tid");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "amount");
-        List<String> type = null;
         String side = this.safeString(trade, "type");
         return this.safeTrade(new HashMap<String, Object>() {{
             put( "info", trade );
@@ -630,7 +629,7 @@ public class Btcbox extends BtcboxApi
             put( "timestamp", timestamp );
             put( "datetime", Btcbox.this.iso8601(timestamp) );
             put( "symbol", marketResolved.get("symbol") );
-            put( "type", type );
+            put( "type", null );
             put( "side", side );
             put( "takerOrMaker", null );
             put( "price", priceString );

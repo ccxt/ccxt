@@ -5908,7 +5908,7 @@ public Map<String, Object> describe()
         throw new NotSupported((this.id + " parsePosition() is not supported yet")) ;
     }
 
-    public Map<String, Object> parseFundingRateHistory(Object info, Map<String, Object> market)
+    public Map<String, Object> parseFundingRateHistory(Map<String, Object> info, Map<String, Object> market)
     {
         throw new NotSupported((this.id + " parseFundingRateHistory() is not supported yet")) ;
     }
@@ -6397,7 +6397,7 @@ public Map<String, Object> describe()
          * @returns {object} returns feature value
          */
         Map<String, Object> market = this.market(symbol);
-        return this.featureValueByType(market.get("type"), (String) (market.get("subType")), methodName, paramName, defaultValue);
+        return this.featureValueByType(this.safeString(market, "type", ""), this.safeString(market, "subType"), methodName, paramName, defaultValue);
     }
 
     public Object featureValueByType(Object marketType, String subType, String methodName, String paramName, Object defaultValue)
@@ -7274,7 +7274,11 @@ public Map<String, Object> describe()
         // we have trades with string values at this point so we will mutate them
         for (var i = 0; i < trades.size(); i++)
         {
-            Map<String, Object> entry = (Map<String, Object>) (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
+            Map<String, Object> entry = this.safeDict(trades, i, null);
+            if (java.util.Objects.equals(entry, null))
+            {
+                continue;
+            }
             entry.put("amount", BaseExchange.this.safeNumber(entry, "amount", null));
             entry.put("price", BaseExchange.this.safeNumber(entry, "price", null));
             entry.put("cost", BaseExchange.this.safeNumber(entry, "cost", null));
@@ -11094,7 +11098,7 @@ public Map<String, Object> describe()
         List<Object> rates = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            ((List<Object>)rates).add(this.parseFundingRateHistory((response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i)), market));
+            ((List<Object>)rates).add(this.parseFundingRateHistory((Map<String, Object>) ((response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i))), market));
         }
         List<Object> sorted = this.sortBy(rates, "timestamp");
         String symbol = java.util.Objects.toString((((java.util.Objects.equals(market, null)))) ? null : market.get("symbol"), null);

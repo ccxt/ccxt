@@ -1653,12 +1653,13 @@ public class Poloniex extends PoloniexApi
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
+        String marketSymbol = this.safeString(market, "symbol", "");
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", market.get("id") );
         }};
         if (Boolean.TRUE.equals(this.safeBool(market, "contract", false)))
         {
-            Tickers tickers = (this.fetchTickers(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), parameters)).join();
+            Tickers tickers = (this.fetchTickers(new ArrayList<String>(Arrays.asList(marketSymbol)), parameters)).join();
             Map<String, Object> contractTicker = this.safeDict(tickers, symbol, null);
             return contractTicker;
         }

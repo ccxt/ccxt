@@ -3351,7 +3351,7 @@ public class Htx extends HtxApi
         //     }
         //
         List<Object> rawTickers = (List<Object>) this.safeList2(response, "data", "ticks", new ArrayList<Object>(Arrays.asList()));
-        Object tickers = this.parseTickers(rawTickers, symbolsNormalized, paramsSubType);
+        Map<String, Object> tickers = this.parseTickers(rawTickers, symbolsNormalized, paramsSubType);
         return this.filterByArrayTickers(tickers, "symbol", symbolsNormalized);
 
     }
@@ -8126,7 +8126,7 @@ public class Htx extends HtxApi
         //     }
         //
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        Object parsed = this.parseDepositAddresses(data, new ArrayList<String>(Arrays.asList(this.safeString(currency, "code", ""))), false, new HashMap<String, Object>() {{}});
+        List<Object> parsed = this.parseDepositAddresses(data, new ArrayList<String>(Arrays.asList(this.safeString(currency, "code", ""))), false, new HashMap<String, Object>() {{}});
         return this.indexBy(parsed, "network");
 
     }

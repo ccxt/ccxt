@@ -1197,16 +1197,18 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         // this.options = this.extend (defaultOptions, this.options);
         this.extendExchangeOptions(defaultOptions);
         Map<String, Object> wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
-        Map<String, Object> wsSubOptions = this.safeDict(wsOptions, "options", new HashMap<String, Object>() {{}});
-        Map<String, Object> originalHeaders = this.safeDict(wsSubOptions, "headers", new HashMap<String, Object>() {{}});
         Map<String, Object> headers = new HashMap<String, Object>() {{
             put( "X-GEMINI-APIKEY", Gemini.this.apiKey );
             put( "X-GEMINI-PAYLOAD", b64 );
             put( "X-GEMINI-SIGNATURE", signature );
         }};
-        Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options"), "headers", headers);
+        this.options.put("ws", this.extend(wsOptions, new HashMap<String, Object>() {{
+    put( "options", Gemini.this.extend(Gemini.this.safeDict(wsOptions, "options", null), new HashMap<String, Object>() {{
+        put( "headers", headers );
+    }}) );
+}}));
         this.client(url);
-        Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options"), "headers", originalHeaders);
+        this.options.put("ws", wsOptions);
         return null;
 
     }

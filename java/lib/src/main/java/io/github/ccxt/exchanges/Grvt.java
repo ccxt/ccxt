@@ -1691,7 +1691,7 @@ public class Grvt extends GrvtApi
 
     }
 
-    public Map<String, Object> parseFundingRateHistory(Object rawItem, Map<String, Object> market)
+    public Map<String, Object> parseFundingRateHistory(Map<String, Object> rawItem, Map<String, Object> market)
     {
         //
         //            {

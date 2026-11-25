@@ -1930,12 +1930,12 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         }}, null);
     }
 
-    public CompletableFuture<Object> watchMultiHelper(String unifiedName, String channelName, Object symbols, Object subscriptionArgs, Map<String, Object> parameters)
+    public CompletableFuture<Object> watchMultiHelper(String unifiedName, String channelName, List<String> symbols, Object subscriptionArgs, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.watchMultiHelperCore(unifiedName, channelName, symbols, subscriptionArgs, parameters));
     }
 
-    private Object watchMultiHelperCore(String unifiedName, String channelName, Object symbols, Object subscriptionArgs, Map<String, Object> parameters)
+    private Object watchMultiHelperCore(String unifiedName, String channelName, List<String> symbols, Object subscriptionArgs, Map<String, Object> parameters)
     {
 
         if (java.util.Objects.equals(this.markets, null))

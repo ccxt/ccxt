@@ -2003,7 +2003,7 @@ public class Toobit extends ToobitApi
 
     }
 
-    public Map<String, Object> parseFundingRateHistory(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRateHistory(Map<String, Object> contract, Map<String, Object> market)
     {
         Long timestamp = this.safeInteger(contract, "settleTime");
         String marketId = this.safeString(contract, "symbol");

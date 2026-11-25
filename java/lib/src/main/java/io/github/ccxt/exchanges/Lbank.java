@@ -989,9 +989,10 @@ public class Lbank extends LbankApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
+        String marketSymbol = this.safeString(market, "symbol", "");
         if (Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
         {
-            Tickers responseForSwap = (this.fetchTickers(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), parameters)).join();
+            Tickers responseForSwap = (this.fetchTickers(new ArrayList<String>(Arrays.asList(marketSymbol)), parameters)).join();
             Map<String, Object> swapTicker = this.safeDict(responseForSwap, market.get("symbol"), null);
             return swapTicker;
         }
@@ -1698,7 +1699,8 @@ public class Lbank extends LbankApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        FundingRates responseForSwap = (this.fetchFundingRates(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), parameters)).join();
+        String marketSymbol = this.safeString(market, "symbol", "");
+        FundingRates responseForSwap = (this.fetchFundingRates(new ArrayList<String>(Arrays.asList(marketSymbol)), parameters)).join();
         Map<String, Object> fundingRate = this.safeDict(responseForSwap, market.get("symbol"), null);
         return fundingRate;
 

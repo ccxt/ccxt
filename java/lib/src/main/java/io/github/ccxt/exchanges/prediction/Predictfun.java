@@ -2020,12 +2020,12 @@ public class Predictfun extends PredictfunApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {string} the JWT
      */
-    public CompletableFuture<Object> authenticate(Map<String, Object> parameters)
+    public CompletableFuture<String> authenticate(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.authenticateCore(parameters));
     }
 
-    private Object authenticateCore(Map<String, Object> parameters)
+    private String authenticateCore(Map<String, Object> parameters)
     {
 
         if ((java.util.Objects.equals(this.walletAddress, null)) || (java.util.Objects.equals(this.privateKey, null)))
@@ -3705,7 +3705,7 @@ public class Predictfun extends PredictfunApi
         // and has no business sitting in a subscription key
         // the local is not called jwt: that is the name of a base method, and the regex transpiler
         // rewrites such identifiers into self.jwt, which lands as a broken assignment in python
-        Object walletToken = (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        String walletToken = (this.authenticate(new HashMap<String, Object>() {{}})).join();
         return ("predictWalletEvents/" + walletToken);
 
     }

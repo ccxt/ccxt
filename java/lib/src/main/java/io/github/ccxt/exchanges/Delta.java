@@ -2941,10 +2941,8 @@ public class Delta extends DeltaApi
         //
         String id = this.safeString(item, "uuid");
         String direction = null;
-        List<String> account = null;
         Map<String, Object> metaData = this.safeDict(item, "meta_data", new HashMap<String, Object>() {{}});
         String referenceId = this.safeString(metaData, "transaction_id");
-        List<String> referenceAccount = null;
         String type = this.safeString(item, "transaction_type");
         if ((java.util.Objects.equals(type, "deposit")) || (java.util.Objects.equals(type, "commission_rebate")) || (java.util.Objects.equals(type, "referral_bonus")) || (java.util.Objects.equals(type, "pnl")) || (java.util.Objects.equals(type, "withdrawal_cancellation")) || (java.util.Objects.equals(type, "promo_credit")))
         {
@@ -2967,9 +2965,9 @@ public class Delta extends DeltaApi
         mapLiteral7.put("info", item);
         mapLiteral7.put("id", id);
         mapLiteral7.put("direction", direction);
-        mapLiteral7.put("account", account);
+        mapLiteral7.put("account", null);
         mapLiteral7.put("referenceId", referenceId);
-        mapLiteral7.put("referenceAccount", referenceAccount);
+        mapLiteral7.put("referenceAccount", null);
         mapLiteral7.put("type", type);
         mapLiteral7.put("currency", code);
         mapLiteral7.put("amount", this.parseNumber(amount));

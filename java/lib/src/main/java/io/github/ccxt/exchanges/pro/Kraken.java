@@ -388,7 +388,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        Object token = (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        String token = (this.authenticate(new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
         String url = (String)((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("privateV2");
         Long requestId = this.requestId();
@@ -469,7 +469,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        Object token = (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        String token = (this.authenticate(new HashMap<String, Object>() {{}})).join();
         String url = (String)((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("privateV2");
         Long requestId = this.requestId();
         String messageHash = this.numberToString(requestId);
@@ -513,7 +513,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             throw new NotSupported((this.id + " cancelOrdersWs () does not support cancelling orders for a specific symbol.")) ;
         }
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        Object token = (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        String token = (this.authenticate(new HashMap<String, Object>() {{}})).join();
         String url = (String)((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("privateV2");
         Long requestId = this.requestId();
         String messageHash = this.numberToString(requestId);
@@ -552,7 +552,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             throw new NotSupported((this.id + " cancelOrderWs () does not support cancelling orders for a specific symbol.")) ;
         }
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        Object token = (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        String token = (this.authenticate(new HashMap<String, Object>() {{}})).join();
         String url = (String)((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("privateV2");
         Long requestId = this.requestId();
         String messageHash = this.numberToString(requestId);
@@ -608,7 +608,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             throw new NotSupported((this.id + " cancelAllOrdersWs () does not support cancelling orders in a specific market.")) ;
         }
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        Object token = (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        String token = (this.authenticate(new HashMap<String, Object>() {{}})).join();
         String url = (String)((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("privateV2");
         Long requestId = this.requestId();
         String messageHash = this.numberToString(requestId);
@@ -1457,12 +1457,12 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         return message;
     }
 
-    public CompletableFuture<Object> authenticate(Map<String, Object> parameters)
+    public CompletableFuture<String> authenticate(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.authenticateCore(parameters));
     }
 
-    private Object authenticateCore(Map<String, Object> parameters)
+    private String authenticateCore(Map<String, Object> parameters)
     {
 
         String url = (String)((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("private");
@@ -1544,7 +1544,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        Object token = (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        String token = (this.authenticate(new HashMap<String, Object>() {{}})).join();
         String subscriptionHash = "executions";
         String messageHash = name;
         String symbolResolved = null;
@@ -1966,7 +1966,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
     {
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
-        Object token = (this.authenticate(new HashMap<String, Object>() {{}})).join();
+        String token = (this.authenticate(new HashMap<String, Object>() {{}})).join();
         String messageHash = "balances";
         String url = (String)((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("privateV2");
         Long requestId = this.requestId();

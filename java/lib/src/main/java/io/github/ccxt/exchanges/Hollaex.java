@@ -2140,10 +2140,8 @@ public class Hollaex extends HollaexApi
         Double amount = this.safeNumber(transaction, "amount", null);
         String address = this.safeString(transaction, "address");
         String addressTo = null;
-        List<String> addressFrom = null;
         String tag = null;
         String tagTo = null;
-        List<String> tagFrom = null;
         if (!java.util.Objects.equals(address, null))
         {
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)address).split(java.util.regex.Pattern.quote(":"))));
@@ -2192,10 +2190,10 @@ public class Hollaex extends HollaexApi
             h2kMap1.put("timestamp", timestamp);
             h2kMap1.put("datetime", this.iso8601(timestamp));
             h2kMap1.put("network", null);
-            h2kMap1.put("addressFrom", addressFrom);
+            h2kMap1.put("addressFrom", null);
             h2kMap1.put("address", address);
             h2kMap1.put("addressTo", addressTo);
-            h2kMap1.put("tagFrom", tagFrom);
+            h2kMap1.put("tagFrom", null);
             h2kMap1.put("tag", tag);
             h2kMap1.put("tagTo", tagTo);
             h2kMap1.put("type", type);

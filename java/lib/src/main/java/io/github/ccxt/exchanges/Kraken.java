@@ -1751,7 +1751,7 @@ public class Kraken extends KrakenApi
         Boolean tradeIsList = (trade instanceof List);
         Boolean tradeIsString = (trade instanceof String);
         Boolean isOrderTrade = (!Boolean.TRUE.equals(tradeIsList)) && (!Boolean.TRUE.equals(tradeIsString)) && (!java.util.Objects.equals(this.safeString(trade, "ordertxid"), null));
-        Object marketResolved = market;
+        Map<String, Object> marketResolved = market;
         if (Boolean.TRUE.equals(isOrderTrade))
         {
             marketResolved = this.resolveMarketByAltnameOrId(this.safeString(trade, "pair"), market);
@@ -1834,7 +1834,7 @@ public class Kraken extends KrakenApi
         mapLiteral5.put("amount", amount);
         mapLiteral5.put("cost", cost);
         mapLiteral5.put("fee", fee);
-        return this.safeTrade(mapLiteral5, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
+        return this.safeTrade(mapLiteral5, marketResolved);
     }
 
     /**

@@ -785,7 +785,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Object key = (this.authenticate(parameters)).join();
+        String key = (this.authenticate(parameters)).join();
         String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
         String messageHash = null;
         String symbolResolved = (((java.util.Objects.equals(symbol, null)))) ? null : this.symbol(symbol);
@@ -964,7 +964,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         {
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
-        Object key = (this.authenticate(parameters)).join();
+        String key = (this.authenticate(parameters)).join();
         String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
         String messageHash = "balance";
         Map<String, Object> message = new HashMap<String, Object>() {{
@@ -1265,12 +1265,12 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
         }
     }
 
-    public CompletableFuture<Object> authenticate(Map<String, Object> parameters)
+    public CompletableFuture<String> authenticate(Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.authenticateCore(parameters));
     }
 
-    private Object authenticateCore(Map<String, Object> parameters)
+    private String authenticateCore(Map<String, Object> parameters)
     {
 
         // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:

@@ -2110,7 +2110,6 @@ public class Mexc extends MexcApi
         String orderId = null;
         String symbol = null;
         Map<String, Object> fee = null;
-        String type = null;
         String side = null;
         String takerOrMaker = null;
         String priceString = null;
@@ -2254,7 +2253,7 @@ public class Mexc extends MexcApi
         mapLiteral2.put("timestamp", timestamp);
         mapLiteral2.put("datetime", this.iso8601(timestamp));
         mapLiteral2.put("symbol", symbol);
-        mapLiteral2.put("type", type);
+        mapLiteral2.put("type", null);
         mapLiteral2.put("side", side);
         mapLiteral2.put("takerOrMaker", takerOrMaker);
         mapLiteral2.put("price", priceString);
@@ -5787,7 +5786,7 @@ public class Mexc extends MexcApi
         //        ...
         //    ]
         //
-        Object addressStructures = this.parseDepositAddresses(response, null, false, new HashMap<String, Object>() {{}});
+        List<Object> addressStructures = this.parseDepositAddresses(response, null, false, new HashMap<String, Object>() {{}});
         return this.indexBy(addressStructures, "network");
 
     }

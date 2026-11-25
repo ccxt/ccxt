@@ -624,7 +624,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
     {
 
         this.checkRequiredCredentials(true);
-        Object listenKey = (this.authenticate(channel, new HashMap<String, Object>() {{}})).join();
+        String listenKey = (this.authenticate(channel, new HashMap<String, Object>() {{}})).join();
         String wsUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), "spot");
         if (java.util.Objects.equals(wsUrl, null))
         {
@@ -2381,12 +2381,12 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         }
     }
 
-    public CompletableFuture<Object> authenticate(String subscriptionHash, Map<String, Object> parameters)
+    public CompletableFuture<String> authenticate(String subscriptionHash, Map<String, Object> parameters)
     {
         return BaseExchange.supplyAsync(() -> this.authenticateCore(subscriptionHash, parameters));
     }
 
-    private Object authenticateCore(String subscriptionHash, Map<String, Object> parameters)
+    private String authenticateCore(String subscriptionHash, Map<String, Object> parameters)
     {
 
         // we only need one listenKey since ccxt shares connections

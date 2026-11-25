@@ -1541,7 +1541,8 @@ public class Hyperliquid extends HyperliquidApi
 
         (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> market = this.market(symbol);
-        FundingRates rates = (this.fetchFundingRates(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), parameters)).join();
+        String marketSymbol = this.safeString(market, "symbol", "");
+        FundingRates rates = (this.fetchFundingRates(new ArrayList<String>(Arrays.asList(marketSymbol)), parameters)).join();
         Map<String, Object> rate = this.safeDict(rates, market.get("symbol"), null);
         if (java.util.Objects.equals(rate, null))
         {

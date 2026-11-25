@@ -3043,7 +3043,6 @@ public class Bitvavo extends BitvavoApi
         //         "txId":"0x5167b473fd37811f9ef22364c3d54726a859ef9d98934b3a1e11d7baa8d2c2e2"
         //     }
         //
-        String id = null;
         Long timestamp = this.safeInteger(transaction, "timestamp");
         String currencyId = this.safeString(transaction, "symbol");
         String code = this.safeCurrencyCode(currencyId, currency);
@@ -3074,7 +3073,7 @@ public class Bitvavo extends BitvavoApi
         {
             HashMap<String, Object> h2kMap1 = new HashMap<String, Object>();
             h2kMap1.put("info", transaction);
-            h2kMap1.put("id", id);
+            h2kMap1.put("id", null);
             h2kMap1.put("txid", txid);
             h2kMap1.put("timestamp", timestamp);
             h2kMap1.put("datetime", this.iso8601(timestamp));

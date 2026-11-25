@@ -2414,7 +2414,7 @@ public class Weex extends WeexApi
 
     }
 
-    public Map<String, Object> parseFundingRateHistory(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRateHistory(Map<String, Object> contract, Map<String, Object> market)
     {
         //
         //     {
@@ -4586,17 +4586,18 @@ public class Weex extends WeexApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
+        String marketSymbol = this.safeString(market, "symbol", "");
         Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
         if (Boolean.TRUE.equals(sandboxMode))
         {
             // the demo trading API does not provide a single-position endpoint
-            return (this.fetchPositions(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), parameters)).join();
+            return (this.fetchPositions(new ArrayList<String>(Arrays.asList(marketSymbol)), parameters)).join();
         }
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "symbol", market.get("id") );
         }};
         List<Object> response = (this.contractPrivateGetCapiV3AccountPositionSinglePosition(this.extend(request, parameters))).join();
-        return this.parsePositions(response, ((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), new HashMap<String, Object>() {{}});
+        return this.parsePositions(response, new ArrayList<String>(Arrays.asList(marketSymbol)), new HashMap<String, Object>() {{}});
 
     }
 

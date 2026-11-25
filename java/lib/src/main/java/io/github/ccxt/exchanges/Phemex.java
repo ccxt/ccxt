@@ -1513,7 +1513,7 @@ public class Phemex extends PhemexApi
         String amount = this.safeString(bidask, java.util.Objects.requireNonNullElse(amountKey, 1));
         if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
-            amount = this.fromEv(amount, market);
+            amount = this.fromEv(this.safeString(bidask, java.util.Objects.requireNonNullElse(amountKey, 1)), market);
         }
         return new ArrayList<Object>(Arrays.asList(this.parseNumber(this.fromEp(this.safeString(bidask, java.util.Objects.requireNonNullElse(priceKey, 0)), market)), this.parseNumber(amount)));
     }
@@ -2325,13 +2325,15 @@ public class Phemex extends PhemexApi
                 id = this.safeString(trade, (((long) tradeLength) - 4L));
             }
             side = this.safeStringLower(trade, (((long) tradeLength) - 3L));
-            priceString = this.safeString(trade, (((long) tradeLength) - 2L));
-            amountString = this.safeString(trade, (((long) tradeLength) - 1L));
-            Object priceAmount = Helpers.GetValue(trade, (((long) tradeLength) - 2L));
+            Long priceIndex = (((long) tradeLength) - 2L);
+            Long amountIndex = (((long) tradeLength) - 1L);
+            priceString = this.safeString(trade, priceIndex);
+            amountString = this.safeString(trade, amountIndex);
+            Object priceAmount = Helpers.GetValue(trade, priceIndex);
             if ((priceAmount instanceof Long || priceAmount instanceof Integer || priceAmount instanceof Float || priceAmount instanceof Double))
             {
-                priceString = this.fromEp((String) (priceString), marketResolved);
-                amountString = this.fromEv((String) (amountString), marketResolved);
+                priceString = this.fromEp(this.safeString(trade, priceIndex), marketResolved);
+                amountString = this.fromEv(this.safeString(trade, amountIndex), marketResolved);
             }
         } else
         {
@@ -4507,7 +4509,6 @@ public class Phemex extends PhemexApi
         //
         String id = this.safeString(transaction, "id");
         String address = this.safeString(transaction, "address");
-        List<String> tag = null;
         String txid = this.safeString(transaction, "txHash");
         String currencyId = this.safeString(transaction, "currency");
         Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
@@ -4548,8 +4549,8 @@ public class Phemex extends PhemexApi
             h2kMap0.put("address", address);
             h2kMap0.put("addressTo", address);
             h2kMap0.put("addressFrom", null);
-            h2kMap0.put("tag", tag);
-            h2kMap0.put("tagTo", tag);
+            h2kMap0.put("tag", null);
+            h2kMap0.put("tagTo", null);
             h2kMap0.put("tagFrom", null);
             h2kMap0.put("type", type);
             h2kMap0.put("amount", amount);

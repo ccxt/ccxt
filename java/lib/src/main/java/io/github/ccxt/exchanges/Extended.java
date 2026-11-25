@@ -1706,7 +1706,7 @@ public class Extended extends ExtendedApi
 
     }
 
-    public Map<String, Object> parseFundingRateHistory(Object info, Map<String, Object> market)
+    public Map<String, Object> parseFundingRateHistory(Map<String, Object> info, Map<String, Object> market)
     {
         //
         //     {

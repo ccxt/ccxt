@@ -12190,20 +12190,17 @@ public class Binance extends BinanceApi
                 priceString = Precise.stringDiv(costString, amountString);
             }
         }
-        List<String> id = null;
         Double amount = this.parseNumber(amountString);
         Double price = this.parseNumber(priceString);
         Double cost = this.parseNumber(costString);
-        List<String> type = null;
-        List<String> takerOrMaker = null;
         HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
-        mapLiteral8.put("id", id);
+        mapLiteral8.put("id", null);
         mapLiteral8.put("timestamp", timestamp);
         mapLiteral8.put("datetime", this.iso8601(timestamp));
         mapLiteral8.put("symbol", symbol);
         mapLiteral8.put("order", orderId);
-        mapLiteral8.put("type", type);
-        mapLiteral8.put("takerOrMaker", takerOrMaker);
+        mapLiteral8.put("type", null);
+        mapLiteral8.put("takerOrMaker", null);
         mapLiteral8.put("side", side);
         mapLiteral8.put("amount", amount);
         mapLiteral8.put("price", price);
@@ -13933,7 +13930,7 @@ public class Binance extends BinanceApi
 
     }
 
-    public Map<String, Object> parseFundingRateHistory(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRateHistory(Map<String, Object> contract, Map<String, Object> market)
     {
         //
         //     {

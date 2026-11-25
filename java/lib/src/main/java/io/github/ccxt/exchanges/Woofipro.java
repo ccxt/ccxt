@@ -3917,7 +3917,8 @@ public class Woofipro extends WoofiproApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
         }
         Map<String, Object> market = this.market(symbol);
-        MarginModes marginModes = (this.fetchMarginModes(((List<String>) (switch ((Object) (new ArrayList<Object>(Arrays.asList(market.get("symbol"))))) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), parameters)).join();
+        String marketSymbol = this.safeString(market, "symbol", "");
+        MarginModes marginModes = (this.fetchMarginModes(new ArrayList<String>(Arrays.asList(marketSymbol)), parameters)).join();
         Map<String, Object> marginMode = this.safeDict(marginModes, market.get("symbol"), null);
         if (java.util.Objects.equals(marginMode, null))
         {

@@ -1118,7 +1118,7 @@ public class Bigone extends BigoneApi
             List<Object> instruments = (this.contractPublicGetInstruments(paramsMarketType)).join();
             data = this.toArray(instruments);
         }
-        Object tickers = this.parseTickers(data, symbolsNormalized, new HashMap<String, Object>() {{}});
+        Map<String, Object> tickers = this.parseTickers(data, symbolsNormalized, new HashMap<String, Object>() {{}});
         return this.filterByArrayTickers(tickers, "symbol", symbolsNormalized);
 
     }

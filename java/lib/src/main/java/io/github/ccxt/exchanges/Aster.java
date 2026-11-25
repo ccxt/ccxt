@@ -2549,7 +2549,7 @@ public class Aster extends AsterApi
 
     }
 
-    public Map<String, Object> parseFundingRateHistory(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRateHistory(Map<String, Object> contract, Map<String, Object> market)
     {
         //
         //     {

@@ -1578,7 +1578,6 @@ public class Coinsph extends CoinsphApi
         Long timestamp = this.safeInteger(trade, "time");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "qty");
-        List<String> type = null;
         Map<String, Object> fee = new HashMap<String, Object>() {{}};
         String feeCost = this.safeString(trade, "commission");
         if (!java.util.Objects.equals(feeCost, null))
@@ -1614,7 +1613,7 @@ public class Coinsph extends CoinsphApi
         mapLiteral3.put("timestamp", timestamp);
         mapLiteral3.put("datetime", this.iso8601(timestamp));
         mapLiteral3.put("symbol", symbol);
-        mapLiteral3.put("type", type);
+        mapLiteral3.put("type", null);
         mapLiteral3.put("side", side);
         mapLiteral3.put("takerOrMaker", takerOrMaker);
         mapLiteral3.put("price", priceString);
@@ -2592,7 +2591,6 @@ public class Coinsph extends CoinsphApi
         String code = this.safeCurrencyCode(currencyId, currency);
         Long timestamp = null;
         timestamp = this.safeInteger2(transaction, "insertTime", "applyTime");
-        List<String> updated = null;
         String type = null;
         String withdrawOrderId = this.safeString(transaction, "withdrawOrderId");
         String depositOrderId = this.safeString(transaction, "depositOrderId");
@@ -2636,7 +2634,7 @@ public class Coinsph extends CoinsphApi
             h2kMap0.put("amount", amount);
             h2kMap0.put("currency", code);
             h2kMap0.put("status", status);
-            h2kMap0.put("updated", updated);
+            h2kMap0.put("updated", null);
             h2kMap0.put("internal", intern);
             h2kMap0.put("comment", null);
             h2kMap0.put("fee", fee);

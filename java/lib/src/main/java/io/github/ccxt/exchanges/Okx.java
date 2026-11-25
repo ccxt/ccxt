@@ -5318,7 +5318,7 @@ public class Okx extends OkxApi
 
     }
 
-    public Object parseIds(Object ids)
+    public List<Object> parseIds(Object ids)
     {
         /**
          * @ignore
@@ -5329,10 +5329,10 @@ public class Okx extends OkxApi
          */
         if ((!java.util.Objects.equals(ids, null)) && (ids instanceof String))
         {
-            return new ArrayList<Object>(Arrays.asList(((String)ids).split(java.util.regex.Pattern.quote(","))));
+            return (List<Object>) (new ArrayList<Object>(Arrays.asList(((String)ids).split(java.util.regex.Pattern.quote(",")))));
         } else
         {
-            return this.safeStringList(new ArrayList<Object>(Arrays.asList(ids)), new ArrayList<Object>(Arrays.asList(0)));
+            return (List<Object>) (this.safeStringList(new ArrayList<Object>(Arrays.asList(ids)), new ArrayList<Object>(Arrays.asList(0))));
         }
     }
 
@@ -5370,8 +5370,8 @@ public class Okx extends OkxApi
         Map<String, Object> options = this.safeDict(this.options, "cancelOrders", new HashMap<String, Object>() {{}});
         String defaultMethod = this.safeString(options, "method", "privatePostTradeCancelBatchOrders");
         String method = this.safeString(parameters, "method", defaultMethod);
-        Object clientOrderIds = this.parseIds(this.safeValue2(parameters, "clOrdId", "clientOrderId"));
-        Object algoIds = this.parseIds(this.safeValue(parameters, "algoId"));
+        List<Object> clientOrderIds = this.parseIds(this.safeValue2(parameters, "clOrdId", "clientOrderId"));
+        List<Object> algoIds = this.parseIds(this.safeValue(parameters, "algoId"));
         Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", null);
         Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
         Boolean isTrigger = (java.util.Objects.equals(trigger, true));
@@ -5381,10 +5381,10 @@ public class Okx extends OkxApi
         }
         if (java.util.Objects.equals(clientOrderIds, null))
         {
-            Object orderIds = this.parseIds(ids);
+            List<Object> orderIds = this.parseIds(ids);
             if (!java.util.Objects.equals(algoIds, null))
             {
-                for (var i = 0; i < ((List<?>)algoIds).size(); i++)
+                for (var i = 0; i < algoIds.size(); i++)
                 {
                     HashMap<String, Object> j39v5 = new HashMap<String, Object>();
                     j39v5.put("algoId", this.safeString(algoIds, i));
@@ -5394,7 +5394,7 @@ public class Okx extends OkxApi
             }
             if (!java.util.Objects.equals(orderIds, null))
             {
-                for (var i = 0; i < ((List<?>)orderIds).size(); i++)
+                for (var i = 0; i < orderIds.size(); i++)
                 {
                     if (Boolean.TRUE.equals(trailing) || Boolean.TRUE.equals(isTrigger))
                     {
@@ -5413,7 +5413,7 @@ public class Okx extends OkxApi
             }
         } else
         {
-            for (var i = 0; i < ((List<?>)clientOrderIds).size(); i++)
+            for (var i = 0; i < clientOrderIds.size(); i++)
             {
                 if (Boolean.TRUE.equals(trailing) || Boolean.TRUE.equals(isTrigger))
                 {
@@ -7195,7 +7195,7 @@ public class Okx extends OkxApi
         //
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> filtered = this.filterBy(data, "selected", true);
-        Object parsed = this.parseDepositAddresses(filtered, new ArrayList<String>(Arrays.asList(this.safeString(currency, "code", ""))), false, new HashMap<String, Object>() {{}});
+        List<Object> parsed = this.parseDepositAddresses(filtered, new ArrayList<String>(Arrays.asList(this.safeString(currency, "code", ""))), false, new HashMap<String, Object>() {{}});
         return this.indexBy(parsed, "network");
 
     }

@@ -1221,7 +1221,6 @@ public class Latoken extends LatokenApi
         //         "makerBuyer":false
         //     }
         //
-        List<String> type = null;
         Long timestamp = this.safeInteger(trade, "timestamp");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "quantity");
@@ -1279,7 +1278,7 @@ public class Latoken extends LatokenApi
         mapLiteral4.put("symbol", symbol);
         mapLiteral4.put("id", id);
         mapLiteral4.put("order", orderId);
-        mapLiteral4.put("type", type);
+        mapLiteral4.put("type", null);
         mapLiteral4.put("takerOrMaker", takerOrMaker);
         mapLiteral4.put("side", side);
         mapLiteral4.put("price", priceString);

@@ -4501,7 +4501,7 @@ public class Cryptocom extends CryptocomApi
             {
                 String paramsString = "{}";
                 String arrayString = "[]";
-                jsonBody = (jsonBody == null ? null : ((String)jsonBody).replaceFirst(java.util.regex.Pattern.quote(java.util.Objects.toString(arrayString, "")), java.util.regex.Matcher.quoteReplacement(java.util.Objects.toString(paramsString, ""))));
+                jsonBody = (jsonBody == null ? null : ((String)jsonBody).replaceFirst(java.util.regex.Pattern.quote(arrayString), java.util.regex.Matcher.quoteReplacement(paramsString)));
             }
             requestBody = jsonBody;
             requestHeaders = new HashMap<String, Object>() {{

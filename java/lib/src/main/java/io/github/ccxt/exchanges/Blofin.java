@@ -877,9 +877,6 @@ public class Blofin extends BlofinApi
         {
             symbol = ((((base + "/") + quote) + ":") + settle);
         }
-        List<String> expiry = null;
-        List<String> strikePrice = null;
-        List<String> optionType = null;
         String tickSize = this.safeString(market, "tickSize");
         Map<String, Object> fees = (Map<String, Object>) this.safeDict2(this.fees, type, "trading", new HashMap<String, Object>() {{}});
         Double taker = this.safeNumber(fees, "taker", null);
@@ -920,10 +917,10 @@ public class Blofin extends BlofinApi
         mapLiteral1.put("linear", ((Boolean.TRUE.equals(contract))) ? (java.util.Objects.equals(contractType, "linear")) : null);
         mapLiteral1.put("inverse", ((Boolean.TRUE.equals(contract))) ? (java.util.Objects.equals(contractType, "inverse")) : null);
         mapLiteral1.put("contractSize", ((Boolean.TRUE.equals(contract))) ? this.safeNumber(market, "contractValue", null) : null);
-        mapLiteral1.put("expiry", expiry);
-        mapLiteral1.put("expiryDatetime", expiry);
-        mapLiteral1.put("strike", strikePrice);
-        mapLiteral1.put("optionType", optionType);
+        mapLiteral1.put("expiry", null);
+        mapLiteral1.put("expiryDatetime", null);
+        mapLiteral1.put("strike", null);
+        mapLiteral1.put("optionType", null);
         mapLiteral1.put("created", this.safeInteger(market, "listTime"));
         mapLiteral1.put("precision", new HashMap<String, Object>() {{
                 put( "amount", Blofin.this.safeNumber(market, "lotSize", null) );
@@ -3440,7 +3437,7 @@ public class Blofin extends BlofinApi
         }}, currencyResolved);
     }
 
-    public Object parseIds(Object ids)
+    public List<Object> parseIds(Object ids)
     {
         /**
          * @ignore
@@ -3451,10 +3448,10 @@ public class Blofin extends BlofinApi
          */
         if ((ids instanceof String))
         {
-            return new ArrayList<Object>(Arrays.asList(((String)ids).split(java.util.regex.Pattern.quote(","))));
+            return (List<Object>) (new ArrayList<Object>(Arrays.asList(((String)ids).split(java.util.regex.Pattern.quote(",")))));
         } else
         {
-            return this.safeStringList(new ArrayList<Object>(Arrays.asList(ids)), new ArrayList<Object>(Arrays.asList(0)));
+            return (List<Object>) (this.safeStringList(new ArrayList<Object>(Arrays.asList(ids)), new ArrayList<Object>(Arrays.asList(0))));
         }
     }
 
@@ -3489,8 +3486,8 @@ public class Blofin extends BlofinApi
         Map<String, Object> market = this.market(symbol);
         List<Object> request = new ArrayList<Object>(Arrays.asList());
         Object method = this.handleOption("cancelOrders", "method", "privatePostTradeCancelBatchOrders");
-        Object clientOrderIds = this.parseIds(this.safeValue(parameters, "clientOrderId"));
-        Object tpslIds = this.parseIds(this.safeValue(parameters, "tpslId"));
+        List<Object> clientOrderIds = this.parseIds(this.safeValue(parameters, "clientOrderId"));
+        List<Object> tpslIds = this.parseIds(this.safeValue(parameters, "tpslId"));
         Boolean trigger = (Boolean) this.safeBoolN(parameters, new ArrayList<Object>(Arrays.asList("stop", "trigger", "tpsl")), null);
         if (java.util.Objects.equals(trigger, true))
         {
@@ -3500,7 +3497,7 @@ public class Blofin extends BlofinApi
         {
             if (!java.util.Objects.equals(tpslIds, null))
             {
-                for (var i = 0; i < ((List<?>)tpslIds).size(); i++)
+                for (var i = 0; i < tpslIds.size(); i++)
                 {
                     HashMap<String, Object> j39v1 = new HashMap<String, Object>();
                     j39v1.put("tpslId", this.safeString(tpslIds, i));
@@ -3526,7 +3523,7 @@ public class Blofin extends BlofinApi
             }
         } else
         {
-            for (var i = 0; i < ((List<?>)clientOrderIds).size(); i++)
+            for (var i = 0; i < clientOrderIds.size(); i++)
             {
                 HashMap<String, Object> j39v4 = new HashMap<String, Object>();
                 j39v4.put("instId", market.get("id"));

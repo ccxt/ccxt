@@ -1788,11 +1788,10 @@ public class Bitstamp extends BitstampApi
         String side = null;
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "amount");
-        List<String> type = null;
         String costString = this.safeString(trade, "cost");
         String rawMarketId = null;
         // resolved in the key scan below, falling back to the passed market
-        Object marketResolved = market;
+        Map<String, Object> marketResolved = market;
         if (java.util.Objects.equals(market, null))
         {
             Map<String, Object> tradeCopy = this.extend(new HashMap<String, Object>() {{}}, trade);
@@ -1803,7 +1802,7 @@ public class Bitstamp extends BitstampApi
                 if (!java.util.Objects.equals(currentKey, "order_id") && currentKey.indexOf("_") >= 0)
                 {
                     rawMarketId = currentKey;
-                    marketResolved = this.safeMarket(rawMarketId, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })), "_", null);
+                    marketResolved = this.safeMarket(rawMarketId, marketResolved, "_", null);
                 }
             }
         }
@@ -1909,14 +1908,14 @@ public class Bitstamp extends BitstampApi
         mapLiteral2.put("datetime", this.iso8601(timestamp));
         mapLiteral2.put("symbol", symbol);
         mapLiteral2.put("order", this.safeString(trade, "order_id"));
-        mapLiteral2.put("type", type);
+        mapLiteral2.put("type", null);
         mapLiteral2.put("side", side);
         mapLiteral2.put("takerOrMaker", null);
         mapLiteral2.put("price", priceString);
         mapLiteral2.put("amount", amountString);
         mapLiteral2.put("cost", costString);
         mapLiteral2.put("fee", fee);
-        return this.safeTrade(mapLiteral2, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })));
+        return this.safeTrade(mapLiteral2, marketResolved);
     }
 
     /**
@@ -2841,7 +2840,7 @@ public class Bitstamp extends BitstampApi
 
     }
 
-    public Map<String, Object> parseFundingRateHistory(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRateHistory(Map<String, Object> contract, Map<String, Object> market)
     {
         //
         //     {

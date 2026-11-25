@@ -5279,7 +5279,7 @@ public class Whitebit extends WhitebitApi
 
     }
 
-    public Map<String, Object> parseFundingRateHistory(Object info, Map<String, Object> market)
+    public Map<String, Object> parseFundingRateHistory(Map<String, Object> info, Map<String, Object> market)
     {
         String marketId = this.safeString(info, "market");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);

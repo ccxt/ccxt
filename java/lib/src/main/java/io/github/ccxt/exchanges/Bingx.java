@@ -2548,7 +2548,7 @@ public class Bingx extends BingxApi
 
     }
 
-    public Map<String, Object> parseFundingRateHistory(Object contract, Map<String, Object> market)
+    public Map<String, Object> parseFundingRateHistory(Map<String, Object> contract, Map<String, Object> market)
     {
         //
         //     {
@@ -6169,7 +6169,7 @@ public class Bingx extends BingxApi
         //     }
         //
         List<Object> data = this.safeList(this.safeDict(response, "data", null), "data", new ArrayList<Object>(Arrays.asList()));
-        Object parsed = this.parseDepositAddresses(data, new ArrayList<String>(Arrays.asList(this.safeString(currency, "code", ""))), false, new HashMap<String, Object>() {{}});
+        List<Object> parsed = this.parseDepositAddresses(data, new ArrayList<String>(Arrays.asList(this.safeString(currency, "code", ""))), false, new HashMap<String, Object>() {{}});
         return this.indexBy(parsed, "network");
 
     }

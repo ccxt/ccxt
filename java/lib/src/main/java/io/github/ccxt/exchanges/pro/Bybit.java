@@ -913,10 +913,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
         for (var i = 0; i < symbolsAndTimeframes.size(); i++)
         {
-            List<?> data = (List<?>) (symbolsAndTimeframes == null || i < 0 || i >= symbolsAndTimeframes.size() ? null : symbolsAndTimeframes.get(i));
-            Map<String, Object> market = this.market((data == null || 0 >= data.size() ? null : data.get(0)));
+            List<Object> data = this.safeList(symbolsAndTimeframes, i, null);
+            Map<String, Object> market = this.market(this.safeString(data, 0, ""));
             String symbolString = this.safeString(market, "symbol", "");
-            Object unfiedTimeframe = (data == null || 1 >= data.size() ? null : data.get(1));
+            String unfiedTimeframe = this.safeString(data, 1, "");
             String timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             String marketId = this.safeString(market, "id", "");
             rawHashes.add(((("kline." + timeframeId) + ".") + marketId));
@@ -967,10 +967,10 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         List<String> messageHashes = new ArrayList<String>(Arrays.asList());
         for (var i = 0; i < symbolsAndTimeframes.size(); i++)
         {
-            List<?> data = (List<?>) (symbolsAndTimeframes == null || i < 0 || i >= symbolsAndTimeframes.size() ? null : symbolsAndTimeframes.get(i));
-            Map<String, Object> market = this.market((data == null || 0 >= data.size() ? null : data.get(0)));
+            List<Object> data = this.safeList(symbolsAndTimeframes, i, null);
+            Map<String, Object> market = this.market(this.safeString(data, 0, ""));
             String symbolString = this.safeString(market, "symbol", "");
-            Object unfiedTimeframe = (data == null || 1 >= data.size() ? null : data.get(1));
+            String unfiedTimeframe = this.safeString(data, 1, "");
             String timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             String marketId = this.safeString(market, "id", "");
             rawHashes.add(((("kline." + timeframeId) + ".") + marketId));

@@ -3751,7 +3751,7 @@ public class Kucoin extends KucoinApi
         //    }
         //
         List<Object> data = this.safeList(response, "data", null);
-        Object tickers = this.parseTickers(data, symbols, new HashMap<String, Object>() {{}});
+        Map<String, Object> tickers = this.parseTickers(data, symbols, new HashMap<String, Object>() {{}});
         return this.filterByArrayTickers(tickers, "symbol", symbols);
 
     }
@@ -4600,7 +4600,7 @@ public class Kucoin extends KucoinApi
             this.setDepositAddressesVersion(version);
         }
         List<Object> chains = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        Object parsed = this.parseDepositAddresses(chains, new ArrayList<String>(Arrays.asList(this.safeString(currency, "code", ""))), false, new HashMap<String, Object>() {{
+        List<Object> parsed = this.parseDepositAddresses(chains, new ArrayList<String>(Arrays.asList(this.safeString(currency, "code", ""))), false, new HashMap<String, Object>() {{
             put( "currency", currency.get("code") );
         }});
         return this.indexBy(parsed, "network");
@@ -12460,7 +12460,7 @@ public class Kucoin extends KucoinApi
 
     }
 
-    public Map<String, Object> parseFundingRateHistory(Object info, Map<String, Object> market)
+    public Map<String, Object> parseFundingRateHistory(Map<String, Object> info, Map<String, Object> market)
     {
         //
         // uta

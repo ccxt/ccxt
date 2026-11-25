@@ -5310,7 +5310,7 @@ public class Coinbase extends CoinbaseApi
         //    }
         //
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        Object addressStructures = this.parseDepositAddresses(data, null, false, new HashMap<String, Object>() {{}});
+        List<Object> addressStructures = this.parseDepositAddresses(data, null, false, new HashMap<String, Object>() {{}});
         return this.indexBy(addressStructures, "network");
 
     }

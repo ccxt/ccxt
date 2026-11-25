@@ -156,7 +156,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
                 }} );
             }};
             this.extendExchangeOptions(defaultOptions);
-            Object originalHeaders = Helpers.GetValue(Helpers.GetValue(this.options.get("ws"), "options"), "headers");
+            Map<String, Object> wsOptions = this.safeDict(this.options, "ws", new HashMap<String, Object>() {{}});
             // with oauth the cookie carries the raw session id (not the {"session":"..."} json used by the
             // client portal gateway) and the upgrade is rejected with http 403 unless the user agent is ClientPortalGW
             String userAgent = this.safeString(this.options, "wsUserAgent", "ClientPortalGW/1");
@@ -170,11 +170,15 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             HashMap<String, Object> mapLiteral2 = new HashMap<String, Object>();
             mapLiteral2.put("Cookie", cookie);
             mapLiteral2.put("User-Agent", userAgent);
-            Map<String, Object> headers = this.extend(originalHeaders, mapLiteral2);
-            Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options"), "headers", headers);
+            Map<String, Object> headers = this.extend(this.safeDict(this.safeDict(wsOptions, "options", null), "headers", null), mapLiteral2);
+            this.options.put("ws", this.extend(wsOptions, new HashMap<String, Object>() {{
+    put( "options", Interactivebrokers.this.extend(Interactivebrokers.this.safeDict(wsOptions, "options", null), new HashMap<String, Object>() {{
+        put( "headers", headers );
+    }}) );
+}}));
             // instantiate client
             Client newClient = this.client(url);
-            Helpers.addElementToObject(Helpers.GetValue((this.options == null ? null : ((Map<?, ?>)this.options).get("ws")), "options"), "headers", originalHeaders);
+            this.options.put("ws", wsOptions);
             Long tickleInterval = this.safeInteger(this.options, "tickleInterval", 240000);
             this.scheduleCallback(tickleInterval, "ibkrKeepAliveSession", newClient);
         }
