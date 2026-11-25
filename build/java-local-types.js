@@ -9769,6 +9769,8 @@ const JAVA_VENUE_RETURN_MAP = {
     'Order[]': 'List<Order>',
     // venue-private `Promise<TransferEntry>` transfers: the wrapper maps the core's dict to the TransferEntry view
     'TransferEntry': 'TransferEntry',
+    // venue-only `Promise<List>` fetchers (`List = Array<any>`): the same gates as `any[]`
+    'List': 'List<Object>',
 };
 let javaVenueReturnTable;
 const javaVenueListFiles = [];
