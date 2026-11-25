@@ -17731,7 +17731,7 @@ function goNativeStringAdds (content: string): string {
         if (fn.indexOf ('Add(') < 0) { return fn; }
         const masked = fileMasked.slice (start, start + fn.length);
         if (masked.indexOf ('Add(') < 0) { return fn; }
-        const locals = goAddStringLocals (fn, masked, fileIndex);
+        let locals: Set<string> | undefined = undefined;  // built on the first Add in a safe context
         let body = '';
         let at = 0;
         const addRe = /(?<![\w.])(ccxt\.)?Add\(/g;
@@ -17743,6 +17743,7 @@ function goNativeStringAdds (content: string): string {
             const after = masked.slice (close + 1).replace (/^[ \t]+/, '');
             // the result changes from `any` to `string`: only where both types are accepted
             const safeContext = !/(==|!=|:=|\bvar \w+ =)$/.test (before) && /^([,)\]}\n]|$)/.test (after) && !/^\.\(/.test (masked.slice (close + 1));
+            if (safeContext && (locals === undefined)) { locals = goAddStringLocals (fn, masked, fileIndex); }
             const native = safeContext ? goAddNative (fn.slice (m.index, close + 1), masked.slice (m.index, close + 1), goNilGuardedStringLocals (masked, m.index, locals), overridden) : null;
             if (native !== null) {
                 body += fn.slice (at, m.index) + native;
@@ -17901,7 +17902,9 @@ function goNativeStringHelperText (helper: string, args: string[], maskedFunc: s
 
 function GO_STRING_HELPER_CALL_RX () { return /(?<![\w.])(ccxt\.)?(ToString|ToUpper|ToLower|Trim|Split|StartsWith|EndsWith|Replace|Join|GetIndexOf|Slice|PadStart)\(/g; }
 
-function goNativeStringHelpersRewriteFunc (func: string, pkgs: Set<string>): string {
+// right-to-left string-helper rewrite to a fixpoint (<= 8 passes): `native` answers the replacement of one call
+function goStringHelperCallsRewrite (func: string, pkgs: Set<string>, rx: () => RegExp,
+    native: (name: string, args: string[], out: string, masked: string, at: number) => { text: string; pkg: string } | undefined): string {
     let out = func;
     // right to left so earlier offsets stay valid
     for (let pass = 0; pass < 8; pass++) {
@@ -17909,25 +17912,24 @@ function goNativeStringHelpersRewriteFunc (func: string, pkgs: Set<string>): str
         if (/\b(?:strings|strconv|slices|min|max|len)\b\s*(?::=|,|\s+[\w\[\]*])/.test (masked.replace (/\b(?:strings|strconv|slices)\.\w|\b(?:min|max|len)\(/g, ''))) {
             return out;     // a local shadows the package name
         }
-        const hits = [ ...masked.matchAll (GO_STRING_HELPER_CALL_RX ()) ];
+        const hits = [ ...masked.matchAll (rx ()) ];
         let changed = false;
         let firstEdit = out.length;
         for (let h = hits.length - 1; h >= 0; h--) {
             const m = hits[h];
-            const open = m.index + m[0].length - 1;
-            const parsed = goSplitCallArgs (out, masked, open);
+            const parsed = goSplitCallArgs (out, masked, m.index + m[0].length - 1);
             // a call enclosing an edit of this pass is re-read on the next pass
             if ((parsed === undefined) || (parsed.end >= firstEdit)) {
                 continue;
             }
-            const native = goNativeStringHelperText (m[2], parsed.args, masked);
-            if (native === undefined) {
+            const rep = native (m[2], parsed.args, out, masked, m.index);
+            if (rep === undefined) {
                 continue;
             }
-            if (native.pkg !== '') {
-                pkgs.add (native.pkg);
+            if (rep.pkg !== '') {
+                pkgs.add (rep.pkg);
             }
-            out = out.substring (0, m.index) + native.text + out.substring (parsed.end + 1);
+            out = out.substring (0, m.index) + rep.text + out.substring (parsed.end + 1);
             firstEdit = m.index;
             changed = true;
         }
@@ -17936,6 +17938,10 @@ function goNativeStringHelpersRewriteFunc (func: string, pkgs: Set<string>): str
         }
     }
     return out;
+}
+
+function goNativeStringHelpersRewriteFunc (func: string, pkgs: Set<string>): string {
+    return goStringHelperCallsRewrite (func, pkgs, GO_STRING_HELPER_CALL_RX, (name, args, _out, masked) => goNativeStringHelperText (name, args, masked));
 }
 
 // EndpointRaw only adapts a typed endpoint channel for promiseAll, which receives such a channel
@@ -18015,35 +18021,39 @@ function goDropEndpointRaw (func: string): string {
     return out;
 }
 
-function goNativeStringHelpers (filePath: string, content: string): string {
-    if (!filePath.endsWith ('.go') || filePath.endsWith ('_api.go') || (content.indexOf (GO_CONTRIBUTING_HEADER ()) < 0)) {
+// per-`func` string-helper rewrite of a contributing .go file, adding the stdlib imports it needs
+// (a base file has no import clause to extend: only package-free rewrites land there)
+function goStringHelperFilePass (filePath: string, content: string, guard: RegExp | undefined, prep: (part: string) => string,
+    rewrite: (part: string, pkgs: Set<string>) => string): string {
+    if (!filePath.endsWith ('.go') || filePath.endsWith ('_api.go') || (content.indexOf (GO_CONTRIBUTING_HEADER ()) < 0) || ((guard !== undefined) && !guard.test (content))) {
         return content;
     }
     const base = /(?:^|[\\/])exchange_[\w]*\.go$/.test (filePath);
     const has = (pkg: string) => new RegExp ('^import "' + pkg + '"$|^\\s+"' + pkg + '"$', 'm').test (content);
     const pkgs = new Set<string> ();
-    const parts = content.split (/(?=^func )/m);
-    const rewritten = parts.map ((part, i) => {
-        if (i === 0 && !part.startsWith ('func ')) {
+    let out = content.split (/(?=^func )/m).map ((part, i) => {
+        if (((i === 0) && !part.startsWith ('func ')) || ((guard !== undefined) && !guard.test (part))) {
             return part;
         }
-        const next = goDropEndpointRaw (part);
+        const next = prep (part);
         const local = new Set<string> ();
-        const trial = goNativeStringHelpersRewriteFunc (next, local);
-        // a base file has no import clause to extend: only package-free rewrites land there
+        const trial = rewrite (next, local);
         if (base && [ ...local ].some ((p) => !has (p))) {
             return next;
         }
         local.forEach ((p) => pkgs.add (p));
         return trial;
-    });
-    let out = rewritten.join ('');
+    }).join ('');
     const missing = [ ...pkgs ].filter ((p) => !has (p)).sort ();
     if (missing.length > 0) {
         const at = out.indexOf (GO_CONTRIBUTING_HEADER ()) + GO_CONTRIBUTING_HEADER ().length;
         out = out.substring (0, at) + '\n\n' + missing.map ((p) => 'import "' + p + '"').join ('\n') + out.substring (at);
     }
     return out;
+}
+
+function goNativeStringHelpers (filePath: string, content: string): string {
+    return goStringHelperFilePass (filePath, content, undefined, goDropEndpointRaw, goNativeStringHelpersRewriteFunc);
 }
 
 // ===== Int64PtrTyped(rN.Value) of an int64 / *int64 async receive =====
@@ -19162,39 +19172,13 @@ function goNilProvenStringPtr (arg: string, masked: string, at: number): { kind:
     return goNilGuardedStringLocals (masked, at, new Set ([ '*' + arg ])).has ('!' + arg) ? { kind: 'string', text: '*' + arg } : undefined;
 }
 
+function GO_TYPED_STR_CALL_RX (): RegExp {
+    return /(?<![\w.])(ccxt\.)?(ToString|ToUpper|ToLower|Trim|Split|StartsWith|EndsWith|Replace|Join|GetIndexOf|PadStart|PadEnd|Slice)\(/g;
+}
+
 function goTypedStrRewriteFunc (func: string, file: string, pkgs: Set<string>): string {
-    let out = func;
-    for (let pass = 0; pass < 8; pass++) {
-        const masked = goMaskGoCode (out);
-        if (/\b(?:strings|strconv|slices|min|max|len)\b\s*(?::=|,|\s+[\w\[\]*])/.test (masked.replace (/\b(?:strings|strconv|slices)\.\w|\b(?:min|max|len)\(/g, ''))) {
-            return out;     // a local shadows the package name
-        }
-        const hits = [ ...masked.matchAll (/(?<![\w.])(ccxt\.)?(ToString|ToUpper|ToLower|Trim|Split|StartsWith|EndsWith|Replace|Join|GetIndexOf|PadStart|PadEnd|Slice)\(/g) ];
-        let changed = false;
-        let firstEdit = out.length;
-        for (let h = hits.length - 1; h >= 0; h--) {
-            const m = hits[h];
-            const parsed = goSplitCallArgs (out, masked, m.index + m[0].length - 1);
-            if ((parsed === undefined) || (parsed.end >= firstEdit)) {
-                continue;
-            }
-            const ops = parsed.args.map ((a) => goTypedStrOperand (a, out, masked, file) ?? goNilProvenStringPtr (a, masked, m.index));
-            const native = goTypedStrNative (m[2], ops, parsed.args, masked);
-            if (native === undefined) {
-                continue;
-            }
-            if (native.pkg !== '') {
-                pkgs.add (native.pkg);
-            }
-            out = out.substring (0, m.index) + native.text + out.substring (parsed.end + 1);
-            firstEdit = m.index;
-            changed = true;
-        }
-        if (!changed) {
-            break;
-        }
-    }
-    return out;
+    return goStringHelperCallsRewrite (func, pkgs, GO_TYPED_STR_CALL_RX, (name, args, out, masked, at) =>
+        goTypedStrNative (name, args.map ((a) => goTypedStrOperand (a, out, masked, file) ?? goNilProvenStringPtr (a, masked, at)), args, masked));
 }
 
 // a func-local `var X []any = []any{<strings>}` only appended proven strings, measured with len() and joined with
@@ -19364,41 +19348,8 @@ function goJoinNativeCheck (ok: SelfTestOk): void {
 }
 
 function goTypedStrNativeStringHelpers (filePath: string, content: string): string {
-    if (!filePath.endsWith ('.go') || filePath.endsWith ('_api.go') || (content.indexOf (GO_CONTRIBUTING_HEADER ()) < 0)) {
-        return content;
-    }
-    const strHelperRe = /\b(?:ToString|ToUpper|ToLower|Trim|Split|StartsWith|EndsWith|Replace|Join|GetIndexOf|PadStart|PadEnd|Slice)\(/;
-    if (!strHelperRe.test (content)) {
-        return content;
-    }
-    const base = /(?:^|[\\/])exchange_[\w]*\.go$/.test (filePath);
-    const has = (pkg: string) => new RegExp ('^import "' + pkg + '"$|^\\s+"' + pkg + '"$', 'm').test (content);
-    const pkgs = new Set<string> ();
-    const parts = content.split (/(?=^func )/m);
-    let changed = false;
-    const mapped = parts.map ((part, i) => {
-        if (((i === 0) && !part.startsWith ('func ')) || !strHelperRe.test (part)) {
-            return part;
-        }
-        const local = new Set<string> ();
-        const trial = goTypedStrRewriteFunc (part, content, local);
-        if (base && [ ...local ].some ((p) => !has (p))) {
-            return part;
-        }
-        local.forEach ((p) => pkgs.add (p));
-        if (trial !== part) { changed = true; }
-        return trial;
-    });
-    const missing = [ ...pkgs ].filter ((p) => !has (p)).sort ();
-    if (!changed && (missing.length === 0)) {
-        return content;
-    }
-    let out = mapped.join ('');
-    if (missing.length > 0) {
-        const at = out.indexOf (GO_CONTRIBUTING_HEADER ()) + GO_CONTRIBUTING_HEADER ().length;
-        out = out.substring (0, at) + '\n\n' + missing.map ((p) => 'import "' + p + '"').join ('\n') + out.substring (at);
-    }
-    return out;
+    return goStringHelperFilePass (filePath, content, /\b(?:ToString|ToUpper|ToLower|Trim|Split|StartsWith|EndsWith|Replace|Join|GetIndexOf|PadStart|PadEnd|Slice)\(/,
+        (part) => part, (part, pkgs) => goTypedStrRewriteFunc (part, content, pkgs));
 }
 
 function goTypedStrSelfTest (ok: SelfTestOk): void {
