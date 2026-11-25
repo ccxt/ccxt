@@ -9505,7 +9505,7 @@ export class BaseExchange {
             const marketId = (symbolKey === undefined) ? undefined : this.safeString (response[i], symbolKey);
             const market = this.safeMarket (marketId, undefined, undefined, marketType);
             if ((symbols === undefined) || this.inArray (market['symbol'], symbols)) {
-                marginModifications.push (this.parseMarginModification (response[i], market));
+                marginModifications.push (this.parseMarginModification (this.safeDict (response, i, {}), market));
             }
         }
         return marginModifications;

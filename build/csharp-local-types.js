@@ -17257,6 +17257,8 @@ export const SIGNATURE_ARG_TYPES = {
     'findTimeframe': { 1: 'IDictionary<string, object>' },
     // venue handleBidAsks (bookSide: OrderBookSide): every caller hands an IBids / IAsks side
     'handleBidAsks': { 0: 'ccxt.pro.IOrderBookSide' },
+    // `data: Dict` on the base and every override; every caller passes a dictionary row or response
+    'parseMarginModification': { 0: 'IDictionary<string, object>' },
 };
 
 // parse* cores whose `market: Market` parameter prints `IDictionary<string, object>` on every

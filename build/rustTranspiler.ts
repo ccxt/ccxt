@@ -5349,6 +5349,7 @@ function rustBorrowedParseRows (content: string): string {
     optFns.push ('parse_my_trade');
     optFns.push ('parse_ticker');
     optFns.push ('parse_funding_rate_history');
+    optFns.push ('parse_margin_modification');
     // an inherent override borrows `Option<&Dict>` too; its `self.X(` callers and dispatch arm in the same file lend
     const venue = RUST_BORROWED_VENUE_ROWS.filter ((f) => content.includes ('\n    pub fn ' + f + '(&self, ') && !rustBorrowedRowBoxedCaller (content, f));
     // only the `impl Into<Value>` slot is borrowed; a `mut x: Value` slot (a `Dict` declaration) keeps its callers boxed
