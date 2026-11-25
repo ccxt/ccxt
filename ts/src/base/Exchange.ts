@@ -9284,19 +9284,21 @@ export class BaseExchange {
 
     parseAllGreeksList (greeks: Dict[], symbols: Strings = undefined, params: Dict = {}): AllGreeks {
         const results: Dict[] = [];
-        for (let i = 0; i < greeks.length; i++) {
-            results.push (this.extend (this.parseGreeks (this.safeDict (greeks, i, {})), params));
+        const greeksArray = this.toArray (greeks);
+        for (let i = 0; i < greeksArray.length; i++) {
+            results.push (this.extend (this.parseGreeks (this.safeDict (greeksArray, i, {})), params));
         }
         return this.indexBy (this.filterByArray (results, 'symbol', this.marketSymbols (symbols), false), 'symbol') as AllGreeks;
     }
 
     parseAllGreeksDict (greeks: Dict, symbols: Strings = undefined, params: Dict = {}): AllGreeks {
         const results: Dict[] = [];
-        const marketIds = Object.keys (greeks);
+        const greeksDict: Dict = this.extend ({}, greeks);
+        const marketIds = Object.keys (greeksDict);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
-            results.push (this.extend (this.parseGreeks (this.safeDict (greeks, marketId, {}), market), params));
+            results.push (this.extend (this.parseGreeks (this.safeDict (greeksDict, marketId, {}), market), params));
         }
         return this.indexBy (this.filterByArray (results, 'symbol', this.marketSymbols (symbols), false), 'symbol') as AllGreeks;
     }

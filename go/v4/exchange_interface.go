@@ -294,7 +294,7 @@ type ICoreExchange interface {
 	FetchMyLiquidationsAsync(optionalArgs ...any) <-chan AsyncResult[[]Liquidation]
 	ParseLiquidation(liquidation any, optionalArgs ...any) map[string]any
 	FetchGreeksAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[Greeks]
-	ParseGreeks(greeks any, optionalArgs ...any) Greeks
+	ParseGreeks(greeks map[string]any, optionalArgs ...any) Greeks
 	FetchTradingLimitsAsync(optionalArgs ...any) <-chan AsyncResult[map[string]any]
 	FetchPositionModeAsync(optionalArgs ...any) <-chan AsyncResult[PositionModeInfo]
 	FetchMarginModesAsync(optionalArgs ...any) <-chan AsyncResult[map[string]MarginMode]
@@ -449,7 +449,7 @@ type IDerivedExchange interface {
 	ParseOHLCV(ohlcv any, optionalArgs ...any) OHLCV
 	ParseTrade(trade any, optionalArgs ...any) Trade
 	ParseTrades(trades any, optionalArgs ...any) []any
-	ParseGreeks(greeks any, optionalArgs ...any) Greeks
+	ParseGreeks(greeks map[string]any, optionalArgs ...any) Greeks
 	ParseMarket(market any) map[string]any
 	ParseCurrency(rawCurrency any) map[string]any
 	ParseTransaction(transaction map[string]any, optionalArgs ...any) Transaction
