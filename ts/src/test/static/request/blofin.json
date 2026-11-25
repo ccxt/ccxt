@@ -505,13 +505,13 @@
         ],
         "closePosition": [
             {
-                "description": "close short position",
+                "description": "close position",
                 "method": "closePosition",
                 "url": "https://openapi.blofin.com/api/v1/trade/close-position",
                 "input": [
                     "LTC/USDT:USDT"
                 ],
-                "output": "{\"instId\":\"LTC-USDT\",\"marginMode\":\"cross\"}"
+                "output": "{\"instId\":\"LTC-USDT\",\"marginMode\":\"cross\",\"brokerId\":\"ec6dd3a7dd982d0b\"}"
             }
         ],
         "fetchPosition": [

@@ -3409,6 +3409,7 @@ export default class blofin extends Exchange {
         const request: Dict = {
             'instId': market['id'],
             'marginMode': marginMode,
+            'brokerId': this.safeString (this.options, 'brokerId', 'ec6dd3a7dd982d0b'),
         };
         if (clientOrderId !== undefined) {
             request['clientOrderId'] = clientOrderId;
