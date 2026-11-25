@@ -748,7 +748,7 @@ export default class interactivebrokers extends interactivebrokersRest {
         const timeframes = Object.keys (ohlcvsBySymbol);
         for (let i = 0; i < timeframes.length; i++) {
             const timeframe = timeframes[i];
-            const stored = ohlcvsBySymbol[timeframe];
+            const stored: ArrayCacheByTimestamp = ohlcvsBySymbol[timeframe];
             const duration = this.parseTimeframe (timeframe) * 1000;
             const candleTimestamp = this.parseToInt (timestamp / duration) * duration;
             const length = stored.length;
