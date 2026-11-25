@@ -12031,6 +12031,9 @@ function csharpLocalTypeOf (csharp, declaration, context) {
         } else if (mathBox !== undefined) {
             csharpType = mathBox.type;
             cast = mathBox.cast;
+        } else if (nativeIntegralMinMaxArmType (csharp, stripParens (declaration.initializer)) === 'Int64') {
+            // `const n = Math.min (count, limit)` the printer prints as a native long Math.Min: the call's own C# type
+            csharpType = 'Int64';
         } else if (marketRowStringReadType (csharp, declaration.initializer) === 'string') {
             // `const symbol = market['symbol']`: the market row's value at the string keys is
             // a string or null (key table above), so the `(string)` cast names the box
