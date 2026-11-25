@@ -7462,8 +7462,9 @@ class htx extends Exchange {
         $data = $this->safe_value($response, 'data');
         $rates = array();
         if ($this->safe_bool($market, 'linear', false)) {
-            for ($i = 0; $i < count($data); $i++) {
-                $entry = $data[$i];
+            $linearRates = $this->safe_list($response, 'data', array());
+            for ($i = 0; $i < count($linearRates); $i++) {
+                $entry = $linearRates[$i];
                 $marketId = $this->safe_string($entry, 'contract_code');
                 $symbolInner = $this->safe_symbol($marketId, $market);
                 $timestamp = $this->safe_integer($entry, 'funding_time');

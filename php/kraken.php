@@ -2068,7 +2068,9 @@ class kraken extends Exchange {
             $side = $descriptionSide;
         }
         $rawType = $this->safe_string($description, 'ordertype', $descriptionType); // orderType has dash, e.g. trailing-stop
-        $marketId = $this->safe_string($description, 'pair', $marketId);
+        if ($this->safe_string($description, 'pair') !== null) {
+            $marketId = $this->safe_string($description, 'pair');
+        }
         $marketResolved = $this->resolve_market_by_altname_or_id($marketId, $market);
         $symbol = null;
         $timestamp = $this->safe_timestamp($orderOmitted, 'opentm');

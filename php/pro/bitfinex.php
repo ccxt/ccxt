@@ -551,7 +551,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         $createdKey = $isPublic ? 1 : 2;
         $priceKey = $isPublic ? 3 : 5;
         $amountKey = $isPublic ? 2 : 4;
-        $marketId = $marketResolved['id'];
+        $marketId = $this->safe_string($marketResolved, 'id');
         $type = $this->safe_string($trade, 6);
         if ($type !== null) {
             if (mb_strpos($type, 'LIMIT') > -1) {
@@ -1208,13 +1208,13 @@ class bitfinex extends \ccxt\async\bitfinex {
                 return;
             }
             for ($i = 0; $i < count($data); $i++) {
-                $parsed = $this->parse_ws_order($data[$i]);
+                $parsed = $this->parse_ws_order_row($this->safe_list($data, $i, array()));
                 $symbol = $this->safe_string($parsed, 'symbol', '');
                 $symbolIds[$symbol] = true;
                 $orders->append($parsed);
             }
         } else {
-            $parsed = $this->parse_ws_order($data);
+            $parsed = $this->parse_ws_order_row($data);
             $orders->append($parsed);
             $symbol = $this->safe_string($parsed, 'symbol', '');
             $symbolIds[$symbol] = true;
@@ -1241,7 +1241,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_ws_order(array $order, ?array $market = null): array {
+    public function parse_ws_order_row(array $order, ?array $market = null): array {
         //
         //   [
         //       97084883506, // order id

@@ -3076,9 +3076,9 @@ class htx extends \ccxt\async\htx {
         $hostnames = $this->safe_dict($this->urls, 'hostnames', array());
         $hostname = null;
         if ($type === 'spot') {
-            $hostname = $hostnames['spot'];
+            $hostname = $this->safe_string($hostnames, 'spot');
         } else {
-            $hostname = $hostnames['contract'];
+            $hostname = $this->safe_string($hostnames, 'contract');
         }
         $authParams = array(
             'type' => $type,

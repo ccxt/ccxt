@@ -8251,7 +8251,7 @@ class okx extends Exchange {
         return $this->parse_open_interests($data, $symbolsNormalized);
     }
 
-    public function fetch_open_interest_history(string $symbol, string $timeframe = '1d', ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_open_interest_history(string $symbol, string $timeframe = '1d', ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * Retrieves the open interest history of a swap or future $market, or of a $currency when a $currency code is given
          *
@@ -8314,7 +8314,11 @@ class okx extends Exchange {
             //    }
             //
             $instrumentData = $this->safe_list($response, 'data', array());
-            return $this->parse_open_interests_history($instrumentData, $market, $since, $limit);
+            $instrumentInterests = array();
+            for ($i = 0; $i < count($instrumentData); $i++) {
+                $instrumentInterests[] = $this->parse_open_interest_row($this->safe_list($instrumentData, $i, array()), $market);
+            }
+            return $this->filter_by_symbol_since_limit($this->sort_by($instrumentInterests, 'timestamp'), $this->safe_string($market, 'symbol'), $since, $limit);
         }
         if ($type === 'option') {
             $response = $this->publicGetRubikStatOptionOpenInterestVolume($this->extend($request, $paramsMarketType));
@@ -8344,7 +8348,61 @@ class okx extends Exchange {
         //    }
         //
         $data = $this->safe_list($response, 'data', array());
-        return $this->parse_open_interests_history($data, null, $since, $limit);
+        $interests = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $interests[] = $this->parse_open_interest_row($this->safe_list($data, $i, array()), null);
+        }
+        return $this->filter_by_symbol_since_limit($this->sort_by($interests, 'timestamp'), null, $since, $limit);
+    }
+
+    public function parse_open_interest_row(array $interest, ?array $market = null): array {
+        //
+        // fetchOpenInterestHistory
+        //
+        //    [
+        //        "1648221300000",  // timestamp
+        //        "2183354317.945",  // open interest (USD) - (coin) for options
+        //        "74285877.617",  // volume (USD) - (coin) for options
+        //    ]
+        //
+        // fetchOpenInterestHistory for a swap or future market
+        //
+        //    [
+        //        "1790550000000",  // timestamp
+        //        "2800476.45",  // open interest (contracts)
+        //        "28006.5419",  // open interest (base currency)
+        //        "2360916466.88",  // open interest (USD)
+        //    ]
+        //
+        $marketResolved = $this->safe_market(null, $market);
+        $timestamp = $this->safe_integer($interest, 0);
+        $baseVolume = null;
+        $quoteVolume = null;
+        $openInterestAmount = null;
+        $openInterestValue = null;
+        $type = $this->safe_string($this->options, 'defaultType');
+        $numFields = count($interest);
+        if ($numFields > 3) {
+            $openInterestAmount = $this->safe_number($interest, 1);
+            $baseVolume = $this->safe_number($interest, 2);
+            $openInterestValue = $this->safe_number($interest, 3);
+        } elseif ($type === 'option') {
+            $openInterestAmount = $this->safe_number($interest, 1);
+            $baseVolume = $this->safe_number($interest, 2);
+        } else {
+            $openInterestValue = $this->safe_number($interest, 1);
+            $quoteVolume = $this->safe_number($interest, 2);
+        }
+        return $this->safe_open_interest(array(
+            'symbol' => $this->safe_symbol(null),
+            'baseVolume' => $baseVolume,  // deprecated
+            'quoteVolume' => $quoteVolume,  // deprecated
+            'openInterestAmount' => $openInterestAmount,
+            'openInterestValue' => $openInterestValue,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $interest,
+        ), $marketResolved);
     }
 
     public function handle_trading_statistics_window(array $request, string $period, ?int $since = null, ?int $limit = null, $params = array()): array {
@@ -8401,24 +8459,7 @@ class okx extends Exchange {
         return array( $request, $paramsOmitted );
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
-        //
-        // fetchOpenInterestHistory
-        //
-        //    [
-        //        "1648221300000",  // timestamp
-        //        "2183354317.945",  // open interest (USD) - (coin) for options
-        //        "74285877.617",  // volume (USD) - (coin) for options
-        //    ]
-        //
-        // fetchOpenInterestHistory for a swap or future market
-        //
-        //    [
-        //        "1790550000000",  // timestamp
-        //        "2800476.45",  // open interest (contracts)
-        //        "28006.5419",  // open interest (base currency)
-        //        "2360916466.88",  // open interest (USD)
-        //    ]
+    public function parse_open_interest(?array $interest, ?array $market = null): array {
         //
         // fetchOpenInterest
         //
@@ -8433,37 +8474,13 @@ class okx extends Exchange {
         //
         $id = $this->safe_string($interest, 'instId');
         $marketResolved = $this->safe_market($id, $market);
-        $time = $this->safe_integer($interest, 'ts');
-        $timestamp = $this->safe_integer($interest, 0, $time);
-        $baseVolume = null;
-        $quoteVolume = null;
-        $openInterestAmount = null;
-        $openInterestValue = null;
-        $type = $this->safe_string($this->options, 'defaultType');
-        if ((gettype($interest) === 'array' && array_keys($interest) === array_keys(array_keys($interest)))) {
-            $numFields = count($interest);
-            if ($numFields > 3) {
-                $openInterestAmount = $this->safe_number($interest, 1);
-                $baseVolume = $this->safe_number($interest, 2);
-                $openInterestValue = $this->safe_number($interest, 3);
-            } elseif ($type === 'option') {
-                $openInterestAmount = $this->safe_number($interest, 1);
-                $baseVolume = $this->safe_number($interest, 2);
-            } else {
-                $openInterestValue = $this->safe_number($interest, 1);
-                $quoteVolume = $this->safe_number($interest, 2);
-            }
-        } else {
-            $baseVolume = $this->safe_number($interest, 'oiCcy');
-            $openInterestAmount = $this->safe_number($interest, 'oi');
-            $openInterestValue = $this->safe_number($interest, 'oiUsd');
-        }
+        $timestamp = $this->safe_integer($interest, 'ts');
         return $this->safe_open_interest(array(
             'symbol' => $this->safe_symbol($id),
-            'baseVolume' => $baseVolume,  // deprecated
-            'quoteVolume' => $quoteVolume,  // deprecated
-            'openInterestAmount' => $openInterestAmount,
-            'openInterestValue' => $openInterestValue,
+            'baseVolume' => $this->safe_number($interest, 'oiCcy'),  // deprecated
+            'quoteVolume' => null,  // deprecated
+            'openInterestAmount' => $this->safe_number($interest, 'oi'),
+            'openInterestValue' => $this->safe_number($interest, 'oiUsd'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,

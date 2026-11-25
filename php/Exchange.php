@@ -3997,16 +3997,14 @@ class BaseExchange {
                     }
                 }
                 if ($fromStart) {
-                    $limitResolved = ($limit > $arrayLength) ? $arrayLength : $limit;
                     if ($ascending) {
+                        $limitResolved = ($limit > $arrayLength) ? $arrayLength : $limit;
                         return $this->array_slice($array, 0, $limitResolved);
                     }
-                    return $this->array_slice($array, -$limitResolved);
+                } elseif (!$ascending) {
+                    return $this->array_slice($array, 0, $limit);
                 }
-                if ($ascending) {
-                    return $this->array_slice($array, -$limit);
-                }
-                return $this->array_slice($array, 0, $limit);
+                return $this->array_slice($array, -$limit);
             }
         }
         return $array;
@@ -6032,7 +6030,7 @@ class BaseExchange {
         return $result;
     }
 
-    public function fetch_web_endpoint(string $method, mixed $endpointMethod, mixed $returnAsJson, ?string $startRegex = null, ?string $endRegex = null) {
+    public function fetch_web_endpoint(string $method, mixed $endpointMethod, bool $returnAsJson, ?string $startRegex = null, ?string $endRegex = null) {
         $options = $this->safe_value($this->options, $method, array());
         $muteOnFailure = $this->safe_bool($options, 'webApiMuteFailure', true);
         try {

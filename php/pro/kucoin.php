@@ -1971,9 +1971,9 @@ class kucoin extends \ccxt\async\kucoin {
 
     public function handle_order_book_subscription(Client $client, array $message, array $subscription) {
         $limit = $this->safe_integer($subscription, 'limit');
-        $symbols = $this->safe_list($subscription, 'symbols');
+        $symbols = $this->safe_string_list($subscription, array( 'symbols', 'symbol' ));
         if ($symbols === null) {
-            $symbols = array( $this->safe_string($subscription, 'symbol') );
+            return;
         }
         $limits = $this->safe_dict($this->options, 'orderBookLimits', array());
         for ($i = 0; $i < count($symbols); $i++) {

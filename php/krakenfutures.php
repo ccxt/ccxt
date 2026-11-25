@@ -3631,7 +3631,8 @@ class krakenfutures extends Exchange {
             'multiCollateralMargin' => 'flex',
         );
         if (is_array($accountByType) && array_key_exists($account ?? '', $accountByType)) {
-            return $accountByType[$account];
+            $accountName = $this->safe_string($accountByType, $account, '');
+            return $accountName;
         } elseif (($this->markets !== null) && (is_array($this->markets) && array_key_exists($account ?? '', $this->markets))) {
             $market = $this->market($account);
             $marketId = $this->safe_string($market, 'id', '');

@@ -3436,7 +3436,15 @@ class bitfinex extends Exchange {
         //       ]
         //   ]
         //
-        return $this->parse_funding_rates($response, $symbols);
+        $fundingRates = array();
+        $fundingRows = $this->to_array($response);
+        for ($i = 0; $i < count($fundingRows); $i++) {
+            $rateSymbol = $this->safe_symbol($this->safe_string($this->safe_list($fundingRows, $i, array()), 0));
+            if ($rateSymbol !== null) {
+                $fundingRates[$rateSymbol] = $this->parse_funding_rate_row($this->safe_list($fundingRows, $i, array()));
+            }
+        }
+        return $this->index_by($this->filter_by_array($fundingRates, 'symbol', $symbols, false), 'symbol');
     }
 
     public function fetch_funding_rate_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -3523,7 +3531,7 @@ class bitfinex extends Exchange {
         return $reversedArray;
     }
 
-    public function parse_funding_rate(?array $contract, ?array $market = null): array {
+    public function parse_funding_rate_row(array $contract, ?array $market = null): array {
         //
         //       [
         //          "tBTCF0:USTF0",
@@ -3556,7 +3564,6 @@ class bitfinex extends Exchange {
         $timestamp = $this->safe_integer($contract, 1);
         $nextFundingTimestamp = $this->safe_integer($contract, 8);
         return array(
-            'info' => $contract,
             'symbol' => $this->safe_symbol($marketId, $market),
             'markPrice' => $this->safe_number($contract, 15),
             'indexPrice' => $this->safe_number($contract, 3),
@@ -3574,6 +3581,7 @@ class bitfinex extends Exchange {
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
             'interval' => null,
+            'info' => $contract,
         );
     }
 
@@ -3671,7 +3679,15 @@ class bitfinex extends Exchange {
         //         ]
         //     ]
         //
-        return $this->parse_open_interests($response, $symbolsNormalized);
+        $openInterests = array();
+        $interestRows = $this->to_array($response);
+        for ($i = 0; $i < count($interestRows); $i++) {
+            $interestSymbol = $this->safe_symbol($this->safe_string($this->safe_list($interestRows, $i, array()), 0), null, null, 'swap');
+            if ($interestSymbol !== null) {
+                $openInterests[$interestSymbol] = $this->parse_open_interest_row($this->safe_list($interestRows, $i, array()));
+            }
+        }
+        return $this->index_by($this->filter_by_array($openInterests, 'symbol', $symbolsNormalized, false), 'symbol');
     }
 
     public function fetch_open_interest(string $symbol, $params = array()): PromiseInterface {
@@ -3726,11 +3742,11 @@ class bitfinex extends Exchange {
         //         ]
         //     ]
         //
-        $oi = $this->safe_list($response, 0);
-        return $this->parse_open_interest($oi, $market);
+        $oi = $this->safe_list($response, 0, array());
+        return $this->parse_open_interest_row($oi, $market);
     }
 
-    public function fetch_open_interest_history(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_open_interest_history(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_interest_history(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
@@ -3797,10 +3813,16 @@ class bitfinex extends Exchange {
         //         ],
         //     ]
         //
-        return $this->parse_open_interests_history($response, $market, $since, $limit);
+        $interests = array();
+        $historyRows = $this->to_array($response);
+        for ($i = 0; $i < count($historyRows); $i++) {
+            $interests[] = $this->parse_open_interest_row($this->safe_list($historyRows, $i, array()), $market);
+        }
+        $sortedInterests = $this->sort_by($interests, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sortedInterests, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
-    public function parse_open_interest(mixed $interest, ?array $market = null): array {
+    public function parse_open_interest_row(array $interest, ?array $market = null): array {
         //
         // fetchOpenInterest:
         //
@@ -3928,10 +3950,16 @@ class bitfinex extends Exchange {
         //         ],
         //     ]
         //
-        return $this->parse_liquidations($this->to_array($response), $market, $since, $limit);
+        $liquidationsParsed = array();
+        $liquidationRows = $this->to_array($response);
+        for ($i = 0; $i < count($liquidationRows); $i++) {
+            $liquidationsParsed[] = $this->parse_liquidation_row($this->safe_list($liquidationRows, $i, array()), $market);
+        }
+        $sortedLiquidations = $this->sort_by($liquidationsParsed, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sortedLiquidations, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
-    public function parse_liquidation(mixed $liquidation, ?array $market = null): array {
+    public function parse_liquidation_row(array $liquidation, ?array $market = null): array {
         //
         //     [
         //         [

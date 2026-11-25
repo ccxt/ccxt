@@ -567,7 +567,8 @@ class backpack extends Exchange {
         for ($i = 0; $i < count($response); $i++) {
             $currency = $this->parse_currency($this->safe_dict($response, $i, array()));
             if (!$stock || ($this->safe_string($currency, 'type') === 'stock')) {
-                $currencies[$currency['code']] = $currency;
+                $currencyCode = $this->safe_string($currency, 'code', '');
+                $currencies[$currencyCode] = $currency;
             }
         }
         return $currencies;
@@ -1627,31 +1628,30 @@ class backpack extends Exchange {
         $dataRequest = $this->stock_data_request('fetchOHLCV', $params, $market);
         $request = array( 'symbol' => $this->safe_string($dataRequest, 'symbol'), 'interval' => $interval );
         list($until, $paramsUntil) = $this->handle_option_integer_and_params($this->omit($dataRequest, 'symbol'), 'fetchOHLCV', 'until');
-        if ($until !== null) {
-            $request['endTime'] = $this->parse_to_int($until / 1000); // convert milliseconds to seconds
+        $windowLimit = 100;
+        if ($limit !== null) {
+            $windowLimit = $this->parse_to_int(min($limit, 2000));
         }
-        $defaultLimit = 100;
-        $windowLimit = ($limit === null) ? $defaultLimit : min($limit, 2000);
         $limitResolved = null;
         if ($limit !== null) {
             $limitResolved = $windowLimit;
         }
         $now = $this->milliseconds();
-        $startTime = $since;
-        $untilValue = $until;
-        if ($startTime === null) {
-            if ($untilValue === null) {
-                $untilValue = $now;
-            }
-            $startTime = $untilValue - ($windowLimit * $duration);
+        $windowLength = $windowLimit * $duration;
+        $untilResolved = ($until !== null) ? $until : $now;
+        $defaultStart = $untilResolved - $windowLength;
+        $startSeconds = $this->parse_to_int($defaultStart / 1000); // convert milliseconds to seconds
+        if ($since !== null) {
+            $startSeconds = $this->parse_to_int($since / 1000);
         }
-        $request['startTime'] = $this->parse_to_int($startTime / 1000);
-        // set until value
-        if ($untilValue === null) {
-            $windowEnd = $this->sum($startTime, $windowLimit * $duration);
-            $untilValue = min($now, $windowEnd);
+        $endSeconds = $this->parse_to_int($untilResolved / 1000);
+        if (($since !== null) && ($until === null)) {
+            $windowEnd = $this->parse_to_int($this->sum($since, $windowLength));
+            $cappedEnd = ($windowEnd > $now) ? $now : $windowEnd;
+            $endSeconds = $this->parse_to_int($cappedEnd / 1000);
         }
-        $request['endTime'] = $this->parse_to_int($untilValue / 1000);
+        $request['startTime'] = $startSeconds;
+        $request['endTime'] = $endSeconds;
         $price = $this->safe_string($paramsUntil, 'price');
         $paramsOmitted = ($price !== null) ? $this->omit($paramsUntil, 'price') : $paramsUntil;
         if ($price !== null) {

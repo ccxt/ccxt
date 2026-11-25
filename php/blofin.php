@@ -2537,7 +2537,10 @@ class blofin extends Exchange {
                 return $this->parse_transaction($entry, $currency);
             }
         }
-        $reference = $hasId ? $withdrawId : $clientId;
+        $reference = $withdrawId;
+        if (!$hasId) {
+            $reference = $this->safe_string($params, 'clientId', '');
+        }
         throw new ExchangeError($this->id . ' fetchWithdrawal() could not find withdrawal ' . $reference);
     }
 

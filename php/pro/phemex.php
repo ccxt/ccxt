@@ -1122,7 +1122,11 @@ class phemex extends \ccxt\async\phemex {
             $symbol = $this->safe_string($parsed, 'symbol');
             if ($type === null) {
                 $marketSettle = $this->safe_string($market, 'settle');
-                $type = ($marketSettle === 'USDT') ? 'perpetual' : $market['type'];
+                if ($marketSettle === 'USDT') {
+                    $type = 'perpetual';
+                } else {
+                    $type = $this->safe_string($market, 'type');
+                }
             }
             if ($symbol !== null) {
                 $marketIds[$symbol] = true;
@@ -1392,7 +1396,11 @@ class phemex extends \ccxt\async\phemex {
             $market = $this->market($symbol);
             if ($type === null) {
                 $isUsdt = $market['settle'] === 'USDT';
-                $type = $isUsdt ? 'perpetual' : $market['type'];
+                if ($isUsdt) {
+                    $type = 'perpetual';
+                } else {
+                    $type = $this->safe_string($market, 'type');
+                }
             }
             $marketIds[$symbol] = true;
         }

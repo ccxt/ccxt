@@ -7878,9 +7878,9 @@ class gate extends Exchange {
         $rawTimestampLength = count($rawTimestamp);
         $timestamp = null;
         if ($rawTimestampLength > 10) {
-            $timestamp = intval($rawTimestamp);
+            $timestamp = $this->safe_integer($item, 'time');
         } else {
-            $timestamp = intval($rawTimestamp) * 1000;
+            $timestamp = $this->safe_timestamp($item, 'time');
         }
         $balanceString = $this->safe_string($item, 'balance');
         $changeString = $this->safe_string($item, 'change');

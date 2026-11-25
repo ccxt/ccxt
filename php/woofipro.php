@@ -741,7 +741,8 @@ class woofipro extends Exchange {
             if ($parsed === null) {
                 throw new ExchangeError($this->id . ' fetchCurrencies() could not resolve parsed');
             }
-            $result[$parsed['code']] = $parsed;
+            $parsedCode = $this->safe_string($parsed, 'code', '');
+            $result[$parsedCode] = $parsed;
         }
         return $result;
     }
