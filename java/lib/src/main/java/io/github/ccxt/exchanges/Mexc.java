@@ -1708,13 +1708,13 @@ public class Mexc extends MexcApi
                 continue;
             }
             String status = this.safeString(market, "status");
-            Boolean isSpotTradingAllowed = (Boolean) this.safeBool(market, "isSpotTradingAllowed", (Object) null);
+            Boolean isSpotTradingAllowed = (Boolean) this.safeBool(market, "isSpotTradingAllowed", null);
             Boolean active = false;
             if ((java.util.Objects.equals(status, "1")) && (java.util.Objects.equals(isSpotTradingAllowed, true)))
             {
                 active = true;
             }
-            Boolean isMarginTradingAllowed = (Boolean) this.safeBool(market, "isMarginTradingAllowed", (Object) null);
+            Boolean isMarginTradingAllowed = (Boolean) this.safeBool(market, "isMarginTradingAllowed", null);
             Double makerCommission = this.safeNumber(market, "makerCommission", null);
             Double takerCommission = this.safeNumber(market, "takerCommission", null);
             Double maxQuoteAmount = this.safeNumber(market, "maxQuoteAmount", null);
@@ -2215,8 +2215,8 @@ public class Mexc extends MexcApi
                 timestamp = this.safeInteger2(trade, "time", "T");
                 amountString = this.safeString2(trade, "qty", "q");
                 costString = this.safeString(trade, "quoteQty");
-                Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer", (Object) null);
-                Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", (Object) null);
+                Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer", null);
+                Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", null);
                 Boolean buyerMaker = (Boolean) this.safeBool2(trade, "isBuyerMaker", "m", null);
                 if (!java.util.Objects.equals(isMaker, null))
                 {

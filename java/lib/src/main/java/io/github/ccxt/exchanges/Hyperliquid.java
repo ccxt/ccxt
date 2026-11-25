@@ -1196,7 +1196,7 @@ public class Hyperliquid extends HyperliquidApi
             pricePrecision = this.calculatePricePrecision(price, amountPrecision, 6);
         }
         String pricePrecisionStr = this.numberToString(pricePrecision);
-        Boolean isDelisted = (Boolean) this.safeBool(market, "isDelisted", (Object) null);
+        Boolean isDelisted = (Boolean) this.safeBool(market, "isDelisted", null);
         Boolean active = true;
         if (!java.util.Objects.equals(isDelisted, null))
         {
@@ -1290,7 +1290,7 @@ public class Hyperliquid extends HyperliquidApi
     {
 
         // if user provides a different address in params and does not provide the enableUnifiedMargin we assume we need to request the info again
-        Boolean shouldRefresh = (!java.util.Objects.equals(this.safeString2(parameters, "user", "address"), null)) && java.util.Objects.equals(this.safeBool(parameters, "enableUnifiedMargin", (Object) null), null);
+        Boolean shouldRefresh = (!java.util.Objects.equals(this.safeString2(parameters, "user", "address"), null)) && java.util.Objects.equals(this.safeBool(parameters, "enableUnifiedMargin", null), null);
         Pair<String, Map<String, Object>> userAddressparamsPublicAddressVariable = this.handlePublicAddress("fetchBalance", parameters);
         String userAddress = userAddressparamsPublicAddressVariable.first();
         Map<String, Object> paramsPublicAddress = userAddressparamsPublicAddressVariable.second();
@@ -4296,7 +4296,7 @@ public class Hyperliquid extends HyperliquidApi
         mapLiteral7.put("type", this.parseOrderType(this.safeStringLower(entry, "orderType")));
         mapLiteral7.put("timeInForce", tif);
         mapLiteral7.put("postOnly", postOnly);
-        mapLiteral7.put("reduceOnly", this.safeBool(entry, "reduceOnly", (Object) null));
+        mapLiteral7.put("reduceOnly", this.safeBool(entry, "reduceOnly", null));
         mapLiteral7.put("side", side);
         mapLiteral7.put("price", this.safeString(entry, "limitPx"));
         mapLiteral7.put("triggerPrice", triggerPx);
@@ -4460,7 +4460,7 @@ public class Hyperliquid extends HyperliquidApi
         }
         String fee = this.safeString(trade, "fee");
         String takerOrMaker = null;
-        Boolean crossed = (Boolean) this.safeBool(trade, "crossed", (Object) null);
+        Boolean crossed = (Boolean) this.safeBool(trade, "crossed", null);
         if (!java.util.Objects.equals(crossed, null))
         {
             takerOrMaker = ((Boolean.TRUE.equals(crossed))) ? "taker" : "maker";

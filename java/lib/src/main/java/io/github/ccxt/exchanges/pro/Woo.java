@@ -1116,7 +1116,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         String cost = Precise.stringMul(price, amount);
         String side = this.safeStringLower(trade, "side");
         Long timestamp = this.safeInteger(trade, "timestamp");
-        Boolean maker = (Boolean) this.safeBool(trade, "maker", (Object) null);
+        Boolean maker = (Boolean) this.safeBool(trade, "maker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(maker, null))
         {
@@ -1457,7 +1457,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         mapLiteral2.put("price", price);
         mapLiteral2.put("stopPrice", triggerPrice);
         mapLiteral2.put("triggerPrice", triggerPrice);
-        mapLiteral2.put("reduceOnly", this.safeBool(order, "reduceOnly", (Object) null));
+        mapLiteral2.put("reduceOnly", this.safeBool(order, "reduceOnly", null));
         mapLiteral2.put("amount", amount);
         mapLiteral2.put("cost", null);
         mapLiteral2.put("average", avgPrice);

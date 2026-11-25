@@ -90,7 +90,7 @@ public class TestFetchTrades extends BaseTest {
             Object side = Helpers.GetValue(trade, "side");
             //
             Boolean isSameTs = Helpers.isEqual(ts, lastTs);
-            Object isSamePrice = Precise.stringEq(price, lastPrice);
+            Boolean isSamePrice = Precise.stringEq(price, lastPrice);
             Boolean isSameSide = Helpers.isEqual(side, lastSide);
             // we are only interested in trades that have: same timestamp, same side, but different(!) price
             if (Boolean.TRUE.equals(isSameTs) && Boolean.TRUE.equals(isSameSide) && !Boolean.TRUE.equals(isSamePrice))
@@ -99,8 +99,8 @@ public class TestFetchTrades extends BaseTest {
                     "previous", lastTrade,
                     "current", trade
                 );
-                Object priceIncreasing = Precise.stringGt(price, lastPrice);
-                Object priceDecreasing = Precise.stringLt(price, lastPrice);
+                Boolean priceIncreasing = Precise.stringGt(price, lastPrice);
+                Boolean priceDecreasing = Precise.stringLt(price, lastPrice);
                 if (Boolean.TRUE.equals(priceIncreasing))
                 {
                     Assert(java.util.Objects.equals(side, "buy"), ("Price is increasing, but side is not `buy`, either implementation needs fix or exchange returns unsorted trades, so add \"sideSequence\" skip" + TestSharedMethods.logTemplate(exchange, method, pair)));

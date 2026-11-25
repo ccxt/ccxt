@@ -1277,7 +1277,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         String id = this.safeString(trade, "t");
         String marketId = this.safeString(trade, "s");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
-        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "m", (Object) null);
+        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "m", null);
         String side = null;
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isBuyerMaker, null))

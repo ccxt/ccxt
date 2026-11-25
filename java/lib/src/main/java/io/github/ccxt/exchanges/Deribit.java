@@ -1389,7 +1389,7 @@ public class Deribit extends DeribitApi
                     inverse = (!java.util.Objects.equals(quote, settle));
                     linear = (java.util.Objects.equals(settle, quote));
                 }
-                Boolean parsedMarketValue = (Boolean) this.safeBool(parsedMarkets, symbol, (Object) null);
+                Boolean parsedMarketValue = (Boolean) this.safeBool(parsedMarkets, symbol, null);
                 if (!java.util.Objects.equals(parsedMarketValue, null))
                 {
                     continue;
@@ -1415,7 +1415,7 @@ public class Deribit extends DeribitApi
                 j39v1.put("swap", swap);
                 j39v1.put("future", future);
                 j39v1.put("option", option);
-                j39v1.put("active", this.safeBool(market, "is_active", (Object) null));
+                j39v1.put("active", this.safeBool(market, "is_active", null));
                 j39v1.put("contract", !Boolean.TRUE.equals(isSpot));
                 j39v1.put("linear", linear);
                 j39v1.put("inverse", inverse);
@@ -2510,7 +2510,7 @@ public class Deribit extends DeribitApi
         Long lastTradeTimestamp = null;
         if (!java.util.Objects.equals(filledString, null))
         {
-            Object isFilledPositive = Precise.stringGt(filledString, "0");
+            Boolean isFilledPositive = Precise.stringGt(filledString, "0");
             if (Boolean.TRUE.equals(isFilledPositive))
             {
                 lastTradeTimestamp = lastUpdate;
@@ -2535,7 +2535,7 @@ public class Deribit extends DeribitApi
         // injected in createOrder
         List<Object> trades = this.safeList(order, "trades", null);
         String timeInForce = this.parseTimeInForce(this.safeString(order, "time_in_force"));
-        Boolean postOnly = (Boolean) this.safeBool(order, "post_only", (Object) null);
+        Boolean postOnly = (Boolean) this.safeBool(order, "post_only", null);
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("info", order);
         mapLiteral3.put("id", id);
@@ -2680,7 +2680,7 @@ public class Deribit extends DeribitApi
         Boolean isStopOrder = Boolean.TRUE.equals(isStopLossOrder) || Boolean.TRUE.equals(isTakeProfitOrder);
         Boolean isLimitOrder = (java.util.Objects.equals(type, "limit")) || Boolean.TRUE.equals(isStopLimit) || Boolean.TRUE.equals(isTakeLimit);
         Boolean isMarketOrder = (java.util.Objects.equals(type, "market")) || Boolean.TRUE.equals(isStopMarket) || Boolean.TRUE.equals(isTakeMarket);
-        Boolean exchangeSpecificPostOnly = (Boolean) this.safeBool(parameters, "post_only", (Object) null);
+        Boolean exchangeSpecificPostOnly = (Boolean) this.safeBool(parameters, "post_only", null);
         Boolean postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificPostOnly, parameters);
         if (Boolean.TRUE.equals(isLimitOrder))
         {

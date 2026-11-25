@@ -38,8 +38,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
 
     public Map<String, Object> describe()
     {
-        Map<String, Object> superDescribe = super.describe();
-        return this.deepExtend(superDescribe, this.describeData());
+        return this.deepExtend(super.describe(), this.describeData());
     }
 
     public Map<String, Object> describeData()

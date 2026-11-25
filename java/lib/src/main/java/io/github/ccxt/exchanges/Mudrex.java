@@ -1143,7 +1143,7 @@ public class Mudrex extends MudrexApi
         mapLiteral5.put("trades", new ArrayList<Object>(Arrays.asList()));
         mapLiteral5.put("fees", new ArrayList<Object>(Arrays.asList()));
         mapLiteral5.put("lastUpdateTimestamp", this.parse8601(this.safeString(order, "updated_at")));
-        mapLiteral5.put("reduceOnly", this.safeBool(order, "reduce_only", (Object) null));
+        mapLiteral5.put("reduceOnly", this.safeBool(order, "reduce_only", null));
         return this.safeOrder(mapLiteral5, marketResolved);
     }
 

@@ -727,7 +727,7 @@ public class Deepcoin extends DeepcoinApi
             }
             symbol = ((((base + "/") + quote) + ":") + settle);
         }
-        Map<String, Object> fees = (Map<String, Object>) this.safeDict2(this.fees, type, "trading", new HashMap<String, Object>() {{}});
+        Map<String, Object> fees = this.safeDict2(this.fees, type, "trading", new HashMap<String, Object>() {{}});
         String maxLeverage = this.safeString(market, "lever", "1");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         String maxMarketSize = this.safeString(market, "maxMktSz");
@@ -935,12 +935,16 @@ public class Deepcoin extends DeepcoinApi
                 int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
                 Long numberOfCandles = (((java.util.Objects.equals(limit, null)))) ? maxLimit : limit;
                 Long endTime = this.parseToInt((since + (((duration * numberOfCandles)) * 1000L)));
-                if (!java.util.Objects.equals(until, null))
+                if ((!java.util.Objects.equals(until, null)) && ((endTime != null && (until == null || until < endTime))))
                 {
-                    endTime = (endTime == null ? null : Math.min(endTime, until));
+                    endTime = until;
                 }
                 Long now = this.milliseconds();
-                request.put("after", (endTime == null ? null : Math.min(endTime, now)));
+                if ((endTime != null && (now == null || now < endTime)))
+                {
+                    endTime = now;
+                }
+                request.put("after", endTime);
             }
         }
         Map<String, Object> response = null;

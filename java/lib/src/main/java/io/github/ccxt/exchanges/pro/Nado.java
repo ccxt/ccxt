@@ -1687,7 +1687,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         String marketId = this.safeString(trade, "product_id");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.parseWsTimestamp(trade, "timestamp");
-        Boolean isTakerBuyer = (Boolean) this.safeBool(trade, "is_taker_buyer", (Object) null);
+        Boolean isTakerBuyer = (Boolean) this.safeBool(trade, "is_taker_buyer", null);
         String side = null;
         if (!java.util.Objects.equals(isTakerBuyer, null))
         {
@@ -1734,13 +1734,13 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         String marketId = this.safeString(trade, "product_id");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.parseWsTimestamp(trade, "timestamp");
-        Boolean isBid = (Boolean) this.safeBool(trade, "is_bid", (Object) null);
+        Boolean isBid = (Boolean) this.safeBool(trade, "is_bid", null);
         String side = null;
         if (!java.util.Objects.equals(isBid, null))
         {
             side = ((Boolean.TRUE.equals(isBid))) ? "buy" : "sell";
         }
-        Boolean isTaker = (Boolean) this.safeBool(trade, "is_taker", (Object) null);
+        Boolean isTaker = (Boolean) this.safeBool(trade, "is_taker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isTaker, null))
         {
@@ -1975,7 +1975,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
         mapLiteral4.put("symbol", marketResolved.get("symbol"));
         mapLiteral4.put("timestamp", timestamp);
         mapLiteral4.put("datetime", this.iso8601(timestamp));
-        mapLiteral4.put("isolated", this.safeBool(position, "isolated", (Object) null));
+        mapLiteral4.put("isolated", this.safeBool(position, "isolated", null));
         mapLiteral4.put("hedged", false);
         mapLiteral4.put("side", side);
         mapLiteral4.put("contracts", contracts);

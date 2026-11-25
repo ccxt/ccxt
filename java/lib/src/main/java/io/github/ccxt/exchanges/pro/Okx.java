@@ -2339,7 +2339,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         if (!java.util.Objects.equals(symbol, null))
         {
             market = this.market(symbol);
-            symbolResolved = java.util.Objects.toString(market.get("symbol"), null);
+            symbolResolved = this.safeString(market, "symbol");
             type = this.safeString(market, "type");
             messageHash = ((messageHash + "::") + this.safeString(market, "symbol", ""));
         }

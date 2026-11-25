@@ -472,7 +472,7 @@ public class Hollaex extends HollaexApi
             j39v1.put("swap", false);
             j39v1.put("future", false);
             j39v1.put("option", false);
-            j39v1.put("active", this.safeBool(market, "active", (Object) null));
+            j39v1.put("active", this.safeBool(market, "active", null));
             j39v1.put("contract", false);
             j39v1.put("linear", null);
             j39v1.put("inverse", null);
@@ -624,7 +624,7 @@ public class Hollaex extends HollaexApi
                 HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
                 mapLiteral1.put("id", networkId);
                 mapLiteral1.put("network", networkCode);
-                mapLiteral1.put("active", this.safeBool(networkEntry, "active", (Object) null));
+                mapLiteral1.put("active", this.safeBool(networkEntry, "active", null));
                 mapLiteral1.put("deposit", null);
                 mapLiteral1.put("withdraw", null);
                 mapLiteral1.put("fee", this.safeNumber(networkEntry, "value", null));
@@ -645,9 +645,9 @@ public class Hollaex extends HollaexApi
         mapLiteral2.put("code", code);
         mapLiteral2.put("info", rawCurrency);
         mapLiteral2.put("name", this.safeString(rawCurrency, "fullname"));
-        mapLiteral2.put("active", this.safeBool(rawCurrency, "active", (Object) null));
-        mapLiteral2.put("deposit", this.safeBool(rawCurrency, "allow_deposit", (Object) null));
-        mapLiteral2.put("withdraw", this.safeBool(rawCurrency, "allow_withdrawal", (Object) null));
+        mapLiteral2.put("active", this.safeBool(rawCurrency, "active", null));
+        mapLiteral2.put("deposit", this.safeBool(rawCurrency, "allow_deposit", null));
+        mapLiteral2.put("withdraw", this.safeBool(rawCurrency, "allow_withdrawal", null));
         mapLiteral2.put("fee", this.safeNumber(rawCurrency, "withdrawal_fee", null));
         mapLiteral2.put("precision", this.safeNumber(rawCurrency, "increment_unit", null));
         mapLiteral2.put("limits", new HashMap<String, Object>() {{

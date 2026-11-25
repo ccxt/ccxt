@@ -109,7 +109,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} the raw request frame to send
      */
-    public Object sendSubscription(String action, List<?> channels, List<?> messageHashes, Object subMessageHashes, Map<String, Object> context, Map<String, Object> parameters, Object checkHashes)
+    public Object sendSubscription(String action, List<?> channels, List<?> messageHashes, List<?> subMessageHashes, Map<String, Object> context, Map<String, Object> parameters, Object checkHashes)
     {
         String url = this.safeString(this.urls.get("api"), "ws");
         Client client = this.client(url);

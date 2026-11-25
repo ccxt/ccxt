@@ -1028,7 +1028,7 @@ public class Bullish extends BullishApi
         {
             spot = true;
             contract = false;
-            margin = (Boolean) this.safeBool(market, "marginTradingEnabled", (Object) null);
+            margin = (Boolean) this.safeBool(market, "marginTradingEnabled", null);
         } else if (!java.util.Objects.equals(settle, null))
         {
             contractSize = this.safeNumber(market, "contractMultiplier", null);
@@ -1109,7 +1109,7 @@ public class Bullish extends BullishApi
                 put( "base", Bullish.this.parseNumber(Bullish.this.parsePrecision(basePrecision)) );
                 put( "quote", Bullish.this.parseNumber(Bullish.this.parsePrecision(quotePrecision)) );
             }});
-        mapLiteral1.put("active", this.safeBool(market, "marketEnabled", (Object) null));
+        mapLiteral1.put("active", this.safeBool(market, "marketEnabled", null));
         mapLiteral1.put("created", null);
         mapLiteral1.put("info", market);
         return this.safeMarketStructure(mapLiteral1);

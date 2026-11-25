@@ -636,7 +636,7 @@ public class Coinspot extends CoinspotApi
             }
         } else
         {
-            Map<String, Object> balancesDict = (Map<String, Object>) this.safeDict2(response, "balance", "balances", new HashMap<String, Object>() {{}});
+            Map<String, Object> balancesDict = this.safeDict2(response, "balance", "balances", new HashMap<String, Object>() {{}});
             List<String> currencyIdsMap = new ArrayList<String>(balancesDict.keySet());
             for (var i = 0; i < currencyIdsMap.size(); i++)
             {

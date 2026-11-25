@@ -2422,8 +2422,8 @@ public class Bybit extends BybitApi
         // The API key of user id must own one of permissions will be allowed to call following API endpoints:
         // SUB UID: "Account Transfer"
         // MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
-        Boolean enableUnifiedMargin = (Boolean) this.safeBool(this.options, "enableUnifiedMargin", (Object) null);
-        Boolean enableUnifiedAccount = (Boolean) this.safeBool(this.options, "enableUnifiedAccount", (Object) null);
+        Boolean enableUnifiedMargin = (Boolean) this.safeBool(this.options, "enableUnifiedMargin", null);
+        Boolean enableUnifiedAccount = (Boolean) this.safeBool(this.options, "enableUnifiedAccount", null);
         if (java.util.Objects.equals(enableUnifiedMargin, null) || java.util.Objects.equals(enableUnifiedAccount, null))
         {
             if (Boolean.TRUE.equals(this.safeBool(this.options, "enableDemoTrading", false)))
@@ -4556,7 +4556,7 @@ public class Bybit extends BybitApi
                 side = ((((isBuyer == null || isBuyer != 0)))) ? "buy" : "sell";
             }
         }
-        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", (Object) null);
+        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
@@ -5397,7 +5397,7 @@ public class Bybit extends BybitApi
         String rawTimeInForce = this.safeString(order, "timeInForce");
         String timeInForce = this.parseTimeInForce(rawTimeInForce);
         String triggerPrice = this.omitZero(this.safeString(order, "triggerPrice"));
-        Boolean reduceOnly = (Boolean) this.safeBool(order, "reduceOnly", (Object) null);
+        Boolean reduceOnly = (Boolean) this.safeBool(order, "reduceOnly", null);
         String takeProfitPrice = this.omitZero(this.safeString(order, "takeProfit"));
         String stopLossPrice = this.omitZero(this.safeString(order, "stopLoss"));
         String triggerDirection = this.safeString(order, "triggerDirection");
@@ -5443,7 +5443,7 @@ public class Bybit extends BybitApi
         mapLiteral8.put("type", type);
         mapLiteral8.put("timeInForce", timeInForce);
         mapLiteral8.put("postOnly", null);
-        mapLiteral8.put("reduceOnly", this.safeBool(order, "reduceOnly", (Object) null));
+        mapLiteral8.put("reduceOnly", this.safeBool(order, "reduceOnly", null));
         mapLiteral8.put("side", side);
         mapLiteral8.put("price", price);
         mapLiteral8.put("triggerPrice", triggerPrice);

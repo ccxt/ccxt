@@ -1807,7 +1807,7 @@ public class Kraken extends KrakenApi
             symbol = resolvedSymbol;
         }
         String cost = this.safeString(trade, "cost");
-        Boolean maker = (Boolean) this.safeBool(trade, "maker", (Object) null);
+        Boolean maker = (Boolean) this.safeBool(trade, "maker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(maker, null))
         {

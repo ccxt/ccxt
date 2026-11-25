@@ -1141,7 +1141,7 @@ public class Cryptocom extends CryptocomApi
             j39v1.put("swap", swap);
             j39v1.put("future", future);
             j39v1.put("option", option);
-            j39v1.put("active", this.safeBool(market, "tradable", (Object) null));
+            j39v1.put("active", this.safeBool(market, "tradable", null));
             j39v1.put("contract", contract);
             j39v1.put("linear", isLinear);
             j39v1.put("inverse", isInverse);
@@ -3896,7 +3896,7 @@ public class Cryptocom extends CryptocomApi
         //                 },
         //
         Long timestamp = this.safeInteger(contract, "t");
-        Object fundingTimestamp = null;
+        Long fundingTimestamp = null;
         if (!java.util.Objects.equals(timestamp, null))
         {
             fundingTimestamp = (this.parseToInt(Math.ceil(Double.parseDouble(String.valueOf((((double) timestamp) / ((double) 3600000)))))) * 3600000L); // end of the next hour

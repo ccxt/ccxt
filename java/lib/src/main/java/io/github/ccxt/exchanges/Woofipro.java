@@ -2253,7 +2253,7 @@ public class Woofipro extends WoofiproApi
         String cost = this.safeString2(order, "order_amount", "amount"); // This is quote amount
         String orderType = this.safeStringLower2(order, "order_type", "type");
         String status = this.safeString2(order, "status", "algoStatus");
-        Boolean success = (Boolean) this.safeBool(order, "success", (Object) null);
+        Boolean success = (Boolean) this.safeBool(order, "success", null);
         if (!java.util.Objects.equals(success, null))
         {
             status = ((Boolean.TRUE.equals(success))) ? "NEW" : "REJECTED";
@@ -2294,7 +2294,7 @@ public class Woofipro extends WoofiproApi
         mapLiteral4.put("type", this.parseOrderType(orderType));
         mapLiteral4.put("timeInForce", this.parseTimeInForce(orderType));
         mapLiteral4.put("postOnly", null);
-        mapLiteral4.put("reduceOnly", this.safeBool(order, "reduce_only", (Object) null));
+        mapLiteral4.put("reduceOnly", this.safeBool(order, "reduce_only", null));
         mapLiteral4.put("side", side);
         mapLiteral4.put("price", price);
         mapLiteral4.put("triggerPrice", triggerPrice);

@@ -1476,7 +1476,7 @@ public class Grvt extends GrvtApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.safeIntegerProduct(trade, "event_time", 0.000001);
         String takerOrMaker = null;
-        Boolean isTakerBuyer = (Boolean) this.safeBool(trade, "is_taker_buyer", (Object) null);
+        Boolean isTakerBuyer = (Boolean) this.safeBool(trade, "is_taker_buyer", null);
         String side = null;
         if (!java.util.Objects.equals(isTakerBuyer, null))
         {
@@ -3019,7 +3019,7 @@ public class Grvt extends GrvtApi
         String marketId = this.safeString(position, "instrument");
         Long timestamp = this.safeIntegerProduct(position, "event_time", 0.000001);
         String sizeRaw = this.safeString(position, "size");
-        Object isLong = (Precise.stringGe(sizeRaw, "0"));
+        Boolean isLong = (Precise.stringGe(sizeRaw, "0"));
         String side = "short";
         if (Boolean.TRUE.equals(isLong))
         {
@@ -3694,7 +3694,7 @@ public class Grvt extends GrvtApi
         //        "ack": true
         //    }
         //
-        if (!java.util.Objects.equals(this.safeBool(order, "ack", (Object) null), null))
+        if (!java.util.Objects.equals(this.safeBool(order, "ack", null), null))
         {
             return this.safeOrder(new HashMap<String, Object>() {{
                 put( "info", order );
@@ -3707,8 +3707,8 @@ public class Grvt extends GrvtApi
         {
             orderType = "market";
         }
-        Boolean isPostOnly = (Boolean) this.safeBool(order, "post_only", (Object) null);
-        Boolean isReduceOnly = (Boolean) this.safeBool(order, "reduce_only", (Object) null);
+        Boolean isPostOnly = (Boolean) this.safeBool(order, "post_only", null);
+        Boolean isReduceOnly = (Boolean) this.safeBool(order, "reduce_only", null);
         String timeInForceRaw = this.safeString(order, "time_in_force");
         String timeInForce = (((java.util.Objects.equals(isPostOnly, true)))) ? "PO" : this.parseTimeInForce(timeInForceRaw);
         String size = null;

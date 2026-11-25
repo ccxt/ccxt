@@ -38,8 +38,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
 
     public Map<String, Object> describe()
     {
-        Map<String, Object> superDescribe = super.describe();
-        return this.deepExtend(superDescribe, this.describeData());
+        return this.deepExtend(super.describe(), this.describeData());
     }
 
     public Map<String, Object> describeData()
@@ -1579,7 +1578,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         //     }
         //
         String id = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("i", "T", "v")));
-        Boolean isContract = (!java.util.Objects.equals(this.safeBool(trade, "BT", (Object) null), null));
+        Boolean isContract = (!java.util.Objects.equals(this.safeBool(trade, "BT", null), null));
         String marketType = "spot";
         if (Boolean.TRUE.equals(isContract))
         {
@@ -2982,12 +2981,12 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
 
     }
 
-    public CompletableFuture<Object> unWatchTopics(String url, String topic, Object symbols, List<?> messageHashes, List<?> subMessageHashes, Object topics, Map<String, Object> parameters, Map<String, Object> subExtension)
+    public CompletableFuture<Object> unWatchTopics(String url, String topic, Object symbols, List<?> messageHashes, List<?> subMessageHashes, List<?> topics, Map<String, Object> parameters, Map<String, Object> subExtension)
     {
         return BaseExchange.supplyAsync(() -> this.unWatchTopicsCore(url, topic, symbols, messageHashes, subMessageHashes, topics, parameters, subExtension));
     }
 
-    private Object unWatchTopicsCore(String url, String topic, Object symbols, List<?> messageHashes, List<?> subMessageHashes, Object topics, Map<String, Object> parameters, Map<String, Object> subExtension)
+    private Object unWatchTopicsCore(String url, String topic, Object symbols, List<?> messageHashes, List<?> subMessageHashes, List<?> topics, Map<String, Object> parameters, Map<String, Object> subExtension)
     {
 
         Long reqId = this.requestId();
@@ -3095,7 +3094,7 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
                 this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), msg, feedback);
                 throw new ExchangeError(feedback) ;
             }
-            Boolean success = (Boolean) this.safeBool(message, "success", (Object) null);
+            Boolean success = (Boolean) this.safeBool(message, "success", null);
             if ((!java.util.Objects.equals(success, null)) && (!Boolean.TRUE.equals(success)))
             {
                 String ret_msg = this.safeString(message, "ret_msg", "");

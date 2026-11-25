@@ -650,7 +650,7 @@ public class Krakenfutures extends KrakenfuturesApi
             j39v1.put("future", future);
             j39v1.put("option", false);
             j39v1.put("index", index);
-            j39v1.put("active", this.safeBool(market, "tradeable", (Object) null));
+            j39v1.put("active", this.safeBool(market, "tradeable", null));
             j39v1.put("contract", contract);
             j39v1.put("linear", linear);
             j39v1.put("inverse", inverse);
@@ -2219,7 +2219,7 @@ public class Krakenfutures extends KrakenfuturesApi
         {
             Map<String, Object> order = this.safeDict(allOrders, i, null);
             Map<String, Object> eventVar = this.safeDict(order, "event", new HashMap<String, Object>() {{}});
-            Map<String, Object> orderPlaced = (Map<String, Object>) this.safeDict2(eventVar, "OrderPlaced", "OrderTriggerActivated", null);
+            Map<String, Object> orderPlaced = this.safeDict2(eventVar, "OrderPlaced", "OrderTriggerActivated", null);
             Map<String, Object> orderUpdated = this.safeDict(eventVar, "OrderUpdated", null);
             if (!java.util.Objects.equals(orderPlaced, null))
             {
@@ -2300,7 +2300,7 @@ public class Krakenfutures extends KrakenfuturesApi
             Map<String, Object> order = this.safeDict(allOrders, i, null);
             Map<String, Object> eventVar = this.safeDict(order, "event", new HashMap<String, Object>() {{}});
             Boolean isCancelledTriggerOrder = (eventVar.containsKey("OrderTriggerCancelled"));
-            Map<String, Object> orderPlaced = (Map<String, Object>) this.safeDict2(eventVar, "OrderPlaced", "OrderTriggerCancelled", null);
+            Map<String, Object> orderPlaced = this.safeDict2(eventVar, "OrderPlaced", "OrderTriggerCancelled", null);
             if (!java.util.Objects.equals(orderPlaced, null))
             {
                 Map<String, Object> innerOrder = this.safeDict(orderPlaced, "order", new HashMap<String, Object>() {{}});
@@ -2734,7 +2734,7 @@ public class Krakenfutures extends KrakenfuturesApi
             mapLiteral4.put("type", null);
             mapLiteral4.put("timeInForce", null);
             mapLiteral4.put("postOnly", null);
-            mapLiteral4.put("reduceOnly", this.safeBool(orderDictFromFetchOrder, "reduceOnly", (Object) null));
+            mapLiteral4.put("reduceOnly", this.safeBool(orderDictFromFetchOrder, "reduceOnly", null));
             mapLiteral4.put("side", this.safeString(orderDictFromFetchOrder, "side"));
             mapLiteral4.put("price", null);
             mapLiteral4.put("triggerPrice", fetchOrderTriggerPrice);
@@ -2761,7 +2761,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 put( "status", "rejected" );
             }}, null);
         }
-        Object details = null;
+        Map<String, Object> details = null;
         Boolean isPrior = false;
         Boolean fixedVar = false;
         String statusId = null;
@@ -2781,7 +2781,7 @@ public class Krakenfutures extends KrakenfuturesApi
                 Map<String, Object> orderTrigger = this.safeDict(item, "orderTrigger", null);
                 if (java.util.Objects.equals(details, null))
                 {
-                    details = this.safeValue2(item, "new", "order", orderTrigger);
+                    details = this.safeDict2(item, "new", "order", orderTrigger);
                     if (!java.util.Objects.equals(details, null))
                     {
                         isPrior = false;
@@ -2790,7 +2790,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     {
                         String executedPrice = this.safeString(item, "price");
                         Map<String, Object> orderPriorExecution = this.safeDict(item, "orderPriorExecution", null);
-                        details = this.safeValue2(item, "orderPriorExecution", "orderPriorEdit");
+                        details = this.safeDict2(item, "orderPriorExecution", "orderPriorEdit", null);
                         if (java.util.Objects.equals(executedPrice, null))
                         {
                             price = this.safeString(orderPriorExecution, "limitPrice");
@@ -3537,7 +3537,7 @@ public class Krakenfutures extends KrakenfuturesApi
         String accountType = this.safeString2(response, "accountType", "type");
         Boolean isFlex = (java.util.Objects.equals(accountType, "multiCollateralMarginAccount"));
         Boolean isCash = (java.util.Objects.equals(accountType, "cashAccount"));
-        Map<String, Object> balances = (Map<String, Object>) this.safeDict2(response, "balances", "currencies", new HashMap<String, Object>() {{}});
+        Map<String, Object> balances = this.safeDict2(response, "balances", "currencies", new HashMap<String, Object>() {{}});
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         List<String> currencyIds = new ArrayList<String>(balances.keySet());
         for (var i = 0; i < currencyIds.size(); i++)

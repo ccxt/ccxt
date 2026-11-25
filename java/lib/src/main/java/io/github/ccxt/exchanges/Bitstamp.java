@@ -1843,7 +1843,7 @@ public class Bitstamp extends BitstampApi
         }
         symbol = this.safeString(marketResolved, "symbol");
         String datetimeString = this.safeString2(trade, "date", "datetime");
-        Object timestamp = null;
+        Long timestamp = null;
         if (!java.util.Objects.equals(datetimeString, null))
         {
             if (((String)datetimeString).indexOf(" ") >= 0)
@@ -1863,7 +1863,7 @@ public class Bitstamp extends BitstampApi
         {
             if (!java.util.Objects.equals(amountString, null))
             {
-                Object isAmountNeg = Precise.stringLt(amountString, "0");
+                Boolean isAmountNeg = Precise.stringLt(amountString, "0");
                 if (Boolean.TRUE.equals(isAmountNeg))
                 {
                     side = "sell";

@@ -4716,7 +4716,7 @@ public class Htx extends HtxApi
             } else
             {
                 (this.loadAccounts(false, new HashMap<String, Object>() {{}})).join();
-                String accountId = (this.fetchAccountIdByType(type, null, null, paramsMarginMode)).join();
+                String accountId = (this.fetchAccountIdByType("spot", null, null, paramsMarginMode)).join();
                 request.put("account-id", accountId);
                 response = (this.spotPrivateGetV1AccountAccountsAccountIdBalance(this.extend(request, paramsMarginMode))).join();
             }
@@ -6416,7 +6416,7 @@ public class Htx extends HtxApi
         Object reduceOnly = null;
         if (Boolean.TRUE.equals(isLinearOrder))
         {
-            reduceOnly = this.safeBool(order, "reduce_only", (Object) null);
+            reduceOnly = this.safeBool(order, "reduce_only", null);
         } else
         {
             Long reduceOnlyInteger = this.safeInteger(order, "reduce_only");
@@ -6569,7 +6569,7 @@ public class Htx extends HtxApi
         Pair<String, Map<String, Object>> marginModeparamsMarginModeVariable = this.handleMarginModeAndParams("createOrder", parameters, null);
         String marginMode = marginModeparamsMarginModeVariable.first();
         Map<String, Object> paramsMarginMode = marginModeparamsMarginModeVariable.second();
-        String accountId = (this.fetchAccountIdByType((String) (market.get("type")), marginMode, symbol, new HashMap<String, Object>() {{}})).join();
+        String accountId = (this.fetchAccountIdByType(this.safeString(market, "type", ""), marginMode, symbol, new HashMap<String, Object>() {{}})).join();
         Map<String, Object> request = new HashMap<String, Object>() {{
             put( "account-id", accountId );
             put( "symbol", market.get("id") );

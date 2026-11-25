@@ -6364,7 +6364,7 @@ public Map<String, Object> describe()
                 }
             }
             // default 'GTC' to true
-            if (java.util.Objects.equals(this.safeBool(createOrder.get("timeInForce"), "GTC", (Object) null), null))
+            if (java.util.Objects.equals(this.safeBool(createOrder.get("timeInForce"), "GTC", null), null))
             {
                 Helpers.addElementToObject(createOrder.get("timeInForce"), "GTC", true);
             }
@@ -6598,14 +6598,14 @@ public Map<String, Object> describe()
             {
                 String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Map<String, Object> network = this.safeDict(networks, key, new HashMap<String, Object>() {{}});
-                Boolean deposit = (Boolean) this.safeBool(network, "deposit", (Object) null);
-                Boolean currencyDeposit = (Boolean) this.safeBool(currency, "deposit", (Object) null);
+                Boolean deposit = (Boolean) this.safeBool(network, "deposit", null);
+                Boolean currencyDeposit = (Boolean) this.safeBool(currency, "deposit", null);
                 if (java.util.Objects.equals(currencyDeposit, null) || (java.util.Objects.equals(deposit, true)))
                 {
                     currency.put("deposit", deposit);
                 }
-                Boolean withdraw = (Boolean) this.safeBool(network, "withdraw", (Object) null);
-                Boolean currencyWithdraw = (Boolean) this.safeBool(currency, "withdraw", (Object) null);
+                Boolean withdraw = (Boolean) this.safeBool(network, "withdraw", null);
+                Boolean currencyWithdraw = (Boolean) this.safeBool(currency, "withdraw", null);
                 if (java.util.Objects.equals(currencyWithdraw, null) || (java.util.Objects.equals(withdraw, true)))
                 {
                     currency.put("withdraw", withdraw);
@@ -8229,7 +8229,7 @@ public Map<String, Object> describe()
             marketType = this.safeString(market, "type");
             if (!Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
-                isLinearSubType = this.safeBool(market, "linear", (Object) null);
+                isLinearSubType = this.safeBool(market, "linear", null);
             }
             String symbol = this.safeString(market, "symbol", (symbols == null || i < 0 || i >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(i)));
             result.add(symbol);
@@ -8307,8 +8307,8 @@ public Map<String, Object> describe()
 
     public Object safeNetwork(Map<String, Object> network)
     {
-        Boolean withdrawEnabled = (Boolean) this.safeBool(network, "withdraw", (Object) null);
-        Boolean depositEnabled = (Boolean) this.safeBool(network, "deposit", (Object) null);
+        Boolean withdrawEnabled = (Boolean) this.safeBool(network, "withdraw", null);
+        Boolean depositEnabled = (Boolean) this.safeBool(network, "deposit", null);
         Map<String, Object> limits = this.safeDict(network, "limits", null);
         Map<String, Object> withdraw = this.safeDict(limits, "withdraw", null);
         Map<String, Object> deposit = this.safeDict(limits, "deposit", null);
@@ -9529,7 +9529,7 @@ public Map<String, Object> describe()
             {
                 throw new ExchangeError((this.id + " buildOHLCVC() missing ts")) ;
             }
-            Object openingTime = Helpers.multiply((Math.floor(Double.parseDouble(String.valueOf((((double) ts) / ((double) ms)))))), ms); // shift to the edge of m/h/d (but not M)
+            Object openingTime = ((ms == null) ? null : (long) ((Math.floor(Double.parseDouble(String.valueOf((((double) ts) / ((double) ms)))))) * ms)); // shift to the edge of m/h/d (but not M)
             if (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(openingTime, java.util.Objects.requireNonNullElse(since, 0L)))
             {
                 continue;
@@ -11170,7 +11170,7 @@ public Map<String, Object> describe()
                 ((List<Object>)keysToOmit).add("triggerPrice");
                 ((List<Object>)keysToOmit).add("stopPrice");
             }
-            triggerPriceStr = this.priceToPrecision(symbol, Double.parseDouble(triggerPrice));
+            triggerPriceStr = this.priceToPrecision(symbol, triggerPrice);
         }
         if (!java.util.Objects.equals(stopLossPrice, null))
         {
@@ -11178,7 +11178,7 @@ public Map<String, Object> describe()
             {
                 ((List<Object>)keysToOmit).add("stopLossPrice");
             }
-            stopLossPriceStr = this.priceToPrecision(symbol, Double.parseDouble(stopLossPrice));
+            stopLossPriceStr = this.priceToPrecision(symbol, stopLossPrice);
         }
         if (!java.util.Objects.equals(takeProfitPrice, null))
         {
@@ -11186,7 +11186,7 @@ public Map<String, Object> describe()
             {
                 ((List<Object>)keysToOmit).add("takeProfitPrice");
             }
-            takeProfitPriceStr = this.priceToPrecision(symbol, Double.parseDouble(takeProfitPrice));
+            takeProfitPriceStr = this.priceToPrecision(symbol, takeProfitPrice);
         }
         Integer keysToOmitLength = keysToOmit.size();
         Map<String, Object> paramsOmitted = ((((keysToOmitLength != null && keysToOmitLength > 0)))) ? this.omit(parameters, keysToOmit) : parameters;
@@ -12431,9 +12431,10 @@ public Map<String, Object> describe()
     public Object parseAllGreeksList(Object greeks, List<String> symbols, Map<String, Object> parameters)
     {
         List<Object> results = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)greeks).size(); i++)
+        List<Object> greeksArray = this.toArray(greeks);
+        for (var i = 0; i < greeksArray.size(); i++)
         {
-            ((List<Object>)results).add(this.extend(this.parseGreeks(this.safeDict(greeks, i, new HashMap<String, Object>() {{}}), null), parameters));
+            ((List<Object>)results).add(this.extend(this.parseGreeks(this.safeDict(greeksArray, i, new HashMap<String, Object>() {{}}), null), parameters));
         }
         return this.indexBy(this.filterByArray(results, "symbol", this.marketSymbols(symbols, null, true, false, false), false), "symbol");
     }
@@ -12441,12 +12442,13 @@ public Map<String, Object> describe()
     public Object parseAllGreeksDict(Map<String, Object> greeks, List<String> symbols, Map<String, Object> parameters)
     {
         List<Object> results = new ArrayList<Object>(Arrays.asList());
-        List<String> marketIds = new ArrayList<String>(greeks.keySet());
+        Map<String, Object> greeksDict = this.extend(new HashMap<String, Object>() {{}}, greeks);
+        List<String> marketIds = new ArrayList<String>(greeksDict.keySet());
         for (var i = 0; i < marketIds.size(); i++)
         {
             String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             Map<String, Object> market = this.safeMarket(marketId, null, null, null);
-            ((List<Object>)results).add(this.extend(this.parseGreeks(this.safeDict(greeks, marketId, new HashMap<String, Object>() {{}}), market), parameters));
+            ((List<Object>)results).add(this.extend(this.parseGreeks(this.safeDict(greeksDict, marketId, new HashMap<String, Object>() {{}}), market), parameters));
         }
         return this.indexBy(this.filterByArray(results, "symbol", this.marketSymbols(symbols, null, true, false, false), false), "symbol");
     }
@@ -12708,7 +12710,7 @@ public Map<String, Object> describe()
             Map<String, Object> market = this.safeMarket(marketId, null, null, marketType);
             if ((java.util.Objects.equals(symbols, null)) || this.inArray(market.get("symbol"), symbols))
             {
-                ((List<Object>)marginModifications).add(this.parseMarginModification((Map<String, Object>) ((response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i))), market));
+                ((List<Object>)marginModifications).add(this.parseMarginModification(this.safeDict(response, i, new HashMap<String, Object>() {{}}), market));
             }
         }
         return marginModifications;

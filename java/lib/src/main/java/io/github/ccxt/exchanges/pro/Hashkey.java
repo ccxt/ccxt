@@ -714,7 +714,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         String marketId = this.safeString(trade, "s");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.safeInteger(trade, "t");
-        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "m", (Object) null);
+        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "m", null);
         Boolean isPublicTrade = java.util.Objects.equals(this.safeString(trade, "e"), null);
         String side = null;
         String takerOrMaker = null;

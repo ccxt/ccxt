@@ -2578,7 +2578,7 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             timestamp = this.safeIntegerProduct(order, "orderTime", 0.000001);
         }
         String triggerPrice = this.safeString(order, "stopPrice");
-        Boolean triggerSuccess = (Boolean) this.safeBool(order, "triggerSuccess", (Object) null);
+        Boolean triggerSuccess = (Boolean) this.safeBool(order, "triggerSuccess", null);
         Boolean triggerFail = (!java.util.Objects.equals(triggerSuccess, true)) && (!java.util.Objects.equals(triggerSuccess, null)); // TODO: updated to triggerSuccess === False once transpiler transpiles it correctly
         if ((java.util.Objects.equals(status, "triggered")) && Boolean.TRUE.equals(triggerFail))
         {
@@ -2691,8 +2691,8 @@ public class Kucoin extends io.github.ccxt.exchanges.Kucoin
             put( "cost", Kucoin.this.safeString(order, "c") );
             put( "trades", null );
             put( "fee", fee );
-            put( "reduceOnly", Kucoin.this.safeBool(order, "rO", (Object) null) );
-            put( "postOnly", Kucoin.this.safeBool(order, "pO", (Object) null) );
+            put( "reduceOnly", Kucoin.this.safeBool(order, "rO", null) );
+            put( "postOnly", Kucoin.this.safeBool(order, "pO", null) );
         }}, marketResolved);
     }
 

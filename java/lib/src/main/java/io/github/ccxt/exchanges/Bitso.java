@@ -787,7 +787,7 @@ public class Bitso extends BitsoApi
             put( "withdraw", null );
             put( "fee", null );
             put( "precision", Bitso.this.parseNumber(Bitso.this.parsePrecision(Bitso.this.safeString(rawCurrency, "precision"))) );
-            put( "margin", Bitso.this.safeBool(rawCurrency, "marginAvailable", (Object) null) );
+            put( "margin", Bitso.this.safeBool(rawCurrency, "marginAvailable", null) );
             put( "limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
@@ -2428,7 +2428,7 @@ public class Bitso extends BitsoApi
         {
             return null;  // fallback to default error handler
         }
-        if (!java.util.Objects.equals(this.safeBool(response, "success", (Object) null), null))
+        if (!java.util.Objects.equals(this.safeBool(response, "success", null), null))
         {
             //
             //     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}

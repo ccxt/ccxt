@@ -2909,7 +2909,7 @@ public class Okx extends OkxApi
             }
         }
         String feesType = (((java.util.Objects.equals(type, null)))) ? "" : type;
-        Map<String, Object> fees = (Map<String, Object>) this.safeDict2(this.fees, feesType, "trading", new HashMap<String, Object>() {{}});
+        Map<String, Object> fees = this.safeDict2(this.fees, feesType, "trading", new HashMap<String, Object>() {{}});
         String maxLeverage = this.safeString(market, "lever", "1");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         Double maxSpotCost = this.safeNumber(market, "maxMktSz", null);
@@ -2917,7 +2917,7 @@ public class Okx extends OkxApi
         {
             maxSpotCost = null;
         }
-        Object leverageAboveOne = Precise.stringGt(maxLeverage, "1");
+        Boolean leverageAboveOne = Precise.stringGt(maxLeverage, "1");
         Boolean quoteEqualSettle = (java.util.Objects.equals(quoteId, settleId));
         Boolean baseEqualSettle = (java.util.Objects.equals(baseId, settleId));
         String status = this.safeString(market, "state");
@@ -3171,8 +3171,8 @@ public class Okx extends OkxApi
                 mapLiteral2.put("id", networkId);
                 mapLiteral2.put("network", networkCode);
                 mapLiteral2.put("active", null);
-                mapLiteral2.put("deposit", this.safeBool(chain, "canDep", (Object) null));
-                mapLiteral2.put("withdraw", this.safeBool(chain, "canWd", (Object) null));
+                mapLiteral2.put("deposit", this.safeBool(chain, "canDep", null));
+                mapLiteral2.put("withdraw", this.safeBool(chain, "canWd", null));
                 mapLiteral2.put("fee", this.safeNumber(chain, "fee", null));
                 mapLiteral2.put("precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "wdTickSz"))));
                 mapLiteral2.put("limits", new HashMap<String, Object>() {{
@@ -4447,7 +4447,7 @@ public class Okx extends OkxApi
             request.put("sz", this.amountToPrecision(symbol, amount));
         }
         Boolean spot = (Boolean) this.safeBool(market, "spot", false);
-        Boolean contract = (Boolean) this.safeBool(market, "contract", (Object) null);
+        Boolean contract = (Boolean) this.safeBool(market, "contract", null);
         String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "triggerPx")));
         String timeInForce = this.safeString(parameters, "timeInForce", "GTC");
         // const takeProfitPrice = this.safeValue2 (params, 'takeProfitPrice', 'tpTriggerPx');
@@ -7130,7 +7130,7 @@ public class Okx extends OkxApi
         //
         if (java.util.Objects.equals(chain, "USDT-Polygon"))
         {
-            networkData = (Map<String, Object>) this.safeDict2(networksById, "USDT-Polygon-Bridge", "USDT-Polygon", null);
+            networkData = this.safeDict2(networksById, "USDT-Polygon-Bridge", "USDT-Polygon", null);
         }
         String network = this.safeString(networkData, "network");
         String networkCode = this.networkIdToCode(network, code);
@@ -10949,7 +10949,7 @@ public class Okx extends OkxApi
         List<Object> data = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         for (var i = 0; i < data.size(); i++)
         {
-            Map<String, Object> entry = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Map<String, Object> entry = this.safeDict(data, i, new HashMap<String, Object>() {{}});
             String entryMarketId = this.safeString(entry, "instId");
             if (java.util.Objects.equals(entryMarketId, marketId))
             {

@@ -2544,7 +2544,7 @@ public class Polymarket extends PolymarketApi
             put( "market", Polymarket.this.safeString(mkt, "market") );
             put( "type", "limit" );
             put( "timeInForce", Polymarket.this.safeString(order, "time_in_force", "GTC") );
-            put( "postOnly", Polymarket.this.safeBool(order, "postOnly", (Object) null) );
+            put( "postOnly", Polymarket.this.safeBool(order, "postOnly", null) );
             put( "side", side );
             put( "price", price );
             put( "stopPrice", null );
@@ -3457,7 +3457,7 @@ public class Polymarket extends PolymarketApi
         String createdAt = this.safeString2(rawEvent, "createdAt", "created_date_iso");
         String endDate = this.safeString2(rawEvent, "endDate", "end_date_iso");
         String updatedAt = this.safeString2(rawEvent, "updatedAt", "last_updated_date_iso");
-        Boolean rawActive = (Boolean) this.safeBool(rawEvent, "active", (Object) null);
+        Boolean rawActive = (Boolean) this.safeBool(rawEvent, "active", null);
         Boolean closed = (Boolean) this.safeBool(rawEvent, "closed", false);
         Boolean active = null;
         if (!java.util.Objects.equals(rawActive, null))

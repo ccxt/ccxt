@@ -878,7 +878,7 @@ public class Blofin extends BlofinApi
             symbol = ((((base + "/") + quote) + ":") + settle);
         }
         String tickSize = this.safeString(market, "tickSize");
-        Map<String, Object> fees = (Map<String, Object>) this.safeDict2(this.fees, type, "trading", new HashMap<String, Object>() {{}});
+        Map<String, Object> fees = this.safeDict2(this.fees, type, "trading", new HashMap<String, Object>() {{}});
         Double taker = this.safeNumber(fees, "taker", null);
         Double maker = this.safeNumber(fees, "maker", null);
         String maxLeverage = this.safeString(market, "maxLeverage", "100");
@@ -2029,7 +2029,7 @@ public class Blofin extends BlofinApi
         Boolean isCombinedSlTp = (Boolean.TRUE.equals(isStopLossPriceDefined) && Boolean.TRUE.equals(isTakeProfitPriceDefined)) || Boolean.TRUE.equals(isTpslEndpoint);
         Boolean isSlOrTp = Boolean.TRUE.equals(isStopLossPriceDefined) || Boolean.TRUE.equals(isTakeProfitPriceDefined);
         Map<String, Object> response = null;
-        Boolean reduceOnly = (Boolean) this.safeBool(paramsTpsl, "reduceOnly", (Object) null);
+        Boolean reduceOnly = (Boolean) this.safeBool(paramsTpsl, "reduceOnly", null);
         if (!java.util.Objects.equals(reduceOnly, null))
         {
             ((Map<String, Object>)paramsTpsl).put("reduceOnly", ((Boolean.TRUE.equals(reduceOnly))) ? "true" : "false");

@@ -1776,7 +1776,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
             put( "user.balance", "handleBalance");
             put( "user.position_balance", "handlePositions");
         }};
-        Map<String, Object> result = (Map<String, Object>) this.safeDict2(message, "result", "info", new HashMap<String, Object>() {{}});
+        Map<String, Object> result = this.safeDict2(message, "result", "info", new HashMap<String, Object>() {{}});
         String channel = this.safeString(result, "channel");
         if ((!java.util.Objects.equals(channel, null)) && ((String)channel).indexOf("user.trade") > -1)
         {

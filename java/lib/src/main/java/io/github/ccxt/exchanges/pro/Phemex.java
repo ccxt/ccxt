@@ -1036,7 +1036,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         Long timestamp = this.safeIntegerProduct(message, "timestamp", 0.000001);
         if (java.util.Objects.equals(type, "snapshot"))
         {
-            Map<String, Object> book = (Map<String, Object>) this.safeDict2(message, "book", "orderbook_p", new HashMap<String, Object>() {{}});
+            Map<String, Object> book = this.safeDict2(message, "book", "orderbook_p", new HashMap<String, Object>() {{}});
             Map<String, Object> snapshot = this.customParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market);
             snapshot.put("nonce", nonce);
             // reset the existing orderbook instead of replacing it: a consumer
@@ -1054,7 +1054,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             if (this.orderbooks.containsKey(symbol))
             {
                 io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-                Map<String, Object> changes = (Map<String, Object>) this.safeDict2(message, "book", "orderbook_p", new HashMap<String, Object>() {{}});
+                Map<String, Object> changes = this.safeDict2(message, "book", "orderbook_p", new HashMap<String, Object>() {{}});
                 List<Object> asks = this.safeList(changes, "asks", new ArrayList<Object>(Arrays.asList()));
                 List<Object> bids = this.safeList(changes, "bids", new ArrayList<Object>(Arrays.asList()));
                 this.customHandleDeltas((orderbook == null ? null : orderbook.get("asks")), asks, market);
@@ -1494,7 +1494,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         // spot and swap send 'orders' / 'orders_p' as a dict, perpetual sends 'orders_p' as a list
         List<Object> trades = new ArrayList<Object>(Arrays.asList());
         List<Map<String, Object>> parsedOrders = new ArrayList<Map<String, Object>>();
-        Map<String, Object> ordersDict = (Map<String, Object>) this.safeDict2(message, "orders", "orders_p", new HashMap<String, Object>() {{}});
+        Map<String, Object> ordersDict = this.safeDict2(message, "orders", "orders_p", new HashMap<String, Object>() {{}});
         if ((ordersDict.containsKey("closed")) || (ordersDict.containsKey("fills")) || (ordersDict.containsKey("open")))
         {
             List<Object> closed = this.safeList(ordersDict, "closed", new ArrayList<Object>(Arrays.asList()));

@@ -2590,8 +2590,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             // plain variables as slice bounds, php gets end - start unparenthesized
             Long middle = (Long) (position + 1L);
             Long next = (Long) (position + 2L);
-            Integer high = Helpers.getIndexOf(digits, (frameHex == null ? null : frameHex.substring((int) Math.min(Math.min(Math.max(position < 0 ? frameHex.length() + position : position, 0), frameHex.length()), Math.min(middle < 0 ? frameHex.length() + middle : middle, frameHex.length())), (int) Math.min(middle < 0 ? frameHex.length() + middle : middle, frameHex.length()))));
-            Integer low = Helpers.getIndexOf(digits, (frameHex == null ? null : frameHex.substring((int) Math.min(Math.min(Math.max(middle < 0 ? frameHex.length() + middle : middle, 0), frameHex.length()), Math.min(next < 0 ? frameHex.length() + next : next, frameHex.length())), (int) Math.min(next < 0 ? frameHex.length() + next : next, frameHex.length()))));
+            Integer high = digits.indexOf((frameHex == null ? null : frameHex.substring((int) Math.min(Math.min(Math.max(position < 0 ? frameHex.length() + position : position, 0), frameHex.length()), Math.min(middle < 0 ? frameHex.length() + middle : middle, frameHex.length())), (int) Math.min(middle < 0 ? frameHex.length() + middle : middle, frameHex.length()))));
+            Integer low = digits.indexOf((frameHex == null ? null : frameHex.substring((int) Math.min(Math.min(Math.max(middle < 0 ? frameHex.length() + middle : middle, 0), frameHex.length()), Math.min(next < 0 ? frameHex.length() + next : next, frameHex.length())), (int) Math.min(next < 0 ? frameHex.length() + next : next, frameHex.length()))));
             result = this.parseToInt(this.sum(result, ((((long) high) * factor) * 16L), (((long) low) * factor)));
             factor = this.parseToInt((factor * 256L));
             position = this.parseToInt(next);

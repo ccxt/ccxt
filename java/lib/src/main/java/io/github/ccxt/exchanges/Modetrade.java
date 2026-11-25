@@ -2148,7 +2148,7 @@ public class Modetrade extends ModetradeApi
         String cost = this.safeString2(order, "order_amount", "amount"); // This is quote amount
         String orderType = this.safeStringLower2(order, "order_type", "type");
         String status = this.safeString2(order, "status", "algoStatus");
-        Boolean success = (Boolean) this.safeBool(order, "success", (Object) null);
+        Boolean success = (Boolean) this.safeBool(order, "success", null);
         if (!java.util.Objects.equals(success, null))
         {
             status = ((Boolean.TRUE.equals(success))) ? "NEW" : "REJECTED";
@@ -2190,7 +2190,7 @@ public class Modetrade extends ModetradeApi
         mapLiteral5.put("type", this.parseOrderType(orderType));
         mapLiteral5.put("timeInForce", this.parseTimeInForce(orderType));
         mapLiteral5.put("postOnly", null);
-        mapLiteral5.put("reduceOnly", this.safeBool(order, "reduce_only", (Object) null));
+        mapLiteral5.put("reduceOnly", this.safeBool(order, "reduce_only", null));
         mapLiteral5.put("side", side);
         mapLiteral5.put("price", price);
         mapLiteral5.put("triggerPrice", triggerPrice);

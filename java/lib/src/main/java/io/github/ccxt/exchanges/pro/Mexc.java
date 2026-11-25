@@ -817,7 +817,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             parsed = this.parseWsOHLCV(data, market);
         } else
         {
-            Map<String, Object> d = (Map<String, Object>) this.safeDict2(message, "d", "data", new HashMap<String, Object>() {{}});
+            Map<String, Object> d = this.safeDict2(message, "d", "data", new HashMap<String, Object>() {{}});
             Map<String, Object> rawOhlcv = (Map<String, Object>) this.safeDict(d, "k", d);
             String timeframeId = this.safeString2(rawOhlcv, "i", "interval");
             Map<String, Object> timeframes = this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
@@ -924,24 +924,23 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         }
         Map<String, Object> market = this.market(symbol);
         String messageHash = ("orderbook:" + this.safeString(market, "symbol", ""));
-        Object orderbook = null;
         if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
         {
             Pair<String, Map<String, Object>> frequencyparamsFrequencyVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
             String frequency = frequencyparamsFrequencyVariable.first();
             Map<String, Object> paramsFrequency = frequencyparamsFrequencyVariable.second();
             String spotChannel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + this.safeString(market, "id", ""));
-            orderbook = (this.watchSpotPublic(spotChannel, messageHash, paramsFrequency)).join();
+            io.github.ccxt.ws.WsOrderBook spotOrderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchSpotPublic(spotChannel, messageHash, paramsFrequency)).join();
+            return spotOrderbook.limit();
         } else
         {
             String channel = "sub.depth";
             Map<String, Object> requestParams = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
-            orderbook = (this.watchSwapPublic(channel, messageHash, requestParams, parameters)).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchSwapPublic(channel, messageHash, requestParams, parameters)).join();
+            return orderbook.limit();
         }
-        orderbook = this.requireValue(orderbook, "watchOrderBook() orderbook is required");
-        return Helpers.callDynamically(orderbook, "limit", new Object[]{});
 
     }
 

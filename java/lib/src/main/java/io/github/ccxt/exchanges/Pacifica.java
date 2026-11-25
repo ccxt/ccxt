@@ -3401,7 +3401,7 @@ public class Pacifica extends PacificaApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         String symbol = this.safeString(marketResolved, "symbol");
         String margin = this.safeString(position, "margin");
-        Boolean rawIsolated = (Boolean) this.safeBool(position, "isolated", (Object) null);
+        Boolean rawIsolated = (Boolean) this.safeBool(position, "isolated", null);
         Boolean isIsolated = (!java.util.Objects.equals(margin, null)) && (!java.util.Objects.equals(margin, "0"));
         if (!java.util.Objects.equals(rawIsolated, null))
         {
@@ -4218,7 +4218,7 @@ public class Pacifica extends PacificaApi
         //   "code": null
         // }
         //
-        Boolean success = (Boolean) this.safeBool(transfer, "success", (Object) null);
+        Boolean success = (Boolean) this.safeBool(transfer, "success", null);
         String status = null;
         if (!java.util.Objects.equals(success, null))
         {

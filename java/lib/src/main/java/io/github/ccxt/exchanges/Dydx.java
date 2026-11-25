@@ -1123,8 +1123,8 @@ public class Dydx extends DydxApi
             put( "symbol", symbol );
             put( "type", type );
             put( "timeInForce", timeInForce );
-            put( "postOnly", Dydx.this.safeBool(order, "postOnly", (Object) null) );
-            put( "reduceOnly", Dydx.this.safeBool(order, "reduceOnly", (Object) null) );
+            put( "postOnly", Dydx.this.safeBool(order, "postOnly", null) );
+            put( "reduceOnly", Dydx.this.safeBool(order, "reduceOnly", null) );
             put( "side", side );
             put( "price", price );
             put( "triggerPrice", null );

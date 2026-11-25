@@ -3798,7 +3798,7 @@ public class Myriad extends MyriadApi
         j39v4.put("liquidity", this.safeNumber(rawEvent, "liquidity", null));
         j39v4.put("url", this.safeString(rawEvent, "url"));
         j39v4.put("image", this.safeString(rawEvent, "imageUrl", this.safeString(rawEvent, "image")));
-        j39v4.put("active", this.safeBool(rawEvent, "active", (Object) null));
+        j39v4.put("active", this.safeBool(rawEvent, "active", null));
         j39v4.put("resolved", this.safeBool(rawEvent, "resolved", false));
         j39v4.put("category", this.safeString(rawEvent, "category"));
         j39v4.put("tags", this.safeList(rawEvent, "tags", null));

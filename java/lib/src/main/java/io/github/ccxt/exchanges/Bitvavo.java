@@ -1095,7 +1095,7 @@ public class Bitvavo extends BitvavoApi
         String id = this.safeString2(trade, "id", "fillId");
         String marketId = this.safeString(trade, "market");
         String symbol = this.safeSymbol(marketId, market, "-", null);
-        Boolean taker = (Boolean) this.safeBool(trade, "taker", (Object) null);
+        Boolean taker = (Boolean) this.safeBool(trade, "taker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(taker, null))
         {
@@ -2557,7 +2557,7 @@ public class Bitvavo extends BitvavoApi
         }
         List<Object> rawTrades = this.safeList(order, "fills", new ArrayList<Object>(Arrays.asList()));
         String timeInForce = this.safeString(order, "timeInForce");
-        Boolean postOnly = (Boolean) this.safeBool(order, "postOnly", (Object) null);
+        Boolean postOnly = (Boolean) this.safeBool(order, "postOnly", null);
         // https://github.com/ccxt/ccxt/issues/8489
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
         mapLiteral4.put("info", order);
@@ -3062,7 +3062,7 @@ public class Bitvavo extends BitvavoApi
             }
         }
         String type = null;
-        if ((!java.util.Objects.equals(this.safeBool(transaction, "success", (Object) null), null)) || (!java.util.Objects.equals(this.safeString(transaction, "address"), null)))
+        if ((!java.util.Objects.equals(this.safeBool(transaction, "success", null), null)) || (!java.util.Objects.equals(this.safeString(transaction, "address"), null)))
         {
             type = "withdrawal";
         } else

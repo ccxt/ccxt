@@ -1236,22 +1236,22 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
                 io.github.ccxt.ws.OrderBookSide storedBids = (io.github.ccxt.ws.OrderBookSide) (storedOrderBook == null ? null : storedOrderBook.get("bids"));
                 Integer asksLength = ((List<?>)storedAsks).size();
                 Integer bidsLength = ((List<?>)storedBids).size();
-                Object payloadArray = new ArrayList<Object>(Arrays.asList());
+                List<String> payloadArray = new ArrayList<String>(Arrays.asList());
                 for (var i = 0; i < 25; i++)
                 {
                     if ((bidsLength != null && i < bidsLength))
                     {
                         Object bidLevel = (storedBids == null || i < 0 || i >= ((List<?>)storedBids).size() ? null : ((List<?>)storedBids).get(i));
                         Object bidParts = Helpers.GetValue(bidLevel, 2);
-                        ((List<Object>)payloadArray).add(Helpers.GetValue(bidParts, 0));
-                        ((List<Object>)payloadArray).add(Helpers.GetValue(bidParts, 1));
+                        payloadArray.add(this.safeString(bidParts, 0, ""));
+                        payloadArray.add(this.safeString(bidParts, 1, ""));
                     }
                     if ((asksLength != null && i < asksLength))
                     {
                         Object askLevel = (storedAsks == null || i < 0 || i >= ((List<?>)storedAsks).size() ? null : ((List<?>)storedAsks).get(i));
                         Object askParts = Helpers.GetValue(askLevel, 2);
-                        ((List<Object>)payloadArray).add(Helpers.GetValue(askParts, 0));
-                        ((List<Object>)payloadArray).add(Helpers.GetValue(askParts, 1));
+                        payloadArray.add(this.safeString(askParts, 0, ""));
+                        payloadArray.add(this.safeString(askParts, 1, ""));
                     }
                 }
                 String payload = String.join(":", (List<String>)payloadArray);

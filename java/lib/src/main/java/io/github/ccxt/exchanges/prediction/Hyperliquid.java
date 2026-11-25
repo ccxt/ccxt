@@ -2777,10 +2777,10 @@ public class Hyperliquid extends HyperliquidApi
         if (config.containsKey("byType"))
         {
             String type = this.safeString(parameters, "type");
-            Object byType = config.get("byType");
+            Map<String, Object> byType = this.safeDict(config, "byType", new HashMap<String, Object>() {{}});
             if (!java.util.Objects.equals(type, null))
             {
-                if (((Map<?, ?>)byType).containsKey(type))
+                if (byType.containsKey(type))
                 {
                     return this.safeInteger(byType, type);
                 }

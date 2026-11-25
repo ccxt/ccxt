@@ -2549,7 +2549,7 @@ public class Bithumb extends BithumbApi
         //     }
         //
         String datetime = this.safeString(order, "created_at");
-        Object timestamp = null;
+        Long timestamp = null;
         if (!java.util.Objects.equals(datetime, null))
         {
             if (((String)datetime).indexOf("+09:00") > -1)
@@ -3265,7 +3265,7 @@ public class Bithumb extends BithumbApi
         String currencyId = this.safeString(transaction, "currency");
         Map<String, Object> currencyResolved = this.safeCurrency(currencyId, currency);
         String datetime = this.safeString(transaction, "created_at");
-        Object timestamp = this.parse8601(datetime);
+        Long timestamp = this.parse8601(datetime);
         if ((!java.util.Objects.equals(datetime, null)) && (((String)datetime).indexOf("+09:00") > -1))
         {
             String normalized = (datetime == null ? null : ((String)datetime).replaceFirst(java.util.regex.Pattern.quote("+09:00"), "Z"));

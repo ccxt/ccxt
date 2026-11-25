@@ -263,7 +263,7 @@ public Map<String, Object> describe()
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
             Map<String, Object> eventVar = this.safeDict(events, i, null);
-            Boolean isActive = (Boolean) this.safeBool(eventVar, "active", (Object) null);
+            Boolean isActive = (Boolean) this.safeBool(eventVar, "active", null);
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if ((java.util.Objects.equals(isActive, null)) || (java.util.Objects.equals(isActive, wantActive)))
             {
@@ -1709,7 +1709,7 @@ public Map<String, Object> describe()
         String orderType = this.safeString(outcomeOrder, "type");
         String timeInForce = this.safeString(outcomeOrder, "timeInForce");
         // the venue flag and the derived one are each written once, so neither local widens
-        Boolean postOnlyValue = (Boolean) this.safeBool(outcomeOrder, "postOnly", (Object) null);
+        Boolean postOnlyValue = (Boolean) this.safeBool(outcomeOrder, "postOnly", null);
         Boolean derivedPostOnly = null;
         if (java.util.Objects.equals(timeInForce, null))
         {
@@ -1749,7 +1749,7 @@ public Map<String, Object> describe()
         result.put("remaining", this.parseNumber(remaining));
         result.put("cost", this.parseNumber(cost));
         result.put("fee", fee);
-        result.put("reduceOnly", this.safeBool(outcomeOrder, "reduceOnly", (Object) null));
+        result.put("reduceOnly", this.safeBool(outcomeOrder, "reduceOnly", null));
         result.put("postOnly", (((!java.util.Objects.equals(postOnlyValue, null)))) ? postOnlyValue : derivedPostOnly);
         result.put("trades", trades);
         result.put("outcome", this.safeString(outcomeOrder, "outcome"));
@@ -1879,8 +1879,8 @@ public Map<String, Object> describe()
         result.put("markPrice", this.safeNumber(position, "markPrice", null));
         result.put("lastPrice", this.safeNumber(position, "lastPrice", null));
         result.put("percentage", this.safeNumber(position, "percentage", null));
-        result.put("resolved", this.safeBool(position, "resolved", (Object) null));
-        result.put("won", this.safeBool(position, "won", (Object) null));
+        result.put("resolved", this.safeBool(position, "resolved", null));
+        result.put("won", this.safeBool(position, "won", null));
         result.put("settleFraction", this.safeNumber(position, "settleFraction", null));
         result.put("payout", this.safeNumber(position, "payout", null));
         result.put("outcome", this.safeString(position, "outcome"));

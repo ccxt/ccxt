@@ -1600,8 +1600,8 @@ public class Poloniex extends PoloniexApi
                 mapLiteral4.put("code", networkCode);
                 mapLiteral4.put("active", null);
                 mapLiteral4.put("fee", this.safeNumber(chain, "withdrawFee", null));
-                mapLiteral4.put("deposit", this.safeBool(chain, "depositEnable", (Object) null));
-                mapLiteral4.put("withdraw", this.safeBool(chain, "withdrawalEnable", (Object) null));
+                mapLiteral4.put("deposit", this.safeBool(chain, "depositEnable", null));
+                mapLiteral4.put("withdraw", this.safeBool(chain, "withdrawalEnable", null));
                 mapLiteral4.put("precision", this.parseNumber(this.parsePrecision(this.safeString(chain, "decimals"))));
                 mapLiteral4.put("limits", new HashMap<String, Object>() {{
         put( "withdraw", new HashMap<String, Object>() {{
@@ -1629,7 +1629,7 @@ public class Poloniex extends PoloniexApi
             put( "active", null );
             put( "fee", null );
             put( "limits", null );
-            put( "margin", Poloniex.this.safeBool(currency, "supportBorrow", (Object) null) );
+            put( "margin", Poloniex.this.safeBool(currency, "supportBorrow", null) );
         }});
     }
 
@@ -2193,7 +2193,7 @@ public class Poloniex extends PoloniexApi
         }
         String clientOrderId = this.safeString2(order, "clientOrderId", "clOrdId");
         String marginMode = this.safeStringLower(order, "mgnMode");
-        Boolean reduceOnly = (Boolean) this.safeBool(order, "reduceOnly", (Object) null);
+        Boolean reduceOnly = (Boolean) this.safeBool(order, "reduceOnly", null);
         Long leverage = this.safeInteger(order, "lever");
         Boolean hedged = !java.util.Objects.equals(this.safeString(order, "posSide"), "BOTH");
         HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();

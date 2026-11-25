@@ -1057,7 +1057,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
                 }
                 // get order without symbol
                 String cancelledOrderId = this.safeString(message, "order_id");
-                for (var i = 0; i < ((List<?>)orders).size(); i++)
+                for (var i = 0; i < orders.size(); i++)
                 {
                     Object currentOrder = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
                     String currentOrderId = this.safeString(currentOrder, "id");
@@ -1248,7 +1248,7 @@ public class Krakenfutures extends io.github.ccxt.exchanges.Krakenfutures
         //        "reduce_only": false
         //    }
         //
-        Boolean isCancelled = (Boolean) this.safeBool(order, "is_cancel", (Object) null);
+        Boolean isCancelled = (Boolean) this.safeBool(order, "is_cancel", null);
         Map<String, Object> unparsedOrder = order;
         String status = null;
         if (!java.util.Objects.equals(isCancelled, null))

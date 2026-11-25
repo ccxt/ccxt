@@ -907,7 +907,7 @@ public class Lighter extends LighterApi
 
         Map<String, Object> tiersForAccountIndexes = this.safeDict(this.options, "tiersForAccountIndexes", new HashMap<String, Object>() {{}});
         String accountIndexStr = this.numberToString(accountIndex);
-        Boolean isStandardTier = (Boolean) this.safeBool(tiersForAccountIndexes, accountIndexStr, (Object) null);
+        Boolean isStandardTier = (Boolean) this.safeBool(tiersForAccountIndexes, accountIndexStr, null);
         if (!java.util.Objects.equals(isStandardTier, null))
         {
             Boolean cachedIsStandard = (java.util.Objects.equals(isStandardTier, true));
@@ -2582,7 +2582,7 @@ public class Lighter extends LighterApi
             marginMode = ((((marginModeId != null && marginModeId == 0)))) ? "cross" : "isolated";
         }
         String imfStr = this.safeString(position, "initial_margin_fraction");
-        Object leverage = null;
+        Double leverage = null;
         if (!java.util.Objects.equals(imfStr, null))
         {
             Long imf = this.parseToInt(imfStr);
@@ -2959,7 +2959,7 @@ public class Lighter extends LighterApi
         String marketId = this.safeString(order, "market_index");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, null, null);
         Long timestamp = this.safeTimestamp(order, "timestamp");
-        Boolean isAsk = (Boolean) this.safeBool(order, "is_ask", (Object) null);
+        Boolean isAsk = (Boolean) this.safeBool(order, "is_ask", null);
         Long isAskAsInteger = this.safeInteger(order, "is_ask");
         String side = null;
         if (!java.util.Objects.equals(isAsk, null))
@@ -2992,7 +2992,7 @@ public class Lighter extends LighterApi
         // Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
         Long tifAsInteger = this.safeInteger(order, "time_in_force");
         String tif = (((!java.util.Objects.equals(tifAsInteger, null)))) ? this.parseOrderTimeInForceInteger(tifAsInteger) : this.safeString(order, "time_in_force");
-        Boolean reduceOnlyAsBool = (Boolean) this.safeBool(order, "reduce_only", (Object) null);
+        Boolean reduceOnlyAsBool = (Boolean) this.safeBool(order, "reduce_only", null);
         Long reduceOnlyAsInteger = this.safeInteger(order, "reduce_only");
         Boolean reduceOnly = reduceOnlyAsBool;
         if ((java.util.Objects.equals(reduceOnlyAsBool, null)) && (!java.util.Objects.equals(reduceOnlyAsInteger, null)))
@@ -3811,7 +3811,7 @@ public class Lighter extends LighterApi
         String accountIndex = this.safeString(trade, "account_index");
         String askAccountId = this.safeString(trade, "ask_account_id");
         String bidAccountId = this.safeString(trade, "bid_account_id");
-        Boolean isMakerAsk = (Boolean) this.safeBool(trade, "is_maker_ask", (Object) null);
+        Boolean isMakerAsk = (Boolean) this.safeBool(trade, "is_maker_ask", null);
         String side = null;
         String orderId = null;
         if (!java.util.Objects.equals(accountIndex, null))

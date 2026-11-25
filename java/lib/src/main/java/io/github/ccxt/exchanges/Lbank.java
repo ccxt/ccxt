@@ -639,7 +639,7 @@ public class Lbank extends LbankApi
     }});
                 mapLiteral1.put("active", null);
                 mapLiteral1.put("deposit", null);
-                mapLiteral1.put("withdraw", this.safeBool(networkEntry, "canWithDraw", (Object) null));
+                mapLiteral1.put("withdraw", this.safeBool(networkEntry, "canWithDraw", null));
                 mapLiteral1.put("fee", this.safeNumber(networkEntry, "fee", null));
                 mapLiteral1.put("precision", this.parseNumber(this.parsePrecision(this.safeString(networkEntry, "transferAmtScale"))));
                 mapLiteral1.put("info", networkEntry);

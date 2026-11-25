@@ -406,7 +406,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         String time = this.safeString(ticker, "time", "");
         String kstDatetime = (((((((((((date == null ? null : ((String)date).substring(0, Math.min(4, ((String)date).length()))) + "-") + (date == null ? null : ((String)date).substring(Math.min(4, ((String)date).length()), Math.min(6, ((String)date).length())))) + "-") + (date == null ? null : ((String)date).substring(Math.min(6, ((String)date).length()), Math.min(8, ((String)date).length())))) + "T") + (time == null ? null : ((String)time).substring(0, Math.min(2, ((String)time).length())))) + ":") + (time == null ? null : ((String)time).substring(Math.min(2, ((String)time).length()), Math.min(4, ((String)time).length())))) + ":") + (time == null ? null : ((String)time).substring(Math.min(4, ((String)time).length()), Math.min(6, ((String)time).length()))));
         // date/time are the exchange's local KST wall-clock, not UTC — shift -9h like parseWsTrade
-        Object timestamp = null;
+        Long timestamp = null;
         Long kstTimestamp = this.parse8601(kstDatetime);
         if (!java.util.Objects.equals(kstTimestamp, null))
         {
@@ -825,7 +825,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         String marketId = this.safeString(trade, "symbol");
         String datetime = this.safeString(trade, "contDtm");
         // that date is not UTC iso8601, but exchange's local time, -9hr difference
-        Object timestamp = null;
+        Long timestamp = null;
         Long kstTimestamp = this.parse8601(datetime);
         if (!java.util.Objects.equals(kstTimestamp, null))
         {

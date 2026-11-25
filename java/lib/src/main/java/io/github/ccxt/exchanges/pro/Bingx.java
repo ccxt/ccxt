@@ -2008,7 +2008,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         //    }
         //
         Boolean isSpot = (message.containsKey("dataType"));
-        Map<String, Object> data = (Map<String, Object>) this.safeDict2(message, "data", "o", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict2(message, "data", "o", new HashMap<String, Object>() {{}});
         if (java.util.Objects.equals(this.orders, null))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -2027,7 +2027,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                 {
                     // Linear scan bounded by ordersLimit (default 1000), avoiding cache-specific maps.
                     // Match both id and symbol: several cached orders can share a symbol.
-                    for (var i = 0; i < ((List<?>)stored).size(); i++)
+                    for (var i = 0; i < stored.size(); i++)
                     {
                         Object previousOrder = (stored == null || i < 0 || i >= stored.size() ? null : stored.get(i));
                         if ((java.util.Objects.equals(this.safeString(previousOrder, "id"), orderId)) && (java.util.Objects.equals(this.safeString(previousOrder, "symbol"), this.safeString(parsedOrder, "symbol"))))
@@ -2116,7 +2116,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         //    }
         //
         Boolean isSpot = (message.containsKey("dataType"));
-        Map<String, Object> result = (Map<String, Object>) this.safeDict2(message, "data", "o", new HashMap<String, Object>() {{}});
+        Map<String, Object> result = this.safeDict2(message, "data", "o", new HashMap<String, Object>() {{}});
         io.github.ccxt.ws.ArrayCache cachedTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         if (java.util.Objects.equals(cachedTrades, null))
         {

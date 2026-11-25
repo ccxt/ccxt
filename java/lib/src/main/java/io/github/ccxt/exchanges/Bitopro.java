@@ -437,8 +437,8 @@ public class Bitopro extends BitoproApi
         Object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new ArrayList<Object>(Arrays.asList()));
         String currencyId = this.safeString(rawCurrency, "currency");
         String code = this.safeCurrencyCode(currencyId, null);
-        Boolean deposit = (Boolean) this.safeBool(rawCurrency, "deposit", (Object) null);
-        Boolean withdraw = (Boolean) this.safeBool(rawCurrency, "withdraw", (Object) null);
+        Boolean deposit = (Boolean) this.safeBool(rawCurrency, "deposit", null);
+        Boolean withdraw = (Boolean) this.safeBool(rawCurrency, "withdraw", null);
         boolean isFiat = this.inArray(code, fiatCurrencies);
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("id", currencyId);
@@ -830,7 +830,7 @@ public class Bitopro extends BitoproApi
                 fee = hx4NewMap0;
             }
         }
-        Boolean isTaker = (Boolean) this.safeBool(trade, "isTaker", (Object) null);
+        Boolean isTaker = (Boolean) this.safeBool(trade, "isTaker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isTaker, null))
         {
@@ -1051,7 +1051,7 @@ public class Bitopro extends BitoproApi
             limitResolved = this.parseToInt(Math.min(limit, 75000));
         }
         int timeframeInSeconds = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-        Object alignedSince = null;
+        Long alignedSince = null;
         if (java.util.Objects.equals(since, null))
         {
             Long toSeconds = this.seconds();
@@ -1086,7 +1086,7 @@ public class Bitopro extends BitoproApi
 
     }
 
-    public List<Object> insertMissingCandles(List<Object> candles, Object distanceInMs, Object since, Long limit)
+    public List<Object> insertMissingCandles(List<Object> candles, Object distanceInMs, Long since, Long limit)
     {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results

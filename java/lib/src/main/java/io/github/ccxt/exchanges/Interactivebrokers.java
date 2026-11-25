@@ -1347,7 +1347,8 @@ public class Interactivebrokers extends InteractivebrokersApi
         this.options.put("gatewayRegainScheduled", false);
         Boolean useGateway = (Boolean) this.safeBool(this.options, "useGateway", false);
         Long lostTimestamp = this.safeInteger(this.options, "gatewaySessionLostTimestamp");
-        if (!Boolean.TRUE.equals(useGateway) || (java.util.Objects.equals(lostTimestamp, null)) || (((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return (!j38g && !j38e) || j38e; }).test(this.ibkrGatewayRegainDelay(), 0)))
+        Long regainDelay = this.ibkrGatewayRegainDelay();
+        if (!Boolean.TRUE.equals(useGateway) || (java.util.Objects.equals(lostTimestamp, null)) || ((regainDelay == null || regainDelay <= 0)))
         {
             return null;  // already regained, or disabled
         }
@@ -1951,21 +1952,19 @@ public class Interactivebrokers extends InteractivebrokersApi
         }
         Integer chunkSize = 330; // above this number, response becomes unreliable
         List<CompletableFuture<?>> promises = new ArrayList<CompletableFuture<?>>();
-        Object offset = 0;
-        while ((!(offset == null && numDetails == null) && offset == null || (numDetails != null && !(((Number) offset).doubleValue() >= numDetails))))
+        List<String> chunk = new ArrayList<String>(Arrays.asList());
+        for (var k = 0; (numDetails != null && k < numDetails); k++)
         {
-            Object end = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(this.sum(offset, chunkSize), numDetails);
-            List<String> chunk = new ArrayList<String>(Arrays.asList());
-            for (long k = ((long) (switch ((Object) (offset)) { case null -> Long.parseLong("null"); case Long hx4J40v4 -> hx4J40v4.longValue(); case Integer hx4J40v4 -> hx4J40v4.longValue(); case Double hx4J40v4 -> hx4J40v4.longValue(); case Float hx4J40v4 -> hx4J40v4.longValue(); case java.math.BigDecimal hx4J40v4 -> hx4J40v4.longValue(); case String hx4J40v4 -> Long.parseLong(hx4J40v4); case Object hx4J40v4 -> Long.parseLong(String.valueOf(hx4J40v4)); })); ((end != null && !(k >= ((Number) end).doubleValue()))); k++)
+            String detailId = this.safeString(detailIds, k, "");
+            chunk.add(detailId);
+            Object chunkLength = chunk.size();
+            if ((java.util.Objects.equals(chunkLength, chunkSize)) || ((k == (((long) numDetails) - 1L))))
             {
-                String detailId = this.safeString(detailIds, k, "");
-                chunk.add(detailId);
+                Map<String, Object> secdefRequest = new HashMap<String, Object>();
+                secdefRequest.put("conids", String.join(",", (List<String>)chunk));
+                promises.add(this.marketsEndpointCall(secdefRequest, "webapiGetV1ApiTrsrvSecdef", new HashMap<String, Object>() {{}}));
+                chunk = new ArrayList<String>(Arrays.asList());
             }
-            Map<String, Object> secdefRequest = new HashMap<String, Object>() {{
-                put( "conids", String.join(",", (List<String>)chunk) );
-            }};
-            promises.add(this.marketsEndpointCall(secdefRequest, "webapiGetV1ApiTrsrvSecdef", new HashMap<String, Object>() {{}}));
-            offset = end;
         }
         List<Object> responses = (CompletableFuture.allOf(promises.toArray(new CompletableFuture<?>[0])).thenApply((promiseAllDone) -> new ArrayList<Object>(promises.stream().<Object>map(CompletableFuture::join).toList()))).join();
         //
@@ -4561,7 +4560,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         {
             market = this.market(symbol);
         }
-        Object orders = (this.fetchLiveOrdersRaw(parameters)).join();
+        List<Object> orders = (this.fetchLiveOrdersRaw(parameters)).join();
         List<Object> parsed = this.parseOrders(orders, market, null, null, new HashMap<String, Object>() {{}});
         return this.filterBySymbolSinceLimit(parsed, symbol, since, limit, false);
 
@@ -4673,7 +4672,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         {
             market = this.market(symbol);
         }
-        Object orders = (this.fetchLiveOrdersRaw(parameters)).join();
+        List<Object> orders = (this.fetchLiveOrdersRaw(parameters)).join();
         List<Object> parsed = this.parseOrders(orders, market, null, null, new HashMap<String, Object>() {{}});
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < parsed.size(); i++)
@@ -4718,7 +4717,7 @@ public class Interactivebrokers extends InteractivebrokersApi
         {
             market = this.market(symbol);
         }
-        Object orders = (this.fetchLiveOrdersRaw(parameters)).join();
+        List<Object> orders = (this.fetchLiveOrdersRaw(parameters)).join();
         List<Object> parsed = this.parseOrders(orders, market, null, null, new HashMap<String, Object>() {{}});
         List<Object> filtered = this.filterBy(parsed, "status", status);
         return this.filterBySymbolSinceLimit(filtered, symbol, since, limit, false);
@@ -4734,9 +4733,9 @@ public class Interactivebrokers extends InteractivebrokersApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} the raw orders
      */
-    public CompletableFuture<Object> fetchLiveOrdersRaw(Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchLiveOrdersRaw(Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchLiveOrdersRawCore(parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchLiveOrdersRawCore(parameters)).thenApply(res -> (List<Object>) res);
     }
 
     private Object fetchLiveOrdersRawCore(Map<String, Object> parameters)

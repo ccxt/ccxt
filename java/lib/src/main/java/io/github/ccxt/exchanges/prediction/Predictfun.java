@@ -849,9 +849,9 @@ public class Predictfun extends PredictfunApi
                 mapLiteral3.put("description", this.safeString(first, "description"));
                 mapLiteral3.put("imageUrl", this.safeString(first, "imageUrl"));
                 mapLiteral3.put("marketVariant", this.safeString(first, "marketVariant"));
-                mapLiteral3.put("isNegRisk", this.safeBool(first, "isNegRisk", (Object) null));
-                mapLiteral3.put("isYieldBearing", this.safeBool(first, "isYieldBearing", (Object) null));
-                mapLiteral3.put("isVisible", this.safeBool(first, "isVisible", (Object) null));
+                mapLiteral3.put("isNegRisk", this.safeBool(first, "isNegRisk", null));
+                mapLiteral3.put("isYieldBearing", this.safeBool(first, "isYieldBearing", null));
+                mapLiteral3.put("isVisible", this.safeBool(first, "isVisible", null));
                 mapLiteral3.put("status", topicStatus);
                 mapLiteral3.put("createdAt", this.safeString(first, "createdAt"));
                 mapLiteral3.put("markets", markets);
@@ -2305,7 +2305,7 @@ public class Predictfun extends PredictfunApi
         data.put("pricePerShare", this.decimalToPrecision(priceWei, TRUNCATE, 0, DECIMAL_PLACES));
         data.put("strategy", strategy);
         Boolean postOnly = (Boolean) this.safeBool(paramsTaker, "isPostOnly", false);
-        Pair<Boolean, Map<String, Object>> postOnlyOptionparamsPostOnlyVariable = this.handlePostOnly(isMarket, postOnly, paramsTaker);
+        Pair<Boolean, Map<String, Object>> postOnlyOptionparamsPostOnlyVariable = this.handlePostOnly(isMarket, java.util.Objects.equals(postOnly, true), paramsTaker);
         Boolean postOnlyOption = postOnlyOptionparamsPostOnlyVariable.first();
         Map<String, Object> paramsPostOnly = postOnlyOptionparamsPostOnlyVariable.second();
         if (Boolean.TRUE.equals(postOnlyOption))
@@ -2937,7 +2937,7 @@ public class Predictfun extends PredictfunApi
         //         "strategy": "LIMIT"
         //     }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict2(order, "order", "data", null);
+        Map<String, Object> data = this.safeDict2(order, "order", "data", null);
         // the fetch endpoints nest the hash inside the contract order, the create endpoint
         // returns it at the top level as orderHash - accept either
         String topLevelHash = this.safeString2(order, "hash", "orderHash");
@@ -2993,7 +2993,7 @@ public class Predictfun extends PredictfunApi
         mapLiteral9.put("remaining", null);
         mapLiteral9.put("cost", filledCost);
         mapLiteral9.put("fee", null);
-        mapLiteral9.put("postOnly", this.safeBool(order, "isPostOnly", (Object) null));
+        mapLiteral9.put("postOnly", this.safeBool(order, "isPostOnly", null));
         mapLiteral9.put("trades", null);
         mapLiteral9.put("outcome", this.safeOutcomeSymbol(tokenId, outcomeObj));
         mapLiteral9.put("outcomeId", this.safeString(outcomeObj, "outcomeId", tokenId));
@@ -4319,7 +4319,7 @@ public class Predictfun extends PredictfunApi
         String price = Precise.stringDiv(this.safeString(fill, "executedPriceWei"), "1000000000000000000");
         String amount = Precise.stringDiv(this.safeString(fill, "executedSizeWei"), "1000000000000000000");
         String cost = Precise.stringDiv(this.safeString(fill, "executedValueWei"), "1000000000000000000");
-        Boolean isMaker = (Boolean) this.safeBool(eventVar, "isMaker", (Object) null);
+        Boolean isMaker = (Boolean) this.safeBool(eventVar, "isMaker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {

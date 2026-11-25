@@ -2679,7 +2679,7 @@ public class Woo extends WooApi
         mapLiteral5.put("type", orderType);
         mapLiteral5.put("timeInForce", this.parseTimeInForce(orderType));
         mapLiteral5.put("postOnly", postOnly);
-        mapLiteral5.put("reduceOnly", this.safeBool(order, "reduceOnly", (Object) null));
+        mapLiteral5.put("reduceOnly", this.safeBool(order, "reduceOnly", null));
         mapLiteral5.put("side", side);
         mapLiteral5.put("price", price);
         mapLiteral5.put("triggerPrice", triggerPrice);
@@ -3994,7 +3994,7 @@ public class Woo extends WooApi
         //
         String code = this.safeCurrencyCode(this.safeString(transfer, "token"), currency);
         Long timestamp = this.safeTimestamp2(transfer, "createdTime", "timestamp");
-        Boolean success = (Boolean) this.safeBool(transfer, "success", (Object) null);
+        Boolean success = (Boolean) this.safeBool(transfer, "success", null);
         String status = null;
         if (!java.util.Objects.equals(success, null))
         {

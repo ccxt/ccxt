@@ -990,7 +990,7 @@ public class Coinbase extends CoinbaseApi
         //         }
         //     }
         //
-        Boolean active = (Boolean) this.safeBool(account, "active", (Object) null);
+        Boolean active = (Boolean) this.safeBool(account, "active", null);
         String currencyIdV3 = this.safeString(account, "currency");
         Map<String, Object> currency = this.safeDict(account, "currency", new HashMap<String, Object>() {{}});
         String currencyId = this.safeString(currency, "code", currencyIdV3);
@@ -2247,7 +2247,7 @@ public class Coinbase extends CoinbaseApi
             return null;
         }
         Boolean isDisabled = (Boolean) this.safeBool(market, "is_disabled", false);
-        Boolean tradingDisabled = Boolean.TRUE.equals(isDisabled) || (java.util.Objects.equals(this.safeBool(market, "trading_disabled", (Object) null), true));
+        Boolean tradingDisabled = Boolean.TRUE.equals(isDisabled) || (java.util.Objects.equals(this.safeBool(market, "trading_disabled", null), true));
         String symbol = ((base + "/") + quote);
         String type = null;
         if (Boolean.TRUE.equals(isSwap))
@@ -4078,7 +4078,7 @@ public class Coinbase extends CoinbaseApi
             }
             price = this.safeString(target, "limit_price");
             amount = this.safeString(target, "base_size");
-            postOnly = this.safeBool(target, "post_only", (Object) null);
+            postOnly = this.safeBool(target, "post_only", null);
         } else if (Boolean.TRUE.equals(isStop))
         {
             Map<String, Object> stopTarget = null;
@@ -4091,7 +4091,7 @@ public class Coinbase extends CoinbaseApi
             }
             price = this.safeString(stopTarget, "limit_price");
             amount = this.safeString(stopTarget, "base_size");
-            postOnly = this.safeBool(stopTarget, "post_only", (Object) null);
+            postOnly = this.safeBool(stopTarget, "post_only", null);
             triggerPrice = this.safeString(stopTarget, "stop_price");
         } else
         {
@@ -5482,7 +5482,7 @@ public class Coinbase extends CoinbaseApi
         //     }
         //
         // https://github.com/ccxt/ccxt/issues/25484
-        Map<String, Object> data = (Map<String, Object>) this.safeDict2(response, "data", "transfer", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict2(response, "data", "transfer", new HashMap<String, Object>() {{}});
         return this.parseTransaction(data, null);
 
     }
@@ -5566,7 +5566,7 @@ public class Coinbase extends CoinbaseApi
         //     }
         //
         // https://github.com/ccxt/ccxt/issues/25484
-        Map<String, Object> data = (Map<String, Object>) this.safeDict2(response, "data", "transfer", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict2(response, "data", "transfer", new HashMap<String, Object>() {{}});
         return this.parseTransaction(data, null);
 
     }
@@ -5680,7 +5680,7 @@ public class Coinbase extends CoinbaseApi
             put( "info", depositId );
             put( "id", Coinbase.this.safeString(depositId, "id") );
             put( "currency", Coinbase.this.safeString(depositId, "currency") );
-            put( "verified", Coinbase.this.safeBool(depositId, "verified", (Object) null) );
+            put( "verified", Coinbase.this.safeBool(depositId, "verified", null) );
             put( "tag", Coinbase.this.safeString(depositId, "name") );
         }};
     }

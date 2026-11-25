@@ -845,7 +845,7 @@ public class Whitebit extends WhitebitApi
         {
             return null;
         }
-        Boolean active = (Boolean) this.safeBool(market, "tradesEnabled", (Object) null);
+        Boolean active = (Boolean) this.safeBool(market, "tradesEnabled", null);
         Boolean isCollateral = (Boolean) this.safeBool(market, "isCollateral", false);
         String typeId = this.safeString(market, "type");
         String type = null;
@@ -1069,8 +1069,8 @@ public class Whitebit extends WhitebitApi
             put( "info", rawCurrency );
             put( "name", null );
             put( "active", null );
-            put( "deposit", Whitebit.this.safeBool(rawCurrency, "can_deposit", (Object) null) );
-            put( "withdraw", Whitebit.this.safeBool(rawCurrency, "can_withdraw", (Object) null) );
+            put( "deposit", Whitebit.this.safeBool(rawCurrency, "can_deposit", null) );
+            put( "withdraw", Whitebit.this.safeBool(rawCurrency, "can_withdraw", null) );
             put( "fee", null );
             put( "networks", networks );
             put( "type", ((Boolean.TRUE.equals(hasProvider))) ? "fiat" : "crypto" );
@@ -3390,7 +3390,7 @@ public class Whitebit extends WhitebitApi
         }
         Long timestamp = this.safeTimestamp2(order, "ctime", "timestamp");
         Long lastTradeTimestamp = this.safeTimestamp(order, "ftime");
-        Boolean postOnly = (Boolean) this.safeBool(order, "postOnly", (Object) null);
+        Boolean postOnly = (Boolean) this.safeBool(order, "postOnly", null);
         Boolean ioc = (Boolean) this.safeBool(order, "ioc", false);
         String timeInForce = null;
         if (Boolean.TRUE.equals(ioc))

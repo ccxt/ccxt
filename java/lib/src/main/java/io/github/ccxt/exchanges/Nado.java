@@ -2821,7 +2821,7 @@ public class Nado extends NadoApi
             }
         }
         String takerOrMaker = null;
-        Boolean isTaker = (Boolean) this.safeBool(trade, "is_taker", (Object) null);
+        Boolean isTaker = (Boolean) this.safeBool(trade, "is_taker", null);
         if (!java.util.Objects.equals(isTaker, null))
         {
             if (Boolean.TRUE.equals(isTaker))
@@ -3426,7 +3426,7 @@ public class Nado extends NadoApi
             status = this.safeString(order, "status", "open");
         } else
         {
-            Map<String, Object> placeOrder = (Map<String, Object>) this.safeDict2(order, "place_order", "order", new HashMap<String, Object>() {{}});
+            Map<String, Object> placeOrder = this.safeDict2(order, "place_order", "order", new HashMap<String, Object>() {{}});
             Map<String, Object> rawOrder = this.safeDict(placeOrder, "order", new HashMap<String, Object>() {{}});
             String marketId = this.safeString(placeOrder, "product_id");
             marketResolved = this.safeMarket(marketId, market, null, null);

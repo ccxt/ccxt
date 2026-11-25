@@ -1388,8 +1388,8 @@ public class Xt extends XtApi
                     mapLiteral1.put("active", null);
                     mapLiteral1.put("fee", this.safeNumber(rawNetwork, "withdrawFeeAmount", null));
                     mapLiteral1.put("precision", null);
-                    mapLiteral1.put("deposit", this.safeBool(rawNetwork, "depositEnabled", (Object) null));
-                    mapLiteral1.put("withdraw", this.safeBool(rawNetwork, "withdrawEnabled", (Object) null));
+                    mapLiteral1.put("deposit", this.safeBool(rawNetwork, "depositEnabled", null));
+                    mapLiteral1.put("withdraw", this.safeBool(rawNetwork, "withdrawEnabled", null));
                     mapLiteral1.put("limits", new HashMap<String, Object>() {{
         put( "amount", new HashMap<String, Object>() {{
             put( "min", null );
@@ -2948,7 +2948,7 @@ public class Xt extends XtApi
         //
         String marketId = this.safeString2(trade, "s", "symbol");
         String marketType = this.safeString(market, "type");
-        Boolean hasSpotKeys = (!java.util.Objects.equals(this.safeBool(trade, "b", (Object) null), null)) || (!java.util.Objects.equals(this.safeString(trade, "bizType"), null)) || (!java.util.Objects.equals(this.safeString(trade, "oi"), null));
+        Boolean hasSpotKeys = (!java.util.Objects.equals(this.safeBool(trade, "b", null), null)) || (!java.util.Objects.equals(this.safeString(trade, "bizType"), null)) || (!java.util.Objects.equals(this.safeString(trade, "oi"), null));
         if (java.util.Objects.equals(marketType, null))
         {
             marketType = ((Boolean.TRUE.equals(hasSpotKeys))) ? "spot" : "contract";
@@ -2956,7 +2956,7 @@ public class Xt extends XtApi
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, "_", marketType);
         String side = null;
         String takerOrMaker = null;
-        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "b", (Object) null);
+        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "b", null);
         if (!java.util.Objects.equals(isBuyerMaker, null))
         {
             side = ((Boolean.TRUE.equals(isBuyerMaker))) ? "sell" : "buy";
@@ -2969,7 +2969,7 @@ public class Xt extends XtApi
                 takerOrMaker = takerMaker;
             } else
             {
-                Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", (Object) null);
+                Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", null);
                 if (!java.util.Objects.equals(isMaker, null))
                 {
                     takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";

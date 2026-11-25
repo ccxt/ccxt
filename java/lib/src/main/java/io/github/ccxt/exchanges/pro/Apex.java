@@ -1197,7 +1197,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), msg, feedback);
                 throw new ExchangeError(feedback) ;
             }
-            Boolean success = (Boolean) this.safeBool(message, "success", (Object) null);
+            Boolean success = (Boolean) this.safeBool(message, "success", null);
             if ((!java.util.Objects.equals(success, null)) && (!Boolean.TRUE.equals(success)))
             {
                 String ret_msg = this.safeString(message, "ret_msg", "");

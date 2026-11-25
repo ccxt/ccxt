@@ -1218,7 +1218,7 @@ public class Opinion extends OpinionApi
         String priceInt = this.safeString(priceParts, 0, "0");
         String priceFrac = this.safeString(priceParts, 1, "");
         String priceDenom = "1000000";
-        String priceNum = Precise.stringAdd(Precise.stringMul(priceInt, priceDenom), Helpers.padEnd(priceFrac, ((Number)6).intValue(), ((String)"0").charAt(0)));
+        String priceNum = Precise.stringAdd(Precise.stringMul(priceInt, priceDenom), (priceFrac.length() >= ((Number)6).intValue() ? priceFrac.substring(0, ((Number)6).intValue()) : priceFrac + "0".repeat(((Number)6).intValue() - priceFrac.length())));
         if (java.util.Objects.equals(priceNum, "0"))
         {
             throw new InvalidOrder(((this.id + " createOrder() invalid price ") + priceStr)) ;

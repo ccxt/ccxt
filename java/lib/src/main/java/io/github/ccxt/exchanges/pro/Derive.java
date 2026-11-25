@@ -1196,7 +1196,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         Map<String, Object> market = this.safeMarket(marketId, null, null, null);
         String symbol = this.safeString(market, "symbol", "");
         String newSize = this.safeString(entry, "new_balance", "0");
-        Object isShort = Precise.stringLt(newSize, "0");
+        Boolean isShort = Precise.stringLt(newSize, "0");
         String side = ((Boolean.TRUE.equals(isShort))) ? "short" : "long";
         String contracts = Precise.stringAbs(newSize);
         Object cache = this.safeValue(this.positionsByType, subaccountIdKey);

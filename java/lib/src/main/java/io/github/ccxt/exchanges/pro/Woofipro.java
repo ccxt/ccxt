@@ -680,7 +680,7 @@ public class Woofipro extends io.github.ccxt.exchanges.Woofipro
         String side = this.safeStringLower(trade, "side");
         Long timestamp = this.safeInteger(trade, "timestamp");
         String takerOrMaker = null;
-        Boolean maker = (Boolean) this.safeBool(trade, "maker", (Object) null);
+        Boolean maker = (Boolean) this.safeBool(trade, "maker", null);
         if (!java.util.Objects.equals(maker, null))
         {
             takerOrMaker = ((Boolean.TRUE.equals(maker))) ? "maker" : "taker";

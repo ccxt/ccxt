@@ -1411,8 +1411,8 @@ public class Bingx extends BingxApi
                 mapLiteral1.put("network", networkCode);
                 mapLiteral1.put("fee", this.safeNumber(rawNetwork, "withdrawFee", null));
                 mapLiteral1.put("active", null);
-                mapLiteral1.put("deposit", this.safeBool(rawNetwork, "depositEnable", (Object) null));
-                mapLiteral1.put("withdraw", this.safeBool(rawNetwork, "withdrawEnable", (Object) null));
+                mapLiteral1.put("deposit", this.safeBool(rawNetwork, "depositEnable", null));
+                mapLiteral1.put("withdraw", this.safeBool(rawNetwork, "withdrawEnable", null));
                 mapLiteral1.put("precision", precision);
                 mapLiteral1.put("limits", limits);
                 networks.put(networkCode, mapLiteral1);
@@ -2116,7 +2116,7 @@ public class Bingx extends BingxApi
         // const type = (cost === undefined) ? 'spot' : 'swap'; this is not reliable
         String currencyId = this.safeStringN(trade, new ArrayList<Object>(Arrays.asList("currency", "N", "commissionAsset")));
         String currencyCode = this.safeCurrencyCode(currencyId, null);
-        Boolean m = (Boolean) this.safeBool(trade, "m", (Object) null);
+        Boolean m = (Boolean) this.safeBool(trade, "m", null);
         String marketId = this.safeString2(trade, "s", "symbol");
         Boolean isBuyerMaker = (Boolean) this.safeBoolN(trade, new ArrayList<Object>(Arrays.asList("buyerMaker", "isBuyerMaker", "maker")), null);
         String takeOrMaker = null;
@@ -2134,12 +2134,12 @@ public class Bingx extends BingxApi
                 takeOrMaker = "taker";
             }
         }
-        Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer", (Object) null);
+        Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer", null);
         if (!java.util.Objects.equals(isBuyer, null))
         {
             side = ((Boolean.TRUE.equals(isBuyer))) ? "buy" : "sell";
         }
-        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", (Object) null);
+        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", null);
         if (!java.util.Objects.equals(isMaker, null))
         {
             takeOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
@@ -3737,7 +3737,7 @@ public class Bingx extends BingxApi
         //
         String marketId = this.safeString(position, "symbol", "");
         marketId = marketId.replaceFirst("/", "-"); // standard return different format
-        Boolean isolated = (Boolean) this.safeBool(position, "isolated", (Object) null);
+        Boolean isolated = (Boolean) this.safeBool(position, "isolated", null);
         String marginMode = null;
         if (!java.util.Objects.equals(isolated, null))
         {
@@ -4829,7 +4829,7 @@ public class Bingx extends BingxApi
         //         "workingType": ""
         //     }
         //
-        Map<String, Object> newOrder = (Map<String, Object>) this.safeDict2(order, "newOrderResponse", "orderOpenResponse", null);
+        Map<String, Object> newOrder = this.safeDict2(order, "newOrderResponse", "orderOpenResponse", null);
         Map<String, Object> orderData = (((!java.util.Objects.equals(newOrder, null)))) ? newOrder : order;
         String positionSide = this.safeString2(orderData, "positionSide", "ps");
         String marketType = "swap";
@@ -6711,15 +6711,17 @@ public class Bingx extends BingxApi
         //        "type": 1
         //    }
         //
-        Object responseData = response;
         if (java.util.Objects.equals(market.get("inverse"), true))
         {
             HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
             mapLiteral12.put("amount", amountString);
             mapLiteral12.put("type", type);
-            responseData = this.extend(mapLiteral12, this.safeDict(response, "data", new HashMap<String, Object>() {{}}));
+            Map<String, Object> inverseResult = this.parseMarginModification(this.extend(mapLiteral12, this.safeDict(response, "data", new HashMap<String, Object>() {{}})), market);
+            HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
+            mapLiteral13.put("info", response);
+            return this.extend(inverseResult, mapLiteral13);
         }
-        Map<String, Object> result = this.parseMarginModification((Map<String, Object>) (responseData), market);
+        Map<String, Object> result = this.parseMarginModification(response, market);
         result.put("info", response);
         return result;
 
@@ -7411,9 +7413,9 @@ public class Bingx extends BingxApi
         List<Object> positions = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < success.size(); i++)
         {
-            HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
-            mapLiteral13.put("positionId", (success == null || i < 0 || i >= success.size() ? null : success.get(i)));
-            Map<String, Object> position = this.parsePosition(mapLiteral13, null);
+            HashMap<String, Object> mapLiteral14 = new HashMap<String, Object>();
+            mapLiteral14.put("positionId", (success == null || i < 0 || i >= success.size() ? null : success.get(i)));
+            Map<String, Object> position = this.parsePosition(mapLiteral14, null);
             ((List<Object>)positions).add(position);
         }
         return positions;
@@ -7777,7 +7779,7 @@ public class Bingx extends BingxApi
             String key = (rawKeys == null || i < 0 || i >= rawKeys.size() ? null : rawKeys.get(i));
             Object value = (sortedParams == null || key == null ? null : sortedParams.get(key));
             String pair = this.safeString(sortedParams, key, "");
-            Boolean flag = (Boolean) this.safeBool(sortedParams, key, (Object) null);
+            Boolean flag = (Boolean) this.safeBool(sortedParams, key, null);
             if (!java.util.Objects.equals(flag, null))
             {
                 pair = ((Boolean.TRUE.equals(flag))) ? "true" : "false";

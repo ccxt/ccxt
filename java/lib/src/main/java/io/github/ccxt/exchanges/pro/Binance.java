@@ -38,8 +38,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     public Map<String, Object> describe()
     {
-        Map<String, Object> superDescribe = super.describe();
-        return this.deepExtend(superDescribe, this.describeData());
+        return this.deepExtend(super.describe(), this.describeData());
     }
 
     public Object describeData()
@@ -1933,7 +1932,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         String side = this.safeStringLower(trade, "S");
         String takerOrMaker = null;
         String orderId = this.safeString(trade, "i");
-        Boolean isMaker = (Boolean) this.safeBool(trade, "m", (Object) null);
+        Boolean isMaker = (Boolean) this.safeBool(trade, "m", null);
         if (!java.util.Objects.equals(isMaker, null))
         {
             if (java.util.Objects.equals(side, null))
@@ -2386,7 +2385,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> market = this.safeMarket(marketId, null, null, marketType);
         String symbol = this.safeString(market, "symbol", "");
         // coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
-        Boolean inverse = (Boolean) this.safeBool(market, "inverse", (Object) null);
+        Boolean inverse = (Boolean) this.safeBool(market, "inverse", null);
         String volumeKey = (((java.util.Objects.equals(inverse, true)))) ? "q" : "v";
         List<Object> parsed = new ArrayList<Object>(Arrays.asList(this.safeInteger(kline, "t"), this.safeFloat(kline, "o"), this.safeFloat(kline, "h"), this.safeFloat(kline, "l"), this.safeFloat(kline, "c"), this.safeFloat(kline, volumeKey)));
         String messageHash = ((("ohlcv::" + symbol) + "::") + unifiedTimeframe);
@@ -5866,7 +5865,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         mapLiteral11.put("type", this.parseOrderTypeByMarket(orderType, marketType));
         mapLiteral11.put("timeInForce", timeInForce);
         mapLiteral11.put("postOnly", postOnly);
-        mapLiteral11.put("reduceOnly", this.safeBool(order, "R", (Object) null));
+        mapLiteral11.put("reduceOnly", this.safeBool(order, "R", null));
         mapLiteral11.put("side", this.safeStringLower(order, "S"));
         mapLiteral11.put("price", this.safeString(order, "p"));
         mapLiteral11.put("stopPrice", stopPrice);

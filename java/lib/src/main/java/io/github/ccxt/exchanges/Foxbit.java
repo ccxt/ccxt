@@ -2262,7 +2262,7 @@ public class Foxbit extends FoxbitApi
         mapLiteral4.put("symbol", this.safeString(marketResolved, "symbol"));
         mapLiteral4.put("type", this.safeString(order, "type"));
         mapLiteral4.put("timeInForce", this.safeString(order, "time_in_force"));
-        mapLiteral4.put("postOnly", this.safeBool(order, "post_only", (Object) null));
+        mapLiteral4.put("postOnly", this.safeBool(order, "post_only", null));
         mapLiteral4.put("reduceOnly", null);
         mapLiteral4.put("side", side);
         mapLiteral4.put("price", this.parseNumber(price));
@@ -2419,7 +2419,7 @@ public class Foxbit extends FoxbitApi
         {
             throw new ExchangeError((this.id + " parseLedgerEntry() missing balance")) ;
         }
-        Object before = null;
+        Double before = null;
         if (!java.util.Objects.equals(amount, null) && !java.util.Objects.equals(balance, null))
         {
             before = (balance - amount);

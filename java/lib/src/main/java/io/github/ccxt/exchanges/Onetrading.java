@@ -1571,7 +1571,7 @@ public class Onetrading extends OnetradingApi
         String side = this.safeStringLower(rawOrder, "side");
         String type = this.safeStringLower(rawOrder, "type");
         String timeInForce = this.parseTimeInForce(this.safeString(rawOrder, "time_in_force"));
-        Boolean postOnly = (Boolean) this.safeBool(rawOrder, "is_post_only", (Object) null);
+        Boolean postOnly = (Boolean) this.safeBool(rawOrder, "is_post_only", null);
         List<Object> rawTrades = this.safeList(order, "trades", new ArrayList<Object>(Arrays.asList()));
         return this.safeOrder(new HashMap<String, Object>() {{
             put( "id", id );

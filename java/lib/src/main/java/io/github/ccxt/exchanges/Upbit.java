@@ -505,10 +505,10 @@ public class Upbit extends UpbitApi
         Map<String, Object> memberInfo = this.safeDict(response, "member_level", new HashMap<String, Object>() {{}});
         Map<String, Object> currencyInfo = this.safeDict(response, "currency", new HashMap<String, Object>() {{}});
         Map<String, Object> withdrawLimits = this.safeDict(response, "withdraw_limit", new HashMap<String, Object>() {{}});
-        Boolean canWithdraw = (Boolean) this.safeBool(withdrawLimits, "can_withdraw", (Object) null);
+        Boolean canWithdraw = (Boolean) this.safeBool(withdrawLimits, "can_withdraw", null);
         String walletState = this.safeString(currencyInfo, "wallet_state");
-        Boolean walletLocked = (Boolean) this.safeBool(memberInfo, "wallet_locked", (Object) null);
-        Boolean locked = (Boolean) this.safeBool(memberInfo, "locked", (Object) null);
+        Boolean walletLocked = (Boolean) this.safeBool(memberInfo, "wallet_locked", null);
+        Boolean locked = (Boolean) this.safeBool(memberInfo, "locked", null);
         Boolean active = true;
         if ((!java.util.Objects.equals(canWithdraw, null)) && (!Boolean.TRUE.equals(canWithdraw)))
         {

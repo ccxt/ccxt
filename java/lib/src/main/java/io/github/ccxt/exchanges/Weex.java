@@ -1104,8 +1104,8 @@ public class Weex extends WeexApi
                 mapLiteral1.put("id", networkId);
                 mapLiteral1.put("network", networkCode);
                 mapLiteral1.put("active", null);
-                mapLiteral1.put("deposit", this.safeBool(chain, "depositEnable", (Object) null));
-                mapLiteral1.put("withdraw", this.safeBool(chain, "withdrawEnable", (Object) null));
+                mapLiteral1.put("deposit", this.safeBool(chain, "depositEnable", null));
+                mapLiteral1.put("withdraw", this.safeBool(chain, "withdrawEnable", null));
                 mapLiteral1.put("fee", this.safeNumber(chain, "withdrawFee", null));
                 mapLiteral1.put("precision", this.safeNumber(chain, "withdrawIntegerMultiple", null));
                 mapLiteral1.put("isDefault", this.safeBool(chain, "isDefault", false));
@@ -2144,9 +2144,9 @@ public class Weex extends WeexApi
         //     }
         //
         Long timestamp = this.safeInteger(trade, "time");
-        Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer", (Object) null);
+        Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer", null);
         String side = this.safeStringLower(trade, "side");
-        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "isBuyerMaker", (Object) null);
+        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "isBuyerMaker", null);
         if (!java.util.Objects.equals(isBuyer, null))
         {
             side = ((Boolean.TRUE.equals(isBuyer))) ? "buy" : "sell";
@@ -2198,7 +2198,7 @@ public class Weex extends WeexApi
                 fee = hx4NewMap0;
             }
         }
-        Boolean isMaker = (Boolean) this.safeBool(trade, "maker", (Object) null);
+        Boolean isMaker = (Boolean) this.safeBool(trade, "maker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
@@ -3925,7 +3925,7 @@ public class Weex extends WeexApi
         String rawStatus = this.safeStringLower2(order, "status", "algoStatus"); // algo (trigger) order payloads carry algoStatus instead of status
         String triggerPrice = this.omitZero(this.safeString2(order, "triggerPrice", "stopPrice"));
         String rawType = this.safeStringUpper2(order, "type", "orderType");
-        Boolean isReduceOnly = (Boolean) this.safeBool(order, "reduceOnly", (Object) null);
+        Boolean isReduceOnly = (Boolean) this.safeBool(order, "reduceOnly", null);
         // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
         // a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
         Boolean isEntryTrigger = !Boolean.TRUE.equals(this.safeBool(order, "reduceOnly", true));

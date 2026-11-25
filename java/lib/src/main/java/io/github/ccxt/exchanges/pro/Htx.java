@@ -1795,7 +1795,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         mapLiteral2.put("fee", fee);
         mapLiteral2.put("average", avgPrice);
         mapLiteral2.put("trades", rawTrades);
-        mapLiteral2.put("reduceOnly", this.safeBool(order, "reduce_only", (Object) null));
+        mapLiteral2.put("reduceOnly", this.safeBool(order, "reduce_only", null));
         mapLiteral2.put("stopPrice", null);
         mapLiteral2.put("triggerPrice", null);
         mapLiteral2.put("takeProfitPrice", this.safeString2(order, "tp_trigger_price", "tp_order_price"));
@@ -1841,7 +1841,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             side = this.safeString(typeParts, 0);
             type = this.safeString(typeParts, 1);
         }
-        Boolean aggressor = (Boolean) this.safeBool(trade, "aggressor", (Object) null);
+        Boolean aggressor = (Boolean) this.safeBool(trade, "aggressor", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(aggressor, null))
         {
@@ -2435,7 +2435,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Map<String, Object> first = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
             List<Object> splitTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
             String messageHash = this.safeString(splitTopic, 0, "");
-            Map<String, Object> subscription = (Map<String, Object>) this.safeDict2(client.subscriptions, messageHash, (messageHash + ".*"), null);
+            Map<String, Object> subscription = this.safeDict2(client.subscriptions, messageHash, (messageHash + ".*"), null);
             if (java.util.Objects.equals(subscription, null))
             {
                 // if subscription not found means that we subscribed to a specific currency/symbol
@@ -3276,7 +3276,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         String order = this.safeString2(trade, "orderId", "order_id");
         Long timestamp = this.safeIntegerN(trade, new ArrayList<Object>(Arrays.asList("tradeTime", "updated_time", "created_time")));
         String orderType = this.safeString2(trade, "orderType", "type");
-        Boolean aggressor = (Boolean) this.safeBool(trade, "aggressor", (Object) null);
+        Boolean aggressor = (Boolean) this.safeBool(trade, "aggressor", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(aggressor, null))
         {

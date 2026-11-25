@@ -3718,7 +3718,7 @@ public class Bitget extends BitgetApi
         Map<String, Object> paramsUta = (Map<String, Object>) ((List<Object>) utaparamsUtaVariable).get(1);
         if (!java.util.Objects.equals(uta, null))
         {
-            Boolean utaFlag = (Boolean) this.safeBool(new ArrayList<Object>(Arrays.asList(uta)), 0, (Object) null);
+            Boolean utaFlag = (Boolean) this.safeBool(new ArrayList<Object>(Arrays.asList(uta)), 0, null);
             return new ArrayList<Object>(Arrays.asList((java.util.Objects.equals(utaFlag, true)), paramsUta));
         }
         if (this.checkRequiredCredentials(false))
@@ -3882,7 +3882,7 @@ public class Bitget extends BitgetApi
             Map<String, Object> res = this.safeDict(results, i, null);
             List<Object> data = this.safeList(res, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> firstData = this.safeDict(data, 0, new HashMap<String, Object>() {{}});
-            Boolean isBorrowable = (Boolean) this.safeBool(firstData, "isBorrowable", (Object) null);
+            Boolean isBorrowable = (Boolean) this.safeBool(firstData, "isBorrowable", null);
             if (Boolean.TRUE.equals(fetchMargins) && !java.util.Objects.equals(isBorrowable, null))
             {
                 // cross and isolated availability are per-symbol - a coin can be listed by

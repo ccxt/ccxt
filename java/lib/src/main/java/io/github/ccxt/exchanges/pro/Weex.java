@@ -686,7 +686,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         {
             symbol = this.safeString(market, "symbol");
         }
-        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "m", (Object) null); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
+        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "m", null); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         String side = null;
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isBuyerMaker, null))
@@ -1944,7 +1944,7 @@ public class Weex extends io.github.ccxt.exchanges.Weex
         mapLiteral8.put("type", this.parseOrderType(rawType));
         mapLiteral8.put("timeInForce", this.safeString(order, "timeInForce"));
         mapLiteral8.put("postOnly", null);
-        mapLiteral8.put("reduceOnly", this.safeBool(order, "reduceOnly", (Object) null));
+        mapLiteral8.put("reduceOnly", this.safeBool(order, "reduceOnly", null));
         mapLiteral8.put("side", side);
         mapLiteral8.put("amount", this.safeString(order, "size"));
         mapLiteral8.put("price", this.safeString(order, "price"));

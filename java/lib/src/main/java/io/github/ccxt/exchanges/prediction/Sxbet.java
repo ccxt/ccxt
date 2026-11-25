@@ -1222,7 +1222,7 @@ public class Sxbet extends SxbetApi
         }
         // useBetCredits and externalUserId are per-order fields - route them into the order item,
         // not the top-level body, where the venue would silently ignore them
-        Boolean useBetCredits = (Boolean) this.safeBool(paramsTimeInForce, "useBetCredits", (Object) null);
+        Boolean useBetCredits = (Boolean) this.safeBool(paramsTimeInForce, "useBetCredits", null);
         if (!java.util.Objects.equals(useBetCredits, null))
         {
             orderItem.put("useBetCredits", useBetCredits);
@@ -1879,7 +1879,7 @@ public class Sxbet extends SxbetApi
         Double amount = this.parseNumber(Precise.stringDiv(fillAmount, usdcDecimals, 6));
         Long timestamp = this.parse8601(this.safeString(fill, "createdAt"));
         // isMaker: true when the account's order was the resting one - absent on older rows
-        Boolean isMaker = (Boolean) this.safeBool(fill, "isMaker", (Object) null);
+        Boolean isMaker = (Boolean) this.safeBool(fill, "isMaker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
@@ -2011,7 +2011,7 @@ public class Sxbet extends SxbetApi
             String marketHash = this.safeString(raw, "marketHash", "");
             if ((outcomesLength != null && outcomesLength > 0))
             {
-                if (java.util.Objects.equals(this.safeBool(wantedMarkets, marketHash, (Object) null), null))
+                if (java.util.Objects.equals(this.safeBool(wantedMarkets, marketHash, null), null))
                 {
                     continue;
                 }
@@ -2292,9 +2292,9 @@ public class Sxbet extends SxbetApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} the raw bestOdds rows ({marketHash, outcomeOne, outcomeTwo})
      */
-    public CompletableFuture<Object> fetchSxbetBestOdds(Object marketHashes, Map<String, Object> parameters)
+    public CompletableFuture<List<Object>> fetchSxbetBestOdds(Object marketHashes, Map<String, Object> parameters)
     {
-        return BaseExchange.supplyAsync(() -> this.fetchSxbetBestOddsCore(marketHashes, parameters));
+        return BaseExchange.supplyAsync(() -> this.fetchSxbetBestOddsCore(marketHashes, parameters)).thenApply(res -> (List<Object>) res);
     }
 
     private Object fetchSxbetBestOddsCore(Object marketHashes, Map<String, Object> parameters)
@@ -2365,7 +2365,7 @@ public class Sxbet extends SxbetApi
             (this.loadOutcome((String) ((outcomesList == null || i < 0 || i >= outcomesList.size() ? null : outcomesList.get(i))), false)).join();
             Map<String, Object> outcomeObj = this.outcome((String) ((outcomesList == null || i < 0 || i >= outcomesList.size() ? null : outcomesList.get(i))));
             String marketHash = this.safeString(outcomeObj.get("info"), "marketHash", "");
-            if (java.util.Objects.equals(this.safeBool(seenHashes, marketHash, (Object) null), null))
+            if (java.util.Objects.equals(this.safeBool(seenHashes, marketHash, null), null))
             {
                 seenHashes.put(marketHash, true);
                 hashesOrder.add(marketHash);
@@ -2402,11 +2402,11 @@ public class Sxbet extends SxbetApi
                 end = this.parseToInt(hashesLength);
             }
             List<Object> chunk = this.arraySlice(hashesOrder, start, end);
-            Object rows = (this.fetchSxbetBestOdds(chunk, parameters)).join();
-            Integer rowsLength = ((List<?>)rows).size();
+            List<Object> rows = (this.fetchSxbetBestOdds(chunk, parameters)).join();
+            Integer rowsLength = rows.size();
             for (var j = 0; (rowsLength != null && j < rowsLength); j++)
             {
-                Object row = (rows == null || j < 0 || j >= ((List<?>)rows).size() ? null : ((List<?>)rows).get(j));
+                Object row = (rows == null || j < 0 || j >= rows.size() ? null : rows.get(j));
                 String rowHash = this.safeString(row, "marketHash");
                 if (!java.util.Objects.equals(rowHash, null))
                 {

@@ -1107,7 +1107,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         String side = this.safeStringLower(trade, "S");
         String takerOrMaker = null;
         String orderId = this.safeString(trade, "i");
-        Boolean isMaker = (Boolean) this.safeBool(trade, "m", (Object) null);
+        Boolean isMaker = (Boolean) this.safeBool(trade, "m", null);
         if (!java.util.Objects.equals(isMaker, null))
         {
             if (java.util.Objects.equals(side, null))
@@ -2574,7 +2574,7 @@ public class Aster extends io.github.ccxt.exchanges.Aster
         mapLiteral6.put("type", this.parseOrderType(this.safeStringLower(order, "o")));
         mapLiteral6.put("timeInForce", timeInForce);
         mapLiteral6.put("postOnly", null);
-        mapLiteral6.put("reduceOnly", this.safeBool(order, "R", (Object) null));
+        mapLiteral6.put("reduceOnly", this.safeBool(order, "R", null));
         mapLiteral6.put("side", this.safeStringLower(order, "S"));
         mapLiteral6.put("price", this.safeString(order, "p"));
         mapLiteral6.put("stopPrice", stopPrice);

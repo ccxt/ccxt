@@ -1465,7 +1465,7 @@ public class Phemex extends PhemexApi
         String id = this.safeString(rawCurrency, "currency");
         String code = this.safeCurrencyCode(id, null);
         String valueScaleString = this.safeString(rawCurrency, "valueScale");
-        Long valueScale = Long.parseLong(valueScaleString);
+        Long valueScale = this.safeInteger(rawCurrency, "valueScale");
         String minValueEv = this.safeString(rawCurrency, "minValueEv");
         String maxValueEv = this.safeString(rawCurrency, "maxValueEv");
         Double minAmount = null;
@@ -1610,7 +1610,7 @@ public class Phemex extends PhemexApi
         //     }
         //
         Map<String, Object> result = this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-        Map<String, Object> book = (Map<String, Object>) this.safeDict2(result, "book", "orderbook_p", new HashMap<String, Object>() {{}});
+        Map<String, Object> book = this.safeDict2(result, "book", "orderbook_p", new HashMap<String, Object>() {{}});
         Long timestamp = this.safeIntegerProduct(result, "timestamp", 0.000001);
         Map<String, Object> orderbook = this.customParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market);
         Long nonce = this.safeInteger(result, "sequence");
@@ -3079,7 +3079,7 @@ public class Phemex extends PhemexApi
         String timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
         String triggerPrice = this.omitZero(this.safeString2(order, "stopPx", "stopPxRp"));
         Boolean postOnly = (java.util.Objects.equals(timeInForce, "PO"));
-        Boolean reduceOnly = (Boolean) this.safeBool(order, "reduceOnly", (Object) null);
+        Boolean reduceOnly = (Boolean) this.safeBool(order, "reduceOnly", null);
         String execInst = this.safeString(order, "execInst");
         if (java.util.Objects.equals(execInst, "ReduceOnly"))
         {

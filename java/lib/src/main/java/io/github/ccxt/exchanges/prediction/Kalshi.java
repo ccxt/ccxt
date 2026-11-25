@@ -1712,7 +1712,7 @@ public class Kalshi extends KalshiApi
         String id = this.safeString(trade, "trade_id");
         Long ts = this.parse8601(this.safeString(trade, "created_time"));
         Double priceCents = this.safeNumber2(trade, "yes_price", "price", null);
-        Object centsPrice = null;
+        Double centsPrice = null;
         if (!java.util.Objects.equals(priceCents, null))
         {
             centsPrice = (((double) priceCents) / ((double) 100));
@@ -1864,7 +1864,7 @@ public class Kalshi extends KalshiApi
             dollarsKey = "no_price_dollars";
         }
         Double legCents = this.safeNumber(fill, centsKey, null);
-        Object centsPrice = null;
+        Double centsPrice = null;
         if (!java.util.Objects.equals(legCents, null))
         {
             centsPrice = (((double) legCents) / ((double) 100));
@@ -1949,7 +1949,7 @@ public class Kalshi extends KalshiApi
             put( "info", response );
         }};
         Double balanceCents = this.safeNumber(response, "balance", null);
-        Object total = null;
+        Double total = null;
         if (!java.util.Objects.equals(balanceCents, null))
         {
             total = (((double) balanceCents) / ((double) 100));
@@ -2117,7 +2117,7 @@ public class Kalshi extends KalshiApi
         Boolean won = (java.util.Objects.equals(marketResult, heldLabel));
         // kalshi reports money as dollar keys on V2, else cents
         Double revenueCents = this.safeNumber(settlement, "revenue", null);
-        Object centsPayout = null;
+        Double centsPayout = null;
         if (!java.util.Objects.equals(revenueCents, null))
         {
             centsPayout = (((double) revenueCents) / ((double) 100));
@@ -2134,13 +2134,13 @@ public class Kalshi extends KalshiApi
             costDollarsKey = "yes_total_cost_dollars";
         }
         Double costCents = this.safeNumber(settlement, costKey, null);
-        Object centsCost = null;
+        Double centsCost = null;
         if (!java.util.Objects.equals(costCents, null))
         {
             centsCost = (((double) costCents) / ((double) 100));
         }
         Double cost = this.safeNumber(settlement, costDollarsKey, centsCost);
-        Object pnl = null;
+        Double pnl = null;
         if ((!java.util.Objects.equals(payout, null)) && (!java.util.Objects.equals(cost, null)))
         {
             pnl = (payout - cost);
@@ -2417,7 +2417,7 @@ public class Kalshi extends KalshiApi
         {
             centsKey = "no_price";
         }
-        Object price = this.safeNumber(order, dollarsKey, null);
+        Double price = this.safeNumber(order, dollarsKey, null);
         if (java.util.Objects.equals(price, null))
         {
             Double priceCents = this.safeNumber(order, centsKey, null);
@@ -2429,7 +2429,7 @@ public class Kalshi extends KalshiApi
         // V2 counts are fixed-point (*_count_fp); legacy used count / filled_count
         Double amount = this.safeNumber2(order, "initial_count_fp", "count", null);
         Double filled = this.safeNumber2(order, "fill_count_fp", "filled_count", 0);
-        Object remaining = this.safeNumber(order, "remaining_count_fp", null);
+        Double remaining = this.safeNumber(order, "remaining_count_fp", null);
         if ((java.util.Objects.equals(remaining, null)) && (!java.util.Objects.equals(amount, null)) && (!java.util.Objects.equals(filled, null)))
         {
             remaining = (amount - filled);
@@ -3265,7 +3265,7 @@ public class Kalshi extends KalshiApi
         {
             active = anyActive;
         }
-        Boolean resolved = (Boolean) this.safeBool(rawEvent, "resolved", (Object) null);
+        Boolean resolved = (Boolean) this.safeBool(rawEvent, "resolved", null);
         if ((java.util.Objects.equals(resolved, null)) && ((marketsCount != null && marketsCount > 0)))
         {
             resolved = allResolved;

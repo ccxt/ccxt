@@ -1222,7 +1222,7 @@ public class Aster extends AsterApi
             put( "withdraw", null );
             put( "fee", null );
             put( "precision", null );
-            put( "margin", Aster.this.safeBool(rawCurrency, "marginAvailable", (Object) null) );
+            put( "margin", Aster.this.safeBool(rawCurrency, "marginAvailable", null) );
             put( "limits", new HashMap<String, Object>() {{
                 put( "amount", new HashMap<String, Object>() {{
                     put( "min", null );
@@ -1419,7 +1419,7 @@ public class Aster extends AsterApi
         // filters
         List<Object> filters = this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
         Map<String,Object> filtersByType = this.indexBy(filters, "filterType");
-        Map<String, Object> filterNotional = (Map<String, Object>) this.safeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL", null);
+        Map<String, Object> filterNotional = this.safeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL", null);
         Map<String, Object> filterPrice = this.safeDict(filtersByType, "PRICE_FILTER", null);
         Map<String, Object> filterLotSize = this.safeDict(filtersByType, "LOT_SIZE", null);
         Map<String, Object> filterMarketLotSize = this.safeDict(filtersByType, "MARKET_LOT_SIZE", new HashMap<String, Object>() {{}});
@@ -1687,14 +1687,14 @@ public class Aster extends AsterApi
         String costString = this.safeString2(trade, "quoteQty", "baseQty");
         Long timestamp = (Long) this.safeInteger2(trade, "time", "T");
         String side = this.safeStringLower(trade, "side");
-        Boolean isMaker = (Boolean) this.safeBool(trade, "maker", (Object) null);
+        Boolean isMaker = (Boolean) this.safeBool(trade, "maker", null);
         String takerOrMaker = null;
         if (!java.util.Objects.equals(isMaker, null))
         {
             takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";
             if (java.util.Objects.equals(side, null))
             {
-                Boolean isBuyer = (Boolean) this.safeBool(trade, "buyer", (Object) null);
+                Boolean isBuyer = (Boolean) this.safeBool(trade, "buyer", null);
                 if (!java.util.Objects.equals(isBuyer, null))
                 {
                     side = ((Boolean.TRUE.equals(isBuyer))) ? "buy" : "sell";
@@ -2694,7 +2694,7 @@ public class Aster extends AsterApi
         //
         return new HashMap<String, Object>() {{
             put( "info", response );
-            put( "hedged", Aster.this.safeBool(response, "dualSidePosition", (Object) null) );
+            put( "hedged", Aster.this.safeBool(response, "dualSidePosition", null) );
         }};
 
     }
@@ -4769,7 +4769,7 @@ public class Aster extends AsterApi
         {
             timestamp = null;
         }
-        Boolean isolatedRaw = (Boolean) this.safeBool(position, "isolated", (Object) null);
+        Boolean isolatedRaw = (Boolean) this.safeBool(position, "isolated", null);
         Boolean isolated = false;
         if (java.util.Objects.equals(isolatedRaw, null))
         {

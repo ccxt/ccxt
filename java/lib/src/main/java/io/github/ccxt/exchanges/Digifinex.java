@@ -928,7 +928,7 @@ public class Digifinex extends DigifinexApi
             {
                 type = "swap";
                 symbol = ((((base + "/") + quote) + ":") + settle);
-                isInverse = this.safeBool(market, "is_inverse", (Object) null);
+                isInverse = this.safeBool(market, "is_inverse", null);
                 isLinear = (((!java.util.Objects.equals(isInverse, true)))) ? true : false;
                 Boolean isTrading = (Boolean) this.safeBool(market, "isTrading", false);
                 if (Boolean.TRUE.equals(isTrading))

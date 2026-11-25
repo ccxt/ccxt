@@ -367,7 +367,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         if (!java.util.Objects.equals(symbol, null))
         {
             Map<String, Object> market = this.market(symbol);
-            symbolResolved = java.util.Objects.toString(market.get("symbol"), null);
+            symbolResolved = this.safeString(market, "symbol");
             channel = ((("user.trades." + this.safeString(market, "id", "")) + ".") + interval);
         }
         io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (this.subscribe(new ArrayList<Object>(Arrays.asList(channel)), new ArrayList<Object>(Arrays.asList(channel)), true, paramsInterval)).join();
@@ -465,7 +465,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         if (!java.util.Objects.equals(symbol, null))
         {
             Map<String, Object> market = this.market(symbol);
-            symbolResolved = java.util.Objects.toString(market.get("symbol"), null);
+            symbolResolved = this.safeString(market, "symbol");
             channel = ((("user.orders." + this.safeString(market, "id", "")) + ".") + interval);
         }
         io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) (this.subscribe(new ArrayList<Object>(Arrays.asList(channel)), new ArrayList<Object>(Arrays.asList(channel)), true, paramsInterval)).join();

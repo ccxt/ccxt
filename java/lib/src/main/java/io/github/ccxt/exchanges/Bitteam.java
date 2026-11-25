@@ -549,7 +549,7 @@ public class Bitteam extends BitteamApi
         {
             return null;
         }
-        Boolean active = (Boolean) this.safeBool(market, "active", (Object) null);
+        Boolean active = (Boolean) this.safeBool(market, "active", null);
         String timeStart = this.safeString(market, "timeStart");
         Long created = this.parse8601(timeStart);
         Double minCost = null;
@@ -777,8 +777,8 @@ public class Bitteam extends BitteamApi
             feesByNetworkId = this.extend(withdrawCommissionFixed, new HashMap<String, Object>() {{}});
         }
         Map<String, Object> statuses = this.safeDict(statusesResponse, numericId, new HashMap<String, Object>() {{}});
-        Boolean deposit = (Boolean) this.safeBool(statuses, "depositStatus", (Object) null);
-        Boolean withdraw = (Boolean) this.safeBool(statuses, "withdrawStatus", (Object) null);
+        Boolean deposit = (Boolean) this.safeBool(statuses, "depositStatus", null);
+        Boolean withdraw = (Boolean) this.safeBool(statuses, "withdrawStatus", null);
         List<String> networkIds = new ArrayList<String>(feesByNetworkId.keySet());
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Double networkPrecision = this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals")));

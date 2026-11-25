@@ -991,7 +991,7 @@ public class Coinone extends CoinoneApi
         //
         Long timestamp = this.safeInteger(trade, "timestamp");
         Map<String, Object> marketResolved = this.safeMarket(null, market, null, null);
-        Boolean isSellerMaker = (Boolean) this.safeBool(trade, "is_seller_maker", (Object) null);
+        Boolean isSellerMaker = (Boolean) this.safeBool(trade, "is_seller_maker", null);
         String side = null;
         if (!java.util.Objects.equals(isSellerMaker, null))
         {
@@ -1303,7 +1303,7 @@ public class Coinone extends CoinoneApi
         {
             if ((!java.util.Objects.equals(remainingString, null)) && (!java.util.Objects.equals(amountString, null)))
             {
-                Object isLessThan = Precise.stringLt(remainingString, amountString);
+                Boolean isLessThan = Precise.stringLt(remainingString, amountString);
                 if (Boolean.TRUE.equals(isLessThan))
                 {
                     status = "canceled";

@@ -1286,7 +1286,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 } else
                 {
                     Map<String, Object> previousOrders = this.safeDict(((io.github.ccxt.ws.ArrayCache)orders).hashmap, symbol, new HashMap<String, Object>() {{}});
-                    Map<String, Object> previousOrder = (Map<String, Object>) this.safeDict2(previousOrders, orderId, clientOrderId, null);
+                    Map<String, Object> previousOrder = this.safeDict2(previousOrders, orderId, clientOrderId, null);
                     Map<String, Object> trade = this.parseWsTrade(order, null);
                     this.handleMyTrades(client, trade);
                     if (java.util.Objects.equals(previousOrder, null))

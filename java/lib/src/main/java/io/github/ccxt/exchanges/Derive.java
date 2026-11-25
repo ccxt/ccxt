@@ -1235,7 +1235,7 @@ public class Derive extends DeriveApi
         mapLiteral1.put("swap", swap);
         mapLiteral1.put("future", false);
         mapLiteral1.put("option", option);
-        mapLiteral1.put("active", this.safeBool(market, "is_active", (Object) null));
+        mapLiteral1.put("active", this.safeBool(market, "is_active", null));
         mapLiteral1.put("contract", (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(option)));
         mapLiteral1.put("linear", linear);
         mapLiteral1.put("inverse", inverse);
@@ -2476,7 +2476,7 @@ public class Derive extends DeriveApi
         Boolean test = (Boolean) this.safeBool(paramsDeriveSubaccountId, "test", false);
         Boolean reduceOnly = (Boolean) this.safeBool2(paramsDeriveSubaccountId, "reduceOnly", "reduce_only", null);
         String timeInForce = this.safeStringLower2(paramsDeriveSubaccountId, "timeInForce", "time_in_force");
-        Boolean postOnly = (Boolean) this.safeBool(paramsDeriveSubaccountId, "postOnly", (Object) null);
+        Boolean postOnly = (Boolean) this.safeBool(paramsDeriveSubaccountId, "postOnly", null);
         String orderType = type.toLowerCase();
         String orderSide = ((String)((String)side)).toLowerCase();
         Boolean orderSideIsBuy = (java.util.Objects.equals(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
@@ -2653,7 +2653,7 @@ public class Derive extends DeriveApi
         var paramsDeriveSubaccountId = ((List<Object>) subaccountIdparamsDeriveSubaccountIdVariable).get(1);
         Boolean reduceOnly = (Boolean) this.safeBool2(paramsDeriveSubaccountId, "reduceOnly", "reduce_only", null);
         String timeInForce = this.safeStringLower2(paramsDeriveSubaccountId, "timeInForce", "time_in_force");
-        Boolean postOnly = (Boolean) this.safeBool(paramsDeriveSubaccountId, "postOnly", (Object) null);
+        Boolean postOnly = (Boolean) this.safeBool(paramsDeriveSubaccountId, "postOnly", null);
         String orderType = type.toLowerCase();
         String orderSide = ((String)((String)side)).toLowerCase();
         Boolean orderSideIsBuy = (java.util.Objects.equals(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
@@ -3415,7 +3415,7 @@ public class Derive extends DeriveApi
         mapLiteral5.put("type", orderType);
         mapLiteral5.put("timeInForce", this.parseTimeInForce(timeInForce));
         mapLiteral5.put("postOnly", null);
-        mapLiteral5.put("reduceOnly", this.safeBool(order, "reduce_only", (Object) null));
+        mapLiteral5.put("reduceOnly", this.safeBool(order, "reduce_only", null));
         mapLiteral5.put("side", side);
         mapLiteral5.put("price", price);
         mapLiteral5.put("triggerPrice", triggerPrice);
@@ -4720,7 +4720,7 @@ public class Derive extends DeriveApi
         String amountString = this.decimalToPrecision(this.numberToString(amount), TRUNCATE, decimals, DECIMAL_PLACES);
         // the withdrawal amount is the protocol's only non-e18 action value, it is signed at the native decimals of the underlying erc20
         String one = "1";
-        String scale = Helpers.padEnd(one, ((Number)(decimals + 1L)).intValue(), ((String)"0").charAt(0));
+        String scale = (one.length() >= ((Number)(decimals + 1L)).intValue() ? one.substring(0, ((Number)(decimals + 1L)).intValue()) : one + "0".repeat(((Number)(decimals + 1L)).intValue() - one.length()));
         String amountScaled = Precise.stringMul(amountString, scale);
         String nonce = this.nonceString();
         Long signatureExpiry = this.safeInteger(paramsOmitted, "signature_expiry_sec", (this.seconds() + 7776000L));

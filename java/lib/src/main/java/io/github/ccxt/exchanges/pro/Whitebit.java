@@ -619,7 +619,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, null);
             } else
             {
-                feeCurrencyCode = java.util.Objects.toString(marketResolved.get("quote"), null);
+                feeCurrencyCode = this.safeString(marketResolved, "quote");
             }
             {
                 HashMap<String, Object> hx4NewMap0 = new HashMap<String, Object>();

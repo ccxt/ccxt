@@ -923,8 +923,8 @@ public class Bitrue extends BitrueApi
                 mapLiteral1.put("info", entry);
                 mapLiteral1.put("id", networkId);
                 mapLiteral1.put("network", network);
-                mapLiteral1.put("deposit", this.safeBool(entry, "enableDeposit", (Object) null));
-                mapLiteral1.put("withdraw", this.safeBool(entry, "enableWithdraw", (Object) null));
+                mapLiteral1.put("deposit", this.safeBool(entry, "enableDeposit", null));
+                mapLiteral1.put("withdraw", this.safeBool(entry, "enableWithdraw", null));
                 mapLiteral1.put("active", null);
                 mapLiteral1.put("fee", this.safeNumber(entry, "withdrawFee", null));
                 mapLiteral1.put("precision", null);
@@ -1974,8 +1974,8 @@ public class Bitrue extends BitrueApi
         String orderId = this.safeString(trade, "orderId");
         String id = this.safeString2(trade, "id", "tradeId");
         String side = null;
-        Boolean buyerMaker = (Boolean) this.safeBool(trade, "isBuyerMaker", (Object) null); // ignore "m" until Bitrue fixes api
-        Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer", (Object) null);
+        Boolean buyerMaker = (Boolean) this.safeBool(trade, "isBuyerMaker", null); // ignore "m" until Bitrue fixes api
+        Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer", null);
         if (!java.util.Objects.equals(buyerMaker, null))
         {
             side = ((Boolean.TRUE.equals(buyerMaker))) ? "sell" : "buy";
@@ -1993,7 +1993,7 @@ public class Bitrue extends BitrueApi
             }};
         }
         String takerOrMaker = null;
-        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", (Object) null);
+        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker", null);
         if (!java.util.Objects.equals(isMaker, null))
         {
             takerOrMaker = ((Boolean.TRUE.equals(isMaker))) ? "maker" : "taker";

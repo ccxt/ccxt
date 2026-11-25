@@ -415,7 +415,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //        }
         //    }
         //
-        Map<String, Object> snapshot = (Map<String, Object>) this.safeDict2(message, "snapshot", "data", null);
+        Map<String, Object> snapshot = this.safeDict2(message, "snapshot", "data", null);
         Map<String, Object> data = this.safeDict(message, "update", new HashMap<String, Object>() {{}});
         if (!java.util.Objects.equals(snapshot, null))
         {
@@ -786,7 +786,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         String bidAskSymbol = null;
         if (!java.util.Objects.equals(market, null))
         {
-            bidAskSymbol = java.util.Objects.toString(market.get("symbol"), null);
+            bidAskSymbol = this.safeString(market, "symbol");
         }
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("symbol", bidAskSymbol);
@@ -912,7 +912,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //        }
         //    }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict2(message, "snapshot", "update", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict2(message, "snapshot", "update", new HashMap<String, Object>() {{}});
         List<String> marketIds = new ArrayList<String>(data.keySet());
         for (var i = 0; i < marketIds.size(); i++)
         {
@@ -1088,7 +1088,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         //        }
         //    }
         //
-        Map<String, Object> data = (Map<String, Object>) this.safeDict2(message, "snapshot", "update", new HashMap<String, Object>() {{}});
+        Map<String, Object> data = this.safeDict2(message, "snapshot", "update", new HashMap<String, Object>() {{}});
         List<String> marketIds = new ArrayList<String>(data.keySet());
         String channel = this.safeString(message, "ch", "");
         List<Object> splitChannel = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("/"))));
@@ -1407,7 +1407,7 @@ public class Hitbtc extends io.github.ccxt.exchanges.Hitbtc
         mapLiteral2.put("side", this.safeStringUpper(order, "side"));
         mapLiteral2.put("timeInForce", this.safeString(order, "time_in_force"));
         mapLiteral2.put("postOnly", this.safeString(order, "post_only"));
-        mapLiteral2.put("reduceOnly", this.safeBool(order, "reduce_only", (Object) null));
+        mapLiteral2.put("reduceOnly", this.safeBool(order, "reduce_only", null));
         mapLiteral2.put("filled", null);
         mapLiteral2.put("remaining", null);
         mapLiteral2.put("cost", null);

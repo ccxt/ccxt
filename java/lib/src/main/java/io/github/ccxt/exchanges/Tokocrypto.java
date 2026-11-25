@@ -1990,7 +1990,7 @@ public class Tokocrypto extends TokocryptoApi
         mapLiteral4.put("type", type);
         mapLiteral4.put("timeInForce", timeInForce);
         mapLiteral4.put("postOnly", postOnly);
-        mapLiteral4.put("reduceOnly", this.safeBool(order, "reduceOnly", (Object) null));
+        mapLiteral4.put("reduceOnly", this.safeBool(order, "reduceOnly", null));
         mapLiteral4.put("side", side);
         mapLiteral4.put("price", price);
         mapLiteral4.put("triggerPrice", this.parseNumber(this.omitZero(this.safeString(order, "stopPrice"))));

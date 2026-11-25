@@ -880,7 +880,11 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         Long minutes = this.parseToInt((((double) ((total + 59L))) / ((double) 60)));
         if ((minutes == null || minutes <= 30))
         {
-            return (this.numberToString(Math.max(minutes, 1)) + "min");
+            if (((minutes == null || minutes < 1)))
+            {
+                return "1min";
+            }
+            return (this.numberToString(minutes) + "min");
         }
         Long hours = this.parseToInt((((double) ((total + 3599L))) / ((double) 3600)));
         if ((hours == null || hours <= 8))
@@ -903,7 +907,11 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             return (this.numberToString(months) + "m");
         }
         Long years = this.parseToInt((((double) ((total + 31535999L))) / ((double) 31536000)));
-        return (this.numberToString(Math.min(years, 15)) + "y");
+        if ((years != null && years > 15))
+        {
+            return "15y";  // the documented maximum period
+        }
+        return (this.numberToString(years) + "y");
     }
 
     /**
@@ -961,14 +969,14 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         for (var i = 0; i < timeframes.size(); i++)
         {
             String timeframe = (timeframes == null || i < 0 || i >= timeframes.size() ? null : timeframes.get(i));
-            Object stored = (ohlcvsBySymbol == null || timeframe == null ? null : ohlcvsBySymbol.get(timeframe));
+            io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) (ohlcvsBySymbol == null || timeframe == null ? null : ohlcvsBySymbol.get(timeframe));
             Long duration = (((long) this.parseTimeframe(timeframe)) * 1000L);
             Long candleTimestamp = (this.parseToInt((((double) timestamp) / ((double) duration))) * duration);
-            Integer length = (switch ((Object)(stored)) { case null -> 0; case List<?> j39v3 -> j39v3.size(); case String j39v4 -> j39v4.length(); case Object j39v5 -> j39v5.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v5) : 0; });
+            Integer length = stored.size();
             Object candle = null;
             if ((length != null && length > 0))
             {
-                Object lastCandle = Helpers.GetValue(stored, (length - 1L));
+                Object lastCandle = (stored == null || ((int) (((long) length) - 1L)) < 0 || ((int) (((long) length) - 1L)) >= stored.size() ? null : stored.get(((int) (((long) length) - 1L))));
                 if (Helpers.isEqual(Helpers.GetValue(lastCandle, 0), candleTimestamp))
                 {
                     candle = lastCandle;
@@ -979,7 +987,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             }
             if (java.util.Objects.equals(candle, null))
             {
-                ((io.github.ccxt.ws.ArrayCache) stored).append(new ArrayList<Object>(Arrays.asList(candleTimestamp, price, price, price, price, size)));
+                stored.append(new ArrayList<Object>(Arrays.asList(candleTimestamp, price, price, price, price, size)));
             } else
             {
                 Double high = price;
@@ -995,7 +1003,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
                     low = prevLow;
                 }
                 Object volume = this.sum(Helpers.GetValue(candle, 5), size);
-                ((io.github.ccxt.ws.ArrayCache) stored).append(new ArrayList<Object>(Arrays.asList(candleTimestamp, Helpers.GetValue(candle, 1), high, low, price, volume)));
+                stored.append(new ArrayList<Object>(Arrays.asList(candleTimestamp, Helpers.GetValue(candle, 1), high, low, price, volume)));
             }
             client.resolve(stored, ((("ohlcv::" + symbol) + "::") + timeframe));
         }
@@ -1267,10 +1275,10 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
             Boolean fetchOrdersSnapshot = (Boolean) this.safeBool(options, "fetchOrdersSnapshot", true);
             if (Boolean.TRUE.equals(fetchOrdersSnapshot))
             {
-                Object snapshot = (this.fetchLiveOrdersRaw(new HashMap<String, Object>() {{}})).join();
-                for (var i = 0; i < ((List<?>)snapshot).size(); i++)
+                List<Object> snapshot = (this.fetchLiveOrdersRaw(new HashMap<String, Object>() {{}})).join();
+                for (var i = 0; i < snapshot.size(); i++)
                 {
-                    Object rawOrder = (snapshot == null || i < 0 || i >= ((List<?>)snapshot).size() ? null : ((List<?>)snapshot).get(i));
+                    Object rawOrder = (snapshot == null || i < 0 || i >= snapshot.size() ? null : snapshot.get(i));
                     String orderId = this.safeString(rawOrder, "orderId");
                     if (!java.util.Objects.equals(orderId, null))
                     {
@@ -1710,7 +1718,7 @@ public class Interactivebrokers extends io.github.ccxt.exchanges.Interactivebrok
         //     { "topic": "sts", "args": { "authenticated": true, "competing": false, "message": "", "fail": "", "serverName": "...", "serverVersion": "..." } }
         //
         Map<String, Object> args = this.safeDict(message, "args", new HashMap<String, Object>() {{}});
-        Boolean authenticated = (Boolean) this.safeBool(args, "authenticated", (Object) null);
+        Boolean authenticated = (Boolean) this.safeBool(args, "authenticated", null);
         if (java.util.Objects.equals(authenticated, null))
         {
             return;
