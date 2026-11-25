@@ -1770,7 +1770,20 @@ class blofin(Exchange, ImplicitAPI):
         if amount is not None:
             request['newSize'] = self.amount_to_precision(symbol, amount)
         query = self.omit(params, ['clientOrderId', 'trigger', 'tpsl', 'TPSL', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'stopLossLimitPrice', 'takeProfitLimitPrice'])
-        response = None
+        #
+        #     {
+        #         "code": "0",
+        #         "msg": "Order modified",
+        #         "data": {
+        #             "orderId": "6000004088576",
+        #             "clientOrderId": "",
+        #             "requestId": "",
+        #             "msg": "Order modified",
+        #             "code": "0",
+        #             "ts": "1795184228537"
+        #         }
+        #     }
+        #
         if isTpsl:
             stopLossPrice = self.safe_string(params, 'stopLossPrice')
             if stopLossPrice is not None:
@@ -1788,7 +1801,8 @@ class blofin(Exchange, ImplicitAPI):
                     request['newTpOrderPrice'] = '-1'
                 elif tpLimitPrice is not None:
                     request['newTpOrderPrice'] = self.price_to_precision(symbol, tpLimitPrice)
-            response = self.privatePostTradeAmendTpsl(self.extend(request, query))
+            tpslResponse = self.privatePostTradeAmendTpsl(self.extend(request, query))
+            return self.parse_order(self.safe_dict(tpslResponse, 'data', {}), market)
         elif isTrigger:
             triggerPrice = self.safe_string(params, 'triggerPrice')
             if triggerPrice is not None:
@@ -1797,27 +1811,13 @@ class blofin(Exchange, ImplicitAPI):
                 request['newOrderPrice'] = '-1'
             elif price is not None:
                 request['newOrderPrice'] = self.price_to_precision(symbol, price)
-            response = self.privatePostTradeAmendAlgo(self.extend(request, query))
+            algoResponse = self.privatePostTradeAmendAlgo(self.extend(request, query))
+            return self.parse_order(self.safe_dict(algoResponse, 'data', {}), market)
         else:
             if price is not None:
                 request['newPrice'] = self.price_to_precision(symbol, price)
             response = self.privatePostTradeAmendOrder(self.extend(request, query))
-        #
-        #     {
-        #         "code": "0",
-        #         "msg": "Order modified",
-        #         "data": {
-        #             "orderId": "6000004088576",
-        #             "clientOrderId": "",
-        #             "requestId": "",
-        #             "msg": "Order modified",
-        #             "code": "0",
-        #             "ts": "1795184228537"
-        #         }
-        #     }
-        #
-        data = self.safe_dict(response, 'data', {})
-        return self.parse_order(data, market)
+            return self.parse_order(self.safe_dict(response, 'data', {}), market)
 
     def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
