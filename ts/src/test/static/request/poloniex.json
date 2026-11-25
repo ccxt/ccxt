@@ -17,6 +17,45 @@
                 "output": null
             }
         ],
+        "fetchFundingRateHistory": [
+            {
+                "description": "swap funding rate history",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.poloniex.com/v3/market/fundingRate/history?symbol=BTC_USDT_PERP",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "output": null
+            },
+            {
+                "description": "swap funding rate history with since, limit and until (ms converted to seconds, floored)",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.poloniex.com/v3/market/fundingRate/history?symbol=BTC_USDT_PERP&sT=1795276800&limit=3&eT=1795363200",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1795276800999,
+                    3,
+                    {
+                        "until": 1795363200500
+                    }
+                ],
+                "output": null
+            },
+            {
+                "description": "swap funding rate history with the till alias for until",
+                "method": "fetchFundingRateHistory",
+                "url": "https://api.poloniex.com/v3/market/fundingRate/history?symbol=BTC_USDT_PERP&sT=1795276800&limit=3&eT=1795363200",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1795276800000,
+                    3,
+                    {
+                        "till": 1795363200500
+                    }
+                ],
+                "output": null
+            }
+        ],
         "transfer": [
             {
                 "description": "transfer with exchange-specific toAccount",
